@@ -49,19 +49,19 @@ public class Column {
     /**
      * This column is not nullable.
      */
-    public static final int NOT_NULLABLE = 
+    public static final int NOT_NULLABLE =
             ResultSetMetaData.columnNoNulls;
 
     /**
      * This column is nullable.
      */
-    public static final int NULLABLE = 
+    public static final int NULLABLE =
             ResultSetMetaData.columnNullable;
 
     /**
      * It is not know whether this column is nullable.
      */
-    public static final int NULLABLE_UNKNOWN = 
+    public static final int NULLABLE_UNKNOWN =
             ResultSetMetaData.columnNullableUnknown;
 
     private final int type;
@@ -115,7 +115,7 @@ public class Column {
             return false;
         }
         Column other = (Column) o;
-        if (table == null || other.table == null || 
+        if (table == null || other.table == null ||
                 name == null || other.name == null) {
             return false;
         }
@@ -150,10 +150,10 @@ public class Column {
             return v.convertTo(type);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
-                String target = (table == null ? "" : table.getName() + ": ") + 
+                String target = (table == null ? "" : table.getName() + ": ") +
                         getCreateSQL();
                 throw DbException.get(
-                        ErrorCode.DATA_CONVERSION_ERROR_1, 
+                        ErrorCode.DATA_CONVERSION_ERROR_1,
                         v.getSQL() + " (" + target + ")");
             }
             throw e;
@@ -317,7 +317,7 @@ public class Column {
             // Both TRUE and NULL are ok
             if (Boolean.FALSE.equals(v.getBoolean())) {
                 throw DbException.get(
-                        ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, 
+                        ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
                         checkConstraint.getSQL());
             }
         }

@@ -88,7 +88,7 @@ public class RegularTable extends TableBase {
             scanIndex = mainIndex;
         } else {
             mainIndex = null;
-            scanIndex = new ScanIndex(this, data.id, 
+            scanIndex = new ScanIndex(this, data.id,
                     IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
         }
         indexes.add(scanIndex);
@@ -216,7 +216,7 @@ public class RegularTable extends TableBase {
         Index index;
         if (isPersistIndexes() && indexType.isPersistent()) {
             int mainIndexColumn;
-            if (database.isStarting() && 
+            if (database.isStarting() &&
                     database.getPageStore().getRootPageId(indexId) != 0) {
                 mainIndexColumn = -1;
             } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0) {
@@ -281,7 +281,7 @@ public class RegularTable extends TableBase {
                 }
                 addRowsToIndex(session, buffer, index);
                 if (SysProperties.CHECK && remaining != 0) {
-                    DbException.throwInternalError("rowcount remaining=" + 
+                    DbException.throwInternalError("rowcount remaining=" +
                             remaining + " " + getName());
                 }
             } catch (DbException e) {

@@ -35,7 +35,8 @@ public class TestLimit extends TestBase {
         deleteDb("limit");
         Connection conn = getConnection("limit");
         stat = conn.createStatement();
-        stat.execute("create table test(id int) as select x from system_range(1, 10)");
+        stat.execute("create table test(id int) as " +
+                "select x from system_range(1, 10)");
         for (int maxRows = 0; maxRows < 12; maxRows++) {
             stat.setMaxRows(maxRows);
             for (int limit = -2; limit < 12; limit++) {
@@ -63,7 +64,8 @@ public class TestLimit extends TestBase {
                         for (int unionLimit = -2; unionLimit < 5; unionLimit++) {
                             int e = unionLimit < 0 ? 20 : Math.min(20, unionLimit);
                             e = Math.min(expected, e);
-                            String u = union + " limit " + (unionLimit == -2 ? "null" : unionLimit);
+                            String u = union + " limit " +
+                                    (unionLimit == -2 ? "null" : unionLimit);
                             assertRow(e, u);
                         }
                     }

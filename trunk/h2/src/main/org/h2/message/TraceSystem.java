@@ -287,7 +287,8 @@ public class TraceSystem implements TraceWriter {
             return;
         }
         writingErrorLogged = true;
-        Exception se = DbException.get(ErrorCode.TRACE_FILE_ERROR_2, e, fileName, e.toString());
+        Exception se = DbException.get(
+                ErrorCode.TRACE_FILE_ERROR_2, e, fileName, e.toString());
         // print this error only once
         fileName = null;
         sysOut.println(se);
@@ -303,7 +304,8 @@ public class TraceSystem implements TraceWriter {
                     // can't be opened
                     return false;
                 }
-                fileWriter = IOUtils.getBufferedWriter(FileUtils.newOutputStream(fileName, true));
+                fileWriter = IOUtils.getBufferedWriter(
+                        FileUtils.newOutputStream(fileName, true));
                 printWriter = new PrintWriter(fileWriter, true);
             } catch (Exception e) {
                 logWritingError(e);

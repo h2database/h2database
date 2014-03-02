@@ -320,7 +320,7 @@ public class DateTimeUtils {
             String n = (s.substring(s3 + 1, end) + "000000000").substring(0, 9);
             nanos = Integer.parseInt(n);
         }
-        if (hour >= 2000000 || minute < 0 || 
+        if (hour >= 2000000 || minute < 0 ||
                 minute >= 60 || second < 0 || second >= 60) {
             throw new IllegalArgumentException(s);
         }
@@ -591,7 +591,7 @@ public class DateTimeUtils {
             }
             return df;
         } catch (Exception e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, 
+            throw DbException.get(ErrorCode.PARSE_ERROR_1, e,
                     format + "/" + locale + "/" + timeZone);
         }
     }

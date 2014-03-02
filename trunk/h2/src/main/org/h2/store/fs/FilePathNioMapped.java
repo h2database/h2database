@@ -94,7 +94,7 @@ class FileNioMapped extends FileBase {
             }
         }
         if (useSystemGc) {
-            WeakReference<MappedByteBuffer> bufferWeakRef = 
+            WeakReference<MappedByteBuffer> bufferWeakRef =
                     new WeakReference<MappedByteBuffer>(mapped);
             mapped = null;
             long start = System.currentTimeMillis();
@@ -126,7 +126,7 @@ class FileNioMapped extends FileBase {
         int limit = mapped.limit();
         int capacity = mapped.capacity();
         if (limit < fileLength || capacity < fileLength) {
-            throw new IOException("Unable to map: length=" + limit + 
+            throw new IOException("Unable to map: length=" + limit +
                     " capacity=" + capacity + " length=" + fileLength);
         }
         if (SysProperties.NIO_LOAD_MAPPED) {

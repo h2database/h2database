@@ -115,7 +115,8 @@ public class Comparison extends Condition {
     private Expression left;
     private Expression right;
 
-    public Comparison(Session session, int compareType, Expression left, Expression right) {
+    public Comparison(Session session, int compareType, Expression left,
+            Expression right) {
         this.database = session.getDatabase();
         this.left = left;
         this.right = right;
@@ -136,7 +137,8 @@ public class Comparison extends Condition {
             sql = "INTERSECTS(" + left.getSQL() + ", " + right.getSQL() + ")";
             break;
         default:
-            sql = left.getSQL() + " " + getCompareOperator(compareType) + " " + right.getSQL();
+            sql = left.getSQL() + " " + getCompareOperator(compareType) +
+                    " " + right.getSQL();
         }
         return "(" + sql + ")";
     }
@@ -194,7 +196,8 @@ public class Comparison extends Condition {
                         }
                     }
                 } else if (right instanceof Parameter) {
-                    ((Parameter) right).setColumn(((ExpressionColumn) left).getColumn());
+                    ((Parameter) right).setColumn(
+                            ((ExpressionColumn) left).getColumn());
                 }
             }
         }
@@ -206,7 +209,8 @@ public class Comparison extends Condition {
             if (SysProperties.CHECK && (left == null || right == null)) {
                 DbException.throwInternalError();
             }
-            if (left == ValueExpression.getNull() || right == ValueExpression.getNull()) {
+            if (left == ValueExpression.getNull() ||
+                    right == ValueExpression.getNull()) {
                 // TODO NULL handling: maybe issue a warning when comparing with
                 // a NULL constants
                 if ((compareType & NULL_SAFE) == 0) {
@@ -265,7 +269,8 @@ public class Comparison extends Condition {
      * @return true if the comparison indicated by the comparison type evaluates
      *         to true
      */
-    static boolean compareNotNull(Database database, Value l, Value r, int compareType) {
+    static boolean compareNotNull(Database database, Value l, Value r,
+            int compareType) {
         boolean result;
         switch (compareType) {
         case EQUAL:
@@ -371,7 +376,10 @@ public class Comparison extends Condition {
                 switch (compareType) {
                 case IS_NULL:
                     if (session.getDatabase().getSettings().optimizeIsNull) {
-                        filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL_NULL_SAFE, l, ValueExpression.getNull()));
+                        filter.addIndexCondition(
+                                IndexCondition.get(
+                                        Comparison.EQUAL_NULL_SAFE, l,
+                                        ValueExpression.getNull()));
                     }
                 }
             }
@@ -392,12 +400,14 @@ public class Comparison extends Condition {
             return;
         }
         if (l == null) {
-            ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
+            ExpressionVisitor visitor =
+                    ExpressionVisitor.getNotFromResolverVisitor(filter);
             if (!left.isEverything(visitor)) {
                 return;
             }
         } else if (r == null) {
-            ExpressionVisitor visitor = ExpressionVisitor.getNotFromResolverVisitor(filter);
+            ExpressionVisitor visitor =
+                    ExpressionVisitor.getNotFromResolverVisitor(filter);
             if (!right.isEverything(visitor)) {
                 return;
             }
@@ -426,10 +436,12 @@ public class Comparison extends Condition {
         }
         if (addIndex) {
             if (l != null) {
-                filter.addIndexCondition(IndexCondition.get(compareType, l, right));
+                filter.addIndexCondition(
+                        IndexCondition.get(compareType, l, right));
             } else if (r != null) {
                 int compareRev = getReversedCompareType(compareType);
-                filter.addIndexCondition(IndexCondition.get(compareRev, r, left));
+                filter.addIndexCondition(
+                        IndexCondition.get(compareRev, r, left));
             }
         }
     }
@@ -454,9 +466,11 @@ public class Comparison extends Condition {
     public void addFilterConditions(TableFilter filter, boolean outerJoin) {
         if (compareType == IS_NULL && outerJoin) {
             // can not optimize:
-            // select * from test t1 left join test t2 on t1.id = t2.id where t2.id is null
+            // select * from test t1 left join test t2 on t1.id = t2.id
+            // where t2.id is null
             // to
-            // select * from test t1 left join test t2 on t1.id = t2.id and t2.id is null
+            // select * from test t1 left join test t2
+            // on t1.id = t2.id and t2.id is null
             return;
         }
         super.addFilterConditions(filter, outerJoin);
@@ -472,7 +486,8 @@ public class Comparison extends Condition {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        return left.isEverything(visitor) && (right == null || right.isEverything(visitor));
+        return left.isEverything(visitor) &&
+                (right == null || right.isEverything(visitor));
     }
 
     @Override
@@ -511,8 +526,10 @@ public class Comparison extends Condition {
      */
     Expression getAdditional(Session session, Comparison other, boolean and) {
         if (compareType == other.compareType && compareType == EQUAL) {
-            boolean lc = left.isConstant(), rc = right.isConstant();
-            boolean l2c = other.left.isConstant(), r2c = other.right.isConstant();
+            boolean lc = left.isConstant();
+            boolean rc = right.isConstant();
+            boolean l2c = other.left.isConstant();
+            boolean r2c = other.right.isConstant();
             String l = left.getSQL();
             String l2 = other.left.getSQL();
             String r = right.getSQL();
@@ -533,13 +550,17 @@ public class Comparison extends Condition {
                 // a=b OR a=c
                 Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
-                    return new ConditionIn(db, left, New.arrayList(Arrays.asList(right, other.right)));
+                    return new ConditionIn(db, left,
+                            New.arrayList(Arrays.asList(right, other.right)));
                 } else if (rc && l2c && l.equals(r2)) {
-                    return new ConditionIn(db, left, New.arrayList(Arrays.asList(right, other.left)));
+                    return new ConditionIn(db, left,
+                            New.arrayList(Arrays.asList(right, other.left)));
                 } else if (lc && r2c && r.equals(l2)) {
-                    return new ConditionIn(db, right, New.arrayList(Arrays.asList(left, other.right)));
+                    return new ConditionIn(db, right,
+                            New.arrayList(Arrays.asList(left, other.right)));
                 } else if (lc && l2c && r.equals(r2)) {
-                    return new ConditionIn(db, right, New.arrayList(Arrays.asList(left, other.left)));
+                    return new ConditionIn(db, right,
+                            New.arrayList(Arrays.asList(left, other.left)));
                 }
             }
         }

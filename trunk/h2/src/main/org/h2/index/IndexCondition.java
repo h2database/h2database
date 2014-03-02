@@ -79,7 +79,8 @@ public class IndexCondition {
     /**
      * @param compareType the comparison type, see constants in {@link Comparison}
      */
-    private IndexCondition(int compareType, ExpressionColumn column, Expression expression) {
+    private IndexCondition(int compareType, ExpressionColumn column,
+            Expression expression) {
         this.compareType = compareType;
         this.column = column == null ? null : column.getColumn();
         this.expression = expression;
@@ -93,7 +94,8 @@ public class IndexCondition {
      * @param expression the expression
      * @return the index condition
      */
-    public static IndexCondition get(int compareType, ExpressionColumn column, Expression expression) {
+    public static IndexCondition get(int compareType, ExpressionColumn column,
+            Expression expression) {
         return new IndexCondition(compareType, column, expression);
     }
 
@@ -105,7 +107,8 @@ public class IndexCondition {
      * @param list the expression list
      * @return the index condition
      */
-    public static IndexCondition getInList(ExpressionColumn column, List<Expression> list) {
+    public static IndexCondition getInList(ExpressionColumn column,
+            List<Expression> list) {
         IndexCondition cond = new IndexCondition(Comparison.IN_LIST, column, null);
         cond.expressionList = list;
         return cond;

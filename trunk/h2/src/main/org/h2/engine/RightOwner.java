@@ -26,7 +26,8 @@ public abstract class RightOwner extends DbObjectBase {
      */
     private HashMap<Table, Right> grantedRights;
 
-    protected RightOwner(Database database, int id, String name, String traceModule) {
+    protected RightOwner(Database database, int id, String name,
+            String traceModule) {
         initDbObjectBase(database, id, name, traceModule);
     }
 

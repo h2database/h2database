@@ -181,11 +181,11 @@ public class PageLog {
         trace.debug("log openForWriting firstPage: " + newFirstTrunkPage);
         this.firstTrunkPage = newFirstTrunkPage;
         logKey++;
-        pageOut = new PageOutputStream(store, 
+        pageOut = new PageOutputStream(store,
                 newFirstTrunkPage, undoAll, logKey, atEnd);
         pageOut.reserve(1);
         // pageBuffer = new BufferedOutputStream(pageOut, 8 * 1024);
-        store.setLogFirstPage(logKey, newFirstTrunkPage, 
+        store.setLogFirstPage(logKey, newFirstTrunkPage,
                 pageOut.getCurrentDataPageId());
         writeBuffer = store.createData();
     }
@@ -260,13 +260,13 @@ public class PageLog {
             trace.debug("log recover stage: " + stage);
         }
         if (stage == RECOVERY_STAGE_ALLOCATE) {
-            PageInputStream in = new PageInputStream(store, 
+            PageInputStream in = new PageInputStream(store,
                     logKey, firstTrunkPage, firstDataPage);
             usedLogPages = in.allocateAllPages();
             in.close();
             return true;
         }
-        PageInputStream pageIn = new PageInputStream(store, 
+        PageInputStream pageIn = new PageInputStream(store,
                 logKey, firstTrunkPage, firstDataPage);
         DataReader in = new DataReader(pageIn);
         int logId = 0;
@@ -292,7 +292,7 @@ public class PageLog {
                     } else {
                         in.readFully(compressBuffer, size);
                         try {
-                            compress.expand(compressBuffer, 0, size, 
+                            compress.expand(compressBuffer, 0, size,
                                     data.getBytes(), 0, store.getPageSize());
                         } catch (ArrayIndexOutOfBoundsException e) {
                             DbException.convertToIOException(e);
@@ -321,13 +321,13 @@ public class PageLog {
                     } else if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo + table: " + tableId + 
+                                trace.debug("log redo + table: " + tableId +
                                         " s: " + sessionId + " " + row);
                             }
                             store.redo(tableId, row, true);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s: " + sessionId + 
+                                trace.debug("log ignore s: " + sessionId +
                                         " + table: " + tableId + " " + row);
                             }
                         }
@@ -339,13 +339,13 @@ public class PageLog {
                     if (stage == RECOVERY_STAGE_REDO) {
                         if (isSessionCommitted(sessionId, logId, pos)) {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log redo - table: " + tableId + 
+                                trace.debug("log redo - table: " + tableId +
                                         " s:" + sessionId + " key: " + key);
                             }
                             store.redoDelete(tableId, key);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s: " + sessionId + 
+                                trace.debug("log ignore s: " + sessionId +
                                         " - table: " + tableId + " " + key);
                             }
                         }
@@ -361,7 +361,7 @@ public class PageLog {
                             store.redoTruncate(tableId);
                         } else {
                             if (trace.isDebugEnabled()) {
-                                trace.debug("log ignore s: "+ sessionId + 
+                                trace.debug("log ignore s: "+ sessionId +
                                         " truncate table: " + tableId);
                             }
                         }
@@ -370,7 +370,7 @@ public class PageLog {
                     int sessionId = in.readVarInt();
                     String transaction = in.readString();
                     if (trace.isDebugEnabled()) {
-                        trace.debug("log prepare commit " + sessionId + " " + 
+                        trace.debug("log prepare commit " + sessionId + " " +
                                 transaction + " pos: " + pos);
                     }
                     if (stage == RECOVERY_STAGE_UNDO) {
@@ -510,7 +510,7 @@ public class PageLog {
         } else {
             int pageSize = store.getPageSize();
             if (COMPRESS_UNDO) {
-                int size = compress.compress(page.getBytes(), 
+                int size = compress.compress(page.getBytes(),
                         pageSize, compressBuffer, 0);
                 if (size < pageSize) {
                     buffer.writeVarInt(size);
@@ -532,7 +532,7 @@ public class PageLog {
 
     private void freeLogPages(IntArray pages) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log frees " + pages.get(0) + ".." + 
+            trace.debug("log frees " + pages.get(0) + ".." +
                     pages.get(pages.size() - 1));
         }
         Data buffer = getBuffer();
@@ -617,7 +617,7 @@ public class PageLog {
      */
     void logAddOrRemoveRow(Session session, int tableId, Row row, boolean add) {
         if (trace.isDebugEnabled()) {
-            trace.debug("log " + (add ? "+" : "-") + 
+            trace.debug("log " + (add ? "+" : "-") +
                     " s: " + session.getId() + " table: " + tableId + " row: " + row);
         }
         session.addLogPos(logSectionId, logPos);

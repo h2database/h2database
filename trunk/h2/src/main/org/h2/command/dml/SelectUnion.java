@@ -153,7 +153,8 @@ public class SelectUnion extends Query {
         }
         if (session.getDatabase().getSettings().optimizeInsertFromSelect) {
             if (unionType == UNION_ALL && target != null) {
-                if (sort == null && !distinct && maxRows == 0 && offsetExpr == null && limitExpr == null) {
+                if (sort == null && !distinct && maxRows == 0 &&
+                        offsetExpr == null && limitExpr == null) {
                     left.query(0, target);
                     right.query(0, target);
                     return null;
@@ -352,7 +353,8 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public void addGlobalCondition(Parameter param, int columnId, int comparisonType) {
+    public void addGlobalCondition(Parameter param, int columnId,
+            int comparisonType) {
         addParameter(param);
         switch (unionType) {
         case UNION_ALL:
@@ -397,13 +399,16 @@ public class SelectUnion extends Query {
             buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT ").append(StringUtils.unEnclose(limitExpr.getSQL()));
+            buff.append("\nLIMIT ").append(
+                    StringUtils.unEnclose(limitExpr.getSQL()));
             if (offsetExpr != null) {
-                buff.append("\nOFFSET ").append(StringUtils.unEnclose(offsetExpr.getSQL()));
+                buff.append("\nOFFSET ").append(
+                        StringUtils.unEnclose(offsetExpr.getSQL()));
             }
         }
         if (sampleSizeExpr != null) {
-            buff.append("\nSAMPLE_SIZE ").append(StringUtils.unEnclose(sampleSizeExpr.getSQL()));
+            buff.append("\nSAMPLE_SIZE ").append(
+                    StringUtils.unEnclose(sampleSizeExpr.getSQL()));
         }
         if (isForUpdate) {
             buff.append("\nFOR UPDATE");

@@ -218,7 +218,8 @@ public class PageDataIndex extends PageIndex {
         if (p instanceof PageDataOverflow) {
             return (PageDataOverflow) p;
         }
-        throw DbException.get(ErrorCode.FILE_CORRUPTED_1, p == null ? "null" : p.toString());
+        throw DbException.get(ErrorCode.FILE_CORRUPTED_1,
+                p == null ? "null" : p.toString());
     }
 
     /**
@@ -242,7 +243,8 @@ public class PageDataIndex extends PageIndex {
         PageData p = (PageData) pd;
         if (parent != -1) {
             if (p.getParentPageId() != parent) {
-                throw DbException.throwInternalError(p + " parent " + p.getParentPageId() + " expected " + parent);
+                throw DbException.throwInternalError(p +
+                        " parent " + p.getParentPageId() + " expected " + parent);
             }
         }
         return p;
@@ -308,8 +310,10 @@ public class PageDataIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        long cost = 10 * (tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET);
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
+        long cost = 10 * (tableData.getRowCountApproximation() +
+                Constants.COST_ROW_OFFSET);
         return cost;
     }
 
@@ -501,7 +505,8 @@ public class PageDataIndex extends PageIndex {
             if (delta != null) {
                 delta.remove(row);
             }
-            incrementRowCount(row.getSessionId(), operation == UndoLogRecord.DELETE ? 1 : -1);
+            incrementRowCount(row.getSessionId(),
+                    operation == UndoLogRecord.DELETE ? 1 : -1);
         }
     }
 
@@ -569,7 +574,8 @@ public class PageDataIndex extends PageIndex {
         if (memoryCount < Constants.MEMORY_FACTOR) {
             memoryPerPage += (x - memoryPerPage) / ++memoryCount;
         } else {
-            memoryPerPage += (x > memoryPerPage ? 1 : -1) + ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
+            memoryPerPage += (x > memoryPerPage ? 1 : -1) +
+                    ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
         }
     }
 

@@ -84,7 +84,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             public void call() throws Exception {
                 Connection c2 = getConnection(url);
                 while (!stop) {
-                    c2.prepareStatement("select * from test_view where x" + 
+                    c2.prepareStatement("select * from test_view where x" +
                             r.nextInt(len) + "=1");
                 }
                 c2.close();
@@ -93,7 +93,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         t.execute();
         SynchronizedVerifier.setDetect(SmallLRUCache.class, true);
         for (int i = 0; i < 1000; i++) {
-            conn.prepareStatement("select * from test_view where x" + 
+            conn.prepareStatement("select * from test_view where x" +
                     r.nextInt(len) + "=1");
         }
         t.get();
@@ -132,7 +132,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id bigint primary key) " + 
+        stat.execute("create table test(id bigint primary key) " +
                 "as select x from system_range(1, 1000)");
         Task t = new Task() {
             @Override

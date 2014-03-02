@@ -49,8 +49,9 @@ class FullTextSettings {
     /**
      * The prepared statement cache.
      */
-    private final SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>> cache =
-        new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
+    private final SoftHashMap<Connection,
+            SoftHashMap<String, PreparedStatement>> cache =
+            new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
 
     /**
      * The whitespace characters.
@@ -123,7 +124,8 @@ class FullTextSettings {
      * @param conn the connection
      * @return the settings
      */
-    protected static FullTextSettings getInstance(Connection conn) throws SQLException {
+    protected static FullTextSettings getInstance(Connection conn)
+            throws SQLException {
         String path = getIndexPath(conn);
         FullTextSettings setting = SETTINGS.get(path);
         if (setting == null) {
@@ -141,11 +143,14 @@ class FullTextSettings {
      */
     protected static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");
+        ResultSet rs = stat.executeQuery(
+                "CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");
         rs.next();
         String path = rs.getString(1);
         if ("MEM:UNNAMED".equals(path)) {
-            throw FullText.throwException("Fulltext search for private (unnamed) in-memory databases is not supported.");
+            throw FullText.throwException(
+                    "Fulltext search for private (unnamed) " +
+                    "in-memory databases is not supported.");
         }
         rs.close();
         return path;
@@ -158,7 +163,8 @@ class FullTextSettings {
      * @param sql the statement
      * @return the prepared statement
      */
-    protected synchronized PreparedStatement prepare(Connection conn, String sql) throws SQLException {
+    protected synchronized PreparedStatement prepare(Connection conn, String sql)
+            throws SQLException {
         SoftHashMap<String, PreparedStatement> c = cache.get(conn);
         if (c == null) {
             c = new SoftHashMap<String, PreparedStatement>();

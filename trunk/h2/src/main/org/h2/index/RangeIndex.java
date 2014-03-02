@@ -24,7 +24,8 @@ public class RangeIndex extends BaseIndex {
     private final RangeTable rangeTable;
 
     public RangeIndex(RangeTable table, IndexColumn[] columns) {
-        initBaseIndex(table, 0, "RANGE_INDEX", columns, IndexType.createNonUnique(true));
+        initBaseIndex(table, 0, "RANGE_INDEX", columns,
+                IndexType.createNonUnique(true));
         this.rangeTable = table;
     }
 
@@ -61,7 +62,8 @@ public class RangeIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
         return 1;
     }
 

@@ -153,11 +153,11 @@ public class LobStorageMap implements LobStorageInterface {
                 b.reset();
                 reader = b;
             }
-            CountingReaderInputStream in = 
+            CountingReaderInputStream in =
                     new CountingReaderInputStream(reader, maxLength);
             ValueLobDb lob = createLob(in, type);
             // the length is not correct
-            lob = ValueLobDb.create(type, database, 
+            lob = ValueLobDb.create(type, database,
                     lob.getTableId(), lob.getLobId(), null, in.getLength());
             return lob;
         } catch (IllegalStateException e) {
@@ -214,7 +214,7 @@ public class LobStorageMap implements LobStorageInterface {
         ValueLobDb lob = ValueLobDb.create(
                 type, database, tableId, lobId, null, length);
         if (TRACE) {
-            trace("copy " + old.getTableId() + "/" + old.getLobId() + 
+            trace("copy " + old.getTableId() + "/" + old.getLobId() +
                     " > " + tableId + "/" + lobId);
         }
         return lob;
@@ -235,7 +235,7 @@ public class LobStorageMap implements LobStorageInterface {
         long lobId = lob.getLobId();
         Object[] value = lobMap.remove(lobId);
         if (TRACE) {
-            trace("move " + lob.getTableId() + "/" + lob.getLobId() + 
+            trace("move " + lob.getTableId() + "/" + lob.getLobId() +
                     " > " + tableId + "/" + lobId);
         }
         value[1] = tableId;

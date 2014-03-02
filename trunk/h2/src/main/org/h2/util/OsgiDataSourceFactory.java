@@ -151,7 +151,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
     /**
      * Checker method that will throw if any unsupported standard OSGi options
      * is present.
-     * 
+     *
      * @param p the properties to check
      * @throws SQLFeatureNotSupportedException if unsupported properties are
      *             present
@@ -174,7 +174,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
     /**
      * Applies common OSGi properties to a H2 data source. Non standard
      * properties will be applied as H2 options.
-     * 
+     *
      * @param dataSource the data source to configure
      * @param p the properties to apply to the data source
      */
@@ -261,7 +261,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
     /**
      * Checker method that will throw if any pooling related standard OSGi
      * options are present.
-     * 
+     *
      * @param p the properties to check
      * @throws SQLFeatureNotSupportedException if unsupported properties are
      *             present

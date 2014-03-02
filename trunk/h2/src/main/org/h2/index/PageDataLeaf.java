@@ -88,7 +88,8 @@ public class PageDataLeaf extends PageData {
      * @return the page
      */
     static PageDataLeaf create(PageDataIndex index, int pageId, int parentPageId) {
-        PageDataLeaf p = new PageDataLeaf(index, pageId, index.getPageStore().createData());
+        PageDataLeaf p = new PageDataLeaf(index, pageId, index.getPageStore()
+                .createData());
         index.getPageStore().logUndo(p, null);
         p.rows = Row.EMPTY_ARRAY;
         p.parentPageId = parentPageId;
@@ -210,7 +211,8 @@ public class PageDataLeaf extends PageData {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount - 1] + rowLength;
                 int dataEnd = offsets[x];
-                System.arraycopy(d, dataStart, d, dataStart - rowLength, dataEnd - dataStart + rowLength);
+                System.arraycopy(d, dataStart, d, dataStart - rowLength,
+                        dataEnd - dataStart + rowLength);
                 data.setPos(dataEnd);
                 for (int j = 0; j < columnCount; j++) {
                     data.writeValue(row.getValue(j));
@@ -299,7 +301,8 @@ public class PageDataLeaf extends PageData {
             if (writtenData) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount];
-                System.arraycopy(d, dataStart, d, dataStart + rowLength, offsets[i] - dataStart);
+                System.arraycopy(d, dataStart, d, dataStart + rowLength,
+                        offsets[i] - dataStart);
                 Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
             }
         } else {
@@ -532,7 +535,8 @@ public class PageDataLeaf extends PageData {
 
     @Override
     public String toString() {
-        return "page[" + getPos() + "] data leaf table:" + index.getId() + " " + index.getTable().getName() +
+        return "page[" + getPos() + "] data leaf table:" +
+            index.getId() + " " + index.getTable().getName() +
             " entries:" + entryCount + " parent:" + parentPageId +
             (firstOverflowPageId == 0 ? "" : " overflow:" + firstOverflowPageId) +
             " keys:" + Arrays.toString(keys) + " offsets:" + Arrays.toString(offsets);
@@ -596,7 +600,8 @@ public class PageDataLeaf extends PageData {
     private void memoryChange(boolean add, Row r) {
         int diff = r == null ? 0 : 4 + 8 + Constants.MEMORY_POINTER + r.getMemory();
         memoryData += add ? diff : -diff;
-        index.memoryChange((Constants.MEMORY_PAGE_DATA + memoryData + index.getPageStore().getPageSize()) >> 2);
+        index.memoryChange((Constants.MEMORY_PAGE_DATA +
+                memoryData + index.getPageStore().getPageSize()) >> 2);
     }
 
     @Override

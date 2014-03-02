@@ -84,7 +84,8 @@ public interface Index extends SchemaObject {
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder);
+    double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder);
 
     /**
      * Remove the index.

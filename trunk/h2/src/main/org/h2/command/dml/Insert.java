@@ -89,7 +89,8 @@ public class Insert extends Prepared implements ResultTarget {
             duplicateKeyAssignmentMap = New.hashMap();
         }
         if (duplicateKeyAssignmentMap.containsKey(column)) {
-            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1, column.getName());
+            throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1,
+                    column.getName());
         }
         duplicateKeyAssignmentMap.put(column, expression);
     }
@@ -309,22 +310,27 @@ public class Insert extends Prepared implements ResultTarget {
 
     @Override
     public boolean isCacheable() {
-        return duplicateKeyAssignmentMap == null || duplicateKeyAssignmentMap.isEmpty();
+        return duplicateKeyAssignmentMap == null ||
+                duplicateKeyAssignmentMap.isEmpty();
     }
 
     private void handleOnDuplicate(DbException de) {
         if (de.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
             throw de;
         }
-        if (duplicateKeyAssignmentMap == null || duplicateKeyAssignmentMap.isEmpty()) {
+        if (duplicateKeyAssignmentMap == null ||
+                duplicateKeyAssignmentMap.isEmpty()) {
             throw de;
         }
 
-        ArrayList<String> variableNames = new ArrayList<String>(duplicateKeyAssignmentMap.size());
+        ArrayList<String> variableNames = new ArrayList<String>(
+                duplicateKeyAssignmentMap.size());
         for (int i = 0; i < columns.length; i++) {
-            String key = session.getCurrentSchemaName() + "." + table.getName() + "." + columns[i].getName();
+            String key = session.getCurrentSchemaName() + "." +
+                    table.getName() + "." + columns[i].getName();
             variableNames.add(key);
-            session.setVariable(key, list.get(getCurrentRowNumber() - 1)[i].getValue(session));
+            session.setVariable(key,
+                    list.get(getCurrentRowNumber() - 1)[i].getValue(session));
         }
 
         StatementBuilder buff = new StatementBuilder("UPDATE ");
@@ -337,7 +343,8 @@ public class Insert extends Prepared implements ResultTarget {
         buff.append(" WHERE ");
         Index foundIndex = searchForUpdateIndex();
         if (foundIndex == null) {
-            throw DbException.getUnsupportedException("Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
+            throw DbException.getUnsupportedException(
+                    "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
         }
         buff.append(prepareUpdateCondition(foundIndex).getSQL());
         String sql = buff.toString();

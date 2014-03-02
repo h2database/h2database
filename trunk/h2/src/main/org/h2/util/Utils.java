@@ -150,7 +150,7 @@ public class Utils {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) + 
+        return (((long) readInt(buff, pos)) << 32) +
                 (readInt(buff, pos + 4) & 0xffffffffL);
     }
 

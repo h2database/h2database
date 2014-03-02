@@ -50,7 +50,8 @@ public class CompareLike extends Condition {
 
     public CompareLike(Database db, Expression left, Expression right,
             Expression escape, boolean regexp) {
-        this(db.getCompareMode(), db.getSettings().defaultEscape, left, right, escape, regexp);
+        this(db.getCompareMode(), db.getSettings().defaultEscape, left, right,
+                escape, regexp);
     }
 
     public CompareLike(CompareMode compareMode, String defaultEscape,
@@ -118,13 +119,15 @@ public class CompareLike extends Condition {
             }
             if ("%".equals(p)) {
                 // optimization for X LIKE '%': convert to X IS NOT NULL
-                return new Comparison(session, Comparison.IS_NOT_NULL, left, null).optimize(session);
+                return new Comparison(session,
+                        Comparison.IS_NOT_NULL, left, null).optimize(session);
             }
             if (isFullMatch()) {
                 // optimization for X LIKE 'Hello': convert to X = 'Hello'
                 Value value = ValueString.get(patternString);
                 Expression expr = ValueExpression.get(value);
-                return new Comparison(session, Comparison.EQUAL, left, expr).optimize(session);
+                return new Comparison(session,
+                        Comparison.EQUAL, left, expr).optimize(session);
             }
             isInit = true;
         }
@@ -169,7 +172,8 @@ public class CompareLike extends Condition {
         if (!right.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return;
         }
-        if (escape != null && !escape.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
+        if (escape != null &&
+                !escape.isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return;
         }
         String p = right.getValue(session).getString();
@@ -187,7 +191,8 @@ public class CompareLike extends Condition {
             return;
         }
         int dataType = l.getColumn().getType();
-        if (dataType != Value.STRING && dataType != Value.STRING_IGNORECASE && dataType != Value.STRING_FIXED) {
+        if (dataType != Value.STRING && dataType != Value.STRING_IGNORECASE &&
+                dataType != Value.STRING_FIXED) {
             // column is not a varchar - can't use the index
             return;
         }
@@ -198,23 +203,25 @@ public class CompareLike extends Condition {
         }
         String begin = buff.toString();
         if (maxMatch == patternLength) {
-            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, l, ValueExpression
-                    .get(ValueString.get(begin))));
+            filter.addIndexCondition(IndexCondition.get(Comparison.EQUAL, l,
+                    ValueExpression.get(ValueString.get(begin))));
         } else {
             // TODO check if this is correct according to Unicode rules
             // (code points)
             String end;
             if (begin.length() > 0) {
-                filter.addIndexCondition(IndexCondition.get(Comparison.BIGGER_EQUAL, l, ValueExpression.get(ValueString
-                        .get(begin))));
+                filter.addIndexCondition(IndexCondition.get(
+                        Comparison.BIGGER_EQUAL, l,
+                        ValueExpression.get(ValueString.get(begin))));
                 char next = begin.charAt(begin.length() - 1);
                 // search the 'next' unicode character (or at least a character
                 // that is higher)
                 for (int i = 1; i < 2000; i++) {
                     end = begin.substring(0, begin.length() - 1) + (char) (next + i);
                     if (compareMode.compareString(begin, end, ignoreCase) == -1) {
-                        filter.addIndexCondition(IndexCondition.get(Comparison.SMALLER, l, ValueExpression
-                                .get(ValueString.get(end))));
+                        filter.addIndexCondition(IndexCondition.get(
+                                Comparison.SMALLER, l,
+                                ValueExpression.get(ValueString.get(end))));
                         break;
                     }
                 }
@@ -255,10 +262,13 @@ public class CompareLike extends Condition {
     }
 
     private boolean compare(char[] pattern, String s, int pi, int si) {
-        return pattern[pi] == s.charAt(si) || (!fastCompare && compareMode.equalsChars(patternString, pi, s, si, ignoreCase));
+        return pattern[pi] == s.charAt(si) ||
+                (!fastCompare && compareMode.equalsChars(patternString, pi, s,
+                        si, ignoreCase));
     }
 
-    private boolean compareAt(String s, int pi, int si, int sLen, char[] pattern, int[] types) {
+    private boolean compareAt(String s, int pi, int si, int sLen,
+            char[] pattern, int[] types) {
         for (; pi < patternLength; pi++) {
             switch (types[pi]) {
             case MATCH:
@@ -276,7 +286,8 @@ public class CompareLike extends Condition {
                     return true;
                 }
                 while (si < sLen) {
-                    if (compare(pattern, s, pi, si) && compareAt(s, pi, si, sLen, pattern, types)) {
+                    if (compare(pattern, s, pi, si) &&
+                            compareAt(s, pi, si, sLen, pattern, types)) {
                         return true;
                     }
                     si++;

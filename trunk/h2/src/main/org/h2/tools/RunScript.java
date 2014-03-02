@@ -149,7 +149,7 @@ public class RunScript extends Tool {
 
     /**
      * Executes the SQL commands read from the reader against a database.
-     * 
+     *
      * @param conn the connection to a database
      * @param reader the reader
      * @return the last result set
@@ -251,7 +251,7 @@ public class RunScript extends Tool {
                                     expected = StringUtils.replaceAll(expected, " ", "+");
                                     result = StringUtils.replaceAll(result, " ", "+");
                                     throw new SQLException(
-                                            "Unexpected output for:\n" + sql.trim() + 
+                                            "Unexpected output for:\n" + sql.trim() +
                                             "\nGot:\n" + result + "\nExpected:\n" + expected);
                                 }
                             }

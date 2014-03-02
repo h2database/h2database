@@ -51,7 +51,8 @@ public class CreateUser extends DefineCommand {
     }
 
     private byte[] getByteArray(Expression e) {
-        return StringUtils.convertHexToBytes(e.optimize(session).getValue(session).getString());
+        return StringUtils.convertHexToBytes(
+                e.optimize(session).getValue(session).getString());
     }
 
     @Override

@@ -29,7 +29,7 @@ import org.h2.util.New;
  */
 public class FilePathNioMem extends FilePath {
 
-    private static final TreeMap<String, FileNioMemData> MEMORY_FILES = 
+    private static final TreeMap<String, FileNioMemData> MEMORY_FILES =
             new TreeMap<String, FileNioMemData>();
 
     @Override
@@ -147,7 +147,7 @@ public class FilePathNioMem extends FilePath {
     @Override
     public void createDirectory() {
         if (exists() && isDirectory()) {
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
                     name + " (a file with this name already exists)");
         }
         // TODO directories are not really supported

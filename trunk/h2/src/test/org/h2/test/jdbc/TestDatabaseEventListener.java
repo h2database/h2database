@@ -140,7 +140,7 @@ public class TestDatabaseEventListener extends TestBase {
         conn = DriverManager.getConnection(url, p);
         conn.close();
         calledCreateIndex = false;
-        p.put("DATABASE_EVENT_LISTENER", 
+        p.put("DATABASE_EVENT_LISTENER",
                 MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
@@ -173,7 +173,7 @@ public class TestDatabaseEventListener extends TestBase {
         stat.execute("insert into test select 1");
         conn.close();
         calledCreateIndex = false;
-        p.put("DATABASE_EVENT_LISTENER", 
+        p.put("DATABASE_EVENT_LISTENER",
                 MyDatabaseEventListener.class.getName());
         conn = org.h2.Driver.load().connect(url, p);
         conn.close();
@@ -193,7 +193,7 @@ public class TestDatabaseEventListener extends TestBase {
         Connection conn = DriverManager.getConnection(url, p);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
-        stat.execute("insert into test select x, space(1000) " + 
+        stat.execute("insert into test select x, space(1000) " +
                 "from system_range(1,1000)");
         if (shutdown) {
             stat.execute("shutdown");

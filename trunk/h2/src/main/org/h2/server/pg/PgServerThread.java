@@ -69,8 +69,10 @@ public class PgServerThread implements Runnable {
     private JdbcStatement activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";
-    private final HashMap<String, Prepared> prepared = new CaseInsensitiveMap<Prepared>();
-    private final HashMap<String, Portal> portals = new CaseInsensitiveMap<Portal>();
+    private final HashMap<String, Prepared> prepared =
+            new CaseInsensitiveMap<Prepared>();
+    private final HashMap<String, Portal> portals =
+            new CaseInsensitiveMap<Portal>();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;
@@ -167,7 +169,8 @@ public class PgServerThread implements Runnable {
                 out.write('N');
             } else {
                 server.trace("StartupMessage");
-                server.trace(" version " + version + " (" + (version >> 16) + "." + (version & 0xff) + ")");
+                server.trace(" version " + version +
+                        " (" + (version >> 16) + "." + (version & 0xff) + ")");
                 while (true) {
                     String param = readString();
                     if (param.length() == 0) {
@@ -445,7 +448,8 @@ public class PgServerThread implements Runnable {
         return s;
     }
 
-    private void sendCommandComplete(JdbcStatement stat, int updateCount) throws IOException {
+    private void sendCommandComplete(JdbcStatement stat, int updateCount)
+            throws IOException {
         startMessage('C');
         switch (stat.getLastExecutedCommandType()) {
         case CommandInterface.INSERT:
@@ -486,7 +490,8 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void writeDataColumn(ResultSet rs, int column, int pgType) throws Exception {
+    private void writeDataColumn(ResultSet rs, int column, int pgType)
+            throws Exception {
         if (formatAsText(pgType)) {
             // plain text
             switch (pgType) {
@@ -930,7 +935,8 @@ public class PgServerThread implements Runnable {
         dataOut.flush();
     }
 
-    private void sendParameterStatus(String param, String value) throws IOException {
+    private void sendParameterStatus(String param, String value)
+            throws IOException {
         startMessage('S');
         writeString(param);
         writeString(value);

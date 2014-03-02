@@ -52,14 +52,16 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private final boolean ifNotExists;
     private ArrayList<Index> createdIndexes = New.arrayList();
 
-    public AlterTableAddConstraint(Session session, Schema schema, boolean ifNotExists) {
+    public AlterTableAddConstraint(Session session, Schema schema,
+            boolean ifNotExists) {
         super(session, schema);
         this.ifNotExists = ifNotExists;
     }
 
     private String generateConstraintName(Table table) {
         if (constraintName == null) {
-            constraintName = getSchema().getUniqueConstraintName(session, table);
+            constraintName = getSchema().getUniqueConstraintName(
+                    session, table);
         }
         return constraintName;
     }
@@ -93,7 +95,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1, constraintName);
+            throw DbException.get(ErrorCode.CONSTRAINT_ALREADY_EXISTS_1,
+                    constraintName);
         }
         session.getUser().checkRight(table, Right.ALL);
         db.lockMeta(session);
@@ -124,11 +127,14 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 }
             }
             if (index == null) {
-                IndexType indexType = IndexType.createPrimaryKey(table.isPersistIndexes(), primaryKeyHash);
-                String indexName = table.getSchema().getUniqueIndexName(session, table, Constants.PREFIX_PRIMARY_KEY);
+                IndexType indexType = IndexType.createPrimaryKey(
+                        table.isPersistIndexes(), primaryKeyHash);
+                String indexName = table.getSchema().getUniqueIndexName(
+                        session, table, Constants.PREFIX_PRIMARY_KEY);
                 int id = getObjectId();
                 try {
-                    index = table.addIndex(session, indexName, id, indexColumns, indexType, true, null);
+                    index = table.addIndex(session, indexName, id,
+                            indexColumns, indexType, true, null);
                 } finally {
                     getSchema().freeUniqueName(indexName);
                 }
@@ -136,7 +142,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             index.getIndexType().setBelongsToConstraint(true);
             int constraintId = getObjectId();
             String name = generateConstraintName(table);
-            ConstraintUnique pk = new ConstraintUnique(getSchema(), constraintId, name, table, true);
+            ConstraintUnique pk = new ConstraintUnique(getSchema(),
+                    constraintId, name, table, true);
             pk.setColumns(indexColumns);
             pk.setIndex(index, true);
             constraint = pk;
@@ -157,7 +164,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             int id = getObjectId();
             String name = generateConstraintName(table);
-            ConstraintUnique unique = new ConstraintUnique(getSchema(), id, name, table, false);
+            ConstraintUnique unique = new ConstraintUnique(getSchema(), id,
+                    name, table, false);
             unique.setColumns(indexColumns);
             unique.setIndex(index, isOwner);
             constraint = unique;
@@ -182,7 +190,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             Table refTable = refSchema.getTableOrView(session, refTableName);
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
-                throw DbException.getUnsupportedException("Reference " + refTable.getSQL());
+                throw DbException.getUnsupportedException("Reference " +
+                        refTable.getSQL());
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);
@@ -222,7 +231,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             int id = getObjectId();
             String name = generateConstraintName(table);
-            ConstraintReferential ref = new ConstraintReferential(getSchema(), id, name, table);
+            ConstraintReferential ref = new ConstraintReferential(getSchema(),
+                    id, name, table);
             ref.setColumns(indexColumns);
             ref.setIndex(index, isOwner);
             ref.setRefTable(refTable);
@@ -263,9 +273,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         indexType.setBelongsToConstraint(true);
         String prefix = constraintName == null ? "CONSTRAINT" : constraintName;
-        String indexName = t.getSchema().getUniqueIndexName(session, t, prefix + "_INDEX_");
+        String indexName = t.getSchema().getUniqueIndexName(session, t,
+                prefix + "_INDEX_");
         try {
-            Index index = t.addIndex(session, indexName, indexId, cols, indexType, true, null);
+            Index index = t.addIndex(session, indexName, indexId, cols,
+                    indexType, true, null);
             createdIndexes.add(index);
             return index;
         } finally {
@@ -299,7 +311,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private static boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
+    private static boolean canUseUniqueIndex(Index idx, Table table,
+            IndexColumn[] cols) {
         if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
         }
@@ -321,7 +334,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return true;
     }
 
-    private static boolean canUseIndex(Index existingIndex, Table table, IndexColumn[] cols) {
+    private static boolean canUseIndex(Index existingIndex, Table table,
+            IndexColumn[] cols) {
         if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
             // can't use the scan index or index of another table
             return false;

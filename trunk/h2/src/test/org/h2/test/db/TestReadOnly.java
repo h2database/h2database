@@ -59,7 +59,7 @@ public class TestReadOnly extends TestBase {
         String dir = getBaseDir();
         Connection conn = getConnection("readonlyInZip");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT) AS " + 
+        stat.execute("CREATE TABLE TEST(ID INT) AS " +
                 "SELECT X FROM SYSTEM_RANGE(1, 20)");
         conn.close();
         Backup.execute(dir + "/readonly.zip", dir, "readonlyInZip", true);
@@ -91,11 +91,11 @@ public class TestReadOnly extends TestBase {
         deleteDb("readonlyTemp");
         Connection conn = getConnection("readonlyTemp");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TEST(ID INT) AS " + 
+        stat.execute("CREATE TABLE TEST(ID INT) AS " +
                 "SELECT X FROM SYSTEM_RANGE(1, 20)");
         conn.close();
         conn = getConnection(
-                "readonlyTemp;ACCESS_MODE_DATA=r;" + 
+                "readonlyTemp;ACCESS_MODE_DATA=r;" +
                 "MAX_MEMORY_ROWS_DISTINCT=10");
         stat = conn.createStatement();
         stat.execute("SELECT DISTINCT ID FROM TEST");

@@ -105,7 +105,7 @@ public class TestMultiThreadedKernel extends TestBase {
         int size = 2;
         final int count = 1000;
         final Connection[] connections = new Connection[count];
-        String url = getURL("multiThreadedKernel;" + 
+        String url = getURL("multiThreadedKernel;" +
                 "MULTI_THREADED=TRUE;CACHE_SIZE=16", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(
@@ -146,7 +146,7 @@ public class TestMultiThreadedKernel extends TestBase {
         int size = 3;
         final int count = 100;
         final Connection[] connections = new Connection[count];
-        String url = getURL("multiThreadedKernel;" + 
+        String url = getURL("multiThreadedKernel;" +
                 "MULTI_THREADED=TRUE;CACHE_SIZE=1", true);
         for (int i = 0; i < size; i++) {
             final Connection conn = DriverManager.getConnection(

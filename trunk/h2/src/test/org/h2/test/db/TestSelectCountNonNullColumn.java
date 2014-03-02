@@ -37,7 +37,7 @@ public class TestSelectCountNonNullColumn extends TestBase {
         Connection conn = getConnection(DBNAME);
         stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE SIMPLE(KEY VARCHAR(25) " + 
+        stat.execute("CREATE TABLE SIMPLE(KEY VARCHAR(25) " +
                 "PRIMARY KEY, NAME VARCHAR(25))");
         stat.execute("INSERT INTO SIMPLE(KEY) VALUES('k1')");
         stat.execute("INSERT INTO SIMPLE(KEY,NAME) VALUES('k2','name2')");

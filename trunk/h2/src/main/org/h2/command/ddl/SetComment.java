@@ -98,8 +98,10 @@ public class SetComment extends DefineCommand {
         } else {
             object.setComment(text);
         }
-        if (column || objectType == DbObject.TABLE_OR_VIEW || objectType == DbObject.USER
-                || objectType == DbObject.INDEX || objectType == DbObject.CONSTRAINT) {
+        if (column || objectType == DbObject.TABLE_OR_VIEW ||
+                objectType == DbObject.USER ||
+                objectType == DbObject.INDEX ||
+                objectType == DbObject.CONSTRAINT) {
             db.update(session, object);
         } else {
             Comment comment = db.findComment(object);

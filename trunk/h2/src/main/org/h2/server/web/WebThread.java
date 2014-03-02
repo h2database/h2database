@@ -142,7 +142,8 @@ class WebThread extends WebApp implements Runnable {
             }
             String message;
             byte[] bytes;
-            if (cache && ifModifiedSince != null && ifModifiedSince.equals(server.getStartDateTime())) {
+            if (cache && ifModifiedSince != null &&
+                    ifModifiedSince.equals(server.getStartDateTime())) {
                 bytes = null;
                 message = "HTTP/1.1 304 Not Modified\r\n";
             } else {
@@ -345,7 +346,8 @@ class WebThread extends WebApp implements Runnable {
             }
             int index = line.indexOf("filename=\"");
             if (index > 0) {
-                fileName = line.substring(index + "filename=\"".length(), line.lastIndexOf('"'));
+                fileName = line.substring(index +
+                        "filename=\"".length(), line.lastIndexOf('"'));
             }
             trace(" " + line);
         }

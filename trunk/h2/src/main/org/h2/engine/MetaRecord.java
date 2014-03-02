@@ -51,7 +51,8 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @param systemSession the system session
      * @param listener the database event listener
      */
-    void execute(Database db, Session systemSession, DatabaseEventListener listener) {
+    void execute(Database db, Session systemSession,
+            DatabaseEventListener listener) {
         try {
             Prepared command = systemSession.prepare(sql);
             command.setObjectId(id);
@@ -142,7 +143,8 @@ public class MetaRecord implements Comparable<MetaRecord> {
 
     @Override
     public String toString() {
-        return "MetaRecord [id=" + id + ", objectType=" + objectType + ", sql=" + sql + "]";
+        return "MetaRecord [id=" + id + ", objectType=" + objectType +
+                ", sql=" + sql + "]";
     }
 
 }

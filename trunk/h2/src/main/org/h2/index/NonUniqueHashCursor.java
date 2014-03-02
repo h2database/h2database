@@ -25,7 +25,8 @@ public class NonUniqueHashCursor implements Cursor {
 
     private int index = -1;
 
-    public NonUniqueHashCursor(Session session, RegularTable tableData, ArrayList<Long> positions) {
+    public NonUniqueHashCursor(Session session, RegularTable tableData,
+            ArrayList<Long> positions) {
         this.session = session;
         this.tableData = tableData;
         this.positions = positions;

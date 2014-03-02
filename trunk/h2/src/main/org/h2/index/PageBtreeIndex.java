@@ -40,7 +40,8 @@ public class PageBtreeIndex extends PageIndex {
     private int memoryPerPage;
     private int memoryCount;
 
-    public PageBtreeIndex(RegularTable table, int id, String indexName, IndexColumn[] columns,
+    public PageBtreeIndex(RegularTable table, int id, String indexName,
+            IndexColumn[] columns,
             IndexType indexType, boolean create, Session session) {
         initBaseIndex(table, id, indexName, columns, indexType);
         if (!database.isStarting() && create) {
@@ -109,7 +110,8 @@ public class PageBtreeIndex extends PageIndex {
             page1.setPageId(id);
             page1.setParentPageId(rootPageId);
             page2.setParentPageId(rootPageId);
-            PageBtreeNode newRoot = PageBtreeNode.create(this, rootPageId, PageBtree.ROOT);
+            PageBtreeNode newRoot = PageBtreeNode.create(
+                    this, rootPageId, PageBtree.ROOT);
             store.logUndo(newRoot, null);
             newRoot.init(page1, pivot, page2);
             store.update(page1);
@@ -172,7 +174,8 @@ public class PageBtreeIndex extends PageIndex {
         return find(session, first, false, last);
     }
 
-    private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
+    private Cursor find(Session session, SearchRow first, boolean bigger,
+            SearchRow last) {
         if (SysProperties.CHECK && store == null) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED);
         }
@@ -215,8 +218,10 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks, tableData.getRowCount(session), filter, sortOrder);
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks, tableData.getRowCount(session),
+                filter, sortOrder);
     }
 
     @Override
@@ -339,7 +344,8 @@ public class PageBtreeIndex extends PageIndex {
      * @param needData whether the row data is required
      * @return the row
      */
-    SearchRow readRow(Data data, int offset, boolean onlyPosition, boolean needData) {
+    SearchRow readRow(Data data, int offset, boolean onlyPosition,
+            boolean needData) {
         synchronized (data) {
             data.setPos(offset);
             long key = data.readVarLong();
@@ -466,7 +472,8 @@ public class PageBtreeIndex extends PageIndex {
         if (memoryCount < Constants.MEMORY_FACTOR) {
             memoryPerPage += (x - memoryPerPage) / ++memoryCount;
         } else {
-            memoryPerPage += (x > memoryPerPage ? 1 : -1) + ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
+            memoryPerPage += (x > memoryPerPage ? 1 : -1) +
+                    ((x - memoryPerPage) / Constants.MEMORY_FACTOR);
         }
     }
 

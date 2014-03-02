@@ -272,10 +272,10 @@ public class Expression {
             // sql += ")";
         } else {
             if (column.getType() == Types.VARCHAR) {
-                oneOf(new String[] { "=", "=", "=", "<", ">", 
+                oneOf(new String[] { "=", "=", "=", "<", ">",
                         "<=", ">=", "<>", "LIKE", "NOT LIKE" });
             } else {
-                oneOf(new String[] { "=", "=", "=", "<", ">", 
+                oneOf(new String[] { "=", "=", "=", "<", ">",
                         "<=", ">=", "<>" });
             }
             if (columnFirst) {

@@ -114,7 +114,7 @@ public class SupportedTypes {
     /**
      * This class demonstrates the table upgrade.
      */
-    @JQTable(name = "SupportedTypes", version = 2, 
+    @JQTable(name = "SupportedTypes", version = 2,
             inheritColumns = true, strictTypeMapping = true)
     public static class SupportedTypes2 extends SupportedTypes {
 

@@ -68,7 +68,8 @@ public class FunctionAlias extends SchemaObjectBase {
             boolean force, boolean bufferResultSetToLocalTemp) {
         FunctionAlias alias = new FunctionAlias(schema, id, name);
         int paren = javaClassMethod.indexOf('(');
-        int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ? javaClassMethod.length() : paren);
+        int lastDot = javaClassMethod.lastIndexOf('.', paren < 0 ?
+                javaClassMethod.length() : paren);
         if (lastDot < 0) {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, javaClassMethod);
         }
@@ -151,21 +152,23 @@ public class FunctionAlias extends SchemaObjectBase {
             if (!Modifier.isStatic(m.getModifiers())) {
                 continue;
             }
-            if (m.getName().equals(methodName) || getMethodSignature(m).equals(methodName)) {
+            if (m.getName().equals(methodName) ||
+                    getMethodSignature(m).equals(methodName)) {
                 JavaMethod javaMethod = new JavaMethod(m, i);
                 for (JavaMethod old : list) {
                     if (old.getParameterCount() == javaMethod.getParameterCount()) {
-                        throw DbException.get(
-                                ErrorCode.METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
-                                old.toString(), javaMethod.toString()
-                        );
+                        throw DbException.get(ErrorCode.
+                                METHODS_MUST_HAVE_DIFFERENT_PARAMETER_COUNTS_2,
+                                old.toString(), javaMethod.toString());
                     }
                 }
                 list.add(javaMethod);
             }
         }
         if (list.size() == 0) {
-            throw DbException.get(ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1, methodName + " (" + className + ")");
+            throw DbException.get(
+                    ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1,
+                    methodName + " (" + className + ")");
         }
         javaMethods = new JavaMethod[list.size()];
         list.toArray(javaMethods);
@@ -205,7 +208,8 @@ public class FunctionAlias extends SchemaObjectBase {
     @Override
     public String getSQL() {
         // TODO can remove this method once FUNCTIONS_IN_SCHEMA is enabled
-        if (database.getSettings().functionsInSchema || !getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
+        if (database.getSettings().functionsInSchema ||
+                !getSchema().getName().equals(Constants.SCHEMA_MAIN)) {
             return super.getSQL();
         }
         return Parser.quoteIdentifier(getName());
@@ -224,7 +228,8 @@ public class FunctionAlias extends SchemaObjectBase {
         if (source != null) {
             buff.append(" AS ").append(StringUtils.quoteStringSQL(source));
         } else {
-            buff.append(" FOR ").append(Parser.quoteIdentifier(className + "." + methodName));
+            buff.append(" FOR ").append(Parser.quoteIdentifier(
+                    className + "." + methodName));
         }
         return buff.toString();
     }
@@ -260,12 +265,13 @@ public class FunctionAlias extends SchemaObjectBase {
         int parameterCount = args.length;
         for (JavaMethod m : javaMethods) {
             int count = m.getParameterCount();
-            if (count == parameterCount || (m.isVarArgs() && count <= parameterCount + 1)) {
+            if (count == parameterCount || (m.isVarArgs() &&
+                    count <= parameterCount + 1)) {
                 return m;
             }
         }
-        throw DbException.get(ErrorCode.METHOD_NOT_FOUND_1,
-                getName() + " (" + className + ", parameter count: " + parameterCount + ")");
+        throw DbException.get(ErrorCode.METHOD_NOT_FOUND_1, getName() + " (" +
+                className + ", parameter count: " + parameterCount + ")");
     }
 
     public String getJavaClassName() {
@@ -389,7 +395,8 @@ public class FunctionAlias extends SchemaObjectBase {
          * @param columnList true if the function should only return the column list
          * @return the value
          */
-        public Value getValue(Session session, Expression[] args, boolean columnList) {
+        public Value getValue(Session session, Expression[] args,
+                boolean columnList) {
             Class<?>[] paramClasses = method.getParameterTypes();
             Object[] params = new Object[paramClasses.length];
             int p = 0;
@@ -400,13 +407,15 @@ public class FunctionAlias extends SchemaObjectBase {
             // allocate array for varArgs parameters
             Object varArg = null;
             if (varArgs) {
-                int len = args.length - params.length + 1 + (hasConnectionParam ? 1 : 0);
+                int len = args.length - params.length + 1 +
+                        (hasConnectionParam ? 1 : 0);
                 varArg = Array.newInstance(varArgClass, len);
                 params[params.length - 1] = varArg;
             }
 
             for (int a = 0, len = args.length; a < len; a++, p++) {
-                boolean currentIsVarArg = varArgs && p >= paramClasses.length - 1;
+                boolean currentIsVarArg = varArgs &&
+                        p >= paramClasses.length - 1;
                 Class<?> paramClass;
                 if (currentIsVarArg) {
                     paramClass = varArgClass;
@@ -418,10 +427,14 @@ public class FunctionAlias extends SchemaObjectBase {
                 Object o;
                 if (Value.class.isAssignableFrom(paramClass)) {
                     o = v;
-                } else if (v.getType() == Value.ARRAY && paramClass.isArray() && paramClass.getComponentType() != Object.class) {
+                } else if (v.getType() == Value.ARRAY &&
+                        paramClass.isArray() &&
+                        paramClass.getComponentType() != Object.class) {
                     Value[] array = ((ValueArray) v).getList();
-                    Object[] objArray = (Object[]) Array.newInstance(paramClass.getComponentType(), array.length);
-                    int componentType = DataType.getTypeFromClass(paramClass.getComponentType());
+                    Object[] objArray = (Object[]) Array.newInstance(
+                            paramClass.getComponentType(), array.length);
+                    int componentType = DataType.getTypeFromClass(
+                            paramClass.getComponentType());
                     for (int i = 0; i < objArray.length; i++) {
                         objArray[i] = array[i].convertTo(componentType).getObject();
                     }
@@ -456,13 +469,15 @@ public class FunctionAlias extends SchemaObjectBase {
             }
             boolean old = session.getAutoCommit();
             Value identity = session.getLastScopeIdentity();
-            boolean defaultConnection = session.getDatabase().getSettings().defaultConnection;
+            boolean defaultConnection = session.getDatabase().
+                    getSettings().defaultConnection;
             try {
                 session.setAutoCommit(false);
                 Object returnValue;
                 try {
                     if (defaultConnection) {
-                        Driver.setDefaultConnection(session.createConnection(columnList));
+                        Driver.setDefaultConnection(
+                                session.createConnection(columnList));
                     }
                     returnValue = method.invoke(null, params);
                     if (returnValue == null) {

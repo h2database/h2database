@@ -49,7 +49,7 @@ public class LinkSchema {
         try {
             c2 = JdbcUtils.getConnection(driver, url, user, password);
             stat = conn.createStatement();
-            stat.execute("CREATE SCHEMA IF NOT EXISTS " + 
+            stat.execute("CREATE SCHEMA IF NOT EXISTS " +
                         StringUtils.quoteIdentifier(targetSchema));
             rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
             while (rs.next()) {

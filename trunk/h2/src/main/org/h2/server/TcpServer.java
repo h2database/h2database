@@ -51,7 +51,8 @@ public class TcpServer implements Service {
      */
     private static final String MANAGEMENT_DB_PREFIX = "management_db_";
 
-    private static final Map<Integer, TcpServer> SERVERS = Collections.synchronizedMap(new HashMap<Integer, TcpServer>());
+    private static final Map<Integer, TcpServer> SERVERS =
+            Collections.synchronizedMap(new HashMap<Integer, TcpServer>());
 
     private int port;
     private boolean portIsSet;
@@ -60,7 +61,8 @@ public class TcpServer implements Service {
     private boolean stop;
     private ShutdownHandler shutdownHandler;
     private ServerSocket serverSocket;
-    private final Set<TcpServerThread> running = Collections.synchronizedSet(new HashSet<TcpServerThread>());
+    private final Set<TcpServerThread> running =
+            Collections.synchronizedSet(new HashSet<TcpServerThread>());
     private String baseDir;
     private boolean allowOthers;
     private boolean isDaemon;
@@ -89,15 +91,21 @@ public class TcpServer implements Service {
         prop.setProperty("user", "");
         prop.setProperty("password", managementPassword);
         // avoid using the driver manager
-        Connection conn = Driver.load().connect("jdbc:h2:" + getManagementDbName(port), prop);
+        Connection conn = Driver.load().connect("jdbc:h2:" +
+                getManagementDbName(port), prop);
         managementDb = conn;
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" + TcpServer.class.getName() + ".stopServer\"");
-            stat.execute("CREATE TABLE IF NOT EXISTS SESSIONS(ID INT PRIMARY KEY, URL VARCHAR, USER VARCHAR, CONNECTED TIMESTAMP)");
-            managementDbAdd = conn.prepareStatement("INSERT INTO SESSIONS VALUES(?, ?, ?, NOW())");
-            managementDbRemove = conn.prepareStatement("DELETE FROM SESSIONS WHERE ID=?");
+            stat.execute("CREATE ALIAS IF NOT EXISTS STOP_SERVER FOR \"" +
+                    TcpServer.class.getName() + ".stopServer\"");
+            stat.execute("CREATE TABLE IF NOT EXISTS SESSIONS" +
+                    "(ID INT PRIMARY KEY, URL VARCHAR, USER VARCHAR, " +
+                    "CONNECTED TIMESTAMP)");
+            managementDbAdd = conn.prepareStatement(
+                    "INSERT INTO SESSIONS VALUES(?, ?, ?, NOW())");
+            managementDbRemove = conn.prepareStatement(
+                    "DELETE FROM SESSIONS WHERE ID=?");
         } finally {
             JdbcUtils.closeSilently(stat);
         }
@@ -421,7 +429,8 @@ public class TcpServer implements Service {
      * @param all whether all TCP servers that are running in the JVM should be
      *            stopped
      */
-    public static synchronized void shutdown(String url, String password, boolean force, boolean all) throws SQLException {
+    public static synchronized void shutdown(String url, String password,
+            boolean force, boolean all) throws SQLException {
         try {
             int port = Constants.DEFAULT_TCP_PORT;
             int idx = url.lastIndexOf(':');

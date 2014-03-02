@@ -129,13 +129,13 @@ public class CreateCluster extends Tool {
             }
             if (exists) {
                 throw new SQLException(
-                        "Target database must not yet exist. Please delete it first: " + 
+                        "Target database must not yet exist. Please delete it first: " +
                         urlTarget);
             }
 
             // use cluster='' so connecting is possible
             // even if the cluster is enabled
-            connSource = DriverManager.getConnection(urlSource + 
+            connSource = DriverManager.getConnection(urlSource +
                     ";CLUSTER=''", user, password);
             statSource = connSource.createStatement();
 

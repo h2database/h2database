@@ -29,7 +29,8 @@ public class ConstraintUnique extends Constraint {
     private IndexColumn[] columns;
     private final boolean primaryKey;
 
-    public ConstraintUnique(Schema schema, int id, String name, Table table, boolean primaryKey) {
+    public ConstraintUnique(Schema schema, int id, String name, Table table,
+            boolean primaryKey) {
         super(schema, id, name, table);
         this.primaryKey = primaryKey;
     }
@@ -44,7 +45,8 @@ public class ConstraintUnique extends Constraint {
         return getCreateSQLForCopy(forTable, quotedName, true);
     }
 
-    private String getCreateSQLForCopy(Table forTable, String quotedName, boolean internalIndex) {
+    private String getCreateSQLForCopy(Table forTable, String quotedName,
+            boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
         buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {

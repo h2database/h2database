@@ -1397,11 +1397,14 @@ public abstract class TestBase {
                 if (!expectedExceptionClass.isAssignableFrom(t.getClass())) {
                     AssertionError ae = new AssertionError(
                             "Expected an exception of type\n" +
-                            expectedExceptionClass.getSimpleName() +
-                            " to be thrown, but the method under test threw an exception of type\n" +
-                            t.getClass().getSimpleName() +
-                            " (see in the 'Caused by' for the exception that was thrown) " +
-                            " for " + ProxyCodeGenerator.formatMethodCall(m, args));
+                                    expectedExceptionClass.getSimpleName() +
+                                    " to be thrown, but the method under test " +
+                                    "threw an exception of type\n" +
+                                    t.getClass().getSimpleName() +
+                                    " (see in the 'Caused by' for the exception " +
+                                    "that was thrown) " +
+                                    " for " + ProxyCodeGenerator.
+                                    formatMethodCall(m, args));
                     ae.initCause(t);
                     throw ae;
                 }

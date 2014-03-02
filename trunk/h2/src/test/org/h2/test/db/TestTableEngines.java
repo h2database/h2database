@@ -63,7 +63,7 @@ public class TestTableEngines extends TestBase {
         deleteDb("tableEngine");
         Connection conn = getConnection("tableEngine;EARLY_FILTER=TRUE");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + 
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
         EndlessTableEngine.class.getName() + "\"");
         ResultSet rs = stat.executeQuery(
                 "SELECT name FROM t1 where id=1 and name is not null");
@@ -80,22 +80,22 @@ public class TestTableEngines extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
                 EndlessTableEngine.class.getName() + "\" WITH \"param1\", \"param2\"");
-        assertEquals(2, 
+        assertEquals(2,
                 EndlessTableEngine.createTableData.tableEngineParams.size());
-        assertEquals("param1", 
+        assertEquals("param1",
                 EndlessTableEngine.createTableData.tableEngineParams.get(0));
-        assertEquals("param2", 
+        assertEquals("param2",
                 EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
         if (!config.memory) {
             // Test serialization of table parameters
             EndlessTableEngine.createTableData.tableEngineParams.clear();
             conn = getConnection("tableEngine");
-            assertEquals(2, 
+            assertEquals(2,
                     EndlessTableEngine.createTableData.tableEngineParams.size());
-            assertEquals("param1", 
+            assertEquals("param1",
                     EndlessTableEngine.createTableData.tableEngineParams.get(0));
-            assertEquals("param2", 
+            assertEquals("param2",
                     EndlessTableEngine.createTableData.tableEngineParams.get(1));
             conn.close();
         }
@@ -108,7 +108,7 @@ public class TestTableEngines extends TestBase {
 
         Connection conn = getConnection("tableEngine");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" + 
+        stat.execute("CREATE TABLE t1(id int, name varchar) ENGINE \"" +
                 OneRowTableEngine.class.getName() + "\"");
 
         testStatements(stat);

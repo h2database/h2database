@@ -56,7 +56,7 @@ public class ProductMixedAnnotation {
 
     public static List<ProductMixedAnnotation> getList() {
         String mappedField = "mapped";
-        ProductMixedAnnotation[] list = { 
+        ProductMixedAnnotation[] list = {
                 create(1, "Chai", "Beverages", 18, 39, mappedField),
                 create(2, "Chang", "Beverages", 19.0, 17, mappedField),
                 create(3, "Aniseed Syrup", "Condiments", 10.0, 13, mappedField),

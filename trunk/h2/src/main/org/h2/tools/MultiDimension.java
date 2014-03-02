@@ -148,7 +148,7 @@ public class MultiDimension implements Comparator<long[]> {
     /**
      * Generates an optimized multi-dimensional range query. The query contains
      * parameters. It can only be used with the H2 database.
-     * 
+     *
      * @param table the table name
      * @param columns the list of columns
      * @param scalarColumn the column name of the computed scalar column
@@ -170,7 +170,7 @@ public class MultiDimension implements Comparator<long[]> {
 
     /**
      * Executes a prepared query that was generated using generatePreparedQuery.
-     * 
+     *
      * @param prep the prepared statement
      * @param min the lower values
      * @param max the upper values

@@ -168,7 +168,8 @@ public class Parameter extends Expression implements ParameterInterface {
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
+        return new Comparison(session, Comparison.EQUAL, this,
+                ValueExpression.get(ValueBoolean.get(false)));
     }
 
     public void setColumn(Column column) {

@@ -34,7 +34,7 @@ import org.h2.util.StringUtils;
  */
 public class CompressTool {
 
-    private static final int MAX_BUFFER_SIZE = 
+    private static final int MAX_BUFFER_SIZE =
             3 * Constants.IO_BUFFER_SIZE_COMPRESS;
     private byte[] cachedBuffer;
 
@@ -149,19 +149,19 @@ public class CompressTool {
             return ((x & 0x3f) << 8) + (buff[pos] & 0xff);
         }
         if (x < 0xe0) {
-            return ((x & 0x1f) << 16) + 
-                    ((buff[pos++] & 0xff) << 8) + 
+            return ((x & 0x1f) << 16) +
+                    ((buff[pos++] & 0xff) << 8) +
                     (buff[pos] & 0xff);
         }
         if (x < 0xf0) {
-            return ((x & 0xf) << 24) + 
-                    ((buff[pos++] & 0xff) << 16) + 
-                    ((buff[pos++] & 0xff) << 8) + 
+            return ((x & 0xf) << 24) +
+                    ((buff[pos++] & 0xff) << 16) +
+                    ((buff[pos++] & 0xff) << 8) +
                     (buff[pos] & 0xff);
         }
-        return ((buff[pos++] & 0xff) << 24) + 
-                ((buff[pos++] & 0xff) << 16) + 
-                ((buff[pos++] & 0xff) << 8) + 
+        return ((buff[pos++] & 0xff) << 24) +
+                ((buff[pos++] & 0xff) << 16) +
+                ((buff[pos++] & 0xff) << 8) +
                 (buff[pos] & 0xff);
     }
 
@@ -262,7 +262,7 @@ public class CompressTool {
             return Compressor.DEFLATE;
         } else {
             throw DbException.get(
-                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, 
+                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
                     algorithm);
         }
     }
@@ -277,7 +277,7 @@ public class CompressTool {
             return new CompressDeflate();
         default:
             throw DbException.get(
-                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, 
+                    ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
                     "" + algorithm);
         }
     }
@@ -300,7 +300,7 @@ public class CompressTool {
                 out = new LZFOutputStream(out);
             } else if (compressionAlgorithm != null) {
                 throw DbException.get(
-                        ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, 
+                        ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
                         compressionAlgorithm);
             }
             return out;
@@ -335,7 +335,7 @@ public class CompressTool {
                 in = new LZFInputStream(in);
             } else if (compressionAlgorithm != null) {
                 throw DbException.get(
-                        ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1, 
+                        ErrorCode.UNSUPPORTED_COMPRESSION_ALGORITHM_1,
                         compressionAlgorithm);
             }
             return in;

@@ -75,7 +75,7 @@ public class TestOpenClose extends TestBase {
         String url = "jdbc:h2:split:18:" + getBaseDir() + "/openClose2";
         url = getURL(url, true);
         conn = DriverManager.getConnection(url);
-        conn.createStatement().execute("create table test(id int, name varchar) " + 
+        conn.createStatement().execute("create table test(id int, name varchar) " +
                 "as select 1, space(1000000)");
         conn.close();
         FileChannel c = FileUtils.open(fn+".1.part", "rw");
@@ -139,14 +139,14 @@ public class TestOpenClose extends TestBase {
 
         deleteDb("openClose");
         String user = getUser(), password = getPassword();
-        String url = getURL("openClose;DATABASE_EVENT_LISTENER='" + 
+        String url = getURL("openClose;DATABASE_EVENT_LISTENER='" +
                 MyDatabaseEventListener.class.getName() + "'", true);
         Connection conn = DriverManager.getConnection(url, user, password);
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
         stat.execute("SET MAX_MEMORY_UNDO 100000");
         stat.execute("CREATE INDEX IDXNAME ON TEST(NAME)");
-        stat.execute("INSERT INTO TEST SELECT X, X || ' Data' " + 
+        stat.execute("INSERT INTO TEST SELECT X, X || ' Data' " +
                 "FROM SYSTEM_RANGE(1, 1000)");
         stat.close();
         conn.close();

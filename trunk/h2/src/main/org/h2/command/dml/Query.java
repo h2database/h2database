@@ -80,7 +80,8 @@ public abstract class Query extends Prepared {
      * @param target the target to write results to
      * @return the result
      */
-    protected abstract LocalResult queryWithoutCache(int limit, ResultTarget target);
+    protected abstract LocalResult queryWithoutCache(int limit,
+            ResultTarget target);
 
     /**
      * Initialize the query.
@@ -169,7 +170,8 @@ public abstract class Query extends Prepared {
      * @param columnId the column index (0 meaning the first column)
      * @param comparisonType the comparison type
      */
-    public abstract void addGlobalCondition(Parameter param, int columnId, int comparisonType);
+    public abstract void addGlobalCondition(Parameter param, int columnId,
+            int comparisonType);
 
     /**
      * Check whether adding condition to the query is allowed. This is not
@@ -240,7 +242,8 @@ public abstract class Query extends Prepared {
         this.noCache = true;
     }
 
-    private boolean sameResultAsLast(Session s, Value[] params, Value[] lastParams, long lastEval) {
+    private boolean sameResultAsLast(Session s, Value[] params,
+            Value[] lastParams, long lastEval) {
         if (!cacheableChecked) {
             long max = getMaxDataModificationId();
             noCache = max == Long.MAX_VALUE;
@@ -256,10 +259,12 @@ public abstract class Query extends Prepared {
                 return false;
             }
         }
-        if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) || !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
+        if (!isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR) ||
+                !isEverything(ExpressionVisitor.INDEPENDENT_VISITOR)) {
             return false;
         }
-        if (db.getModificationDataId() > lastEval && getMaxDataModificationId() > lastEval) {
+        if (db.getModificationDataId() > lastEval &&
+                getMaxDataModificationId() > lastEval) {
             return false;
         }
         return true;
@@ -299,8 +304,10 @@ public abstract class Query extends Prepared {
         Value[] params = getParameterValues();
         long now = session.getDatabase().getModificationDataId();
         if (isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR)) {
-            if (lastResult != null && !lastResult.isClosed() && limit == lastLimit) {
-                if (sameResultAsLast(session, params, lastParameters, lastEvaluated)) {
+            if (lastResult != null && !lastResult.isClosed() &&
+                    limit == lastLimit) {
+                if (sameResultAsLast(session, params, lastParameters,
+                        lastEvaluated)) {
                     lastResult = lastResult.createShallowCopy(session);
                     if (lastResult != null) {
                         lastResult.reset();
@@ -422,7 +429,8 @@ public abstract class Query extends Prepared {
             }
             if (!isAlias) {
                 if (mustBeInResult) {
-                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT, e.getSQL());
+                    throw DbException.get(ErrorCode.ORDER_BY_NOT_IN_RESULT,
+                            e.getSQL());
                 }
                 expressions.add(e);
                 String sql = e.getSQL();
@@ -442,7 +450,8 @@ public abstract class Query extends Prepared {
      * @param expressionCount the number of columns in the query
      * @return the {@link SortOrder} object
      */
-    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList, int expressionCount) {
+    public SortOrder prepareOrder(ArrayList<SelectOrderBy> orderList,
+            int expressionCount) {
         int size = orderList.size();
         int[] index = new int[size];
         int[] sortType = new int[size];

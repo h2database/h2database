@@ -28,7 +28,8 @@ public class JdbcSavepoint extends TraceObject implements Savepoint {
     private final String name;
     private JdbcConnection conn;
 
-    JdbcSavepoint(JdbcConnection conn, int savepointId, String name, Trace trace, int id) {
+    JdbcSavepoint(JdbcConnection conn, int savepointId, String name,
+            Trace trace, int id) {
         setTrace(trace, TraceObject.SAVEPOINT, id);
         this.conn = conn;
         this.savepointId = savepointId;
@@ -63,12 +64,15 @@ public class JdbcSavepoint extends TraceObject implements Savepoint {
      */
     void rollback() {
         checkValid();
-        conn.prepareCommand("ROLLBACK TO SAVEPOINT " + getName(name, savepointId), Integer.MAX_VALUE).executeUpdate();
+        conn.prepareCommand(
+                "ROLLBACK TO SAVEPOINT " + getName(name, savepointId),
+                Integer.MAX_VALUE).executeUpdate();
     }
 
     private void checkValid() {
         if (conn == null) {
-            throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1, getName(name, savepointId));
+            throw DbException.get(ErrorCode.SAVEPOINT_IS_INVALID_1,
+                    getName(name, savepointId));
         }
     }
 

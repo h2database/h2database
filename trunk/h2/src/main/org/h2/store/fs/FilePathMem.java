@@ -29,7 +29,7 @@ import org.h2.util.New;
  */
 public class FilePathMem extends FilePath {
 
-    private static final TreeMap<String, FileMemData> MEMORY_FILES = 
+    private static final TreeMap<String, FileMemData> MEMORY_FILES =
             new TreeMap<String, FileMemData>();
     private static final FileMemData DIRECTORY = new FileMemData("", false);
 
@@ -149,7 +149,7 @@ public class FilePathMem extends FilePath {
     @Override
     public void createDirectory() {
         if (exists()) {
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
                     name + " (a file with this name already exists)");
         }
         synchronized (MEMORY_FILES) {
@@ -181,7 +181,7 @@ public class FilePathMem extends FilePath {
         synchronized (MEMORY_FILES) {
             FileMemData m = MEMORY_FILES.get(name);
             if (m == DIRECTORY) {
-                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1,
                         name + " (a directory with this name already exists)");
             }
             if (m == null) {
@@ -284,7 +284,7 @@ class FileMem extends FileBase {
             return 0;
         }
         data.touch(readOnly);
-        pos = data.readWrite(pos, src.array(), 
+        pos = data.readWrite(pos, src.array(),
                 src.arrayOffset() + src.position(), len, true);
         src.position(src.position() + len);
         return len;
@@ -296,7 +296,7 @@ class FileMem extends FileBase {
         if (len == 0) {
             return 0;
         }
-        long newPos = data.readWrite(pos, dst.array(), 
+        long newPos = data.readWrite(pos, dst.array(),
                 dst.arrayOffset() + dst.position(), len, false);
         len = (int) (newPos - pos);
         if (len <= 0) {

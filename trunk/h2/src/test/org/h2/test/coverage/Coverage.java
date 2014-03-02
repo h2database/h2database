@@ -23,7 +23,7 @@ import org.h2.util.New;
  * runtime of the tested application.
  */
 public class Coverage {
-    private static final String IMPORT = "import " + 
+    private static final String IMPORT = "import " +
             Coverage.class.getPackage().getName() + ".Profile";
     private final ArrayList<String> files = New.arrayList();
     private final ArrayList<String> exclude = New.arrayList();
@@ -132,7 +132,7 @@ public class Coverage {
         for (int i = 0; i < len; i++) {
             long t2 = System.currentTimeMillis();
             if (t2 - time > 1000 || i >= len - 1) {
-                System.out.println((i + 1) + " of " + len + 
+                System.out.println((i + 1) + " of " + len +
                         " " + (100 * i / len) + "%");
                 time = t2;
             }
@@ -158,8 +158,8 @@ public class Coverage {
             }
             file = file.substring(0, i) + "." + file.substring(i + 1);
         }
-        if (name.endsWith("Coverage.java") || 
-                name.endsWith("Tokenizer.java") || 
+        if (name.endsWith("Coverage.java") ||
+                name.endsWith("Tokenizer.java") ||
                 name.endsWith("Profile.java")) {
             return;
         }
@@ -219,10 +219,11 @@ public class Coverage {
                 }
             }
         }
-        if (write == null
-                || (!write.equals("else ") && !write.equals("else") && !write.equals("super ")
-                        && !write.equals("super") && !write.equals("this ") && !write.equals("this")
-                        && !write.equals("} ") && !write.equals("}"))) {
+        if (write == null || (!write.equals("else ") &&
+                !write.equals("else") && !write.equals("super ") &&
+                !write.equals("super") && !write.equals("this ") &&
+                !write.equals("this") && !write.equals("} ") &&
+                !write.equals("}"))) {
             if (add != null && !add.equals("")) {
                 writeLine();
                 write(add);
@@ -370,7 +371,7 @@ public class Coverage {
 
     private void processStatement() throws IOException {
         while (true) {
-            if (token.equals("while") || token.equals("for") || 
+            if (token.equals("while") || token.equals("for") ||
                     token.equals("synchronized")) {
                 read();
                 readThis("(");

@@ -57,7 +57,7 @@ public class TestDrop extends TestBase {
         stat.execute("DROP ALL OBJECTS");
         stat.execute("CREATE SCHEMA TEST_SCHEMA");
         stat.execute("CREATE TABLE TEST_SCHEMA.A (A INT);");
-        stat.execute("CREATE TABLE TEST_SCHEMA.B " + 
+        stat.execute("CREATE TABLE TEST_SCHEMA.B " +
                 "(B INT AS SELECT A FROM TEST_SCHEMA.A);");
         stat.execute("DROP SCHEMA TEST_SCHEMA");
     }

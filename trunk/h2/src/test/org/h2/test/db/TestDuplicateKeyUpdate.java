@@ -90,21 +90,21 @@ public class TestDuplicateKeyUpdate extends TestBase {
         stat.execute("CREATE UNIQUE INDEX index_name \n"
                 + "ON table_test2 (a_text, some_text);");
 
-        stat.execute("INSERT INTO table_test2 " + 
+        stat.execute("INSERT INTO table_test2 " +
                 "( a_text, some_text, updatable_text ) VALUES ('a', 'a', '1')");
-        stat.execute("INSERT INTO table_test2 " + 
+        stat.execute("INSERT INTO table_test2 " +
                 "( a_text, some_text, updatable_text ) VALUES ('b', 'b', '2')");
-        stat.execute("INSERT INTO table_test2 " + 
+        stat.execute("INSERT INTO table_test2 " +
                 "( a_text, some_text, updatable_text ) VALUES ('c', 'c', '3')");
-        stat.execute("INSERT INTO table_test2 " + 
+        stat.execute("INSERT INTO table_test2 " +
                 "( a_text, some_text, updatable_text ) VALUES ('d', 'd', '4')");
-        stat.execute("INSERT INTO table_test2 " + 
+        stat.execute("INSERT INTO table_test2 " +
                 "( a_text, some_text, updatable_text ) VALUES ('e', 'e', '5')");
 
         stat.execute("INSERT INTO table_test2 ( a_text, some_text ) " +
                 "VALUES ('e', 'e') ON DUPLICATE KEY UPDATE updatable_text='UPDATE'");
 
-        rs = stat.executeQuery("SELECT updatable_text " + 
+        rs = stat.executeQuery("SELECT updatable_text " +
                 "FROM table_test2 where a_text = 'e'");
         rs.next();
         assertEquals("UPDATE", rs.getNString(1));
@@ -112,7 +112,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         stat.execute("INSERT INTO table_test2 (a_text, some_text, updatable_text ) " +
                 "VALUES ('b', 'b', 'test') " +
                 "ON DUPLICATE KEY UPDATE updatable_text=values(updatable_text)");
-        rs = stat.executeQuery("SELECT updatable_text " + 
+        rs = stat.executeQuery("SELECT updatable_text " +
                 "FROM table_test2 where a_text = 'b'");
         rs.next();
         assertEquals("test", rs.getNString(1));
@@ -165,13 +165,13 @@ public class TestDuplicateKeyUpdate extends TestBase {
         stat.execute("INSERT INTO table_test4 ( id, a_text, some_value ) " +
                 "VALUES (2, 'aaaaaaaaaa', 5)");
 
-        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) " + 
+        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) " +
                 "VALUES (1, 'b', 1) " +
                 "ON DUPLICATE KEY UPDATE some_value=some_value + values(some_value)");
-        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) " + 
+        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) " +
                 "VALUES (1, 'b', 1) " +
                 "ON DUPLICATE KEY UPDATE some_value=some_value + 100");
-        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) " + 
+        stat.execute("INSERT INTO table_test4 ( id , a_text, some_value ) " +
                 "VALUES (2, 'b', 1) " +
                 "ON DUPLICATE KEY UPDATE some_value=values(some_value) + 1");
         rs = stat.executeQuery("SELECT some_value FROM table_test4 where id = 1");
@@ -186,7 +186,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
     public void testOnDuplicateKeyInsertBatch(Connection conn)
             throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("create table test " + 
+        stat.execute("create table test " +
                 "(key varchar(1) primary key, count int not null)");
 
         // Insert multiple values as a batch
@@ -218,7 +218,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
     public void testOnDuplicateKeyInsertMultiValue(Connection conn)
             throws SQLException {
         Statement stat = conn.createStatement();
-        stat.execute("create table test" + 
+        stat.execute("create table test" +
                 "(key varchar(1) primary key, count int not null)");
 
         // Insert multiple values in single insert operation

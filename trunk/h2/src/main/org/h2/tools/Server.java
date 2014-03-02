@@ -301,7 +301,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         // TODO server: maybe use one single properties file?
         if (tcpShutdown) {
             out.println("Shutting down TCP Server at " + tcpShutdownServer);
-            shutdownTcpServer(tcpShutdownServer, tcpPassword, 
+            shutdownTcpServer(tcpShutdownServer, tcpPassword,
                     tcpShutdownForce, false);
         }
         try {
@@ -355,12 +355,12 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * existing connections are killed. After calling the method with
      * force=false, it is not possible to call it again with force=true because
      * new connections are not allowed. Example:
-     * 
+     *
      * <pre>
-     * Server.shutdownTcpServer(&quot;tcp://localhost:9094&quot;, 
+     * Server.shutdownTcpServer(&quot;tcp://localhost:9094&quot;,
      *         password, true, false);
      * </pre>
-     * 
+     *
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
      * @param force the shutdown (don't wait)
@@ -395,7 +395,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         } else {
             buff.append("The ").
                 append(service.getType()).
-                append(" server could not be started. " + 
+                append(" server could not be started. " +
                         "Possible cause: another server is already running at ").
                 append(service.getURL());
         }
@@ -487,7 +487,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             if (isRunning(true)) {
                 return this;
             }
-            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2, 
+            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2,
                     name, "timeout; " +
                     "please check your network configuration, specially the file /etc/hosts");
         } catch (DbException e) {
@@ -678,13 +678,13 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (!ok) {
                     // No success in detection.
                     throw new Exception(
-                            "Browser detection failed and system property " + 
+                            "Browser detection failed and system property " +
                             SysProperties.H2_BROWSER + " not set");
                 }
             }
         } catch (Exception e) {
             throw new Exception(
-                    "Failed to start a browser to open the URL " + 
+                    "Failed to start a browser to open the URL " +
             url + ": " + e.getMessage());
         }
     }

@@ -156,8 +156,8 @@ public class UndoLog {
         records.add(entry);
         if (largeTransactions) {
             memoryUndo++;
-            if (memoryUndo > database.getMaxMemoryUndo() && 
-                    database.isPersistent() && 
+            if (memoryUndo > database.getMaxMemoryUndo() &&
+                    database.isPersistent() &&
                     !database.isMultiVersion()) {
                 if (file == null) {
                     String fileName = database.createTempFile();
@@ -186,8 +186,8 @@ public class UndoLog {
             if (!entry.isStored()) {
                 memoryUndo++;
             }
-            if (memoryUndo > database.getMaxMemoryUndo() && 
-                    database.isPersistent() && 
+            if (memoryUndo > database.getMaxMemoryUndo() &&
+                    database.isPersistent() &&
                     !database.isMultiVersion()) {
                 if (file == null) {
                     String fileName = database.createTempFile();

@@ -84,10 +84,10 @@ public class TestCancel extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("set query_timeout 1");
         assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
-                execute("select count(*) from system_range(1, 1000000), " + 
+                execute("select count(*) from system_range(1, 1000000), " +
                         "system_range(1, 1000000)");
         stat.execute("set query_timeout 0");
-        stat.execute("select count(*) from system_range(1, 1000), " + 
+        stat.execute("select count(*) from system_range(1, 1000), " +
                 "system_range(1, 1000)");
         conn.close();
     }
@@ -116,12 +116,12 @@ public class TestCancel extends TestBase {
         assertEquals(1, stat.getQueryTimeout());
         Statement s2 = conn.createStatement();
         assertEquals(1, s2.getQueryTimeout());
-        ResultSet rs = s2.executeQuery("SELECT VALUE " + 
+        ResultSet rs = s2.executeQuery("SELECT VALUE " +
                 "FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME = 'QUERY_TIMEOUT'");
         rs.next();
         assertEquals(1000, rs.getInt(1));
         assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
-                executeQuery("SELECT MAX(RAND()) " + 
+                executeQuery("SELECT MAX(RAND()) " +
                         "FROM SYSTEM_RANGE(1, 100000000)");
         stat.setQueryTimeout(0);
         stat.execute("SET QUERY_TIMEOUT 1100");
@@ -136,7 +136,7 @@ public class TestCancel extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("SET QUERY_TIMEOUT 10");
         assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
-                executeQuery("SELECT MAX(RAND()) " + 
+                executeQuery("SELECT MAX(RAND()) " +
                         "FROM SYSTEM_RANGE(1, 100000000)");
         conn.close();
     }
@@ -146,7 +146,7 @@ public class TestCancel extends TestBase {
         Connection conn = getConnection("cancel;MAX_QUERY_TIMEOUT=10");
         Statement stat = conn.createStatement();
         assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, stat).
-                executeQuery("SELECT MAX(RAND()) " + 
+                executeQuery("SELECT MAX(RAND()) " +
                         "FROM SYSTEM_RANGE(1, 100000000)");
         conn.close();
     }
@@ -168,7 +168,7 @@ public class TestCancel extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE  ALIAS VISIT FOR \"" + getClass().getName() + ".visit\"");
-        stat.execute("CREATE  MEMORY TABLE TEST" + 
+        stat.execute("CREATE  MEMORY TABLE TEST" +
                 "(ID INT PRIMARY KEY, NAME VARCHAR(255))");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, ?)");

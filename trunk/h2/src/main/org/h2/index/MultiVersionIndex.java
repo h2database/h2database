@@ -43,9 +43,11 @@ public class MultiVersionIndex implements Index {
         this.table = table;
         IndexType deltaIndexType = IndexType.createNonUnique(false);
         if (base instanceof SpatialIndex) {
-            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, "MVCC & spatial index");
+            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1,
+                    "MVCC & spatial index");
         }
-        this.delta = new TreeIndex(table, -1, "DELTA", base.getIndexColumns(), deltaIndexType);
+        this.delta = new TreeIndex(table, -1, "DELTA", base.getIndexColumns(),
+                deltaIndexType);
         delta.setMultiVersion(true);
         this.sync = base.getDatabase();
         this.firstColumn = base.getColumns()[0];
@@ -76,7 +78,8 @@ public class MultiVersionIndex implements Index {
         synchronized (sync) {
             Cursor baseCursor = base.find(filter, first, last);
             Cursor deltaCursor = delta.find(filter, first, last);
-            return new MultiVersionCursor(filter.getSession(), this, baseCursor, deltaCursor, sync);
+            return new MultiVersionCursor(filter.getSession(), this,
+                    baseCursor, deltaCursor, sync);
         }
     }
 
@@ -121,7 +124,8 @@ public class MultiVersionIndex implements Index {
         }
         Cursor baseCursor = base.findFirstOrLast(session, false);
         Cursor deltaCursor = delta.findFirstOrLast(session, false);
-        MultiVersionCursor cursor = new MultiVersionCursor(session, this, baseCursor, deltaCursor, sync);
+        MultiVersionCursor cursor = new MultiVersionCursor(session, this,
+                baseCursor, deltaCursor, sync);
         cursor.loadCurrent();
         // TODO optimization: this loops through NULL elements
         while (cursor.previous()) {
@@ -138,7 +142,8 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter filter,
+            SortOrder sortOrder) {
         return base.getCost(session, masks, filter, sortOrder);
     }
 

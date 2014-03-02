@@ -65,7 +65,7 @@ public class TestUpgrade extends TestBase {
         assertFalse(FileUtils.exists(getBaseDir() + "/upgrade.index.db"));
         ResultSet rs = conn.createStatement().executeQuery("select * from test");
         rs.next();
-        assertEquals(new String(new char[100000]).replace((char) 0, ' '), 
+        assertEquals(new String(new char[100000]).replace((char) 0, ' '),
                 rs.getString(1));
         conn.close();
         DbUpgrade.setDeleteOldDb(false);
@@ -191,7 +191,7 @@ public class TestUpgrade extends TestBase {
         // Create old db
         Utils.callStaticMethod("org.h2.upgrade.v1_1.Driver.load");
         Connection conn = DriverManager.getConnection("jdbc:h2v1_1:" +
-                getBaseDir() + "/upgrade;PAGE_STORE=FALSE;" + 
+                getBaseDir() + "/upgrade;PAGE_STORE=FALSE;" +
                 "CIPHER=AES", "abc", "abc abc");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
@@ -219,11 +219,11 @@ public class TestUpgrade extends TestBase {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage());
         }
-        FileUtils.delete(getBaseDir() + "/" + 
+        FileUtils.delete(getBaseDir() + "/" +
                     dbName + ".data.db.backup");
-        FileUtils.delete(getBaseDir() + "/" + 
+        FileUtils.delete(getBaseDir() + "/" +
                     dbName + ".index.db.backup");
-        FileUtils.deleteRecursive(getBaseDir() + "/" + 
+        FileUtils.deleteRecursive(getBaseDir() + "/" +
                     dbName + ".lobs.db.backup", false);
     }
 

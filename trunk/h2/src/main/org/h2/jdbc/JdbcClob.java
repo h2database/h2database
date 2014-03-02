@@ -187,7 +187,8 @@ public class JdbcClob extends TraceObject implements NClob
             if (length < 0) {
                 throw DbException.getInvalidValueException("length", length);
             }
-            StringWriter writer = new StringWriter(Math.min(Constants.IO_BUFFER_SIZE, length));
+            StringWriter writer = new StringWriter(
+                    Math.min(Constants.IO_BUFFER_SIZE, length));
             Reader reader = value.getReader();
             try {
                 IOUtils.skipFully(reader, pos - 1);
@@ -233,7 +234,8 @@ public class JdbcClob extends TraceObject implements NClob
      * [Not supported] Sets a substring.
      */
     @Override
-    public int setString(long pos, String str, int offset, int len) throws SQLException {
+    public int setString(long pos, String str, int offset, int len)
+            throws SQLException {
         throw unsupported("LOB update");
     }
 
@@ -282,7 +284,8 @@ public class JdbcClob extends TraceObject implements NClob
      */
     @Override
     public String toString() {
-        return getTraceObjectName() + ": " + (value == null ? "null" : value.getTraceSQL());
+        return getTraceObjectName() + ": " + (value == null ?
+                "null" : value.getTraceSQL());
     }
 
 }

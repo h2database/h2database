@@ -159,7 +159,7 @@ public class PageStreamData extends Page {
 
     @Override
     public String toString() {
-        return "[" + getPos() + "] stream data key:" + logKey + 
+        return "[" + getPos() + "] stream data key:" + logKey +
                 " pos:" + data.length() + " remaining:" + remaining;
     }
 

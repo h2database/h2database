@@ -48,7 +48,7 @@ public class FileLister {
                     lock.unlock();
                 } catch (DbException e) {
                     throw DbException.get(
-                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, 
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
                             message).getSQLException();
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
@@ -59,7 +59,7 @@ public class FileLister {
                     lock.release();
                 } catch (Exception e) {
                     throw DbException.get(
-                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e, 
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e,
                             message).getSQLException();
                 } finally {
                     if (f != null) {

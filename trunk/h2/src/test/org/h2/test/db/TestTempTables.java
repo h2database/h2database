@@ -174,7 +174,7 @@ public class TestTempTables extends TestBase {
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();
         stat.execute("create global temporary table test(id int, data varchar)");
-        stat.execute("insert into test " + 
+        stat.execute("insert into test " +
                     "select x, space(1000) from system_range(1, 1000)");
         stat.execute("shutdown compact");
         try {
@@ -257,7 +257,7 @@ public class TestTempTables extends TestBase {
         // (this features are here for compatibility only)
         ResultSet rs;
         c1.setAutoCommit(false);
-        s1.execute("create local temporary table test_temp(id int) " + 
+        s1.execute("create local temporary table test_temp(id int) " +
                 "on commit delete rows");
         s1.execute("insert into test_temp values(1)");
         rs = s1.executeQuery("select * from test_temp");

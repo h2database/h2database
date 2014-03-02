@@ -29,7 +29,8 @@ public class MultiVersionCursor implements Cursor {
     private boolean needNewDelta, needNewBase;
     private boolean reverse;
 
-    MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base, Cursor delta, Object sync) {
+    MultiVersionCursor(Session session, MultiVersionIndex index, Cursor base,
+            Cursor delta, Object sync) {
         this.session = session;
         this.index = index;
         this.baseCursor = base;

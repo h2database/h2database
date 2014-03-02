@@ -111,7 +111,9 @@ public abstract class Prepared {
         }
         // parser: currently, compiling every create/drop/... twice
         // because needRecompile return true even for the first execution
-        return prepareAlways || modificationMetaId < db.getModificationMetaId() || db.getSettings().recompileAlways;
+        return prepareAlways ||
+                modificationMetaId < db.getModificationMetaId() ||
+                db.getSettings().recompileAlways;
     }
 
     /**
@@ -312,7 +314,8 @@ public abstract class Prepared {
         }
         if (session.getDatabase().getQueryStatistics()) {
             long deltaTime = System.currentTimeMillis() - startTime;
-            session.getDatabase().getQueryStatisticsData().update(toString(), deltaTime, rowCount);
+            session.getDatabase().getQueryStatisticsData().
+                    update(toString(), deltaTime, rowCount);
         }
     }
 
@@ -353,7 +356,9 @@ public abstract class Prepared {
      */
     private void setProgress() {
         if ((currentRowNumber & 127) == 0) {
-            session.getDatabase().setProgress(DatabaseEventListener.STATE_STATEMENT_PROGRESS, sqlStatement, currentRowNumber, 0);
+            session.getDatabase().setProgress(
+                    DatabaseEventListener.STATE_STATEMENT_PROGRESS,
+                    sqlStatement, currentRowNumber, 0);
         }
     }
 

@@ -131,7 +131,7 @@ public class ToChar {
         } else if (formatUp.equals("TME")) {
             int pow = number.precision() - number.scale() - 1;
             number = number.movePointLeft(pow);
-            return number.toPlainString() + "E" + 
+            return number.toPlainString() + "E" +
                     (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
         } else if (formatUp.equals("RN")) {
             boolean lowercase = format.startsWith("r");
@@ -681,7 +681,7 @@ public class ToChar {
 
                 // Fractional seconds
 
-            } else if ((cap = containsAt(format, i, "FF1", "FF2", 
+            } else if ((cap = containsAt(format, i, "FF1", "FF2",
                     "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
                 int x = Integer.parseInt(format.substring(i + 2, i + 3));
                 int ff = (int) (cal.get(Calendar.MILLISECOND) * Math.pow(10, x - 3));
@@ -789,11 +789,11 @@ public class ToChar {
                         break;
                     }
                 }
-            } else if (format.charAt(i) == '-' 
-                    || format.charAt(i) == '/' 
+            } else if (format.charAt(i) == '-'
+                    || format.charAt(i) == '/'
                     || format.charAt(i) == ','
-                    || format.charAt(i) == '.' 
-                    || format.charAt(i) == ';' 
+                    || format.charAt(i) == '.'
+                    || format.charAt(i) == ';'
                     || format.charAt(i) == ':'
                     || format.charAt(i) == ' ') {
                 output.append(format.charAt(i));
@@ -916,7 +916,7 @@ public class ToChar {
             case LOWERCASE:
                 return s.toLowerCase();
             case CAPITALIZE:
-                return Character.toUpperCase(s.charAt(0)) + 
+                return Character.toUpperCase(s.charAt(0)) +
                         (s.length() > 1 ? s.toLowerCase().substring(1) : "");
             default:
                 throw new IllegalArgumentException(

@@ -50,7 +50,8 @@ public class PageBtreeNode extends PageBtree {
 
     private PageBtreeNode(PageBtreeIndex index, int pageId, Data data) {
         super(index, pageId, data);
-        this.pageStoreInternalCount = index.getDatabase().getSettings().pageStoreInternalCount;
+        this.pageStoreInternalCount = index.getDatabase().
+                getSettings().pageStoreInternalCount;
     }
 
     /**
@@ -75,8 +76,10 @@ public class PageBtreeNode extends PageBtree {
      * @param parentPageId the parent page id
      * @return the page
      */
-    static PageBtreeNode create(PageBtreeIndex index, int pageId, int parentPageId) {
-        PageBtreeNode p = new PageBtreeNode(index, pageId, index.getPageStore().createData());
+    static PageBtreeNode create(PageBtreeIndex index, int pageId,
+            int parentPageId) {
+        PageBtreeNode p = new PageBtreeNode(index, pageId, index.getPageStore()
+                .createData());
         index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
         p.writeHead();
@@ -168,7 +171,8 @@ public class PageBtreeNode extends PageBtree {
             }
             last = entryCount == 0 ? pageSize : offsets[entryCount - 1];
             rowLength = index.getRowSize(data, row, true);
-            if (SysProperties.CHECK && last - rowLength < start + CHILD_OFFSET_PAIR_LENGTH) {
+            if (SysProperties.CHECK && last - rowLength <
+                    start + CHILD_OFFSET_PAIR_LENGTH) {
                 throw DbException.throwInternalError();
             }
         }
@@ -379,7 +383,9 @@ public class PageBtreeNode extends PageBtree {
                 int child = childPageIds[i];
                 PageBtree page = index.getPage(child);
                 count += page.getRowCount();
-                index.getDatabase().setProgress(DatabaseEventListener.STATE_SCAN_FILE, index.getName(), count, Integer.MAX_VALUE);
+                index.getDatabase().setProgress(
+                        DatabaseEventListener.STATE_SCAN_FILE,
+                        index.getName(), count, Integer.MAX_VALUE);
             }
             rowCount = count;
         }
@@ -423,7 +429,8 @@ public class PageBtreeNode extends PageBtree {
 
     private void writeHead() {
         data.reset();
-        data.writeByte((byte) (Page.TYPE_BTREE_NODE | (onlyPosition ? 0 : Page.FLAG_LAST)));
+        data.writeByte((byte) (Page.TYPE_BTREE_NODE |
+                (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeShortInt(0);
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
@@ -541,7 +548,8 @@ public class PageBtreeNode extends PageBtree {
 
     @Override
     public String toString() {
-        return "page[" + getPos() + "] b-tree node table:" + index.getId() + " entries:" + entryCount;
+        return "page[" + getPos() + "] b-tree node table:" +
+                index.getId() + " entries:" + entryCount;
     }
 
     @Override

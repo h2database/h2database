@@ -62,7 +62,8 @@ public class PageDataNode extends PageData {
      * @return the page
      */
     static PageDataNode create(PageDataIndex index, int pageId, int parentPageId) {
-        PageDataNode p = new PageDataNode(index, pageId, index.getPageStore().createData());
+        PageDataNode p = new PageDataNode(index, pageId,
+                index.getPageStore().createData());
         index.getPageStore().logUndo(p, null);
         p.parentPageId = parentPageId;
         p.writeHead();
@@ -163,7 +164,8 @@ public class PageDataNode extends PageData {
     Cursor find(Session session, long minKey, long maxKey, boolean multiVersion) {
         int x = find(minKey);
         int child = childPageIds[x];
-        return index.getPage(child, getPos()).find(session, minKey, maxKey, multiVersion);
+        return index.getPage(child, getPos()).find(session, minKey, maxKey,
+                multiVersion);
     }
 
     @Override
@@ -373,7 +375,8 @@ public class PageDataNode extends PageData {
             data.writeVarLong(keys[i]);
         }
         if (length != data.length()) {
-            DbException.throwInternalError("expected pos: " + length + " got: " + data.length());
+            DbException.throwInternalError("expected pos: " + length +
+                    " got: " + data.length());
         }
         written = true;
     }

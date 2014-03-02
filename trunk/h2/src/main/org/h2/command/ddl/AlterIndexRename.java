@@ -41,8 +41,10 @@ public class AlterIndexRename extends DefineCommand {
         session.commit(true);
         Database db = session.getDatabase();
         Schema schema = oldIndex.getSchema();
-        if (schema.findIndex(session, newIndexName) != null || newIndexName.equals(oldIndex.getName())) {
-            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1, newIndexName);
+        if (schema.findIndex(session, newIndexName) != null ||
+                newIndexName.equals(oldIndex.getName())) {
+            throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1,
+                    newIndexName);
         }
         session.getUser().checkRight(oldIndex.getTable(), Right.ALL);
         db.renameSchemaObject(session, oldIndex, newIndexName);

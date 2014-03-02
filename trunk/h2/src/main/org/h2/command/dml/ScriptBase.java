@@ -115,7 +115,8 @@ abstract class ScriptBase extends Prepared implements DataHandler {
         Database db = session.getDatabase();
         byte[] key = null;
         if (cipher != null && password != null) {
-            char[] pass = password.optimize(session).getValue(session).getString().toCharArray();
+            char[] pass = password.optimize(session).
+                    getValue(session).getString().toCharArray();
             key = SHA256.getKeyPasswordHash("script", pass);
         }
         String file = getFileName();
@@ -249,7 +250,8 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     }
 
     @Override
-    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff, int off, int length) {
+    public int readLob(long lobId, byte[] hmac, long offset, byte[] buff,
+            int off, int length) {
         throw DbException.throwInternalError();
     }
 

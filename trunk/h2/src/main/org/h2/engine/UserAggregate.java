@@ -66,7 +66,7 @@ public class UserAggregate extends DbObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return "CREATE FORCE AGGREGATE " + getSQL() + 
+        return "CREATE FORCE AGGREGATE " + getSQL() +
                 " FOR " + Parser.quoteIdentifier(className);
     }
 

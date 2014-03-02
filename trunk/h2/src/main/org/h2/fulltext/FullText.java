@@ -73,8 +73,10 @@ public class FullText {
 
     private static final String TRIGGER_PREFIX = "FT_";
     private static final String SCHEMA = "FT";
-    private static final String SELECT_MAP_BY_WORD_ID = "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
-    private static final String SELECT_ROW_BY_ID = "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
+    private static final String SELECT_MAP_BY_WORD_ID =
+            "SELECT ROWID FROM " + SCHEMA + ".MAP WHERE WORDID=?";
+    private static final String SELECT_ROW_BY_ID =
+            "SELECT KEY, INDEXID FROM " + SCHEMA + ".ROWS WHERE ID=?";
 
     /**
      * The column name of the result set returned by the search method.
@@ -106,24 +108,37 @@ public class FullText {
     public static void init(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                        + ".INDEXES(ID INT AUTO_INCREMENT PRIMARY KEY, SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, UNIQUE(SCHEMA, TABLE))");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                + ".WORDS(ID INT AUTO_INCREMENT PRIMARY KEY, NAME VARCHAR, UNIQUE(NAME))");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                + ".ROWS(ID IDENTITY, HASH INT, INDEXID INT, KEY VARCHAR, UNIQUE(HASH, INDEXID, KEY))");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA
-                        + ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".IGNORELIST(LIST VARCHAR)");
-        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA + ".SETTINGS(KEY VARCHAR PRIMARY KEY, VALUE VARCHAR)");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" + FullText.class.getName() + ".createIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" + FullText.class.getName() + ".dropIndex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" + FullText.class.getName() + ".search\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" + FullText.class.getName() + ".searchData\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" + FullText.class.getName() + ".reindex\"");
-        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" + FullText.class.getName() + ".dropAll\"");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".INDEXES(ID INT AUTO_INCREMENT PRIMARY KEY, " +
+                "SCHEMA VARCHAR, TABLE VARCHAR, COLUMNS VARCHAR, " +
+                "UNIQUE(SCHEMA, TABLE))");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".WORDS(ID INT AUTO_INCREMENT PRIMARY KEY, " +
+                "NAME VARCHAR, UNIQUE(NAME))");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".ROWS(ID IDENTITY, HASH INT, INDEXID INT, " +
+                "KEY VARCHAR, UNIQUE(HASH, INDEXID, KEY))");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".MAP(ROWID INT, WORDID INT, PRIMARY KEY(WORDID, ROWID))");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".IGNORELIST(LIST VARCHAR)");
+        stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
+                ".SETTINGS(KEY VARCHAR PRIMARY KEY, VALUE VARCHAR)");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_CREATE_INDEX FOR \"" +
+                FullText.class.getName() + ".createIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_INDEX FOR \"" +
+                FullText.class.getName() + ".dropIndex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH FOR \"" +
+                FullText.class.getName() + ".search\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_SEARCH_DATA FOR \"" +
+                FullText.class.getName() + ".searchData\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_REINDEX FOR \"" +
+                FullText.class.getName() + ".reindex\"");
+        stat.execute("CREATE ALIAS IF NOT EXISTS FT_DROP_ALL FOR \"" +
+                FullText.class.getName() + ".dropAll\"");
         FullTextSettings setting = FullTextSettings.getInstance(conn);
-        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".IGNORELIST");
+        ResultSet rs = stat.executeQuery("SELECT * FROM " + SCHEMA +
+                ".IGNORELIST");
         while (rs.next()) {
             String commaSeparatedList = rs.getString(1);
             setIgnoreList(setting, commaSeparatedList);
@@ -158,7 +173,8 @@ public class FullText {
      * @param table the table name (case sensitive)
      * @param columnList the column list (null for all columns)
      */
-    public static void createIndex(Connection conn, String schema, String table, String columnList) throws SQLException {
+    public static void createIndex(Connection conn, String schema,
+            String table, String columnList) throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA
                 + ".INDEXES(SCHEMA, TABLE, COLUMNS) VALUES(?, ?, ?)");
@@ -202,7 +218,8 @@ public class FullText {
      * @param schema the schema name of the table (case sensitive)
      * @param table the table name (case sensitive)
      */
-    public static void dropIndex(Connection conn, String schema, String table) throws SQLException {
+    public static void dropIndex(Connection conn, String schema, String table)
+            throws SQLException {
         init(conn);
         PreparedStatement prep = conn.prepareStatement("SELECT ID FROM " + SCHEMA
                 + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
@@ -228,7 +245,8 @@ public class FullText {
             }
         }
         prep = conn.prepareStatement("DELETE FROM " + SCHEMA + ".MAP M " +
-                "WHERE NOT EXISTS (SELECT * FROM " + SCHEMA + ".ROWS R WHERE R.ID=M.ROWID) AND ROWID<10000");
+                "WHERE NOT EXISTS (SELECT * FROM " + SCHEMA +
+                ".ROWS R WHERE R.ID=M.ROWID) AND ROWID<10000");
         while (true) {
             int deleted = prep.executeUpdate();
             if (deleted == 0) {
@@ -269,7 +287,8 @@ public class FullText {
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-    public static ResultSet search(Connection conn, String text, int limit, int offset) throws SQLException {
+    public static ResultSet search(Connection conn, String text, int limit,
+            int offset) throws SQLException {
         try {
             return search(conn, text, limit, offset, false);
         } catch (DbException e) {
@@ -299,7 +318,8 @@ public class FullText {
      * @param offset the offset or 0 for no offset
      * @return the result set
      */
-    public static ResultSet searchData(Connection conn, String text, int limit, int offset) throws SQLException {
+    public static ResultSet searchData(Connection conn, String text, int limit,
+            int offset) throws SQLException {
         try {
             return search(conn, text, limit, offset, true);
         } catch (DbException e) {
@@ -316,14 +336,16 @@ public class FullText {
      * @param conn the connection
      * @param commaSeparatedList the list
      */
-    public static void setIgnoreList(Connection conn, String commaSeparatedList) throws SQLException {
+    public static void setIgnoreList(Connection conn, String commaSeparatedList)
+            throws SQLException {
         try {
             init(conn);
             FullTextSettings setting = FullTextSettings.getInstance(conn);
             setIgnoreList(setting, commaSeparatedList);
             Statement stat = conn.createStatement();
             stat.execute("TRUNCATE TABLE " + SCHEMA + ".IGNORELIST");
-            PreparedStatement prep = conn.prepareStatement("INSERT INTO " + SCHEMA + ".IGNORELIST VALUES(?)");
+            PreparedStatement prep = conn.prepareStatement("INSERT INTO " +
+                    SCHEMA + ".IGNORELIST VALUES(?)");
             prep.setString(1, commaSeparatedList);
             prep.execute();
         } catch (DbException e) {
@@ -339,12 +361,14 @@ public class FullText {
      * @param conn the connection
      * @param whitespaceChars the list of characters
      */
-    public static void setWhitespaceChars(Connection conn, String whitespaceChars) throws SQLException {
+    public static void setWhitespaceChars(Connection conn,
+            String whitespaceChars) throws SQLException {
         try {
             init(conn);
             FullTextSettings setting = FullTextSettings.getInstance(conn);
             setting.setWhitespaceChars(whitespaceChars);
-            PreparedStatement prep = conn.prepareStatement("MERGE INTO " + SCHEMA + ".SETTINGS VALUES(?, ?)");
+            PreparedStatement prep = conn.prepareStatement("MERGE INTO " +
+                    SCHEMA + ".SETTINGS VALUES(?, ?)");
             prep.setString(1, "whitespaceChars");
             prep.setString(2, whitespaceChars);
             prep.execute();
@@ -516,7 +540,8 @@ public class FullText {
      * @param conn the database connection
      * @param prefix the prefix
      */
-    protected static void removeAllTriggers(Connection conn, String prefix) throws SQLException {
+    protected static void removeAllTriggers(Connection conn, String prefix)
+            throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT * FROM INFORMATION_SCHEMA.TRIGGERS");
         Statement stat2 = conn.createStatement();
@@ -524,7 +549,8 @@ public class FullText {
             String schema = rs.getString("TRIGGER_SCHEMA");
             String name = rs.getString("TRIGGER_NAME");
             if (name.startsWith(prefix)) {
-                name = StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(name);
+                name = StringUtils.quoteIdentifier(schema) + "." +
+                        StringUtils.quoteIdentifier(name);
                 stat2.execute("DROP TRIGGER " + name);
             }
         }
@@ -537,7 +563,8 @@ public class FullText {
      * @param keys the key list
      * @param columns the column list
      */
-    protected static void setColumns(int[] index, ArrayList<String> keys, ArrayList<String> columns) throws SQLException {
+    protected static void setColumns(int[] index, ArrayList<String> keys,
+            ArrayList<String> columns) throws SQLException {
         for (int i = 0, keySize = keys.size(); i < keySize; i++) {
             String key = keys.get(i);
             int found = -1;
@@ -584,7 +611,8 @@ public class FullText {
         HashSet<Integer> rIds = null, lastRowIds = null;
         HashMap<String, Integer> allWords = setting.getWordList();
 
-        PreparedStatement prepSelectMapByWordId = setting.prepare(conn, SELECT_MAP_BY_WORD_ID);
+        PreparedStatement prepSelectMapByWordId = setting.prepare(conn,
+                SELECT_MAP_BY_WORD_ID);
         for (String word : words) {
             lastRowIds = rIds;
             rIds = New.hashSet();
@@ -641,7 +669,8 @@ public class FullText {
         return result;
     }
 
-    private static void addColumnData(ArrayList<String> columns, ArrayList<String> data, Expression expr) {
+    private static void addColumnData(ArrayList<String> columns,
+            ArrayList<String> data, Expression expr) {
         if (expr instanceof ConditionAndOr) {
             ConditionAndOr and = (ConditionAndOr) expr;
             Expression left = and.getExpression(true);
@@ -669,7 +698,8 @@ public class FullText {
      * @param set the hash set
      * @param reader the reader
      */
-    protected static void addWords(FullTextSettings setting, HashSet<String> set, Reader reader) {
+    protected static void addWords(FullTextSettings setting,
+            HashSet<String> set, Reader reader) {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
         tokenizer.resetSyntax();
         tokenizer.wordChars(' ' + 1, 255);
@@ -702,7 +732,8 @@ public class FullText {
      * @param set the hash set
      * @param text the text
      */
-    protected static void addWords(FullTextSettings setting, HashSet<String> set, String text) {
+    protected static void addWords(FullTextSettings setting,
+            HashSet<String> set, String text) {
         String whitespaceChars = setting.getWhitespaceChars();
         StringTokenizer tokenizer = new StringTokenizer(text, whitespaceChars);
         while (tokenizer.hasMoreTokens()) {
@@ -721,7 +752,8 @@ public class FullText {
      * @param schema the schema name
      * @param table the table name
      */
-    protected static void createTrigger(Connection conn, String schema, String table) throws SQLException {
+    protected static void createTrigger(Connection conn, String schema,
+            String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
@@ -754,10 +786,12 @@ public class FullText {
      * @param schema the schema name
      * @param table the table name
      */
-    protected static void indexExistingRows(Connection conn, String schema, String table) throws SQLException {
+    protected static void indexExistingRows(Connection conn, String schema,
+            String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) + "." + StringUtils.quoteIdentifier(table);
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
+                "." + StringUtils.quoteIdentifier(table);
         ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
@@ -787,7 +821,8 @@ public class FullText {
         return buff.toString();
     }
 
-    private static void setIgnoreList(FullTextSettings setting, String commaSeparatedList) {
+    private static void setIgnoreList(FullTextSettings setting,
+            String commaSeparatedList) {
         String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
         HashSet<String> set = setting.getIgnoreList();
         for (String word : list) {
@@ -808,7 +843,8 @@ public class FullText {
      * @param indexColumns the indexed columns
      * @return true if the indexed columns don't match
      */
-    protected static boolean hasChanged(Object[] oldRow, Object[] newRow, int[] indexColumns) {
+    protected static boolean hasChanged(Object[] oldRow, Object[] newRow,
+            int[] indexColumns) {
         for (int c : indexColumns) {
             Object o = oldRow[c], n = newRow[c];
             if (o == null) {
@@ -1077,7 +1113,8 @@ public class FullText {
      * @return never returns normally
      * @throws SQLException the exception
      */
-    protected static SQLException throwException(String message) throws SQLException {
+    protected static SQLException throwException(String message)
+            throws SQLException {
         throw new SQLException(message, "FULLTEXT");
     }
 

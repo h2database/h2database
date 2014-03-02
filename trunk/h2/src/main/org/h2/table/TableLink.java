@@ -82,7 +82,7 @@ public class TableLink extends Table {
             }
             Column[] cols = { };
             setColumns(cols);
-            linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), 
+            linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols),
                     IndexType.createNonUnique(false));
             indexes.add(linkedIndex);
         }
@@ -138,7 +138,7 @@ public class TableLink extends Table {
             if (schema == null) {
                 schema = thisSchema;
             }
-            if (!StringUtils.equals(catalog, thisCatalog) || 
+            if (!StringUtils.equals(catalog, thisCatalog) ||
                     !StringUtils.equals(schema, thisSchema)) {
                 // if the table exists in multiple schemas or tables,
                 // use the alternative solution
@@ -170,7 +170,7 @@ public class TableLink extends Table {
         Statement stat = null;
         try {
             stat = conn.getConnection().createStatement();
-            rs = stat.executeQuery("SELECT * FROM " + 
+            rs = stat.executeQuery("SELECT * FROM " +
                     qualifiedTableName + " T WHERE 1=0");
             if (columnList.size() == 0) {
                 // alternative solution
@@ -202,7 +202,7 @@ public class TableLink extends Table {
         columnList.toArray(cols);
         setColumns(cols);
         int id = getId();
-        linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols), 
+        linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols),
                 IndexType.createNonUnique(false));
         indexes.add(linkedIndex);
         try {
@@ -268,7 +268,7 @@ public class TableLink extends Table {
                     list.clear();
                 }
                 boolean unique = !rs.getBoolean("NON_UNIQUE");
-                indexType = unique ? IndexType.createUnique(false, false) : 
+                indexType = unique ? IndexType.createUnique(false, false) :
                         IndexType.createNonUnique(false);
                 String col = rs.getString("COLUMN_NAME");
                 col = convertColumnName(col);
@@ -321,7 +321,7 @@ public class TableLink extends Table {
     }
 
     private String convertColumnName(String columnName) {
-        if ((storesMixedCase || storesLowerCase) && 
+        if ((storesMixedCase || storesLowerCase) &&
                 columnName.equals(StringUtils.toLowerEnglish(columnName))) {
             columnName = StringUtils.toUpperEnglish(columnName);
         } else if (storesMixedCase && !supportsMixedCaseIdentifiers) {
@@ -458,7 +458,7 @@ public class TableLink extends Table {
      */
     public static DbException wrapException(String sql, Exception ex) {
         SQLException e = DbException.toSQLException(ex);
-        return DbException.get(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2, 
+        return DbException.get(ErrorCode.ERROR_ACCESSING_LINKED_TABLE_2,
                 e, sql, e.toString());
     }
 

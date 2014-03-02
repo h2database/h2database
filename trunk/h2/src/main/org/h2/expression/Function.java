@@ -74,34 +74,50 @@ import org.h2.value.ValueUuid;
  * This class implements most built-in functions of this database.
  */
 public class Function extends Expression implements FunctionCall {
-    public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4, BITAND = 5, BITOR = 6, BITXOR = 7,
-            CEILING = 8, COS = 9, COT = 10, DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
-            PI = 17, POWER = 18, RADIANS = 19, RAND = 20, ROUND = 21, ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25,
-            TAN = 26, TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30, DECRYPT = 31, COMPRESS = 32,
-            EXPAND = 33, ZERO = 34, RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39;
+    public static final int ABS = 0, ACOS = 1, ASIN = 2, ATAN = 3, ATAN2 = 4,
+            BITAND = 5, BITOR = 6, BITXOR = 7, CEILING = 8, COS = 9, COT = 10,
+            DEGREES = 11, EXP = 12, FLOOR = 13, LOG = 14, LOG10 = 15, MOD = 16,
+            PI = 17, POWER = 18, RADIANS = 19, RAND = 20, ROUND = 21,
+            ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25, TAN = 26,
+            TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
+            DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
+            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39;
 
-    public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52, CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55,
-            HEXTORAW = 56, INSERT = 57, INSTR = 58, LCASE = 59, LEFT = 60, LENGTH = 61, LOCATE = 62, LTRIM = 63,
-            OCTET_LENGTH = 64, RAWTOHEX = 65, REPEAT = 66, REPLACE = 67, RIGHT = 68, RTRIM = 69, SOUNDEX = 70,
-            SPACE = 71, SUBSTR = 72, SUBSTRING = 73, UCASE = 74, LOWER = 75, UPPER = 76, POSITION = 77, TRIM = 78,
-            STRINGENCODE = 79, STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82, XMLATTR = 83, XMLNODE = 84,
-            XMLCOMMENT = 85, XMLCDATA = 86, XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90, LPAD = 91,
-            CONCAT_WS = 92, TO_CHAR = 93;
+    public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
+            CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
+            INSERT = 57, INSTR = 58, LCASE = 59, LEFT = 60, LENGTH = 61,
+            LOCATE = 62, LTRIM = 63, OCTET_LENGTH = 64, RAWTOHEX = 65,
+            REPEAT = 66, REPLACE = 67, RIGHT = 68, RTRIM = 69, SOUNDEX = 70,
+            SPACE = 71, SUBSTR = 72, SUBSTRING = 73, UCASE = 74, LOWER = 75,
+            UPPER = 76, POSITION = 77, TRIM = 78, STRINGENCODE = 79,
+            STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
+            XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
+            XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93;
 
-    public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102, DATE_DIFF = 103, DAY_NAME = 104,
-            DAY_OF_MONTH = 105, DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109, MONTH = 110, MONTH_NAME = 111,
-            NOW = 112, QUARTER = 113, SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117, CURRENT_TIME = 118,
-            CURRENT_TIMESTAMP = 119, EXTRACT = 120, FORMATDATETIME = 121, PARSEDATETIME = 122,
-            ISO_YEAR = 123, ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
+    public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
+            DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
+            DAY_OF_WEEK = 106, DAY_OF_YEAR = 107, HOUR = 108, MINUTE = 109,
+            MONTH = 110, MONTH_NAME = 111, NOW = 112, QUARTER = 113,
+            SECOND = 114, WEEK = 115, YEAR = 116, CURRENT_DATE = 117,
+            CURRENT_TIME = 118, CURRENT_TIMESTAMP = 119, EXTRACT = 120,
+            FORMATDATETIME = 121, PARSEDATETIME = 122, ISO_YEAR = 123,
+            ISO_WEEK = 124, ISO_DAY_OF_WEEK = 125;
 
-    public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152, IDENTITY = 153, SCOPE_IDENTITY = 154,
-            AUTOCOMMIT = 155, READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158, DISK_SPACE_USED = 159;
+    public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
+            IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
+            READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
+            DISK_SPACE_USED = 159;
 
-    public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202, CAST = 203, COALESCE = 204, NULLIF = 205,
-            CASE = 206, NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210, CSVWRITE = 211,
-            MEMORY_FREE = 212, MEMORY_USED = 213, LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216, ARRAY_LENGTH = 217,
-            LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220, CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
-            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227, NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
+    public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202,
+            CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
+            NEXTVAL = 207, CURRVAL = 208, ARRAY_GET = 209, CSVREAD = 210,
+            CSVWRITE = 211, MEMORY_FREE = 212, MEMORY_USED = 213,
+            LOCK_MODE = 214, SCHEMA = 215, SESSION_ID = 216,
+            ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
+            CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
+            FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
+            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
 
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
@@ -284,91 +300,171 @@ public class Function extends Expression implements FunctionCall {
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
 
         // date
-        addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE, 0, Value.DATE);
-        addFunctionNotDeterministic("CURDATE", CURDATE, 0, Value.DATE);
+        addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE,
+                0, Value.DATE);
+        addFunctionNotDeterministic("CURDATE", CURDATE,
+                0, Value.DATE);
         // alias for MSSQLServer
-        addFunctionNotDeterministic("GETDATE", CURDATE, 0, Value.DATE);
-        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME, 0, Value.TIME);
-        addFunctionNotDeterministic("CURTIME", CURTIME, 0, Value.TIME);
-        addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
-        addFunctionNotDeterministic("NOW", NOW, VAR_ARGS, Value.TIMESTAMP);
-        addFunction("DATEADD", DATE_ADD, 3, Value.TIMESTAMP);
-        addFunction("TIMESTAMPADD", DATE_ADD, 3, Value.LONG);
-        addFunction("DATEDIFF", DATE_DIFF, 3, Value.LONG);
-        addFunction("TIMESTAMPDIFF", DATE_DIFF, 3, Value.LONG);
-        addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
-        addFunction("DAYNAME", DAY_NAME, 1, Value.STRING);
-        addFunction("DAY", DAY_OF_MONTH, 1, Value.INT);
-        addFunction("DAY_OF_MONTH", DAY_OF_MONTH, 1, Value.INT);
-        addFunction("DAY_OF_WEEK", DAY_OF_WEEK, 1, Value.INT);
-        addFunction("DAY_OF_YEAR", DAY_OF_YEAR, 1, Value.INT);
-        addFunction("DAYOFMONTH", DAY_OF_MONTH, 1, Value.INT);
-        addFunction("DAYOFWEEK", DAY_OF_WEEK, 1, Value.INT);
-        addFunction("DAYOFYEAR", DAY_OF_YEAR, 1, Value.INT);
-        addFunction("HOUR", HOUR, 1, Value.INT);
-        addFunction("MINUTE", MINUTE, 1, Value.INT);
-        addFunction("MONTH", MONTH, 1, Value.INT);
-        addFunction("MONTHNAME", MONTH_NAME, 1, Value.STRING);
-        addFunction("QUARTER", QUARTER, 1, Value.INT);
-        addFunction("SECOND", SECOND, 1, Value.INT);
-        addFunction("WEEK", WEEK, 1, Value.INT);
-        addFunction("YEAR", YEAR, 1, Value.INT);
-        addFunction("EXTRACT", EXTRACT, 2, Value.INT);
-        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME, VAR_ARGS, Value.STRING);
-        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME, VAR_ARGS, Value.TIMESTAMP);
-        addFunction("ISO_YEAR", ISO_YEAR, 1, Value.INT);
-        addFunction("ISO_WEEK", ISO_WEEK, 1, Value.INT);
-        addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK, 1, Value.INT);
+        addFunctionNotDeterministic("GETDATE", CURDATE,
+                0, Value.DATE);
+        addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
+                0, Value.TIME);
+        addFunctionNotDeterministic("CURTIME", CURTIME,
+                0, Value.TIME);
+        addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("NOW", NOW,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunction("DATEADD", DATE_ADD,
+                3, Value.TIMESTAMP);
+        addFunction("TIMESTAMPADD", DATE_ADD,
+                3, Value.LONG);
+        addFunction("DATEDIFF", DATE_DIFF,
+                3, Value.LONG);
+        addFunction("TIMESTAMPDIFF", DATE_DIFF,
+                3, Value.LONG);
+        addFunction("DAYNAME", DAY_NAME,
+                1, Value.STRING);
+        addFunction("DAYNAME", DAY_NAME,
+                1, Value.STRING);
+        addFunction("DAY", DAY_OF_MONTH,
+                1, Value.INT);
+        addFunction("DAY_OF_MONTH", DAY_OF_MONTH,
+                1, Value.INT);
+        addFunction("DAY_OF_WEEK", DAY_OF_WEEK,
+                1, Value.INT);
+        addFunction("DAY_OF_YEAR", DAY_OF_YEAR,
+                1, Value.INT);
+        addFunction("DAYOFMONTH", DAY_OF_MONTH,
+                1, Value.INT);
+        addFunction("DAYOFWEEK", DAY_OF_WEEK,
+                1, Value.INT);
+        addFunction("DAYOFYEAR", DAY_OF_YEAR,
+                1, Value.INT);
+        addFunction("HOUR", HOUR,
+                1, Value.INT);
+        addFunction("MINUTE", MINUTE,
+                1, Value.INT);
+        addFunction("MONTH", MONTH,
+                1, Value.INT);
+        addFunction("MONTHNAME", MONTH_NAME,
+                1, Value.STRING);
+        addFunction("QUARTER", QUARTER,
+                1, Value.INT);
+        addFunction("SECOND", SECOND,
+                1, Value.INT);
+        addFunction("WEEK", WEEK,
+                1, Value.INT);
+        addFunction("YEAR", YEAR,
+                1, Value.INT);
+        addFunction("EXTRACT", EXTRACT,
+                2, Value.INT);
+        addFunctionWithNull("FORMATDATETIME", FORMATDATETIME,
+                VAR_ARGS, Value.STRING);
+        addFunctionWithNull("PARSEDATETIME", PARSEDATETIME,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunction("ISO_YEAR", ISO_YEAR,
+                1, Value.INT);
+        addFunction("ISO_WEEK", ISO_WEEK,
+                1, Value.INT);
+        addFunction("ISO_DAY_OF_WEEK", ISO_DAY_OF_WEEK,
+                1, Value.INT);
         // system
-        addFunctionNotDeterministic("DATABASE", DATABASE, 0, Value.STRING);
-        addFunctionNotDeterministic("USER", USER, 0, Value.STRING);
-        addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER, 0, Value.STRING);
-        addFunctionNotDeterministic("IDENTITY", IDENTITY, 0, Value.LONG);
-        addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY, 0, Value.LONG);
-        addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY, 0, Value.LONG);
-        addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY, 0, Value.LONG);
-        addFunctionNotDeterministic("LASTVAL", IDENTITY, 0, Value.LONG);
-        addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT, 0, Value.BOOLEAN);
-        addFunctionNotDeterministic("READONLY", READONLY, 0, Value.BOOLEAN);
-        addFunction("DATABASE_PATH", DATABASE_PATH, 0, Value.STRING);
-        addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT, 0, Value.INT);
-        addFunctionWithNull("IFNULL", IFNULL, 2, Value.NULL);
-        addFunctionWithNull("ISNULL", IFNULL, 2, Value.NULL);
-        addFunctionWithNull("CASEWHEN", CASEWHEN, 3, Value.NULL);
-        addFunctionWithNull("CONVERT", CONVERT, 1, Value.NULL);
-        addFunctionWithNull("CAST", CAST, 1, Value.NULL);
-        addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE, 3, Value.NULL);
-        addFunctionWithNull("COALESCE", COALESCE, VAR_ARGS, Value.NULL);
-        addFunctionWithNull("NVL", COALESCE, VAR_ARGS, Value.NULL);
-        addFunctionWithNull("NVL2", NVL2, 3, Value.NULL);
-        addFunctionWithNull("NULLIF", NULLIF, 2, Value.NULL);
-        addFunctionWithNull("CASE", CASE, VAR_ARGS, Value.NULL);
-        addFunctionNotDeterministic("NEXTVAL", NEXTVAL, VAR_ARGS, Value.LONG);
-        addFunctionNotDeterministic("CURRVAL", CURRVAL, VAR_ARGS, Value.LONG);
-        addFunction("ARRAY_GET", ARRAY_GET, 2, Value.STRING);
-        addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS, 2, Value.BOOLEAN, false, true, true);
-        addFunction("CSVREAD", CSVREAD, VAR_ARGS, Value.RESULT_SET, false, false, false);
-        addFunction("CSVWRITE", CSVWRITE, VAR_ARGS, Value.INT, false, false, true);
-        addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE, 0, Value.INT);
-        addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED, 0, Value.INT);
-        addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE, 0, Value.INT);
-        addFunctionNotDeterministic("SCHEMA", SCHEMA, 0, Value.STRING);
-        addFunctionNotDeterministic("SESSION_ID", SESSION_ID, 0, Value.INT);
-        addFunction("ARRAY_LENGTH", ARRAY_LENGTH, 1, Value.INT);
-        addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA, 6, Value.RESULT_SET);
-        addFunctionWithNull("LEAST", LEAST, VAR_ARGS, Value.NULL);
-        addFunctionWithNull("GREATEST", GREATEST, VAR_ARGS, Value.NULL);
-        addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION, 1, Value.BOOLEAN);
-        addFunction("SET", SET, 2, Value.NULL, false, false, true);
-        addFunction("FILE_READ", FILE_READ, VAR_ARGS, Value.NULL, false, false, true);
-        addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID, 0, Value.STRING);
-        addFunctionWithNull("DECODE", DECODE, VAR_ARGS, Value.NULL);
-        addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED, 1, Value.LONG);
+        addFunctionNotDeterministic("DATABASE", DATABASE,
+                0, Value.STRING);
+        addFunctionNotDeterministic("USER", USER,
+                0, Value.STRING);
+        addFunctionNotDeterministic("CURRENT_USER", CURRENT_USER,
+                0, Value.STRING);
+        addFunctionNotDeterministic("IDENTITY", IDENTITY,
+                0, Value.LONG);
+        addFunctionNotDeterministic("SCOPE_IDENTITY", SCOPE_IDENTITY,
+                0, Value.LONG);
+        addFunctionNotDeterministic("IDENTITY_VAL_LOCAL", IDENTITY,
+                0, Value.LONG);
+        addFunctionNotDeterministic("LAST_INSERT_ID", IDENTITY,
+                0, Value.LONG);
+        addFunctionNotDeterministic("LASTVAL", IDENTITY,
+                0, Value.LONG);
+        addFunctionNotDeterministic("AUTOCOMMIT", AUTOCOMMIT,
+                0, Value.BOOLEAN);
+        addFunctionNotDeterministic("READONLY", READONLY,
+                0, Value.BOOLEAN);
+        addFunction("DATABASE_PATH", DATABASE_PATH,
+                0, Value.STRING);
+        addFunctionNotDeterministic("LOCK_TIMEOUT", LOCK_TIMEOUT,
+                0, Value.INT);
+        addFunctionWithNull("IFNULL", IFNULL,
+                2, Value.NULL);
+        addFunctionWithNull("ISNULL", IFNULL,
+                2, Value.NULL);
+        addFunctionWithNull("CASEWHEN", CASEWHEN,
+                3, Value.NULL);
+        addFunctionWithNull("CONVERT", CONVERT,
+                1, Value.NULL);
+        addFunctionWithNull("CAST", CAST,
+                1, Value.NULL);
+        addFunctionWithNull("TRUNCATE_VALUE", TRUNCATE_VALUE,
+                3, Value.NULL);
+        addFunctionWithNull("COALESCE", COALESCE,
+                VAR_ARGS, Value.NULL);
+        addFunctionWithNull("NVL", COALESCE,
+                VAR_ARGS, Value.NULL);
+        addFunctionWithNull("NVL2", NVL2,
+                3, Value.NULL);
+        addFunctionWithNull("NULLIF", NULLIF,
+                2, Value.NULL);
+        addFunctionWithNull("CASE", CASE,
+                VAR_ARGS, Value.NULL);
+        addFunctionNotDeterministic("NEXTVAL", NEXTVAL,
+                VAR_ARGS, Value.LONG);
+        addFunctionNotDeterministic("CURRVAL", CURRVAL,
+                VAR_ARGS, Value.LONG);
+        addFunction("ARRAY_GET", ARRAY_GET,
+                2, Value.STRING);
+        addFunction("ARRAY_CONTAINS", ARRAY_CONTAINS,
+                2, Value.BOOLEAN, false, true, true);
+        addFunction("CSVREAD", CSVREAD,
+                VAR_ARGS, Value.RESULT_SET, false, false, false);
+        addFunction("CSVWRITE", CSVWRITE,
+                VAR_ARGS, Value.INT, false, false, true);
+        addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
+                0, Value.INT);
+        addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
+                0, Value.INT);
+        addFunctionNotDeterministic("LOCK_MODE", LOCK_MODE,
+                0, Value.INT);
+        addFunctionNotDeterministic("SCHEMA", SCHEMA,
+                0, Value.STRING);
+        addFunctionNotDeterministic("SESSION_ID", SESSION_ID,
+                0, Value.INT);
+        addFunction("ARRAY_LENGTH", ARRAY_LENGTH,
+                1, Value.INT);
+        addFunctionNotDeterministic("LINK_SCHEMA", LINK_SCHEMA,
+                6, Value.RESULT_SET);
+        addFunctionWithNull("LEAST", LEAST,
+                VAR_ARGS, Value.NULL);
+        addFunctionWithNull("GREATEST", GREATEST,
+                VAR_ARGS, Value.NULL);
+        addFunctionNotDeterministic("CANCEL_SESSION", CANCEL_SESSION,
+                1, Value.BOOLEAN);
+        addFunction("SET", SET,
+                2, Value.NULL, false, false, true);
+        addFunction("FILE_READ", FILE_READ,
+                VAR_ARGS, Value.NULL, false, false, true);
+        addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
+                0, Value.STRING);
+        addFunctionWithNull("DECODE", DECODE,
+                VAR_ARGS, Value.NULL);
+        addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
+                1, Value.LONG);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
 
         // TableFunction
-        addFunctionWithNull("TABLE", TABLE, VAR_ARGS, Value.RESULT_SET);
-        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT, VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("TABLE", TABLE,
+                VAR_ARGS, Value.RESULT_SET);
+        addFunctionWithNull("TABLE_DISTINCT", TABLE_DISTINCT,
+                VAR_ARGS, Value.RESULT_SET);
 
         // pseudo function
         addFunctionWithNull("ROW_NUMBER", ROW_NUMBER, 0, Value.LONG);
@@ -387,8 +483,9 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static void addFunction(String name, int type, int parameterCount, int dataType,
-            boolean nullIfParameterIsNull, boolean deterministic, boolean bufferResultSetToLocalTemp) {
+    private static void addFunction(String name, int type, int parameterCount,
+            int dataType, boolean nullIfParameterIsNull, boolean deterministic,
+            boolean bufferResultSetToLocalTemp) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
@@ -400,15 +497,18 @@ public class Function extends Expression implements FunctionCall {
         FUNCTIONS.put(name, info);
     }
 
-    private static void addFunctionNotDeterministic(String name, int type, int parameterCount, int dataType) {
+    private static void addFunctionNotDeterministic(String name, int type,
+            int parameterCount, int dataType) {
         addFunction(name, type, parameterCount, dataType, true, false, true);
     }
 
-    private static void addFunction(String name, int type, int parameterCount, int dataType) {
+    private static void addFunction(String name, int type, int parameterCount,
+            int dataType) {
         addFunction(name, type, parameterCount, dataType, true, true, true);
     }
 
-    private static void addFunctionWithNull(String name, int type, int parameterCount, int dataType) {
+    private static void addFunctionWithNull(String name, int type,
+            int parameterCount, int dataType) {
         addFunction(name, type, parameterCount, dataType, false, true, true);
     }
 
@@ -460,8 +560,8 @@ public class Function extends Expression implements FunctionCall {
             varArgs.add(param);
         } else {
             if (index >= args.length) {
-                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name,
-                        "" + args.length);
+                throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2,
+                        info.name, "" + args.length);
             }
             args[index] = param;
         }
@@ -476,7 +576,8 @@ public class Function extends Expression implements FunctionCall {
         return getValueWithArgs(session, args);
     }
 
-    private Value getSimpleValue(Session session, Value v0, Expression[] args, Value[] values) {
+    private Value getSimpleValue(Session session, Value v0, Expression[] args,
+            Value[] values) {
         Value result;
         switch (info.type) {
         case ABS:
@@ -565,10 +666,12 @@ public class Function extends Expression implements FunctionCall {
             result = ValueDouble.get(Math.tanh(v0.getDouble()));
             break;
         case SECURE_RAND:
-            result = ValueBytes.getNoCopy(MathUtils.secureRandomBytes(v0.getInt()));
+            result = ValueBytes.getNoCopy(
+                    MathUtils.secureRandomBytes(v0.getInt()));
             break;
         case EXPAND:
-            result = ValueBytes.getNoCopy(CompressTool.getInstance().expand(v0.getBytesNoCopy()));
+            result = ValueBytes.getNoCopy(
+                    CompressTool.getInstance().expand(v0.getBytesNoCopy()));
             break;
         case ZERO:
             result = ValueInt.get(0);
@@ -628,7 +731,8 @@ public class Function extends Expression implements FunctionCall {
             }
             if (info.type == CONCAT_WS) {
                 if (separator != null && result == ValueNull.INSTANCE) {
-                    result = ValueString.get("", database.getMode().treatEmptyStringsAsNull);
+                    result = ValueString.get("",
+                            database.getMode().treatEmptyStringsAsNull);
                 }
             }
             break;
@@ -678,10 +782,12 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case STRINGTOUTF8:
-            result = ValueBytes.getNoCopy(v0.getString().getBytes(Constants.UTF8));
+            result = ValueBytes.getNoCopy(v0.getString().
+                    getBytes(Constants.UTF8));
             break;
         case UTF8TOSTRING:
-            result = ValueString.get(new String(v0.getBytesNoCopy(), Constants.UTF8),
+            result = ValueString.get(new String(v0.getBytesNoCopy(),
+                    Constants.UTF8),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLCOMMENT:
@@ -697,46 +803,58 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DAY_NAME: {
-            SimpleDateFormat dayName = new SimpleDateFormat("EEEE", Locale.ENGLISH);
+            SimpleDateFormat dayName = new SimpleDateFormat(
+                    "EEEE", Locale.ENGLISH);
             result = ValueString.get(dayName.format(v0.getDate()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case DAY_OF_MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.DAY_OF_MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.DAY_OF_MONTH));
             break;
         case DAY_OF_WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.DAY_OF_WEEK));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.DAY_OF_WEEK));
             break;
         case DAY_OF_YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.DAY_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.DAY_OF_YEAR));
             break;
         case HOUR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.HOUR_OF_DAY));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(),
+                    Calendar.HOUR_OF_DAY));
             break;
         case MINUTE:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.MINUTE));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(),
+                    Calendar.MINUTE));
             break;
         case MONTH:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.MONTH));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.MONTH));
             break;
         case MONTH_NAME: {
-            SimpleDateFormat monthName = new SimpleDateFormat("MMMM", Locale.ENGLISH);
+            SimpleDateFormat monthName = new SimpleDateFormat("MMMM",
+                    Locale.ENGLISH);
             result = ValueString.get(monthName.format(v0.getDate()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
         case QUARTER:
-            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getDate(), Calendar.MONTH) - 1) / 3 + 1);
+            result = ValueInt.get((DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.MONTH) - 1) / 3 + 1);
             break;
         case SECOND:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(), Calendar.SECOND));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getTimestamp(),
+                    Calendar.SECOND));
             break;
         case WEEK:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.WEEK_OF_YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.WEEK_OF_YEAR));
             break;
         case YEAR:
-            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(), Calendar.YEAR));
+            result = ValueInt.get(DateTimeUtils.getDatePart(v0.getDate(),
+                    Calendar.YEAR));
             break;
         case ISO_YEAR:
             result = ValueInt.get(DateTimeUtils.getIsoYear(v0.getDate()));
@@ -767,7 +885,8 @@ public class Function extends Expression implements FunctionCall {
             ValueTimestamp vt = ValueTimestamp.get(new Timestamp(now));
             if (v0 != null) {
                 Mode mode = database.getMode();
-                vt = (ValueTimestamp) vt.convertScale(mode.convertOnlyToSmallerScale, v0.getInt());
+                vt = (ValueTimestamp) vt.convertScale(
+                        mode.convertOnlyToSmallerScale, v0.getInt());
             }
             result = vt;
             break;
@@ -795,7 +914,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         case DATABASE_PATH: {
             String path = database.getDatabasePath();
-            result = path == null ? (Value) ValueNull.INSTANCE : ValueString.get(path,
+            result = path == null ?
+                    (Value) ValueNull.INSTANCE : ValueString.get(path,
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
@@ -841,7 +961,8 @@ public class Function extends Expression implements FunctionCall {
         }
         case CASEWHEN: {
             Value v;
-            if (v0 == ValueNull.INSTANCE || !v0.getBoolean().booleanValue()) {
+            if (v0 == ValueNull.INSTANCE ||
+                    !v0.getBoolean().booleanValue()) {
                 v = getNullOrValue(session, args, values, 2);
             } else {
                 v = getNullOrValue(session, args, values, 1);
@@ -852,7 +973,8 @@ public class Function extends Expression implements FunctionCall {
         case DECODE: {
             int index = -1;
             for (int i = 1, len = args.length - 1; i < len; i += 2) {
-                if (database.areEqual(v0, getNullOrValue(session, args, values, i))) {
+                if (database.areEqual(v0,
+                        getNullOrValue(session, args, values, i))) {
                     index = i + 1;
                     break;
                 }
@@ -860,7 +982,8 @@ public class Function extends Expression implements FunctionCall {
             if (index < 0 && args.length % 2 == 0) {
                 index = args.length - 1;
             }
-            Value v = index < 0 ? ValueNull.INSTANCE : getNullOrValue(session, args, values, index);
+            Value v = index < 0 ? ValueNull.INSTANCE :
+                    getNullOrValue(session, args, values, index);
             result = v.convertTo(dataType);
             break;
         }
@@ -916,7 +1039,8 @@ public class Function extends Expression implements FunctionCall {
                 // (null, when, then, when, then, else)
                 for (int i = 1, len = args.length - 1; i < len; i += 2) {
                     Value when = args[i].getValue(session);
-                    if (!(when == ValueNull.INSTANCE) && when.getBoolean().booleanValue()) {
+                    if (!(when == ValueNull.INSTANCE) &&
+                            when.getBoolean().booleanValue()) {
                         then = args[i + 1];
                         break;
                     }
@@ -1020,7 +1144,8 @@ public class Function extends Expression implements FunctionCall {
         return table.getDiskSpaceUsed();
     }
 
-    private static Value getNullOrValue(Session session, Expression[] args, Value[] values, int i) {
+    private static Value getNullOrValue(Session session, Expression[] args,
+            Value[] values, int i) {
         if (i >= args.length) {
             return null;
         }
@@ -1060,7 +1185,8 @@ public class Function extends Expression implements FunctionCall {
         Value result;
         switch (info.type) {
         case ATAN2:
-            result = ValueDouble.get(Math.atan2(v0.getDouble(), v1.getDouble()));
+            result = ValueDouble.get(
+                    Math.atan2(v0.getDouble(), v1.getDouble()));
             break;
         case BITAND:
             result = ValueLong.get(v0.getLong() & v1.getLong());
@@ -1080,7 +1206,8 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case POWER:
-            result = ValueDouble.get(Math.pow(v0.getDouble(), v1.getDouble()));
+            result = ValueDouble.get(Math.pow(
+                    v0.getDouble(), v1.getDouble()));
             break;
         case ROUND: {
             double f = v1 == null ? 1. : Math.pow(10., v1.getDouble());
@@ -1096,7 +1223,8 @@ public class Function extends Expression implements FunctionCall {
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.get(new java.sql.Timestamp(c.getTimeInMillis()));
+                result = ValueTimestamp.get(
+                        new java.sql.Timestamp(c.getTimeInMillis()));
             } else {
                 double d = v0.getDouble();
                 int p = v1 == null ? 0 : v1.getInt();
@@ -1107,30 +1235,36 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case HASH:
-            result = ValueBytes.getNoCopy(getHash(v0.getString(), v1.getBytesNoCopy(), v2.getInt()));
+            result = ValueBytes.getNoCopy(getHash(v0.getString(),
+                    v1.getBytesNoCopy(), v2.getInt()));
             break;
         case ENCRYPT:
-            result = ValueBytes.getNoCopy(encrypt(v0.getString(), v1.getBytesNoCopy(), v2.getBytesNoCopy()));
+            result = ValueBytes.getNoCopy(encrypt(v0.getString(),
+                    v1.getBytesNoCopy(), v2.getBytesNoCopy()));
             break;
         case DECRYPT:
-            result = ValueBytes.getNoCopy(decrypt(v0.getString(), v1.getBytesNoCopy(), v2.getBytesNoCopy()));
+            result = ValueBytes.getNoCopy(decrypt(v0.getString(),
+                    v1.getBytesNoCopy(), v2.getBytesNoCopy()));
             break;
         case COMPRESS: {
             String algorithm = null;
             if (v1 != null) {
                 algorithm = v1.getString();
             }
-            result = ValueBytes.getNoCopy(CompressTool.getInstance().compress(v0.getBytesNoCopy(), algorithm));
+            result = ValueBytes.getNoCopy(CompressTool.getInstance().
+                    compress(v0.getBytesNoCopy(), algorithm));
             break;
         }
         case DIFFERENCE:
-            result = ValueInt.get(getDifference(v0.getString(), v1.getString()));
+            result = ValueInt.get(getDifference(
+                    v0.getString(), v1.getString()));
             break;
         case INSERT: {
             if (v1 == ValueNull.INSTANCE || v2 == ValueNull.INSTANCE) {
                 result = v1;
             } else {
-                result = ValueString.get(insert(v0.getString(), v1.getInt(), v2.getInt(), v3.getString()),
+                result = ValueString.get(insert(v0.getString(),
+                        v1.getInt(), v2.getInt(), v3.getString()),
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
@@ -1168,15 +1302,18 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case LTRIM:
-            result = ValueString.get(StringUtils.trim(v0.getString(), true, false, v1 == null ? " " : v1.getString()),
+            result = ValueString.get(StringUtils.trim(v0.getString(),
+                    true, false, v1 == null ? " " : v1.getString()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case TRIM:
-            result = ValueString.get(StringUtils.trim(v0.getString(), true, true, v1 == null ? " " : v1.getString()),
+            result = ValueString.get(StringUtils.trim(v0.getString(),
+                    true, true, v1 == null ? " " : v1.getString()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case RTRIM:
-            result = ValueString.get(StringUtils.trim(v0.getString(), false, true, v1 == null ? " " : v1.getString()),
+            result = ValueString.get(StringUtils.trim(v0.getString(),
+                    false, true, v1 == null ? " " : v1.getString()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case SUBSTR:
@@ -1195,14 +1332,19 @@ public class Function extends Expression implements FunctionCall {
             result = ValueInt.get(locate(v0.getString(), v1.getString(), 0));
             break;
         case XMLATTR:
-            result = ValueString.get(StringUtils.xmlAttr(v0.getString(), v1.getString()),
+            result = ValueString.get(
+                    StringUtils.xmlAttr(v0.getString(), v1.getString()),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLNODE: {
-            String attr = v1 == null ? null : v1 == ValueNull.INSTANCE ? null : v1.getString();
-            String content = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-            boolean indent = v3 == null ? true : v3.getBoolean();
-            result = ValueString.get(StringUtils.xmlNode(v0.getString(), attr, content, indent),
+            String attr = v1 == null ?
+                    null : v1 == ValueNull.INSTANCE ? null : v1.getString();
+            String content = v2 == null ?
+                    null : v2 == ValueNull.INSTANCE ? null : v2.getString();
+            boolean indent = v3 == null ?
+                    true : v3.getBoolean();
+            result = ValueString.get(StringUtils.xmlNode(
+                    v0.getString(), attr, content, indent),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         }
@@ -1210,21 +1352,26 @@ public class Function extends Expression implements FunctionCall {
             String regexp = v1.getString();
             String replacement = v2.getString();
             try {
-                result = ValueString.get(v0.getString().replaceAll(regexp, replacement),
+                result = ValueString.get(
+                        v0.getString().replaceAll(regexp, replacement),
                         database.getMode().treatEmptyStringsAsNull);
             } catch (StringIndexOutOfBoundsException e) {
-                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
+                throw DbException.get(
+                        ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
             } catch (PatternSyntaxException e) {
-                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+                throw DbException.get(
+                        ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
             }
             break;
         }
         case RPAD:
-            result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), true),
+            result = ValueString.get(StringUtils.pad(v0.getString(),
+                    v1.getInt(), v2 == null ? null : v2.getString(), true),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case LPAD:
-            result = ValueString.get(StringUtils.pad(v0.getString(), v1.getInt(), v2 == null ? null : v2.getString(), false),
+            result = ValueString.get(StringUtils.pad(v0.getString(),
+                    v1.getInt(), v2 == null ? null : v2.getString(), false),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case TO_CHAR:
@@ -1233,7 +1380,8 @@ public class Function extends Expression implements FunctionCall {
             case Value.DATE:
             case Value.TIMESTAMP:
                 result = ValueString.get(toChar(v0.getTimestamp(),
-                        v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()),
+                        v1 == null ? null : v1.getString(),
+                        v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
                 break;
             case Value.SHORT:
@@ -1243,7 +1391,8 @@ public class Function extends Expression implements FunctionCall {
             case Value.DOUBLE:
             case Value.FLOAT:
                 result = ValueString.get(toChar(v0.getBigDecimal(),
-                        v1 == null ? null : v1.getString(), v2 == null ? null : v2.getString()),
+                        v1 == null ? null : v1.getString(),
+                        v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
                 break;
             default:
@@ -1256,22 +1405,27 @@ public class Function extends Expression implements FunctionCall {
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case DATE_ADD:
-            result = ValueTimestamp.get(dateadd(v0.getString(), v1.getInt(), v2.getTimestamp()));
+            result = ValueTimestamp.get(dateadd(
+                    v0.getString(), v1.getInt(), v2.getTimestamp()));
             break;
         case DATE_DIFF:
-            result = ValueLong.get(datediff(v0.getString(), v1.getTimestamp(), v2.getTimestamp()));
+            result = ValueLong.get(datediff(
+                    v0.getString(), v1.getTimestamp(), v2.getTimestamp()));
             break;
         case EXTRACT: {
             int field = getDatePart(v0.getString());
-            result = ValueInt.get(DateTimeUtils.getDatePart(v1.getTimestamp(), field));
+            result = ValueInt.get(DateTimeUtils.getDatePart(
+                    v1.getTimestamp(), field));
             break;
         }
         case FORMATDATETIME: {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {
                 result = ValueNull.INSTANCE;
             } else {
-                String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-                String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
+                String locale = v2 == null ?
+                        null : v2 == ValueNull.INSTANCE ? null : v2.getString();
+                String tz = v3 == null ?
+                        null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 result = ValueString.get(DateTimeUtils.formatDateTime(
                         v0.getTimestamp(), v1.getString(), locale, tz),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1282,9 +1436,12 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE) {
                 result = ValueNull.INSTANCE;
             } else {
-                String locale = v2 == null ? null : v2 == ValueNull.INSTANCE ? null : v2.getString();
-                String tz = v3 == null ? null : v3 == ValueNull.INSTANCE ? null : v3.getString();
-                java.util.Date d = DateTimeUtils.parseDateTime(v0.getString(), v1.getString(), locale, tz);
+                String locale = v2 == null ?
+                        null : v2 == ValueNull.INSTANCE ? null : v2.getString();
+                String tz = v3 == null ?
+                        null : v3 == ValueNull.INSTANCE ? null : v3.getString();
+                java.util.Date d = DateTimeUtils.parseDateTime(
+                        v0.getString(), v1.getString(), locale, tz);
                 result = ValueTimestamp.get(new Timestamp(d.getTime()));
             }
             break;
@@ -1319,13 +1476,16 @@ public class Function extends Expression implements FunctionCall {
                 String escapeCharacter = v5 == null ? null : v5.getString();
                 Value v6 = getNullOrValue(session, args, values, 6);
                 String nullString = v6 == null ? null : v6.getString();
-                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter,
+                        escapeCharacter);
                 csv.setNullString(nullString);
             }
             char fieldSeparator = csv.getFieldSeparatorRead();
-            String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
+            String[] columns = StringUtils.arraySplit(columnList,
+                    fieldSeparator, true);
             try {
-                ValueResultSet vr = ValueResultSet.get(csv.read(fileName, columns, charset));
+                ValueResultSet vr = ValueResultSet.get(csv.read(fileName,
+                        columns, charset));
                 result = vr;
             } catch (SQLException e) {
                 throw DbException.convert(e);
@@ -1335,7 +1495,8 @@ public class Function extends Expression implements FunctionCall {
         case LINK_SCHEMA: {
             session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
-            ResultSet rs = LinkSchema.linkSchema(conn, v0.getString(), v1.getString(), v2.getString(), v3.getString(),
+            ResultSet rs = LinkSchema.linkSchema(conn, v0.getString(),
+                    v1.getString(), v2.getString(), v3.getString(),
                     v4.getString(), v5.getString());
             result = ValueResultSet.get(rs);
             break;
@@ -1357,14 +1518,16 @@ public class Function extends Expression implements FunctionCall {
                 String nullString = v6 == null ? null : v6.getString();
                 Value v7 = getNullOrValue(session, args, values, 7);
                 String lineSeparator = v7 == null ? null : v7.getString();
-                setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter, escapeCharacter);
+                setCsvDelimiterEscape(csv, fieldSeparatorWrite, fieldDelimiter,
+                        escapeCharacter);
                 csv.setNullString(nullString);
                 if (lineSeparator != null) {
                     csv.setLineSeparator(lineSeparator);
                 }
             }
             try {
-                int rows = csv.write(conn, v0.getString(), v1.getString(), charset);
+                int rows = csv.write(conn, v0.getString(), v1.getString(),
+                        charset);
                 result = ValueInt.get(rows);
             } catch (SQLException e) {
                 throw DbException.convert(e);
@@ -1382,7 +1545,8 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v0.getString();
             boolean blob = args.length == 1;
             try {
-                InputStream in = new AutoCloseInputStream(FileUtils.newInputStream(fileName));
+                InputStream in = new AutoCloseInputStream(
+                        FileUtils.newInputStream(fileName));
                 if (blob) {
                     result = database.getLobStorage().createBlob(in, -1);
                 } else {
@@ -1405,10 +1569,12 @@ public class Function extends Expression implements FunctionCall {
         }
         case XMLTEXT:
             if (v1 == null) {
-                result = ValueString.get(StringUtils.xmlText(v0.getString()),
+                result = ValueString.get(StringUtils.xmlText(
+                        v0.getString()),
                         database.getMode().treatEmptyStringsAsNull);
             } else {
-                result = ValueString.get(StringUtils.xmlText(v0.getString(), v1.getBoolean()),
+                result = ValueString.get(StringUtils.xmlText(
+                        v0.getString(), v1.getBoolean()),
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
@@ -1555,13 +1721,17 @@ public class Function extends Expression implements FunctionCall {
         // certain time zones (those that are 30 minutes off)
         TimeZone zone = calendar.getTimeZone();
         calendar.setTime(d1);
-        t1 += zone.getOffset(calendar.get(Calendar.ERA), calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.DAY_OF_WEEK), calendar
-                        .get(Calendar.MILLISECOND));
+        t1 += zone.getOffset(calendar.get(Calendar.ERA),
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH),
+                calendar.get(Calendar.DAY_OF_WEEK),
+                calendar.get(Calendar.MILLISECOND));
         calendar.setTime(d2);
-        t2 += zone.getOffset(calendar.get(Calendar.ERA), calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.DAY_OF_WEEK), calendar
-                        .get(Calendar.MILLISECOND));
+        t2 += zone.getOffset(calendar.get(Calendar.ERA),
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH),
+                calendar.get(Calendar.DAY_OF_WEEK),
+                calendar.get(Calendar.MILLISECOND));
         switch (field) {
         case Calendar.MILLISECOND:
             return t2 - t1;
@@ -1780,7 +1950,8 @@ public class Function extends Expression implements FunctionCall {
         char lastDigit = '0';
         for (int i = 0, j = 0; i < len && j < 4; i++) {
             char c = s.charAt(i);
-            char newDigit = c > SOUNDEX_INDEX.length ? 0 : SOUNDEX_INDEX[c];
+            char newDigit = c > SOUNDEX_INDEX.length ?
+                    0 : SOUNDEX_INDEX[c];
             if (newDigit != 0) {
                 if (j == 0) {
                     chars[j++] = c;
@@ -1885,7 +2056,9 @@ public class Function extends Expression implements FunctionCall {
         }
         boolean ok = (len >= min) && (len <= max);
         if (!ok) {
-            throw DbException.get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, min + ".." + max);
+            throw DbException.get(
+                    ErrorCode.INVALID_PARAMETER_COUNT_2,
+                    info.name, min + ".." + max);
         }
     }
 
@@ -1905,8 +2078,9 @@ public class Function extends Expression implements FunctionCall {
         } else {
             int len = args.length;
             if (len > 0 && args[len - 1] == null) {
-                throw DbException
-                        .get(ErrorCode.INVALID_PARAMETER_COUNT_2, info.name, "" + len);
+                throw DbException.get(
+                        ErrorCode.INVALID_PARAMETER_COUNT_2,
+                        info.name, "" + len);
             }
         }
     }
@@ -2077,7 +2251,8 @@ public class Function extends Expression implements FunctionCall {
             s = p1.getScale();
             d = p1.getDisplaySize();
             if (!(p0 instanceof Variable)) {
-                throw DbException.get(ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
+                throw DbException.get(
+                        ErrorCode.CAN_ONLY_ASSIGN_TO_VARIABLE_1, p0.getSQL());
             }
             break;
         }
@@ -2183,7 +2358,8 @@ public class Function extends Expression implements FunctionCall {
             displaySize = 0;
             for (Expression e : args) {
                 precision += e.getPrecision();
-                displaySize = MathUtils.convertLongToInt((long) displaySize + e.getDisplaySize());
+                displaySize = MathUtils.convertLongToInt(
+                        (long) displaySize + e.getDisplaySize());
                 if (precision < 0) {
                     precision = Long.MAX_VALUE;
                 }
@@ -2248,12 +2424,14 @@ public class Function extends Expression implements FunctionCall {
         switch (info.type) {
         case CAST: {
             buff.append(args[0].getSQL()).append(" AS ").
-                append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
+                append(new Column(null, dataType, precision,
+                        scale, displaySize).getCreateSQL());
             break;
         }
         case CONVERT: {
             buff.append(args[0].getSQL()).append(',').
-                append(new Column(null, dataType, precision, scale, displaySize).getCreateSQL());
+                append(new Column(null, dataType, precision,
+                        scale, displaySize).getCreateSQL());
             break;
         }
         case EXTRACT: {
@@ -2295,25 +2473,32 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session, Expression[] argList) {
+    public ValueResultSet getValueForColumnList(Session session,
+            Expression[] argList) {
         switch (info.type) {
         case CSVREAD: {
             String fileName = argList[0].getValue(session).getString();
             if (fileName == null) {
                 throw DbException.get(ErrorCode.PARAMETER_NOT_SET_1, "fileName");
             }
-            String columnList = argList.length < 2 ? null : argList[1].getValue(session).getString();
+            String columnList = argList.length < 2 ?
+                    null : argList[1].getValue(session).getString();
             Csv csv = new Csv();
-            String options = argList.length < 3 ? null : argList[2].getValue(session).getString();
+            String options = argList.length < 3 ?
+                    null : argList[2].getValue(session).getString();
             String charset = null;
             if (options != null && options.indexOf('=') >= 0) {
                 charset = csv.setOptions(options);
             } else {
                 charset = options;
-                String fieldSeparatorRead = argList.length < 4 ? null : argList[3].getValue(session).getString();
-                String fieldDelimiter = argList.length < 5 ? null : argList[4].getValue(session).getString();
-                String escapeCharacter = argList.length < 6 ? null : argList[5].getValue(session).getString();
-                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter, escapeCharacter);
+                String fieldSeparatorRead = argList.length < 4 ?
+                        null : argList[3].getValue(session).getString();
+                String fieldDelimiter = argList.length < 5 ?
+                        null : argList[4].getValue(session).getString();
+                String escapeCharacter = argList.length < 6 ?
+                        null : argList[5].getValue(session).getString();
+                setCsvDelimiterEscape(csv, fieldSeparatorRead, fieldDelimiter,
+                        escapeCharacter);
             }
             char fieldSeparator = csv.getFieldSeparatorRead();
             String[] columns = StringUtils.arraySplit(columnList, fieldSeparator, true);
@@ -2345,11 +2530,13 @@ public class Function extends Expression implements FunctionCall {
             }
         }
         if (fieldDelimiter != null) {
-            char fd = fieldDelimiter.length() == 0 ? 0 : fieldDelimiter.charAt(0);
+            char fd = fieldDelimiter.length() == 0 ?
+                    0 : fieldDelimiter.charAt(0);
             csv.setFieldDelimiter(fd);
         }
         if (escapeCharacter != null) {
-            char ec = escapeCharacter.length() == 0 ? 0 : escapeCharacter.charAt(0);
+            char ec = escapeCharacter.length() == 0 ?
+                    0 : escapeCharacter.charAt(0);
             csv.setEscapeCharacter(ec);
         }
     }

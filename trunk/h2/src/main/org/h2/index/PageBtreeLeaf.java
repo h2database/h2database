@@ -63,8 +63,10 @@ public class PageBtreeLeaf extends PageBtree {
      * @param parentPageId the parent
      * @return the page
      */
-    static PageBtreeLeaf create(PageBtreeIndex index, int pageId, int parentPageId) {
-        PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore().createData());
+    static PageBtreeLeaf create(PageBtreeIndex index, int pageId,
+            int parentPageId) {
+        PageBtreeLeaf p = new PageBtreeLeaf(index, pageId, index.getPageStore()
+                .createData());
         index.getPageStore().logUndo(p, null);
         p.rows = SearchRow.EMPTY_ARRAY;
         p.parentPageId = parentPageId;
@@ -154,7 +156,8 @@ public class PageBtreeLeaf extends PageBtree {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount - 1];
                 int dataEnd = offset;
-                System.arraycopy(d, dataStart, d, dataStart - rowLength, dataEnd - dataStart + rowLength);
+                System.arraycopy(d, dataStart, d, dataStart - rowLength,
+                        dataEnd - dataStart + rowLength);
             }
             index.writeRow(data, offset, row, onlyPosition);
         }
@@ -185,7 +188,8 @@ public class PageBtreeLeaf extends PageBtree {
             if (writtenData) {
                 byte[] d = data.getBytes();
                 int dataStart = offsets[entryCount];
-                System.arraycopy(d, dataStart, d, dataStart + rowLength, offsets[at] - dataStart);
+                System.arraycopy(d, dataStart, d,
+                        dataStart + rowLength, offsets[at] - dataStart);
                 Arrays.fill(d, dataStart, dataStart + rowLength, (byte) 0);
             }
         }
@@ -227,7 +231,8 @@ public class PageBtreeLeaf extends PageBtree {
         int at = find(row, false, false, true);
         SearchRow delete = getRow(at);
         if (index.compareRows(row, delete) != 0 || delete.getKey() != row.getKey()) {
-            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1, index.getSQL() + ": " + row);
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
+                    index.getSQL() + ": " + row);
         }
         index.getPageStore().logUndo(this, data);
         if (entryCount == 1) {
@@ -269,7 +274,8 @@ public class PageBtreeLeaf extends PageBtree {
 
     private void writeHead() {
         data.reset();
-        data.writeByte((byte) (Page.TYPE_BTREE_LEAF | (onlyPosition ? 0 : Page.FLAG_LAST)));
+        data.writeByte((byte) (Page.TYPE_BTREE_LEAF |
+                (onlyPosition ? 0 : Page.FLAG_LAST)));
         data.writeShortInt(0);
         data.writeInt(parentPageId);
         data.writeVarInt(index.getId());
@@ -351,7 +357,8 @@ public class PageBtreeLeaf extends PageBtree {
 
     @Override
     public String toString() {
-        return "page[" + getPos() + "] b-tree leaf table:" + index.getId() + " entries:" + entryCount;
+        return "page[" + getPos() + "] b-tree leaf table:" +
+                index.getId() + " entries:" + entryCount;
     }
 
     @Override

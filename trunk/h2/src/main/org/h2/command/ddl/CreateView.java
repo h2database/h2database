@@ -104,7 +104,8 @@ public class CreateView extends SchemaCommand {
             if (view == null) {
                 Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
                 sysSession.setCurrentSchema(schema);
-                view = new TableView(getSchema(), id, viewName, querySQL, null, columnNames, sysSession, false);
+                view = new TableView(getSchema(), id, viewName, querySQL, null,
+                        columnNames, sysSession, false);
             } else {
                 view.replace(querySQL, columnNames, sysSession, false, force);
                 view.setModified();

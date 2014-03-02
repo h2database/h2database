@@ -47,7 +47,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     private Query query;
     private final Session createSession;
 
-    public ViewIndex(TableView view, String querySQL, ArrayList<Parameter> originalParameters, boolean recursive) {
+    public ViewIndex(TableView view, String querySQL,
+            ArrayList<Parameter> originalParameters, boolean recursive) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = querySQL;
@@ -58,7 +59,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         this.indexMasks = null;
     }
 
-    public ViewIndex(TableView view, ViewIndex index, Session session, int[] masks) {
+    public ViewIndex(TableView view, ViewIndex index, Session session,
+            int[] masks) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = index.querySQL;
@@ -113,11 +115,13 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public synchronized double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public synchronized double getCost(Session session, int[] masks,
+            TableFilter filter, SortOrder sortOrder) {
         if (recursive) {
             return 1000;
         }
-        IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
+        IntArray masksArray = new IntArray(masks == null ?
+                Utils.EMPTY_INT_ARRAY : masks);
         SynchronizedVerifier.check(costCache);
         CostElement cachedCost = costCache.get(masksArray);
         if (cachedCost != null) {
@@ -179,7 +183,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return find(filter.getSession(), null, null, intersection);
     }
 
-    private Cursor find(Session session, SearchRow first, SearchRow last, SearchRow intersection) {
+    private Cursor find(Session session, SearchRow first, SearchRow last,
+            SearchRow intersection) {
         if (recursive) {
             ResultInterface recResult = view.getRecursiveResult();
             if (recResult != null) {
@@ -190,11 +195,13 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 query = (Query) createSession.prepare(querySQL, true);
             }
             if (!(query instanceof SelectUnion)) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
+                        "recursive queries without UNION ALL");
             }
             SelectUnion union = (SelectUnion) query;
             if (union.getUnionType() != SelectUnion.UNION_ALL) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_2, "recursive queries without UNION ALL");
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
+                        "recursive queries without UNION ALL");
             }
             Query left = union.getLeft();
             // to ensure the last result is not closed
@@ -276,7 +283,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return new ViewCursor(this, result, first, last);
     }
 
-    private static void setParameter(ArrayList<Parameter> paramList, int x, Value v) {
+    private static void setParameter(ArrayList<Parameter> paramList, int x,
+            Value v) {
         if (x >= paramList.size()) {
             // the parameter may be optimized away as in
             // select * from (select null as x) where x=1;
@@ -294,7 +302,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         if (!q.allowGlobalConditions()) {
             return q;
         }
-        int firstIndexParam = originalParameters == null ? 0 : originalParameters.size();
+        int firstIndexParam = originalParameters == null ?
+                0 : originalParameters.size();
         firstIndexParam += view.getParameterOffset();
         IntArray paramIndex = new IntArray();
         int indexColumnCount = 0;

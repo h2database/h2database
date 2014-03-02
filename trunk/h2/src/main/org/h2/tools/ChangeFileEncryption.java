@@ -197,7 +197,7 @@ public class ChangeFileEncryption extends Tool {
             try {
                 copy(fileName);
             } catch (IOException e) {
-                throw DbException.convertIOException(e, 
+                throw DbException.convertIOException(e,
                         "Error encrypting / decrypting file " + fileName);
             }
             return;

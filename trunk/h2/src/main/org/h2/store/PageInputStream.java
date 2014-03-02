@@ -136,7 +136,8 @@ public class PageInputStream extends InputStream {
     BitField allocateAllPages() {
         BitField pages = new BitField();
         int key = logKey;
-        PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(store, firstTrunkPage);
+        PageStreamTrunk.Iterator it = new PageStreamTrunk.Iterator(
+                store, firstTrunkPage);
         while (true) {
             PageStreamTrunk t = it.next();
             key++;

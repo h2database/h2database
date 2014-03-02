@@ -42,7 +42,8 @@ public class UpdatableRow {
      * @param conn the database connection
      * @param result the result
      */
-    public UpdatableRow(JdbcConnection conn, ResultInterface result) throws SQLException {
+    public UpdatableRow(JdbcConnection conn, ResultInterface result)
+            throws SQLException {
         this.conn = conn;
         this.result = result;
         columnCount = result.getVisibleColumnCount();
@@ -176,7 +177,8 @@ public class UpdatableRow {
         }
     }
 
-    private void setKey(PreparedStatement prep, int start, Value[] current) throws SQLException {
+    private void setKey(PreparedStatement prep, int start, Value[] current)
+            throws SQLException {
         for (int i = 0, size = key.size(); i < size; i++) {
             String col = key.get(i);
             int idx = getColumnIndex(col);

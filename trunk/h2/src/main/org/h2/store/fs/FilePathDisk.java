@@ -70,7 +70,8 @@ public class FilePathDisk extends FilePath {
      * @return the native file name
      */
     public static String expandUserHomeDirectory(String fileName) {
-        if (fileName.startsWith("~") && (fileName.length() == 1 || fileName.startsWith("~/"))) {
+        if (fileName.startsWith("~") && (fileName.length() == 1 || 
+                fileName.startsWith("~/"))) {
             String userDir = SysProperties.USER_HOME;
             fileName = userDir + fileName.substring(1);
         }
@@ -101,7 +102,8 @@ public class FilePathDisk extends FilePath {
             }
             wait(i);
         }
-        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, new String[]{name, newName.name});
+        throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2, 
+                new String[]{name, newName.name});
     }
 
     private static void wait(int i) {
@@ -291,7 +293,8 @@ public class FilePathDisk extends FilePath {
                 }
                 InputStream in = getClass().getResourceAsStream(fileName);
                 if (in == null) {
-                    in = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
+                    in = Thread.currentThread().getContextClassLoader().
+                            getResourceAsStream(fileName);
                 }
                 if (in == null) {
                     throw new FileNotFoundException("resource " + fileName);
@@ -350,8 +353,8 @@ public class FilePathDisk extends FilePath {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
+    public FilePath createTempFile(String suffix, boolean deleteOnExit,
+            boolean inTempDir) throws IOException {
         String fileName = name + ".";
         String prefix = new File(fileName).getName();
         File dir;
@@ -421,7 +424,8 @@ class FileDisk extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         return file.getChannel().tryLock(position, size, shared);
     }
 
@@ -442,7 +446,8 @@ class FileDisk extends FileBase {
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        int len = file.read(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining());
+        int len = file.read(dst.array(), dst.arrayOffset() + dst.position(), 
+                dst.remaining());
         if (len > 0) {
             dst.position(dst.position() + len);
         }

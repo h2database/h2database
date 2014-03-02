@@ -97,7 +97,8 @@ public class Backup extends Tool {
      *          and empty string to backup all files in this directory)
      * @param quiet don't print progress information
      */
-    public static void execute(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+    public static void execute(String zipFileName, String directory, String db,
+            boolean quiet) throws SQLException {
         try {
             new Backup().process(zipFileName, directory, db, quiet);
         } catch (Exception e) {
@@ -105,7 +106,8 @@ public class Backup extends Tool {
         }
     }
 
-    private void process(String zipFileName, String directory, String db, boolean quiet) throws SQLException {
+    private void process(String zipFileName, String directory, String db,
+            boolean quiet) throws SQLException {
         List<String> list;
         boolean allFiles = db != null && db.length() == 0;
         if (allFiles) {

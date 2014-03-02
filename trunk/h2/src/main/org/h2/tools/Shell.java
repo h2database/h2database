@@ -327,7 +327,8 @@ public class Shell extends Tool implements Runnable {
             if ("null".equals(serverPropertiesDir)) {
                 prop = new Properties();
             } else {
-                prop = SortedProperties.loadProperties(serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
+                prop = SortedProperties.loadProperties(
+                        serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
             }
             String data = null;
             boolean found = false;
@@ -455,7 +456,8 @@ public class Shell extends Tool implements Runnable {
                     rs = stat.getResultSet();
                     int rowCount = printResult(rs, listMode);
                     time = System.currentTimeMillis() - time;
-                    println("(" + rowCount + (rowCount == 1 ? " row, " : " rows, ") + time + " ms)");
+                    println("(" + rowCount + (rowCount == 1 ? 
+                            " row, " : " rows, ") + time + " ms)");
                 } else {
                     int updateCount = stat.getUpdateCount();
                     time = System.currentTimeMillis() - time;
@@ -509,7 +511,8 @@ public class Shell extends Tool implements Runnable {
         return rowCount;
     }
 
-    private boolean loadRow(ResultSet rs, int len, ArrayList<String[]> rows) throws SQLException {
+    private boolean loadRow(ResultSet rs, int len, ArrayList<String[]> rows)
+            throws SQLException {
         boolean truncated = false;
         String[] row = new String[len];
         for (int i = 0; i < len; i++) {

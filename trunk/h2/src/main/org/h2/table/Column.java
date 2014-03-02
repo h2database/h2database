@@ -49,17 +49,20 @@ public class Column {
     /**
      * This column is not nullable.
      */
-    public static final int NOT_NULLABLE = ResultSetMetaData.columnNoNulls;
+    public static final int NOT_NULLABLE = 
+            ResultSetMetaData.columnNoNulls;
 
     /**
      * This column is nullable.
      */
-    public static final int NULLABLE = ResultSetMetaData.columnNullable;
+    public static final int NULLABLE = 
+            ResultSetMetaData.columnNullable;
 
     /**
      * It is not know whether this column is nullable.
      */
-    public static final int NULLABLE_UNKNOWN = ResultSetMetaData.columnNullableUnknown;
+    public static final int NULLABLE_UNKNOWN = 
+            ResultSetMetaData.columnNullableUnknown;
 
     private final int type;
     private long precision;
@@ -89,7 +92,8 @@ public class Column {
         this(name, type, -1, -1, -1);
     }
 
-    public Column(String name, int type, long precision, int scale, int displaySize) {
+    public Column(String name, int type, long precision, int scale,
+            int displaySize) {
         this.name = name;
         this.type = type;
         if (precision == -1 && scale == -1 && displaySize == -1) {
@@ -111,7 +115,8 @@ public class Column {
             return false;
         }
         Column other = (Column) o;
-        if (table == null || other.table == null || name == null || other.name == null) {
+        if (table == null || other.table == null || 
+                name == null || other.name == null) {
             return false;
         }
         if (table != other.table) {
@@ -145,8 +150,11 @@ public class Column {
             return v.convertTo(type);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
-                String target = (table == null ? "" : table.getName() + ": ") + getCreateSQL();
-                throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, v.getSQL() + " (" + target + ")");
+                String target = (table == null ? "" : table.getName() + ": ") + 
+                        getCreateSQL();
+                throw DbException.get(
+                        ErrorCode.DATA_CONVERSION_ERROR_1, 
+                        v.getSQL() + " (" + target + ")");
             }
             throw e;
         }
@@ -201,12 +209,14 @@ public class Column {
      * @param session the session
      * @param defaultExpression the default expression
      */
-    public void setDefaultExpression(Session session, Expression defaultExpression) {
+    public void setDefaultExpression(Session session,
+            Expression defaultExpression) {
         // also to test that no column names are used
         if (defaultExpression != null) {
             defaultExpression = defaultExpression.optimize(session);
             if (defaultExpression.isConstant()) {
-                defaultExpression = ValueExpression.get(defaultExpression.getValue(session));
+                defaultExpression = ValueExpression.get(
+                        defaultExpression.getValue(session));
             }
         }
         this.defaultExpression = defaultExpression;
@@ -283,11 +293,13 @@ public class Column {
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
-                        value = ValueTimestamp.get(new Timestamp(session.getTransactionStart()));
+                        value = ValueTimestamp.get(new Timestamp(
+                                session.getTransactionStart()));
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
-                        value = ValueDate.get(new Date(session.getTransactionStart()));
+                        value = ValueDate.get(new Date(
+                                session.getTransactionStart()));
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }
@@ -304,7 +316,9 @@ public class Column {
             }
             // Both TRUE and NULL are ok
             if (Boolean.FALSE.equals(v.getBoolean())) {
-                throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, checkConstraint.getSQL());
+                throw DbException.get(
+                        ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, 
+                        checkConstraint.getSQL());
             }
         }
         value = value.convertScale(mode.convertOnlyToSmallerScale, scale);
@@ -351,7 +365,8 @@ public class Column {
      * @param temporary true if the sequence is temporary and does not need to
      *            be stored
      */
-    public void convertAutoIncrementToSequence(Session session, Schema schema, int id, boolean temporary) {
+    public void convertAutoIncrementToSequence(Session session, Schema schema,
+            int id, boolean temporary) {
         if (!autoIncrement) {
             DbException.throwInternalError();
         }

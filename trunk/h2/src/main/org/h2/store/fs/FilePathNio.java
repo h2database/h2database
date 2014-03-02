@@ -121,7 +121,8 @@ class FileNio extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         return channel.tryLock(position, size, shared);
     }
 

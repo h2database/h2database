@@ -73,7 +73,8 @@ public class Restore extends Tool {
         execute(zipFileName, dir, db);
     }
 
-    private static String getOriginalDbName(String fileName, String db) throws IOException {
+    private static String getOriginalDbName(String fileName, String db)
+            throws IOException {
         InputStream in = null;
         try {
             in = FileUtils.newInputStream(fileName);
@@ -122,10 +123,12 @@ public class Restore extends Tool {
      */
     private static String getDatabaseNameFromFileName(String fileName) {
         if (fileName.endsWith(Constants.SUFFIX_PAGE_FILE)) {
-            return fileName.substring(0, fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
+            return fileName.substring(0, 
+                    fileName.length() - Constants.SUFFIX_PAGE_FILE.length());
         }
         if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-            return fileName.substring(0, fileName.length() - Constants.SUFFIX_MV_FILE.length());
+            return fileName.substring(0, 
+                    fileName.length() - Constants.SUFFIX_MV_FILE.length());
         }
         return null;
     }
@@ -180,7 +183,8 @@ public class Restore extends Tool {
                 if (copy) {
                     OutputStream o = null;
                     try {
-                        o = FileUtils.newOutputStream(directory + SysProperties.FILE_SEPARATOR + fileName, false);
+                        o = FileUtils.newOutputStream(
+                                directory + SysProperties.FILE_SEPARATOR + fileName, false);
                         IOUtils.copy(zipIn, o);
                         o.close();
                     } finally {

@@ -64,7 +64,9 @@ public class FileLock implements Runnable {
     public static final int LOCK_FS = 4;
 
     private static final String MAGIC = "FileLock";
-    private static final String FILE = "file", SOCKET = "socket", SERIALIZED = "serialized";
+    private static final String FILE = "file";
+    private static final String SOCKET = "socket";
+    private static final String SERIALIZED = "serialized";
     private static final int RANDOM_BYTES = 16;
     private static final int SLEEP_GAP = 25;
     private static final int TIME_GRANULARITY = 2000;
@@ -112,7 +114,8 @@ public class FileLock implements Runnable {
      * @param sleep the number of milliseconds to sleep
      */
     public FileLock(TraceSystem traceSystem, String fileName, int sleep) {
-        this.trace = traceSystem == null ? null : traceSystem.getTrace(Trace.FILE_LOCK);
+        this.trace = traceSystem == null ? 
+                null : traceSystem.getTrace(Trace.FILE_LOCK);
         this.fileName = fileName;
         this.sleep = sleep;
     }
@@ -233,7 +236,8 @@ public class FileLock implements Runnable {
         boolean running = false;
         String id = prop.getProperty("id");
         try {
-            Socket socket = NetUtils.createSocket(server, Constants.DEFAULT_TCP_PORT, false);
+            Socket socket = NetUtils.createSocket(server, 
+                    Constants.DEFAULT_TCP_PORT, false);
             Transfer transfer = new Transfer(null);
             transfer.setSocket(socket);
             transfer.init();
@@ -254,7 +258,8 @@ public class FileLock implements Runnable {
             return;
         }
         if (running) {
-            DbException e = DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, "Server is running");
+            DbException e = DbException.get(
+                    ErrorCode.DATABASE_ALREADY_OPEN_1, "Server is running");
             throw e.addSQL(server + "/" + id);
         }
     }
@@ -277,7 +282,8 @@ public class FileLock implements Runnable {
                 lastException = e;
             }
         }
-        throw getExceptionFatal("Could not load properties " + fileName, lastException);
+        throw getExceptionFatal(
+                "Could not load properties " + fileName, lastException);
     }
 
     private void waitUntilOld() {
@@ -433,7 +439,8 @@ public class FileLock implements Runnable {
             return;
         }
         save();
-        watchdog = new Thread(this, "H2 File Lock Watchdog (Socket) " + fileName);
+        watchdog = new Thread(this, 
+                "H2 File Lock Watchdog (Socket) " + fileName);
         watchdog.setDaemon(true);
         watchdog.start();
     }
@@ -447,11 +454,13 @@ public class FileLock implements Runnable {
     }
 
     private static DbException getExceptionFatal(String reason, Throwable t) {
-        return DbException.get(ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
+        return DbException.get(
+                ErrorCode.ERROR_OPENING_DATABASE_1, t, reason);
     }
 
     private DbException getExceptionAlreadyInUse(String reason) {
-        DbException e = DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
+        DbException e = DbException.get(
+                ErrorCode.DATABASE_ALREADY_OPEN_1, reason);
         if (fileName != null) {
             try {
                 Properties prop = load();
@@ -486,7 +495,8 @@ public class FileLock implements Runnable {
         } else if (method.equalsIgnoreCase("FS")) {
             return FileLock.LOCK_FS;
         } else {
-            throw DbException.get(ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
+            throw DbException.get(
+                    ErrorCode.UNSUPPORTED_LOCK_METHOD_1, method);
         }
     }
 
@@ -500,7 +510,8 @@ public class FileLock implements Runnable {
             while (locked && fileName != null) {
                 // trace.debug("watchdog check");
                 try {
-                    if (!FileUtils.exists(fileName) || FileUtils.lastModified(fileName) != lastWrite) {
+                    if (!FileUtils.exists(fileName) || 
+                            FileUtils.lastModified(fileName) != lastWrite) {
                         save();
                     }
                     Thread.sleep(sleep);

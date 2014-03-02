@@ -146,35 +146,38 @@ public class MultiDimension implements Comparator<long[]> {
     }
 
     /**
-     * Generates an optimized multi-dimensional range query.
-     * The query contains parameters. It can only be used with the H2 database.
-     *
+     * Generates an optimized multi-dimensional range query. The query contains
+     * parameters. It can only be used with the H2 database.
+     * 
      * @param table the table name
      * @param columns the list of columns
      * @param scalarColumn the column name of the computed scalar column
      * @return the query
      */
-    public String generatePreparedQuery(String table, String scalarColumn, String[] columns) {
+    public String generatePreparedQuery(String table, String scalarColumn,
+            String[] columns) {
         StringBuilder buff = new StringBuilder("SELECT D.* FROM ");
         buff.append(StringUtils.quoteIdentifier(table)).
             append(" D, TABLE(_FROM_ BIGINT=?, _TO_ BIGINT=?) WHERE ").
             append(StringUtils.quoteIdentifier(scalarColumn)).
             append(" BETWEEN _FROM_ AND _TO_");
         for (String col : columns) {
-            buff.append(" AND ").append(StringUtils.quoteIdentifier(col)).append("+1 BETWEEN ?+1 AND ?+1");
+            buff.append(" AND ").append(StringUtils.quoteIdentifier(col)).
+                append("+1 BETWEEN ?+1 AND ?+1");
         }
         return buff.toString();
     }
 
     /**
      * Executes a prepared query that was generated using generatePreparedQuery.
-     *
+     * 
      * @param prep the prepared statement
      * @param min the lower values
      * @param max the upper values
      * @return the result set
      */
-    public ResultSet getResult(PreparedStatement prep, int[] min, int[] max) throws SQLException {
+    public ResultSet getResult(PreparedStatement prep, int[] min, int[] max)
+            throws SQLException {
         long[][] ranges = getMortonRanges(min, max);
         int len = ranges.length;
         Long[] from = new Long[len];
@@ -266,7 +269,8 @@ public class MultiDimension implements Comparator<long[]> {
         return a[0] > b[0] ? 1 : -1;
     }
 
-    private void addMortonRanges(ArrayList<long[]> list, int[] min, int[] max, int len, int level) {
+    private void addMortonRanges(ArrayList<long[]> list, int[] min, int[] max,
+            int len, int level) {
         if (level > 100) {
             throw new IllegalArgumentException("" + level);
         }

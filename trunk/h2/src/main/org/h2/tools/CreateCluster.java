@@ -128,12 +128,15 @@ public class CreateCluster extends Tool {
                 }
             }
             if (exists) {
-                throw new SQLException("Target database must not yet exist. Please delete it first: " + urlTarget);
+                throw new SQLException(
+                        "Target database must not yet exist. Please delete it first: " + 
+                        urlTarget);
             }
 
             // use cluster='' so connecting is possible
             // even if the cluster is enabled
-            connSource = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
+            connSource = DriverManager.getConnection(urlSource + 
+                    ";CLUSTER=''", user, password);
             statSource = connSource.createStatement();
 
             // enable the exclusive mode and close other connections,
@@ -156,7 +159,8 @@ public class CreateCluster extends Tool {
                 }
 
                 // delete the target database and then restore
-                connTarget = DriverManager.getConnection(urlTarget + ";CLUSTER=''", user, password);
+                connTarget = DriverManager.getConnection(
+                        urlTarget + ";CLUSTER=''", user, password);
                 statTarget = connTarget.createStatement();
                 statTarget.execute("DROP ALL OBJECTS DELETE FILES");
                 connTarget.close();

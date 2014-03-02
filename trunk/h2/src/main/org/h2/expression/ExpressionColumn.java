@@ -46,7 +46,8 @@ public class ExpressionColumn extends Expression {
         this.columnName = null;
     }
 
-    public ExpressionColumn(Database database, String schemaName, String tableAlias, String columnName) {
+    public ExpressionColumn(Database database, String schemaName,
+            String tableAlias, String columnName) {
         this.database = database;
         this.schemaName = schemaName;
         this.tableAlias = tableAlias;
@@ -79,10 +80,12 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level) {
-        if (tableAlias != null && !database.equalsIdentifiers(tableAlias, resolver.getTableAlias())) {
+        if (tableAlias != null && !database.equalsIdentifiers(
+                tableAlias, resolver.getTableAlias())) {
             return;
         }
-        if (schemaName != null && !database.equalsIdentifiers(schemaName, resolver.getSchemaName())) {
+        if (schemaName != null && !database.equalsIdentifiers(
+                schemaName, resolver.getSchemaName())) {
             return;
         }
         for (Column col : resolver.getColumns()) {
@@ -311,15 +314,17 @@ public class ExpressionColumn extends Expression {
     public void createIndexConditions(Session session, TableFilter filter) {
         TableFilter tf = getTableFilter();
         if (filter == tf && column.getType() == Value.BOOLEAN) {
-            IndexCondition cond = IndexCondition.get(Comparison.EQUAL, this, ValueExpression
-                    .get(ValueBoolean.get(true)));
+            IndexCondition cond = IndexCondition.get(
+                    Comparison.EQUAL, this, ValueExpression.get(
+                            ValueBoolean.get(true)));
             filter.addIndexCondition(cond);
         }
     }
 
     @Override
     public Expression getNotIfPossible(Session session) {
-        return new Comparison(session, Comparison.EQUAL, this, ValueExpression.get(ValueBoolean.get(false)));
+        return new Comparison(session, Comparison.EQUAL, this, 
+                ValueExpression.get(ValueBoolean.get(false)));
     }
 
 }

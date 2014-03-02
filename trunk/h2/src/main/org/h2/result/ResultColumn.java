@@ -90,7 +90,8 @@ public class ResultColumn {
      * @param result the result
      * @param i the column index
      */
-    public static void writeColumn(Transfer out, ResultInterface result, int i) throws IOException {
+    public static void writeColumn(Transfer out, ResultInterface result, int i)
+            throws IOException {
         out.writeString(result.getAlias(i));
         out.writeString(result.getSchemaName(i));
         out.writeString(result.getTableName(i));

@@ -317,7 +317,8 @@ public class Aggregate extends Expression {
                 });
             }
             StatementBuilder buff = new StatementBuilder();
-            String sep = groupConcatSeparator == null ? "," : groupConcatSeparator.getValue(session).getString();
+            String sep = groupConcatSeparator == null ? 
+                    "," : groupConcatSeparator.getValue(session).getString();
             for (Value val : list) {
                 String s;
                 if (val.getType() == Value.ARRAY) {
@@ -584,7 +585,8 @@ public class Aggregate extends Expression {
         if (on != null && !on.isEverything(visitor)) {
             return false;
         }
-        if (groupConcatSeparator != null && !groupConcatSeparator.isEverything(visitor)) {
+        if (groupConcatSeparator != null && 
+                !groupConcatSeparator.isEverything(visitor)) {
             return false;
         }
         if (groupConcatOrderList != null) {

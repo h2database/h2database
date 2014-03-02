@@ -46,9 +46,10 @@ public class FilePathRec extends FilePathWrapper {
     }
 
     @Override
-    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir)
-            throws IOException {
-        log(Recorder.CREATE_TEMP_FILE, unwrap(name) + ":" + suffix + ":" + deleteOnExit + ":" + inTempDir);
+    public FilePath createTempFile(String suffix, boolean deleteOnExit,
+            boolean inTempDir) throws IOException {
+        log(Recorder.CREATE_TEMP_FILE, unwrap(name) + ":" + suffix + ":" +
+                deleteOnExit + ":" + inTempDir);
         return super.createTempFile(suffix, deleteOnExit, inTempDir);
     }
 
@@ -206,7 +207,8 @@ class FileRec extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         return channel.tryLock(position, size, shared);
     }
 

@@ -29,7 +29,8 @@ import org.h2.util.New;
  */
 public class FilePathNioMem extends FilePath {
 
-    private static final TreeMap<String, FileNioMemData> MEMORY_FILES = new TreeMap<String, FileNioMemData>();
+    private static final TreeMap<String, FileNioMemData> MEMORY_FILES = 
+            new TreeMap<String, FileNioMemData>();
 
     @Override
     public FilePathNioMem getPath(String path) {
@@ -146,7 +147,8 @@ public class FilePathNioMem extends FilePath {
     @Override
     public void createDirectory() {
         if (exists() && isDirectory()) {
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+                    name + " (a file with this name already exists)");
         }
         // TODO directories are not really supported
     }
@@ -274,7 +276,8 @@ class FileNioMem extends FileBase {
             return 0;
         }
         data.touch(readOnly);
-        pos = data.readWrite(pos, src, 0/*because we start writing from src.position()*/, len, true);
+        // offset is 0 because we start writing from src.position()
+        pos = data.readWrite(pos, src, 0, len, true);
         src.position(src.position() + len);
         return len;
     }
@@ -311,7 +314,8 @@ class FileNioMem extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         if (shared) {
             if (!data.lockShared()) {
                 return null;

@@ -32,7 +32,8 @@ public abstract class TableBase extends Table {
     private final boolean globalTemporary;
 
     public TableBase(CreateTableData data) {
-        super(data.schema, data.id, data.tableName, data.persistIndexes, data.persistData);
+        super(data.schema, data.id, data.tableName, 
+                data.persistIndexes, data.persistData);
         this.tableEngine = data.tableEngine;
         this.globalTemporary = data.globalTemporary;
         if (data.tableEngineParams != null) {

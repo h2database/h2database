@@ -38,8 +38,9 @@ public class LinkSchema {
      * @param sourceSchema the schema where the existing tables are
      * @return a result set with the created tables
      */
-    public static ResultSet linkSchema(Connection conn, String targetSchema, String driver, String url, String user,
-            String password, String sourceSchema) {
+    public static ResultSet linkSchema(Connection conn, String targetSchema,
+            String driver, String url, String user, String password,
+            String sourceSchema) {
         Connection c2 = null;
         Statement stat = null;
         ResultSet rs = null;
@@ -48,7 +49,8 @@ public class LinkSchema {
         try {
             c2 = JdbcUtils.getConnection(driver, url, user, password);
             stat = conn.createStatement();
-            stat.execute("CREATE SCHEMA IF NOT EXISTS " + StringUtils.quoteIdentifier(targetSchema));
+            stat.execute("CREATE SCHEMA IF NOT EXISTS " + 
+                        StringUtils.quoteIdentifier(targetSchema));
             rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
             while (rs.next()) {
                 String table = rs.getString("TABLE_NAME");

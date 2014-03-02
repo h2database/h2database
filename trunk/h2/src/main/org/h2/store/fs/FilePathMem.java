@@ -29,7 +29,8 @@ import org.h2.util.New;
  */
 public class FilePathMem extends FilePath {
 
-    private static final TreeMap<String, FileMemData> MEMORY_FILES = new TreeMap<String, FileMemData>();
+    private static final TreeMap<String, FileMemData> MEMORY_FILES = 
+            new TreeMap<String, FileMemData>();
     private static final FileMemData DIRECTORY = new FileMemData("", false);
 
     @Override
@@ -148,7 +149,8 @@ public class FilePathMem extends FilePath {
     @Override
     public void createDirectory() {
         if (exists()) {
-            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a file with this name already exists)");
+            throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+                    name + " (a file with this name already exists)");
         }
         synchronized (MEMORY_FILES) {
             MEMORY_FILES.put(name, DIRECTORY);
@@ -179,7 +181,8 @@ public class FilePathMem extends FilePath {
         synchronized (MEMORY_FILES) {
             FileMemData m = MEMORY_FILES.get(name);
             if (m == DIRECTORY) {
-                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, name + " (a directory with this name already exists)");
+                throw DbException.get(ErrorCode.FILE_CREATION_FAILED_1, 
+                        name + " (a directory with this name already exists)");
             }
             if (m == null) {
                 m = new FileMemData(name, compressed());
@@ -281,7 +284,8 @@ class FileMem extends FileBase {
             return 0;
         }
         data.touch(readOnly);
-        pos = data.readWrite(pos, src.array(), src.arrayOffset() + src.position(), len, true);
+        pos = data.readWrite(pos, src.array(), 
+                src.arrayOffset() + src.position(), len, true);
         src.position(src.position() + len);
         return len;
     }
@@ -292,7 +296,8 @@ class FileMem extends FileBase {
         if (len == 0) {
             return 0;
         }
-        long newPos = data.readWrite(pos, dst.array(), dst.arrayOffset() + dst.position(), len, false);
+        long newPos = data.readWrite(pos, dst.array(), 
+                dst.arrayOffset() + dst.position(), len, false);
         len = (int) (newPos - pos);
         if (len <= 0) {
             return -1;
@@ -318,7 +323,8 @@ class FileMem extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         if (shared) {
             if (!data.lockShared()) {
                 return null;

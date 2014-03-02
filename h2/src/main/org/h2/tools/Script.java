@@ -129,7 +129,8 @@ public class Script extends Tool {
      * @param password the password
      * @param fileName the script file
      */
-    public static void execute(String url, String user, String password, String fileName) throws SQLException {
+    public static void execute(String url, String user, String password,
+            String fileName) throws SQLException {
         OutputStream o = null;
         try {
             o = FileUtils.newOutputStream(fileName, false);
@@ -150,7 +151,8 @@ public class Script extends Tool {
      * @param password the password
      * @param out the output stream
      */
-    public static void execute(String url, String user, String password, OutputStream out) throws SQLException {
+    public static void execute(String url, String user, String password,
+            OutputStream out) throws SQLException {
         Connection conn = null;
         try {
             org.h2.Driver.load();

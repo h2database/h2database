@@ -301,7 +301,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         // TODO server: maybe use one single properties file?
         if (tcpShutdown) {
             out.println("Shutting down TCP Server at " + tcpShutdownServer);
-            shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce, false);
+            shutdownTcpServer(tcpShutdownServer, tcpPassword, 
+                    tcpShutdownForce, false);
         }
         try {
             if (tcpStart) {
@@ -348,25 +349,26 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
     }
 
     /**
-     * Shutdown one or all TCP server. If force is set to false, the server will not
-     * allow new connections, but not kill existing connections, instead it will
-     * stop if the last connection is closed. If force is set to true, existing
-     * connections are killed. After calling the method with force=false, it is
-     * not possible to call it again with force=true because new connections are
-     * not allowed. Example:
-     *
+     * Shutdown one or all TCP server. If force is set to false, the server will
+     * not allow new connections, but not kill existing connections, instead it
+     * will stop if the last connection is closed. If force is set to true,
+     * existing connections are killed. After calling the method with
+     * force=false, it is not possible to call it again with force=true because
+     * new connections are not allowed. Example:
+     * 
      * <pre>
-     * Server.shutdownTcpServer(
-     *     &quot;tcp://localhost:9094&quot;, password, true, false);
+     * Server.shutdownTcpServer(&quot;tcp://localhost:9094&quot;, 
+     *         password, true, false);
      * </pre>
-     *
+     * 
      * @param url example: tcp://localhost:9094
      * @param password the password to use ("" for no password)
      * @param force the shutdown (don't wait)
-     * @param all whether all TCP servers that are running in the JVM
-     *                  should be stopped
+     * @param all whether all TCP servers that are running in the JVM should be
+     *            stopped
      */
-    public static void shutdownTcpServer(String url, String password, boolean force, boolean all) throws SQLException {
+    public static void shutdownTcpServer(String url, String password,
+            boolean force, boolean all) throws SQLException {
         TcpServer.shutdown(url, password, force, all);
     }
 
@@ -393,7 +395,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         } else {
             buff.append("The ").
                 append(service.getType()).
-                append(" server could not be started. Possible cause: another server is already running at ").
+                append(" server could not be started. " + 
+                        "Possible cause: another server is already running at ").
                 append(service.getURL());
         }
         return buff.toString();
@@ -484,7 +487,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             if (isRunning(true)) {
                 return this;
             }
-            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2, name, "timeout; " +
+            throw DbException.get(ErrorCode.EXCEPTION_OPENING_PORT_2, 
+                    name, "timeout; " +
                     "please check your network configuration, specially the file /etc/hosts");
         } catch (DbException e) {
             throw DbException.toSQLException(e);
@@ -604,7 +608,8 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      */
     public static void openBrowser(String url) throws Exception {
         try {
-            String osName = StringUtils.toLowerEnglish(Utils.getProperty("os.name", "linux"));
+            String osName = StringUtils.toLowerEnglish(
+                    Utils.getProperty("os.name", "linux"));
             Runtime rt = Runtime.getRuntime();
             String browser = Utils.getProperty(SysProperties.H2_BROWSER, null);
             if (browser == null) {
@@ -657,8 +662,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 // Mac OS: to open a page with Safari, use "open -a Safari"
                 Runtime.getRuntime().exec(new String[] { "open", url });
             } else {
-                String[] browsers = { "chromium", "google-chrome", "firefox", "mozilla-firefox",
-                        "mozilla", "konqueror", "netscape", "opera", "midori" };
+                String[] browsers = { "chromium", "google-chrome", "firefox",
+                        "mozilla-firefox", "mozilla", "konqueror", "netscape",
+                        "opera", "midori" };
                 boolean ok = false;
                 for (String b : browsers) {
                     try {
@@ -671,11 +677,15 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 }
                 if (!ok) {
                     // No success in detection.
-                    throw new Exception("Browser detection failed and system property " + SysProperties.H2_BROWSER + " not set");
+                    throw new Exception(
+                            "Browser detection failed and system property " + 
+                            SysProperties.H2_BROWSER + " not set");
                 }
             }
         } catch (Exception e) {
-            throw new Exception("Failed to start a browser to open the URL " + url + ": " + e.getMessage());
+            throw new Exception(
+                    "Failed to start a browser to open the URL " + 
+            url + ": " + e.getMessage());
         }
     }
 

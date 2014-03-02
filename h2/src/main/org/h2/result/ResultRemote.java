@@ -34,8 +34,8 @@ public class ResultRemote implements ResultInterface {
     private ArrayList<Value[]> result;
     private final Trace trace;
 
-    public ResultRemote(SessionRemote session, Transfer transfer, int id, int columnCount, int fetchSize)
-            throws IOException {
+    public ResultRemote(SessionRemote session, Transfer transfer, int id,
+            int columnCount, int fetchSize) throws IOException {
         this.session = session;
         trace = session.getTrace();
         this.transfer = transfer;

@@ -150,9 +150,12 @@ public class DataReader extends Reader {
         if (x < 0x80) {
             return (char) x;
         } else if (x >= 0xe0) {
-            return (char) (((x & 0xf) << 12) + ((readByte() & 0x3f) << 6) + (readByte() & 0x3f));
+            return (char) (((x & 0xf) << 12) + 
+                    ((readByte() & 0x3f) << 6) + 
+                    (readByte() & 0x3f));
         } else {
-            return (char) (((x & 0x1f) << 6) + (readByte() & 0x3f));
+            return (char) (((x & 0x1f) << 6) + 
+                    (readByte() & 0x3f));
         }
     }
 

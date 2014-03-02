@@ -94,7 +94,8 @@ class FileNioMapped extends FileBase {
             }
         }
         if (useSystemGc) {
-            WeakReference<MappedByteBuffer> bufferWeakRef = new WeakReference<MappedByteBuffer>(mapped);
+            WeakReference<MappedByteBuffer> bufferWeakRef = 
+                    new WeakReference<MappedByteBuffer>(mapped);
             mapped = null;
             long start = System.currentTimeMillis();
             while (bufferWeakRef.get() != null) {
@@ -125,7 +126,8 @@ class FileNioMapped extends FileBase {
         int limit = mapped.limit();
         int capacity = mapped.capacity();
         if (limit < fileLength || capacity < fileLength) {
-            throw new IOException("Unable to map: length=" + limit + " capacity=" + capacity + " length=" + fileLength);
+            throw new IOException("Unable to map: length=" + limit + 
+                    " capacity=" + capacity + " length=" + fileLength);
         }
         if (SysProperties.NIO_LOAD_MAPPED) {
             mapped.load();
@@ -135,7 +137,8 @@ class FileNioMapped extends FileBase {
 
     private static void checkFileSizeLimit(long length) throws IOException {
         if (length > Integer.MAX_VALUE) {
-            throw new IOException("File over 2GB is not supported yet when using this file system");
+            throw new IOException(
+                    "File over 2GB is not supported yet when using this file system");
         }
     }
 
@@ -244,7 +247,8 @@ class FileNioMapped extends FileBase {
     }
 
     @Override
-    public synchronized FileLock tryLock(long position, long size, boolean shared) throws IOException {
+    public synchronized FileLock tryLock(long position, long size,
+            boolean shared) throws IOException {
         return file.getChannel().tryLock(position, size, shared);
     }
 

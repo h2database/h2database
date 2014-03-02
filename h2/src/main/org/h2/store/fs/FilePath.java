@@ -67,7 +67,8 @@ public abstract class FilePath {
 
     private static void registerDefaultProviders() {
         if (providers == null || defaultProvider == null) {
-            Map<String, FilePath> map = Collections.synchronizedMap(New.<String, FilePath>hashMap());
+            Map<String, FilePath> map = Collections.synchronizedMap(
+                    New.<String, FilePath>hashMap());
             for (String c : new String[] {
                     "org.h2.store.fs.FilePathDisk",
                     "org.h2.store.fs.FilePathMem",
@@ -251,7 +252,8 @@ public abstract class FilePath {
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
-    public FilePath createTempFile(String suffix, boolean deleteOnExit, boolean inTempDir) throws IOException {
+    public FilePath createTempFile(String suffix, boolean deleteOnExit,
+            boolean inTempDir) throws IOException {
         while (true) {
             FilePath p = getPath(name + getNextTempFileNamePart(false) + suffix);
             if (p.exists() || !p.createFile()) {
@@ -270,7 +272,8 @@ public abstract class FilePath {
      * @param newRandom if the random part of the filename should change
      * @return the file name part
      */
-    protected static synchronized String getNextTempFileNamePart(boolean newRandom) {
+    protected static synchronized String getNextTempFileNamePart(
+            boolean newRandom) {
         if (newRandom || tempRandom == null) {
             tempRandom = MathUtils.randomInt(Integer.MAX_VALUE) + ".";
         }

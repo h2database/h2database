@@ -88,7 +88,8 @@ public class RegularTable extends TableBase {
             scanIndex = mainIndex;
         } else {
             mainIndex = null;
-            scanIndex = new ScanIndex(this, data.id, IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
+            scanIndex = new ScanIndex(this, data.id, 
+                    IndexColumn.wrap(getColumns()), IndexType.createScan(data.persistData));
         }
         indexes.add(scanIndex);
         traceLock = database.getTrace(Trace.LOCK);
@@ -141,7 +142,8 @@ public class RegularTable extends TableBase {
                     if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
                         MultiVersionIndex mv = (MultiVersionIndex) index;
                         if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, index.getName());
+                            throw DbException.get(
+                                    ErrorCode.CONCURRENT_UPDATE_1, index.getName());
                         }
                     }
                 }
@@ -194,13 +196,15 @@ public class RegularTable extends TableBase {
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) {
+    public Index addIndex(Session session, String indexName, int indexId,
+            IndexColumn[] cols, IndexType indexType, boolean create,
+            String indexComment) {
         if (indexType.isPrimaryKey()) {
             for (IndexColumn c : cols) {
                 Column column = c.column;
                 if (column.isNullable()) {
-                    throw DbException.get(ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
+                    throw DbException.get(
+                            ErrorCode.COLUMN_MUST_NOT_BE_NULLABLE_1, column.getName());
                 }
                 column.setPrimaryKey(true);
             }
@@ -212,7 +216,8 @@ public class RegularTable extends TableBase {
         Index index;
         if (isPersistIndexes() && indexType.isPersistent()) {
             int mainIndexColumn;
-            if (database.isStarting() && database.getPageStore().getRootPageId(indexId) != 0) {
+            if (database.isStarting() && 
+                    database.getPageStore().getRootPageId(indexId) != 0) {
                 mainIndexColumn = -1;
             } else if (!database.isStarting() && mainIndex.getRowCount(session) != 0) {
                 mainIndexColumn = -1;
@@ -221,24 +226,31 @@ public class RegularTable extends TableBase {
             }
             if (mainIndexColumn != -1) {
                 mainIndex.setMainIndexColumn(mainIndexColumn);
-                index = new PageDelegateIndex(this, indexId, indexName, indexType, mainIndex, create, session);
+                index = new PageDelegateIndex(this, indexId, indexName,
+                        indexType, mainIndex, create, session);
             } else if (indexType.isSpatial()) {
-                index = new SpatialTreeIndex(this, indexId, indexName, cols, indexType, true, create, session);
+                index = new SpatialTreeIndex(this, indexId, indexName, cols,
+                        indexType, true, create, session);
             } else {
-                index = new PageBtreeIndex(this, indexId, indexName, cols, indexType, create, session);
+                index = new PageBtreeIndex(this, indexId, indexName, cols,
+                        indexType, create, session);
             }
         } else {
             if (indexType.isHash()) {
                 if (cols.length != 1) {
-                    throw DbException.getUnsupportedException("hash indexes may index only one column");
+                    throw DbException.getUnsupportedException(
+                            "hash indexes may index only one column");
                 }
                 if (indexType.isUnique()) {
-                    index = new HashIndex(this, indexId, indexName, cols, indexType);
+                    index = new HashIndex(this, indexId, indexName, cols,
+                            indexType);
                 } else {
-                    index = new NonUniqueHashIndex(this, indexId, indexName, cols, indexType);
+                    index = new NonUniqueHashIndex(this, indexId, indexName,
+                            cols, indexType);
                 }
             } else if (indexType.isSpatial()) {
-                index = new SpatialTreeIndex(this, indexId, indexName, cols, indexType, false, true, session);
+                index = new SpatialTreeIndex(this, indexId, indexName, cols,
+                        indexType, false, true, session);
             } else {
                 index = new TreeIndex(this, indexId, indexName, cols, indexType);
             }
@@ -269,7 +281,8 @@ public class RegularTable extends TableBase {
                 }
                 addRowsToIndex(session, buffer, index);
                 if (SysProperties.CHECK && remaining != 0) {
-                    DbException.throwInternalError("rowcount remaining=" + remaining + " " + getName());
+                    DbException.throwInternalError("rowcount remaining=" + 
+                            remaining + " " + getName());
                 }
             } catch (DbException e) {
                 getSchema().freeUniqueName(indexName);
@@ -327,7 +340,8 @@ public class RegularTable extends TableBase {
         return true;
     }
 
-    private static void addRowsToIndex(Session session, ArrayList<Row> list, Index index) {
+    private static void addRowsToIndex(Session session, ArrayList<Row> list,
+            Index index) {
         final Index idx = index;
         Collections.sort(list, new Comparator<Row>() {
             @Override
@@ -574,7 +588,8 @@ public class RegularTable extends TableBase {
     }
 
     @Override
-    public ArrayList<Session> checkDeadlock(Session session, Session clash, Set<Session> visited) {
+    public ArrayList<Session> checkDeadlock(Session session, Session clash,
+            Set<Session> visited) {
         // only one deadlock check at any given time
         synchronized (RegularTable.class) {
             if (clash == null) {

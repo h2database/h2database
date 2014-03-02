@@ -106,7 +106,8 @@ public abstract class Page extends CacheObject {
             result = old;
         } else {
             // according to a test, this is as fast as "new Row[..]"
-            result = (T[]) Array.newInstance(old.getClass().getComponentType(), oldSize + 1 + COPY_THRESHOLD);
+            result = (T[]) Array.newInstance(
+                    old.getClass().getComponentType(), oldSize + 1 + COPY_THRESHOLD);
             if (pos > 0) {
                 System.arraycopy(old, 0, result, 0, pos);
             }
@@ -134,7 +135,8 @@ public abstract class Page extends CacheObject {
             result = old;
         } else {
             // according to a test, this is as fast as "new Row[..]"
-            result = (T[]) Array.newInstance(old.getClass().getComponentType(), oldSize - 1);
+            result = (T[]) Array.newInstance(
+                    old.getClass().getComponentType(), oldSize - 1);
             System.arraycopy(old, 0, result, 0, Math.min(oldSize - 1, pos));
         }
         if (pos < oldSize) {

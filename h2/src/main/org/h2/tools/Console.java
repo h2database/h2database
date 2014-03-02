@@ -214,7 +214,8 @@ ShutdownHandler {
         }
         if (tcpShutdown) {
             out.println("Shutting down TCP Server at " + tcpShutdownServer);
-            Server.shutdownTcpServer(tcpShutdownServer, tcpPassword, tcpShutdownForce, false);
+            Server.shutdownTcpServer(tcpShutdownServer, 
+                    tcpPassword, tcpShutdownForce, false);
         }
         SQLException startException = null;
         boolean webRunning = false;
@@ -368,7 +369,8 @@ ShutdownHandler {
     private boolean createTrayIcon() {
         try {
             // SystemTray.isSupported();
-            boolean supported = (Boolean) Utils.callStaticMethod("java.awt.SystemTray.isSupported");
+            boolean supported = (Boolean) Utils.callStaticMethod(
+                    "java.awt.SystemTray.isSupported");
             if (!supported) {
                 return false;
             }
@@ -409,7 +411,8 @@ ShutdownHandler {
             Image icon = loadImage(iconFile);
 
             // trayIcon = new TrayIcon(image, "H2 Database Engine", menuConsole);
-            trayIcon = Utils.newInstance("java.awt.TrayIcon", icon, "H2 Database Engine", menuConsole);
+            trayIcon = Utils.newInstance("java.awt.TrayIcon", 
+                    icon, "H2 Database Engine", menuConsole);
 
             // trayIcon.addMouseListener(this);
             Utils.callMethod(trayIcon, "addMouseListener", this);
@@ -494,7 +497,8 @@ ShutdownHandler {
         int width = 300, height = 120;
         frame.setSize(width, height);
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        frame.setLocation((screenSize.width - width) / 2, (screenSize.height - height) / 2);
+        frame.setLocation((screenSize.width - width) / 2, 
+                (screenSize.height - height) / 2);
         try {
             frame.setVisible(true);
         } catch (Throwable t) {

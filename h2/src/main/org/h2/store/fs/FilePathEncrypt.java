@@ -88,13 +88,15 @@ public class FilePathEncrypt extends FilePathWrapper {
      */
     private String[] parse(String fileName) {
         if (!fileName.startsWith(getScheme())) {
-            throw new IllegalArgumentException(fileName + " doesn't start with " + getScheme());
+            throw new IllegalArgumentException(fileName + 
+                    " doesn't start with " + getScheme());
         }
         fileName = fileName.substring(getScheme().length() + 1);
         int idx = fileName.indexOf(':');
         String password;
         if (idx < 0) {
-            throw new IllegalArgumentException(fileName + " doesn't contain encryption algorithm and password");
+            throw new IllegalArgumentException(fileName + 
+                    " doesn't contain encryption algorithm and password");
         }
         password = fileName.substring(0, idx);
         fileName = fileName.substring(idx + 1);
@@ -203,7 +205,8 @@ public class FilePathEncrypt extends FilePathWrapper {
                 }
             }
             AES cipher = new AES();
-            cipher.setKey(SHA256.getPBKDF2(encryptionKey, salt, HASH_ITERATIONS, 16));
+            cipher.setKey(SHA256.getPBKDF2(
+                    encryptionKey, salt, HASH_ITERATIONS, 16));
             encryptionKey = null;
             xts = new XTS(cipher);
         }
@@ -265,7 +268,8 @@ public class FilePathEncrypt extends FilePathWrapper {
             return len;
         }
 
-        private void readInternal(ByteBuffer dst, long position, int len) throws IOException {
+        private void readInternal(ByteBuffer dst, long position, int len)
+                throws IOException {
             int x = dst.position();
             readFully(base, position + HEADER_LENGTH, dst);
             long block = position / BLOCK_SIZE;
@@ -276,7 +280,8 @@ public class FilePathEncrypt extends FilePathWrapper {
             }
         }
 
-        private static void readFully(FileChannel file, long pos, ByteBuffer dst) throws IOException {
+        private static void readFully(FileChannel file, long pos, ByteBuffer dst)
+                throws IOException {
             do {
                 int len = file.read(dst, pos);
                 if (len < 0) {
@@ -325,7 +330,8 @@ public class FilePathEncrypt extends FilePathWrapper {
             return len;
         }
 
-        private void writeInternal(ByteBuffer src, long position, int len) throws IOException {
+        private void writeInternal(ByteBuffer src, long position, int len)
+                throws IOException {
             ByteBuffer crypt = ByteBuffer.allocate(len);
             crypt.put(src);
             crypt.flip();
@@ -339,7 +345,8 @@ public class FilePathEncrypt extends FilePathWrapper {
             writeFully(base, position + HEADER_LENGTH, crypt);
         }
 
-        private static void writeFully(FileChannel file, long pos, ByteBuffer src) throws IOException {
+        private static void writeFully(FileChannel file, long pos,
+                ByteBuffer src) throws IOException {
             int off = 0;
             do {
                 int len = file.write(src, pos + off);
@@ -388,7 +395,8 @@ public class FilePathEncrypt extends FilePathWrapper {
         }
 
         @Override
-        public FileLock tryLock(long position, long size, boolean shared) throws IOException {
+        public FileLock tryLock(long position, long size, boolean shared)
+                throws IOException {
             return base.tryLock(position, size, shared);
         }
 
@@ -465,7 +473,8 @@ public class FilePathEncrypt extends FilePathWrapper {
             for (; i + CIPHER_BLOCK_SIZE <= len; i += CIPHER_BLOCK_SIZE) {
                 if (i > 0) {
                     updateTweak(tweak);
-                    if (i + CIPHER_BLOCK_SIZE + CIPHER_BLOCK_SIZE > len && i + CIPHER_BLOCK_SIZE < len) {
+                    if (i + CIPHER_BLOCK_SIZE + CIPHER_BLOCK_SIZE > len && 
+                            i + CIPHER_BLOCK_SIZE < len) {
                         tweakEnd = Arrays.copyOf(tweak, CIPHER_BLOCK_SIZE);
                         updateTweak(tweak);
                     }

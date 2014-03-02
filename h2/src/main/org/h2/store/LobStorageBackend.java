@@ -143,17 +143,24 @@ public class LobStorageBackend implements LobStorageInterface {
                     stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + LOBS +
                             "(ID BIGINT PRIMARY KEY, BYTE_COUNT BIGINT, TABLE INT) HIDDEN");
                     stat.execute("CREATE INDEX IF NOT EXISTS " +
-                            "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + LOBS + "(TABLE)");
+                            "INFORMATION_SCHEMA.INDEX_LOB_TABLE ON " + 
+                            LOBS + "(TABLE)");
                     stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + LOB_MAP +
-                            "(LOB BIGINT, SEQ INT, POS BIGINT, HASH INT, BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
-                    stat.execute("ALTER TABLE " + LOB_MAP + " RENAME TO " + LOB_MAP + " HIDDEN");
-                    stat.execute("ALTER TABLE " + LOB_MAP + " ADD IF NOT EXISTS POS BIGINT BEFORE HASH");
+                            "(LOB BIGINT, SEQ INT, POS BIGINT, HASH INT, " + 
+                            "BLOCK BIGINT, PRIMARY KEY(LOB, SEQ)) HIDDEN");
+                    stat.execute("ALTER TABLE " + LOB_MAP + 
+                            " RENAME TO " + LOB_MAP + " HIDDEN");
+                    stat.execute("ALTER TABLE " + LOB_MAP + 
+                            " ADD IF NOT EXISTS POS BIGINT BEFORE HASH");
                     // TODO the column name OFFSET was used in version 1.3.156,
                     // so this can be remove in a later version
-                    stat.execute("ALTER TABLE " + LOB_MAP + " DROP COLUMN IF EXISTS \"OFFSET\"");
+                    stat.execute("ALTER TABLE " + LOB_MAP + 
+                            " DROP COLUMN IF EXISTS \"OFFSET\"");
                     stat.execute("CREATE INDEX IF NOT EXISTS " +
-                            "INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + LOB_MAP + "(BLOCK, LOB)");
-                    stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + LOB_DATA +
+                            "INFORMATION_SCHEMA.INDEX_LOB_MAP_DATA_LOB ON " + 
+                            LOB_MAP + "(BLOCK, LOB)");
+                    stat.execute("CREATE CACHED TABLE IF NOT EXISTS " + 
+                            LOB_DATA +
                             "(BLOCK BIGINT PRIMARY KEY, COMPRESSED INT, DATA BINARY) HIDDEN");
                 }
                 rs = stat.executeQuery("SELECT MAX(BLOCK) FROM " + LOB_DATA);
@@ -366,7 +373,8 @@ public class LobStorageBackend implements LobStorageInterface {
                     } else {
                         b = buff;
                     }
-                    if (seq == 0 && b.length < BLOCK_LENGTH && b.length <= maxLengthInPlaceLob) {
+                    if (seq == 0 && b.length < BLOCK_LENGTH && 
+                            b.length <= maxLengthInPlaceLob) {
                         small = b;
                         break;
                     }
@@ -398,7 +406,8 @@ public class LobStorageBackend implements LobStorageInterface {
                 // For a CLOB, precision is length in chars
                 long precision = countingReaderForClob == null ? 
                         length : countingReaderForClob.getLength();
-                return registerLob(type, lobId, LobStorageFrontend.TABLE_TEMP, length, precision);
+                return registerLob(type, lobId, 
+                        LobStorageFrontend.TABLE_TEMP, length, precision);
             } catch (IOException e) {
                 if (lobId != -1) {
                     removeLob(lobId);
@@ -416,14 +425,16 @@ public class LobStorageBackend implements LobStorageInterface {
         // see locking discussion at the top
         synchronized (database) {
             synchronized (conn.getSession()) {
-                String sql = "INSERT INTO " + LOBS + "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
+                String sql = "INSERT INTO " + LOBS + 
+                        "(ID, BYTE_COUNT, TABLE) VALUES(?, ?, ?)";
                 PreparedStatement prep = prepare(sql);
                 prep.setLong(1, lobId);
                 prep.setLong(2, byteCount);
                 prep.setInt(3, tableId);
                 prep.execute();
                 reuse(sql, prep);
-                ValueLobDb v = ValueLobDb.create(type, database, tableId, lobId, null, precision);
+                ValueLobDb v = ValueLobDb.create(type, 
+                        database, tableId, lobId, null, precision);
                 return v;
             }
         }

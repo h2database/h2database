@@ -60,8 +60,9 @@ public class TableView extends Table {
     private LocalResult recursiveResult;
     private boolean tableExpression;
 
-    public TableView(Schema schema, int id, String name, String querySQL, ArrayList<Parameter> params, String[] columnNames,
-            Session session, boolean recursive) {
+    public TableView(Schema schema, int id, String name, String querySQL,
+            ArrayList<Parameter> params, String[] columnNames, Session session,
+            boolean recursive) {
         super(schema, id, name, false, true);
         init(querySQL, params, columnNames, session, recursive);
     }
@@ -76,7 +77,8 @@ public class TableView extends Table {
      * @param recursive whether this is a recursive view
      * @param force if errors should be ignored
      */
-    public void replace(String querySQL, String[] columnNames, Session session, boolean recursive, boolean force) {
+    public void replace(String querySQL, String[] columnNames, Session session,
+            boolean recursive, boolean force) {
         String oldQuerySQL = this.querySQL;
         String[] oldColumnNames = this.columnNames;
         boolean oldRecursive = this.recursive;
@@ -205,10 +207,12 @@ public class TableView extends Table {
     }
 
     @Override
-    public synchronized PlanItem getBestPlanItem(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+    public synchronized PlanItem getBestPlanItem(Session session, int[] masks,
+            TableFilter filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, filter, sortOrder);
-        IntArray masksArray = new IntArray(masks == null ? Utils.EMPTY_INT_ARRAY : masks);
+        IntArray masksArray = new IntArray(masks == null ? 
+                Utils.EMPTY_INT_ARRAY : masks);
         SynchronizedVerifier.check(indexCache);
         ViewIndex i2 = indexCache.get(masksArray);
         if (i2 == null || i2.getSession() != session) {
@@ -246,7 +250,8 @@ public class TableView extends Table {
         return getCreateSQL(orReplace, force, getSQL());
     }
 
-    private String getCreateSQL(boolean orReplace, boolean force, String quotedName) {
+    private String getCreateSQL(boolean orReplace, boolean force,
+            String quotedName) {
         StatementBuilder buff = new StatementBuilder("CREATE ");
         if (orReplace) {
             buff.append("OR REPLACE ");
@@ -303,8 +308,9 @@ public class TableView extends Table {
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) {
+    public Index addIndex(Session session, String indexName, int indexId,
+            IndexColumn[] cols, IndexType indexType, boolean create,
+            String indexComment) {
         throw DbException.getUnsupportedException("VIEW");
     }
 
@@ -375,7 +381,8 @@ public class TableView extends Table {
     public Index getScanIndex(Session session) {
         if (createException != null) {
             String msg = createException.getMessage();
-            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, createException, getSQL(), msg);
+            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, 
+                    createException, getSQL(), msg);
         }
         PlanItem item = getBestPlanItem(session, null, null, null);
         return item.getIndex();
@@ -448,10 +455,12 @@ public class TableView extends Table {
      * @param topQuery the top level query
      * @return the view table
      */
-    public static TableView createTempView(Session session, User owner, String name, Query query, Query topQuery) {
+    public static TableView createTempView(Session session, User owner,
+            String name, Query query, Query topQuery) {
         Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         String querySQL = query.getPlanSQL();
-        TableView v = new TableView(mainSchema, 0, name, querySQL, query.getParameters(), null, session,
+        TableView v = new TableView(mainSchema, 0, name, 
+                querySQL, query.getParameters(), null, session,
                 false);
         if (v.createException != null) {
             throw v.createException;

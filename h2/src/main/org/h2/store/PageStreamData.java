@@ -59,7 +59,8 @@ public class PageStreamData extends Page {
      * @param logKey the log key
      * @return the page
      */
-    static PageStreamData create(PageStore store, int pageId, int trunk, int logKey) {
+    static PageStreamData create(PageStore store, int pageId, int trunk,
+            int logKey) {
         return new PageStreamData(store, pageId, trunk, logKey);
     }
 
@@ -158,7 +159,8 @@ public class PageStreamData extends Page {
 
     @Override
     public String toString() {
-        return "[" + getPos() + "] stream data key:" + logKey + " pos:" + data.length() + " remaining:" + remaining;
+        return "[" + getPos() + "] stream data key:" + logKey + 
+                " pos:" + data.length() + " remaining:" + remaining;
     }
 
     @Override

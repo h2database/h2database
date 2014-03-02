@@ -37,16 +37,19 @@ public class FileLister {
      * @param message the text to include in the error message
      * @throws SQLException if it failed
      */
-    public static void tryUnlockDatabase(List<String> files, String message) throws SQLException {
+    public static void tryUnlockDatabase(List<String> files, String message)
+            throws SQLException {
         for (String fileName : files) {
             if (fileName.endsWith(Constants.SUFFIX_LOCK_FILE)) {
-                FileLock lock = new FileLock(new TraceSystem(null), fileName, Constants.LOCK_SLEEP);
+                FileLock lock = new FileLock(new TraceSystem(null), fileName,
+                        Constants.LOCK_SLEEP);
                 try {
                     lock.lock(FileLock.LOCK_FILE);
                     lock.unlock();
                 } catch (DbException e) {
                     throw DbException.get(
-                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, message).getSQLException();
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, 
+                            message).getSQLException();
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
                 FileChannel f = null;
@@ -56,7 +59,8 @@ public class FileLister {
                     lock.release();
                 } catch (Exception e) {
                     throw DbException.get(
-                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e, message).getSQLException();
+                            ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e, 
+                            message).getSQLException();
                 } finally {
                     if (f != null) {
                         try {
@@ -93,7 +97,8 @@ public class FileLister {
      *            and lob files are returned
      * @return the list of files
      */
-    public static ArrayList<String> getDatabaseFiles(String dir, String db, boolean all) {
+    public static ArrayList<String> getDatabaseFiles(String dir, String db,
+            boolean all) {
         ArrayList<String> files = New.arrayList();
         // for Windows, File.getCanonicalPath("...b.") returns just "...b"
         String start = db == null ? null : (FileUtils.toRealPath(dir + "/" + db) + ".");

@@ -137,7 +137,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * INTERNAL
          */
         @Override
-        public Object getArray(long index, int count, Map<String, Class<?>> map) throws SQLException {
+        public Object getArray(long index, int count, Map<String, Class<?>> map)
+                throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -173,7 +174,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * INTERNAL
          */
         @Override
-        public ResultSet getResultSet(Map<String, Class<?>> map) throws SQLException {
+        public ResultSet getResultSet(Map<String, Class<?>> map)
+                throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -181,7 +183,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * INTERNAL
          */
         @Override
-        public ResultSet getResultSet(long index, int count) throws SQLException {
+        public ResultSet getResultSet(long index, int count)
+                throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -189,7 +192,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
          * INTERNAL
          */
         @Override
-        public ResultSet getResultSet(long index, int count, Map<String, Class<?>> map) throws SQLException {
+        public ResultSet getResultSet(long index, int count,
+                Map<String, Class<?>> map) throws SQLException {
             throw getUnsupportedException();
         }
 
@@ -232,7 +236,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public void addColumn(String name, int sqlType, int precision, int scale) {
         int valueType = DataType.convertSQLTypeToValueType(sqlType);
-        addColumn(name, sqlType, DataType.getDataType(valueType).name, precision, scale);
+        addColumn(name, sqlType, DataType.getDataType(valueType).name,
+                precision, scale);
     }
 
     /**
@@ -245,9 +250,11 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @param precision the precision
      * @param scale the scale
      */
-    public void addColumn(String name, int sqlType, String sqlTypeName, int precision, int scale) {
+    public void addColumn(String name, int sqlType, String sqlTypeName,
+            int precision, int scale) {
         if (rows != null && rows.size() > 0) {
-            throw new IllegalStateException("Cannot add a column after adding rows");
+            throw new IllegalStateException(
+                    "Cannot add a column after adding rows");
         }
         if (name == null) {
             name = "C" + (columns.size() + 1);
@@ -269,7 +276,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public void addRow(Object... row) {
         if (rows == null) {
-            throw new IllegalStateException("Cannot add a row when using RowSource");
+            throw new IllegalStateException(
+                    "Cannot add a row when using RowSource");
         }
         rows.add(row);
     }
@@ -405,7 +413,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
                 }
             }
         }
-        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel).getSQLException();
+        throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1, columnLabel)
+                .getSQLException();
     }
 
     /**
@@ -517,7 +526,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @deprecated INTERNAL
      */
     @Override
-    public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
+    public BigDecimal getBigDecimal(int columnIndex, int scale)
+            throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -525,7 +535,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @deprecated INTERNAL
      */
     @Override
-    public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
+    public BigDecimal getBigDecimal(String columnLabel, int scale)
+            throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -968,7 +979,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
+    public Object getObject(int columnIndex, Map<String, Class<?>> map)
+            throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -976,7 +988,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
+    public Object getObject(String columnLabel, Map<String, Class<?>> map)
+            throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1149,7 +1162,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
+    public Timestamp getTimestamp(int columnIndex, Calendar cal)
+            throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1157,7 +1171,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
+    public Timestamp getTimestamp(String columnLabel, Calendar cal)
+            throws SQLException {
         throw getUnsupportedException();
     }
 
@@ -1233,7 +1248,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
+    public void updateAsciiStream(int columnIndex, InputStream x, int length)
+            throws SQLException {
         update(columnIndex, x);
     }
 
@@ -1241,7 +1257,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateAsciiStream(String columnLabel, InputStream x, int length) throws SQLException {
+    public void updateAsciiStream(String columnLabel, InputStream x, int length)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1267,7 +1284,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
+    public void updateBigDecimal(int columnIndex, BigDecimal x)
+            throws SQLException {
         update(columnIndex, x);
     }
 
@@ -1275,7 +1293,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateBigDecimal(String columnLabel, BigDecimal x) throws SQLException {
+    public void updateBigDecimal(String columnLabel, BigDecimal x)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1301,7 +1320,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
+    public void updateBinaryStream(int columnIndex, InputStream x, int length)
+            throws SQLException {
         update(columnIndex, x);
     }
 
@@ -1309,7 +1329,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateBinaryStream(String columnLabel, InputStream x, int length) throws SQLException {
+    public void updateBinaryStream(String columnLabel, InputStream x, int length)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1359,7 +1380,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateBlob(String columnLabel, InputStream x) throws SQLException {
+    public void updateBlob(String columnLabel, InputStream x)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1393,7 +1415,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateBoolean(String columnLabel, boolean x) throws SQLException {
+    public void updateBoolean(String columnLabel, boolean x)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1451,7 +1474,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+    public void updateCharacterStream(int columnIndex, Reader x, int length)
+            throws SQLException {
         update(columnIndex, x);
     }
 
@@ -1459,7 +1483,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateCharacterStream(String columnLabel, Reader x, int length) throws SQLException {
+    public void updateCharacterStream(String columnLabel, Reader x, int length)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1749,7 +1774,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateObject(int columnIndex, Object x, int scale) throws SQLException {
+    public void updateObject(int columnIndex, Object x, int scale)
+            throws SQLException {
         update(columnIndex, x);
     }
 
@@ -1757,7 +1783,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateObject(String columnLabel, Object x, int scale) throws SQLException {
+    public void updateObject(String columnLabel, Object x, int scale)
+            throws SQLException {
         update(columnLabel, x);
     }
 
@@ -1861,7 +1888,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
+    public void updateTimestamp(int columnIndex, Timestamp x)
+            throws SQLException {
         update(columnIndex, x);
     }
 
@@ -1869,7 +1897,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     @Override
-    public void updateTimestamp(String columnLabel, Timestamp x) throws SQLException {
+    public void updateTimestamp(String columnLabel, Timestamp x)
+            throws SQLException {
         update(columnLabel, x);
     }
 

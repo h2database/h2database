@@ -38,7 +38,8 @@ import org.h2.value.ValueNull;
  */
 public class TableFilter implements ColumnResolver {
 
-    private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2, NULL_ROW = 3;
+    private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2,
+            NULL_ROW = 3;
 
     /**
      * Whether this is a direct or indirect (nested) outer join
@@ -113,7 +114,8 @@ public class TableFilter implements ColumnResolver {
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
      */
-    public TableFilter(Session session, Table table, String alias, boolean rightsChecked, Select select) {
+    public TableFilter(Session session, Table table, String alias,
+            boolean rightsChecked, Select select) {
         this.session = session;
         this.table = table;
         this.alias = alias;
@@ -496,13 +498,15 @@ public class TableFilter implements ColumnResolver {
             if (joinCondition == null) {
                 joinCondition = condition;
             } else {
-                joinCondition = new ConditionAndOr(ConditionAndOr.AND, joinCondition, condition);
+                joinCondition = new ConditionAndOr(ConditionAndOr.AND, 
+                        joinCondition, condition);
             }
         } else {
             if (filterCondition == null) {
                 filterCondition = condition;
             } else {
-                filterCondition = new ConditionAndOr(ConditionAndOr.AND, filterCondition, condition);
+                filterCondition = new ConditionAndOr(ConditionAndOr.AND, 
+                        filterCondition, condition);
             }
         }
     }
@@ -515,7 +519,8 @@ public class TableFilter implements ColumnResolver {
      * @param nested if this is a nested join
      * @param on the join condition
      */
-    public void addJoin(TableFilter filter, boolean outer, boolean nested, final Expression on) {
+    public void addJoin(TableFilter filter, boolean outer, boolean nested,
+            final Expression on) {
         if (on != null) {
             on.mapColumns(this, 0);
             if (session.getDatabase().getSettings().nestedJoins) {

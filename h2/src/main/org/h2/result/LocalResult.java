@@ -58,7 +58,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * @param expressions the expression array
      * @param visibleColumnCount the number of visible columns
      */
-    public LocalResult(Session session, Expression[] expressions, int visibleColumnCount) {
+    public LocalResult(Session session, Expression[] expressions,
+            int visibleColumnCount) {
         this.session = session;
         if (session == null) {
             this.maxMemoryRows = Integer.MAX_VALUE;
@@ -258,7 +259,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 Database db = session.getDatabase();
-                if (rowCount > db.getSettings().maxMemoryRowsDistinct && db.isPersistent() && !db.isReadOnly()) {
+                if (rowCount > db.getSettings().maxMemoryRowsDistinct && 
+                        db.isPersistent() && !db.isReadOnly()) {
                     external = new ResultTempTable(session, sort);
                     rowCount = external.addRows(distinctRows.values());
                     distinctRows = null;
@@ -482,7 +484,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
 
     @Override
     public String toString() {
-        return super.toString() + " columns: " + visibleColumnCount + " rows: " + rowCount + " pos: " + rowId;
+        return super.toString() + " columns: " + visibleColumnCount +
+                " rows: " + rowCount + " pos: " + rowId;
     }
 
     /**

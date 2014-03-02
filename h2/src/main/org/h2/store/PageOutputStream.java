@@ -43,7 +43,8 @@ public class PageOutputStream {
      * @param logKey the log key of the first trunk page
      * @param atEnd whether only pages at the end of the file should be used
      */
-    public PageOutputStream(PageStore store, int trunkPage, BitField exclude, int logKey, boolean atEnd) {
+    public PageOutputStream(PageStore store, int trunkPage, BitField exclude,
+            int logKey, boolean atEnd) {
         this.trace = store.getTrace();
         this.store = store;
         this.trunkPageId = trunkPage;
@@ -94,7 +95,8 @@ public class PageOutputStream {
             }
             trunkNext = reservedPages.get(len);
             logKey++;
-            trunk = PageStreamTrunk.create(store, parent, trunkPageId, trunkNext, logKey, pageIds);
+            trunk = PageStreamTrunk.create(store, parent, trunkPageId,
+                    trunkNext, logKey, pageIds);
             trunkIndex = 0;
             pageCount++;
             trunk.write();

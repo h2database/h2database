@@ -64,7 +64,8 @@ public class Schema extends DbObjectBase {
      * @param system if this is a system schema (such a schema can not be
      *            dropped)
      */
-    public Schema(Database database, int id, String schemaName, User owner, boolean system) {
+    public Schema(Database database, int id, String schemaName, User owner,
+            boolean system) {
         tablesAndViews = database.newStringMap();
         indexes = database.newStringMap();
         sequences = database.newStringMap();
@@ -357,7 +358,8 @@ public class Schema extends DbObjectBase {
         }
     }
 
-    private String getUniqueName(DbObject obj, HashMap<String, ? extends SchemaObject> map, String prefix) {
+    private String getUniqueName(DbObject obj,
+            HashMap<String, ? extends SchemaObject> map, String prefix) {
         String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
         String name = null;
         synchronized (temporaryUniqueNames) {
@@ -598,9 +600,9 @@ public class Schema extends DbObjectBase {
      * @param force create the object even if the database can not be accessed
      * @return the {@link TableLink} object
      */
-    public TableLink createTableLink(int id, String tableName,
-            String driver, String url, String user, String password,
-            String originalSchema, String originalTable, boolean emitUpdates, boolean force) {
+    public TableLink createTableLink(int id, String tableName, String driver,
+            String url, String user, String password, String originalSchema,
+            String originalTable, boolean emitUpdates, boolean force) {
         synchronized (database) {
             return new TableLink(this, id, tableName,
                     driver, url, user, password,

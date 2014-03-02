@@ -34,7 +34,8 @@ public class ConditionIn extends Condition {
      * @param left the expression before IN
      * @param values the value list (at least one element)
      */
-    public ConditionIn(Database database, Expression left, ArrayList<Expression> values) {
+    public ConditionIn(Database database, Expression left,
+            ArrayList<Expression> values) {
         this.database = database;
         this.left = left;
         this.valueList = values;

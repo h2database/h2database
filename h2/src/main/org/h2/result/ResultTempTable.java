@@ -64,10 +64,12 @@ public class ResultTempTable implements ResultExternal {
         indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = { indexColumn };
         if (session.getDatabase().getMvStore() != null) {
-            index = table.addIndex(session, data.tableName, indexId, indexCols, indexType, true, null);
+            index = table.addIndex(session, data.tableName, indexId, indexCols,
+                    indexType, true, null);
             index.setTemporary(true);
         } else {
-            index = new PageBtreeIndex((RegularTable) table, indexId, data.tableName, indexCols, indexType, true, session);
+            index = new PageBtreeIndex((RegularTable) table, indexId,
+                    data.tableName, indexCols, indexType, true, session);
             index.setTemporary(true);
             table.getIndexes().add(index);
         }

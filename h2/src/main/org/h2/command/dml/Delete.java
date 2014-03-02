@@ -70,7 +70,8 @@ public class Delete extends Prepared {
             int count = 0;
             while (limitRows != 0 && tableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
-                if (condition == null || Boolean.TRUE.equals(condition.getBooleanValue(session))) {
+                if (condition == null || Boolean.TRUE.equals(
+                        condition.getBooleanValue(session))) {
                     Row row = tableFilter.get();
                     boolean done = false;
                     if (table.fireRow()) {
@@ -113,10 +114,12 @@ public class Delete extends Prepared {
         buff.append("DELETE ");
         buff.append("FROM ").append(tableFilter.getPlanSQL(false));
         if (condition != null) {
-            buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
+            buff.append("\nWHERE ").append(StringUtils.unEnclose(
+                    condition.getSQL()));
         }
         if (limitExpr != null) {
-            buff.append("\nLIMIT (").append(StringUtils.unEnclose(limitExpr.getSQL())).append(')');
+            buff.append("\nLIMIT (").append(StringUtils.unEnclose(
+                    limitExpr.getSQL())).append(')');
         }
         return buff.toString();
     }

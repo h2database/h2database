@@ -149,12 +149,13 @@ public class RunScript extends Tool {
 
     /**
      * Executes the SQL commands read from the reader against a database.
-     *
+     * 
      * @param conn the connection to a database
      * @param reader the reader
      * @return the last result set
      */
-    public static ResultSet execute(Connection conn, Reader reader) throws SQLException {
+    public static ResultSet execute(Connection conn, Reader reader)
+            throws SQLException {
         // can not close the statement because we return a result set from it
         Statement stat = conn.createStatement();
         ResultSet rs = null;
@@ -180,7 +181,8 @@ public class RunScript extends Tool {
     }
 
     private void process(Connection conn, String fileName,
-            boolean continueOnError, Charset charset) throws SQLException, IOException {
+            boolean continueOnError, Charset charset) throws SQLException,
+            IOException {
         InputStream in = FileUtils.newInputStream(fileName);
         String path = FileUtils.getParent(fileName);
         try {
@@ -192,8 +194,8 @@ public class RunScript extends Tool {
         }
     }
 
-    private void process(Connection conn, boolean continueOnError,
-            String path, Reader reader, Charset charset) throws SQLException, IOException {
+    private void process(Connection conn, boolean continueOnError, String path,
+            Reader reader, Charset charset) throws SQLException, IOException {
         Statement stat = conn.createStatement();
         ScriptReader r = new ScriptReader(reader);
         while (true) {
@@ -205,7 +207,8 @@ public class RunScript extends Tool {
             if (trim.length() == 0) {
                 continue;
             }
-            if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).startsWith("@INCLUDE")) {
+            if (trim.startsWith("@") && StringUtils.toUpperEnglish(trim).
+                    startsWith("@INCLUDE")) {
                 sql = trim;
                 sql = sql.substring("@INCLUDE".length()).trim();
                 if (!FileUtils.isAbsolute(sql)) {
@@ -247,7 +250,9 @@ public class RunScript extends Tool {
                                 if (!expected.equals(result)) {
                                     expected = StringUtils.replaceAll(expected, " ", "+");
                                     result = StringUtils.replaceAll(result, " ", "+");
-                                    throw new SQLException("Unexpected output for:\n" + sql.trim() + "\nGot:\n" + result + "\nExpected:\n" + expected);
+                                    throw new SQLException(
+                                            "Unexpected output for:\n" + sql.trim() + 
+                                            "\nGot:\n" + result + "\nExpected:\n" + expected);
                                 }
                             }
 
@@ -293,8 +298,10 @@ public class RunScript extends Tool {
      * @param continueOnError if execution should be continued if an error occurs
      */
     public static void execute(String url, String user, String password,
-            String fileName, Charset charset, boolean continueOnError) throws SQLException {
-        new RunScript().process(url, user, password, fileName, charset, continueOnError);
+            String fileName, Charset charset, boolean continueOnError)
+            throws SQLException {
+        new RunScript().process(url, user, password, fileName, charset,
+                continueOnError);
     }
 
     /**

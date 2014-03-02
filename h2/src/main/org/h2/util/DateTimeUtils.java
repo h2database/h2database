@@ -291,7 +291,8 @@ public class DateTimeUtils {
      * @return the time in nanoseconds
      * @throws IllegalArgumentException if there is a problem
      */
-    public static long parseTimeNanos(String s, int start, int end, boolean timeOfDay) {
+    public static long parseTimeNanos(String s, int start, int end,
+            boolean timeOfDay) {
         int hour = 0, minute = 0, second = 0;
         long nanos = 0;
         int s1 = s.indexOf(':', start);
@@ -319,7 +320,8 @@ public class DateTimeUtils {
             String n = (s.substring(s3 + 1, end) + "000000000").substring(0, 9);
             nanos = Integer.parseInt(n);
         }
-        if (hour >= 2000000 || minute < 0 || minute >= 60 || second < 0 || second >= 60) {
+        if (hour >= 2000000 || minute < 0 || 
+                minute >= 60 || second < 0 || second >= 60) {
             throw new IllegalArgumentException(s);
         }
         if (timeOfDay && hour >= 24) {

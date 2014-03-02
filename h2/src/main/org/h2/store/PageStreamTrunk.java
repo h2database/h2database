@@ -43,7 +43,8 @@ public class PageStreamTrunk extends Page {
     private int pageCount;
     private Data data;
 
-    private PageStreamTrunk(PageStore store, int parent, int pageId, int next, int logKey, int[] pageIds) {
+    private PageStreamTrunk(PageStore store, int parent, int pageId, int next,
+            int logKey, int[] pageIds) {
         setPos(pageId);
         this.parent = parent;
         this.store = store;
@@ -84,7 +85,8 @@ public class PageStreamTrunk extends Page {
      * @param pageIds the stream data page ids
      * @return the page
      */
-    static PageStreamTrunk create(PageStore store, int parent, int pageId, int next, int logKey, int[] pageIds) {
+    static PageStreamTrunk create(PageStore store, int parent, int pageId,
+            int next, int logKey, int[] pageIds) {
         return new PageStreamTrunk(store, parent, pageId, next, logKey, pageIds);
     }
 
@@ -255,7 +257,8 @@ public class PageStreamTrunk extends Page {
                 }
                 throw e;
             }
-            if (p == null || p instanceof PageStreamTrunk || p instanceof PageStreamData) {
+            if (p == null || p instanceof PageStreamTrunk || 
+                    p instanceof PageStreamData) {
                 canDelete = true;
             }
             if (!(p instanceof PageStreamTrunk)) {
@@ -289,7 +292,8 @@ public class PageStreamTrunk extends Page {
 
     @Override
     public String toString() {
-        return "page[" + getPos() + "] stream trunk key:" + logKey + " next:" + nextTrunk;
+        return "page[" + getPos() + "] stream trunk key:" + logKey + 
+                " next:" + nextTrunk;
     }
 
     @Override

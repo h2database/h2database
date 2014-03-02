@@ -39,7 +39,8 @@ public class FunctionTable extends Table {
     private LocalResult cachedResult;
     private Value cachedValue;
 
-    public FunctionTable(Schema schema, Session session, Expression functionExpr, FunctionCall function) {
+    public FunctionTable(Schema schema, Session session,
+            Expression functionExpr, FunctionCall function) {
         super(schema, 0, function.getName(), false, true);
         this.functionExpr = functionExpr;
         this.function = function;
@@ -51,7 +52,8 @@ public class FunctionTable extends Table {
         function.optimize(session);
         int type = function.getType();
         if (type != Value.RESULT_SET) {
-            throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw DbException.get(
+                    ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         int params = function.getParameterCount();
         Expression[] columnListArgs = new Expression[params];
@@ -60,9 +62,11 @@ public class FunctionTable extends Table {
             args[i] = args[i].optimize(session);
             columnListArgs[i] = args[i];
         }
-        ValueResultSet template = function.getValueForColumnList(session, columnListArgs);
+        ValueResultSet template = function.getValueForColumnList(
+                session, columnListArgs);
         if (template == null) {
-            throw DbException.get(ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
+            throw DbException.get(
+                    ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
         ResultSet rs = template.getResultSet();
         try {
@@ -102,8 +106,9 @@ public class FunctionTable extends Table {
     }
 
     @Override
-    public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment) {
+    public Index addIndex(Session session, String indexName, int indexId,
+            IndexColumn[] cols, IndexType indexType, boolean create,
+            String indexComment) {
         throw DbException.getUnsupportedException("ALIAS");
     }
 

@@ -26,7 +26,8 @@ public class UserAggregate extends DbObjectBase {
     private String className;
     private Class<?> javaClass;
 
-    public UserAggregate(Database db, int id, String name, String className, boolean force) {
+    public UserAggregate(Database db, int id, String name, String className,
+            boolean force) {
         initDbObjectBase(db, id, name, Trace.FUNCTION);
         this.className = className;
         if (!force) {
@@ -65,7 +66,8 @@ public class UserAggregate extends DbObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return "CREATE FORCE AGGREGATE " + getSQL() + " FOR " + Parser.quoteIdentifier(className);
+        return "CREATE FORCE AGGREGATE " + getSQL() + 
+                " FOR " + Parser.quoteIdentifier(className);
     }
 
     @Override

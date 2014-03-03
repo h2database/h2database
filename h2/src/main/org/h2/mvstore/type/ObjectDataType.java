@@ -432,7 +432,8 @@ public class ObjectDataType implements DataType {
         }
 
         @Override
-        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+        public void write(WriteBuffer buff, Object[] obj,
+                int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 write(buff, obj[i]);
             }
@@ -444,7 +445,8 @@ public class ObjectDataType implements DataType {
         }
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+        public void read(ByteBuffer buff, Object[] obj,
+                int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }

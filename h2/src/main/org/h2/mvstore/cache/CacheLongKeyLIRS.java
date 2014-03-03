@@ -94,7 +94,8 @@ public class CacheLongKeyLIRS<V> {
         this.stackMoveDistance = stackMoveDistance;
         segments = new Segment[segmentCount];
         clear();
-        this.segmentShift = Integer.numberOfTrailingZeros(segments[0].entries.length);
+        this.segmentShift = Integer.numberOfTrailingZeros(
+                segments[0].entries.length);
     }
 
     /**
@@ -929,11 +930,13 @@ public class CacheLongKeyLIRS<V> {
             ArrayList<Long> keys = new ArrayList<Long>();
             if (cold) {
                 Entry<V> start = nonResident ? queue2 : queue;
-                for (Entry<V> e = start.queueNext; e != start; e = e.queueNext) {
+                for (Entry<V> e = start.queueNext; e != start;
+                        e = e.queueNext) {
                     keys.add(e.key);
                 }
             } else {
-                for (Entry<V> e = stack.stackNext; e != stack; e = e.stackNext) {
+                for (Entry<V> e = stack.stackNext; e != stack;
+                        e = e.stackNext) {
                     keys.add(e.key);
                 }
             }

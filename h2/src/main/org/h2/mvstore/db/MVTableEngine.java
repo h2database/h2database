@@ -73,7 +73,8 @@ public class MVTableEngine implements TableEngine {
             if (key != null) {
                 char[] password = new char[key.length / 2];
                 for (int i = 0; i < password.length; i++) {
-                    password[i] = (char) (((key[i + i] & 255) << 16) | ((key[i + i + 1]) & 255));
+                    password[i] = (char) (((key[i + i] & 255) << 16) |
+                            ((key[i + i + 1]) & 255));
                 }
                 builder.encryptionKey(password);
             }
@@ -96,12 +97,18 @@ public class MVTableEngine implements TableEngine {
                 int errorCode = DataUtils.getErrorCode(e.getMessage());
                 if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
                     if (key != null) {
-                        throw DbException.get(ErrorCode.FILE_ENCRYPTION_ERROR_1, e, fileName);
+                        throw DbException.get(
+                                ErrorCode.FILE_ENCRYPTION_ERROR_1,
+                                e, fileName);
                     }
                 } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
-                    throw DbException.get(ErrorCode.DATABASE_ALREADY_OPEN_1, e, fileName);
+                    throw DbException.get(
+                            ErrorCode.DATABASE_ALREADY_OPEN_1,
+                            e, fileName);
                 }
-                throw DbException.get(ErrorCode.FILE_CORRUPTED_1, e, fileName);
+                throw DbException.get(
+                        ErrorCode.FILE_CORRUPTED_1,
+                        e, fileName);
             }
         }
         db.setMvStore(store);

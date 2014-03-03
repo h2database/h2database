@@ -87,7 +87,8 @@ public class MVStoreTool {
                 block.position(0);
                 Chunk c = Chunk.readChunkHeader(block, pos);
                 int length = c.len * MVStore.BLOCK_SIZE;
-                pw.printf("%n%0" + len + "x chunkHeader %s%n", pos, c.toString());
+                pw.printf("%n%0" + len + "x chunkHeader %s%n",
+                        pos, c.toString());
                 ByteBuffer chunk = ByteBuffer.allocate(length);
                 DataUtils.readFully(file, pos, chunk);
                 int p = block.position();
@@ -104,7 +105,8 @@ public class MVStoreTool {
                     boolean compressed = (type & 2) != 0;
                     boolean node = (type & 1) != 0;
                     pw.printf(
-                            "+%0" + len + "x %s, map %x, %d entries, %d bytes%n",
+                            "+%0" + len +
+                            "x %s, map %x, %d entries, %d bytes%n",
                             p,
                             (node ? "node" : "leaf") +
                             (compressed ? " compressed" : ""),
@@ -138,14 +140,17 @@ public class MVStoreTool {
                             // meta map node
                             for (int i = 0; i < entries; i++) {
                                 long cp = children[i];
-                                pw.printf("    %d children < %s @ chunk %x +%0" + len + "x%n",
+                                pw.printf("    %d children < %s @ " +
+                                        "chunk %x +%0" +
+                                        len + "x%n",
                                         counts[i],
                                         keys[i],
                                         DataUtils.getPageChunkId(cp),
                                         DataUtils.getPageOffset(cp));
                             }
                             long cp = children[entries];
-                            pw.printf("    %d children >= %s @ chunk %x +%0" + len + "x%n",
+                            pw.printf("    %d children >= %s @ chunk %x +%0" +
+                                    len + "x%n",
                                     counts[entries],
                                     keys[entries],
                                     DataUtils.getPageChunkId(cp),
@@ -158,14 +163,16 @@ public class MVStoreTool {
                                 values[i] = v;
                             }
                             for (int i = 0; i < entries; i++) {
-                                pw.println("    " + keys[i] + " = " + values[i]);
+                                pw.println("    " + keys[i] +
+                                        " = " + values[i]);
                             }
                         }
                     } else {
                         if (node) {
                             for (int i = 0; i <= entries; i++) {
                                 long cp = children[i];
-                                pw.printf("    %d children @ chunk %x +%0" + len + "x%n",
+                                pw.printf("    %d children @ chunk %x +%0" +
+                                        len + "x%n",
                                         counts[i],
                                         DataUtils.getPageChunkId(cp),
                                         DataUtils.getPageOffset(cp));

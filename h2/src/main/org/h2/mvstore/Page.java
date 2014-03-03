@@ -138,10 +138,10 @@ public class Page {
      * @param memory the memory used in bytes
      * @return the page
      */
-    public static Page create(MVMap<?, ?> map, long version,
-            int keyCount, Object[] keys, Object[] values,
-            int childCount, long[] children, Page[] childrenPages, long[] counts,
-            long totalCount, int sharedFlags, int memory) {
+    public static Page create(MVMap<?, ?> map, long version, int keyCount,
+            Object[] keys, Object[] values, int childCount, long[] children,
+            Page[] childrenPages, long[] counts, long totalCount,
+            int sharedFlags, int memory) {
         Page p = new Page(map, version);
         // the position is 0
         p.keyCount = keyCount;
@@ -479,7 +479,8 @@ public class Page {
         if (c != childrenPages[index] || c.getPos() != children[index]) {
             if ((sharedFlags & SHARED_CHILDREN) != 0) {
                 children = Arrays.copyOf(children, children.length);
-                childrenPages = Arrays.copyOf(childrenPages, childrenPages.length);
+                childrenPages = Arrays.copyOf(childrenPages,
+                        childrenPages.length);
                 sharedFlags &= ~SHARED_CHILDREN;
             }
             children[index] = c.getPos();
@@ -590,8 +591,10 @@ public class Page {
     public void insertLeaf(int index, Object key, Object value) {
         if (((sharedFlags & SHARED_KEYS) == 0) && keys.length > keyCount + 1) {
             if (index < keyCount) {
-                System.arraycopy(keys, index, keys, index + 1, keyCount - index);
-                System.arraycopy(values, index, values, index + 1, keyCount - index);
+                System.arraycopy(keys, index, keys, index + 1,
+                        keyCount - index);
+                System.arraycopy(values, index, values, index + 1,
+                        keyCount - index);
             }
         } else {
             int len = keyCount + 6;
@@ -633,7 +636,8 @@ public class Page {
         children = newChildren;
 
         Page[] newChildrenPages = new Page[childCount + 1];
-        DataUtils.copyWithGap(childrenPages, newChildrenPages, childCount, index);
+        DataUtils.copyWithGap(childrenPages, newChildrenPages, childCount,
+                index);
         newChildrenPages[index] = childPage;
         childrenPages = newChildrenPages;
 
@@ -659,9 +663,11 @@ public class Page {
         int keyIndex = index >= keyCount ? index - 1 : index;
         Object old = keys[keyIndex];
         addMemory(-map.getKeyType().getMemory(old));
-        if ((sharedFlags & SHARED_KEYS) == 0 && keys.length > keyCount - 4) {
+        if ((sharedFlags & SHARED_KEYS) == 0 &&
+                keys.length > keyCount - 4) {
             if (keyIndex < keyCount - 1) {
-                System.arraycopy(keys, keyIndex + 1, keys, keyIndex, keyCount - keyIndex - 1);
+                System.arraycopy(keys, keyIndex + 1, keys, keyIndex, keyCount -
+                        keyIndex - 1);
             }
             keys[keyCount - 1] = null;
         } else {
@@ -674,9 +680,11 @@ public class Page {
         if (values != null) {
             old = values[index];
             addMemory(-map.getValueType().getMemory(old));
-            if ((sharedFlags & SHARED_VALUES) == 0 && values.length > keyCount - 4) {
+            if ((sharedFlags & SHARED_VALUES) == 0 &&
+                    values.length > keyCount - 4) {
                 if (index < keyCount - 1) {
-                    System.arraycopy(values, index + 1, values, index, keyCount - index - 1);
+                    System.arraycopy(values, index + 1, values, index,
+                            keyCount - index - 1);
                 }
                 values[keyCount - 1] = null;
             } else {
@@ -776,7 +784,8 @@ public class Page {
             buff.get(comp);
             int l = compLen + lenAdd;
             buff = ByteBuffer.allocate(l);
-            compressor.expand(comp, 0, compLen, buff.array(), buff.arrayOffset(), l);
+            compressor.expand(comp, 0, compLen, buff.array(),
+                    buff.arrayOffset(), l);
         }
         map.getKeyType().read(buff, keys, len, true);
         if (!node) {

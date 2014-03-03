@@ -944,7 +944,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          */
         void setMaxMemory(long maxMemory) {
             if (maxMemory <= 0) {
-                throw new IllegalArgumentException("Max memory must be larger than 0");
+                throw new IllegalArgumentException(
+                        "Max memory must be larger than 0");
             }
             this.maxMemory = maxMemory;
         }
@@ -957,7 +958,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          */
         void setAverageMemory(int averageMemory) {
             if (averageMemory <= 0) {
-                throw new IllegalArgumentException("Average memory must be larger than 0");
+                throw new IllegalArgumentException(
+                        "Average memory must be larger than 0");
             }
             this.averageMemory = averageMemory;
         }

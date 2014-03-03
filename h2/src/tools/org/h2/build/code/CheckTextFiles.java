@@ -190,8 +190,8 @@ public class CheckTextFiles {
                     lastWasWhitespace = false;
                     line++;
                     int lineLength = i - startLinePos;
-                    if (lineLength > MAX_SOURCE_LINE_SIZE) {
-                        if (file.getName().endsWith(".java")) {
+                    if (file.getName().endsWith(".java")) {
+                        if (lineLength > MAX_SOURCE_LINE_SIZE) {
                             fail(file, "line too long: " + lineLength, line);
                         }
                     }

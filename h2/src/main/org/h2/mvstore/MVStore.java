@@ -164,7 +164,8 @@ public class MVStore {
      * is the unsaved version, the value is the map of chunks. The maps contains
      * the number of freed entries per chunk. Access is synchronized.
      */
-    private final ConcurrentHashMap<Long, HashMap<Integer, Chunk>> freedPageSpace =
+    private final ConcurrentHashMap<Long,
+            HashMap<Integer, Chunk>> freedPageSpace =
             new ConcurrentHashMap<Long, HashMap<Integer, Chunk>>();
 
     /**
@@ -508,9 +509,11 @@ public class MVStore {
             fileHeaderBlocks.get(buff);
             // the following can fail for various reasons
             try {
-                String s = new String(buff, 0, BLOCK_SIZE, DataUtils.LATIN).trim();
+                String s = new String(buff, 0, BLOCK_SIZE,
+                        DataUtils.LATIN).trim();
                 HashMap<String, String> m = DataUtils.parseMap(s);
-                int blockSize = DataUtils.readHexInt(m, "blockSize", BLOCK_SIZE);
+                int blockSize = DataUtils.readHexInt(
+                        m, "blockSize", BLOCK_SIZE);
                 if (blockSize != BLOCK_SIZE) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_UNSUPPORTED_FORMAT,
@@ -521,7 +524,8 @@ public class MVStore {
                 m.remove("fletcher");
                 s = s.substring(0, s.lastIndexOf("fletcher") - 1);
                 byte[] bytes = s.getBytes(DataUtils.LATIN);
-                int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+                int checksum = DataUtils.getFletcher32(bytes,
+                        bytes.length / 2 * 2);
                 if (check != checksum) {
                     continue;
                 }
@@ -546,7 +550,8 @@ public class MVStore {
         if (format > FORMAT_WRITE && !fileStore.isReadOnly()) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The write format {0} is larger than the supported format {1}, " +
+                    "The write format {0} is larger " +
+                    "than the supported format {1}, " +
                     "and the file was not opened in read-only mode",
                     format, FORMAT_WRITE);
         }
@@ -554,7 +559,8 @@ public class MVStore {
         if (format > FORMAT_READ) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_UNSUPPORTED_FORMAT,
-                    "The read format {0} is larger than the supported format {1}",
+                    "The read format {0} is larger " +
+                    "than the supported format {1}",
                     format, FORMAT_READ);
         }
         lastStoredVersion = -1;
@@ -610,7 +616,8 @@ public class MVStore {
             }
             lastChunk = header;
             newestVersion = header.version;
-            if (header.next == 0 || header.next >= fileStore.size() / BLOCK_SIZE) {
+            if (header.next == 0 ||
+                    header.next >= fileStore.size() / BLOCK_SIZE) {
                 // no (valid) next
                 break;
             }
@@ -1018,7 +1025,8 @@ public class MVStore {
         // calculate and set the likely next position
         if (reuseSpace) {
             int predictBlocks = c.len;
-            long predictedNextStart = fileStore.allocate(predictBlocks * BLOCK_SIZE);
+            long predictedNextStart = fileStore.allocate(
+                    predictBlocks * BLOCK_SIZE);
             fileStore.free(predictedNextStart, predictBlocks * BLOCK_SIZE);
             c.next = predictedNextStart / BLOCK_SIZE;
         } else {
@@ -1045,7 +1053,8 @@ public class MVStore {
                 // the last prediction did not matched
                 needHeader = true;
             } else {
-                long headerVersion = DataUtils.readHexLong(fileHeader, "version", 0);
+                long headerVersion = DataUtils.readHexLong(
+                        fileHeader, "version", 0);
                 if (lastChunk.version - headerVersion > 20) {
                     // we write after at least 20 entries
                     needHeader = true;
@@ -1531,7 +1540,8 @@ public class MVStore {
             int pageLength = buff.getInt();
             if (pageLength <= 0) {
                 throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT, "Page length {0}", pageLength);
+                        DataUtils.ERROR_FILE_CORRUPT,
+                        "Page length {0}", pageLength);
             }
             buff.getShort();
             int mapId = DataUtils.readVarInt(buff);
@@ -1789,7 +1799,8 @@ public class MVStore {
         if (oldMeta == null) {
             return false;
         }
-        for (Iterator<String> it = oldMeta.keyIterator("chunk."); it.hasNext();) {
+        for (Iterator<String> it = oldMeta.keyIterator("chunk.");
+                it.hasNext();) {
             String chunkKey = it.next();
             if (!chunkKey.startsWith("chunk.")) {
                 break;
@@ -1968,7 +1979,8 @@ public class MVStore {
     }
 
     private void revertTemp(long storeVersion) {
-        for (Iterator<Long> it = freedPageSpace.keySet().iterator(); it.hasNext();) {
+        for (Iterator<Long> it = freedPageSpace.keySet().iterator();
+                it.hasNext();) {
             long v = it.next();
             if (v > storeVersion) {
                 continue;

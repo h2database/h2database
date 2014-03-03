@@ -117,7 +117,8 @@ public class CreateScriptFile {
             } else {
                 out = FileUtils.newOutputStream(fileName, false);
                 out = new BufferedOutputStream(out, Constants.IO_BUFFER_SIZE);
-                out = CompressTool.wrapOutputStream(out, compressionAlgorithm, "script.sql");
+                out = CompressTool.wrapOutputStream(out,
+                        compressionAlgorithm, "script.sql");
             }
             return new PrintWriter(new OutputStreamWriter(out, charset));
         } catch (Exception e) {
@@ -145,7 +146,8 @@ public class CreateScriptFile {
                 byte[] key = SHA256.getKeyPasswordHash("script", password.toCharArray());
                 FileStore store = FileStore.open(null, fileName, "rw", cipher, key);
                 store.init();
-                in = new FileStoreInputStream(store, null, compressionAlgorithm != null, false);
+                in = new FileStoreInputStream(store, null,
+                        compressionAlgorithm != null, false);
                 in = new BufferedInputStream(in, Constants.IO_BUFFER_SIZE_COMPRESS);
             } else {
                 in = FileUtils.newInputStream(fileName);

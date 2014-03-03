@@ -930,7 +930,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     protected void waitUntilWritten(long version) {
         if (readOnly) {
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_INTERNAL, "Waiting for writes to a read-only map");
+                    DataUtils.ERROR_INTERNAL,
+                    "Waiting for writes to a read-only map");
         }
         while (currentWriteVersion == version) {
             Thread.yield();
@@ -997,7 +998,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public MVMap<K, V> openVersion(long version) {
         if (readOnly) {
             throw DataUtils.newUnsupportedOperationException(
-                    "This map is read-only; need to call the method on the writable map");
+                    "This map is read-only; need to call " +
+                    "the method on the writable map");
         }
         DataUtils.checkArgument(version >= createVersion,
                 "Unknown version {0}; this map was created in version is {1}",

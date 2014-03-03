@@ -63,7 +63,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     public RTreeCursor findIntersectingKeys(SpatialKey x) {
         return new RTreeCursor(root, x) {
             @Override
-            protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
+            protected boolean check(boolean leaf, SpatialKey key,
+                    SpatialKey test) {
                 return keyType.isOverlap(key, test);
             }
         };

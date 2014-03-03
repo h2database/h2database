@@ -56,7 +56,9 @@ public class CsvSample {
         ResultSetMetaData meta = rs.getMetaData();
         while (rs.next()) {
             for (int i = 0; i < meta.getColumnCount(); i++) {
-                System.out.println(meta.getColumnLabel(i + 1) + ": " + rs.getString(i + 1));
+                System.out.println(
+                        meta.getColumnLabel(i + 1) + ": " +
+                        rs.getString(i + 1));
             }
             System.out.println();
         }

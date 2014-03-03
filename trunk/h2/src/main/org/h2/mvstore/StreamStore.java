@@ -164,7 +164,8 @@ public class StreamStore {
         return eof;
     }
 
-    private static byte[] read(InputStream in, byte[] target) throws IOException {
+    private static byte[] read(InputStream in, byte[] target)
+            throws IOException {
         int copied = 0;
         int remaining = target.length;
         while (remaining > 0) {
@@ -470,7 +471,8 @@ public class StreamStore {
                 }
                 default:
                     throw DataUtils.newIllegalArgumentException(
-                            "Unsupported id {0}", Arrays.toString(idBuffer.array()));
+                            "Unsupported id {0}",
+                            Arrays.toString(idBuffer.array()));
                 }
             }
             return null;

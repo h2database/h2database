@@ -59,7 +59,8 @@ public class TransactionStore {
     /**
      * The map of maps.
      */
-    private HashMap<Integer, MVMap<Object, VersionedValue>> maps = New.hashMap();
+    private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
+            New.hashMap();
 
     private final DataType dataType;
 
@@ -192,7 +193,8 @@ public class TransactionStore {
                     status = (Integer) data[0];
                     name = (String) data[1];
                 }
-                Transaction t = new Transaction(this, transactionId, status, name, logId);
+                Transaction t = new Transaction(this, transactionId, status,
+                        name, logId);
                 list.add(t);
                 key = undoLog.ceilingKey(getOperationId(transactionId + 1, 0));
             }
@@ -227,7 +229,8 @@ public class TransactionStore {
      * @param t the transaction
      */
     synchronized void storeTransaction(Transaction t) {
-        if (t.getStatus() == Transaction.STATUS_PREPARED || t.getName() != null) {
+        if (t.getStatus() == Transaction.STATUS_PREPARED ||
+                t.getName() != null) {
             Object[] v = { t.getStatus(), t.getName() };
             preparedTransactions.put(t.getId(), v);
         }
@@ -251,7 +254,8 @@ public class TransactionStore {
                 if (undoLog.containsKey(undoKey)) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_TRANSACTION_STILL_OPEN,
-                            "An old transaction with the same id is still open: {0}",
+                            "An old transaction with the same id " +
+                            "is still open: {0}",
                             t.getId());
                 }
             }
@@ -303,7 +307,8 @@ public class TransactionStore {
                 if (op == null) {
                     // partially committed: load next
                     undoKey = undoLog.ceilingKey(undoKey);
-                    if (undoKey == null || getTransactionId(undoKey) != t.getId()) {
+                    if (undoKey == null ||
+                            getTransactionId(undoKey) != t.getId()) {
                         break;
                     }
                     logId = getLogId(undoKey) - 1;
@@ -460,7 +465,8 @@ public class TransactionStore {
                 if (op == null) {
                     // partially rolled back: load previous
                     undoKey = undoLog.floorKey(undoKey);
-                    if (undoKey == null || getTransactionId(undoKey) != t.getId()) {
+                    if (undoKey == null ||
+                            getTransactionId(undoKey) != t.getId()) {
                         break;
                     }
                     logId = getLogId(undoKey) + 1;
@@ -513,7 +519,8 @@ public class TransactionStore {
                         if (op == null) {
                             // partially rolled back: load previous
                             undoKey = undoLog.floorKey(undoKey);
-                            if (undoKey == null || getTransactionId(undoKey) != t.getId()) {
+                            if (undoKey == null ||
+                                    getTransactionId(undoKey) != t.getId()) {
                                 break;
                             }
                             logId = getLogId(undoKey);
@@ -528,7 +535,8 @@ public class TransactionStore {
                             current.mapName = m.getName();
                             current.key = op[1];
                             VersionedValue oldValue = (VersionedValue) op[2];
-                            current.value = oldValue == null ? null : oldValue.value;
+                            current.value = oldValue == null ?
+                                    null : oldValue.value;
                             return;
                         }
                     }
@@ -712,7 +720,8 @@ public class TransactionStore {
         public <K, V> TransactionMap<K, V> openMap(String name,
                 DataType keyType, DataType valueType) {
             checkNotClosed();
-            MVMap<K, VersionedValue> map = store.openMap(name, keyType, valueType);
+            MVMap<K, VersionedValue> map = store.openMap(name, keyType,
+                    valueType);
             int mapId = map.getId();
             return new TransactionMap<K, V>(this, map, mapId);
         }
@@ -725,7 +734,8 @@ public class TransactionStore {
          * @param map the base map
          * @return the transactional map
          */
-        public <K, V> TransactionMap<K, V> openMap(MVMap<K, VersionedValue> map) {
+        public <K, V> TransactionMap<K, V> openMap(
+                MVMap<K, VersionedValue> map) {
             checkNotClosed();
             int mapId = map.getId();
             return new TransactionMap<K, V>(this, map, mapId);
@@ -1521,14 +1531,16 @@ public class TransactionStore {
         }
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+        public void read(ByteBuffer buff, Object[] obj,
+                int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
 
         @Override
-        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+        public void write(WriteBuffer buff, Object[] obj,
+                int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 write(buff, obj[i]);
             }
@@ -1604,14 +1616,16 @@ public class TransactionStore {
         }
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+        public void read(ByteBuffer buff, Object[] obj,
+                int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 obj[i] = read(buff);
             }
         }
 
         @Override
-        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+        public void write(WriteBuffer buff, Object[] obj,
+                int len, boolean key) {
             for (int i = 0; i < len; i++) {
                 write(buff, obj[i]);
             }

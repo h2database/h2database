@@ -138,7 +138,8 @@ public class RuleFixed implements Rule {
             }
             break;
         case AZ_UNDERSCORE:
-            if (s.length() > 0 && (Character.isLetter(s.charAt(0)) || s.charAt(0) == '_')) {
+            if (s.length() > 0 &&
+                    (Character.isLetter(s.charAt(0)) || s.charAt(0) == '_')) {
                 s = s.substring(1);
             }
             if (s.length() == 0) {

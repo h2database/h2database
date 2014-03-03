@@ -397,7 +397,8 @@ public class SQLInjection {
         stat.execute("CREATE CONSTANT HASH_ITERATIONS VALUE 100");
         stat.execute("CREATE CONSTANT HASH_ALGORITHM VALUE 'SHA256'");
         stat.execute("UPDATE USERS2 SET " +
-                "HASH=HASH(HASH_ALGORITHM, STRINGTOUTF8('abc' || SALT), HASH_ITERATIONS) " +
+                "HASH=HASH(HASH_ALGORITHM, " +
+                "STRINGTOUTF8('abc' || SALT), HASH_ITERATIONS) " +
                 "WHERE ID=1");
         String user = input("user?");
         String password = input("password?");

@@ -284,7 +284,8 @@ public class DataUtils {
      * @param len the number of characters
      * @return the byte buffer
      */
-    public static ByteBuffer writeStringData(ByteBuffer buff, String s, int len) {
+    public static ByteBuffer writeStringData(ByteBuffer buff,
+            String s, int len) {
         buff = DataUtils.ensureCapacity(buff, 3 * len);
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
@@ -345,7 +346,8 @@ public class DataUtils {
      * @param out the output stream
      * @param x the value
      */
-    public static void writeVarLong(OutputStream out, long x) throws IOException {
+    public static void writeVarLong(OutputStream out, long x)
+            throws IOException {
         while ((x & ~0x7f) != 0) {
             out.write((byte) (0x80 | (x & 0x7f)));
             x >>>= 7;
@@ -418,7 +420,8 @@ public class DataUtils {
             }
             throw newIllegalStateException(
                     ERROR_READING_FAILED,
-                    "Reading from {0} failed; file length {1} read length {2} at {3}",
+                    "Reading from {0} failed; file length {1} " +
+                    "read length {2} at {3}",
                     file, size, dst.remaining(), pos, e);
         }
     }
@@ -534,7 +537,8 @@ public class DataUtils {
      * @param type the page type (1 for node, 0 for leaf)
      * @return the position
      */
-    public static long getPagePos(int chunkId, int offset, int length, int type) {
+    public static long getPagePos(int chunkId, int offset,
+            int length, int type) {
         long pos = (long) chunkId << 38;
         pos |= (long) offset << 6;
         pos |= encodeLength(length) << 1;
@@ -712,8 +716,8 @@ public class DataUtils {
      * @param message the message
      * @return the exception
      */
-    public static UnsupportedOperationException newUnsupportedOperationException(
-            String message) {
+    public static UnsupportedOperationException
+            newUnsupportedOperationException(String message) {
         return new UnsupportedOperationException(formatMessage(0, message));
     }
 

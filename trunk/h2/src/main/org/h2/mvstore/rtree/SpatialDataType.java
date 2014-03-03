@@ -278,7 +278,8 @@ public class SpatialDataType implements DataType {
         float min = boundsInner.min(bestDim);
         float max = boundsInner.max(bestDim);
         int firstIndex = -1, lastIndex = -1;
-        for (int i = 0; i < list.size() && (firstIndex < 0 || lastIndex < 0); i++) {
+        for (int i = 0; i < list.size() &&
+                (firstIndex < 0 || lastIndex < 0); i++) {
             SpatialKey o = (SpatialKey) list.get(i);
             if (firstIndex < 0 && o.max(bestDim) == min) {
                 firstIndex = i;

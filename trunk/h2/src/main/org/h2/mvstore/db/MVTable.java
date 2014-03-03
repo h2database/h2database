@@ -177,7 +177,9 @@ public class MVTable extends TableBase {
             if (checkDeadlock) {
                 ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
-                    throw DbException.get(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions));
+                    throw DbException.get(
+                            ErrorCode.DEADLOCK_1,
+                            getDeadlockDetails(sessions));
                 }
             } else {
                 // check for deadlocks from now on
@@ -188,7 +190,8 @@ public class MVTable extends TableBase {
                 // try at least one more time
                 max = now + session.getLockTimeout();
             } else if (now >= max) {
-                traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
+                traceLock(session, exclusive,
+                        "timeout after " + session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
             try {
@@ -299,7 +302,8 @@ public class MVTable extends TableBase {
     private void traceLock(Session session, boolean exclusive, String s) {
         if (traceLock.isDebugEnabled()) {
             traceLock.debug("{0} {1} {2} {3}", session.getId(),
-                    exclusive ? "exclusive write lock" : "shared read lock", s, getName());
+                    exclusive ? "exclusive write lock" : "shared read lock",
+                    s, getName());
         }
     }
 
@@ -612,10 +616,13 @@ public class MVTable extends TableBase {
             if (de.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
                 for (int j = 0; j < indexes.size(); j++) {
                     Index index = indexes.get(j);
-                    if (index.getIndexType().isUnique() && index instanceof MultiVersionIndex) {
+                    if (index.getIndexType().isUnique() &&
+                            index instanceof MultiVersionIndex) {
                         MultiVersionIndex mv = (MultiVersionIndex) index;
                         if (mv.isUncommittedFromOtherSession(session, row)) {
-                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, index.getName());
+                            throw DbException.get(
+                                    ErrorCode.CONCURRENT_UPDATE_1,
+                                    index.getName());
                         }
                     }
                 }
@@ -697,7 +704,8 @@ public class MVTable extends TableBase {
         }
         database.getMvStore().removeTable(this);
         super.removeChildrenAndResources(session);
-        // go backwards because database.removeIndex will call table.removeIndex
+        // go backwards because database.removeIndex will
+        // call table.removeIndex
         while (indexes.size() > 1) {
             Index index = indexes.get(1);
             if (index.getName() != null) {
@@ -708,7 +716,8 @@ public class MVTable extends TableBase {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.INDEX)) {
                 Index index = (Index) obj;
                 if (index.getTable() == this) {
-                    DbException.throwInternalError("index not dropped: " + index.getName());
+                    DbException.throwInternalError(
+                            "index not dropped: " + index.getName());
                 }
             }
         }

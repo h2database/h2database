@@ -148,11 +148,13 @@ public class FileStore {
                 }
             } catch (OverlappingFileLockException e) {
                 throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_LOCKED, "The file is locked: {0}", fileName, e);
+                        DataUtils.ERROR_FILE_LOCKED,
+                        "The file is locked: {0}", fileName, e);
             }
             if (fileLock == null) {
                 throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_LOCKED, "The file is locked: {0}", fileName);
+                        DataUtils.ERROR_FILE_LOCKED,
+                        "The file is locked: {0}", fileName);
             }
             fileSize = file.size();
         } catch (IOException e) {

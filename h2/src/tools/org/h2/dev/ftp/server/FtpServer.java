@@ -91,7 +91,8 @@ public class FtpServer extends Tool implements Service {
 
 
     /**
-     * When running without options, -tcp, -web, -browser and -pg are started.<br />
+     * When running without options, -tcp, -web, -browser,
+     * and -pg are started.<br />
      * Options are case sensitive. Supported options are:
      * <table>
      * <tr><td>[-help] or [-?]</td>
@@ -105,7 +106,7 @@ public class FtpServer extends Tool implements Service {
      * <tr><td>[-webSSL]</td>
      * <td>Use encrypted (HTTPS) connections</td></tr>
      * <tr><td>[-browser]</td>
-     * <td>Start a browser and open a page to connect to the web server</td></tr>
+     * <td>Start a browser and open a page to login to the web server</td></tr>
      * <tr><td>[-tcp]</td>
      * <td>Start the TCP server</td></tr>
      * <tr><td>[-tcpAllowOthers]</td>

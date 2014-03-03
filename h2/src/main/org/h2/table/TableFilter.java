@@ -570,7 +570,8 @@ public class TableFilter implements ColumnResolver {
                     }
                 } else {
                     if (outer) {
-                        // convert all inner joins on the right hand side to outer joins
+                        // convert all inner joins on the right hand side to
+                        // outer joins
                         TableFilter f = filter.join;
                         while (f != null) {
                             f.joinOuter = true;

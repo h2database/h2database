@@ -270,7 +270,8 @@ public class TestCompatibility extends TestBase {
         rs.updateString(2, "Hallo");
         rs.updateRow();
 
-        // we used to have an NullPointerException in the MetaTable.checkIndex() method
+        // we used to have an NullPointerException in the MetaTable.checkIndex()
+        // method
         rs = stat.executeQuery("SELECT * FROM " +
                 "INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME > 'aaaa'");
         rs = stat.executeQuery("SELECT * FROM " +
@@ -370,7 +371,8 @@ public class TestCompatibility extends TestBase {
         rs.close();
         prep.close();
 
-        // CONVERT has it's parameters the other way around from the default mode
+        // CONVERT has it's parameters the other way around from the default
+        // mode
         rs = stat.executeQuery("SELECT CONVERT(INT, '10')");
         rs.next();
         assertEquals(10, rs.getInt(1));

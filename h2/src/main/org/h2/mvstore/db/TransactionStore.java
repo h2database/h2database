@@ -930,8 +930,8 @@ public class TransactionStore {
                         K key = (K) op[1];
                         if (get(key) == null) {
                             Integer old = temp.put(key, 1);
-                            // count each key only once
-                            // (there might be multiple changes for the same key)
+                            // count each key only once (there might be multiple
+                            // changes for the same key)
                             if (old == null) {
                                 size--;
                             }
@@ -1037,7 +1037,8 @@ public class TransactionStore {
          * @param value the new value (null to remove the value)
          * @param onlyIfUnchanged only set the value if it was not changed (by
          *            this or another transaction) since the map was opened
-         * @return true if the value was set, false if there was a concurrent update
+         * @return true if the value was set, false if there was a concurrent
+         *         update
          */
         public boolean trySet(K key, V value, boolean onlyIfUnchanged) {
             VersionedValue current = map.get(key);
@@ -1150,7 +1151,8 @@ public class TransactionStore {
         }
 
         /**
-         * Whether the entry for this key was added or removed from this session.
+         * Whether the entry for this key was added or removed from this
+         * session.
          *
          * @param key the key
          * @return true if yes
@@ -1340,7 +1342,8 @@ public class TransactionStore {
          * Iterate over keys.
          *
          * @param from the first key to return
-         * @param includeUncommitted whether uncommitted entries should be included
+         * @param includeUncommitted whether uncommitted entries should be
+         *            included
          * @return the iterator
          */
         public Iterator<K> keyIterator(K from, boolean includeUncommitted) {
@@ -1403,7 +1406,8 @@ public class TransactionStore {
          * Iterate over keys.
          *
          * @param iterator the iterator to wrap
-         * @param includeUncommitted whether uncommitted entries should be included
+         * @param includeUncommitted whether uncommitted entries should be
+         *            included
          * @return the iterator
          */
         public Iterator<K> wrapIterator(final Iterator<K> iterator,

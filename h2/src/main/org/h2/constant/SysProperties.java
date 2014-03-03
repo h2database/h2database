@@ -90,9 +90,10 @@ public class SysProperties {
     /**
      * System property <code>h2.browser</code> (default: null).<br />
      * The preferred browser to use. If not set, the default browser is used.
-     * For Windows, to use the Internet Explorer, set this property to 'explorer'.
-     * For Mac OS, if the default browser is not Safari and you want to use Safari,
-     * use: <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
+     * For Windows, to use the Internet Explorer, set this property to
+     * 'explorer'. For Mac OS, if the default browser is not Safari and you want
+     * to use Safari, use:
+     * <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
      */
     public static final String BROWSER =
             Utils.getProperty(H2_BROWSER, null);
@@ -174,7 +175,8 @@ public class SysProperties {
             Utils.getProperty("h2.dataSourceTraceLevel", TraceSystem.ERROR);
 
     /**
-     * System property <code>h2.delayWrongPasswordMin</code> (default: 250).<br />
+     * System property <code>h2.delayWrongPasswordMin</code>
+     * (default: 250).<br />
      * The minimum delay in milliseconds before an exception is thrown for using
      * the wrong user name or password. This slows down brute force attacks. The
      * delay is reset to this value after a successful login. Unsuccessful
@@ -185,7 +187,8 @@ public class SysProperties {
             Utils.getProperty("h2.delayWrongPasswordMin", 250);
 
     /**
-     * System property <code>h2.delayWrongPasswordMax</code> (default: 4000).<br />
+     * System property <code>h2.delayWrongPasswordMax</code>
+     * (default: 4000).<br />
      * The maximum delay in milliseconds before an exception is thrown for using
      * the wrong user name or password. This slows down brute force attacks. The
      * delay is reset after a successful login. The value 0 means there is no
@@ -206,14 +209,16 @@ public class SysProperties {
             Utils.getProperty("h2.javaSystemCompiler", true);
 
     /**
-     * System property <code>h2.lobCloseBetweenReads</code> (default: false).<br />
+     * System property <code>h2.lobCloseBetweenReads</code>
+     * (default: false).<br />
      * Close LOB files between read operations.
      */
     public static boolean lobCloseBetweenReads =
             Utils.getProperty("h2.lobCloseBetweenReads", false);
 
     /**
-     * System property <code>h2.lobFilesPerDirectory</code> (default: 256).<br />
+     * System property <code>h2.lobFilesPerDirectory</code>
+     * (default: 256).<br />
      * Maximum number of LOB files per directory.
      */
     public static final int LOB_FILES_PER_DIRECTORY =
@@ -247,8 +252,10 @@ public class SysProperties {
             Utils.getProperty("h2.maxReconnect", 3);
 
     /**
-     * System property <code>h2.maxTraceDataLength</code> (default: 65535).<br />
-     * The maximum size of a LOB value that is written as data to the trace system.
+     * System property <code>h2.maxTraceDataLength</code>
+     * (default: 65535).<br />
+     * The maximum size of a LOB value that is written as data to the trace
+     * system.
      */
     public static final long MAX_TRACE_DATA_LENGTH =
             Utils.getProperty("h2.maxTraceDataLength", 65535);
@@ -345,7 +352,8 @@ public class SysProperties {
             Utils.getProperty("h2.socketConnectRetry", 16);
 
     /**
-     * System property <code>h2.socketConnectTimeout</code> (default: 2000).<br />
+     * System property <code>h2.socketConnectTimeout</code>
+     * (default: 2000).<br />
      * The timeout in milliseconds to connect to a server.
      */
     public static final int SOCKET_CONNECT_TIMEOUT =
@@ -414,7 +422,8 @@ public class SysProperties {
         Utils.getProperty("h2.useThreadContextClassLoader", false);
 
     /**
-     * System property <code>h2.serializeJavaObject</code> (default: true).<br />
+     * System property <code>h2.serializeJavaObject</code>
+     * (default: true).<br />
      * <b>If true</b>, values of type OTHER will be stored in serialized form
      * and have the semantics of binary data for all operations (such as sorting
      * and conversion to string).
@@ -446,7 +455,8 @@ public class SysProperties {
             Utils.getProperty("h2.serializeJavaObject", true);
 
     /**
-     * System property <code>h2.javaObjectSerializer</code> (default: null).<br />
+     * System property <code>h2.javaObjectSerializer</code>
+     * (default: null).<br />
      * The JavaObjectSerializer class name for java objects being stored in
      * column of type OTHER. It must be the same on client and server to work
      * correctly.

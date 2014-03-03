@@ -569,7 +569,8 @@ public abstract class Table extends SchemaObjectBase {
             session.getDatabase().removeSchemaObject(session, c);
         }
         for (Index i : indexesToDrop) {
-            // the index may already have been dropped when dropping the constraint
+            // the index may already have been dropped when dropping the
+            // constraint
             if (getIndexes().contains(i)) {
                 session.getDatabase().removeSchemaObject(session, i);
             }
@@ -957,7 +958,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param session the session
      * @param enabled true if checking should be enabled
-     * @param checkExisting true if existing rows must be checked during this call
+     * @param checkExisting true if existing rows must be checked during this
+     *            call
      */
     public void setCheckForeignKeyConstraints(Session session, boolean enabled,
             boolean checkExisting) {

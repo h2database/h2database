@@ -209,8 +209,8 @@ public class ValueLob extends Value {
         if (m < remaining && m <= inplace) {
             // using "1L" to force long arithmetic
             m = Math.min(remaining, inplace + 1L);
-            // the buffer size must be bigger than the inplace lob, otherwise we can't
-            // know if it must be stored in-place or not
+            // the buffer size must be bigger than the inplace lob, otherwise we
+            // can't know if it must be stored in-place or not
             m = MathUtils.roundUpLong(m, Constants.IO_BUFFER_SIZE);
         }
         m = Math.min(remaining, m);
@@ -313,10 +313,11 @@ public class ValueLob extends Value {
                 newId = 0;
                 dirCounter = MathUtils.randomInt(lobsPerDir - 1) * lobsPerDir;
             } else {
-                // calculate the directory
-                // start with 1 (otherwise we don't know the number of directories)
-                // it doesn't really matter what directory is used, it might as well be random
-                // (but that would generate more directories):
+                // calculate the directory.
+                // start with 1 (otherwise we don't know the number of
+                // directories).
+                // it doesn't really matter what directory is used, it might as
+                // well be random (but that would generate more directories):
                 // int dirId = RandomUtils.nextInt(lobsPerDir - 1) + 1;
                 int dirId = (dirCounter++ / (lobsPerDir - 1)) + 1;
                 newId = newId * lobsPerDir;

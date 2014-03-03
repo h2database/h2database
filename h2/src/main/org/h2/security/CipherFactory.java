@@ -77,7 +77,8 @@ public class CipherFactory {
     }
 
     /**
-     * Create a secure client socket that is connected to the given address and port.
+     * Create a secure client socket that is connected to the given address and
+     * port.
      *
      * @param address the address to connect to
      * @param port the port

@@ -360,14 +360,17 @@ public class JdbcConnection extends TraceObject implements Connection {
                     if (!session.isClosed()) {
                         try {
                             if (session.hasPendingTransaction()) {
-                                // roll back unless that would require to re-connect
-                                // (the transaction can't be rolled back after re-connecting)
+                                // roll back unless that would require to
+                                // re-connect (the transaction can't be rolled
+                                // back after re-connecting)
                                 if (!session.isReconnectNeeded(true)) {
                                     try {
                                         rollbackInternal();
                                     } catch (DbException e) {
-                                        // ignore if the connection is broken right now
-                                        if (e.getErrorCode() != ErrorCode.CONNECTION_BROKEN_1) {
+                                        // ignore if the connection is broken
+                                        // right now
+                                        if (e.getErrorCode() !=
+                                                ErrorCode.CONNECTION_BROKEN_1) {
                                             throw e;
                                         }
                                     }
@@ -753,7 +756,8 @@ public class JdbcConnection extends TraceObject implements Connection {
                 int queryTimeout = result.currentRow()[0].getInt();
                 result.close();
                 if (queryTimeout != 0) {
-                    // round to the next second, otherwise 999 millis would return 0 seconds
+                    // round to the next second, otherwise 999 millis would
+                    // return 0 seconds
                     queryTimeout = (queryTimeout + 999) / 1000;
                 }
                 queryTimeoutCache = queryTimeout;

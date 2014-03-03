@@ -219,9 +219,9 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * Returns the last update count of this statement.
      *
-     * @return the update count (number of row affected by an insert,
-     *         update or delete, or 0 if no rows or the statement was a
-     *         create, drop, commit or rollback; -1 if the statement was a select).
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback; -1 if the statement was a select).
      * @throws SQLException if this object is closed or invalid
      */
     @Override
@@ -648,7 +648,8 @@ public class JdbcStatement extends TraceObject implements Statement {
             checkClosedForWrite();
             try {
                 if (batchCommands == null) {
-                    // TODO batch: check what other database do if no commands are set
+                    // TODO batch: check what other database do if no commands
+                    // are set
                     batchCommands = New.arrayList();
                 }
                 int size = batchCommands.size();

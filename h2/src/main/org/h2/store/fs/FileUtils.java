@@ -44,10 +44,9 @@ public class FileUtils {
     }
 
     /**
-     * Create a new file.
-     * This method is similar to Java 7
-     * <code>java.nio.file.Path.createFile</code>,
-     * but returns false instead of throwing a exception if the file already existed.
+     * Create a new file. This method is similar to Java 7
+     * <code>java.nio.file.Path.createFile</code>, but returns false instead of
+     * throwing a exception if the file already existed.
      *
      * @param fileName the file name
      * @return true if creating was successful
@@ -69,8 +68,8 @@ public class FileUtils {
     }
 
     /**
-     * Get the canonical file or directory name.
-     * This method is similar to Java 7 <code>java.nio.file.Path.toRealPath</code>.
+     * Get the canonical file or directory name. This method is similar to Java
+     * 7 <code>java.nio.file.Path.toRealPath</code>.
      *
      * @param fileName the file name
      * @return the normalized file name
@@ -80,9 +79,9 @@ public class FileUtils {
     }
 
     /**
-     * Get the parent directory of a file or directory.
-     * This method returns null if there is no parent.
-     * This method is similar to Java 7 <code>java.nio.file.Path.getParent</code>.
+     * Get the parent directory of a file or directory. This method returns null
+     * if there is no parent. This method is similar to Java 7
+     * <code>java.nio.file.Path.getParent</code>.
      *
      * @param fileName the file or directory name
      * @return the parent directory name
@@ -93,8 +92,8 @@ public class FileUtils {
     }
 
     /**
-     * Check if the file name includes a path.
-     * This method is similar to Java 7 <code>java.nio.file.Path.isAbsolute</code>.
+     * Check if the file name includes a path. This method is similar to Java 7
+     * <code>java.nio.file.Path.isAbsolute</code>.
      *
      * @param fileName the file name
      * @return if the file name is absolute

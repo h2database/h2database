@@ -48,7 +48,8 @@ public class FileFunctions {
     }
 
     /**
-     * Read a String from a file. The default encoding for this platform is used.
+     * Read a String from a file. The default encoding for this platform is
+     * used.
      *
      * @param fileName the file name
      * @return the text

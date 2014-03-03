@@ -61,16 +61,15 @@ import org.h2.value.ValueTimestamp;
  * Represents a result set.
  * </p>
  * <p>
- * Column labels are case-insensitive, quotes are not supported. The first column
- * has the column index 1.
+ * Column labels are case-insensitive, quotes are not supported. The first
+ * column has the column index 1.
  * </p>
  * <p>
- * Updatable result sets:
- * Result sets are updatable when the result only contains columns from one
- * table, and if it contains all columns of a unique index (primary key or
- * other) of this table. Key columns may not contain NULL (because multiple rows
- * with NULL could exist). In updatable result sets, own changes are visible,
- * but not own inserts and deletes.
+ * Updatable result sets: Result sets are updatable when the result only
+ * contains columns from one table, and if it contains all columns of a unique
+ * index (primary key or other) of this table. Key columns may not contain NULL
+ * (because multiple rows with NULL could exist). In updatable result sets, own
+ * changes are visible, but not own inserts and deletes.
  * </p>
  */
 public class JdbcResultSet extends TraceObject implements ResultSet {
@@ -276,7 +275,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public String getString(int columnIndex) throws SQLException {
@@ -293,7 +293,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public String getString(String columnLabel) throws SQLException {
@@ -310,7 +311,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public int getInt(int columnIndex) throws SQLException {
@@ -327,7 +329,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public int getInt(String columnLabel) throws SQLException {
@@ -344,7 +347,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
@@ -361,7 +365,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public Date getDate(int columnIndex) throws SQLException {
@@ -378,7 +383,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public Time getTime(int columnIndex) throws SQLException {
@@ -395,7 +401,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
@@ -430,7 +437,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public Date getDate(String columnLabel) throws SQLException {
@@ -2632,7 +2640,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * Checks if the current position is before the first row, that means next()
      * was not called yet, and there is at least one row.
      *
-     * @return if there are results and the current position is before the first row
+     * @return if there are results and the current position is before the first
+     *         row
      * @throws SQLException if the result set is closed
      */
     @Override
@@ -2652,7 +2661,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * Checks if the current position is after the last row, that means next()
      * was called and returned false, and there was at least one row.
      *
-     * @return if there are results and the current position is after the last row
+     * @return if there are results and the current position is after the last
+     *         row
      * @throws SQLException if the result set is closed
      */
     @Override
@@ -2726,7 +2736,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Moves the current position to after the last row, that means after the end.
+     * Moves the current position to after the last row, that means after the
+     * end.
      *
      * @throws SQLException if the result set is closed
      */
@@ -2862,7 +2873,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * Moves the current position to the insert row. The current row is remembered.
+     * Moves the current position to the insert row. The current row is
+     * remembered.
      *
      * @throws SQLException if the result set is closed or is not updatable
      */
@@ -3418,7 +3430,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public NClob getNClob(int columnIndex) throws SQLException {
@@ -3437,7 +3450,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      *
      * @param columnLabel the column label
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public NClob getNClob(String columnLabel) throws SQLException {
@@ -3452,7 +3466,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML object.
+     * [Not supported] Returns the value of the specified column as a SQLXML
+     * object.
      */
     @Override
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
@@ -3460,7 +3475,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML object.
+     * [Not supported] Returns the value of the specified column as a SQLXML
+     * object.
      */
     @Override
     public SQLXML getSQLXML(String columnLabel) throws SQLException {

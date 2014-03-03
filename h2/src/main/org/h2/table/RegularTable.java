@@ -555,8 +555,8 @@ public class RegularTable extends TableBase {
     }
 
     private static String getDeadlockDetails(ArrayList<Session> sessions) {
-        // We add the thread details here to make it easier for customers to match up
-        // these error messages with their own logs.
+        // We add the thread details here to make it easier for customers to
+        // match up these error messages with their own logs.
         StringBuilder buff = new StringBuilder();
         for (Session s : sessions) {
             Table lock = s.getWaitForLock();

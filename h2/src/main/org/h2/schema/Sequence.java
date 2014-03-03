@@ -146,7 +146,8 @@ public class Sequence extends SchemaObjectBase {
             maxValue > minValue &&
             increment != 0 &&
             // Math.abs(increment) < maxValue - minValue
-            // use BigInteger to avoid overflows when maxValue and minValue are really big
+                // use BigInteger to avoid overflows when maxValue and minValue
+                // are really big
             BigInteger.valueOf(increment).abs().compareTo(
                 BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
     }
@@ -281,9 +282,9 @@ public class Sequence extends SchemaObjectBase {
      */
     public synchronized void flush(Session session) {
         if (session == null || !database.isSysTableLocked()) {
-            // This session may not lock the sys table (except if it already has locked it)
-            // because it must be committed immediately,
-            // otherwise other threads can not access the sys table.
+            // This session may not lock the sys table (except if it already has
+            // locked it) because it must be committed immediately, otherwise
+            // other threads can not access the sys table.
             Session sysSession = database.getSystemSession();
             synchronized (sysSession) {
                 flushInternal(sysSession);

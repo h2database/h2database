@@ -95,8 +95,8 @@ class FileNio extends FileBase {
                         channel.position(pos);
                     }
                 } else if (newPos > newLength) {
-                    // looks like a bug in this FileChannel implementation, as the
-                    // documentation says the position needs to be changed
+                    // looks like a bug in this FileChannel implementation, as
+                    // the documentation says the position needs to be changed
                     channel.position(newLength);
                 }
             }

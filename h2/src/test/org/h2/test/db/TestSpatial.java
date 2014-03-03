@@ -425,9 +425,11 @@ public class TestSpatial extends TestBase {
         // rs = stat.executeQuery("explain select * from test " +
         //         "where polygon = 'POLYGON ((1 1, 1 2, 2 2, 1 1))'");
         // rs.next();
-        // assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON =");
+        // assertContains(rs.getString(1),
+        //         "/* PUBLIC.IDX_TEST_POLYGON: POLYGON =");
 
-        // these queries actually have no meaning in the context of a spatial index, but
+        // these queries actually have no meaning in the context of a spatial
+        // index, but
         // check them anyhow
         stat.executeQuery("select * from test where polygon > " +
                 "'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");

@@ -38,7 +38,8 @@ public class SecurePassword {
         // Connection conn =
         //     DriverManager.getConnection(url, user, new String(password));
 
-        // This is the most safe way to connect: the password is overwritten after use
+        // This is the most safe way to connect: the password is overwritten
+        // after use
         Properties prop = new Properties();
         prop.setProperty("user", user);
         prop.put("password", password);

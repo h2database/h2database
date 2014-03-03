@@ -14,7 +14,8 @@ import java.sql.SQLException;
 public interface Bench {
 
     /**
-     * Initialize the database. This includes creating tables and inserting data.
+     * Initialize the database. This includes creating tables and inserting
+     * data.
      *
      * @param db the database object
      * @param size the amount of data

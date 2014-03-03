@@ -88,10 +88,12 @@ public class ToChar {
      * <td>Local currency symbol.</td>
      * <td>\u00A4</td></tr>
      * <tr><td>MI</td>
-     * <td>Negative values get trailing minus sign, positive get trailing space.</td>
+     * <td>Negative values get trailing minus sign,
+     * positive get trailing space.</td>
      * <td>-</td></tr>
      * <tr><td>PR</td>
-     * <td>Negative values get enclosing angle brackets, positive get spaces.</td>
+     * <td>Negative values get enclosing angle brackets,
+     * positive get spaces.</td>
      * <td>None.</td></tr>
      * <tr><td>RN</td>
      * <td>Returns values in Roman numerals.</td>

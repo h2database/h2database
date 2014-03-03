@@ -541,8 +541,8 @@ public class Session extends SessionWithState {
 
     private void endTransaction() {
         if (unlinkLobMap != null && unlinkLobMap.size() > 0) {
-            // need to flush the transaction log, because we can't unlink lobs if the
-            // commit record is not written
+            // need to flush the transaction log, because we can't unlink lobs
+            // if the commit record is not written
             database.flush();
             for (Value v : unlinkLobMap.values()) {
                 v.unlink(database);
@@ -845,7 +845,8 @@ public class Session extends SessionWithState {
 
     /**
      * Called when a log entry for this session is added. The session keeps
-     * track of the first entry in the transaction log that is not yet committed.
+     * track of the first entry in the transaction log that is not yet
+     * committed.
      *
      * @param logId the transaction log id
      * @param pos the position of the log entry in the transaction log
@@ -1239,8 +1240,8 @@ public class Session extends SessionWithState {
      * method returns as soon as the exclusive mode has been disabled.
      */
     public void waitIfExclusiveModeEnabled() {
-        // Even in exclusive mode, we have to let the LOB session proceed, or we will
-        // get deadlocks.
+        // Even in exclusive mode, we have to let the LOB session proceed, or we
+        // will get deadlocks.
         if (database.getLobSession() == this) {
             return;
         }
@@ -1307,7 +1308,8 @@ public class Session extends SessionWithState {
     }
 
     /**
-     * Set the table this session is waiting for, and the thread that is waiting.
+     * Set the table this session is waiting for, and the thread that is
+     * waiting.
      *
      * @param waitForLock the table
      * @param waitForLockThread the current thread (the one that is waiting)

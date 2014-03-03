@@ -877,7 +877,8 @@ public class Select extends Query {
                             current.getIndexType().isScan() ||
                             columnIndex == current)) {
                         IndexType type = columnIndex.getIndexType();
-                        // hash indexes don't work, and unique single column indexes don't work
+                        // hash indexes don't work, and unique single column
+                        // indexes don't work
                         if (!type.isHash() && (!type.isUnique() ||
                                 columnIndex.getColumns().length > 1)) {
                             topTableFilter.setIndex(columnIndex);
@@ -894,7 +895,8 @@ public class Select extends Query {
                 if (current.getIndexType().isScan() || current == index) {
                     topTableFilter.setIndex(index);
                     if (!topTableFilter.hasInComparisons()) {
-                        // in(select ...) and in(1,2,3) may return the key in another order
+                        // in(select ...) and in(1,2,3) may return the key in
+                        // another order
                         sortUsingIndex = true;
                     }
                 } else if (index.getIndexColumns().length >=

@@ -826,8 +826,8 @@ public class Data {
                 int objectId = readVarInt();
                 long precision = 0;
                 boolean compression = false;
-                // -1: regular
-                // -2: regular, but not linked (in this case: including file name)
+                // -1: regular; -2: regular, but not linked (in this case:
+                // including file name)
                 if (smallLen == -1 || smallLen == -2) {
                     precision = readVarLong();
                     compression = readByte() == 1;

@@ -226,7 +226,8 @@ public class FullTextLucene extends FullText {
      * <li>TABLE (varchar): the table name. Example: TEST</li>
      * <li>COLUMNS (array of varchar): comma separated list of quoted column
      * names. The column names are quoted if necessary. Example: (ID)</li>
-     * <li>KEYS (array of values): comma separated list of values. Example: (1)</li>
+     * <li>KEYS (array of values): comma separated list of values.
+     * Example: (1)</li>
      * <li>SCORE (float) the relevance score as returned by Lucene.</li>
      * </ul>
      *
@@ -275,8 +276,8 @@ public class FullTextLucene extends FullText {
         if (create) {
             StringBuilder buff = new StringBuilder(
                     "CREATE TRIGGER IF NOT EXISTS ");
-            // the trigger is also called on rollback because transaction rollback
-            // will not undo the changes in the Lucene index
+            // the trigger is also called on rollback because transaction
+            // rollback will not undo the changes in the Lucene index
             buff.append(trigger).
                 append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
                 append(StringUtils.quoteIdentifier(schema)).
@@ -383,7 +384,8 @@ public class FullTextLucene extends FullText {
     }
 
     /**
-     * Close the index writer and searcher and remove them from the index access set.
+     * Close the index writer and searcher and remove them from the index access
+     * set.
      *
      * @param access the index writer/searcher wrapper
      * @param indexPath the index path

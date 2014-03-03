@@ -271,14 +271,17 @@ public interface Table {
         /**
          * If true, only fields that are explicitly
          * annotated as JQColumn are mapped.
+         *
          * Default: true.
          */
         boolean annotationsOnly() default true;
 
         /**
-         * If true, this table is created as a memory table where data is persistent,
-         * but index data is kept in main memory.
+         * If true, this table is created as a memory table where data is
+         * persistent, but index data is kept in main memory.
+         *
          * Valid only for H2 databases.
+         *
          * Default: false.
          */
         boolean memoryTable() default false;

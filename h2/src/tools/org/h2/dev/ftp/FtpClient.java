@@ -274,7 +274,8 @@ public class FtpClient {
      *
      * @param fileName the file name
      * @param out the output stream
-     * @param restartAt restart at the given position (0 if no restart is required).
+     * @param restartAt restart at the given position (0 if no restart is
+     *            required).
      */
     void retrieve(String fileName, OutputStream out, long restartAt)
             throws IOException {

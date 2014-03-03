@@ -570,8 +570,8 @@ public class Comparison extends Condition {
     /**
      * Get the left or the right sub-expression of this condition.
      *
-     * @param getLeft true to get the left sub-expression, false to get the right
-     *            sub-expression.
+     * @param getLeft true to get the left sub-expression, false to get the
+     *            right sub-expression.
      * @return the sub-expression
      */
     public Expression getExpression(boolean getLeft) {

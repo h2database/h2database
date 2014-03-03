@@ -295,7 +295,8 @@ public class RunScript extends Tool {
      * @param password the password
      * @param fileName the script file
      * @param charset the character set or null for UTF-8
-     * @param continueOnError if execution should be continued if an error occurs
+     * @param continueOnError if execution should be continued if an error
+     *            occurs
      */
     public static void execute(String url, String user, String password,
             String fileName, Charset charset, boolean continueOnError)
@@ -312,7 +313,8 @@ public class RunScript extends Tool {
      * @param password the password
      * @param fileName the script file
      * @param charset the character set or null for UTF-8
-     * @param continueOnError if execution should be continued if an error occurs
+     * @param continueOnError if execution should be continued if an error
+     *            occurs
      */
     void process(String url, String user, String password,
             String fileName, Charset charset,

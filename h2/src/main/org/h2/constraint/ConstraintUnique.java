@@ -149,7 +149,8 @@ public class ConstraintUnique extends Constraint {
 
     @Override
     public void checkExistingData(Session session) {
-        // no need to check: when creating the unique index any problems are found
+        // no need to check: when creating the unique index any problems are
+        // found
     }
 
     @Override

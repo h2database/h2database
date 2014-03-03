@@ -88,10 +88,10 @@ public class ExpressionVisitor {
     public static final int GET_DEPENDENCIES = 7;
 
     /**
-     * Can the expression be added to a condition of an outer query.
-     * Example: ROWNUM() can't be added as a condition to the inner query of
-     * select id from (select t.*, rownum as r from test t) where r between 2 and 3;
-     * Also a sequence expression must not be used.
+     * Can the expression be added to a condition of an outer query. Example:
+     * ROWNUM() can't be added as a condition to the inner query of select id
+     * from (select t.*, rownum as r from test t) where r between 2 and 3; Also
+     * a sequence expression must not be used.
      */
     public static final int QUERY_COMPARABLE = 8;
 

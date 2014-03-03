@@ -1370,7 +1370,8 @@ public class Recover extends Tool implements DataHandler {
                                 userName = userName.substring("IF NOT EXISTS ".length());
                             }
                             if (userName.startsWith("\"")) {
-                                // TODO doesn't work for all cases ("" inside user name)
+                                // TODO doesn't work for all cases ("" inside
+                                // user name)
                                 userName = userName.substring(1, userName.length() - 1);
                             }
                             byte[] userPasswordHash = SHA256.getKeyPasswordHash(

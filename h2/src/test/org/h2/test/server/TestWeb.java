@@ -380,7 +380,8 @@ public class TestWeb extends TestBase {
             result = client.get(url, "getHistory.do?id=4");
             assertContains(result, "select * from test");
             result = client.get(url, "query.do?sql=delete from test");
-            // op 1 (row -1: insert, otherwise update): ok, 2: delete  3: cancel,
+            // op 1 (row -1: insert, otherwise update): ok,
+            // 2: delete  3: cancel,
             result = client.get(url, "editResult.do?sql=@edit " +
                     "select * from test&op=1&row=-1&r-1c1=1&r-1c2=Hello");
             assertContains(result, "1");

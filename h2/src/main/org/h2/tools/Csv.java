@@ -217,7 +217,8 @@ public class Csv implements SimpleRowSource {
      * until all rows are read or the result set is closed.
      *
      * @param reader the reader
-     * @param colNames or null if the column names should be read from the CSV file
+     * @param colNames or null if the column names should be read from the CSV
+     *            file
      * @return the result set
      */
     public ResultSet read(Reader reader, String[] colNames) throws IOException {

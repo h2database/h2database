@@ -29,7 +29,8 @@ public class LinkSchema {
     /**
      * Link all tables of a schema to the database.
      *
-     * @param conn the connection to the database where the links are to be created
+     * @param conn the connection to the database where the links are to be
+     *            created
      * @param targetSchema the schema name where the objects should be created
      * @param driver the driver class name of the linked database
      * @param url the database URL of the linked database

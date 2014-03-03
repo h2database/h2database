@@ -158,7 +158,8 @@ public class TestMetaData extends TestBase {
         ResultSetMetaData rsMeta = rs.getMetaData();
         assertEquals(Types.VARCHAR, rsMeta.getColumnType(1));
         rs.next();
-        // assertEquals(String.class.getName(), rs.getObject(1).getClass().getName());
+        // assertEquals(String.class.getName(),
+        //         rs.getObject(1).getClass().getName());
         stat.execute("drop table a");
         conn.close();
     }

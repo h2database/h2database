@@ -18,7 +18,7 @@ import java.io.RandomAccessFile;
 public class CheckJavadoc {
 
     private static final int MAX_COMMENT_LINE_SIZE = 80;
-    private static final int MAX_SOURCE_LINE_SIZE = 80;
+    private static final int MAX_SOURCE_LINE_SIZE = 100;
     private int errorCount;
 
     /**
@@ -90,12 +90,13 @@ public class CheckJavadoc {
             if (next < 0) {
                 break;
             }
-            String line = text.substring(pos, next).trim();
+            String rawLine = text.substring(pos, next);
+            String line = rawLine.trim();
             if (line.startsWith("/*")) {
                 inComment = true;
             }
             if (inComment) {
-                if (line.length() > MAX_COMMENT_LINE_SIZE
+                if (rawLine.length() > MAX_COMMENT_LINE_SIZE
                         && !line.trim().startsWith("* http://")) {
                     System.out.println("Long line : " + file.getAbsolutePath()
                             + " (" + file.getName() + ":" + lineNumber + ")");
@@ -106,12 +107,12 @@ public class CheckJavadoc {
                 }
             }
             if (!inComment && line.startsWith("//")
-                    && line.length() > MAX_COMMENT_LINE_SIZE
+                    && rawLine.length() > MAX_COMMENT_LINE_SIZE
                     && !line.trim().startsWith("// http://")) {
                 System.out.println("Long line: " + file.getAbsolutePath()
                         + " (" + file.getName() + ":" + lineNumber + ")");
                 errorCount++;
-            } else if (!inComment && line.length() > MAX_SOURCE_LINE_SIZE) {
+            } else if (!inComment && rawLine.length() > MAX_SOURCE_LINE_SIZE) {
                 System.out.println("Long line: " + file.getAbsolutePath()
                         + " (" + file.getName() + ":" + lineNumber + ")");
                 errorCount++;

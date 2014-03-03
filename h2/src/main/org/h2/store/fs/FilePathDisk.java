@@ -284,8 +284,9 @@ public class FilePathDisk extends FilePath {
     public InputStream newInputStream() throws IOException {
         int index = name.indexOf(':');
         if (index > 1 && index < 20) {
-            // if the ':' is in position 1, a windows file access is assumed: C:.. or D:
-            // if the ':' is not at the beginning, assume its a file name with a colon
+            // if the ':' is in position 1, a windows file access is assumed:
+            // C:.. or D:, and if the ':' is not at the beginning, assume its a
+            // file name with a colon
             if (name.startsWith(CLASSPATH_PREFIX)) {
                 String fileName = name.substring(CLASSPATH_PREFIX.length());
                 if (!fileName.startsWith("/")) {
@@ -312,8 +313,8 @@ public class FilePathDisk extends FilePath {
     }
 
     /**
-     * Call the garbage collection and run finalization. This close all files that
-     * were not closed, and are no longer referenced.
+     * Call the garbage collection and run finalization. This close all files
+     * that were not closed, and are no longer referenced.
      */
     static void freeMemoryAndFinalize() {
         IOUtils.trace("freeMemoryAndFinalize", null, null);

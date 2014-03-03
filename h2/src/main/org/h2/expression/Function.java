@@ -125,8 +125,8 @@ public class Function extends Expression implements FunctionCall {
     public static final int VALUES = 250;
 
     /**
-     * This is called H2VERSION() and not VERSION(), because we return a fake value
-     * for VERSION() when running under the PostgreSQL ODBC driver.
+     * This is called H2VERSION() and not VERSION(), because we return a fake
+     * value for VERSION() when running under the PostgreSQL ODBC driver.
      */
     public static final int H2VERSION = 231;
 

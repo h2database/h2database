@@ -1498,8 +1498,9 @@ public class TestLob extends TestBase {
     }
 
     private void testClobWithRandomUnicodeChars() throws Exception {
-        // This tests an issue we had with storing unicode surrogate pairs, which only
-        // manifested at the boundaries between blocks i.e. at 4k boundaries
+        // This tests an issue we had with storing unicode surrogate pairs,
+        // which only manifested at the boundaries between blocks i.e. at 4k
+        // boundaries
         deleteDb("lob");
         Connection conn = getConnection("lob");
         Statement stat = conn.createStatement();

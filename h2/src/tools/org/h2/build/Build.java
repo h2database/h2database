@@ -208,7 +208,8 @@ public class Build extends BuildBase {
         StringList args = args();
         if (System.getProperty("version") != null) {
             String bcp = System.getProperty("bcp");
-            // /System/Library/Frameworks/JavaVM.framework/Versions/1.4/Classes/classes.jar
+            // /System/Library/Frameworks/JavaVM.framework/
+            // Versions/1.4/Classes/classes.jar
             args = args.plus("-source", "1.5", "-target", "jsr14", "-bootclasspath", bcp);
         }
         if (debugInfo) {

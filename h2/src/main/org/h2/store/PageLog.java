@@ -141,7 +141,8 @@ public class PageLog {
     private final BitField undoAll = new BitField();
 
     /**
-     * The map of section ids (key) and data page where the section starts (value).
+     * The map of section ids (key) and data page where the section starts
+     * (value).
      */
     private final IntIntHashMap logSectionPageMap = new IntIntHashMap();
 

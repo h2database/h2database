@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
  * This adapter sends log output to SLF4J. SLF4J supports multiple
  * implementations such as Logback, Log4j, Jakarta Commons Logging (JCL), JDK
  * 1.4 logging, x4juli, and Simple Log. To use SLF4J, you need to add the
- * required jar files to the classpath, and set the trace level to 4 when opening
- * a database:
+ * required jar files to the classpath, and set the trace level to 4 when
+ * opening a database:
  *
  * <pre>
  * jdbc:h2:&tilde;/test;TRACE_LEVEL_FILE=4

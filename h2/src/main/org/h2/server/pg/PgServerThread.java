@@ -157,10 +157,9 @@ public class PgServerThread implements Runnable {
                 if (c != null && key == c.secret) {
                     c.cancelRequest();
                 } else {
-                    // According to
-                    // http://www.postgresql.org/docs/9.1/static/protocol-flow.html#AEN91739,
-                    // when canceling a request, if an invalid secret is provided then no exception
-                    // should be sent back to the client.
+                    // According to the PostgreSQL documentation, when canceling
+                    // a request, if an invalid secret is provided then no
+                    // exception should be sent back to the client.
                     server.trace("Invalid CancelRequest: pid=" + pid + ", key=" + key);
                 }
                 close();
@@ -682,7 +681,8 @@ public class PgServerThread implements Runnable {
                 // the ODBC client needs the column pg_catalog.pg_index
                 // to be of type 'int2vector'
                 // if (name.equalsIgnoreCase("indkey") &&
-                //         "pg_index".equalsIgnoreCase(meta.getTableName(i + 1))) {
+                //         "pg_index".equalsIgnoreCase(
+                //         meta.getTableName(i + 1))) {
                 //     type = PgServer.PG_TYPE_INT2VECTOR;
                 // }
                 precision[i] = meta.getColumnDisplaySize(i + 1);
@@ -719,7 +719,8 @@ public class PgServerThread implements Runnable {
      */
     private static boolean formatAsText(int pgType) {
         switch (pgType) {
-        // TODO: add more types to send as binary once compatibility is confirmed
+        // TODO: add more types to send as binary once compatibility is
+        // confirmed
         case PgServer.PG_TYPE_BYTEA:
             return false;
         }

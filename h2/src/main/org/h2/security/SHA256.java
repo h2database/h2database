@@ -42,8 +42,8 @@ public class SHA256 {
     /**
      * Calculate the hash code by using the given salt. The salt is appended
      * after the data before the hash code is calculated. After generating the
-     * hash code, the data and all internal buffers are filled with zeros to avoid
-     * keeping insecure data in memory longer than required (and possibly
+     * hash code, the data and all internal buffers are filled with zeros to
+     * avoid keeping insecure data in memory longer than required (and possibly
      * swapped to disk).
      *
      * @param data the data to hash
@@ -61,8 +61,9 @@ public class SHA256 {
      * Calculate the hash of a password by prepending the user name and a '@'
      * character. Both the user name and the password are encoded to a byte
      * array using UTF-16. After generating the hash code, the password array
-     * and all internal buffers are filled with zeros to avoid keeping the plain text
-     * password in memory longer than required (and possibly swapped to disk).
+     * and all internal buffers are filled with zeros to avoid keeping the plain
+     * text password in memory longer than required (and possibly swapped to
+     * disk).
      *
      * @param userName the user name
      * @param password the password

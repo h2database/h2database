@@ -93,7 +93,8 @@ public class ConstraintReferential extends Constraint {
     }
 
     /**
-     * Create the SQL statement of this object so a copy of the table can be made.
+     * Create the SQL statement of this object so a copy of the table can be
+     * made.
      *
      * @param forTable the table to create the object for
      * @param quotedName the name of this object (quoted if necessary)
@@ -105,7 +106,8 @@ public class ConstraintReferential extends Constraint {
     }
 
     /**
-     * Create the SQL statement of this object so a copy of the table can be made.
+     * Create the SQL statement of this object so a copy of the table can be
+     * made.
      *
      * @param forTable the table to create the object for
      * @param forRefTable the referenced table

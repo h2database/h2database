@@ -28,7 +28,8 @@ import org.h2.test.TestBase;
 public class SamplesTest extends TestBase {
 
     /**
-     * This object represents a database (actually a connection to the database).
+     * This object represents a database (actually a connection to the
+     * database).
      */
     Db db;
 

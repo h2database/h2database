@@ -218,8 +218,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
             }
-            // synchronize on the database, to avoid concurrent temp file creation /
-            // deletion / backup
+            // synchronize on the database, to avoid concurrent temp file
+            // creation / deletion / backup
             synchronized (handler.getLobSyncObject()) {
                 FileUtils.delete(fileName);
             }
@@ -580,8 +580,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             // using "1L" to force long arithmetic because
             // inplace could be Integer.MAX_VALUE
             m = Math.min(remaining, inplace + 1L);
-            // the buffer size must be bigger than the inplace lob, otherwise we can't
-            // know if it must be stored in-place or not
+            // the buffer size must be bigger than the inplace lob, otherwise we
+            // can't know if it must be stored in-place or not
             m = MathUtils.roundUpLong(m, Constants.IO_BUFFER_SIZE);
         }
         m = Math.min(remaining, m);

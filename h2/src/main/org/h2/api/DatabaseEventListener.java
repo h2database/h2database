@@ -70,8 +70,8 @@ public interface DatabaseEventListener extends EventListener {
     void init(String url);
 
     /**
-     * This method is called after the database has been opened.
-     * It is save to connect to the database and execute statements at this point.
+     * This method is called after the database has been opened. It is save to
+     * connect to the database and execute statements at this point.
      */
     void opened();
 

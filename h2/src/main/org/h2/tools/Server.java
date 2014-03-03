@@ -326,9 +326,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                     result = DbException.toSQLException(e);
                 }
                 out.println(web.getStatus());
-                // start browser in any case (even if the server is already running)
-                // because some people don't look at the output,
-                // but are wondering why nothing happens
+                // start browser in any case (even if the server is already
+                // running) because some people don't look at the output, but
+                // are wondering why nothing happens
                 if (browserStart) {
                     try {
                         openBrowser(web.getURL());

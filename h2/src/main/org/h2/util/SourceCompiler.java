@@ -395,7 +395,8 @@ public class SourceCompiler {
                 Utils.callMethod(importCustomizer, "addImports", new Object[] { importsArray });
 
                 // Call the method
-                // CompilerConfiguration.addCompilationCustomizers(ImportCustomizer...)
+                // CompilerConfiguration.addCompilationCustomizers(
+                //         ImportCustomizer...)
                 Object importCustomizerArray = Array.newInstance(importCustomizerClass, 1);
                 Array.set(importCustomizerArray, 0, importCustomizer);
                 Object configuration = Utils.newInstance(

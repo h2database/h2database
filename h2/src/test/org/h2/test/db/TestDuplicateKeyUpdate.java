@@ -183,7 +183,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         assertEquals(2, rs.getInt(1));
     }
 
-    public void testOnDuplicateKeyInsertBatch(Connection conn)
+    private void testOnDuplicateKeyInsertBatch(Connection conn)
             throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("create table test " +
@@ -215,7 +215,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         stat.execute("drop table test");
     }
 
-    public void testOnDuplicateKeyInsertMultiValue(Connection conn)
+    private void testOnDuplicateKeyInsertMultiValue(Connection conn)
             throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("create table test" +

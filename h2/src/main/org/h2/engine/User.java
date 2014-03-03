@@ -209,8 +209,8 @@ public class User extends RightOwner {
     }
 
     /**
-     * Check if this user has schema admin rights. An exception is thrown if he does
-     * not have them.
+     * Check if this user has schema admin rights. An exception is thrown if he
+     * does not have them.
      *
      * @throws DbException if this user is not a schema admin
      */
@@ -261,8 +261,8 @@ public class User extends RightOwner {
     }
 
     /**
-     * Check that this user does not own any schema. An exception is thrown if he
-     * owns one or more schemas.
+     * Check that this user does not own any schema. An exception is thrown if
+     * he owns one or more schemas.
      *
      * @throws DbException if this user owns a schema
      */

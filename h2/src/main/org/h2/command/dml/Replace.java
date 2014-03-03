@@ -269,7 +269,8 @@ public class Replace extends Prepared {
             }
             keys = idx.getColumns();
         }
-        // if there is no valid primary key, the statement degenerates to an INSERT
+        // if there is no valid primary key, the statement degenerates to an
+        // INSERT
         for (Column key : keys) {
             boolean found = false;
             for (Column column : columns) {

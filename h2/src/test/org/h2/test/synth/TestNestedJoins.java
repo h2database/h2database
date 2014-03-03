@@ -563,7 +563,7 @@ public class TestNestedJoins extends TestBase {
         // insert into test values(0), (1), (2);
         // select * from test a left outer join
         // (test b inner join test c on b.id = c.id - 2) on a.id = b.id + 1;
-        // expected result: 0   null    null; 1       0       2; 2       null    null
+        // expected result: 0 null null; 1 0 2; 2 null null
         assertTrue(rs.next());
         assertEquals("0", rs.getString(1));
         assertEquals(null, rs.getString(2));

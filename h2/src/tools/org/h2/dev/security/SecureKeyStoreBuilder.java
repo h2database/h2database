@@ -22,8 +22,9 @@ import org.h2.util.StringUtils;
  * Tool to generate source code for the SecureSocketFactory. First, create a
  * keystore using:
  * <pre>
- * keytool -genkey -alias h2 -keyalg RSA -dname &quot;cn=H2&quot; -validity 25000
- *      -keypass h2pass -keystore h2.keystore -storepass h2pass
+ * keytool -genkey -alias h2 -keyalg RSA -dname &quot;cn=H2&quot;
+ *     -validity 25000 -keypass h2pass -keystore h2.keystore
+ *     -storepass h2pass
  * </pre>
  * Then run this application to generate the source code. Then replace the code
  * in the function SecureSocketFactory.getKeyStore as specified
@@ -52,7 +53,8 @@ public class SecureKeyStoreBuilder {
         System.out.println("KeyStore store = KeyStore.getInstance(\""
                 + store.getType() + "\");");
         System.out.println("store.load(null, password.toCharArray());");
-        //System.out.println("keystore provider="+store.getProvider().getName());
+        // System.out.println("keystore provider=" +
+        //         store.getProvider().getName());
         Enumeration<String> en = store.aliases();
         while (en.hasMoreElements()) {
             String alias = en.nextElement();
@@ -78,10 +80,12 @@ public class SecureKeyStoreBuilder {
                         "        generateCertificate(new ByteArrayInputStream(getBytes(\""
                         + enc + "\"))),");
                 // PublicKey pubKey = cert.getPublicKey();
-                // System.out.println("    pubKey algorithm="+pubKey.getAlgorithm());
-                // System.out.println("    pubKey format="+pubKey.getFormat());
+                // System.out.println("    pubKey algorithm=" +
+                //         pubKey.getAlgorithm());
+                // System.out.println("    pubKey format=" +
+                //         pubKey.getFormat());
                 // System.out.println("    pubKey format="+
-                //     Utils.convertBytesToString(pubKey.getEncoded()));
+                //         Utils.convertBytesToString(pubKey.getEncoded()));
             }
             System.out.println("};");
             System.out.println("store.setKeyEntry(\"" + alias

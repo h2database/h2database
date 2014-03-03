@@ -1126,7 +1126,8 @@ public class DataType {
     }
 
     /**
-     * Get the data type that will not overflow when calling 'add' 2 billion times.
+     * Get the data type that will not overflow when calling 'add' 2 billion
+     * times.
      *
      * @param type the value type
      * @return the data type that supports adding
@@ -1149,7 +1150,8 @@ public class DataType {
     }
 
     /**
-     * Get the default value in the form of a Java object for the given Java class.
+     * Get the default value in the form of a Java object for the given Java
+     * class.
      *
      * @param clazz the Java class
      * @return the default object

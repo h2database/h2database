@@ -679,7 +679,8 @@ public class WebServer implements Service {
             }
             // PostgreSQL would throw a NullPointerException
             // if it is loaded before the H2 driver
-            // because it can't deal with non-String objects in the connection Properties
+            // because it can't deal with non-String objects in the connection
+            // Properties
             return org.h2.Driver.load().connect(databaseUrl, p);
         }
 //            try {

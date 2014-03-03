@@ -76,11 +76,11 @@ public class MultiDimension implements Comparator<long[]> {
     }
 
     /**
-     * Convert the multi-dimensional value into a one-dimensional (scalar) value.
-     * This is done by interleaving the bits of the values.
-     * Each values must be between 0 (including) and the maximum value
-     * for the given number of dimensions (getMaxValue, excluding).
-     * To normalize values to this range, use the normalize function.
+     * Convert the multi-dimensional value into a one-dimensional (scalar)
+     * value. This is done by interleaving the bits of the values. Each values
+     * must be between 0 (including) and the maximum value for the given number
+     * of dimensions (getMaxValue, excluding). To normalize values to this
+     * range, use the normalize function.
      *
      * @param values the multi-dimensional value
      * @return the scalar value

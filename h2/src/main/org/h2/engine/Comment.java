@@ -56,7 +56,8 @@ public class Comment extends DbObjectBase {
         case DbObject.USER_DATATYPE:
             return "DOMAIN";
         default:
-            // not supported by parser, but required when trying to find a comment
+            // not supported by parser, but required when trying to find a
+            // comment
             return "type" + type;
         }
     }

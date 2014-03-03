@@ -138,7 +138,8 @@ public class ValueString extends Value {
      * Get or create a string value for the given string.
      *
      * @param s the string
-     * @param treatEmptyStringsAsNull whether or not to treat empty strings as NULL
+     * @param treatEmptyStringsAsNull whether or not to treat empty strings as
+     *            NULL
      * @return the value
      */
     public static Value get(String s, boolean treatEmptyStringsAsNull) {

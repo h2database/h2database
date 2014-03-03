@@ -108,7 +108,8 @@ public class LobStorageBackend implements LobStorageInterface {
             return;
         }
         synchronized (database) {
-            // have to check this again or we might miss an update on another thread
+            // have to check this again or we might miss an update on another
+            // thread
             if (init) {
                 return;
             }
@@ -624,7 +625,8 @@ public class LobStorageBackend implements LobStorageInterface {
 
         /**
          * Data from the LOB_MAP table. We cache this to prevent other updates
-         * to the table that contains the LOB column from changing the data under us.
+         * to the table that contains the LOB column from changing the data
+         * under us.
          */
         private final long[] lobMapBlocks;
 

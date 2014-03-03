@@ -86,8 +86,10 @@ public class TriggerSample {
          * This method is called for each triggered action.
          *
          * @param conn a connection to the database
-         * @param oldRow the old row, or null if no old row is available (for INSERT)
-         * @param newRow the new row, or null if no new row is available (for DELETE)
+         * @param oldRow the old row, or null if no old row is available (for
+         *            INSERT)
+         * @param newRow the new row, or null if no new row is available (for
+         *            DELETE)
          * @throws SQLException if the operation must be undone
          */
         @Override

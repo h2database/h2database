@@ -50,7 +50,8 @@ public class TestJavaObject extends TestBase {
             doTest(Arrays.asList(UUID.randomUUID(), null),
                     Arrays.asList(UUID.randomUUID(), UUID.randomUUID()), true);
             // doTest(new Timestamp(System.currentTimeMillis()),
-            //         new Timestamp(System.currentTimeMillis() + 10000), false);
+            //         new Timestamp(System.currentTimeMillis() + 10000),
+            //         false);
             doTest(200, 100, false);
             doTest(200, 100L, true);
             // doTest(new Date(System.currentTimeMillis() + 1000),
@@ -132,7 +133,8 @@ public class TestJavaObject extends TestBase {
 
         conn.close();
         deleteDb("javaObject");
-        // trace("ok: " + o1.getClass().getName() + " vs " + o2.getClass().getName());
+        // trace("ok: " + o1.getClass().getName() + " vs " +
+        // o2.getClass().getName());
     }
 
     /**

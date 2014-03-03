@@ -1129,7 +1129,8 @@ public class TestMVStore extends TestBase {
                 }
                 s.close();
             }
-            // System.out.println("open/close: " + (System.currentTimeMillis() - t));
+            // System.out.println("open/close: " +
+            //         (System.currentTimeMillis() - t));
             // System.out.println("size: " + FileUtils.size(fileName));
         }
     }
@@ -1487,7 +1488,8 @@ public class TestMVStore extends TestBase {
             for (int i = 0; i < len; i++) {
                 assertEquals("Hello World", m.remove(i));
             }
-            // System.out.println("remove: " + (System.currentTimeMillis() - t));
+            // System.out.println("remove: " +
+            //         (System.currentTimeMillis() - t));
             // System.out.println();
             assertEquals(null, m.get(0));
             assertEquals(0, m.size());
@@ -1524,8 +1526,10 @@ public class TestMVStore extends TestBase {
             }
             s.close();
             // System.out.println(prof.getTop(5));
-            // System.out.println("store time " + (System.currentTimeMillis() - t));
-            // System.out.println("store size " + FileUtils.size(fileName));
+            // System.out.println("store time " +
+            //         (System.currentTimeMillis() - t));
+            // System.out.println("store size " +
+            //         FileUtils.size(fileName));
         }
     }
 

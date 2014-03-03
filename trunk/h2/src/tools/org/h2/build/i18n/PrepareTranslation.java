@@ -529,7 +529,8 @@ public class PrepareTranslation {
             t = "#" + now;
             p.put(key, t);
         }
-        // remove keys that don't exist in the main file (deleted or typo in the key)
+        // remove keys that don't exist in the main file
+        // (deleted or typo in the key)
         for (Object k : new ArrayList<Object>(p.keySet())) {
             String key = (String) k;
             if (!main.containsKey(key)) {

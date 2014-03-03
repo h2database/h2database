@@ -470,8 +470,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         private int averageMemory;
 
         /**
-         * The bit mask that is applied to the key hash code to get the index in the
-         * map array. The mask is the length of the array minus one.
+         * The bit mask that is applied to the key hash code to get the index in
+         * the map array. The mask is the length of the array minus one.
          */
         private int mask;
 
@@ -481,8 +481,9 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         private int stackSize;
 
         /**
-         * The stack of recently referenced elements. This includes all hot entries,
-         * the recently referenced cold entries, and all non-resident cold entries.
+         * The stack of recently referenced elements. This includes all hot
+         * entries, the recently referenced cold entries, and all non-resident
+         * cold entries.
          * <p>
          * There is always at least one entry: the head entry.
          */
@@ -605,8 +606,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         }
 
         /**
-         * Access an item, moving the entry to the top of the stack or front of the
-         * queue if found.
+         * Access an item, moving the entry to the top of the stack or front of
+         * the queue if found.
          *
          * @param key the key
          */
@@ -745,9 +746,9 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         }
 
         /**
-         * Evict cold entries (resident and non-resident) until the memory limit is
-         * reached. The new entry is added as a cold entry, except if it is the only
-         * entry.
+         * Evict cold entries (resident and non-resident) until the memory limit
+         * is reached. The new entry is added as a cold entry, except if it is
+         * the only entry.
          *
          * @param newCold a new cold entry
          */
@@ -789,8 +790,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
                 // internal structure of the cache is corrupt)
                 throw new IllegalStateException();
             }
-            // remove from stack - which is done anyway in the stack pruning, but we
-            // can do it here as well
+            // remove from stack - which is done anyway in the stack pruning,
+            // but we can do it here as well
             removeFromStack(last);
             // adding an entry to the queue will make it cold
             addToQueue(queue, last);
@@ -883,8 +884,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         }
 
         /**
-         * Get the list of keys. This method allows to read the internal state of
-         * the cache.
+         * Get the list of keys. This method allows to read the internal state
+         * of the cache.
          *
          * @param cold if true, only keys for the cold entries are returned
          * @param nonResident true for non-resident entries

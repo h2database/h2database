@@ -156,7 +156,8 @@ public abstract class Query extends Prepared {
     public abstract void mapColumns(ColumnResolver resolver, int level);
 
     /**
-     * Change the evaluatable flag. This is used when building the execution plan.
+     * Change the evaluatable flag. This is used when building the execution
+     * plan.
      *
      * @param tableFilter the table filter
      * @param b the new value

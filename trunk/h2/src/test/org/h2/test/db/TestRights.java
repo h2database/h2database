@@ -273,7 +273,8 @@ public class TestRights extends TestBase {
         conn = getConnection("rights;LOG=2", "SCHEMA_CREATOR", getPassword("xyz"));
         stat = conn.createStatement();
 
-        /* should be able to create a schema and manipulate tables on that schema... */
+        // should be able to create a schema and manipulate tables on that
+        // schema...
         executeSuccess("CREATE SCHEMA SCHEMA_RIGHT_TEST");
         executeSuccess("ALTER SCHEMA SCHEMA_RIGHT_TEST RENAME TO S");
         executeSuccess("CREATE TABLE S.TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
@@ -283,7 +284,7 @@ public class TestRights extends TestBase {
         executeSuccess("DELETE FROM S.TEST");
         executeSuccess("DROP SCHEMA S");
 
-        /* ...and on other schemata */
+        // ...and on other schemata
         executeSuccess("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         executeSuccess("ALTER TABLE TEST ADD COLUMN QUESTION VARCHAR");
         executeSuccess("INSERT INTO  TEST (ID, NAME) VALUES (42, 'Adams')");

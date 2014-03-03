@@ -191,11 +191,11 @@ class Database {
             try {
                 s = newConn.createStatement();
                 // stat.execute("CALL
-                // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageCacheSize',
-                // '64')");
+                // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
+                // 'derby.storage.pageCacheSize', '64')");
                 // stat.execute("CALL
-                // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY('derby.storage.pageSize',
-                // '8192')");
+                // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
+                // 'derby.storage.pageSize', '8192')");
             } finally {
                 JdbcUtils.closeSilently(s);
             }

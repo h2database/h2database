@@ -48,7 +48,8 @@ public class Test extends TestBase {
         // access to static fields with instance variable
         // final variables (within blocks, parameter list)
         // Identifier : (labels)
-        // ClassOrInterfaceDeclaration within blocks (or any other nested classes)
+        // ClassOrInterfaceDeclaration within blocks
+        // (or any other nested classes)
         // assert
 
         assertEquals("\\\\" + "u0000", JavaParser.replaceUnicode("\\\\" + "u0000"));

@@ -66,13 +66,13 @@ public class TestMvcc1 extends TestBase {
         ResultSet rs;
 
         // TODO Prio 1: document: exclusive table lock still used when altering
-        //     tables, adding indexes, select ... for update; table level locks are
-        //     checked
+        // tables, adding indexes, select ... for update; table level locks are
+        // checked
         // TODO Prio 2: if MVCC is used, rows of transactions need to fit in
-        //     memory
+        // memory
         // TODO Prio 2: getFirst / getLast in MultiVersionIndex
         // TODO Prio 2: snapshot isolation (currently read-committed, not
-        //     repeatable read)
+        // repeatable read)
 
         // TODO test: one thread appends, the other
         //     selects new data (select * from test where id > ?) and deletes

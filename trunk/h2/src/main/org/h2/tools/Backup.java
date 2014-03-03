@@ -93,8 +93,8 @@ public class Backup extends Tool {
      *
      * @param zipFileName the name of the target backup file (including path)
      * @param directory the source directory name
-     * @param db the source database name (null if there is only one database, and
-     *          and empty string to backup all files in this directory)
+     * @param db the source database name (null if there is only one database,
+     *            and and empty string to backup all files in this directory)
      * @param quiet don't print progress information
      */
     public static void execute(String zipFileName, String directory, String db,

@@ -1160,7 +1160,8 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         try {
             debugCodeCall("executeBatch");
             if (batchParameters == null) {
-                // TODO batch: check what other database do if no parameters are set
+                // TODO batch: check what other database do if no parameters are
+                // set
                 batchParameters = New.arrayList();
             }
             int size = batchParameters.size();

@@ -77,8 +77,9 @@ public class TestSampleApps extends TestBase {
                 "1/1\n" +
                 "10",
                 org.h2.samples.Function.class);
-        // Not compatible with PostgreSQL JDBC driver (throws a NullPointerException)
-        //testApp(org.h2.samples.SecurePassword.class, null, "Joe");
+        // Not compatible with PostgreSQL JDBC driver (throws a
+        // NullPointerException):
+        // testApp(org.h2.samples.SecurePassword.class, null, "Joe");
         // TODO test ShowProgress (percent numbers are hardware specific)
         // TODO test ShutdownServer (server needs to be started in a separate
         // process)

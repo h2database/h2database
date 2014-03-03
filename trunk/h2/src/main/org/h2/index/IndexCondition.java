@@ -77,7 +77,8 @@ public class IndexCondition {
     private Query expressionQuery;
 
     /**
-     * @param compareType the comparison type, see constants in {@link Comparison}
+     * @param compareType the comparison type, see constants in
+     *            {@link Comparison}
      */
     private IndexCondition(int compareType, ExpressionColumn column,
             Expression expression) {
@@ -89,7 +90,8 @@ public class IndexCondition {
     /**
      * Create an index condition with the given parameters.
      *
-     * @param compareType the comparison type, see constants in {@link Comparison}
+     * @param compareType the comparison type, see constants in
+     *            {@link Comparison}
      * @param column the column
      * @param expression the expression
      * @return the index condition
@@ -317,7 +319,8 @@ public class IndexCondition {
     }
 
     /**
-     * Check if this index condition is of the type spatial column intersects value.
+     * Check if this index condition is of the type spatial column intersects
+     * value.
      *
      * @return true if this is a spatial intersects condition
      */

@@ -118,8 +118,8 @@ abstract class PageData extends Page {
     }
 
     /**
-     * Add a row if possible. If it is possible this method returns -1, otherwise
-     * the split point. It is always possible to add one row.
+     * Add a row if possible. If it is possible this method returns -1,
+     * otherwise the split point. It is always possible to add one row.
      *
      * @param row the now to add
      * @return the split point of this page, or -1 if no split is required

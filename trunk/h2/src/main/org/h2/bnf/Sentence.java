@@ -21,8 +21,9 @@ import org.h2.util.StringUtils;
 public class Sentence {
 
     /**
-     * This token type means the possible choices of the item depend on the context.
-     * For example the item represents a table name of the current database.
+     * This token type means the possible choices of the item depend on the
+     * context. For example the item represents a table name of the current
+     * database.
      */
     public static final int CONTEXT = 0;
 

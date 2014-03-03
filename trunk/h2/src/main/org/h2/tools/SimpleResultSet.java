@@ -208,7 +208,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * This constructor is used if the result set is later populated with addRow.
+     * This constructor is used if the result set is later populated with
+     * addRow.
      */
     public SimpleResultSet() {
         rows = New.arrayList();
@@ -2135,7 +2136,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         return null;
     }
 
-    // ---- unsupported / result set ---------------------------------------------
+    // ---- unsupported / result set -----------------------------------
 
     /**
      * INTERNAL

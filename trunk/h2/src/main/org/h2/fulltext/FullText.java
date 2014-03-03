@@ -765,8 +765,8 @@ public class FullText {
         stat.execute("DROP TRIGGER IF EXISTS " + trigger);
         if (create) {
             StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
-            // needs to be called on rollback as well, because we use the init connection
-            // do to changes in the index (not the user connection)
+            // needs to be called on rollback as well, because we use the init
+            // connection do to changes in the index (not the user connection)
             buff.append(trigger).
                 append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
                 append(StringUtils.quoteIdentifier(schema)).

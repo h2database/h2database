@@ -138,8 +138,8 @@ public class FilePathEncrypt extends FilePathWrapper {
         static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
 
         /**
-         * The length of the file header. Using a smaller header is possible, but
-         * would mean reads and writes are not aligned to the block size.
+         * The length of the file header. Using a smaller header is possible,
+         * but would mean reads and writes are not aligned to the block size.
          */
         static final int HEADER_LENGTH = BLOCK_SIZE;
 

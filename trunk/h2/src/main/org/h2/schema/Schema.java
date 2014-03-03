@@ -129,8 +129,8 @@ public class Schema extends DbObjectBase {
             if (tablesAndViews != null) {
                 // Loop over a copy because the map is modified underneath us.
                 for (Table obj : New.arrayList(tablesAndViews.values())) {
-                    // Check for null because multiple tables might be deleted in one go
-                    // underneath us.
+                    // Check for null because multiple tables might be deleted
+                    // in one go underneath us.
                     if (obj.getName() != null) {
                         if (database.getDependentTable(obj, obj) == null) {
                             database.removeSchemaObject(session, obj);

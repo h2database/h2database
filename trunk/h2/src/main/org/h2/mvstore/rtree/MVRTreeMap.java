@@ -70,7 +70,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     /**
-     * Iterate over all keys that are fully contained within the given rectangle.
+     * Iterate over all keys that are fully contained within the given
+     * rectangle.
      *
      * @param x the rectangle
      * @return the iterator
@@ -78,7 +79,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     public RTreeCursor findContainedKeys(SpatialKey x) {
         return new RTreeCursor(root, x) {
             @Override
-            protected boolean check(boolean leaf, SpatialKey key, SpatialKey test) {
+            protected boolean check(boolean leaf, SpatialKey key,
+                    SpatialKey test) {
                 if (leaf) {
                     return keyType.isInside(key, test);
                 }
@@ -220,9 +222,10 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             Page p = copyOnWrite(root, v);
             Object result;
             if (alwaysAdd || get(key) == null) {
-                if (p.getMemory() > store.getPageSplitSize() && p.getKeyCount() > 1) {
-                    // only possible if this is the root, else we would have split earlier
-                    // (this requires pageSplitSize is fixed)
+                if (p.getMemory() > store.getPageSplitSize() &&
+                        p.getKeyCount() > 1) {
+                    // only possible if this is the root, else we would have
+                    // split earlier (this requires pageSplitSize is fixed)
                     long totalCount = p.getTotalCount();
                     Page split = split(p, v);
                     Object k1 = getBounds(p);
@@ -230,7 +233,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     Object[] keys = { k1, k2 };
                     long[] children = { p.getPos(), split.getPos(), 0 };
                     Page[] childrenPages = { p, split, null };
-                    long[] counts = { p.getTotalCount(), split.getTotalCount(), 0 };
+                    long[] counts = { p.getTotalCount(),
+                            split.getTotalCount(), 0 };
                     p = Page.create(this, v,
                             2, keys, null,
                             3, children, childrenPages, counts,
@@ -505,8 +509,8 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         }
 
         /**
-         * Skip over that many entries. This method is relatively fast (for this map
-         * implementation) even if many entries need to be skipped.
+         * Skip over that many entries. This method is relatively fast (for this
+         * map implementation) even if many entries need to be skipped.
          *
          * @param n the number of entries to skip
          */

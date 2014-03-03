@@ -800,21 +800,21 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * COLUMN_NAME and PRIVILEGE
      *
      * <ul>
-     * <li>1 TABLE_CAT (String) table catalog </li>
-     * <li>2 TABLE_SCHEM (String) table schema </li>
-     * <li>3 TABLE_NAME (String) table name </li>
-     * <li>4 COLUMN_NAME (String) column name </li>
-     * <li>5 GRANTOR (String) grantor of access </li>
-     * <li>6 GRANTEE (String) grantee of access </li>
+     * <li>1 TABLE_CAT (String) table catalog</li>
+     * <li>2 TABLE_SCHEM (String) table schema</li>
+     * <li>3 TABLE_NAME (String) table name</li>
+     * <li>4 COLUMN_NAME (String) column name</li>
+     * <li>5 GRANTOR (String) grantor of access</li>
+     * <li>6 GRANTEE (String) grantee of access</li>
      * <li>7 PRIVILEGE (String) SELECT, INSERT, UPDATE, DELETE or REFERENCES
-     * (only one per row) </li>
+     * (only one per row)</li>
      * <li>8 IS_GRANTABLE (String) YES means the grantee can grant access to
-     * others </li>
+     * others</li>
      * </ul>
      *
      * @param catalogPattern null (to get all objects) or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name (uppercase for
-     *            unquoted names)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param table a table name (uppercase for unquoted names)
      * @param columnNamePattern null (to get all objects) or a column name
      *            (uppercase for unquoted names)
@@ -2824,8 +2824,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * </ul>
      *
      * @param catalog null (to get all objects) or the catalog name
-     * @param schemaPattern null (to get all objects) or a schema name (uppercase for
-     *            unquoted names)
+     * @param schemaPattern null (to get all objects) or a schema name
+     *            (uppercase for unquoted names)
      * @param tableNamePattern null (to get all objects) or a table name pattern
      *            (uppercase for unquoted names)
      * @return an empty result set
@@ -2981,7 +2981,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     private static String getCatalogPattern(String catalogPattern) {
-        // Workaround for OpenOffice: getColumns is called with "" as the catalog
+        // Workaround for OpenOffice: getColumns is called with "" as the
+        // catalog
         return catalogPattern == null || catalogPattern.length() == 0 ?
                 "%" : catalogPattern;
     }
@@ -3039,7 +3040,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * Returns whether the database supports calling functions using the call syntax.
+     * Returns whether the database supports calling functions using the call
+     * syntax.
      *
      * @return true
      */
@@ -3050,7 +3052,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * Returns whether an exception while auto commit is on closes all result sets.
+     * Returns whether an exception while auto commit is on closes all result
+     * sets.
      *
      * @return false
      */

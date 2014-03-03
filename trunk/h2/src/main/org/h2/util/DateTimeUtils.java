@@ -452,8 +452,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Get the number of milliseconds since 1970-01-01 in the local timezone, but
-     * without daylight saving time into account.
+     * Get the number of milliseconds since 1970-01-01 in the local timezone,
+     * but without daylight saving time into account.
      *
      * @param d the date
      * @return the milliseconds

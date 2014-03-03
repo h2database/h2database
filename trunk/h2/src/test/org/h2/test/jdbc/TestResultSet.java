@@ -327,7 +327,8 @@ public class TestResultSet extends TestBase {
     private void testSpecialLocale() throws SQLException {
         Locale old = Locale.getDefault();
         try {
-            // when using Turkish as the default locale, "i".toUpperCase() is not "I"
+            // when using Turkish as the default locale, "i".toUpperCase() is
+            // not "I"
             Locale.setDefault(new Locale("tr"));
             stat.execute("create table test(I1 int, i2 int, b int, c int, d int) " +
                     "as select 1, 1, 1, 1, 1");
@@ -373,7 +374,8 @@ public class TestResultSet extends TestBase {
     private void testAbsolute() throws SQLException {
         // stat.execute("SET MAX_MEMORY_ROWS 90");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
-        // there was a problem when more than MAX_MEMORY_ROWS where in the result set
+        // there was a problem when more than MAX_MEMORY_ROWS where in the
+        // result set
         stat.execute("INSERT INTO TEST SELECT X FROM SYSTEM_RANGE(1, 200)");
         Statement s2 = conn.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);

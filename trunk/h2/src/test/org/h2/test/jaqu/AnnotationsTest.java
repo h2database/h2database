@@ -21,7 +21,8 @@ import org.h2.util.JdbcUtils;
 public class AnnotationsTest extends TestBase {
 
     /**
-     * This object represents a database (actually a connection to the database).
+     * This object represents a database (actually a connection to the
+     * database).
      */
     private Db db;
 

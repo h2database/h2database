@@ -43,8 +43,8 @@
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
  * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package org.h2.compress;
@@ -214,9 +214,10 @@ public final class CompressLZF implements Compressor {
                 // move one byte forward to allow for a literal run control byte
                 outPos++;
                 inPos += len;
-                // rebuild the future, and store the last bytes to the hashtable.
-                // Storing hashes of the last bytes in back-reference improves
-                // the compression ratio and only reduces speed slightly.
+                // rebuild the future, and store the last bytes to the
+                // hashtable. Storing hashes of the last bytes in back-reference
+                // improves the compression ratio and only reduces speed
+                // slightly.
                 future = first(in, inPos);
                 future = next(future, in, inPos);
                 hashTab[hash(future)] = inPos++;
@@ -322,9 +323,10 @@ public final class CompressLZF implements Compressor {
                 // move one byte forward to allow for a literal run control byte
                 outPos++;
                 inPos += len;
-                // rebuild the future, and store the last bytes to the hashtable.
-                // Storing hashes of the last bytes in back-reference improves
-                // the compression ratio and only reduces speed slightly.
+                // rebuild the future, and store the last bytes to the
+                // hashtable. Storing hashes of the last bytes in back-reference
+                // improves the compression ratio and only reduces speed
+                // slightly.
                 future = first(in, inPos);
                 future = next(future, in, inPos);
                 hashTab[hash(future)] = inPos++;

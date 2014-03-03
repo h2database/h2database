@@ -381,7 +381,8 @@ public class Doclet {
             if (hasComment && !method.commentText().startsWith("[") &&
                     !hasThrowsTag) {
                 // [Not supported] and such are not problematic
-                // also not problematic are methods that always throw an exception
+                // also not problematic are methods that always throw an
+                // exception
                 addError("Undocumented return value ("
                         + getLink(clazz, method.position().line()) + ") "
                         + name + " " + getReturnType(method));

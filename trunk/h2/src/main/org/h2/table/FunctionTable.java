@@ -29,7 +29,8 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 
 /**
- * A table backed by a system or user-defined function that returns a result set.
+ * A table backed by a system or user-defined function that returns a result
+ * set.
  */
 public class FunctionTable extends Table {
 

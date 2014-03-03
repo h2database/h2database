@@ -115,8 +115,9 @@ public class IndexCursor implements Cursor {
                 if (columnId >= 0) {
                     IndexColumn idxCol = indexColumns[columnId];
                     if (idxCol != null && (idxCol.sortType & SortOrder.DESCENDING) != 0) {
-                        // if the index column is sorted the other way, we swap end and start
-                        // NULLS_FIRST / NULLS_LAST is not a problem, as nulls never match anyway
+                        // if the index column is sorted the other way, we swap
+                        // end and start NULLS_FIRST / NULLS_LAST is not a
+                        // problem, as nulls never match anyway
                         boolean temp = isStart;
                         isStart = isEnd;
                         isEnd = temp;

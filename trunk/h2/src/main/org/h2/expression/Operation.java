@@ -24,7 +24,8 @@ import org.h2.value.ValueString;
 public class Operation extends Expression {
 
     /**
-     * This operation represents a string concatenation as in 'Hello' || 'World'.
+     * This operation represents a string concatenation as in
+     * 'Hello' || 'World'.
      */
     public static final int CONCAT = 0;
 

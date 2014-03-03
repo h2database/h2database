@@ -130,7 +130,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     /**
      * Find a row or a list of rows that is larger and create a cursor to
-     * iterate over the result. The base implementation doesn't support this feature.
+     * iterate over the result. The base implementation doesn't support this
+     * feature.
      *
      * @param session the session
      * @param higherThan the lower limit (excluding)
@@ -290,7 +291,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param rowData the first row
      * @param compare the second row
-     * @return 0 if both rows are equal, -1 if the first row is smaller, otherwise 1
+     * @return 0 if both rows are equal, -1 if the first row is smaller,
+     *         otherwise 1
      */
     int compareKeys(SearchRow rowData, SearchRow compare) {
         long k1 = rowData.getKey();

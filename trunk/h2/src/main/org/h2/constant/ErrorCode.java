@@ -118,9 +118,8 @@ public class ErrorCode {
 
     /**
      * The error with code <code>22018</code> is thrown when
-     * trying to convert a value to a data type where the conversion is undefined,
-     * or when an error occurred trying to convert.
-     * Example:
+     * trying to convert a value to a data type where the conversion is
+     * undefined, or when an error occurred trying to convert. Example:
      * <pre>
      * CALL CAST(DATE '2001-01-01' AS BOOLEAN);
      * CALL CAST('CHF 99.95' AS INT);
@@ -234,27 +233,27 @@ public class ErrorCode {
 
     /**
      * The error with code <code>28000</code> is thrown when
-     * there is no such user registered in the database, when
-     * the user password does not match, or when the database encryption password
-     * does not match (if database encryption is used).
+     * there is no such user registered in the database, when the user password
+     * does not match, or when the database encryption password does not match
+     * (if database encryption is used).
      */
     public static final int WRONG_USER_OR_PASSWORD = 28000;
 
     // 3B: savepoint exception
 
     /**
-     * The error with code <code>40001</code> is thrown when the database
-     * engine has detected a deadlock. The transaction of this session has been
-     * rolled back to solve the problem. A deadlock occurs when a session tries
-     * to lock a table another session has locked, while the other session wants
-     * to lock a table the first session has locked. As an example, session 1
-     * has locked table A, while session 2 has locked table B. If session 1 now
-     * tries to lock table B and session 2 tries to lock table A, a deadlock has
-     * occurred. Deadlocks that involve more than two sessions are also possible.
-     * To solve deadlock problems, an application should lock tables always in
-     * the same order, such as always lock table A before locking table B. For
-     * details, see <a href="http://en.wikipedia.org/wiki/Deadlock">Wikipedia
-     * Deadlock</a>.
+     * The error with code <code>40001</code> is thrown when
+     * the database engine has detected a deadlock. The transaction of this
+     * session has been rolled back to solve the problem. A deadlock occurs when
+     * a session tries to lock a table another session has locked, while the
+     * other session wants to lock a table the first session has locked. As an
+     * example, session 1 has locked table A, while session 2 has locked table
+     * B. If session 1 now tries to lock table B and session 2 tries to lock
+     * table A, a deadlock has occurred. Deadlocks that involve more than two
+     * sessions are also possible. To solve deadlock problems, an application
+     * should lock tables always in the same order, such as always lock table A
+     * before locking table B. For details, see <a
+     * href="http://en.wikipedia.org/wiki/Deadlock">Wikipedia Deadlock</a>.
      */
     public static final int DEADLOCK_1 = 40001;
 
@@ -283,8 +282,8 @@ public class ErrorCode {
 
     /**
      * The error with code <code>42101</code> is thrown when
-     * trying to create a table or view if an object with this name already exists.
-     * Example:
+     * trying to create a table or view if an object with this name already
+     * exists. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT);
      * CREATE TABLE TEST(ID INT PRIMARY KEY);
@@ -519,10 +518,9 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90013</code> is thrown when
-     * trying to open a database that does not exist using the flag IFEXISTS=TRUE,
-     * or when trying to access a database object with a catalog name that does
-     * not match the database name.
-     * Example:
+     * trying to open a database that does not exist using the flag
+     * IFEXISTS=TRUE, or when trying to access a database object with a catalog
+     * name that does not match the database name. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT);
      * SELECT XYZ.PUBLIC.TEST.ID FROM TEST;
@@ -553,8 +551,8 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90016</code> is thrown when
-     * a column was used in the expression list or the order by clause
-     * of a group or aggregate query, and that column is not in the GROUP BY clause.
+     * a column was used in the expression list or the order by clause of a
+     * group or aggregate query, and that column is not in the GROUP BY clause.
      * Example of wrong usage:
      * <pre>
      * CREATE TABLE TEST(ID INT, NAME VARCHAR);
@@ -833,9 +831,8 @@ public class ErrorCode {
     public static final int ERROR_EXECUTING_TRIGGER_3 = 90044;
 
     /**
-     * The error with code <code>90045</code> is thrown when
-     * trying to create a constraint  if an object with this name already exists.
-     * Example:
+     * The error with code <code>90045</code> is thrown when trying to create a
+     * constraint if an object with this name already exists. Example:
      * <pre>
      * CREATE TABLE TEST(ID INT NOT NULL);
      * ALTER TABLE TEST ADD CONSTRAINT PK PRIMARY KEY(ID);
@@ -846,11 +843,11 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90046</code> is thrown when
-     * trying to open a connection to a database using an unsupported URL format.
-     * Please see the documentation on the supported URL format and examples.
-     * Example:
+     * trying to open a connection to a database using an unsupported URL
+     * format. Please see the documentation on the supported URL format and
+     * examples. Example:
      * <pre>
-     * jdbc:h2:;;
+     * jdbc: h2:;;
      * </pre>
      */
     public static final int URL_FORMAT_ERROR_2 = 90046;
@@ -1672,8 +1669,8 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90123</code> is thrown when
-     * trying mix regular parameters and indexed parameters in the same statement.
-     * Example:
+     * trying mix regular parameters and indexed parameters in the same
+     * statement. Example:
      * <pre>
      * SELECT ?, ?1 FROM DUAL;
      * </pre>
@@ -1689,11 +1686,10 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90125</code> is thrown when
-     * PreparedStatement.setBigDecimal is called
-     * with object that extends the class BigDecimal, and the system property
-     * h2.allowBigDecimalExtensions is not set. Using extensions of BigDecimal is
-     * dangerous because the database relies on the behavior of BigDecimal.
-     * Example of wrong usage:
+     * PreparedStatement.setBigDecimal is called with object that extends the
+     * class BigDecimal, and the system property h2.allowBigDecimalExtensions is
+     * not set. Using extensions of BigDecimal is dangerous because the database
+     * relies on the behavior of BigDecimal. Example of wrong usage:
      * <pre>
      * BigDecimal bd = new MyDecimal("$10.3");
      * prep.setBigDecimal(1, bd);
@@ -1701,7 +1697,7 @@ public class ErrorCode {
      * </pre>
      * Correct:
      * <pre>
-     * BigDecimal bd = new BigDecimal("10.3");
+     * BigDecimal bd = new BigDecimal(&quot;10.3&quot;);
      * prep.setBigDecimal(1, bd);
      * </pre>
      */
@@ -1801,17 +1797,17 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90133</code> is thrown when
-     * trying to change a specific database property while the database is already
-     * open. The MVCC property needs to be set in the first connection
+     * trying to change a specific database property while the database is
+     * already open. The MVCC property needs to be set in the first connection
      * (in the connection opening the database) and can not be changed later on.
      */
     public static final int CANNOT_CHANGE_SETTING_WHEN_OPEN_1 = 90133;
 
     /**
      * The error with code <code>90134</code> is thrown when
-     * trying to load a Java class that is not part of the allowed classes.
-     * By default, all classes are allowed, but this can be changed using the system
-     * property h2.allowedClasses.
+     * trying to load a Java class that is not part of the allowed classes. By
+     * default, all classes are allowed, but this can be changed using the
+     * system property h2.allowedClasses.
      */
     public static final int ACCESS_DENIED_TO_CLASS_1 = 90134;
 
@@ -1887,8 +1883,8 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90141</code> is thrown when
-     * trying to change the java object serializer while there was already data in
-     * the database. The serializer of the database must be set when the
+     * trying to change the java object serializer while there was already data
+     * in the database. The serializer of the database must be set when the
      * database is empty.
      */
     public static final int JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE = 90141;

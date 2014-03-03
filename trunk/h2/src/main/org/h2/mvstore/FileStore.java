@@ -115,8 +115,8 @@ public class FileStore {
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
         if (fileName != null) {
             if (FilePath.get(fileName) instanceof FilePathDisk) {
-                // NIO is used, unless a different file system is specified
-                // the following line is to ensure the NIO file system is compiled
+                // NIO is used, unless a different file system is specified the
+                // following line is to ensure the NIO file system is compiled
                 FilePathNio.class.getName();
                 fileName = "nio:" + fileName;
             }

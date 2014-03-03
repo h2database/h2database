@@ -11,8 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 
 /**
- * Messages used in the database engine.
- * Use the PropertiesToUTF8 tool to translate properties files to UTF-8 and back.
+ * Messages used in the database engine. Use the PropertiesToUTF8 tool to
+ * translate properties files to UTF-8 and back.
  * If the word 'SQL' appears then the whole SQL statement must be a parameter,
  * otherwise this may be added: '; SQL statement: ' + sql
  */

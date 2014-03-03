@@ -22,8 +22,8 @@ import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
 /**
- * This class is used for updatable result sets.
- * An updatable row provides functions to update the current row in a result set.
+ * This class is used for updatable result sets. An updatable row provides
+ * functions to update the current row in a result set.
  */
 public class UpdatableRow {
 

@@ -392,7 +392,8 @@ public class FunctionAlias extends SchemaObjectBase {
          *
          * @param session the session
          * @param args the argument list
-         * @param columnList true if the function should only return the column list
+         * @param columnList true if the function should only return the column
+         *            list
          * @return the value
          */
         public Value getValue(Session session, Expression[] args,
@@ -446,10 +447,9 @@ public class FunctionAlias extends SchemaObjectBase {
                 if (o == null) {
                     if (paramClass.isPrimitive()) {
                         if (columnList) {
-                            // if the column list is requested, the parameters may
-                            // be null
-                            // need to set to default value,
-                            // otherwise the function can't be called at all
+                            // If the column list is requested, the parameters
+                            // may be null. Need to set to default value,
+                            // otherwise the function can't be called at all.
                             o = DataType.getDefaultForPrimitiveType(paramClass);
                         } else {
                             // NULL for a java primitive: return NULL

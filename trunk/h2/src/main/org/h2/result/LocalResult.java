@@ -73,7 +73,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
     }
 
     /**
-     * Construct a local result set by reading all data from a regular result set.
+     * Construct a local result set by reading all data from a regular result
+     * set.
      *
      * @param session the session
      * @param rs the result set
@@ -334,7 +335,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
                         }
                     }
                     temp.close();
-                    // the remaining data in rows is written in the following lines
+                    // the remaining data in rows is written in the following
+                    // lines
                 }
             }
         }

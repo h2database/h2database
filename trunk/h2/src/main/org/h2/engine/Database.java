@@ -889,8 +889,8 @@ public class Database implements DataHandler {
                 Row found = cursor.get();
                 meta.removeRow(session, found);
                 if (isMultiVersion()) {
-                    // TODO this should work without MVCC, but avoid risks at the
-                    // moment
+                    // TODO this should work without MVCC, but avoid risks at
+                    // the moment
                     session.log(meta, UndoLogRecord.DELETE, found);
                 }
                 objectIds.clear(id);

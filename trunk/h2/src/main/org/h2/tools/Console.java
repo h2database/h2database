@@ -410,7 +410,8 @@ ShutdownHandler {
             }
             Image icon = loadImage(iconFile);
 
-            // trayIcon = new TrayIcon(image, "H2 Database Engine", menuConsole);
+            // trayIcon = new TrayIcon(image, "H2 Database Engine",
+            //         menuConsole);
             trayIcon = Utils.newInstance("java.awt.TrayIcon",
                     icon, "H2 Database Engine", menuConsole);
 

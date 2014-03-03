@@ -52,7 +52,8 @@ public interface Index extends SchemaObject {
     void remove(Session session, Row row);
 
     /**
-     * Find a row or a list of rows and create a cursor to iterate over the result.
+     * Find a row or a list of rows and create a cursor to iterate over the
+     * result.
      *
      * @param session the session
      * @param first the first row, or null for no limit
@@ -62,10 +63,11 @@ public interface Index extends SchemaObject {
     Cursor find(Session session, SearchRow first, SearchRow last);
 
     /**
-     * Find a row or a list of rows and create a cursor to iterate over the result.
+     * Find a row or a list of rows and create a cursor to iterate over the
+     * result.
      *
-     * @param filter the table filter (which possibly knows
-     *          about additional conditions)
+     * @param filter the table filter (which possibly knows about additional
+     *            conditions)
      * @param first the first row, or null for no limit
      * @param last the last row, or null for no limit
      * @return the cursor to iterate over the results
@@ -173,7 +175,8 @@ public interface Index extends SchemaObject {
      *
      * @param rowData the first row
      * @param compare the second row
-     * @return 0 if both rows are equal, -1 if the first row is smaller, otherwise 1
+     * @return 0 if both rows are equal, -1 if the first row is smaller,
+     *         otherwise 1
      */
     int compareRows(SearchRow rowData, SearchRow compare);
 

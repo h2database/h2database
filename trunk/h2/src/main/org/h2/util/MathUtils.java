@@ -95,7 +95,8 @@ public class MathUtils {
 
             try {
                 Thread t = new Thread(runnable, "Generate Seed");
-                // let the process terminate even if generating the seed is really slow
+                // let the process terminate even if generating the seed is
+                // really slow
                 t.setDaemon(true);
                 t.start();
                 Thread.yield();
@@ -248,8 +249,8 @@ public class MathUtils {
     }
 
     /**
-     * Compare two values. Returns -1 if the first value is smaller, 1 if bigger,
-     * and 0 if equal.
+     * Compare two values. Returns -1 if the first value is smaller, 1 if
+     * bigger, and 0 if equal.
      *
      * @param a the first value
      * @param b the second value
@@ -260,8 +261,8 @@ public class MathUtils {
     }
 
     /**
-     * Compare two values. Returns -1 if the first value is smaller, 1 if bigger,
-     * and 0 if equal.
+     * Compare two values. Returns -1 if the first value is smaller, 1 if
+     * bigger, and 0 if equal.
      *
      * @param a the first value
      * @param b the second value

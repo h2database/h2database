@@ -1005,7 +1005,8 @@ public class WebApp {
             if (SysProperties.CONSOLE_STREAM && server.getAllowChunked()) {
                 String page = new String(server.getFile("result.jsp"), Constants.UTF8);
                 int idx = page.indexOf("${result}");
-                // the first element of the list is the header, the last the footer
+                // the first element of the list is the header, the last the
+                // footer
                 list.add(0, page.substring(0, idx));
                 list.add(page.substring(idx + "${result}".length()));
                 session.put("chunks", new Iterator<String>() {

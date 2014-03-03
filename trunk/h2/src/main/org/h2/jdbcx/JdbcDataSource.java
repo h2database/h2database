@@ -375,7 +375,8 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     }
 
     /**
-     * Open a new pooled connection using the current URL, user name and password.
+     * Open a new pooled connection using the current URL, user name and
+     * password.
      *
      * @return the connection
      */

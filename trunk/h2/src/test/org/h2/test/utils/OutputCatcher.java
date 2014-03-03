@@ -22,7 +22,8 @@ import java.io.PrintWriter;
 public class OutputCatcher {
 
     /**
-     * The HTML text will contain this string if something was written to System.err.
+     * The HTML text will contain this string if something was written to
+     * System.err.
      */
     public static final String START_ERROR = "<span style=\"color:red;\">";
 

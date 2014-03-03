@@ -2236,7 +2236,8 @@ public class MVStore {
     }
 
     /**
-     * A background writer thread to automatically store changes from time to time.
+     * A background writer thread to automatically store changes from time to
+     * time.
      */
     private static class BackgroundWriterThread extends Thread {
 

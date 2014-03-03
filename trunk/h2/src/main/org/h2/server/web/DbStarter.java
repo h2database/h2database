@@ -32,7 +32,8 @@ public class DbStarter implements ServletContextListener {
         try {
             org.h2.Driver.load();
 
-            // This will get the setting from a context-param in web.xml if defined:
+            // This will get the setting from a context-param in web.xml if
+            // defined:
             ServletContext servletContext = servletContextEvent.getServletContext();
             String url = getParameter(servletContext, "db.url", "jdbc:h2:~/test");
             String user = getParameter(servletContext, "db.user", "sa");

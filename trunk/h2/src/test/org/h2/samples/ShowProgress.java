@@ -16,9 +16,9 @@ import org.h2.api.DatabaseEventListener;
 import org.h2.jdbc.JdbcConnection;
 
 /**
- * This example application implements a database event listener.
- * This is useful to display progress information while opening a large database,
- * or to log database exceptions.
+ * This example application implements a database event listener. This is useful
+ * to display progress information while opening a large database, or to log
+ * database exceptions.
  */
 public class ShowProgress implements DatabaseEventListener {
 
@@ -103,7 +103,8 @@ public class ShowProgress implements DatabaseEventListener {
     }
 
     /**
-     * This method is called when opening the database to notify about the progress.
+     * This method is called when opening the database to notify about the
+     * progress.
      *
      * @param state the current state
      * @param name the object name (depends on the state)

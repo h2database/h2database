@@ -182,7 +182,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public String getString(int parameterIndex) throws SQLException {
@@ -195,7 +196,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -209,7 +210,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -223,7 +224,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex (1,2,...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -237,7 +238,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public int getInt(int parameterIndex) throws SQLException {
@@ -250,7 +252,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -264,7 +266,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -278,7 +280,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -295,7 +297,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param scale is ignored
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -310,7 +312,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -324,7 +326,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public Date getDate(int parameterIndex) throws SQLException {
@@ -337,7 +340,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public Time getTime(int parameterIndex) throws SQLException {
@@ -350,7 +354,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public Timestamp getTimestamp(int parameterIndex) throws SQLException {
@@ -364,7 +369,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value or null
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -378,7 +383,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public BigDecimal getBigDecimal(int parameterIndex) throws SQLException {
@@ -409,7 +415,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -423,7 +429,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -437,7 +443,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -453,7 +459,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param cal the calendar
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -469,7 +475,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param cal the calendar
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -485,7 +491,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param cal the calendar
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -510,7 +516,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param cal the calendar
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -526,7 +532,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param cal the calendar
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -541,7 +547,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param cal the calendar
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public Date getDate(String parameterName, Calendar cal) throws SQLException {
@@ -553,7 +560,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -566,7 +573,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -579,7 +586,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -610,7 +617,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -624,7 +631,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value or null
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -637,7 +644,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -650,7 +657,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -663,7 +670,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public Date getDate(String parameterName) throws SQLException {
@@ -675,7 +683,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -688,7 +696,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -701,7 +709,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -714,7 +722,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -727,7 +735,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public int getInt(String parameterName) throws SQLException {
@@ -739,7 +748,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -752,7 +761,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -765,7 +774,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -778,7 +787,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public String getString(String parameterName) throws SQLException {
@@ -810,7 +820,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public NClob getNClob(int parameterIndex) throws SQLException {
@@ -823,7 +834,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is closed
+     * @throws SQLException if the column is not found or if this object is
+     *             closed
      */
     @Override
     public NClob getNClob(String parameterName) throws SQLException {
@@ -831,7 +843,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML object.
+     * [Not supported] Returns the value of the specified column as a SQLXML
+     * object.
      */
     @Override
     public SQLXML getSQLXML(int parameterIndex) throws SQLException {
@@ -839,7 +852,8 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
-     * [Not supported] Returns the value of the specified column as a SQLXML object.
+     * [Not supported] Returns the value of the specified column as a SQLXML
+     * object.
      */
     @Override
     public SQLXML getSQLXML(String parameterName) throws SQLException {
@@ -851,7 +865,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -865,7 +879,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -878,7 +892,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -893,7 +907,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -907,7 +921,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterIndex the parameter index (1, 2, ...)
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override
@@ -922,7 +936,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      *
      * @param parameterName the parameter name
      * @return the value
-     * @throws SQLException if the column is not found or if the result set is
+     * @throws SQLException if the column is not found or if this object is
      *             closed
      */
     @Override

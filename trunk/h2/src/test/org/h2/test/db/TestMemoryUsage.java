@@ -153,7 +153,8 @@ public class TestMemoryUsage extends TestBase {
         int len = getSize(10000, 100000);
         for (int i = 0; i < len; i++) {
             if (i % 1000 == 0) {
-                // trace("[" + i + "/" + len + "] KB: " + MemoryUtils.getMemoryUsed());
+                // trace("[" + i + "/" + len + "] KB: " +
+                //         MemoryUtils.getMemoryUsed());
             }
             prep.setInt(1, i);
             prep.executeUpdate();

@@ -118,8 +118,8 @@ public class StringUtils {
 
     /**
      * Convert a string to a SQL literal. Null is converted to NULL. The text is
-     * enclosed in single quotes. If there are any special characters, the method
-     * STRINGDECODE is used.
+     * enclosed in single quotes. If there are any special characters, the
+     * method STRINGDECODE is used.
      *
      * @param s the text to convert.
      * @return the SQL literal

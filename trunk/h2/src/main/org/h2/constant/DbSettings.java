@@ -91,7 +91,8 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>DEFRAG_ALWAYS</code> (default: false).<br />
-     * Each time the database is closed, it is fully defragmented (SHUTDOWN DEFRAG).
+     * Each time the database is closed, it is fully defragmented (SHUTDOWN
+     * DEFRAG).
      */
     public final boolean defragAlways = get("DEFRAG_ALWAYS", false);
 
@@ -118,16 +119,18 @@ public class DbSettings extends SettingsBase {
             "ESTIMATED_FUNCTION_TABLE_ROWS", 1000);
 
     /**
-     * Database setting <code>FUNCTIONS_IN_SCHEMA</code> (default:
-     * true).<br />
-     * If set, all functions are stored in a schema. Specially, the SCRIPT statement
-     * will always include the schema name in the CREATE ALIAS statement.
-     * This is not backward compatible with H2 versions 1.2.134 and older.
+     * Database setting <code>FUNCTIONS_IN_SCHEMA</code>
+     * (default: true).<br />
+     * If set, all functions are stored in a schema. Specially, the SCRIPT
+     * statement will always include the schema name in the CREATE ALIAS
+     * statement. This is not backward compatible with H2 versions 1.2.134 and
+     * older.
      */
     public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", true);
 
     /**
-     * Database setting <code>LARGE_RESULT_BUFFER_SIZE</code> (default: 4096).<br />
+     * Database setting <code>LARGE_RESULT_BUFFER_SIZE</code>
+     * (default: 4096).<br />
      * Buffer size for large result sets. Set this value to 0 to disable the
      * buffer.
      */

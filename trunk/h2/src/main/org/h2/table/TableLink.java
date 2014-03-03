@@ -39,8 +39,8 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
 /**
- * A linked table contains connection information for a table accessible by JDBC.
- * The table may be stored in a different database.
+ * A linked table contains connection information for a table accessible by
+ * JDBC. The table may be stored in a different database.
  */
 public class TableLink extends Table {
 

@@ -77,7 +77,8 @@ public class TestSecurity extends TestBase {
                 "salt".getBytes(), 4096, 32)));
         // take a very long time to calculate
         // assertEquals(
-        //         "cf81c66fe8cfc04d1f31ecb65dab4089f7f179e89b3b0bcb17ad10e3ac6eba46",
+        //         "cf81c66fe8cfc04d1f31ecb65dab4089f7f179e" +
+        //         "89b3b0bcb17ad10e3ac6eba46",
         //         StringUtils.convertBytesToHex(
         //         SHA256.getPBKDF2(
         //         "password".getBytes(),

@@ -154,7 +154,8 @@ public class PageBtreeNode extends PageBtree {
      *
      * @param x the position
      * @param childPageId the child
-     * @param row the row smaller than the first row of the child and its children
+     * @param row the row smaller than the first row of the child and its
+     *            children
      */
     private void addChild(int x, int childPageId, SearchRow row) {
         int rowLength = index.getRowSize(data, row, onlyPosition);

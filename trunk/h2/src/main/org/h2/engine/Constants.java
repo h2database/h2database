@@ -205,8 +205,8 @@ public class Constants {
     public static final int DEFAULT_LOCK_MODE = LOCK_MODE_READ_COMMITTED;
 
     /**
-     * The default maximum length of an LOB that is stored with the record itself,
-     * and not in a separate place.
+     * The default maximum length of an LOB that is stored with the record
+     * itself, and not in a separate place.
      */
     public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 128;
 
@@ -384,7 +384,8 @@ public class Constants {
     public static final int SELECTIVITY_DISTINCT_COUNT = 10000;
 
     /**
-     * The default directory name of the server properties file for the H2 Console.
+     * The default directory name of the server properties file for the H2
+     * Console.
      */
     public static final String SERVER_PROPERTIES_DIR = "~";
 
@@ -490,8 +491,8 @@ public class Constants {
     }
 
     /**
-     * Get the version of this product, consisting of major version, minor version,
-     * and build id.
+     * Get the version of this product, consisting of major version, minor
+     * version, and build id.
      *
      * @return the version number
      */

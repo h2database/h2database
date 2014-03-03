@@ -60,8 +60,8 @@ public abstract class Expression {
     public abstract Expression optimize(Session session);
 
     /**
-     * Tell the expression columns whether the table filter can return values now.
-     * This is used when optimizing the query.
+     * Tell the expression columns whether the table filter can return values
+     * now. This is used when optimizing the query.
      *
      * @param tableFilter the table filter
      * @param value true if the table filter can return value
@@ -99,12 +99,11 @@ public abstract class Expression {
     public abstract String getSQL();
 
     /**
-     * Update an aggregate value.
-     * This method is called at statement execution time.
-     * It is usually called once for each row, but if the expression is used multiple
-     * times (for example in the column list, and as part of the HAVING expression)
-     * it is called multiple times - the row counter needs to be used to make sure
-     * the internal state is only updated once.
+     * Update an aggregate value. This method is called at statement execution
+     * time. It is usually called once for each row, but if the expression is
+     * used multiple times (for example in the column list, and as part of the
+     * HAVING expression) it is called multiple times - the row counter needs to
+     * be used to make sure the internal state is only updated once.
      *
      * @param session the session
      */

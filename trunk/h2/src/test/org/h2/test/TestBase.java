@@ -811,8 +811,9 @@ public abstract class TestBase {
      * Check that a text starts with the expected characters..
      *
      * @param text the text
-     * @param  expectedStart the expected prefix
-     * @throws AssertionError if the text does not start with the expected characters
+     * @param expectedStart the expected prefix
+     * @throws AssertionError if the text does not start with the expected
+     *             characters
      */
     protected void assertStartsWith(String text, String expectedStart) {
         if (!text.startsWith(expectedStart)) {

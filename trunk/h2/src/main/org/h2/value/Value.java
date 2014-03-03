@@ -726,8 +726,8 @@ public abstract class Value {
             case TIME: {
                 switch (getType()) {
                 case DATE:
-                    // need to normalize the year, month and day
-                    // because a date has the time set to 0, the result will be 0
+                    // need to normalize the year, month and day because a date
+                    // has the time set to 0, the result will be 0
                     return ValueTime.fromNanos(0);
                 case TIMESTAMP:
                     return ValueTime.fromNanos(
@@ -1070,8 +1070,8 @@ public abstract class Value {
     }
 
     /**
-     * Get a medium size SQL expression for debugging or tracing. If the precision is
-     * too large, only a subset of the value is returned.
+     * Get a medium size SQL expression for debugging or tracing. If the
+     * precision is too large, only a subset of the value is returned.
      *
      * @return the SQL expression
      */
@@ -1085,7 +1085,8 @@ public abstract class Value {
     }
 
     /**
-     * Throw the exception that the feature is not support for the given data type.
+     * Throw the exception that the feature is not support for the given data
+     * type.
      *
      * @param op the operation
      * @return never returns normally

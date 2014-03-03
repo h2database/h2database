@@ -182,12 +182,12 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
     }
 
     /**
-     * Get the list of prepared transaction branches.
-     * This method is called by the transaction manager during recovery.
+     * Get the list of prepared transaction branches. This method is called by
+     * the transaction manager during recovery.
      *
-     * @param flag TMSTARTRSCAN, TMENDRSCAN, or TMNOFLAGS. If no other flags are set,
-     *  TMNOFLAGS must be used.
-     *  @return zero or more Xid objects
+     * @param flag TMSTARTRSCAN, TMENDRSCAN, or TMNOFLAGS. If no other flags are
+     *            set, TMNOFLAGS must be used.
+     * @return zero or more Xid objects
      */
     @Override
     public Xid[] recover(int flag) throws XAException {

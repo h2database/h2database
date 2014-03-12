@@ -31,9 +31,19 @@ public class FileStore {
     protected long readCount;
 
     /**
+     * The number of read bytes.
+     */
+    protected long readBytes;
+
+    /**
      * The number of write operations.
      */
     protected long writeCount;
+
+    /**
+     * The number of written bytes.
+     */
+    protected long writeBytes;
 
     /**
      * The free spaces between the chunks. The first block to use is block 2
@@ -85,9 +95,10 @@ public class FileStore {
      * @return the byte buffer
      */
     public ByteBuffer readFully(long pos, int len) {
-        readCount++;
         ByteBuffer dst = ByteBuffer.allocate(len);
         DataUtils.readFully(file, pos, dst);
+        readCount++;
+        readBytes += len;
         return dst;
     }
 
@@ -98,9 +109,11 @@ public class FileStore {
      * @param src the source buffer
      */
     public void writeFully(long pos, ByteBuffer src) {
-        writeCount++;
-        fileSize = Math.max(fileSize, pos + src.remaining());
+        int len = src.remaining();
+        fileSize = Math.max(fileSize, pos + len);
         DataUtils.writeFully(file, pos, src);
+        writeCount++;
+        writeBytes += len;
     }
 
     /**
@@ -259,6 +272,15 @@ public class FileStore {
     }
 
     /**
+     * Get the number of written bytes since this store was opened.
+     *
+     * @return the number of write operations
+     */
+    public long getWriteBytes() {
+        return writeBytes;
+    }
+
+    /**
      * Get the number of read operations since this store was opened.
      * For file based stores, this is the number of file read operations.
      *
@@ -266,6 +288,15 @@ public class FileStore {
      */
     public long getReadCount() {
         return readCount;
+    }
+
+    /**
+     * Get the number of read bytes since this store was opened.
+     *
+     * @return the number of write operations
+     */
+    public long getReadBytes() {
+        return readBytes;
     }
 
     public boolean isReadOnly() {

@@ -79,7 +79,7 @@ public class MVTableEngine implements TableEngine {
                 builder.encryptionKey(password);
             }
             if (db.getSettings().compressData) {
-                builder.compressData();
+                builder.compress();
                 // use a larger page split size to improve the compression ratio
                 builder.pageSplitSize(64 * 1024);
             }

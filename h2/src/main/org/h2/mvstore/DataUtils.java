@@ -94,9 +94,14 @@ public class DataUtils {
     public static final int PAGE_TYPE_NODE = 1;
 
     /**
-     * The bit mask for compressed pages.
+     * The bit mask for compressed pages (compression level fast).
      */
     public static final int PAGE_COMPRESSED = 2;
+
+    /**
+     * The bit mask for compressed pages (compression level high).
+     */
+    public static final int PAGE_COMPRESSED_HIGH = 2 + 4;
 
     /**
      * The maximum length of a variable size int.
@@ -394,12 +399,13 @@ public class DataUtils {
     }
 
     /**
-     * Read from a file channel until the buffer is full, or end-of-file
-     * has been reached. The buffer is rewind after reading.
+     * Read from a file channel until the buffer is full.
+     * The buffer is rewind after reading.
      *
      * @param file the file channel
      * @param pos the absolute position within the file
      * @param dst the byte buffer
+     * @throws IllegalStateException if some data could not be read
      */
     public static void readFully(FileChannel file, long pos, ByteBuffer dst) {
         try {
@@ -662,19 +668,25 @@ public class DataUtils {
      * Calculate the Fletcher32 checksum.
      *
      * @param bytes the bytes
-     * @param length the message length (must be a multiple of 2)
+     * @param length the message length (if odd, 0 is appended)
      * @return the checksum
      */
     public static int getFletcher32(byte[] bytes, int length) {
         int s1 = 0xffff, s2 = 0xffff;
-        for (int i = 0; i < length;) {
+        int i = 0, evenLength = length / 2 * 2;
+        while (i < evenLength) {
             // reduce after 360 words (each word is two bytes)
-            for (int end = Math.min(i + 720, length); i < end;) {
+            for (int end = Math.min(i + 720, evenLength); i < end;) {
                 int x = ((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff);
                 s2 += s1 += x;
             }
             s1 = (s1 & 0xffff) + (s1 >>> 16);
             s2 = (s2 & 0xffff) + (s2 >>> 16);
+        }
+        if (i < length) {
+            // odd length: append 0
+            int x = (bytes[i] & 0xff) << 8;
+            s2 += s1 += x;
         }
         s1 = (s1 & 0xffff) + (s1 >>> 16);
         s2 = (s2 & 0xffff) + (s2 >>> 16);

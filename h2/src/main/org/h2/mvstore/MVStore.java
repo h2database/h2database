@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
@@ -186,12 +187,14 @@ public class MVStore {
     private int versionsToKeep = 5;
 
     /**
-     * Whether to compress new pages. Even if disabled, the store may contain
-     * (old) compressed pages.
+     * The compression level for new pages (0 for disabled, 1 for fast, 2 for
+     * high). Even if disabled, the store may contain (old) compressed pages.
      */
-    private final boolean compress;
+    private final int compressionLevel;
 
-    private final Compressor compressor = new CompressLZF();
+    private Compressor compressorFast;
+
+    private Compressor compressorHigh;
 
     private final UncaughtExceptionHandler backgroundExceptionHandler;
 
@@ -247,9 +250,10 @@ public class MVStore {
      * @throws IllegalArgumentException if the directory does not exist
      */
     MVStore(HashMap<String, Object> config) {
-        this.compress = config.containsKey("compress");
+        Object o = config.get("compress");
+        this.compressionLevel = o == null ? 0 : (Integer) o;
         String fileName = (String) config.get("fileName");
-        Object o = config.get("pageSplitSize");
+        o = config.get("pageSplitSize");
         if (o == null) {
             pageSplitSize = fileName == null ? 4 * 1024 : 16 * 1024;
         } else {
@@ -525,7 +529,7 @@ public class MVStore {
                 s = s.substring(0, s.lastIndexOf("fletcher") - 1);
                 byte[] bytes = s.getBytes(DataUtils.LATIN);
                 int checksum = DataUtils.getFletcher32(bytes,
-                        bytes.length / 2 * 2);
+                        bytes.length);
                 if (check != checksum) {
                     continue;
                 }
@@ -683,7 +687,7 @@ public class MVStore {
             m.remove("fletcher");
             s = s.substring(0, s.lastIndexOf("fletcher") - 1);
             byte[] bytes = s.getBytes(DataUtils.LATIN);
-            int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+            int checksum = DataUtils.getFletcher32(bytes, bytes.length);
             if (check == checksum) {
                 int chunk = DataUtils.readHexInt(m, "chunk", 0);
                 Chunk c = new Chunk(chunk);
@@ -706,7 +710,7 @@ public class MVStore {
         }
         DataUtils.appendMap(buff, fileHeader);
         byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
-        int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
         buff.append("\n");
         bytes = buff.toString().getBytes(DataUtils.LATIN);
@@ -1676,12 +1680,22 @@ public class MVStore {
         }
     }
 
-    Compressor getCompressor() {
-        return compressor;
+    Compressor getCompressorFast() {
+        if (compressorFast == null) {
+            compressorFast = new CompressLZF();
+        }
+        return compressorFast;
     }
 
-    boolean getCompress() {
-        return compress;
+    Compressor getCompressorHigh() {
+        if (compressorHigh == null) {
+            compressorHigh = new CompressDeflate();
+        }
+        return compressorHigh;
+    }
+
+    int getCompressionLevel() {
+        return compressionLevel;
     }
 
     public int getPageSplitSize() {
@@ -2248,6 +2262,15 @@ public class MVStore {
     }
 
     /**
+     * Get the cache.
+     *
+     * @return the cache
+     */
+    public CacheLongKeyLIRS<Page> getCache() {
+        return cache;
+    }
+
+    /**
      * A background writer thread to automatically store changes from time to
      * time.
      */
@@ -2391,8 +2414,23 @@ public class MVStore {
          *
          * @return this
          */
-        public Builder compressData() {
+        public Builder compress() {
             return set("compress", 1);
+        }
+
+        /**
+         * Compress data before writing using the Deflate algorithm. This will
+         * save more disk space, but will slow down read and write operations
+         * quite a bit.
+         * <p>
+         * This setting only affects writes; it is not necessary to enable
+         * compression when reading, even if compression was enabled when
+         * writing.
+         *
+         * @return this
+         */
+        public Builder compressHigh() {
+            return set("compress", 2);
         }
 
         /**

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
+
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.New;
@@ -765,11 +766,47 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        HashMap<K, V> map = new HashMap<K, V>();
-        for (Cursor<K, V> cursor = cursor(null); cursor.hasNext();) {
-            map.put(cursor.next(), cursor.getValue());
-        }
-        return map.entrySet();
+        final MVMap<K, V> map = this;
+        final Page root = this.root;
+        return new AbstractSet<Entry<K, V>>() {
+
+            @Override
+            public Iterator<Entry<K, V>> iterator() {
+                final Cursor<K, V> cursor = new Cursor<K, V>(map, root, null);
+                return new Iterator<Entry<K, V>>() {
+
+                    @Override
+                    public boolean hasNext() {
+                        return cursor.hasNext();
+                    }
+
+                    @Override
+                    public Entry<K, V> next() {
+                        K k = cursor.next();
+                        return new DataUtils.MapEntry<K, V>(k, cursor.getValue());
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw DataUtils.newUnsupportedOperationException(
+                                "Removing is not supported");
+                    }
+                };
+
+            }
+
+            @Override
+            public int size() {
+                return MVMap.this.size();
+            }
+
+            @Override
+            public boolean contains(Object o) {
+                return MVMap.this.containsKey(o);
+            }
+
+        };
+
     }
 
     @Override

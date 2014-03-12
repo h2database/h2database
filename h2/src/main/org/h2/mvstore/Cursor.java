@@ -19,7 +19,7 @@ public class Cursor<K, V> implements Iterator<K> {
     private final MVMap<K, ?> map;
     private final K from;
     private CursorPos pos;
-    private K current;
+    private K current, last;
     private V currentValue, lastValue;
     private final Page root;
     private boolean initialized;
@@ -44,9 +44,19 @@ public class Cursor<K, V> implements Iterator<K> {
     public K next() {
         hasNext();
         K c = current;
+        last = current;
         lastValue = currentValue;
         fetchNext();
         return c;
+    }
+
+    /**
+     * Get the last read key if there was one.
+     *
+     * @return the key or null
+     */
+    public K getKey() {
+        return last;
     }
 
     /**

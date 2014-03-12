@@ -39,6 +39,7 @@ public class OffHeapStore extends FileStore {
                     "Could not read from position {0}", pos);
         }
         readCount++;
+        readBytes += len;
         ByteBuffer buff = memEntry.getValue();
         ByteBuffer read = buff.duplicate();
         int offset = (int) (pos - memEntry.getKey());
@@ -81,6 +82,7 @@ public class OffHeapStore extends FileStore {
                         "partial overwrite is not supported", pos);
             }
             writeCount++;
+            writeBytes += length;
             buff.rewind();
             buff.put(src);
             return;
@@ -95,8 +97,9 @@ public class OffHeapStore extends FileStore {
     }
 
     private void writeNewEntry(long pos, ByteBuffer src) {
-        writeCount++;
         int length = src.remaining();
+        writeCount++;
+        writeBytes += length;
         ByteBuffer buff = ByteBuffer.allocateDirect(length);
         buff.put(src);
         buff.rewind();

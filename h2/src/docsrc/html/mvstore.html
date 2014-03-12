@@ -103,7 +103,7 @@ Example usage:
 MVStore s = new MVStore.Builder().
     fileName(fileName).
     encryptionKey("007".toCharArray()).
-    compressData().
+    compress().
     open();
 </pre>
 <p>
@@ -114,7 +114,10 @@ The list of available options is:
 </li><li>backgroundExceptionHandler: specify a handler for
     exceptions that could occur while writing in the background.
 </li><li>cacheSize: the cache size in MB.
-</li><li>compressData: compress the data when storing.
+</li><li>compress: compress the data when storing
+    using a fast algorithm (LZF).
+</li><li>compressHigh: compress the data when storing
+    using a slower algorithm (Deflate).
 </li><li>encryptionKey: the encryption key for file encryption.
 </li><li>fileName: the name of the file, for file based stores.
 </li><li>fileStore: the storage implementation to use.

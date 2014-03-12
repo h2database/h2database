@@ -777,7 +777,13 @@ public class Page {
         }
         boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
         if (compressed) {
-            Compressor compressor = map.getStore().getCompressor();
+            Compressor compressor;
+            if ((type & DataUtils.PAGE_COMPRESSED_HIGH) ==
+                    DataUtils.PAGE_COMPRESSED_HIGH) {
+                compressor = map.getStore().getCompressorHigh();
+            } else {
+                compressor = map.getStore().getCompressorFast();
+            }
             int lenAdd = DataUtils.readVarInt(buff);
             int compLen = pageLength + start - buff.position();
             byte[] comp = DataUtils.newBytes(compLen);
@@ -827,18 +833,30 @@ public class Page {
         }
         MVStore store = map.getStore();
         int expLen = buff.position() - compressStart;
-        if (expLen > 16 && store.getCompress()) {
-            Compressor compressor = map.getStore().getCompressor();
-            byte[] exp = new byte[expLen];
-            buff.position(compressStart).get(exp);
-            byte[] comp = new byte[expLen * 2];
-            int compLen = compressor.compress(exp, expLen, comp, 0);
-            if (compLen + DataUtils.getVarIntLen(compLen - expLen) < expLen) {
-                buff.position(typePos).
-                    put((byte) (type + DataUtils.PAGE_COMPRESSED));
-                buff.position(compressStart).
-                    putVarInt(expLen - compLen).
-                    put(comp, 0, compLen);
+        if (expLen > 16) {
+            int compressionLevel = store.getCompressionLevel();
+            if (compressionLevel > 0) {
+                Compressor compressor;
+                int compressType;
+                if (compressionLevel == 1) {
+                    compressor = map.getStore().getCompressorFast();
+                    compressType = DataUtils.PAGE_COMPRESSED;
+                } else {
+                    compressor = map.getStore().getCompressorHigh();
+                    compressType = DataUtils.PAGE_COMPRESSED_HIGH;
+                }
+                byte[] exp = new byte[expLen];
+                buff.position(compressStart).get(exp);
+                byte[] comp = new byte[expLen * 2];
+                int compLen = compressor.compress(exp, expLen, comp, 0);
+                int plus = DataUtils.getVarIntLen(compLen - expLen);
+                if (compLen + plus < expLen) {
+                    buff.position(typePos).
+                        put((byte) (type + compressType));
+                    buff.position(compressStart).
+                        putVarInt(expLen - compLen).
+                        put(comp, 0, compLen);
+                }
             }
         }
         int pageLength = buff.position() - start;

@@ -301,7 +301,10 @@ public class WriteBuffer {
     private void grow(int len) {
         ByteBuffer temp = buff;
         int needed = len - temp.remaining();
-        int newCapacity = temp.capacity() + Math.max(needed, MIN_GROW);
+        int grow = Math.max(needed, MIN_GROW);
+        // grow at least 50% of the current size
+        grow = Math.max(temp.capacity() / 2, grow);
+        int newCapacity = temp.capacity() + grow;
         buff = ByteBuffer.allocate(newCapacity);
         temp.flip();
         buff.put(temp);

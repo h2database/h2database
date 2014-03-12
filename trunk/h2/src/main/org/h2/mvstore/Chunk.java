@@ -229,7 +229,7 @@ public class Chunk {
         DataUtils.appendMap(buff, "block", block);
         DataUtils.appendMap(buff, "version", version);
         byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
-        int checksum = DataUtils.getFletcher32(bytes, bytes.length / 2 * 2);
+        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
         while (buff.length() < Chunk.FOOTER_LENGTH - 1) {
             buff.append(' ');

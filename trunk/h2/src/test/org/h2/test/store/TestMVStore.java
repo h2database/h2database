@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,6 +52,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testEntrySet();
         testCompressEmptyPage();
         testCompressed();
         testFileFormatExample();
@@ -108,11 +110,26 @@ public class TestMVStore extends TestBase {
         testLargerThan2G();
     }
 
+    private void testEntrySet() {
+        MVStore s = new MVStore.Builder().open();
+        MVMap<Integer, Integer> map;
+        map = s.openMap("data");
+        for (int i = 0; i < 20; i++) {
+            map.put(i, i * 10);
+        }
+        int next = 0;
+        for (Entry<Integer, Integer> e : map.entrySet()) {
+            assertEquals(next, e.getKey().intValue());
+            assertEquals(next * 10, e.getValue().intValue());
+            next++;
+        }
+    }
+
     private void testCompressEmptyPage() {
         String fileName = getBaseDir() + "/testDeletedMap.h3";
         MVStore store = new MVStore.Builder().
                 cacheSize(100).fileName(fileName).
-                compressData().
+                compress().
                 autoCommitBufferSize(10 * 1024).
                 open();
         MVMap<String, String> map = store.openMap("test");
@@ -120,26 +137,41 @@ public class TestMVStore extends TestBase {
         store.commit();
         store.close();
         store = new MVStore.Builder().
-                compressData().
+                compress().
                 open();
         store.close();
     }
 
     private void testCompressed() {
         String fileName = getBaseDir() + "/testCompressed.h3";
-        MVStore s = new MVStore.Builder().fileName(fileName).compressData().open();
-        MVMap<String, String> map = s.openMap("data");
-        String data = "xxxxxxxxxx";
-        for (int i = 0; i < 400; i++) {
-            map.put(data + i, data);
+        long lastSize = 0;
+        for (int level = 0; level <= 2; level++) {
+            FileUtils.delete(fileName);
+            MVStore.Builder builder = new MVStore.Builder().fileName(fileName);
+            if (level == 1) {
+                builder.compress();
+            } else if (level == 2) {
+                builder.compressHigh();
+            }
+            MVStore s = builder.open();
+            MVMap<String, String> map = s.openMap("data");
+            String data = new String(new char[1000]).replace((char) 0, 'x');
+            for (int i = 0; i < 400; i++) {
+                map.put(data + i, data);
+            }
+            s.close();
+            long size = FileUtils.size(fileName);
+            if (level > 0) {
+                assertTrue(size < lastSize);
+            }
+            lastSize = size;
+            s = new MVStore.Builder().fileName(fileName).open();
+            map = s.openMap("data");
+            for (int i = 0; i < 400; i++) {
+                assertEquals(data, map.get(data + i));
+            }
+            s.close();
         }
-        s.close();
-        s = new MVStore.Builder().fileName(fileName).open();
-        map = s.openMap("data");
-        for (int i = 0; i < 400; i++) {
-            assertEquals(data, map.get(data + i));
-        }
-        s.close();
     }
 
     private void testFileFormatExample() {
@@ -707,7 +739,7 @@ public class TestMVStore extends TestBase {
         s = new MVStore.Builder().
                 fileName(fileName).
                 autoCommitDisabled().
-                compressData().open();
+                compress().open();
         map = s.openMap("test");
         // add 10 MB of data
         for (int i = 0; i < 1024; i++) {

@@ -61,6 +61,21 @@ public class TestDataUtils extends TestBase {
         for (int i = 0; i < 10000; i += 1000) {
             assertEquals(-1, DataUtils.getFletcher32(data, i));
         }
+        for (int i = 0; i < 1000; i++) {
+            for (int j = 0; j < 255; j++) {
+                Arrays.fill(data, 0, i, (byte) j);
+                data[i] = 0;
+                int a = DataUtils.getFletcher32(data, i);
+                if (i % 2 == 1) {
+                    // add length: same as appending a 0
+                    int b = DataUtils.getFletcher32(data, i + 1);
+                    assertEquals(a, b);
+                }
+                data[i] = 10;
+                int c = DataUtils.getFletcher32(data, i);
+                assertEquals(a, c);
+            }
+        }
         long last = 0;
         for (int i = 1; i < 255; i++) {
             Arrays.fill(data, (byte) i);

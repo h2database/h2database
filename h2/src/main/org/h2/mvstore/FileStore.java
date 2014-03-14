@@ -346,7 +346,7 @@ public class FileStore {
         return freeSpace.getFillRate();
     }
 
-    public long getFirstFree() {
+    long getFirstFree() {
         return freeSpace.getFirstFree();
     }
 

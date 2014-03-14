@@ -7,6 +7,7 @@
 package org.h2.table;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.sql.DatabaseMetaData;
@@ -958,6 +959,18 @@ public class MetaTable extends Table {
                             fs.getWriteCount());
                     add(rows, "info.FILE_READ", "" +
                             fs.getReadCount());
+                    long size;
+                    try {
+                        size = fs.getFile().size();
+                    } catch (IOException e) {
+                        throw DbException.convertIOException(e, "Can not get size");
+                    }
+                    int pageSize = 4 * 1024;
+                    long pageCount = size / pageSize;
+                    add(rows, "info.PAGE_COUNT", "" + 
+                            pageCount);
+                    add(rows, "info.PAGE_SIZE", "" + 
+                            pageSize);
                     add(rows, "info.CACHE_MAX_SIZE", "" +
                             mvStore.getStore().getCacheSize());
                     add(rows, "info.CACHE_SIZE", "" +

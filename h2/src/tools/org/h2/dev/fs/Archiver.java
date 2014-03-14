@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.TreeMap;
 
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
@@ -27,12 +26,12 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 
 /**
- * An archive tool that de-duplicates and compresses files.
+ * An archiver tool that can compress directories.
  */
-public class Dedup {
+public class Archiver {
 
     private static final int[] RANDOM = new int[256];
-    private static final int MB = 1024 * 1024;
+    private static final int MB = 1000 * 1000;
     private long lastTime;
     private long start;
     private int bucket;
@@ -51,7 +50,7 @@ public class Dedup {
      * @param args the command line arguments
      */
     public static void main(String... args) throws Exception {
-        Dedup app = new Dedup();
+        Archiver app = new Archiver();
         String arg = args.length != 3 ? null : args[0];
         if ("-compress".equals(arg)) {
             app.fileName = args[1];
@@ -65,7 +64,7 @@ public class Dedup {
             System.out.println("-extract <file> <targetDir>");
         }
     }
-
+    
     private void compress(String sourceDir) throws Exception {
         start();
         long tempSize = 8 * 1024 * 1024;
@@ -80,16 +79,15 @@ public class Dedup {
         FileUtils.delete(fileName);
         MVStore storeTemp = new MVStore.Builder().
                 fileName(tempFileName).
-                compress().
                 autoCommitDisabled().
                 open();
-        MVStore store = new MVStore.Builder().
+        final MVStore store = new MVStore.Builder().
                 fileName(fileName).
                 pageSplitSize(2 * 1024 * 1024).
                 compressHigh().
                 autoCommitDisabled().
                 open();
-        MVMap<String, int[]> files = store.openMap("files");
+        MVMap<String, int[]> filesTemp = storeTemp.openMap("files");
         long currentSize = 0;
         int segmentId = 1;
         int segmentLength = 0;
@@ -98,7 +96,7 @@ public class Dedup {
             String name = s.substring(sourceDir.length() + 1);
             if (FileUtils.isDirectory(s)) {
                 // directory
-                files.put(name, new int[1]);
+                filesTemp.put(name, new int[1]);
                 continue;
             }
             buff.clear();
@@ -154,7 +152,7 @@ public class Dedup {
                         segmentId++;
                         segmentLength = 0;
                     }
-                    printProgress("Stage 1/2", currentSize, totalSize);
+                    printProgress(0, 50, currentSize, totalSize);
                 }
             } finally {
                 fc.close();
@@ -163,10 +161,9 @@ public class Dedup {
             for (int i = 0; i < posList.size(); i++) {
                 posArray[i] = posList.get(i);
             }
-            files.put(name, posArray);
+            filesTemp.put(name, posArray);
         }
         storeTemp.commit();
-        store.commit();
         ArrayList<Cursor<int[], byte[]>> list = New.arrayList();
         totalSize = 0;
         for (int i = 1; i <= segmentId; i++) {
@@ -181,8 +178,8 @@ public class Dedup {
         segmentId = 1;
         segmentLength = 0;
         currentSize = 0;
-        TreeMap<Integer, int[]> ranges = new TreeMap<Integer, int[]>();
         MVMap<int[], byte[]> data = store.openMap("data" + segmentId);
+        MVMap<int[], Boolean> keepSegment = storeTemp.openMap("keep");
         while (list.size() > 0) {
             Collections.sort(list, new Comparator<Cursor<int[], byte[]>>() {
 
@@ -212,10 +209,10 @@ public class Dedup {
             byte[] bytes = top.getValue();
             int[] k2 = Arrays.copyOf(key, key.length);
             k2[key.length - 1] = 0;
+            // TODO this lookup can be avoided
+            // if we remember the last entry with k[..] = 0
             byte[] old = data.get(k2);
             if (old == null) {
-                key = k2;
-                // new entry
                 if (segmentLength > tempSize) {
                     // switch only for new entries
                     // where segmentId is 0,
@@ -225,15 +222,18 @@ public class Dedup {
                     store.commit();
                     segmentLength = 0;
                     segmentId++;
-                    ranges.put(segmentId, key);
                     data = store.openMap("data" + segmentId);
                 }
+                key = k2;
+                // new entry
                 data.put(key, bytes);
                 segmentLength += bytes.length;
             } else if (Arrays.equals(old, bytes)) {
                 // duplicate
             } else {
+                // almost a duplicate:
                 // keep segment id
+                keepSegment.put(key, Boolean.TRUE);
                 data.put(key, bytes);
                 segmentLength += bytes.length;
             }
@@ -243,30 +243,49 @@ public class Dedup {
                 top.next();
             }
             currentSize++;
-            printProgress("Stage 2/2", currentSize, totalSize);
+            printProgress(50, 100, currentSize, totalSize);
         }
-        MVMap<int[], Integer> rangeMap = store.openMap("ranges");
-        for (Entry<Integer, int[]> range : ranges.entrySet()) {
-            rangeMap.put(range.getValue(), range.getKey());
+        MVMap<String, int[]> files = store.openMap("files");
+        for (Entry<String, int[]> e : filesTemp.entrySet()) {
+            String k = e.getKey();
+            int[] ids = e.getValue();
+            if (ids.length == 1) {
+                // directory
+                files.put(k, ids);
+                continue;
+            }
+            int[] newIds = Arrays.copyOf(ids, ids.length);
+            for (int i = 0; i < ids.length; i += 4) {
+                int[] id = new int[4];
+                id[0] = ids[i];
+                id[1] = ids[i + 1];
+                id[2] = ids[i + 2];
+                id[3] = ids[i + 3];
+                if (!keepSegment.containsKey(id)) {
+                    newIds[i + 3] = 0;
+                }
+            }
+            files.put(k, newIds);
         }
+        store.commit();
         storeTemp.close();
         FileUtils.delete(tempFileName);
         store.close();
+        System.out.println();
         System.out.println("Compressed to " +
                 FileUtils.size(fileName) / MB + " MB");
         printDone();
-    }
+    }    
 
     private void start() {
         this.start = System.currentTimeMillis();
         this.lastTime = start;
     }
 
-    private void printProgress(String message, long current, long total) {
+    private void printProgress(int low, int high, long current, long total) {
         long now = System.currentTimeMillis();
         if (now - lastTime > 5000) {
-            System.out.println(message + ": " +
-                    100 * current / total + "%");
+            System.out.print((low + (high - low) * current / total) + "% ");
             lastTime = now;
         }
     }
@@ -292,96 +311,172 @@ public class Dedup {
 
     private void expand(String targetDir) throws Exception {
         start();
+        long tempSize = 8 * 1024 * 1024;
         String tempFileName = fileName + ".temp";
-        long chunkSize = 8 * 1024 * 1024;
         FileUtils.createDirectories(targetDir);
         MVStore store = new MVStore.Builder().
                 fileName(fileName).open();
         MVMap<String, int[]> files = store.openMap("files");
         System.out.println("Extracting " + files.size() + " files");
-        MVMap<int[], Integer> ranges = store.openMap("ranges");
-        int lastSegment;
-        if (ranges.size() == 0) {
-            lastSegment = 1;
-        } else {
-            lastSegment = ranges.get(ranges.lastKey());
-        }
         MVStore storeTemp = null;
         FileUtils.delete(tempFileName);
+        long totalSize = 0;
+        int lastSegment = 0;
+        for (int i = 1;; i++) {
+            if (!store.hasMap("data" + i)) {
+                lastSegment = i - 1;
+                break;
+            }
+        }
+        
         storeTemp = new MVStore.Builder().
                 fileName(tempFileName).
-                cacheSize(64).
                 autoCommitDisabled().
                 open();
-        MVMap<int[], byte[]> data = storeTemp.openMap("data");
-        long chunkLength = 0;
-        long totalSize = 0;
-        for (int i = 1; i <= lastSegment; i++) {
-            MVMap<int[], byte[]> segmentData = store.openMap("data" + i);
-            totalSize += segmentData.sizeAsLong();
+        
+        MVMap<Integer, String> fileNames = storeTemp.openMap("fileNames");
+        
+        MVMap<String, int[]> filesTemp = storeTemp.openMap("files");
+        int fileId = 0;
+        for (Entry<String, int[]> e : files.entrySet()) {
+            fileNames.put(fileId++, e.getKey());
+            filesTemp.put(e.getKey(), e.getValue());
+            totalSize += e.getValue().length / 4;
         }
+        storeTemp.commit();
+        
+        files = filesTemp;
         long currentSize = 0;
-        for (int i = 1; i <= lastSegment; i++) {
-            MVMap<int[], byte[]> segmentData = store.openMap("data" + i);
-            for (Entry<int[], byte[]> e : segmentData.entrySet()) {
-                int[] key = e.getKey();
-                byte[] bytes = e.getValue();
-                chunkLength += bytes.length;
-                data.put(key, bytes);
-                if (chunkLength > chunkSize) {
-                    storeTemp.commit();
-                    chunkLength = 0;
+        int chunkSize = 0;
+        for (int s = 1; s <= lastSegment; s++) {
+            MVMap<int[], byte[]> segmentData = store.openMap("data" + s);
+            // key: fileId, blockId; value: data
+            MVMap<int[], byte[]> fileData = storeTemp.openMap("fileData" + s);
+            fileId = 0;
+            for (Entry<String, int[]> e : files.entrySet()) {
+                int[] keys = e.getValue();
+                if (keys.length == 1) {
+                    fileId++;
+                    continue;
                 }
-                currentSize++;
-                printProgress("Stage 1/2", currentSize, totalSize);
-            }
+                for (int i = 0; i < keys.length; i += 4) {
+                    int[] dk = new int[4];
+                    dk[0] = keys[i];
+                    dk[1] = keys[i + 1];
+                    dk[2] = keys[i + 2];
+                    dk[3] = keys[i + 3];
+                    byte[] bytes = segmentData.get(dk);
+                    if (bytes != null) {
+                        int[] k = new int[] { fileId, i / 4 };
+                        fileData.put(k, bytes);
+                        chunkSize += bytes.length;
+                        if (chunkSize > tempSize) {
+                            storeTemp.commit();
+                            chunkSize = 0;
+                        }
+                        currentSize++;
+                        printProgress(0, 50, currentSize, totalSize);
+                    }
+                }
+                fileId++;
+            }            
+            storeTemp.commit();
         }
+
+        ArrayList<Cursor<int[], byte[]>> list = New.arrayList();
         totalSize = 0;
-        for (Entry<String, int[]> e : files.entrySet()) {
-            int[] keys = e.getValue();
-            totalSize += keys.length / 4;
-        }
         currentSize = 0;
-        for (Entry<String, int[]> e : files.entrySet()) {
-            String f = e.getKey();
-            int[] keys = e.getValue();
-            String p = FileUtils.getParent(f);
-            if (p != null) {
-                FileUtils.createDirectories(targetDir + "/" + p);
+        for (int i = 1; i <= lastSegment; i++) {
+            MVMap<int[], byte[]> fileData = storeTemp.openMap("fileData" + i);
+            totalSize += fileData.sizeAsLong();
+            Cursor<int[], byte[]> c = fileData.cursor(null);
+            if (c.hasNext()) {
+                c.next();
+                list.add(c);
             }
-            String fn = targetDir + "/" + f;
-            if (keys.length == 1) {
-                // directory
-                FileUtils.createDirectory(fn);
-                continue;
-            }
-            OutputStream file = new BufferedOutputStream(new FileOutputStream(fn));
-            for (int i = 0; i < keys.length; i += 4) {
-                int[] dk = new int[4];
-                dk[0] = keys[i];
-                dk[1] = keys[i + 1];
-                dk[2] = keys[i + 2];
-                dk[3] = keys[i + 3];
-                byte[] bytes;
-                bytes = data.get(dk);
-                if (bytes == null) {
-                    dk[3] = 0;
-                    bytes = data.get(dk);
+        }
+        String lastFileName = null;
+        OutputStream file = null;
+        int[] lastKey = null;
+        while (list.size() > 0) {
+            Collections.sort(list, new Comparator<Cursor<int[], byte[]>>() {
+
+                @Override
+                public int compare(Cursor<int[], byte[]> o1,
+                        Cursor<int[], byte[]> o2) {
+                    int[] k1 = o1.getKey();
+                    int[] k2 = o2.getKey();
+                    int comp = 0;
+                    for (int i = 0; i < k1.length; i++) {
+                        long x1 = k1[i];
+                        long x2 = k2[i];
+                        if (x1 > x2) {
+                            comp = 1;
+                            break;
+                        } else if (x1 < x2) {
+                            comp = -1;
+                            break;
+                        }
+                    }
+                    return comp;
                 }
-                file.write(bytes);
-                currentSize++;
-                printProgress("Stage 2/2", currentSize, totalSize);
+
+            });
+            Cursor<int[], byte[]> top = list.get(0);
+            int[] key = top.getKey();
+            byte[] bytes = top.getValue();
+            String f = targetDir + "/" + fileNames.get(key[0]);
+            if (!f.equals(lastFileName)) {
+                if (file != null) {
+                    file.close();
+                }
+                String p = FileUtils.getParent(f);
+                if (p != null) {
+                    FileUtils.createDirectories(p);
+                }
+                file = new BufferedOutputStream(new FileOutputStream(f));
+                lastFileName = f;
+            } else {
+                if (key[0] != lastKey[0] || key[1] != lastKey[1] + 1) {
+                    System.out.println("missing entry after " + Arrays.toString(lastKey));
+                }
             }
+            lastKey = key;
+            file.write(bytes);
+            if (!top.hasNext()) {
+                list.remove(0);
+            } else {
+                top.next();
+            }
+            currentSize++;
+            printProgress(50, 100, currentSize, totalSize);
+        }        
+        for (Entry<String, int[]> e : files.entrySet()) {
+            String f = targetDir + "/" + e.getKey();
+            int[] keys = e.getValue();
+            if (keys.length == 1) {
+                FileUtils.createDirectories(f);
+            } else if (keys.length == 0) {
+                // empty file
+                String p = FileUtils.getParent(f);
+                if (p != null) {
+                    FileUtils.createDirectories(p);
+                }
+                new FileOutputStream(f).close();
+            }
+        }        
+        if (file != null) {
             file.close();
         }
         store.close();
-        if (storeTemp != null) {
-            storeTemp.close();
-            FileUtils.delete(tempFileName);
-        }
+        
+        storeTemp.close();
+        FileUtils.delete(tempFileName);
+        
+        System.out.println();
         printDone();
     }
-
+    
     private int getChunkLength(byte[] data, int start, int maxPos) {
         int minLen = 4 * 1024;
         int mask = 4 * 1024 - 1;

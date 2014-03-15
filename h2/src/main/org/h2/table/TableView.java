@@ -16,7 +16,9 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
+import org.h2.expression.Alias;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
@@ -39,6 +41,8 @@ import org.h2.value.Value;
 
 /**
  * A view is a virtual table that is defined by a query.
+ * @author Thomas Mueller
+ * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class TableView extends Table {
 
@@ -168,6 +172,23 @@ public class TableView extends Table {
                 int displaySize = expr.getDisplaySize();
                 Column col = new Column(name, type, precision, scale, displaySize);
                 col.setTable(this, i);
+                // Fetch check constraint from view column source
+                ExpressionColumn fromColumn = null;
+                if (expr instanceof ExpressionColumn) {
+                    fromColumn = (ExpressionColumn) expr;
+                } else if (expr instanceof Alias) {
+                    Expression aliasExpr = expr.getNonAliasExpression();
+                    if (aliasExpr instanceof ExpressionColumn) {
+                        fromColumn = (ExpressionColumn) aliasExpr;
+                    }
+                }
+                if (fromColumn != null) {
+                    Expression checkExpression = fromColumn.getColumn()
+                            .getCheckConstraint(session, name);
+                    if (checkExpression != null) {
+                        col.addCheckConstraint(session, checkExpression);
+                    }
+                }
                 list.add(col);
             }
             cols = new Column[list.size()];

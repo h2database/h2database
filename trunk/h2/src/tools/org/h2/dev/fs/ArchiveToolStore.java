@@ -26,9 +26,9 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
 
 /**
- * An archiver tool that can compress directories.
+ * An archive tool to compress directories, using the MVStore backend.
  */
-public class Archiver {
+public class ArchiveToolStore {
 
     private static final int[] RANDOM = new int[256];
     private static final int MB = 1000 * 1000;
@@ -50,7 +50,7 @@ public class Archiver {
      * @param args the command line arguments
      */
     public static void main(String... args) throws Exception {
-        Archiver app = new Archiver();
+        ArchiveToolStore app = new ArchiveToolStore();
         String arg = args.length != 3 ? null : args[0];
         if ("-compress".equals(arg)) {
             app.fileName = args[1];

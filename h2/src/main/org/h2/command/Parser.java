@@ -5302,6 +5302,22 @@ public class Parser {
                         session, getSchema(), ifExists);
                 command.setConstraintName(constraintName);
                 return command;
+            } else if (readIf("FOREIGN")) {
+              // MySQL compatibility
+                read("KEY");
+                String constraintName = readIdentifierWithSchema(table
+                        .getSchema().getName());
+                checkSchema(table.getSchema());
+                AlterTableDropConstraint command = new AlterTableDropConstraint(
+                        session, getSchema(), false);
+                command.setConstraintName(constraintName);
+                return command;
+            } else if (readIf("INDEX")) {
+                // MySQL compatibility
+                String indexName = readIdentifierWithSchema();
+                DropIndex command = new DropIndex(session, getSchema());
+                command.setIndexName(indexName);
+                return command;
             } else if (readIf("PRIMARY")) {
                 read("KEY");
                 Index idx = table.getPrimaryKey();
@@ -5322,6 +5338,20 @@ public class Parser {
                 command.setOldColumn(table.getColumn(columnName));
                 return command;
             }
+        } else if (readIf("CHANGE")) {
+            // MySQL compatibility
+            readIf("COLUMN");
+            String columnName = readColumnIdentifier();
+            Column column = table.getColumn(columnName);
+            String newColumnName = readColumnIdentifier();
+            // new column type ignored. RENAME and MODIFY are
+            // a single command in MySQL but two different commands in H2.
+            parseColumnForTable(newColumnName, column.isNullable());
+            AlterTableRenameColumn command = new AlterTableRenameColumn(session);
+            command.setTable(table);
+            command.setColumn(column);
+            command.setNewColumnName(newColumnName);
+            return command;
         } else if (readIf("MODIFY")) {
             // MySQL compatibility
             readIf("COLUMN");

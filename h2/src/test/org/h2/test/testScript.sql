@@ -828,6 +828,35 @@ create table test(id int primary key, name varchar);
 alter table test alter column id int auto_increment;
 > ok
 
+create table othertest(id int primary key, name varchar);
+> ok
+
+alter table othertest add constraint fk foreign key(id) references test(id);
+> ok
+
+alter table othertest drop foreign key fk;
+> ok
+
+create unique index idx on othertest(name);
+> ok
+
+alter table othertest drop index idx;
+> ok
+
+drop table othertest;
+> ok
+
+insert into test(id) values(1);
+> update count: 1
+
+alter table test change column id id2 int;
+> ok
+
+select id2 from test;
+> ID2
+> ---
+> 1
+
 drop table test;
 > ok
 

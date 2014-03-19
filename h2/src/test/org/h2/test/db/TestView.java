@@ -238,7 +238,8 @@ public class TestView extends TestBase {
     }
 
     /**
-     * Make sure that the table constraint is still available when create a view of other table.
+     * Make sure that the table constraint is still available when create a view
+     * of other table.
      */
     private void testViewConstraintFromColumnExpression() throws SQLException {
         deleteDb("view");
@@ -250,7 +251,8 @@ public class TestView extends TestBase {
         stat.execute("insert into t1 values(1)");
         stat.execute("create view v1 as select * from t0,t1");
         // Check with ColumnExpression
-        ResultSet rs = stat.executeQuery("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'V1'");
+        ResultSet rs = stat.executeQuery(
+                "select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'V1'");
         assertTrue(rs.next());
         assertEquals("ID1", rs.getString("COLUMN_NAME"));
         assertEquals("((ID1 % 2) = 0)", rs.getString("CHECK_CONSTRAINT"));

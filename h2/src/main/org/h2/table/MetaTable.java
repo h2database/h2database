@@ -967,9 +967,9 @@ public class MetaTable extends Table {
                     }
                     int pageSize = 4 * 1024;
                     long pageCount = size / pageSize;
-                    add(rows, "info.PAGE_COUNT", "" + 
+                    add(rows, "info.PAGE_COUNT", "" +
                             pageCount);
-                    add(rows, "info.PAGE_SIZE", "" + 
+                    add(rows, "info.PAGE_SIZE", "" +
                             pageSize);
                     add(rows, "info.CACHE_MAX_SIZE", "" +
                             mvStore.getStore().getCacheSize());

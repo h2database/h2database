@@ -64,7 +64,7 @@ public class ArchiveToolStore {
             System.out.println("-extract <file> <targetDir>");
         }
     }
-    
+
     private void compress(String sourceDir) throws Exception {
         start();
         long tempSize = 8 * 1024 * 1024;
@@ -275,7 +275,7 @@ public class ArchiveToolStore {
         System.out.println("Compressed to " +
                 FileUtils.size(fileName) / MB + " MB");
         printDone();
-    }    
+    }
 
     private void start() {
         this.start = System.currentTimeMillis();
@@ -328,14 +328,14 @@ public class ArchiveToolStore {
                 break;
             }
         }
-        
+
         storeTemp = new MVStore.Builder().
                 fileName(tempFileName).
                 autoCommitDisabled().
                 open();
-        
+
         MVMap<Integer, String> fileNames = storeTemp.openMap("fileNames");
-        
+
         MVMap<String, int[]> filesTemp = storeTemp.openMap("files");
         int fileId = 0;
         for (Entry<String, int[]> e : files.entrySet()) {
@@ -344,7 +344,7 @@ public class ArchiveToolStore {
             totalSize += e.getValue().length / 4;
         }
         storeTemp.commit();
-        
+
         files = filesTemp;
         long currentSize = 0;
         int chunkSize = 0;
@@ -379,7 +379,7 @@ public class ArchiveToolStore {
                     }
                 }
                 fileId++;
-            }            
+            }
             storeTemp.commit();
         }
 
@@ -450,7 +450,7 @@ public class ArchiveToolStore {
             }
             currentSize++;
             printProgress(50, 100, currentSize, totalSize);
-        }        
+        }
         for (Entry<String, int[]> e : files.entrySet()) {
             String f = targetDir + "/" + e.getKey();
             int[] keys = e.getValue();
@@ -464,19 +464,19 @@ public class ArchiveToolStore {
                 }
                 new FileOutputStream(f).close();
             }
-        }        
+        }
         if (file != null) {
             file.close();
         }
         store.close();
-        
+
         storeTemp.close();
         FileUtils.delete(tempFileName);
-        
+
         System.out.println();
         printDone();
     }
-    
+
     private int getChunkLength(byte[] data, int start, int maxPos) {
         int minLen = 4 * 1024;
         int mask = 4 * 1024 - 1;

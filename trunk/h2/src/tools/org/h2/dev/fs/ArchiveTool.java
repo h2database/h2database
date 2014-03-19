@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -34,12 +33,12 @@ import java.util.zip.InflaterInputStream;
  * dependencies except for the Java libraries.
  */
 public class ArchiveTool {
-    
+
     /**
      * The file header.
      */
     private static final byte[] HEADER = {'H', '2', 'A', '1'};
-    
+
     /**
      * The number of bytes per megabyte (used for the output).
      */
@@ -67,35 +66,36 @@ public class ArchiveTool {
             System.out.println("-extract <file> <targetDir>");
         }
     }
-    
+
     private static void compress(String fromDir, String toFile) throws IOException {
         long start = System.currentTimeMillis();
         long size = getSize(new File(fromDir));
         System.out.println("Compressing " + size / MB + " MB");
-        InputStream in = getDirectoryInputStream(fromDir);
-        String temp = toFile + ".temp";
-        OutputStream out = 
-                new BufferedOutputStream(
-                                new FileOutputStream(toFile), 32 * 1024);
-        Deflater def = new Deflater();
-        // def.setLevel(Deflater.BEST_SPEED);
-        out = new BufferedOutputStream(
-                new DeflaterOutputStream(out, def));            
-        sort(in, out, temp, size);
-        in.close();
-        out.close();
-        System.out.println();
-        System.out.println("Compressed to " +
-                new File(toFile).length() / MB + " MB in " +
-                (System.currentTimeMillis() - start) / 1000 +
-                " seconds");
+            InputStream in = getDirectoryInputStream(fromDir);
+            String temp = toFile + ".temp";
+            OutputStream out =
+                    new BufferedOutputStream(
+                                    new FileOutputStream(toFile), 32 * 1024);
+            Deflater def = new Deflater();
+            // def.setLevel(Deflater.BEST_SPEED);
+            out = new BufferedOutputStream(
+                    new DeflaterOutputStream(out, def));
+            sort(in, out, temp, size);
+            in.close();
+            out.close();
+            System.out.println();
+            System.out.println("Compressed to " +
+                    new File(toFile).length() / MB + " MB in " +
+                    (System.currentTimeMillis() - start) / 1000 +
+                    " seconds");
+            System.out.println();
     }
 
     private static void extract(String fromFile, String toDir) throws IOException {
         long start = System.currentTimeMillis();
         long size = new File(fromFile).length();
         System.out.println("Extracting " + size / MB + " MB");
-        InputStream in = 
+        InputStream in =
                 new BufferedInputStream(
                         new FileInputStream(fromFile));
         String temp = fromFile + ".temp";
@@ -109,7 +109,7 @@ public class ArchiveTool {
                 (System.currentTimeMillis() - start) / 1000 +
                 " seconds");
     }
-    
+
     private static long getSize(File f) {
         // assume a metadata entry is 40 bytes
         long size = 40;
@@ -127,33 +127,27 @@ public class ArchiveTool {
     }
 
     private static InputStream getDirectoryInputStream(final String dir) {
-        
+
         File f = new File(dir);
         if (!f.isDirectory() || !f.exists()) {
             throw new IllegalArgumentException("Not an existing directory: " + dir);
         }
-        
-        // int: metadata length
-        // byte: 0: directory, 1: file
-        // long: created
-        // long lastModified
-        // (file only) long: file length
-        // utf-8: file name
+
         return new InputStream() {
-            
+
             private final String baseDir;
             private final LinkedList<String> files = new LinkedList<String>();
             private String current;
             private ByteArrayInputStream meta;
             private DataInputStream fileIn;
             private long remaining;
-            
+
             {
                 File f = new File(dir);
                 baseDir = f.getAbsolutePath();
                 addDirectory(f);
             }
-            
+
             private void addDirectory(File f) {
                 File[] list = f.listFiles();
                 // breadth-first traversal
@@ -171,6 +165,13 @@ public class ArchiveTool {
                     }
                 }
             }
+            
+            // int: metadata length
+            // byte: 0: directory, 1: file
+            // varLong: lastModified
+            // byte: 0: read-write, 1: read-only
+            // (file only) varLong: file length
+            // utf-8: file name
 
             @Override
             public int read() throws IOException {
@@ -210,12 +211,13 @@ public class ArchiveTool {
                 boolean isFile = f.isFile();
                 out.writeInt(0);
                 out.write(isFile ? 1 : 0);
-                writeVarLong(out, f.lastModified());
                 out.write(!f.canWrite() ? 1 : 0);
+                writeVarLong(out, f.lastModified());
                 if (isFile) {
                     remaining = f.length();
                     writeVarLong(out, remaining);
-                    fileIn = new DataInputStream(new BufferedInputStream(new FileInputStream(current)));
+                    fileIn = new DataInputStream(new BufferedInputStream(
+                            new FileInputStream(current)));
                 }
                 if (!current.startsWith(baseDir)) {
                     throw new IOException("File " + current + " does not start with " + baseDir);
@@ -232,7 +234,7 @@ public class ArchiveTool {
                 meta = new ByteArrayInputStream(bytes);
                 return meta.read();
             }
-            
+
             @Override
             public int read(byte[] buff, int offset, int length) throws IOException {
                 if (meta != null || fileIn == null || remaining == 0) {
@@ -243,28 +245,22 @@ public class ArchiveTool {
                 remaining -= l;
                 return l;
             }
-            
+
         };
 
     }
-    
+
     private static OutputStream getDirectoryOutputStream(final String dir) {
         new File(dir).mkdirs();
         return new OutputStream() {
-            
+
             private ByteArrayOutputStream meta = new ByteArrayOutputStream();
             private OutputStream fileOut;
             private File file;
             private long remaining = 4;
             private long modified;
             private boolean readOnly;
-            
-            // byte: 0: directory, 1: file
-            // long lastModified
-            // byte: 0: read-write, 2: read-only
-            // (file only) long: file length
-            // utf-8: file name
-            
+
             @Override
             public void write(byte[] buff, int offset, int length) throws IOException {
                 while (length > 0) {
@@ -303,7 +299,8 @@ public class ArchiveTool {
                 if (--remaining > 0) {
                     return;
                 }
-                DataInputStream in = new DataInputStream(new ByteArrayInputStream(meta.toByteArray()));
+                DataInputStream in = new DataInputStream(
+                        new ByteArrayInputStream(meta.toByteArray()));
                 if (meta.size() == 4) {
                     // metadata is next
                     remaining = in.readInt() - 4;
@@ -315,8 +312,8 @@ public class ArchiveTool {
                 // read and ignore the length
                 in.readInt();
                 boolean isFile = in.read() == 1;
-                modified = readVarLong(in);
                 readOnly = in.read() == 1;
+                modified = readVarLong(in);
                 if (isFile) {
                     remaining = readVarLong(in);
                 } else {
@@ -342,33 +339,23 @@ public class ArchiveTool {
             }
         };
     }
-    
-    private static void sort(InputStream in, OutputStream out, String tempFileName, long size) throws IOException {
+
+    private static void sort(InputStream in, OutputStream out,
+            String tempFileName, long size) throws IOException {
+        long lastTime = System.currentTimeMillis();
         int bufferSize = 16 * 1024 * 1024;
-        int[] random = new int[256];
-        Random r = new Random(1);
-        for (int i = 0; i < random.length; i++) {
-            random[i] = r.nextInt();
-        }
         DataOutputStream tempOut = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(tempFileName)));
-
-        // TODO document
-        // temp
-        // segment1: pos [, pos..., 0], hash, chunk1,..., 0
-        // segment2: pos [, pos..., 0], hash, chunk1,..., 0
-        // (compare by hash, value.length, value data, 
-        // so hash conflicts are not a problem anywhere)
-        
-        // out
-        // pos [,pos..., 0] chunk1, pos [,pos..., 0] chunk2,..., 0
-        
         byte[] bytes = new byte[bufferSize];
         ArrayList<Long> segmentStart = new ArrayList<Long>();
         long inPos = 0;
         long outPos = 0;
         long id = 1;
-        long lastTime = System.currentTimeMillis();
+
+        // Temp file: segment* 0
+        // Segment: chunk* 0
+        // Chunk: pos* 0 sortKey data
+
         while (true) {
             int len = readFully(in, bytes, bytes.length);
             if (len == 0) {
@@ -378,7 +365,7 @@ public class ArchiveTool {
             lastTime = printProgress(lastTime, 0, 50, inPos, size);
             TreeMap<Chunk, Chunk> map = new TreeMap<Chunk, Chunk>();
             for (int pos = 0; pos < len;) {
-                int[] key = getKey(random, bytes, pos, len);
+                int[] key = getKey(bytes, pos, len);
                 int l = key[3];
                 byte[] buff = new byte[l];
                 System.arraycopy(bytes, pos, buff, 0, l);
@@ -417,10 +404,15 @@ public class ArchiveTool {
                 segmentIn.add(s);
             }
         }
+
         DataOutputStream dataOut = new DataOutputStream(out);
         dataOut.write(HEADER);
         writeVarLong(dataOut, size);
         Chunk last = null;
+
+        // File: header length chunk* 0
+        // chunk: pos* 0 data
+
         while (segmentIn.size() > 0) {
             Collections.sort(segmentIn);
             ChunkStream s = segmentIn.get(0);
@@ -448,8 +440,17 @@ public class ArchiveTool {
         writeVarLong(dataOut, 0);
         dataOut.flush();
     }
-    
-    public static int readFully(InputStream in, byte[] buffer, int max)
+
+    /**
+     * Read a number of bytes. This method repeats reading until
+     * either the bytes have been read, or EOF.
+     *
+     * @param in the input stream
+     * @param buffer the target buffer
+     * @param max the number of bytes to read
+     * @return the number of bytes read (max unless EOF has been reached)
+     */
+    private static int readFully(InputStream in, byte[] buffer, int max)
             throws IOException {
         int result = 0, len = Math.min(max, buffer.length);
         while (len > 0) {
@@ -462,25 +463,20 @@ public class ArchiveTool {
         }
         return result;
     }
-    
+
     /**
      * Get the sort key and length of a chunk.
      */
-    private static int[] getKey(int[] random, byte[] data, int start, int maxPos) {
+    private static int[] getKey(byte[] data, int start, int maxPos) {
         int minLen = 4 * 1024;
         int mask = 4 * 1024 - 1;
-        int factor = 31;
-        int hash = 0, mul = 1, offset = 8;
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         int pos = start;
+        long bytes = 0;
         for (int j = 0; pos < maxPos; pos++, j++) {
-            hash = hash * factor + random[data[pos] & 255];
-            if (j >= offset) {
-                hash -= mul * random[data[pos - offset] & 255];
-            } else {
-                mul *= factor;
-            }
+            bytes = (bytes << 8) | (data[pos] & 255);
+            int hash = getHash(bytes);
             if (hash < min) {
                 min = hash;
             }
@@ -488,10 +484,13 @@ public class ArchiveTool {
                 max = hash;
             }
             if (j > minLen) {
-                if (j > minLen * 4) {
+                if ((hash & mask) == 1) {
                     break;
                 }
-                if ((hash & mask) == 1) {
+                if (j > minLen * 4 && (hash & (mask >> 1)) == 1) {
+                    break;
+                }
+                if (j > minLen * 16) {
                     break;
                 }
             }
@@ -516,13 +515,27 @@ public class ArchiveTool {
         key[3] = len;
         return key;
     }
-    
-    private static void combine(InputStream in, OutputStream out, String tempFileName) throws IOException {
+
+    private static int getHash(long key) {
+        int hash = (int) ((key >>> 32) ^ key);
+        hash = ((hash >>> 16) ^ hash) * 0x45d9f3b;
+        hash = ((hash >>> 16) ^ hash) * 0x45d9f3b;
+        hash = (hash >>> 16) ^ hash;
+        return hash;
+    }
+
+    private static void combine(InputStream in, OutputStream out,
+            String tempFileName) throws IOException {
+        long lastTime = System.currentTimeMillis();
         int bufferSize = 16 * 1024 * 1024;
-        DataOutputStream tempOut = 
+        DataOutputStream tempOut =
                 new DataOutputStream(
                         new BufferedOutputStream(
                                 new FileOutputStream(tempFileName)));
+
+        // File: header length chunk* 0
+        // chunk: pos* 0 data
+
         DataInputStream dataIn = new DataInputStream(in);
         byte[] header = new byte[4];
         dataIn.readFully(header);
@@ -530,18 +543,15 @@ public class ArchiveTool {
             throw new IOException("Invalid header");
         }
         long size = readVarLong(dataIn);
-        // out
-        // pos [,pos..., 0] chunk1, pos [,pos..., 0] chunk2,..., 0
-        
-        // temp-exp
-        // segment1: pos1, chunk, pos3, chunk, pos5, chunk, 0
-        // segment2: pos2, chunk, pos4, chunk, 0
-        
         long outPos = 0;
         long inPos = 0;
         ArrayList<Long> segmentStart = new ArrayList<Long>();
-        long lastTime = System.currentTimeMillis();
         boolean end = false;
+
+        // Temp file: segment* 0
+        // Segment: chunk* 0
+        // Chunk: pos* 0 data
+
         while (!end) {
             int segmentSize = 0;
             TreeMap<Long, byte[]> map = new TreeMap<Long, byte[]>();
@@ -602,7 +612,7 @@ public class ArchiveTool {
         new File(tempFileName).delete();
         dataOut.flush();
     }
-    
+
     /**
      * A stream of chunks.
      */
@@ -611,6 +621,11 @@ public class ArchiveTool {
         DataInputStream in;
         boolean readKey;
 
+        /**
+         * Read the next chunk.
+         *
+         * @return the number of bytes read
+         */
         int readNext() throws IOException {
             current = Chunk.read(in, readKey);
             if (current == null) {
@@ -624,21 +639,28 @@ public class ArchiveTool {
             return current.compareTo(o.current);
         }
     }
-    
+
     /**
      * A chunk of data.
      */
     static class Chunk implements Comparable<Chunk> {
         ArrayList<Long> idList;
-        int[] sortKey;
-        byte[] value;
-        
+        final byte[] value;
+        private int[] sortKey;
+
         Chunk(ArrayList<Long> idList, int[] sortKey, byte[] value) {
             this.idList = idList;
             this.sortKey = sortKey;
             this.value = value;
         }
 
+        /**
+         * Read a chunk.
+         *
+         * @param in the input stream
+         * @param readKey whether to read the sort key
+         * @return the chunk, or null if 0 has been read
+         */
         public static Chunk read(DataInputStream in, boolean readKey) throws IOException {
             ArrayList<Long> idList = new ArrayList<Long>();
             while (true) {
@@ -664,7 +686,14 @@ public class ArchiveTool {
             in.readFully(value);
             return new Chunk(idList, key, value);
         }
-        
+
+        /**
+         * Write a chunk.
+         *
+         * @param out the output stream
+         * @param writeKey whether to write the sort key
+         * @return the number of bytes written
+         */
         int write(DataOutputStream out, boolean writeKey) throws IOException {
             int len = 0;
             for (long x : idList) {
@@ -719,8 +748,15 @@ public class ArchiveTool {
             return 0;
         }
     }
-    
-    public static int writeVarLong(OutputStream out, long x)
+
+    /**
+     * Write a variable size long value.
+     *
+     * @param out the output stream
+     * @param x the value
+     * @return the number of bytes written
+     */
+    static int writeVarLong(OutputStream out, long x)
             throws IOException {
         int len = 0;
         while ((x & ~0x7f) != 0) {
@@ -731,8 +767,14 @@ public class ArchiveTool {
         out.write((byte) x);
         return ++len;
     }
-    
-    public static long readVarLong(InputStream in) throws IOException {
+
+    /**
+     * Read a variable size long value.
+     *
+     * @param in the input stream
+     * @return the value
+     */
+    static long readVarLong(InputStream in) throws IOException {
         long x = in.read();
         if (x < 0) {
             throw new EOFException();
@@ -755,7 +797,7 @@ public class ArchiveTool {
         }
         return x;
     }
-    
+
     private static long printProgress(long lastTime, int low, int high,
             long current, long total) {
         long now = System.currentTimeMillis();

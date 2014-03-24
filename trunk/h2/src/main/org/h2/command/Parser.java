@@ -5303,7 +5303,7 @@ public class Parser {
                 command.setConstraintName(constraintName);
                 return command;
             } else if (readIf("FOREIGN")) {
-              // MySQL compatibility
+                // MySQL compatibility
                 read("KEY");
                 String constraintName = readIdentifierWithSchema(table
                         .getSchema().getName());

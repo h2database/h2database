@@ -65,149 +65,6 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     private boolean autoClose = true;
 
     /**
-     * This class holds the data of a result column.
-     */
-    static class Column {
-
-        /**
-         * The column label.
-         */
-        String name;
-
-        /**
-         * The column type Name
-         */
-        String sqlTypeName;
-
-        /**
-         * The SQL type.
-         */
-        int sqlType;
-
-        /**
-         * The precision.
-         */
-        int precision;
-
-        /**
-         * The scale.
-         */
-        int scale;
-    }
-
-    /**
-     * A simple array implementation,
-     * backed by an object array
-     */
-    public static class SimpleArray implements Array {
-
-        private final Object[] value;
-
-        SimpleArray(Object[] value) {
-            this.value = value;
-        }
-
-        /**
-         * Get the object array.
-         *
-         * @return the object array
-         */
-        @Override
-        public Object getArray() {
-            return value;
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public Object getArray(Map<String, Class<?>> map) throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public Object getArray(long index, int count) throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public Object getArray(long index, int count, Map<String, Class<?>> map)
-                throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * Get the base type of this array.
-         *
-         * @return Types.NULL
-         */
-        @Override
-        public int getBaseType() {
-            return Types.NULL;
-        }
-
-        /**
-         * Get the base type name of this array.
-         *
-         * @return "NULL"
-         */
-        @Override
-        public String getBaseTypeName() {
-            return "NULL";
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public ResultSet getResultSet() throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public ResultSet getResultSet(Map<String, Class<?>> map)
-                throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public ResultSet getResultSet(long index, int count)
-                throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public ResultSet getResultSet(long index, int count,
-                Map<String, Class<?>> map) throws SQLException {
-            throw getUnsupportedException();
-        }
-
-        /**
-         * INTERNAL
-         */
-        @Override
-        public void free() {
-            // nothing to do
-        }
-
-    }
-
-    /**
      * This constructor is used if the result set is later populated with
      * addRow.
      */
@@ -324,13 +181,17 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Returns ResultSet.TYPE_FORWARD_ONLY.
+     * Returns the result set type. This is ResultSet.TYPE_FORWARD_ONLY for
+     * auto-close result sets, and ResultSet.TYPE_SCROLL_INSENSITIVE for others.
      *
-     * @return TYPE_FORWARD_ONLY
+     * @return TYPE_FORWARD_ONLY or TYPE_SCROLL_INSENSITIVE
      */
     @Override
     public int getType() {
-        return ResultSet.TYPE_FORWARD_ONLY;
+        if (autoClose) {
+            return ResultSet.TYPE_FORWARD_ONLY;
+        }
+        return ResultSet.TYPE_SCROLL_INSENSITIVE;
     }
 
     /**
@@ -375,11 +236,14 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     }
 
     /**
-     * Moves the current position to before the first row, that means resets the
-     * result set.
+     * Moves the current position to before the first row, that means the result
+     * set is reset.
      */
     @Override
     public void beforeFirst() throws SQLException {
+        if (autoClose) {
+            throw DbException.get(ErrorCode.RESULT_SET_NOT_SCROLLABLE);
+        }
         rowId = -1;
         if (source != null) {
             source.reset();
@@ -2337,7 +2201,8 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * INTERNAL
      */
     static SQLException getUnsupportedException() {
-        return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).getSQLException();
+        return DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1).
+                getSQLException();
     }
 
     private void checkColumnIndex(int columnIndex) throws SQLException {
@@ -2349,11 +2214,13 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
 
     private Object get(int columnIndex) throws SQLException {
         if (currentRow == null) {
-            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE).getSQLException();
+            throw DbException.get(ErrorCode.NO_DATA_AVAILABLE).
+                    getSQLException();
         }
         checkColumnIndex(columnIndex);
         columnIndex--;
-        Object o = columnIndex < currentRow.length ? currentRow[columnIndex] : null;
+        Object o = columnIndex < currentRow.length ?
+                currentRow[columnIndex] : null;
         wasNull = o == null;
         return o;
     }
@@ -2416,6 +2283,149 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     public boolean getAutoClose() {
         return autoClose;
+    }
+
+    /**
+     * This class holds the data of a result column.
+     */
+    static class Column {
+
+        /**
+         * The column label.
+         */
+        String name;
+
+        /**
+         * The column type Name
+         */
+        String sqlTypeName;
+
+        /**
+         * The SQL type.
+         */
+        int sqlType;
+
+        /**
+         * The precision.
+         */
+        int precision;
+
+        /**
+         * The scale.
+         */
+        int scale;
+    }
+
+    /**
+     * A simple array implementation,
+     * backed by an object array
+     */
+    public static class SimpleArray implements Array {
+
+        private final Object[] value;
+
+        SimpleArray(Object[] value) {
+            this.value = value;
+        }
+
+        /**
+         * Get the object array.
+         *
+         * @return the object array
+         */
+        @Override
+        public Object getArray() {
+            return value;
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public Object getArray(Map<String, Class<?>> map) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public Object getArray(long index, int count) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public Object getArray(long index, int count, Map<String, Class<?>> map)
+                throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * Get the base type of this array.
+         *
+         * @return Types.NULL
+         */
+        @Override
+        public int getBaseType() {
+            return Types.NULL;
+        }
+
+        /**
+         * Get the base type name of this array.
+         *
+         * @return "NULL"
+         */
+        @Override
+        public String getBaseTypeName() {
+            return "NULL";
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public ResultSet getResultSet() throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public ResultSet getResultSet(Map<String, Class<?>> map)
+                throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public ResultSet getResultSet(long index, int count)
+                throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public ResultSet getResultSet(long index, int count,
+                Map<String, Class<?>> map) throws SQLException {
+            throw getUnsupportedException();
+        }
+
+        /**
+         * INTERNAL
+         */
+        @Override
+        public void free() {
+            // nothing to do
+        }
+
     }
 
 }

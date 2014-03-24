@@ -135,6 +135,7 @@ public class TableFunction extends Function {
             int maxrows) {
         int columnCount = rs.getVisibleColumnCount();
         SimpleResultSet simple = new SimpleResultSet();
+        simple.setAutoClose(false);
         for (int i = 0; i < columnCount; i++) {
             String name = rs.getColumnName(i);
             int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));

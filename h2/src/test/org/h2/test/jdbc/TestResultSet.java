@@ -64,6 +64,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testReuseSimpleResult();
         testUnsupportedOperations();
         testAmbiguousColumnNames();
         testInsertRowWithUpdatableResultSetDefault();
@@ -100,6 +101,19 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+
+    private void testReuseSimpleResult() throws SQLException {
+        ResultSet rs = stat.executeQuery("select table(x array=((1)))");
+        while (rs.next()) {
+            rs.getString(1);
+        }
+        rs.close();
+        rs = stat.executeQuery("select table(x array=((1)))");
+        while (rs.next()) {
+            rs.getString(1);
+        }
+        rs.close();
     }
 
     @SuppressWarnings("deprecation")

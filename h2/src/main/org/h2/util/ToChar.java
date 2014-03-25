@@ -629,7 +629,7 @@ public class ToChar {
                 output.append(cal.get(Calendar.DAY_OF_YEAR));
                 i += 3;
             } else if ((cap = containsAt(format, i, "DD")) != null) {
-                output.append(cal.get(Calendar.DAY_OF_MONTH));
+                output.append(String.format("%02d",cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
                 String day = new SimpleDateFormat("EEE").format(ts).toUpperCase();
@@ -753,7 +753,7 @@ public class ToChar {
                 output.append(cap.apply(month));
                 i += 3;
             } else if ((cap = containsAt(format, i, "MM")) != null) {
-                output.append(cal.get(Calendar.MONTH) + 1);
+                output.append(String.format("%02d",cal.get(Calendar.MONTH) + 1));
                 i += 2;
             } else if ((cap = containsAt(format, i, "RM")) != null) {
                 int month = cal.get(Calendar.MONTH) + 1;

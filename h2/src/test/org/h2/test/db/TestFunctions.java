@@ -1288,6 +1288,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("7979", stat, "SELECT TO_CHAR(X, 'yyfxyy') FROM T");
         assertThrows("", stat, "SELECT TO_CHAR(X, 'A') FROM T");
 
+        // check a bug we had when the month or day of the month is 1 digit
+        stat.executeUpdate("TRUNCATE TABLE T");
+        stat.executeUpdate("INSERT INTO T VALUES (TIMESTAMP '1985-01-01 08:12:34.560')");
+        assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
+        
         conn.close();
     }
 

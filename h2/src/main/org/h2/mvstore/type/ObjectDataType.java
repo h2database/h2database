@@ -405,7 +405,7 @@ public class ObjectDataType implements DataType {
     /**
      * The base class for auto-detect data types.
      */
-    abstract class AutoDetectDataType implements DataType {
+    static abstract class AutoDetectDataType implements DataType {
 
         protected final ObjectDataType base;
         protected final int typeId;
@@ -482,7 +482,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for the null value
      */
-    class NullType extends AutoDetectDataType {
+    static class NullType extends AutoDetectDataType {
 
         NullType(ObjectDataType base) {
             super(base, TYPE_NULL);
@@ -524,7 +524,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for boolean true and false.
      */
-    class BooleanType extends AutoDetectDataType {
+    static class BooleanType extends AutoDetectDataType {
 
         BooleanType(ObjectDataType base) {
             super(base, TYPE_BOOLEAN);
@@ -565,7 +565,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for byte objects.
      */
-    class ByteType extends AutoDetectDataType {
+    static class ByteType extends AutoDetectDataType {
 
         ByteType(ObjectDataType base) {
             super(base, TYPE_BYTE);
@@ -606,7 +606,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for character objects.
      */
-    class CharacterType extends AutoDetectDataType {
+    static class CharacterType extends AutoDetectDataType {
 
         CharacterType(ObjectDataType base) {
             super(base, TYPE_CHAR);
@@ -647,7 +647,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for short objects.
      */
-    class ShortType extends AutoDetectDataType {
+    static class ShortType extends AutoDetectDataType {
 
         ShortType(ObjectDataType base) {
             super(base, TYPE_SHORT);
@@ -688,7 +688,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for integer objects.
      */
-    class IntegerType extends AutoDetectDataType {
+    static class IntegerType extends AutoDetectDataType {
 
         IntegerType(ObjectDataType base) {
             super(base, TYPE_INT);
@@ -750,7 +750,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for long objects.
      */
-    class LongType extends AutoDetectDataType {
+    static class LongType extends AutoDetectDataType {
 
         LongType(ObjectDataType base) {
             super(base, TYPE_LONG);
@@ -816,7 +816,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for float objects.
      */
-    class FloatType extends AutoDetectDataType {
+    static class FloatType extends AutoDetectDataType {
 
         FloatType(ObjectDataType base) {
             super(base, TYPE_FLOAT);
@@ -878,7 +878,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for double objects.
      */
-    class DoubleType extends AutoDetectDataType {
+    static class DoubleType extends AutoDetectDataType {
 
         DoubleType(ObjectDataType base) {
             super(base, TYPE_DOUBLE);
@@ -942,7 +942,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for BigInteger objects.
      */
-    class BigIntegerType extends AutoDetectDataType {
+    static class BigIntegerType extends AutoDetectDataType {
 
         BigIntegerType(ObjectDataType base) {
             super(base, TYPE_BIG_INTEGER);
@@ -1008,7 +1008,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for BigDecimal objects.
      */
-    class BigDecimalType extends AutoDetectDataType {
+    static class BigDecimalType extends AutoDetectDataType {
 
         BigDecimalType(ObjectDataType base) {
             super(base, TYPE_BIG_DECIMAL);
@@ -1086,7 +1086,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for string objects.
      */
-    class StringType extends AutoDetectDataType {
+    static class StringType extends AutoDetectDataType {
 
         StringType(ObjectDataType base) {
             super(base, TYPE_STRING);
@@ -1140,7 +1140,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for UUID objects.
      */
-    class UUIDType extends AutoDetectDataType {
+    static class UUIDType extends AutoDetectDataType {
 
         UUIDType(ObjectDataType base) {
             super(base, TYPE_UUID);
@@ -1184,7 +1184,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for java.util.Date objects.
      */
-    class DateType extends AutoDetectDataType {
+    static class DateType extends AutoDetectDataType {
 
         DateType(ObjectDataType base) {
             super(base, TYPE_DATE);
@@ -1227,7 +1227,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for object arrays.
      */
-    class ObjectArrayType extends AutoDetectDataType {
+    static class ObjectArrayType extends AutoDetectDataType {
 
         private final ObjectDataType elementType = new ObjectDataType();
 
@@ -1472,7 +1472,7 @@ public class ObjectDataType implements DataType {
     /**
      * The type for serialized objects.
      */
-    class SerializedObjectType extends AutoDetectDataType {
+    static class SerializedObjectType extends AutoDetectDataType {
 
         private int averageSize = 10000;
 

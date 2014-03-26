@@ -13,7 +13,7 @@ import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
 
 /**
- * A spatial data type. This class supports up to 255 dimensions. Each dimension
+ * A spatial data type. This class supports up to 31 dimensions. Each dimension
  * can have a minimum and a maximum value of type float. For each dimension, the
  * maximum value is only stored when it is not the same as the minimum.
  */
@@ -22,9 +22,11 @@ public class SpatialDataType implements DataType {
     private final int dimensions;
 
     public SpatialDataType(int dimensions) {
+        // Because of how we are storing the min-max-flag in the read/write method
+        // the no. of dimensions must be < 32.
         DataUtils.checkArgument(
-                dimensions >= 1 && dimensions < 256,
-                "Dimensions must be between 1 and 255, is {0}", dimensions);
+                dimensions >= 1 && dimensions < 32,
+                "Dimensions must be between 1 and 31, is {0}", dimensions);
         this.dimensions = dimensions;
     }
 

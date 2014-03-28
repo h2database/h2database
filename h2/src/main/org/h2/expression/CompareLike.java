@@ -8,7 +8,8 @@ package org.h2.expression;
 
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;

@@ -6,7 +6,7 @@
  */
 package org.h2.value;
 
-import org.h2.constant.SysProperties;
+import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
 /**

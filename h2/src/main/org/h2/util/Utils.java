@@ -24,9 +24,9 @@ import java.util.HashSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 

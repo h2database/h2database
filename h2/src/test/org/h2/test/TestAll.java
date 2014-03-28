@@ -501,11 +501,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Run all tests in all possible combinations.
      */
     private void testEverything() throws SQLException {
-        for (int c = 0; c < 3; c++) {
+        for (int c = 0; c < 2; c++) {
             if (c == 0) {
                 cipher = null;
-            } else if (c == 1) {
-                cipher = "XTEA";
             } else {
                 cipher = "AES";
             }
@@ -555,7 +553,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         traceLevelFile = 3;
         throttle = 1;
         cacheType = "SOFT_LRU";
-        cipher = "XTEA";
+        cipher = "AES";
         test();
 
         diskUndo = false;
@@ -729,7 +727,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // synth
         new TestBtreeIndex().runTest(this);
- //        new TestDiskFull().runTest(this);
+        new TestDiskFull().runTest(this);
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
         new TestLimit().runTest(this);

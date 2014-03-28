@@ -7,8 +7,9 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;

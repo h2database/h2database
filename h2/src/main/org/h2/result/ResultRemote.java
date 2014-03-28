@@ -8,8 +8,8 @@ package org.h2.result;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
 import org.h2.engine.SessionRemote;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.util.New;

@@ -28,8 +28,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;

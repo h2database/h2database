@@ -14,7 +14,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
@@ -538,6 +538,7 @@ public class ValueDataType implements DataType {
         }
         case Value.RESULT_SET: {
             SimpleResultSet rs = new SimpleResultSet();
+            rs.setAutoClose(false);
             int columns = readVarInt(buff);
             for (int i = 0; i < columns; i++) {
                 rs.addColumn(readString(buff),

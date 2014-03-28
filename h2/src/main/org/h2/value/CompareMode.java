@@ -8,6 +8,8 @@ package org.h2.value;
 
 import java.text.Collator;
 import java.util.Locale;
+
+import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
 /**
@@ -73,6 +75,21 @@ public class CompareMode {
         this.name = name;
         this.strength = strength;
         this.binaryUnsigned = binaryUnsigned;
+    }
+    
+    /**
+     * Create a new compare mode with the given collator and strength. If
+     * required, a new CompareMode is created, or if possible the last one is
+     * returned. A cache is used to speed up comparison when using a collator;
+     * CollationKey objects are cached.
+     *
+     * @param name the collation name or null
+     * @param strength the collation strength
+     * @return the compare mode
+     */
+    public static synchronized CompareMode getInstance(String name,
+            int strength) {
+        return getInstance(name, strength, SysProperties.SORT_BINARY_UNSIGNED);
     }
 
     /**

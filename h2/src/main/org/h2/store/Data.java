@@ -20,9 +20,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.tools.SimpleResultSet;
@@ -851,6 +852,7 @@ public class Data {
         }
         case Value.RESULT_SET: {
             SimpleResultSet rs = new SimpleResultSet();
+            rs.setAutoClose(false);
             int columns = readVarInt();
             for (int i = 0; i < columns; i++) {
                 rs.addColumn(readString(), readVarInt(), readVarInt(), readVarInt());

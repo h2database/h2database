@@ -24,9 +24,10 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;

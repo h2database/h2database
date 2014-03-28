@@ -8,7 +8,8 @@ package org.h2.message;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
+
+import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;

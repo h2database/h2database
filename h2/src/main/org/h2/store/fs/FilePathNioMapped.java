@@ -16,7 +16,8 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import org.h2.constant.SysProperties;
+
+import org.h2.engine.SysProperties;
 
 /**
  * This file system stores files on disk and uses java.nio to access the files.

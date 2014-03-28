@@ -48,7 +48,7 @@ public class TestScalability implements Database.DatabaseTest {
 
     private static Connection getResultConnection() throws SQLException {
         org.h2.Driver.load();
-        return DriverManager.getConnection("jdbc:h2:data/results");
+        return DriverManager.getConnection("jdbc:h2:./data/results");
     }
 
     private static void openResults() throws SQLException {
@@ -75,7 +75,7 @@ public class TestScalability implements Database.DatabaseTest {
 
         ArrayList<Database> dbs = new ArrayList<Database>();
         int id = 1;
-        final String h2Url = "jdbc:h2:data/test;" +
+        final String h2Url = "jdbc:h2:./data/test;" +
                 "LOCK_TIMEOUT=10000;LOCK_MODE=3";
         dbs.add(createDbEntry(id++, "H2", 1, h2Url));
         dbs.add(createDbEntry(id++, "H2", 10, h2Url));
@@ -85,7 +85,7 @@ public class TestScalability implements Database.DatabaseTest {
         dbs.add(createDbEntry(id++, "H2", 50, h2Url));
         dbs.add(createDbEntry(id++, "H2", 100, h2Url));
 
-        final String mvUrl = "jdbc:h2:data/mvTest;" +
+        final String mvUrl = "jdbc:h2:./data/mvTest;" +
                 "LOCK_TIMEOUT=10000;MV_STORE=TRUE";
         dbs.add(createDbEntry(id++, "MV", 1, mvUrl));
         dbs.add(createDbEntry(id++, "MV", 10, mvUrl));

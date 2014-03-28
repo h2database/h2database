@@ -9,8 +9,9 @@ package org.h2.tools;
 import java.net.URI;
 import java.sql.Connection;
 import java.sql.SQLException;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+
+import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceSystem;
 import org.h2.server.Service;
@@ -406,8 +407,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * Create a new web server, but does not start it yet. Example:
      *
      * <pre>
-     * Server server = Server.createWebServer(
-     *     new String[] { "-trace" }).start();
+     * Server server = Server.createWebServer("-trace").start();
      * </pre>
      * Supported options are:
      * -webPort, -webSSL, -webAllowOthers, -webDaemon,
@@ -429,7 +429,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      *
      * <pre>
      * Server server = Server.createTcpServer(
-     *     new String[] { "-tcpPort", "9123", "-tcpAllowOthers" }).start();
+     *     "-tcpPort", "9123", "-tcpAllowOthers").start();
      * </pre>
      * Supported options are:
      * -tcpPort, -tcpSSL, -tcpPassword, -tcpAllowOthers, -tcpDaemon,

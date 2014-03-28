@@ -143,7 +143,7 @@ public class FilePathEncrypt extends FilePathWrapper {
          */
         static final int HEADER_LENGTH = BLOCK_SIZE;
 
-        private static final byte[] HEADER = "H2crypt\n".getBytes();
+        private static final byte[] HEADER = "H2encrypt\n".getBytes();
         private static final int SALT_POS = HEADER.length;
 
         /**

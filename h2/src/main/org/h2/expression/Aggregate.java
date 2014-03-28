@@ -10,9 +10,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.index.Cursor;
 import org.h2.index.Index;

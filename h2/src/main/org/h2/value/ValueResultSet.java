@@ -157,7 +157,9 @@ public class ValueResultSet extends Value {
         if (!force) {
             return this;
         }
-        return ValueResultSet.get(new SimpleResultSet());
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.setAutoClose(false);
+        return ValueResultSet.get(rs);
     }
 
 }

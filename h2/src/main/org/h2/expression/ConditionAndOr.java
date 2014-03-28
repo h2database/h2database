@@ -6,8 +6,8 @@
  */
 package org.h2.expression;
 
-import org.h2.constant.SysProperties;
 import org.h2.engine.Session;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;

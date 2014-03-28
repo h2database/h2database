@@ -19,7 +19,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 

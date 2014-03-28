@@ -30,16 +30,16 @@ public class Compact {
      * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
-        DeleteDbFiles.execute("data", "test", true);
+        DeleteDbFiles.execute("./data", "test", true);
         Class.forName("org.h2.Driver");
-        Connection conn = DriverManager.getConnection("jdbc:h2:data/test", "sa", "");
+        Connection conn = DriverManager.getConnection("jdbc:h2:./data/test", "sa", "");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
         stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'World');");
         stat.close();
         conn.close();
         System.out.println("Compacting...");
-        compact("data", "test", "sa", "");
+        compact("./data", "test", "sa", "");
         System.out.println("Done.");
     }
 

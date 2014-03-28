@@ -16,7 +16,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Properties;
 import org.h2.Driver;
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.message.DbException;

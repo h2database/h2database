@@ -36,7 +36,7 @@ import java.util.Collections;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 

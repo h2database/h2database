@@ -31,8 +31,8 @@ import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.Task;

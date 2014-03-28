@@ -50,7 +50,7 @@ import org.h2.value.ValueUuid;
 public class TestDataPage extends TestBase implements DataHandler {
 
     private boolean testPerformance;
-    private final CompareMode compareMode = CompareMode.getInstance(null, 0, false);
+    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     /**
      * Run just this test.

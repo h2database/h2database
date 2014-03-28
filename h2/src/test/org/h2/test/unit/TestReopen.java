@@ -9,7 +9,8 @@ package org.h2.test.unit;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;

@@ -15,7 +15,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
@@ -119,6 +120,7 @@ public class TestValue extends TestBase {
 
     private void testValueResultSet() throws SQLException {
         SimpleResultSet rs = new SimpleResultSet();
+        rs.setAutoClose(false);
         rs.addColumn("ID", Types.INTEGER, 0, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
         rs.addRow(1, "Hello");

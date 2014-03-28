@@ -25,7 +25,7 @@ public class TestClearReferences extends TestBase {
 
     private static final String[] KNOWN_REFRESHED = {
         "org.h2.compress.CompressLZF.cachedHashTable",
-        "org.h2.constant.DbSettings.defaultSettings",
+        "org.h2.engine.DbSettings.defaultSettings",
         "org.h2.engine.SessionRemote.sessionFactory",
         "org.h2.jdbcx.JdbcDataSourceFactory.cachedTraceSystem",
         "org.h2.store.RecoverTester.instance",

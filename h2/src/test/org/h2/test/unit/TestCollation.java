@@ -8,7 +8,8 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.Statement;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
 /**

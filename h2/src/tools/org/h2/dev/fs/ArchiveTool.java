@@ -165,7 +165,7 @@ public class ArchiveTool {
                     }
                 }
             }
-            
+
             // int: metadata length
             // byte: 0: directory, 1: file
             // varLong: lastModified

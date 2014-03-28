@@ -22,7 +22,7 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
 import org.h2.util.New;

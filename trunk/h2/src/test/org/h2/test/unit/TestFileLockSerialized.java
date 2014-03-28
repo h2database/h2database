@@ -15,7 +15,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;

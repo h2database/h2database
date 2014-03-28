@@ -33,18 +33,18 @@ public class TestPattern extends TestBase {
 
     private void testCompareModeReuse() {
         CompareMode mode1, mode2;
-        mode1 = CompareMode.getInstance(null, 0, false);
-        mode2 = CompareMode.getInstance(null, 0, false);
+        mode1 = CompareMode.getInstance(null, 0);
+        mode2 = CompareMode.getInstance(null, 0);
         assertTrue(mode1 == mode2);
 
-        mode1 = CompareMode.getInstance("DE", Collator.SECONDARY, false);
+        mode1 = CompareMode.getInstance("DE", Collator.SECONDARY);
         assertFalse(mode1 == mode2);
-        mode2 = CompareMode.getInstance("DE", Collator.SECONDARY, false);
+        mode2 = CompareMode.getInstance("DE", Collator.SECONDARY);
         assertTrue(mode1 == mode2);
     }
 
     private void testPattern() {
-        CompareMode mode = CompareMode.getInstance(null, 0, false);
+        CompareMode mode = CompareMode.getInstance(null, 0);
         CompareLike comp = new CompareLike(mode, "\\", null, null, null, false);
         test(comp, "B", "%_");
         test(comp, "A", "A%");

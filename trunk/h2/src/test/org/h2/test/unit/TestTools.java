@@ -35,8 +35,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -79,6 +79,7 @@ public class TestTools extends TestBase {
         if (config.networked) {
             return;
         }
+        DeleteDbFiles.execute(getBaseDir(), null, true);
         org.h2.Driver.load();
         testSimpleResultSet();
         testTcpServerWithoutPort();
@@ -192,6 +193,8 @@ public class TestTools extends TestBase {
         createClassProxy(rs.getClass());
         assertThrows(IllegalStateException.class, rs).
                 addColumn(null, 0, 0, 0);
+        assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
+
         rs.next();
         assertEquals(1, rs.getInt(1));
         assertEquals("1", rs.getString(1));
@@ -219,6 +222,8 @@ public class TestTools extends TestBase {
         assertEquals(1, rs.getColumnCount());
 
         rs = new SimpleResultSet();
+        rs.setAutoClose(false);
+        
         rs.addColumn("a", Types.BIGINT, 0, 0);
         rs.addColumn("b", Types.BINARY, 0, 0);
         rs.addColumn("c", Types.BOOLEAN, 0, 0);
@@ -421,9 +426,10 @@ public class TestTools extends TestBase {
         }
         assertEquals(ResultSet.FETCH_FORWARD, rs.getFetchDirection());
         assertEquals(0, rs.getFetchSize());
-        assertEquals(ResultSet.TYPE_FORWARD_ONLY, rs.getType());
+        assertEquals(ResultSet.TYPE_SCROLL_INSENSITIVE, rs.getType());
         assertTrue(rs.getStatement() == null);
         assertFalse(rs.isClosed());
+        
         rs.beforeFirst();
         assertEquals(0, rs.getRow());
         assertTrue(rs.next());
@@ -433,8 +439,10 @@ public class TestTools extends TestBase {
         assertFalse(rs.next());
         assertThrows(ErrorCode.NO_DATA_AVAILABLE, (ResultSet) rs).
                 getInt(1);
-        assertTrue(rs.isClosed());
         assertEquals(0, rs.getRow());
+        assertFalse(rs.isClosed());
+        rs.close();
+        assertTrue(rs.isClosed());
     }
 
     private void testJdbcDriverUtils() {
@@ -835,7 +843,7 @@ public class TestTools extends TestBase {
         conn.close();
         Script.main("-url", url, "-user", user, "-password", password,
                 "-script", fileName, "-options", "nodata", "compression",
-                "lzf", "cipher", "xtea", "password", "'123'", "charset",
+                "lzf", "cipher", "aes", "password", "'123'", "charset",
                 "'utf-8'");
         Script.main("-url", url, "-user", user, "-password", password,
                 "-script", fileName + ".txt");
@@ -843,7 +851,7 @@ public class TestTools extends TestBase {
                 "-quiet");
         RunScript.main("-url", url, "-user", user, "-password", password,
                 "-script", fileName, "-options", "compression", "lzf",
-                "cipher", "xtea", "password", "'123'", "charset", "'utf-8'");
+                "cipher", "aes", "password", "'123'", "charset", "'utf-8'");
         conn = getConnection(
                 "jdbc:h2:" + getBaseDir() + "/testScriptRunscript", "sa", "abc");
         ResultSet rs = conn.createStatement()
@@ -906,13 +914,13 @@ public class TestTools extends TestBase {
         String url = "jdbc:h2:" + dir;
         DeleteDbFiles.execute(dir, "testChangeFileEncryption", true);
         Connection conn = getConnection(url +
-                "/testChangeFileEncryption;CIPHER=XTEA", "sa", "abc 123");
+                "/testChangeFileEncryption;CIPHER=AES", "sa", "abc 123");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB) "
                 + "AS SELECT X, SPACE(3000) FROM SYSTEM_RANGE(1, 300)");
         conn.close();
         String[] args = { "-dir", dir, "-db", "testChangeFileEncryption",
-                "-cipher", "XTEA", "-decrypt", "abc", "-quiet" };
+                "-cipher", "AES", "-decrypt", "abc", "-quiet" };
         ChangeFileEncryption.main(args);
         args = new String[] { "-dir", dir, "-db", "testChangeFileEncryption",
                 "-cipher", "AES", "-encrypt", "def", "-quiet" };

@@ -176,7 +176,7 @@ public class TestSecurity extends TestBase {
     }
 
     private void testBlockCiphers() {
-        for (String algorithm : new String[] { "AES", "XTEA", "FOG" }) {
+        for (String algorithm : new String[] { "AES", "FOG" }) {
             byte[] test = new byte[4096];
             BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
             cipher.setKey("abcdefghijklmnop".getBytes());

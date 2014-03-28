@@ -19,7 +19,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 import org.h2.api.DatabaseEventListener;
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.result.Row;
 import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;

@@ -13,10 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.SetTypes;
-import org.h2.constant.DbSettings;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.security.SHA256;
 import org.h2.store.fs.FilePathEncrypt;
@@ -385,6 +383,15 @@ public class ConnectionInfo implements Cloneable {
     public String getName() {
         if (persistent) {
             if (nameNormalized == null) {
+                if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
+                    if (!FileUtils.isAbsolute(name) && name.indexOf("./") < 0) {
+                        // the name could start with "./", or
+                        // it could start with a prefix such as "nio:./"
+                        throw DbException.get(
+                                ErrorCode.URL_RELATIVE_TO_CWD, 
+                                originalURL);
+                    }
+                }
                 String suffix = Constants.SUFFIX_PAGE_FILE;
                 String n;
                 if (FileUtils.exists(name + suffix)) {

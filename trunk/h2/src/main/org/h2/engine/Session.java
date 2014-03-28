@@ -12,13 +12,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
 import org.h2.jdbc.JdbcConnection;

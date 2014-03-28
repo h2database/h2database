@@ -8,7 +8,6 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;

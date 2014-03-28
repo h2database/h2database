@@ -7,12 +7,11 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
-import org.h2.constant.DbSettings;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;

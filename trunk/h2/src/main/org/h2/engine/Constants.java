@@ -35,6 +35,11 @@ public class Constants {
     public static final int BUILD_ID_STABLE = 174;
 
     /**
+     * Whether this is a snapshot version.
+     */
+    public static final boolean BUILD_SNAPSHOT = false;
+
+    /**
      * If H2 is compiled to be included in a product, this should be set to
      * a unique vendor id (to distinguish from official releases).
      * Additionally, a version number should be set to distinguish releases.
@@ -500,6 +505,9 @@ public class Constants {
         String version = VERSION_MAJOR + "." + VERSION_MINOR + "." + BUILD_ID;
         if (BUILD_VENDOR_AND_VERSION != null) {
             version += "_" + BUILD_VENDOR_AND_VERSION;
+        }
+        if (BUILD_SNAPSHOT) {
+            version += "-SNAPSHOT";
         }
         return version;
     }

@@ -9,7 +9,7 @@ package org.h2.jdbc;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.message.TraceObject;

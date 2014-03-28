@@ -9,9 +9,9 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;

@@ -10,8 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
-import org.h2.constant.ErrorCode;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;

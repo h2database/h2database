@@ -10,7 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.h2.constant.SysProperties;
+import org.h2.engine.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.util.Utils;
 

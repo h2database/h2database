@@ -50,7 +50,7 @@ public class TestPerformance implements Database.DatabaseTest {
 
     private static Connection getResultConnection() throws SQLException {
         org.h2.Driver.load();
-        return DriverManager.getConnection("jdbc:h2:data/results");
+        return DriverManager.getConnection("jdbc:h2:./data/results");
     }
 
     private static void openResults() throws SQLException {

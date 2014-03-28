@@ -28,13 +28,14 @@ import java.sql.Statement;
 import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
@@ -79,7 +80,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private int savepointId;
     private String catalog;
     private Statement executingStatement;
-    private final CompareMode compareMode = CompareMode.getInstance(null, 0, false);
+    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
     private final CloseWatcher watcher;
     private int queryTimeoutCache = -1;
 

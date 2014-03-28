@@ -11,7 +11,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
 import java.util.Properties;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;

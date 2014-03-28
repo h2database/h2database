@@ -7,9 +7,10 @@
 package org.h2.index;
 
 import java.util.ArrayList;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.SelectUnion;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Comparison;

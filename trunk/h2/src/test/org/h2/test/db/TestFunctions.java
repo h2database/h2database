@@ -36,7 +36,7 @@ import java.util.UUID;
 
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;

@@ -46,6 +46,7 @@ public class LinkSchema {
         Statement stat = null;
         ResultSet rs = null;
         SimpleResultSet result = new SimpleResultSet();
+        result.setAutoClose(false);
         result.addColumn("TABLE_NAME", Types.VARCHAR, Integer.MAX_VALUE, 0);
         try {
             c2 = JdbcUtils.getConnection(driver, url, user, password);

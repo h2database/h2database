@@ -13,7 +13,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 
@@ -396,7 +396,7 @@ public class TestRights extends TestBase {
         executeSuccess("CREATE USER TEST2 PASSWORD 'def' ADMIN");
         executeSuccess("ALTER USER TEST ADMIN FALSE");
         executeSuccess("SCRIPT TO '" + getBaseDir() +
-                    "/rights.sql' CIPHER XTEA PASSWORD 'test'");
+                    "/rights.sql' CIPHER AES PASSWORD 'test'");
         conn.close();
 
         try {

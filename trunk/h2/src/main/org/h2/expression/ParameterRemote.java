@@ -8,7 +8,8 @@ package org.h2.expression;
 
 import java.io.IOException;
 import java.sql.ResultSetMetaData;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Transfer;
 import org.h2.value.Value;

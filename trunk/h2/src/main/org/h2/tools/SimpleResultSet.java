@@ -29,7 +29,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -177,7 +178,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      */
     @Override
     public int getRow() {
-        return rowId + 1;
+        return currentRow == null ? 0 : rowId + 1;
     }
 
     /**
@@ -228,6 +229,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
                 currentRow = rows.get(rowId);
                 return true;
             }
+            currentRow = null;
         }
         if (autoClose) {
             close();

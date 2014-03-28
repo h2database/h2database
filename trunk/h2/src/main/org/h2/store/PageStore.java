@@ -12,13 +12,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.zip.CRC32;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.engine.SysProperties;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -1690,7 +1691,7 @@ public class PageStore implements CacheWriter {
             data.create = false;
             data.session = session;
             RegularTable table = new RegularTable(data);
-            boolean binaryUnsigned = false;
+            boolean binaryUnsigned = SysProperties.SORT_BINARY_UNSIGNED;
             if (options.length > 3) {
                 binaryUnsigned = Boolean.parseBoolean(options[3]);
             }

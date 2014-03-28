@@ -15,8 +15,9 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.index.Index;

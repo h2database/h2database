@@ -7,7 +7,8 @@
 package org.h2.schema;
 
 import java.math.BigInteger;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;

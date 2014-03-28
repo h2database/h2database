@@ -7,10 +7,11 @@
 package org.h2.expression;
 
 import java.util.HashMap;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectListColumnResolver;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;

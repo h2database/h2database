@@ -11,8 +11,8 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import org.h2.command.dml.SelectOrderBy;
-import org.h2.constant.SysProperties;
 import org.h2.engine.Database;
+import org.h2.engine.SysProperties;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.table.Column;

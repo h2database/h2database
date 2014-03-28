@@ -8,9 +8,10 @@ package org.h2.schema;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+
+import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;

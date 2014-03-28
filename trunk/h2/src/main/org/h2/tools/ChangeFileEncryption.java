@@ -47,7 +47,7 @@ public class ChangeFileEncryption extends Tool {
      * <tr><td>[-help] or [-?]</td>
      * <td>Print the list of options</td></tr>
      * <tr><td>[-cipher type]</td>
-     * <td>The encryption type (AES or XTEA)</td></tr>
+     * <td>The encryption type (AES)</td></tr>
      * <tr><td>[-dir &lt;dir&gt;]</td>
      * <td>The database directory (default: .)</td></tr>
      * <tr><td>[-db &lt;database&gt;]</td>
@@ -129,7 +129,7 @@ public class ChangeFileEncryption extends Tool {
      *
      * @param dir the directory (. for the current directory)
      * @param db the database name (null for all databases)
-     * @param cipher the cipher (AES, XTEA)
+     * @param cipher the cipher (AES)
      * @param decryptPassword the decryption password as a char array
      * @param encryptPassword the encryption password as a char array
      * @param quiet don't print progress information

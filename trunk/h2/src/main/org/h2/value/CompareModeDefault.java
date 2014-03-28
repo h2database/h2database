@@ -8,7 +8,8 @@ package org.h2.value;
 
 import java.text.CollationKey;
 import java.text.Collator;
-import org.h2.constant.SysProperties;
+
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.SmallLRUCache;
 

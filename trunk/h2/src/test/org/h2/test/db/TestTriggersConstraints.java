@@ -14,8 +14,8 @@ import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.constant.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.TriggerAdapter;
 import org.h2.util.Task;

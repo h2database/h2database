@@ -9,7 +9,7 @@ package org.h2.util;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 /**

@@ -19,9 +19,10 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
@@ -885,6 +886,7 @@ public abstract class Value {
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {
                 SimpleResultSet rs = new SimpleResultSet();
+                rs.setAutoClose(false);
                 rs.addColumn("X", Types.VARCHAR, s.length(), 0);
                 rs.addRow(s);
                 return ValueResultSet.get(rs);
@@ -1126,6 +1128,7 @@ public abstract class Value {
 
     public ResultSet getResultSet() {
         SimpleResultSet rs = new SimpleResultSet();
+        rs.setAutoClose(false);
         rs.addColumn("X", DataType.convertTypeToSQLType(getType()),
                 MathUtils.convertLongToInt(getPrecision()), getScale());
         rs.addRow(getObject());

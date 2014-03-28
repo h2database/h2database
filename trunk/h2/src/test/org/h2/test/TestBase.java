@@ -48,12 +48,12 @@ public abstract class TestBase {
     /**
      * The base directory.
      */
-    public static final String BASE_TEST_DIR = "data";
+    public static final String BASE_TEST_DIR = "./data";
 
     /**
      * The temporary directory.
      */
-    protected static final String TEMP_DIR = "data/temp";
+    protected static final String TEMP_DIR = "./data/temp";
 
     /**
      * An id used to create unique file names.

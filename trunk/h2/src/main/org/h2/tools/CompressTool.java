@@ -17,13 +17,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.h2.api.ErrorCode;
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.CompressNo;
 import org.h2.compress.Compressor;
 import org.h2.compress.LZFInputStream;
 import org.h2.compress.LZFOutputStream;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;

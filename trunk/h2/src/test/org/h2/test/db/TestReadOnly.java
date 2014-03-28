@@ -14,7 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.dev.fs.FilePathZip2;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;

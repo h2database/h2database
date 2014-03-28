@@ -31,8 +31,8 @@ import java.util.HashSet;
 import java.util.Properties;
 
 import org.h2.command.CommandInterface;
-import org.h2.constant.SysProperties;
 import org.h2.engine.ConnectionInfo;
+import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcStatement;

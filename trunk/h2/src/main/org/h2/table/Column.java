@@ -9,8 +9,9 @@ package org.h2.table;
 import java.sql.Date;
 import java.sql.ResultSetMetaData;
 import java.sql.Timestamp;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;

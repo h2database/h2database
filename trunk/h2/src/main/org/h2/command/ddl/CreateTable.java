@@ -7,10 +7,11 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Query;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;

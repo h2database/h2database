@@ -7,8 +7,9 @@
 package org.h2.command.ddl;
 
 import java.util.ArrayList;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.constant.ErrorCode;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.Right;

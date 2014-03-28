@@ -15,8 +15,8 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.h2.constant.ErrorCode;
-import org.h2.constant.SysProperties;
+import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;

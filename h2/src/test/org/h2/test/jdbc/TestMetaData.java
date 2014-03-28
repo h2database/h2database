@@ -16,7 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;

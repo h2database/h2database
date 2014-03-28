@@ -15,7 +15,8 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.UUID;
-import org.h2.constant.SysProperties;
+
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 
 /**

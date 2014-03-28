@@ -12,7 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
 /**

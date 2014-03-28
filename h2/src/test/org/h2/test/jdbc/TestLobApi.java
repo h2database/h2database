@@ -21,7 +21,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;

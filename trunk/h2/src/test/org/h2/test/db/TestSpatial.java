@@ -15,6 +15,8 @@ import java.sql.Types;
 import java.util.Random;
 
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.util.AffineTransformation;
 import org.h2.api.Aggregate;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
@@ -84,6 +86,7 @@ public class TestSpatial extends TestBase {
         testAggregateWithGeometry();
         testTableViewSpatialPredicate();
         testValueGeometryScript();
+        testInPlaceUpdate();
     }
 
     private void testHashCode() {
@@ -582,13 +585,12 @@ public class TestSpatial extends TestBase {
      */
     private void testWKB() {
         ValueGeometry geom3d = ValueGeometry.get(
-                "POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))");
+                "POLYGON ((67 13 6, 67 18 5, 59 18 4, 59 13 6,  67 13 6))", 27572);
         ValueGeometry copy = ValueGeometry.get(geom3d.getBytes());
         assertEquals(6, copy.getGeometry().getCoordinates()[0].z);
         assertEquals(5, copy.getGeometry().getCoordinates()[1].z);
         assertEquals(4, copy.getGeometry().getCoordinates()[2].z);
         // Test SRID
-        geom3d.getGeometry().setSRID(27572);
         copy = ValueGeometry.get(geom3d.getBytes());
         assertEquals(27572, copy.getGeometry().getSRID());
     }
@@ -798,6 +800,32 @@ public class TestSpatial extends TestBase {
             Object obj = rs.getObject(1);
             ValueGeometry g = ValueGeometry.getFromGeometry(obj);
             assertTrue("got: " + g + " exp: " + valueGeometry, valueGeometry.equals(g));
+        } finally {
+            conn.close();
+        }
+    }
+    
+    /**
+     * If the user mutate the geometry of the object, the object cache must not
+     * be updated.
+     */
+    private void testInPlaceUpdate() throws SQLException {
+        Connection conn = getConnection(url);
+        try {
+            ResultSet rs = conn.createStatement().executeQuery(
+                    "SELECT 'POINT(1 1)'::geometry");
+            assertTrue(rs.next());
+            // Mutate the geometry
+            ((Geometry) rs.getObject(1)).apply(new AffineTransformation(1, 0,
+                    1, 1, 0, 1));
+            rs.close();
+            rs = conn.createStatement().executeQuery(
+                    "SELECT 'POINT(1 1)'::geometry");
+            assertTrue(rs.next());
+            // Check if the geometry is the one requested
+            assertEquals(1, ((Point) rs.getObject(1)).getX());
+            assertEquals(1, ((Point) rs.getObject(1)).getY());
+            rs.close();
         } finally {
             conn.close();
         }

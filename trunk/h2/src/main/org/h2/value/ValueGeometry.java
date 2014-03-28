@@ -12,6 +12,7 @@ import java.util.Arrays;
 
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import org.h2.message.DbException;
 import org.h2.util.StringUtils;
 import com.vividsolutions.jts.geom.Envelope;
@@ -109,6 +110,22 @@ public class ValueGeometry extends Value {
     /**
      * Get or create a geometry value for the given geometry.
      *
+     * @param s the WKT representation of the geometry
+     * @return the value
+     */
+    public static ValueGeometry get(String s, int srid) {
+        try {
+            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), srid);
+            Geometry g = new WKTReader(geometryFactory).read(s);
+            return get(g);
+        } catch (ParseException ex) {
+            throw DbException.convert(ex);
+        }
+    }
+
+    /**
+     * Get or create a geometry value for the given geometry.
+     *
      * @param bytes the WKB representation of the geometry
      * @return the value
      */
@@ -116,7 +133,17 @@ public class ValueGeometry extends Value {
         return (ValueGeometry) Value.cache(new ValueGeometry(bytes, null));
     }
 
+    /**
+     * Get a copy of geometry object. Geometry object is mutable. The returned
+     * object is therefore copied before returning.
+     * 
+     * @return a copy of the geometry object
+     */
     public Geometry getGeometry() {
+        return (Geometry) getGeometryNoCopy().clone();
+    }
+
+    public Geometry getGeometryNoCopy() {
         if (geometry == null) {
             try {
                 geometry = new WKBReader().read(bytes);
@@ -136,8 +163,8 @@ public class ValueGeometry extends Value {
      */
     public boolean intersectsBoundingBox(ValueGeometry r) {
         // the Geometry object caches the envelope
-        return getGeometry().getEnvelopeInternal().intersects(
-                r.getGeometry().getEnvelopeInternal());
+        return getGeometryNoCopy().getEnvelopeInternal().intersects(
+                r.getGeometryNoCopy().getEnvelopeInternal());
     }
 
     /**
@@ -148,8 +175,8 @@ public class ValueGeometry extends Value {
      */
     public Value getEnvelopeUnion(ValueGeometry r) {
         GeometryFactory gf = new GeometryFactory();
-        Envelope mergedEnvelope = new Envelope(getGeometry().getEnvelopeInternal());
-        mergedEnvelope.expandToInclude(r.getGeometry().getEnvelopeInternal());
+        Envelope mergedEnvelope = new Envelope(getGeometryNoCopy().getEnvelopeInternal());
+        mergedEnvelope.expandToInclude(r.getGeometryNoCopy().getEnvelopeInternal());
         return get(gf.toGeometry(mergedEnvelope));
     }
 
@@ -160,8 +187,8 @@ public class ValueGeometry extends Value {
      * @return the intersection of this geometry envelope and another
      */
     public ValueGeometry getEnvelopeIntersection(ValueGeometry r) {
-        Envelope e1 = getGeometry().getEnvelopeInternal();
-        Envelope e2 = r.getGeometry().getEnvelopeInternal();
+        Envelope e1 = getGeometryNoCopy().getEnvelopeInternal();
+        Envelope e2 = r.getGeometryNoCopy().getEnvelopeInternal();
         Envelope e3 = e1.intersection(e2);
         // try to re-use the object
         if (e3 == e1) {
@@ -188,8 +215,8 @@ public class ValueGeometry extends Value {
 
     @Override
     protected int compareSecure(Value v, CompareMode mode) {
-        Geometry g = ((ValueGeometry) v).getGeometry();
-        return getGeometry().compareTo(g);
+        Geometry g = ((ValueGeometry) v).getGeometryNoCopy();
+        return getGeometryNoCopy().compareTo(g);
     }
 
     @Override
@@ -225,7 +252,7 @@ public class ValueGeometry extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        prep.setObject(parameterIndex, getGeometry());
+        prep.setObject(parameterIndex, getGeometryNoCopy());
     }
 
     @Override
@@ -252,7 +279,7 @@ public class ValueGeometry extends Value {
      * @return the well-known-text
      */
     public String getWKT() {
-        return new WKTWriter().write(getGeometry());
+        return new WKTWriter().write(getGeometryNoCopy());
     }
 
     /**

@@ -131,7 +131,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     private SpatialKey getEnvelope(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
-        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometry();
+        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
         Envelope env = g.getEnvelopeInternal();
         return new SpatialKey(row.getKey(),
                 (float) env.getMinX(), (float) env.getMaxX(),

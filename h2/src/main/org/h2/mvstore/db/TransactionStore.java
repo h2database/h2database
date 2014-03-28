@@ -1533,16 +1533,70 @@ public class TransactionStore {
         @Override
         public void read(ByteBuffer buff, Object[] obj,
                 int len, boolean key) {
+            // Read the operationIds
             for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
+                VersionedValue v = new VersionedValue();
+                v.operationId = DataUtils.readVarLong(buff);
+                obj[i] = v;
             }
+            // Read the null/not-null indicators.
+            final byte[] notNullIndicators = new byte[(len + 7) / 8];
+            buff.get(notNullIndicators, 0, notNullIndicators.length);
+            // Read the child values.
+            for (int i = 0; i < len; i++) {
+                VersionedValue v = (VersionedValue) obj[i];
+                int x = notNullIndicators[i / 8] & 0xff;
+                x = x >> (i % 8);
+                x = x & 1;
+                if (x == 1) {
+                    v.value = valueType.read(buff);
+                }
+            }
+        }
+
+        @Override
+        public Object read(ByteBuffer buff) {
+            VersionedValue v = new VersionedValue();
+            v.operationId = DataUtils.readVarLong(buff);
+            if (buff.get() == 1) {
+                v.value = valueType.read(buff);
+            }
+            return v;
         }
 
         @Override
         public void write(WriteBuffer buff, Object[] obj,
                 int len, boolean key) {
+            // Write the operationIds
             for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
+                VersionedValue v = (VersionedValue) obj[i];
+                buff.putVarLong(v.operationId);
+            }
+            // Write the not-null-indicators as a bit-packed array
+            int x = 0;
+            int byteIdx = 0;
+            for (int i = 0; i < len; i++) {
+                VersionedValue v = (VersionedValue) obj[i];
+                if (v.value != null) {
+                    x |= 1 << byteIdx;
+                }
+                byteIdx++;
+                if (byteIdx == 8) {
+                    buff.put((byte) x);
+                    byteIdx = 0;
+                    x = 0;
+                }
+                
+            }
+            if (byteIdx != 0) {
+                buff.put((byte) x);
+            }
+            // Write the child values.
+            for (int i = 0; i < len; i++) {
+                VersionedValue v = (VersionedValue) obj[i];
+                if (v.value != null) {
+                    valueType.write(buff, v.value);
+                }
             }
         }
 
@@ -1556,16 +1610,6 @@ public class TransactionStore {
                 buff.put((byte) 1);
                 valueType.write(buff, v.value);
             }
-        }
-
-        @Override
-        public Object read(ByteBuffer buff) {
-            VersionedValue v = new VersionedValue();
-            v.operationId = DataUtils.readVarLong(buff);
-            if (buff.get() == 1) {
-                v.value = valueType.read(buff);
-            }
-            return v;
         }
 
     }
@@ -1618,16 +1662,56 @@ public class TransactionStore {
         @Override
         public void read(ByteBuffer buff, Object[] obj,
                 int len, boolean key) {
+            // Read the not-null-indicators.
+            final byte[] notNullIndicators = new byte[(len * arrayLength + 7) / 8];
+            buff.get(notNullIndicators, 0, notNullIndicators.length);
+            // Read the values.
             for (int i = 0; i < len; i++) {
-                obj[i] = read(buff);
+                Object[] array = new Object[arrayLength];
+                obj[i] = array;
+                for (int j = 0; j < arrayLength; j++) {
+                    int x = notNullIndicators[(i * arrayLength + j) / 8] & 0xff;
+                    x = x >> ((i * arrayLength + j) % 8);
+                    x = x & 1;
+                    if (x == 1) {
+                        array[j] = elementTypes[j].read(buff);
+                    }
+                }
             }
         }
 
         @Override
         public void write(WriteBuffer buff, Object[] obj,
                 int len, boolean key) {
+            // Write the null/not-null indicators as a bit-packed array
+            int x = 0;
+            int byteIdx = 0;
             for (int i = 0; i < len; i++) {
-                write(buff, obj[i]);
+                Object[] array = (Object[]) obj[i];
+                for (int j = 0; j < arrayLength; j++) {
+                    if (array[j] != null) {
+                        x |= 1 << byteIdx;
+                    }
+                    byteIdx++;
+                    if (byteIdx == 8) {
+                        buff.put((byte) x);
+                        byteIdx = 0;
+                        x = 0;
+                    }
+                }
+            }
+            if (byteIdx != 0) {
+                buff.put((byte) x);
+            }
+            
+            // Write the values.
+            for (int i = 0; i < len; i++) {
+                Object[] array = (Object[]) obj[i];
+                for (int j = 0; j < arrayLength; j++) {
+                    if (array[j] != null) {
+                        elementTypes[j].write(buff, array[j]);
+                    }
+                }
             }
         }
 

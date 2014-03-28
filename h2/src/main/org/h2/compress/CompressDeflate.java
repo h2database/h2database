@@ -10,7 +10,8 @@ import java.util.StringTokenizer;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
 /**

@@ -7,10 +7,11 @@
 package org.h2.command.dml;
 
 import java.text.Collator;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.compress.Compressor;
-import org.h2.constant.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Mode;

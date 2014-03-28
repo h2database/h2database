@@ -8,7 +8,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import org.h2.constant.ErrorCode;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;

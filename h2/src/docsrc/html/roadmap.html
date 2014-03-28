@@ -24,6 +24,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 
 <h2>Version 1.5.x: Planned Changes</h2>
 <ul><li>Replace file password hash with file encryption key; validate encryption key when connecting.
+</li><li>Remove the encryption algorithm XTEA.
 </li></ul>
 
 <h2>Version 1.4.x: Planned Changes</h2>
@@ -31,16 +32,15 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Enable the new storage format for dates (system property "h2.storeLocalTime").
     Document time literals: between minus 2 million and 2 million hours with nanosecond resolution.
 </li><li>Remove the old connection pool logic (system property "h2.fastConnectionPool").
-</li><li>Enable "h2.modifyOnWrite".
+</li><li>Disable implicit relative paths (system property "h2.implicitRelativePath").
 </li><li>Enable Mode.supportOffsetFetch by default, so that "select 1 fetch first 1 row only" works.
+</li><li>Whether byte arrays should be sorted in unsigned mode
+    (old behavior: x'99' is smaller than x'09').
+    (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned).
 </li><li>The default user name should be an empty string and not "sa".
 </li><li>Deprecate Csv.getInstance() (use the public constructor instead).
-</li><li>Move ErrorCode class to org.h2.api.
-</li><li>Deprecate the encryption algorithm XTEA.
-</li><li>Sort order for byte arrays: currently x'99' is smaller than x'09', which is unexpected. Change if possible.
 </li><li>Remove support for the old-style outer join syntax using "(+)" because it is buggy.
 </li><li>Change license to MPL 2.0.
-</li><li>Not allow relative database URLs like jdbc:h2:test; instead, require using jdbc:h2:./test.
 </li><li>Document that FILE_LOCK=SERIALIZED is not supported with the MVStore mode.
 </li></ul>
 

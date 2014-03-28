@@ -1706,10 +1706,9 @@ CASE WHEN CNT<10 THEN 'Low' ELSE 'High' END
 "
 
 "Other Grammar","Cipher","
-{ AES | XTEA }
+AES
 ","
-Two algorithms are supported: AES (""AES-128"") and XTEA (using 32 rounds).
-XTEA is a bit faster than AES in some environments, but AES is more secure.
+Only the algorithm AES (""AES-128"") is supported currently.
 ","
 AES
 "
@@ -2914,7 +2913,7 @@ SIGN(VALUE)
 ENCRYPT(algorithmString, keyBytes, dataBytes)
 ","
 Encrypts data using a key.
-Supported algorithms are XTEA and AES.
+The supported algorithm is AES.
 The block size is 16 bytes.
 This method returns bytes.
 ","
@@ -2925,7 +2924,7 @@ CALL ENCRYPT('AES', '00', STRINGTOUTF8('Test'))
 DECRYPT(algorithmString, keyBytes, dataBytes)
 ","
 Decrypts data using a key.
-Supported algorithms are XTEA and AES.
+The supported algorithm is AES.
 The block size is 16 bytes.
 This method returns bytes.
 ","

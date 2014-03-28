@@ -1274,11 +1274,7 @@ then the iteration count is not required at all.
 
 <h3>File Encryption</h3>
 <p>
-The database files can be encrypted using two different algorithms: AES-128 and
-XTEA (using 32 rounds). The reasons for supporting XTEA is performance
-(XTEA is a bit faster as AES in some environments) and to have an alternative algorithm if AES is suddenly broken.
-Please note that the XTEA implementation used in this database only uses 32 rounds
-and not 64 rounds as recommended by its inventor (as of 2010, the best known attack is on 27 rounds).
+The database files can be encrypted using the AES-128 algorithm.
 </p><p>
 When a user tries to connect to an encrypted database, the combination of
 <code>file@</code> and the file password is hashed using SHA-256. This hash value is
@@ -1290,8 +1286,8 @@ The combination of the file password hash and the salt value is hashed 1024 time
 using SHA-256. The reason for the iteration is to make it harder for an attacker to
 calculate hash values for common passwords.
 </p><p>
-The resulting hash value is used as the key for the block cipher algorithm
-(AES-128 or XTEA with 32 rounds). Then, an initialization vector (IV) key
+The resulting hash value is used as the key for the block cipher algorithm. 
+Then, an initialization vector (IV) key
 is calculated by hashing the key again using SHA-256.
 This is to make sure the IV is unknown to the attacker.
 The reason for using a secret IV is to protect against watermark attacks.
@@ -1299,7 +1295,7 @@ The reason for using a secret IV is to protect against watermark attacks.
 Before saving a block of data (each block is 8 bytes long), the following operations are executed:
 first, the IV is calculated by encrypting the block number with the IV key (using the same
 block cipher algorithm). This IV is combined with the plain text using XOR. The resulting data is
-encrypted using the AES-128 or XTEA algorithm.
+encrypted using the AES-128 algorithm.
 </p><p>
 When decrypting, the operation is done in reverse. First, the block is decrypted using the key,
 and then the IV is calculated combined with the decrypted text using XOR.
@@ -1315,7 +1311,7 @@ When he has write access, he can for example replace pieces of files with pieces
 and manipulate data like this.
 </p><p>
 File encryption slows down the performance of the database engine. Compared to unencrypted mode,
-database operations take about 2.2 times longer when using XTEA, and 2.5 times longer using AES (embedded mode).
+database operations take about 2.5 times longer using AES (embedded mode).
 </p>
 
 <h3>Wrong Password / User Name Delay</h3>
@@ -1716,11 +1712,6 @@ OR X = 2 OR X = 2 OR X = 2 OR X = 2 OR X = 2
         <td>Secure Sockets Layer / Transport Layer Security. See also:
         <a href="http://java.sun.com/products/jsse/">Java Secure Socket
         Extension (JSSE)</a></td>
-    </tr>
-    <tr>
-        <td>XTEA</td>
-        <td>A block encryption algorithm. See also: <a
-            href="http://en.wikipedia.org/wiki/XTEA">Wikipedia: XTEA</a></td>
     </tr>
 </table>
 

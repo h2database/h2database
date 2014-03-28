@@ -8,7 +8,7 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
-import org.h2.constant.ErrorCode;
+import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;

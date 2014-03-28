@@ -15,6 +15,8 @@ import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
 import org.h2.command.ddl.AlterSchemaRename;
@@ -80,7 +82,6 @@ import org.h2.command.dml.Set;
 import org.h2.command.dml.SetTypes;
 import org.h2.command.dml.TransactionCommand;
 import org.h2.command.dml.Update;
-import org.h2.constant.ErrorCode;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -180,7 +181,7 @@ public class Parser {
     private final Database database;
     private final Session session;
     /**
-     * @see org.h2.constant.DbSettings#databaseToUpper
+     * @see org.h2.engine.DbSettings#databaseToUpper
      */
     private final boolean identifiersToUpper;
 

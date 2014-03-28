@@ -8,8 +8,8 @@ package org.h2.command;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import org.h2.constant.SysProperties;
 import org.h2.engine.SessionRemote;
+import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
 import org.h2.expression.ParameterRemote;
 import org.h2.message.DbException;

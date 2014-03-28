@@ -103,7 +103,7 @@ Features
 </li><li>Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
 </li><li>Scrollable and updatable result set support, large result set, external result sorting,
     functions can return a result set
-</li><li>Encrypted database (AES or XTEA), SHA-256 password encryption, encryption functions, SSL
+</li><li>Encrypted database (AES), SHA-256 password encryption, encryption functions, SSL
 </li></ul>
 
 <h3>SQL Support</h3>
@@ -130,7 +130,7 @@ Features
     (even when using insecure connections; this only applies to the TCP server and not to the H2 Console however;
     it also doesn't apply if you set the password in the database URL)
 </li><li>All database files (including script files that can be used to backup data) can be
-encrypted using AES-128 and XTEA encryption algorithms
+encrypted using the AES-128 encryption algorithm
 </li><li>The remote JDBC driver supports TCP/IP connections over SSL/TLS
 </li><li>The built-in web server supports connections over SSL/TLS
 </li><li>Passwords can be sent to the database using char arrays instead of Strings
@@ -497,16 +497,16 @@ This is achieved using different database URLs. Settings in the URLs are not cas
 <tr>
     <td><a href="#file_encryption">Using encrypted files</a></td>
     <td class="notranslate">
-        jdbc:h2:&lt;url&gt;;CIPHER=[AES|XTEA]<br />
+        jdbc:h2:&lt;url&gt;;CIPHER=AES<br />
         jdbc:h2:ssl://localhost/~/test;CIPHER=AES<br />
-        jdbc:h2:file:~/secure;CIPHER=XTEA<br />
+        jdbc:h2:file:~/secure;CIPHER=AES<br />
     </td>
 </tr>
 <tr>
     <td><a href="#database_file_locking">File locking methods</a></td>
     <td class="notranslate">
         jdbc:h2:&lt;url&gt;;FILE_LOCK={FILE|SOCKET|NO}<br />
-        jdbc:h2:file:~/private;CIPHER=XTEA;FILE_LOCK=SOCKET<br />
+        jdbc:h2:file:~/private;CIPHER=AES;FILE_LOCK=SOCKET<br />
     </td>
 </tr>
 <tr>
@@ -641,7 +641,7 @@ To keep the content of an in-memory database as long as the virtual machine is a
 
 <h2 id="file_encryption">Database Files Encryption</h2>
 <p>
-The database files can be encrypted. Two encryption algorithms are supported: AES and XTEA.
+The database files can be encrypted. Two encryption algorithm AES is supported.
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
 and the file password (in addition to the user password) when connecting to the database.
 </p>

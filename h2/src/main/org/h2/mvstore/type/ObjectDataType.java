@@ -405,7 +405,7 @@ public class ObjectDataType implements DataType {
     /**
      * The base class for auto-detect data types.
      */
-    static abstract class AutoDetectDataType implements DataType {
+    abstract static class AutoDetectDataType implements DataType {
 
         protected final ObjectDataType base;
         protected final int typeId;

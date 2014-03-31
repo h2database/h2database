@@ -17,8 +17,29 @@ Change Log
 
 <h1>Change Log</h1>
 
+<h2>Changes in Version 1.4 Beta (unreleased)</h2>
+<ul><li>Enable the new storage format for dates (system property "h2.storeLocalTime").
+    For the MVStore mode, this is always enabled, but with version 1.4
+    this is even enabled in the PageStore mode.
+</li><li>Implicit relative paths are disabled (system property "h2.implicitRelativePath"),
+    so that the database URL jdbc:h2:test now needs to be written as jdbc:h2:./test.
+</li><li>"select ... fetch first 1 row only" is supported with the regular mode.
+    This was disabled so far because "fetch" is now a keyword.
+    See also Mode.supportOffsetFetch.
+</li><li>Byte arrays are now sorted in unsigned mode
+    (x'99' is larger than x'09').
+    (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned).
+</li><li>Csv.getInstance will be removed in future versions of 1.4.
+    Use the public constructor instead.
+</li><li>Remove support for the limited old-style outer join syntax using "(+)".
+    Use "outer join" instead.
+    System property "h2.oldStyleOuterJoin".
+</li></ul>
+
 <h2>Next Version (unreleased)</h2>
-<ul><li>The stack trace of the exception "The object is already closed" is no longer logged by default.
+<ul><li>The default user name for the Script, RunScript, Shell, 
+    and CreateCluster tools are no longer "sa" but an empty string.
+</li><li>The stack trace of the exception "The object is already closed" is no longer logged by default.
 </li><li>If a value of a result set was itself a result set, the result
     could only be read once.
 </li><li>Column constraints are also visible in views (patch from Nicolas Fortin for H2GIS).

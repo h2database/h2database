@@ -311,6 +311,13 @@ public class SysProperties {
      */
     public static final int OBJECT_CACHE_SIZE =
             MathUtils.nextPowerOf2(Utils.getProperty("h2.objectCacheSize", 1024));
+    
+    /**
+     * System property <code>h2.oldStyleOuterJoin</code> (default: true for version 1.3, false for version 1.4).<br />
+     * Limited support for the old-style Oracle outer join with "(+)".
+     */
+    public static final boolean OLD_STYLE_OUTER_JOIN =
+            Utils.getProperty("h2.oldStyleOuterJoin", Constants.VERSION_MINOR >= 4 ? false : true);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
@@ -360,12 +367,11 @@ public class SysProperties {
             Utils.getProperty("h2.socketConnectTimeout", 2000);
     
     /**
-     * System property <code>h2.sortBinaryUnsigned</code> (default: false).<br />
+     * System property <code>h2.sortBinaryUnsigned</code> (default: false with version 1.3, true with version 1.4).<br />
      * Whether binary data should be sorted in unsigned mode (0xff is larger than 0x00).
      */
-    ;
     public static final boolean SORT_BINARY_UNSIGNED =
-            Utils.getProperty("h2.sortBinaryUnsigned", false);
+            Utils.getProperty("h2.sortBinaryUnsigned", Constants.VERSION_MINOR >= 4 ? true : false);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -384,12 +390,12 @@ public class SysProperties {
             Utils.getProperty("h2.splitFileSizeShift", 30);
 
     /**
-     * System property <code>h2.storeLocalTime</code> (default: false).<br />
+     * System property <code>h2.storeLocalTime</code> (default: false for version 1.3, true for version 1.4).<br />
      * Store the local time. If disabled, the daylight saving offset is not
      * taken into account.
      */
     public static final boolean STORE_LOCAL_TIME =
-            Utils.getProperty("h2.storeLocalTime", false);
+            Utils.getProperty("h2.storeLocalTime", Constants.VERSION_MINOR >= 4 ? true : false);
 
     /**
      * System property <code>h2.syncMethod</code> (default: sync).<br />
@@ -412,13 +418,12 @@ public class SysProperties {
             Utils.getProperty("h2.traceIO", false);
     
     /**
-     * System property <code>h2.implicitRelativePath</code> (default: true).<br />
+     * System property <code>h2.implicitRelativePath</code> (default: true for version 1.3, false for version 1.4).<br />
      * If disabled, relative paths in database URLs need to be written as
      * jdbc:h2:./test instead of jdbc:h2:test.
      */
-    ;
     public static final boolean IMPLICIT_RELATIVE_PATH =
-            Utils.getProperty("h2.implicitRelativePath", false);
+            Utils.getProperty("h2.implicitRelativePath", Constants.VERSION_MINOR >= 4 ? false : true);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />

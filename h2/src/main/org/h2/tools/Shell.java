@@ -320,7 +320,7 @@ public class Shell extends Tool implements Runnable {
 
     private void connect() throws IOException, SQLException {
         String url = "jdbc:h2:~/test";
-        String user = "sa";
+        String user = "";
         String driver = null;
         try {
             Properties prop;

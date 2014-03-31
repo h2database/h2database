@@ -136,7 +136,8 @@ public class DbContents {
         }
         isSQLite = url.startsWith("jdbc:sqlite:");
         isOracle = url.startsWith("jdbc:oracle:");
-        isPostgreSQL = url.startsWith("jdbc:postgresql:");
+        // the Vertica engine is based on PostgreSQL
+        isPostgreSQL = url.startsWith("jdbc:postgresql:") || url.startsWith("jdbc:vertica:");
         // isHSQLDB = url.startsWith("jdbc:hsqldb:");
         isMySQL = url.startsWith("jdbc:mysql:");
         isDerby = url.startsWith("jdbc:derby:");

@@ -66,6 +66,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         testVersion();
         testFunctionTable();
+        testFunctionTableVarArgs();
         testArrayParameters();
         testDefaultConnection();
         testFunctionInSchema();
@@ -123,6 +124,20 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    private void testFunctionTableVarArgs() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        stat.execute("create alias varargs_function_table for \"" + TestFunctions.class.getName()
+                + ".varArgsFunctionTable\"");
+        ResultSet rs = stat.executeQuery("select * from varargs_function_table(1,2,3,5,8,13)");
+        for (int i : new int[] { 1, 2, 3, 5, 8, 13 }) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+        conn.close();
+    }
+
     /**
      * This method is called via reflection from the database.
      *
@@ -134,6 +149,23 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         result.addColumn("A", Types.INTEGER, 0, 0);
         result.addColumn("B", Types.CHAR, 0, 0);
         result.addRow(42, 'X');
+        return result;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     * 
+     * @return a result set
+     */
+    public static ResultSet varArgsFunctionTable(int... values) throws SQLException {
+        if (values.length != 6) {
+            throw new SQLException("Unexpected argument count");
+        }
+        SimpleResultSet result = new SimpleResultSet();
+        result.addColumn("A", Types.INTEGER, 0, 0);
+        for (int value : values) {
+            result.addRow(value);
+        }
         return result;
     }
 

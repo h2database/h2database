@@ -57,10 +57,10 @@ public class FunctionTable extends Table {
             throw DbException.get(
                     ErrorCode.FUNCTION_MUST_RETURN_RESULT_SET_1, function.getName());
         }
-        int params = function.getParameterCount();
-        Expression[] columnListArgs = new Expression[params];
         Expression[] args = function.getArgs();
-        for (int i = 0; i < params; i++) {
+        int numParams = args.length;
+        Expression[] columnListArgs = new Expression[numParams];
+        for (int i = 0; i < numParams; i++) {
             args[i] = args[i].optimize(session);
             columnListArgs[i] = args[i];
         }

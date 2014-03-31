@@ -90,6 +90,7 @@ import org.h2.engine.FunctionAlias;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
+import org.h2.engine.SysProperties;
 import org.h2.engine.User;
 import org.h2.engine.UserAggregate;
 import org.h2.engine.UserDataType;
@@ -2152,7 +2153,7 @@ public class Parser {
                     read(")");
                 } else {
                     Expression right = readConcat();
-                    if (readIf("(") && readIf("+") && readIf(")")) {
+                    if (SysProperties.OLD_STYLE_OUTER_JOIN && readIf("(") && readIf("+") && readIf(")")) {
                         // support for a subset of old-fashioned Oracle outer
                         // join with (+)
                         if (r instanceof ExpressionColumn &&
@@ -2576,10 +2577,12 @@ public class Parser {
         }
         String name = readColumnIdentifier();
         Schema s = database.findSchema(objectName);
-        if (s != null && readIf("(")) {
+        if ((SysProperties.OLD_STYLE_OUTER_JOIN && s != null) && readIf("(")) {
             // only if the token before the dot is a valid schema name,
             // otherwise the old style Oracle outer join doesn't work:
             // t.x = t2.x(+)
+            // this additional check is not required if the old style outer joins
+            // are not supported
             return readFunction(s, name);
         } else if (readIf(".")) {
             String schema = objectName;

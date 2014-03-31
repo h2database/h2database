@@ -56,7 +56,7 @@ public class Script extends Tool {
     @Override
     public void runTool(String... args) throws SQLException {
         String url = null;
-        String user = "sa";
+        String user = "";
         String password = "";
         String file = "backup.sql";
         String options1 = null, options2 = null;

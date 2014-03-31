@@ -2146,7 +2146,8 @@ Each table has a pseudo-column named ""_ROWID_"" that contains the unique row id
 "Other Grammar","Time","
 TIME 'hh:mm:ss'
 ","
-A time literal.
+A time literal. A value is between plus and minus 2 million hours
+and has nanosecond resolution.
 ","
 TIME '23:59:59'
 "

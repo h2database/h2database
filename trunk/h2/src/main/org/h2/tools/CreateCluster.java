@@ -57,7 +57,7 @@ public class CreateCluster extends Tool {
     public void runTool(String... args) throws SQLException {
         String urlSource = null;
         String urlTarget = null;
-        String user = "sa";
+        String user = "";
         String password = "";
         String serverList = null;
         for (int i = 0; args != null && i < args.length; i++) {

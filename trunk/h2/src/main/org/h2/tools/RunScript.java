@@ -90,7 +90,7 @@ public class RunScript extends Tool {
     @Override
     public void runTool(String... args) throws SQLException {
         String url = null;
-        String user = "sa";
+        String user = "";
         String password = "";
         String script = "backup.sql";
         String options = null;

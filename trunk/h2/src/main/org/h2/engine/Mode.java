@@ -78,7 +78,7 @@ public class Mode {
      * [OFFSET .. ROW|ROWS] [FETCH FIRST .. ROW|ROWS ONLY]
      * as an alternative for LIMIT .. OFFSET.
      */
-    public boolean supportOffsetFetch;
+    public boolean supportOffsetFetch = Constants.VERSION_MINOR >= 4 ? true : false;
 
     /**
      * The system columns 'CTID' and 'OID' are supported.

@@ -534,7 +534,7 @@ public class Build extends BuildBase {
         delete("docs");
         mkdir("docs/javadoc");
         javadoc("-sourcepath", "src/main", "org.h2.jdbc", "org.h2.jdbcx",
-                "org.h2.tools", "org.h2.api", "org.h2.constant", "org.h2.fulltext",
+                "org.h2.tools", "org.h2.api", "org.h2.engine", "org.h2.fulltext",
                 "-classpath",
                 "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/jts-1.13.jar",

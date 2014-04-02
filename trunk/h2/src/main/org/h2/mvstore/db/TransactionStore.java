@@ -1680,68 +1680,16 @@ public class TransactionStore {
         @Override
         public void read(ByteBuffer buff, Object[] obj,
                 int len, boolean key) {
-            if (PACK_DATA2) {
-                // Read the not-null-indicators.
-                final byte[] notNullIndicators = new byte[(len * arrayLength + 7) / 8];
-                buff.get(notNullIndicators, 0, notNullIndicators.length);
-                // Read the values.
-                for (int i = 0; i < len; i++) {
-                    Object[] array = new Object[arrayLength];
-                    obj[i] = array;
-                    for (int j = 0; j < arrayLength; j++) {
-                        int x = notNullIndicators[(i * arrayLength + j) / 8] & 0xff;
-                        x = x >> ((i * arrayLength + j) % 8);
-                        x = x & 1;
-                        if (x == 1) {
-                            array[j] = elementTypes[j].read(buff);
-                        }
-                    }
-                }
-            } else {
-                for (int i = 0; i < len; i++) {
-                    obj[i] = read(buff);
-                }
+            for (int i = 0; i < len; i++) {
+                obj[i] = read(buff);
             }
         }
 
         @Override
         public void write(WriteBuffer buff, Object[] obj,
                 int len, boolean key) {
-            if (PACK_DATA2) {
-                // Write the null/not-null indicators as a bit-packed array
-                int x = 0;
-                int byteIdx = 0;
-                for (int i = 0; i < len; i++) {
-                    Object[] array = (Object[]) obj[i];
-                    for (int j = 0; j < arrayLength; j++) {
-                        if (array[j] != null) {
-                            x |= 1 << byteIdx;
-                        }
-                        byteIdx++;
-                        if (byteIdx == 8) {
-                            buff.put((byte) x);
-                            byteIdx = 0;
-                            x = 0;
-                        }
-                    }
-                }
-                if (byteIdx != 0) {
-                    buff.put((byte) x);
-                }
-
-                // Write the values.
-                for (int i = 0; i < len; i++) {
-                    Object[] array = (Object[]) obj[i];
-                    for (int j = 0; j < arrayLength; j++) {
-                        if (array[j] != null) {
-                            elementTypes[j].write(buff, array[j]);
-                        }
-                    }
-                }
-            } else {
-                for (int i = 0; i < len; i++) {
-                    write(buff, obj[i]);
-                }
+            for (int i = 0; i < len; i++) {
+                write(buff, obj[i]);
             }
         }
 

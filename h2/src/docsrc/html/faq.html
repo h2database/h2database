@@ -175,7 +175,6 @@ is well tested (if possible with automated test cases). The areas that are not w
 <ul>
 <li>Platforms other than Windows XP, Linux, Mac OS X, or JVMs other than Sun 1.6 or 1.7
 </li><li>The features <code>AUTO_SERVER</code> and <code>AUTO_RECONNECT</code>.
-</li><li>The file locking method 'Serialized'.
 </li><li>Cluster mode, 2-phase commit, savepoints.
 </li><li>24/7 operation.
 </li><li>Fulltext search.
@@ -251,7 +250,7 @@ and not the alias name. If you need the alias name, use
 <a href="http://java.sun.com/javase/6/docs/api/java/sql/ResultSetMetaData.html#getColumnLabel(int)"><code>ResultSetMetaData.getColumnLabel()</code></a>.
 Some other database don't work like this yet (they don't follow the JDBC specification).
 If you need compatibility with those databases, use the <a href="features.html#compatibility">Compatibility Mode</a>,
-or append <a href="../javadoc/org/h2/constant/DbSettings.html#ALIAS_COLUMN_NAME"><code>;ALIAS_COLUMN_NAME=TRUE</code></a> to the database URL.
+or append <a href="../javadoc/org/h2/engine/DbSettings.html#ALIAS_COLUMN_NAME"><code>;ALIAS_COLUMN_NAME=TRUE</code></a> to the database URL.
 </p>
 <p>
 This also applies to DatabaseMetaData calls that return a result set.

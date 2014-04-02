@@ -68,17 +68,6 @@ public class Csv implements SimpleRowSource {
     private Writer output;
     private boolean endOfLine, endOfFile;
 
-    /**
-     * Get a new object of this class.
-     *
-     * @deprecated use the public constructor instead
-     *
-     * @return the new instance
-     */
-    public static Csv getInstance() {
-        return new Csv();
-    }
-
     private int writeResultSet(ResultSet rs) throws SQLException {
         try {
             int rows = 0;

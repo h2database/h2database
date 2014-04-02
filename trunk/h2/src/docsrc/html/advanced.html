@@ -52,8 +52,6 @@ Advanced
     Using the Recover Tool</a><br />
 <a href="#file_locking_protocols">
     File Locking Protocols</a><br />
-<a href="#file_locking_serialized">
-    File Locking Method 'Serialized'</a><br />
 <a href="#passwords">
     Using Passwords</a><br />
 <a href="#password_hash">
@@ -907,7 +905,8 @@ is put to sleep.
 
 <h3>File Locking Method 'File'</h3>
 <p>
-The default method for database file locking is the 'File Method'. The algorithm is:
+The default method for database file locking for version 1.3 and older is the 'File Method'. 
+The algorithm is:
 </p>
 <ul>
 <li>If the lock file does not exist, it is created (using the atomic operation
@@ -973,6 +972,7 @@ database files, if they do not have a direct TCP/IP connection.
 
 <h3>File Locking Method 'FS'</h3>
 <p>
+This is the default mode for version 1.3 and newer.
 This database file locking mechanism uses native file system lock on the database file.
 No *.lock.db file is created in this case, and no background thread is started.
 This mechanism may not work on all systems as expected.
@@ -985,27 +985,6 @@ To enable this feature, append <code>;FILE_LOCK=FS</code> to the database URL.
 <p>
 This feature is relatively new. When using it for production, please ensure
 your system does in fact lock files as expected.
-</p>
-
-<h2 id="file_locking_serialized">File Locking Method 'Serialized'</h2>
-<p>
-This locking mode allows to open multiple connections to the same database.
-The connections may be opened from multiple processes and from different computers.
-When writing to the database, access is automatically synchronized internally. Write operations
-are slower than when using the server mode, and concurrency is relatively poor.
-The advantage of this mode is that there is no need to start a server.
-</p>
-<p>
-To enable this feature, append <code>;FILE_LOCK=SERIALIZED</code> to the database URL.
-</p>
-<p>
-This feature is relatively new. When using it for production, please ensure
-your use case is well tested (if possible with automated test cases).
-</p>
-<p>
-One known limitation when using this mode is: queries that write to the database will fail
-with the exception "The database is read only", if the queries are run using <code>Statement.executeQuery()</code>.
-As a workaround, use <code>Statement.execute()</code>
 </p>
 
 <h2 id="passwords">Using Passwords</h2>
@@ -1286,7 +1265,7 @@ The combination of the file password hash and the salt value is hashed 1024 time
 using SHA-256. The reason for the iteration is to make it harder for an attacker to
 calculate hash values for common passwords.
 </p><p>
-The resulting hash value is used as the key for the block cipher algorithm. 
+The resulting hash value is used as the key for the block cipher algorithm.
 Then, an initialization vector (IV) key
 is calculated by hashing the key again using SHA-256.
 This is to make sure the IV is unknown to the attacker.
@@ -1477,7 +1456,7 @@ The current value of the settings can be read in the table
 </p>
 <p>
 For a complete list of settings, see
-<a href="../javadoc/org/h2/constant/SysProperties.html">SysProperties</a>.
+<a href="../javadoc/org/h2/engine/SysProperties.html">SysProperties</a>.
 </p>
 
 <h2 id="server_bind_address">Setting the Server Bind Address</h2>

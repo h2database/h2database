@@ -136,7 +136,7 @@ public class ValueGeometry extends Value {
     /**
      * Get a copy of geometry object. Geometry object is mutable. The returned
      * object is therefore copied before returning.
-     * 
+     *
      * @return a copy of the geometry object
      */
     public Geometry getGeometry() {

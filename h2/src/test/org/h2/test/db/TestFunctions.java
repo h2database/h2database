@@ -154,7 +154,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     /**
      * This method is called via reflection from the database.
-     * 
+     *
      * @return a result set
      */
     public static ResultSet varArgsFunctionTable(int... values) throws SQLException {
@@ -1324,7 +1324,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.executeUpdate("TRUNCATE TABLE T");
         stat.executeUpdate("INSERT INTO T VALUES (TIMESTAMP '1985-01-01 08:12:34.560')");
         assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
-        
+
         conn.close();
     }
 

@@ -804,7 +804,7 @@ public class TestSpatial extends TestBase {
             conn.close();
         }
     }
-    
+
     /**
      * If the user mutate the geometry of the object, the object cache must not
      * be updated.

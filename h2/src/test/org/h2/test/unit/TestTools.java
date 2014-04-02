@@ -223,7 +223,7 @@ public class TestTools extends TestBase {
 
         rs = new SimpleResultSet();
         rs.setAutoClose(false);
-        
+
         rs.addColumn("a", Types.BIGINT, 0, 0);
         rs.addColumn("b", Types.BINARY, 0, 0);
         rs.addColumn("c", Types.BOOLEAN, 0, 0);
@@ -429,7 +429,7 @@ public class TestTools extends TestBase {
         assertEquals(ResultSet.TYPE_SCROLL_INSENSITIVE, rs.getType());
         assertTrue(rs.getStatement() == null);
         assertFalse(rs.isClosed());
-        
+
         rs.beforeFirst();
         assertEquals(0, rs.getRow());
         assertTrue(rs.next());

@@ -76,7 +76,7 @@ public class CompareMode {
         this.strength = strength;
         this.binaryUnsigned = binaryUnsigned;
     }
-    
+
     /**
      * Create a new compare mode with the given collator and strength. If
      * required, a new CompareMode is created, or if possible the last one is

@@ -38,6 +38,7 @@
 90008=Unerlaubter Wert {0} für Parameter {1}
 90009=Kann die Sequenz {0} nicht ändern aufgrund falscher Attribute (Start-Wert {1}, Minimal-Wert {2}, Maximal-Wert {3}, Inkrement {4})
 90010=Ungültiges TO_CHAR Format {0}
+90011=#A file path that is implicitly relative to the current working directory is not allowed in the database URL {0}. Use an absolute path, ~/name, ./name, or the baseDir setting instead.
 90012=Parameter {0} wurde nicht gesetzt
 90013=Datenbank {0} nicht gefunden
 90014=Fehler beim Parsen von {0}

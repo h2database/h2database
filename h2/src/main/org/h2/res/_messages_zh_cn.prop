@@ -38,6 +38,7 @@
 90008=被发现非法的数值 {0} 在参数  {1}
 90009=#Unable to create or alter sequence {0} because of invalid attributes (start value {1}, min value {2}, max value {3}, increment {4})
 90010=#Invalid TO_CHAR format {0}
+90011=#A file path that is implicitly relative to the current working directory is not allowed in the database URL {0}. Use an absolute path, ~/name, ./name, or the baseDir setting instead.
 90012=参数 {0} 的值还没有设置
 90013=找不到数据库 {0}
 90014=解析 {0} 时发生错误

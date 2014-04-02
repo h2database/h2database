@@ -46,10 +46,10 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
-//        testCountWithOpenTransactions();
-//        testConcurrentUpdate();
-//        testRepeatedChange();
-//        testTransactionAge();
+        testCountWithOpenTransactions();
+        testConcurrentUpdate();
+        testRepeatedChange();
+        testTransactionAge();
         testStopWhileCommitting();
         testGetModifiedMaps();
         testKeyIterator();
@@ -240,6 +240,10 @@ public class TestTransactionStore extends TestBase {
                     break;
                 }
             }
+            // re-open the store, because we have opened
+            // the undoLog map with the wrong data type
+            s.close();
+            s = MVStore.open(fileName);
             ts = new TransactionStore(s);
             List<Transaction> list = ts.getOpenTransactions();
             if (list.size() != 0) {

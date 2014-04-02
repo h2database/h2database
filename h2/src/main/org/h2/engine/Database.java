@@ -220,6 +220,10 @@ public class Database implements DataHandler {
         } else {
             fileLockMethod = FileLock.getFileLockMethod(lockMethodName);
         }
+        if (dbSettings.mvStore && fileLockMethod == FileLock.LOCK_SERIALIZED) {
+            throw DbException.getUnsupportedException(
+                    "MV_STORE combined with FILE_LOCK=SERIALIZED");
+        }
         this.databaseURL = ci.getURL();
         String listener = ci.removeProperty("DATABASE_EVENT_LISTENER", null);
         if (listener != null) {
@@ -231,7 +235,7 @@ public class Database implements DataHandler {
             this.mode = Mode.getInstance(modeName);
         }
         this.multiVersion =
-                ci.getProperty("MVCC", false);
+                ci.getProperty("MVCC", Constants.VERSION_MINOR >= 4);
         this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         this.javaObjectSerializerName =

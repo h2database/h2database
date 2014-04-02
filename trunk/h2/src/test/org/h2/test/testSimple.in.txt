@@ -295,13 +295,6 @@ SELECT * FROM SYSTEM_RANGE(1, 100) FETCH FIRST ROW ONLY;
 > 1;
 SET MODE REGULAR;
 
-CREATE TABLE Address (id NUMBER NOT NULL, city VARCHAR2(255), PRIMARY KEY (id));
-CREATE TABLE Person (id NUMBER NOT NULL, name VARCHAR2(255), ADDRESS_ID NUMBER, PRIMARY KEY (id));
-INSERT INTO PERSON (id, name) values (1, 'Frank');
-SELECT 1 FROM Person t0, Address t1, Person t2 WHERE t0.ADDRESS_ID = t1.id(+) AND t1.id = t2.ADDRESS_ID(+);
-> 1;
-drop table Address, Person;
-
 create domain email as varchar comment 'e-mail';
 create table test(e email);
 select remarks from INFORMATION_SCHEMA.COLUMNS where table_name='TEST';

@@ -5203,41 +5203,6 @@ SELECT * FROM TEST ORDER BY NAME;
 DROP TABLE IF EXISTS TEST;
 > ok
 
---- old-fashioned Oracle outer joins syntax ---------------------------------------------------------------------------------------------
-CREATE TABLE Customers(CustomerID int);
-> ok
-
-CREATE TABLE Orders(CustomerID int);
-> ok
-
-INSERT INTO Customers VALUES(1), (2), (3);
-> update count: 3
-
-INSERT INTO Orders VALUES(1), (3);
-> update count: 2
-
-SELECT * FROM Customers LEFT OUTER JOIN Orders ON Customers.CustomerID = Orders.CustomerID;
-> CUSTOMERID CUSTOMERID
-> ---------- ----------
-> 1          1
-> 2          null
-> 3          3
-> rows: 3
-
-SELECT * FROM Customers, Orders WHERE Customers.CustomerID = Orders.CustomerID(+);
-> CUSTOMERID CUSTOMERID
-> ---------- ----------
-> 1          1
-> 2          null
-> 3          3
-> rows: 3
-
-DROP TABLE Customers;
-> ok
-
-DROP TABLE Orders;
-> ok
-
 --- complex join ---------------------------------------------------------------------------------------------
 CREATE TABLE T1(ID INT PRIMARY KEY, NAME VARCHAR(255));
 > ok

@@ -39,7 +39,7 @@ public class TestConnectionInfo extends TestBase {
         testConnectionInfo();
         testName();
     }
-    
+
     private void testImplicitRelativePath() throws Exception {
         if (SysProperties.IMPLICIT_RELATIVE_PATH) {
             return;

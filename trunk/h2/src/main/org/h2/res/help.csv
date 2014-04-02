@@ -537,9 +537,9 @@ CASE { WHEN expression THEN expression} [...]
 ","
 Returns the first expression where the condition is true."
 "Other Grammar","Cipher","
-{ AES | XTEA }
+AES
 ","
-Two algorithms are supported: AES (""AES-128"") and XTEA (using 32 rounds)."
+Only the algorithm AES (""AES-128"") is supported currently."
 "Other Grammar","Column Definition","
 columnName dataType
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]

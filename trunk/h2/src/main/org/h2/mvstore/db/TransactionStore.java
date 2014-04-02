@@ -32,12 +32,6 @@ public class TransactionStore {
      * Whether the concurrent maps should be used.
      */
     private static final boolean CONCURRENT = false;
-    
-    private static final boolean PACK_DATA = true;
-    
-    ; // TODO find out why TestTransactionStore.testStopWhileCommitting
-    // fails when the following is enabled:
-    private static final boolean PACK_DATA2 = false;
 
     /**
      * The store.
@@ -108,6 +102,11 @@ public class TransactionStore {
                 valueType(undoLogValueType);
         undoLog = store.openMap("undoLog", builder);
         // remove all temporary maps
+        if (undoLog.getValueType() != undoLogValueType) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_CORRUPT,
+                    "Undo map open with a different value type");
+        }
         for (String mapName : store.getMapNames()) {
             if (mapName.startsWith("temp.")) {
                 MVMap<Object, Integer> temp = openTempMap(mapName);
@@ -1537,29 +1536,16 @@ public class TransactionStore {
         }
 
         @Override
-        public void read(ByteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            if (PACK_DATA) {
-                // Read the operationIds
+        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+            if (buff.get() == 0) {
+                // fast path (no op ids or null entries)
                 for (int i = 0; i < len; i++) {
                     VersionedValue v = new VersionedValue();
-                    v.operationId = DataUtils.readVarLong(buff);
+                    v.value = valueType.read(buff);
                     obj[i] = v;
                 }
-                // Read the null/not-null indicators.
-                final byte[] notNullIndicators = new byte[(len + 7) / 8];
-                buff.get(notNullIndicators, 0, notNullIndicators.length);
-                // Read the child values.
-                for (int i = 0; i < len; i++) {
-                    VersionedValue v = (VersionedValue) obj[i];
-                    int x = notNullIndicators[i / 8] & 0xff;
-                    x = x >> (i % 8);
-                    x = x & 1;
-                    if (x == 1) {
-                        v.value = valueType.read(buff);
-                    }
-                }
             } else {
+                // slow path (some entries may be null)
                 for (int i = 0; i < len; i++) {
                     obj[i] = read(buff);
                 }
@@ -1577,41 +1563,24 @@ public class TransactionStore {
         }
 
         @Override
-        public void write(WriteBuffer buff, Object[] obj,
-                int len, boolean key) {
-            if (PACK_DATA) {
-                // Write the operationIds
+        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+            boolean fastPath = true;
+            for (int i = 0; i < len; i++) {
+                VersionedValue v = (VersionedValue) obj[i];
+                if (v.operationId != 0 || v.value == null) {
+                    fastPath = false;
+                }
+            }
+            if (fastPath) {
+                buff.put((byte) 0);
                 for (int i = 0; i < len; i++) {
                     VersionedValue v = (VersionedValue) obj[i];
-                    buff.putVarLong(v.operationId);
-                }
-                // Write the not-null-indicators as a bit-packed array
-                int x = 0;
-                int byteIdx = 0;
-                for (int i = 0; i < len; i++) {
-                    VersionedValue v = (VersionedValue) obj[i];
-                    if (v.value != null) {
-                        x |= 1 << byteIdx;
-                    }
-                    byteIdx++;
-                    if (byteIdx == 8) {
-                        buff.put((byte) x);
-                        byteIdx = 0;
-                        x = 0;
-                    }
-
-                }
-                if (byteIdx != 0) {
-                    buff.put((byte) x);
-                }
-                // Write the child values.
-                for (int i = 0; i < len; i++) {
-                    VersionedValue v = (VersionedValue) obj[i];
-                    if (v.value != null) {
-                        valueType.write(buff, v.value);
-                    }
+                    valueType.write(buff, v.value);
                 }
             } else {
+                // slow path:
+                // store op ids, and some entries may be null
+                buff.put((byte) 1);
                 for (int i = 0; i < len; i++) {
                     write(buff, obj[i]);
                 }
@@ -1723,4 +1692,3 @@ public class TransactionStore {
     }
 
 }
-

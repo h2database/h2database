@@ -388,7 +388,7 @@ public class ConnectionInfo implements Cloneable {
                         // the name could start with "./", or
                         // it could start with a prefix such as "nio:./"
                         throw DbException.get(
-                                ErrorCode.URL_RELATIVE_TO_CWD, 
+                                ErrorCode.URL_RELATIVE_TO_CWD,
                                 originalURL);
                     }
                 }

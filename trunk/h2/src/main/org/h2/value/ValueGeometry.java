@@ -279,7 +279,7 @@ public class ValueGeometry extends Value {
      * @return the well-known-text
      */
     public String getWKT() {
-        return new WKTWriter().write(getGeometryNoCopy());
+        return new WKTWriter(3).write(getGeometryNoCopy());
     }
 
     /**

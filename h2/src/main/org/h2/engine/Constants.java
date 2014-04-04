@@ -100,7 +100,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 4;
+    public static final int VERSION_MINOR = 3;
 
     /**
      * The lock mode that means no locking is used at all.

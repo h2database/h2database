@@ -116,9 +116,6 @@ public class TestReopen extends TestBase implements Recorder {
             p.setProperty("password", getPassword());
             String url = "jdbc:h2:" + testDatabase +
                     ";FILE_LOCK=NO;TRACE_LEVEL_FILE=0";
-            if (config.mvStore) {
-                url += ";MV_STORE=TRUE";
-            }
             ConnectionInfo ci = new ConnectionInfo(url, p);
             Database database = new Database(ci, null);
             // close the database
@@ -170,9 +167,6 @@ public class TestReopen extends TestBase implements Recorder {
             // avoid using the Engine class to avoid deadlocks
             Properties p = new Properties();
             String url = "jdbc:h2:" + testDatabase + ";FILE_LOCK=NO";
-            if (config.mvStore) {
-                url += ";MV_STORE=TRUE";
-            }
             ConnectionInfo ci = new ConnectionInfo(url, p);
             Database database = new Database(ci, null);
             // close the database

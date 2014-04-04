@@ -79,8 +79,13 @@ public class TestJmx extends TestBase {
                 getAttribute(name, "Mode").toString());
         assertEquals("false", mbeanServer.
                 getAttribute(name, "MultiThreaded").toString());
-        assertEquals("false", mbeanServer.
-                getAttribute(name, "Mvcc").toString());
+        if (config.mvStore) {
+            assertEquals("true", mbeanServer.
+                    getAttribute(name, "Mvcc").toString());
+        } else {
+            assertEquals("false", mbeanServer.
+                    getAttribute(name, "Mvcc").toString());
+        }
         assertEquals("false", mbeanServer.
                 getAttribute(name, "ReadOnly").toString());
         assertEquals("1", mbeanServer.
@@ -100,7 +105,11 @@ public class TestJmx extends TestBase {
 
         result = mbeanServer.invoke(name, "listSessions", null, null).toString();
         assertTrue(result.indexOf("session id") >= 0);
-        assertTrue(result.indexOf("write lock") >= 0);
+        if (config.mvcc) {
+            assertTrue(result.indexOf("read lock") >= 0);
+        } else {
+            assertTrue(result.indexOf("write lock") >= 0);
+        }
 
         assertEquals(2, info.getOperations().length);
         assertTrue(info.getDescription().indexOf("database") >= 0);

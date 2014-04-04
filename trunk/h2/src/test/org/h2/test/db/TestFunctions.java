@@ -155,6 +155,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     /**
      * This method is called via reflection from the database.
      *
+     * @param values the value array
      * @return a result set
      */
     public static ResultSet varArgsFunctionTable(int... values) throws SQLException {

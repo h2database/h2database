@@ -1126,7 +1126,7 @@ public class TestMVStore extends TestBase {
         map.put(1, "Hi");
         map.remove(2);
 
-        // access the old data (before incrementVersion)
+        // access the old data (before the commit)
         MVMap<Integer, String> oldMap =
                 map.openVersion(oldVersion);
 

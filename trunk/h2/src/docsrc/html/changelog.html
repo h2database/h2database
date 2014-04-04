@@ -18,8 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Changes in Version 1.4 Beta (unreleased)</h2>
-<ul><li>The file locking method 'serialized' is no longer supported.
-    This mode might return in a future version, 
+<ul><li>By default, the MV_STORE option is enabled, so it is using the new MVStore
+    storage. The MVCC setting is set to the same values as the MV_STORE setting,
+    so it is also enabled by default. For testing, both settings can be disabled by appending
+    ";MV_STORE=FALSE" / ";MVCC=FALSE" to the database URL.
+</li><li>The file locking method 'serialized' is no longer supported.
+    This mode might return in a future version,
     however this is not clear right now.
     A new implementation and new tests would be needed.
 </li><li>Enable the new storage format for dates (system property "h2.storeLocalTime").
@@ -32,7 +36,7 @@ Change Log
     See also Mode.supportOffsetFetch.
 </li><li>Byte arrays are now sorted in unsigned mode
     (x'99' is larger than x'09').
-    (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned).
+    (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned, setting "binary_collation").
 </li><li>Csv.getInstance will be removed in future versions of 1.4.
     Use the public constructor instead.
 </li><li>Remove support for the limited old-style outer join syntax using "(+)".
@@ -89,7 +93,7 @@ Change Log
 </li><li>Support some more DDL syntax for MySQL, patch from Peter Jentsch.
 </li><li>Issue 548: TO_CHAR does not format MM and DD correctly when the month or day of
     the month is 1 digit, patch from "the.tucc"
-</li><li>Fix bug in varags support in ALIAS's, patch from Nicolas Fortin    
+</li><li>Fix bug in varargs support in ALIAS's, patch from Nicolas Fortin
 </li></ul>
 
 <h2>Version 1.3.175 (2014-01-18)</h2>

@@ -399,7 +399,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
         @Override
         public boolean next() {
-            current = it.next();
+            current = it.hasNext() ? it.next() : null;
             if (current != null && current.getKey().getLong() > last.getLong()) {
                 current = null;
             }

@@ -1327,6 +1327,23 @@ public class TransactionStore {
         }
 
         /**
+         * Get one of the previous or next keys. There might be no value
+         * available for the returned key.
+         *
+         * @param key the key (may not be null)
+         * @param offset how many keys to skip (-1 for previous, 1 for next)
+         * @return the key
+         */
+        public K relativeKey(K key, long offset) {
+            K k = offset > 0 ? map.ceilingKey(key) : map.floorKey(key);
+            if (k == null) {
+                return k;
+            }
+            long index = map.getKeyIndex(k);
+            return map.getKey(index + offset);
+        }
+
+        /**
          * Get the largest key that is smaller than the given key, or null if no
          * such key exists.
          *

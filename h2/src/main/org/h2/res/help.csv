@@ -364,7 +364,8 @@ executed automatically by the system."
 SET BINARY_COLLATION
 { UNSIGNED | SIGNED } ] }
 ","
-Sets the collation used for comparing BINARY columns, the default is SIGNED."
+Sets the collation used for comparing BINARY columns, the default is SIGNED
+for version 1."
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }

@@ -234,8 +234,10 @@ java org.h2.test.TestAll timer
 
 */
 
-    ;
-    private static final boolean MV_STORE = true;
+    /**
+     * Whether the MVStore storage is used.
+     */
+    public final boolean mvStore = Constants.VERSION_MINOR >= 4;
 
     /**
      * If the test should run with many rows.
@@ -253,11 +255,6 @@ java org.h2.test.TestAll timer
     public boolean memory;
 
     /**
-     * Whether to use the MVStore.
-     */
-    public boolean mvStore;
-
-    /**
      * Whether the test is running with code coverage.
      */
     public boolean coverage;
@@ -270,7 +267,7 @@ java org.h2.test.TestAll timer
     /**
      * If the multi version concurrency control mode should be used.
      */
-    public boolean mvcc;
+    public boolean mvcc = mvStore;
 
     /**
      * The cipher to use (null for unencrypted).
@@ -434,7 +431,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 test.reopen = true;
                 TestReopen reopen = new TestReopen();
                 reopen.init();
-                reopen.config.mvStore = MV_STORE;
                 FilePathRec.setRecorder(reopen);
                 test.runTests();
             } else if ("crash".equals(args[0])) {
@@ -470,28 +466,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             prof.depth = 16;
             prof.interval = 1;
             prof.startCollecting();
-            if (test.mvStore) {
-                TestPerformance.main("-init", "-db", "9", "-size", "1000");
-            } else {
-                TestPerformance.main("-init", "-db", "1");
-            }
+            TestPerformance.main("-init", "-db", "9", "-size", "1000");
             prof.stopCollecting();
             System.out.println(prof.getTop(30));
-            if (test.mvStore) {
-                prof = new Profiler();
-                prof.depth = 16;
-                prof.interval = 1;
-                prof.startCollecting();
-                TestPerformance.main("-init", "-db", "1", "-size", "1000");
-                prof.stopCollecting();
-                System.out.println(prof.getTop(3));
-                TestPerformance.main("-init", "-db", "1", "-size", "1000");
-                TestPerformance.main("-init", "-db", "9", "-size", "1000");
-            }
-//            Recover.execute("data", null);
-//            RunScript.execute("jdbc:h2:data/test2",
-//                 "sa1", "sa1", "data/test.h2.sql", null, false);
-//            Recover.execute("data", null);
+            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            prof.stopCollecting();
+            System.out.println(prof.getTop(3));
+            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            TestPerformance.main("-init", "-db", "9", "-size", "1000");
         }
         System.out.println(TestBase.formatTime(
                 System.currentTimeMillis() - time) + " total");
@@ -529,11 +511,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         coverage = isCoverage();
 
-        mvStore = MV_STORE;
-
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
-        mvcc = traceTest = stopOnError = false;
+        mvcc = mvStore;
+        traceTest = stopOnError = false;
         defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;

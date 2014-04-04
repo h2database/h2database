@@ -63,7 +63,7 @@ But it can also be used directly within an application, without using JDBC or SQ
 </li><li>Both file-based persistence and in-memory operation are supported.
 </li><li>It is intended to be fast, simple to use, and small.
 </li><li>Old versions of the data can be read concurrently with all other operations.
-</li><li>Transaction are supported (including concurrent transactions and 2-phase commit).
+</li><li>Transactions are supported (including concurrent transactions and 2-phase commit).
 </li><li>The tool is very modular.
     It supports pluggable data types and serialization,
     pluggable storage (to a file, to off-heap memory),
@@ -74,7 +74,7 @@ But it can also be used directly within an application, without using JDBC or SQ
 
 <h2 id="example_code">Example Code</h2>
 <p>
-The following sample code show how to use the tool:
+The following sample code shows how to use the tool:
 </p>
 <pre>
 import org.h2.mvstore.*;
@@ -96,7 +96,7 @@ s.close();
 <h2 id="store_builder">Store Builder</h2>
 <p>
 The <code>MVStore.Builder</code> provides a fluid interface
-to build a store if more complex configuration options are used.
+to build a store if configuration options are needed.
 Example usage:
 </p>
 <pre>
@@ -111,14 +111,14 @@ The list of available options is:
 </p>
 <ul><li>autoCommitBufferSize: the size of the write buffer.
 </li><li>autoCommitDisabled: to disable auto-commit.
-</li><li>backgroundExceptionHandler: specify a handler for
+</li><li>backgroundExceptionHandler: a handler for
     exceptions that could occur while writing in the background.
 </li><li>cacheSize: the cache size in MB.
 </li><li>compress: compress the data when storing
     using a fast algorithm (LZF).
 </li><li>compressHigh: compress the data when storing
     using a slower algorithm (Deflate).
-</li><li>encryptionKey: the encryption key for file encryption.
+</li><li>encryptionKey: the key for file encryption.
 </li><li>fileName: the name of the file, for file based stores.
 </li><li>fileStore: the storage implementation to use.
 </li><li>pageSplitSize: the point where pages are split.
@@ -156,7 +156,7 @@ s.close();
 <p>
 The default number of dimensions is 2. To use a different number of dimensions,
 call <code>new MVRTreeMap.Builder&lt;String&gt;().dimensions(3)</code>.
-The minimum number of dimensions is 1, the maximum is 255.
+The minimum number of dimensions is 1, the maximum is 32.
 </p>
 
 <h2 id="features">Features</h2>
@@ -212,7 +212,7 @@ s.commit();
 map.put(1, "Hi");
 map.remove(2);
 
-// access the old data (before incrementVersion)
+// access the old data (before the commit)
 MVMap&lt;Integer, String&gt; oldMap =
         map.openVersion(oldVersion);
 

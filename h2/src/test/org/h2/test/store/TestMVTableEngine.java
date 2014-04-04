@@ -713,7 +713,7 @@ public class TestMVTableEngine extends TestBase {
 
     private void testExclusiveLock() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        String dbName = "mvstore;MV_STORE=TRUE;MVCC=FALSE";
         Connection conn, conn2;
         Statement stat, stat2;
         conn = getConnection(dbName);
@@ -943,7 +943,7 @@ public class TestMVTableEngine extends TestBase {
 
     private void testLocking() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        String dbName = "mvstore;MV_STORE=TRUE;MVCC=FALSE";
         Connection conn = getConnection(dbName);
         Statement stat = conn.createStatement();
         stat.execute("set lock_timeout 1000");

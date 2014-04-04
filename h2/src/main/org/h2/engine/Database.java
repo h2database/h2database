@@ -235,7 +235,7 @@ public class Database implements DataHandler {
             this.mode = Mode.getInstance(modeName);
         }
         this.multiVersion =
-                ci.getProperty("MVCC", Constants.VERSION_MINOR >= 4);
+                ci.getProperty("MVCC", dbSettings.mvStore);
         this.logMode =
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         this.javaObjectSerializerName =
@@ -2245,7 +2245,7 @@ public class Database implements DataHandler {
 
     public void setMultiThreaded(boolean multiThreaded) {
         if (multiThreaded && this.multiThreaded != multiThreaded) {
-            if (multiVersion) {
+            if (multiVersion && mvStore == null) {
                 // currently the combination of MVCC and MULTI_THREADED is not
                 // supported
                 throw DbException.get(

@@ -318,7 +318,7 @@ public class SysProperties {
      * Limited support for the old-style Oracle outer join with "(+)".
      */
     public static final boolean OLD_STYLE_OUTER_JOIN =
-            Utils.getProperty("h2.oldStyleOuterJoin", 
+            Utils.getProperty("h2.oldStyleOuterJoin",
                     Constants.VERSION_MINOR >= 4 ? false : true);
 
     /**
@@ -401,7 +401,7 @@ public class SysProperties {
      * taken into account.
      */
     public static final boolean STORE_LOCAL_TIME =
-            Utils.getProperty("h2.storeLocalTime", 
+            Utils.getProperty("h2.storeLocalTime",
                     Constants.VERSION_MINOR >= 4 ? true : false);
 
     /**

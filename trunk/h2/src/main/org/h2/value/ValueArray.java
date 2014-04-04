@@ -153,7 +153,7 @@ public class ValueArray extends Value {
         StatementBuilder buff = new StatementBuilder("(");
         for (Value v : values) {
             buff.appendExceptFirst(", ");
-            buff.append(v.getTraceSQL());
+            buff.append(v == null ? "null" : v.getTraceSQL());
         }
         return buff.append(')').toString();
     }

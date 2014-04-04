@@ -111,6 +111,7 @@ public class ValueGeometry extends Value {
      * Get or create a geometry value for the given geometry.
      *
      * @param s the WKT representation of the geometry
+     * @param srid the srid of the object
      * @return the value
      */
     public static ValueGeometry get(String s, int srid) {

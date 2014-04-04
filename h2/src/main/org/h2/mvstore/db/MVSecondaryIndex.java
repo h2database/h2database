@@ -255,11 +255,61 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
+        return find(session, first, false, last);
+    }
+
+    private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
         ValueArray min = getKey(first);
         if (min != null) {
             min.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
         }
         TransactionMap<Value, Value> map = getMap(session);
+        if (bigger && min != null) {
+            // search for the next: first skip 1, then 2, 4, 8, until
+            // we have a higher key; then skip 4, 2,...
+            // (binary search), until 1
+            int offset = 1;
+            while (true) {
+                ValueArray v = (ValueArray) map.relativeKey(min, offset);
+                if (v != null) {
+                    boolean foundHigher = false;
+                    for (int i = 0; i < keyColumns - 1; i++) {
+                        int idx = columnIds[i];
+                        Value b = first.getValue(idx);
+                        if (b == null) {
+                            break;
+                        }
+                        Value a = v.getList()[i];
+                        if (database.compare(a, b) > 0) {
+                            foundHigher = true;
+                            break;
+                        }
+                    }
+                    if (!foundHigher) {
+                        offset += offset;
+                        min = v;
+                        continue;
+                    }
+                }
+                if (offset > 1) {
+                    offset /= 2;
+                    continue;
+                }
+                if (map.get(v) == null) {
+                    min = (ValueArray) map.higherKey(min);
+                    if (min == null) {
+                        break;
+                    }
+                    continue;
+                }
+                min = v;
+                break;
+            }
+            if (min == null) {
+                return new MVStoreCursor(session,
+                        Collections.<Value>emptyList().iterator(), null);
+            }
+        }
         return new MVStoreCursor(session, map.keyIterator(min), last);
     }
 
@@ -387,6 +437,16 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public boolean canFindNext() {
+        return true;
+    }
+
+    @Override
+    public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
+        return find(session, higherThan, true, last);
+    }
+
+    @Override
     public void checkRename() {
         // ok
     }
@@ -446,7 +506,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
         @Override
         public boolean next() {
-            current = it.next();
+            current = it.hasNext() ? it.next() : null;
             searchRow = null;
             if (current != null) {
                 if (last != null && compareRows(getSearchRow(), last) > 0) {

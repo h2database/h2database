@@ -91,8 +91,8 @@ public class CheckJavadoc {
                 break;
             }
             String rawLine = text.substring(pos, next);
-            if (rawLine.endsWith("\r\n")) {
-            	rawLine = rawLine.substring(0, rawLine.length() - 2) + "\n"; 
+            if (rawLine.endsWith("\r")) {
+                rawLine = rawLine.substring(0, rawLine.length() - 1);
             }
             String line = rawLine.trim();
             if (line.startsWith("/*")) {

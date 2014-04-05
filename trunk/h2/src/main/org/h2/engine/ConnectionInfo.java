@@ -384,12 +384,15 @@ public class ConnectionInfo implements Cloneable {
         if (persistent) {
             if (nameNormalized == null) {
                 if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
-                    if (!FileUtils.isAbsolute(name) && name.indexOf("./") < 0) {
-                        // the name could start with "./", or
-                        // it could start with a prefix such as "nio:./"
-                        throw DbException.get(
-                                ErrorCode.URL_RELATIVE_TO_CWD,
-                                originalURL);
+                    if (!FileUtils.isAbsolute(name)) {
+                    	if (name.indexOf("./") < 0 && 
+                    			name.indexOf(".\\") < 0) {
+                            // the name could start with "./", or
+                            // it could start with a prefix such as "nio:./"
+                            throw DbException.get(
+                                    ErrorCode.URL_RELATIVE_TO_CWD,
+                                    originalURL);
+                    	}
                     }
                 }
                 String suffix = Constants.SUFFIX_PAGE_FILE;

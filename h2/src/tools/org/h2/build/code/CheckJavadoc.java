@@ -91,6 +91,9 @@ public class CheckJavadoc {
                 break;
             }
             String rawLine = text.substring(pos, next);
+            if (rawLine.endsWith("\r\n")) {
+            	rawLine = rawLine.substring(0, rawLine.length() - 2) + "\n"; 
+            }
             String line = rawLine.trim();
             if (line.startsWith("/*")) {
                 inComment = true;

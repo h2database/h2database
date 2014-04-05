@@ -1,0 +1,57 @@
+Manifest-Version: 1.0
+Implementation-Title: ${title}
+Implementation-URL: http://www.h2database.com
+Implementation-Version: ${version}
+Build-Jdk: ${buildJdk}
+Created-By: ${createdBy}
+${mainClassTag}
+Bundle-Activator: org.h2.util.DbDriverActivator
+Bundle-ManifestVersion: 2
+Bundle-Name: H2 Database Engine
+Bundle-SymbolicName: org.h2
+Bundle-Vendor: H2 Group
+Bundle-Version: ${version}
+Bundle-License: http://www.h2database.com/html/license.html
+Bundle-Category: jdbc
+Import-Package: javax.management,
+ javax.naming;resolution:=optional,
+ javax.naming.spi;resolution:=optional,
+ javax.net,
+ javax.net.ssl,
+ javax.servlet;resolution:=optional,
+ javax.servlet.http;resolution:=optional,
+ javax.sql,
+ javax.tools;resolution:=optional,
+ javax.transaction.xa;resolution:=optional,
+ org.apache.lucene.analysis;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.analysis.standard;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.document;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.index;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.queryParser;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.search;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.store;version="[3.0.0,3.1.0)";resolution:=optional,
+ org.apache.lucene.util;version="[3.0.0,3.1.0)";resolution:=optional,
+ com.vividsolutions.jts.geom;version="1.13";resolution:=optional,
+ com.vividsolutions.jts.io;version="1.13";resolution:=optional,
+ org.h2;version="[${version},1.4.0)",
+ org.h2.api;version="[${version},1.4.0)",
+ org.h2.fulltext;version="[${version},1.4.0)",
+ org.h2.jdbcx;version="[${version},1.4.0)",
+ org.h2.tools;version="[${version},1.4.0)",
+ org.h2.util;version="[${version},1.4.0)",
+ org.h2.value;version="[${version},1.4.0)",
+ org.osgi.framework;version="1.5",
+ org.osgi.service.jdbc;version="1.0",
+ org.slf4j;version="[1.6.0,1.7.0)";resolution:=optional
+Export-Package: org.h2;version="${version}",
+ org.h2.api;version="${version}",
+ org.h2.constant;version="${version}",
+ org.h2.fulltext;version="${version}",
+ org.h2.jdbc;version="${version}",
+ org.h2.jdbcx;version="${version}",
+ org.h2.tools;version="${version}",
+ org.h2.util;version="${version}",
+ org.h2.value;version="${version}",
+ org.h2.bnf;version="${version}" ,
+ org.h2.bnf.context;version="${version}"
+Premain-Class: org.h2.util.Profiler

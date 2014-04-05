@@ -17,22 +17,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2014-01-18";
+    public static final String BUILD_DATE = "2014-04-05";
 
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE_STABLE = "2013-10-19";
+    public static final String BUILD_DATE_STABLE = "2014-01-18";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 175;
+    public static final int BUILD_ID = 176;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 174;
+    public static final int BUILD_ID_STABLE = 175;
 
     /**
      * Whether this is a snapshot version.
@@ -100,7 +100,7 @@ public class Constants {
     /**
      * The minor version of this database.
      */
-    public static final int VERSION_MINOR = 4;
+    public static final int VERSION_MINOR = 3;
 
     /**
      * The lock mode that means no locking is used at all.

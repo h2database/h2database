@@ -163,12 +163,12 @@ values transition from being inserted as inline values, to be inserted using
 out-of-line commands.
 NOSETTINGS turns off dumping the database settings (the SET XXX commands)
 
-If no file name is specified, the
+If no 'TO fileName' clause is specified, the
 script is returned as a result set. This command can be used to create a backup
 of the database. For long term storage, it is more portable than copying the
 database files.
 
-If a file name is specified, then the whole
+If a 'TO fileName' clause is specified, then the whole
 script (including insert statements) is written to this file, and a result set
 without the insert statements is returned.
 

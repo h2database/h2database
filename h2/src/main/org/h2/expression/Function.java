@@ -7,6 +7,7 @@
 package org.h2.expression;
 
 import static org.h2.util.ToChar.toChar;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -94,7 +95,7 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -299,6 +300,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
+        addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
 
         // date
         addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE,
@@ -1401,6 +1403,14 @@ public class Function extends Expression implements FunctionCall {
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
+        case TRANSLATE: {
+            String matching = v1.getString();
+            String replacement = v2.getString();
+            result = ValueString.get(
+                    translate(v0.getString(), matching, replacement),
+                    database.getMode().treatEmptyStringsAsNull);
+            break;
+        }
         case H2VERSION:
             result = ValueString.get(Constants.getVersion(),
                     database.getMode().treatEmptyStringsAsNull);
@@ -1908,6 +1918,39 @@ public class Function extends Expression implements FunctionCall {
             }
         }
         return e;
+    }
+
+    /** This is the org.apache.commons.lang3.StringUtils
+      * #replaceChars(String, String, String) implementation
+      */
+    private static String translate(String str, String searchChars, String replaceChars) {
+
+        if (str == null || str.length() == 0 || searchChars == null || searchChars.length() == 0) {
+            return str;
+        }
+        if (replaceChars == null) {
+            replaceChars = ""; // EMPTY
+        }
+        boolean modified = false;
+        int replaceCharsLength = replaceChars.length();
+        int strLength = str.length();
+        StringBuilder buf = new StringBuilder(strLength);
+        for (int i = 0; i < strLength; i++) {
+            char ch = str.charAt(i);
+            int index = searchChars.indexOf(ch);
+            if (index >= 0) {
+                modified = true;
+                if (index < replaceCharsLength) {
+                    buf.append(replaceChars.charAt(index));
+                }
+            } else {
+                buf.append(ch);
+            }
+        }
+        if (modified) {
+            return buf.toString();
+        }
+        return str;
     }
 
     private static double roundmagic(double d) {

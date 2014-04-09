@@ -33,7 +33,7 @@ import org.h2.util.New;
 TODO:
 
 Documentation
-- rolling docs review: at "Transactions"
+- rolling docs review: at "File Header"
 - better document that writes are in background thread
 - better document how to do non-unique indexes
 - document pluggable store and OffHeapStore

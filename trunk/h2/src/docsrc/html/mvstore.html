@@ -235,9 +235,8 @@ with savepoints, two-phase commit, and other features typically available in a d
 There is no limit on the size of a transaction
 (the log is written to disk for large or long running transactions).
 </p><p>
-Internally, this utility stores the old versions of changed entries in a separate map, similar to a transaction log
-(except that entries of a closed transaction are removed,
-and the log is usually not stored for short transactions).
+Internally, this utility stores the old versions of changed entries in a separate map, similar to a transaction log,
+except that entries of a closed transaction are removed, and the log is usually not stored for short transactions.
 For common use cases, the storage overhead of this utility is very small compared to the overhead of a regular transaction log.
 </p>
 
@@ -309,16 +308,16 @@ The page cache is a concurrent LIRS cache, which should be resistant against sca
 </p><p>
 The default map implementation does not support concurrent modification
 operations on a map (the same as <code>HashMap</code> and <code>TreeMap</code>).
-Similar to those classes, the map tries to detect concurrent modification.
+Similar to those classes, the map tries to detect concurrent modifications.
 </p><p>
 With the <code>MVMapConcurrent</code> implementation,
 read operations even on the newest version can happen concurrently with all other
 operations, without risk of corruption.
 This comes with slightly reduced speed in single threaded mode,
 the same as with other <code>ConcurrentHashMap</code> implementations.
-Write operations first read the relevant area from disk to memory
-(this can happen concurrently), and only then modify the data. The in-memory part of write
-operations is synchronized.
+Write operations first read the relevant pages from disk to memory
+(this can happen concurrently), and only then modify the data. 
+The in-memory parts of write operations are synchronized.
 </p><p>
 For fully scalable concurrent write operations to a map (in-memory and to disk),
 the map could be split into multiple maps in different stores ('sharding').
@@ -372,13 +371,13 @@ as disk space is not immediately re-used (there are no in-place updates).
 
 <h3 id="offHeap">Off-Heap and Pluggable Storage</h3>
 <p>
-Storage is pluggable. The default storage is to a single file (unless pure in-memory operation is used).
+Storage is pluggable. Unless pure in-memory operation is used, the default storage is to a single file.
 </p>
 <p>
 An off-heap storage implementation is available. This storage keeps the data in the off-heap memory,
 meaning outside of the regular garbage collected heap. This allows to use very large in-memory
-stores without having to increase the JVM heap (which would increase Java garbage collection
-pauses a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
+stores without having to increase the JVM heap, which would increase Java garbage collection
+pauses a lot. Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
 One chunk is allocated at a time (each chunk is usually a few MB large), so that
 allocation cost is low. To use the off-heap storage, call:
 </p>
@@ -390,7 +389,7 @@ MVStore s = new MVStore.Builder().
 
 <h3 id="fileSystem">File System Abstraction, File Locking and Online Backup</h3>
 <p>
-The file system is pluggable (the same file system abstraction is used as H2 uses).
+The file system is pluggable. The same file system abstraction is used as H2 uses.
 The file can be encrypted using a encrypting file system wrapper.
 Other file system implementations support reading from a compressed zip or jar file.
 The file system abstraction closely matches the Java 7 file system API.
@@ -406,7 +405,7 @@ The persisted data can be backed up at any time,
 even during write operations (online backup).
 To do that, automatic disk space reuse needs to be first disabled, so that
 new data is always appended at the end of the file.
-Then, the file can be copied (the file handle is available to the application).
+Then, the file can be copied. The file handle is available to the application.
 It is recommended to use the utility class <code>FileChannelInputStream</code> to do this.
 For encrypted databases, both the encrypted (raw) file content,
 as well as the clear text content, can be backed up.
@@ -445,7 +444,7 @@ The following algorithms and settings are used:
 
 <h3 id="tools">Tools</h3>
 <p>
-There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
+There is a tool, the <code>MVStoreTool</code>, to dump the contents of a file.
 </p>
 
 <h3 id="exceptionHandling">Exception Handling</h3>
@@ -459,7 +458,7 @@ The following exceptions can occur:
     an IO exception occurred, for example if the file was locked, is already closed,
     could not be opened or closed, if reading or writing failed,
     if the file is corrupt, or if there is an internal error in the tool.
-    For such exceptions, an error code is added to the exception
+    For such exceptions, an error code is added 
     so that the application can distinguish between different error cases.
 </li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
 </li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
@@ -469,15 +468,13 @@ The following exceptions can occur:
 
 <h3 id="storageEngine">Storage Engine for H2</h3>
 <p>
-The plan is to use the MVStore as the default storage engine for the H2 database
-in the future (supporting SQL, JDBC, transactions, MVCC, and so on).
-This is work in progress. To try it out, append
+For H2 version 1.4 and newer, the MVStore is the default storage engine 
+(supporting SQL, JDBC, transactions, MVCC, and so on).
+For older versions, append
 <code>;MV_STORE=TRUE</code>
-to the database URL. In general, performance should be
-similar than the current default storage engine (the page store).
+to the database URL. 
 Even though it can be used with the default table level locking,
-it is recommended to use it together with the MVCC mode
-(to do that, append <code>;MVCC=TRUE</code> to the database URL).
+by default the MVCC mode is enabled when using the MVStore.
 </p>
 
 <h2 id="fileFormat">File Format</h2>

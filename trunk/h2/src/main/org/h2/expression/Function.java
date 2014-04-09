@@ -1929,7 +1929,8 @@ public class Function extends Expression implements FunctionCall {
             return str;
         }
         if (replaceChars == null) {
-            replaceChars = ""; // EMPTY
+            // empty
+            replaceChars = ""; 
         }
         boolean modified = false;
         int replaceCharsLength = replaceChars.length();

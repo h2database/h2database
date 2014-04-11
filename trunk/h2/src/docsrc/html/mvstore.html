@@ -607,8 +607,8 @@ The fields of the chunk header and footer are:
 Chunks are never updated in-place. Each chunk contains the pages that were
 changed in that version (there is one chunk per version, see above),
 plus all the parent nodes of those pages, recursively, up to the root page.
-If an entry in a map is changed, removed, or added, then the respective page is copied
-to be stored in the next chunk, and the number of live pages in the old chunk is decremented.
+If an entry in a map is changed, removed, or added, then the respective page is copied,
+modified, and stored in the next chunk, and the number of live pages in the old chunk is decremented.
 This mechanism is called copy-on-write, and is similar to how the
 <a href="https://en.wikipedia.org/wiki/Btrfs">Btrfs</a> file system works.
 Chunks without live pages are marked as free, so the space can be re-used by more recent chunks.
@@ -651,7 +651,8 @@ and <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">variable si
 </li><li>mapId (variable size int): The id of the map this page belongs to.
 </li><li>len (variable size int): The number of keys in the page.
 </li><li>type (byte): The page type (0 for leaf page, 1 for internal node;
-    plus 2 if the keys and values are compressed).
+    plus 2 if the keys and values are compressed with the LZF algorithm, or
+    plus 6 if the keys and values are compressed with the Deflate algorithm).
 </li><li>children (array of long; internal nodes only): The position of the children.
 </li><li>childCounts (array of variable size long; internal nodes only):
     The total number of entries for the given child page.
@@ -684,7 +685,7 @@ and when a page is marked as removed, the live maximum length is adjusted.
 This allows to estimate the amount of free space within a block, in addition to the number of free pages.
 </p>
 <p>
-The total number of entries in child nodes are kept to allow efficient range counting,
+The total number of entries in child pages are kept to allow efficient range counting,
 lookup by index, and skip operations.
 The pages form a <a href="http://www.chiark.greenend.org.uk/~sgtatham/algorithms/cbtree.html">counted B-tree</a>.
 </p>

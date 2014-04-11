@@ -39,18 +39,18 @@ public class Build extends BuildBase {
      * Run the benchmarks.
      */
     public void benchmark() {
-        downloadUsingMaven("ext/hsqldb-2.0.0.jar",
-                "hsqldb", "hsqldb", "2.0.0",
-                "c9d525ce1a464185e6b01c7de872127a06092673");
-        downloadUsingMaven("ext/derby-10.6.1.0.jar",
-                "org/apache/derby", "derby", "10.6.1.0",
-                "01137cd636b0e3c22f0d273478adb58aa30e984a");
-        downloadUsingMaven("ext/derbyclient-10.6.1.0.jar",
-                "org/apache/derby", "derbyclient", "10.6.1.0",
-                "e7c6fbaca2ef4dbcad27fa7d8a9cd1ac0d1e4b00");
-        downloadUsingMaven("ext/derbynet-10.6.1.0.jar",
-                "org/apache/derby", "derbynet", "10.6.1.0",
-                "d5d9d7b783eeaef016be85c34d5c65d1e7cec764");
+        downloadUsingMaven("ext/hsqldb-2.3.2.jar",
+                "org/hsqldb", "hsqldb", "2.3.2",
+                "970fd7b8f635e2c19305160459649569655b843c");
+        downloadUsingMaven("ext/derby-10.10.1.1.jar",
+                "org/apache/derby", "derby", "10.10.1.1",
+                "09f6f910f0373adc1b23c10f9b4bb151b7e7449f");
+        downloadUsingMaven("ext/derbyclient-10.10.1.1.jar",
+                "org/apache/derby", "derbyclient", "10.10.1.1",
+                "42d5293b4ac5c5f082583c3564c10f78bd34a4cb");
+        downloadUsingMaven("ext/derbynet-10.10.1.1.jar",
+                "org/apache/derby", "derbynet", "10.10.1.1",
+                "912b08dca73663d4665e09cd317be1218412d93e");
         downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar",
                 "postgresql", "postgresql", "8.3-603.jdbc3",
                 "33d531c3c53055ddcbea3d88bfa093466ffef924");
@@ -62,10 +62,10 @@ public class Build extends BuildBase {
         String cp = "temp" +
                 File.pathSeparator + "bin/h2" + getJarSuffix() +
                 File.pathSeparator + "ext/hsqldb.jar" +
-                File.pathSeparator + "ext/hsqldb-2.0.0.jar" +
-                File.pathSeparator + "ext/derby-10.6.1.0.jar" +
-                File.pathSeparator + "ext/derbyclient-10.6.1.0.jar" +
-                File.pathSeparator + "ext/derbynet-10.6.1.0.jar" +
+                File.pathSeparator + "ext/hsqldb-2.3.2.jar" +
+                File.pathSeparator + "ext/derby-10.10.1.1.jar" +
+                File.pathSeparator + "ext/derbyclient-10.10.1.1.jar" +
+                File.pathSeparator + "ext/derbynet-10.10.1.1.jar" +
                 File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
                 File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
         StringList args = args("-Xmx128m",

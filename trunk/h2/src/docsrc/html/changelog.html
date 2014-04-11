@@ -17,11 +17,15 @@ Change Log
 
 <h1>Change Log</h1>
 
-<h2>Changes in Version 1.4 Beta (unreleased)</h2>
+<h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.4.176 Beta (2014-04-11)</h2>
 <ul><li>By default, the MV_STORE option is enabled, so it is using the new MVStore
     storage. The MVCC setting is by default set to the same values as the MV_STORE setting,
     so it is also enabled by default. For testing, both settings can be disabled by appending
-    ";MV_STORE=FALSE" / ";MVCC=FALSE" to the database URL.
+    ";MV_STORE=FALSE" and/or ";MVCC=FALSE" to the database URL.
 </li><li>The file locking method 'serialized' is no longer supported.
     This mode might return in a future version,
     however this is not clear right now.
@@ -42,10 +46,7 @@ Change Log
 </li><li>Remove support for the limited old-style outer join syntax using "(+)".
     Use "outer join" instead.
     System property "h2.oldStyleOuterJoin".
-</li></ul>
-
-<h2>Next Version (unreleased)</h2>
-<ul><li>Support the data type "DATETIME2" as an alias for "DATETIME", for MS SQL Server compatibility.
+</li><li>Support the data type "DATETIME2" as an alias for "DATETIME", for MS SQL Server compatibility.
 </li><li>Add Oracle-compatible TRANSLATE function, patch by Eric Chatellier.
 </li></ul>
 
@@ -390,33 +391,6 @@ Change Log
 </li><li>Fix ConcurrentModificationException when creating tables and executing SHOW TABLES in parallel. Reported by Viktor Voytovych.
 </li><li>Serialization is now pluggable using the system property "h2.javaObjectSerializer". Thanks to Sergi Vladykin for the patch!
 </li></ul>
-
-<h2>Version 1.3.169 (2012-09-09)</h2>
-<ul><li>The default jar file is now compiled for Java 6.
-</li><li>The new jar file will probably not end up in the central Maven repository
-    in the next few weeks because Sonatype has disabled automatic synchronization
-    from SourceForge (which they call 'legacy sync' now).
-    It will probably take some time until this is sorted out. The H2 jar files are deployed to
-    http://h2database.com/m2-repo/com/h2database/h2/maven-metadata.xml
-    and http://hsql.sourceforge.net/m2-repo/com/h2database/h2/maven-metadata.xml
-    as usual.
-</li><li>A part of the documentation and the H2 Console has been changed to support the Apple retina display.
-</li><li>The CreateCluster tool could not be used if the source database contained a CLOB or BLOB.
-    The root cause was that the TCP server did not synchronize on the session, which caused a problem
-    when using the exclusive mode.
-</li><li>Statement.getQueryTimeout(): only the first call to this method will query the database.
-    If the query timeout was changed in another way than calling setQueryTimeout,
-    this method will always return the last value. This was changed because Hibernate
-    calls getQueryTimeout() a lot.
-</li><li>Issue 416: PreparedStatement.setNString throws AbstractMethodError.
-    All implemented JDBC 4 methods that don't break compatibility with Java 5
-    are now included in the default jar file.
-</li><li>Issue 414: for some functions, the parameters were evaluated twice
-    (for example "char(nextval(..))" ran "nextval(..)" twice).
-</li><li>The ResultSetMetaData methods getSchemaName and getTableName
-    could return null instead of "" (an empty string) as specified in the JDBC API.
-</li><li>Added compatibility for "SET NAMES" query in MySQL compatibility mode.</li>
-</ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
 

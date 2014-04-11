@@ -17,7 +17,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2014-04-05";
+    public static final String BUILD_DATE = "2014-04-11";
 
     /**
      * The build date is updated for each public release.
@@ -27,12 +27,12 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 176;
+    public static final int BUILD_ID = 177;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 175;
+    public static final int BUILD_ID_STABLE = 176;
 
     /**
      * Whether this is a snapshot version.

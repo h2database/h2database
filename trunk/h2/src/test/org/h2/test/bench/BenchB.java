@@ -21,7 +21,7 @@ import java.util.Random;
  */
 public class BenchB implements Bench, Runnable {
 
-    private static final int SCALE = 1;
+    private static final int SCALE = 4;
     private static final int BRANCHES = 1;
     private static final int TELLERS = 10;
     private static final int ACCOUNTS = 100000;
@@ -66,7 +66,7 @@ public class BenchB implements Bench, Runnable {
     @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
-        this.transactionPerClient = size;
+        this.transactionPerClient = size / 8;
 
         db.start(this, "Init");
         db.openConnection();

@@ -168,7 +168,7 @@ public class BenchC implements Bench {
             " SUCCESSFUL INT,\n" +
             " NOW TIMESTAMP)" };
 
-    int warehouses = 1;
+    int warehouses = 2;
     int items = 10000;
     int districtsPerWarehouse = 10;
     int customersPerDistrict = 300;
@@ -187,7 +187,7 @@ public class BenchC implements Bench {
         random = new BenchCRandom();
 
         items = size * 10;
-        warehouses = 1;
+        warehouses = 2;
         districtsPerWarehouse = Math.max(1, size / 100);
         customersPerDistrict = Math.max(1, size / 100);
         ordersPerDistrict = Math.max(1, size / 1000);

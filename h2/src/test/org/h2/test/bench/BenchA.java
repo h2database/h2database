@@ -32,10 +32,10 @@ public class BenchA implements Bench {
     @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
-        transactions = size * 30;
+        transactions = size * 6;
 
-        int scale = 1;
-        accounts = size * 50;
+        int scale = 2;
+        accounts = size * 30;
         tellers = Math.max(accounts / 10, 1);
         branches = Math.max(tellers / 10, 1);
 

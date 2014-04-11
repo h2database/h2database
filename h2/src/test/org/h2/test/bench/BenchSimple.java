@@ -23,7 +23,7 @@ public class BenchSimple implements Bench {
     @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
-        this.records = size * 60;
+        this.records = size * 75;
 
         db.start(this, "Init");
         db.openConnection();
@@ -62,7 +62,7 @@ public class BenchSimple implements Bench {
 
         db.start(this, "Query (random)");
         prep = db.prepare("SELECT * FROM TEST WHERE ID=?");
-        for (int i = 0; i < records; i++) {
+        for (int i = 0; i < records / 10; i++) {
             prep.setInt(1, random.nextInt(records));
             db.queryReadResult(prep);
         }
@@ -76,9 +76,9 @@ public class BenchSimple implements Bench {
         }
         db.end();
 
-        db.start(this, "Update (random)");
+        db.start(this, "Update (sequential)");
         prep = db.prepare("UPDATE TEST SET NAME=? WHERE ID=?");
-        for (int i = 0; i < records; i++) {
+        for (int i = 0; i < records; i += 3) {
             prep.setString(1, "Hallo Welt");
             prep.setInt(2, i);
             db.update(prep, "updateTest");

@@ -33,7 +33,7 @@ import org.h2.util.New;
 TODO:
 
 Documentation
-- rolling docs review: at "File Header"
+- rolling docs review: at "Metadata Map"
 - better document that writes are in background thread
 - better document how to do non-unique indexes
 - document pluggable store and OffHeapStore
@@ -98,6 +98,8 @@ MVStore:
     configured write delay to store changes
 - compact* should also store uncommitted changes (if there are any)
 - write a LSM-tree (log structured merge tree) utility on top of the MVStore
+    with blind writes and/or a bloom filter that
+    internally uses regular maps and merge sort
 - StreamStore: split blocks similar to rsync crypto, where the split is made
     "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
 - LIRS cache: maybe remove 'mask' field, and dynamically grow the arrays

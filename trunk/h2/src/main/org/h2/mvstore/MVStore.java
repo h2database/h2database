@@ -2156,6 +2156,11 @@ public class MVStore {
         synchronized (t.sync) {
             t.sync.notifyAll();
         }
+        if (Thread.holdsLock(this)) {
+            // called from storeNow: can not join,
+            // because that could result in a deadlock
+            return;
+        }
         try {
             t.join();
         } catch (Exception e) {

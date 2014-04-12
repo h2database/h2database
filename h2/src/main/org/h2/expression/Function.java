@@ -571,7 +571,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static strictfp double log10(double value) {
-        return roundmagic(StrictMath.log(value) / StrictMath.log(10));
+        return roundMagic(StrictMath.log(value) / StrictMath.log(10));
     }
 
     @Override
@@ -648,7 +648,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case ROUNDMAGIC:
-            result = ValueDouble.get(roundmagic(v0.getDouble()));
+            result = ValueDouble.get(roundMagic(v0.getDouble()));
             break;
         case SIGN:
             result = ValueInt.get(v0.getSignum());
@@ -1920,41 +1920,39 @@ public class Function extends Expression implements FunctionCall {
         return e;
     }
 
-    /** This is the org.apache.commons.lang3.StringUtils
-      * #replaceChars(String, String, String) implementation
-      */
-    private static String translate(String str, String searchChars, String replaceChars) {
-
-        if (str == null || str.length() == 0 || searchChars == null || searchChars.length() == 0) {
-            return str;
+    private static String translate(String original, String findChars,
+            String replaceChars) {
+        if (StringUtils.isNullOrEmpty(original) ||
+                StringUtils.isNullOrEmpty(findChars)) {
+            return original;
         }
-        if (replaceChars == null) {
-            // empty
-            replaceChars = ""; 
-        }
-        boolean modified = false;
-        int replaceCharsLength = replaceChars.length();
-        int strLength = str.length();
-        StringBuilder buf = new StringBuilder(strLength);
-        for (int i = 0; i < strLength; i++) {
-            char ch = str.charAt(i);
-            int index = searchChars.indexOf(ch);
+        // if it stays null, then no replacements have been made
+        StringBuilder buff = null;
+        // if shorter than findChars, then characters are removed
+        // (if null, we don't access replaceChars at all)
+        int replaceSize = replaceChars == null ? 0 : replaceChars.length();
+        for (int i = 0, size = original.length(); i < size; i++) {
+            char ch = original.charAt(i);
+            int index = findChars.indexOf(ch);
             if (index >= 0) {
-                modified = true;
-                if (index < replaceCharsLength) {
-                    buf.append(replaceChars.charAt(index));
+                if (buff == null) {
+                    buff = new StringBuilder(size);
+                    if (i > 0) {
+                        buff.append(original.substring(0, i));
+                    }
                 }
-            } else {
-                buf.append(ch);
+                if (index < replaceSize) {
+                    ch = replaceChars.charAt(index);
+                }
+            }
+            if (buff != null) {
+                buff.append(ch);
             }
         }
-        if (modified) {
-            return buf.toString();
-        }
-        return str;
+        return buff == null ? original : buff.toString();
     }
 
-    private static double roundmagic(double d) {
+    private static double roundMagic(double d) {
         if ((d < 0.0000000000001) && (d > -0.0000000000001)) {
             return 0.0;
         }

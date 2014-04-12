@@ -8093,7 +8093,7 @@ Derby
 #Unit
 
 @performance_1111_th
-#H2 (Server) #H2
+#H2 (Server)
 
 @performance_1112_th
 HSQLDB

@@ -273,6 +273,10 @@ public class LobStorageMap implements LobStorageInterface {
             trace("remove " + tableId + "/" + lobId);
         }
         Object[] value = lobMap.remove(lobId);
+        if (value == null) {
+            // already removed
+            return;
+        }
         byte[] streamStoreId = (byte[]) value[0];
         Object[] key = new Object[] {streamStoreId, lobId };
         refMap.remove(key);

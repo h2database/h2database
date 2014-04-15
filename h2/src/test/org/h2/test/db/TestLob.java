@@ -61,6 +61,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testCloseLobTwice();
         testCleaningUpLobsOnRollback();
         testClobWithRandomUnicodeChars();
         testCommitOnExclusiveConnection();
@@ -110,6 +111,20 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
+    }
+    
+    private void testCloseLobTwice() throws SQLException {
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        PreparedStatement prep = conn.prepareStatement("set @c = ?");
+        prep.setCharacterStream(1, new StringReader(
+                new String(new char[10000])), 10000);
+        prep.execute();
+        prep.setCharacterStream(1, new StringReader(
+                new String(new char[10001])), 10001);
+        prep.execute();
+        conn.setAutoCommit(true);
+        conn.close();
     }
 
     private void testCleaningUpLobsOnRollback() throws Exception {

@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>In server mode, appending ";autocommit=false" to the database URL was working,
+    but the return value of Connection.getAutoCommit() was wrong.
+</li><li>OSGi: the import package declaration of org.h2 excluded version 1.4.
+</li><li>Issue 558: with the MVStore, a NullPointerException could occur when using LOBs
+    at session commit (LobStorageMap.removeLob).
 </li></ul>
 
 <h2>Version 1.4.177 Beta (2014-04-12)</h2>

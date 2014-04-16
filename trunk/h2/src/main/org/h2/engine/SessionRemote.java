@@ -104,7 +104,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_14);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_15);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -127,12 +127,16 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             trans.writeInt(SessionRemote.SESSION_SET_ID);
             trans.writeString(sessionId);
             done(trans);
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
+                autoCommit = trans.readBoolean();
+            } else {
+                autoCommit = true;
+            }
+            return trans;
         } catch (DbException e) {
             trans.close();
             throw e;
         }
-        autoCommit = true;
-        return trans;
     }
 
     @Override

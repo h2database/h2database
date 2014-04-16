@@ -93,6 +93,11 @@ public class Constants {
     public static final int TCP_PROTOCOL_VERSION_14 = 14;
 
     /**
+     * The TCP protocol version number 15.
+     */
+    public static final int TCP_PROTOCOL_VERSION_15 = 15;
+
+    /**
      * The major version of this database.
      */
     public static final int VERSION_MAJOR = 1;

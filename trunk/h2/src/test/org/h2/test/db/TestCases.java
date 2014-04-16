@@ -41,6 +41,7 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testAutoCommitInDatabaseURL();
         testReferenceableIndexUsage();
         testClearSyntaxException();
         testEmptyStatements();
@@ -104,6 +105,16 @@ public class TestCases extends TestBase {
         testCollation();
         testBinaryCollation();
         deleteDb("cases");
+    }
+    
+    private void testAutoCommitInDatabaseURL() throws SQLException {
+        Connection conn = getConnection("cases;autocommit=false");
+        assertFalse(conn.getAutoCommit());
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("call autocommit()");
+        rs.next();
+        assertFalse(rs.getBoolean(1));
+        conn.close();
     }
 
     private void testReferenceableIndexUsage() throws SQLException {

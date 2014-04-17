@@ -17,7 +17,9 @@ Initial Developer: H2 Group
 <script type="text/javascript">
 <!--
 function set(s) {
-    top.h2query.document.h2query.sql.value = s;
+    if (parent.h2query) {
+        parent.h2query.document.h2query.sql.value = s;
+    }
 }
 //-->
 </script>

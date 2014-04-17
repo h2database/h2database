@@ -12,10 +12,8 @@ Initial Developer: H2 Group
     <title>${text.a.title}</title>
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
     <script type="text/javascript">
-        if (self != top) {
-            if (self.name == 'h2result' || self.name == 'h2query' || self.name == 'h2menu') {
-                top.location = "login.jsp";
-            }
+        if (self.name == 'h2result' || self.name == 'h2query' || self.name == 'h2menu') {
+            parent.location = "login.jsp";
         }
     </script>
 </head>

@@ -1273,7 +1273,7 @@ public class WebApp {
                     sqlUpper.indexOf("RUNSCRIPT") >= 0) {
                 String sessionId = attributes.getProperty("jsessionid");
                 buff.append("<script type=\"text/javascript\">" +
-                        "top['h2menu'].location='tables.do?jsessionid="
+                        "parent['h2menu'].location='tables.do?jsessionid="
                         + sessionId + "';</script>");
             }
             Statement stat;

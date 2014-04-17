@@ -24,7 +24,7 @@ public class Sequence extends SchemaObjectBase {
     /**
      * The default cache size for sequences.
      */
-    private static final int DEFAULT_CACHE_SIZE = 1024;
+    public static final int DEFAULT_CACHE_SIZE = 32;
 
     private long value;
     private long valueWithMargin;

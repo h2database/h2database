@@ -23,6 +23,8 @@ Change Log
 </li><li>OSGi: the import package declaration of org.h2 excluded version 1.4.
 </li><li>Issue 558: with the MVStore, a NullPointerException could occur when using LOBs
     at session commit (LobStorageMap.removeLob).
+</li><li>Remove the "h2.MAX_MEMORY_ROWS_DISTINCT" system property to reduce confusion.
+    We already have the MAX_MEMORY_ROWS setting which does a very similar thing, and is better documented.
 </li></ul>
 
 <h2>Version 1.4.177 Beta (2014-04-12)</h2>

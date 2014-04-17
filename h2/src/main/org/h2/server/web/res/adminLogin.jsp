@@ -10,15 +10,6 @@ Initial Developer: H2 Group
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <title>${text.a.title}</title>
     <link rel="stylesheet" type="text/css" href="stylesheet.css" />
-
-    <script type="text/javascript">
-        <!--
-        if (self != top) {
-            top.location = "adminLogin.jsp";
-        }
-        //-->
-    </script>
-
 </head>
 <body style="margin: 20px">
     <form name="adminLogin" method="post" action="admin.do?jsessionid=${sessionId}">

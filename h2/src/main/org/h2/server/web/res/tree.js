@@ -23,17 +23,17 @@ function addTable(name, columns, i) {
 }
 
 function ins(s, isTable) {
-    if (top.h2query) {
-        if (top.h2query.insertText) {
-            top.h2query.insertText(s, isTable);
+    if (parent.h2query) {
+        if (parent.h2query.insertText) {
+            parent.h2query.insertText(s, isTable);
         }
     }
 }
 
 function refreshQueryTables() {
-    if (top.frames['h2query']) {
-        if (top.frames['h2query'].refreshTables) {
-            top.frames['h2query'].refreshTables();
+    if (parent.h2query) {
+        if (parent.h2query.refreshTables) {
+            parent.h2query.refreshTables();
         }
     }
 }

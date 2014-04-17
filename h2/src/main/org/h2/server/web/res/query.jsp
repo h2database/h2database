@@ -28,7 +28,7 @@ var req;
 
 function refreshTables() {
     columnsByTable = new Object();
-    var tables = top.frames['h2menu'].tables;
+    var tables = parent.h2menu.tables;
     for(var i=0; i<tables.length; i++) {
         columnsByTable[tables[i].name] = tables[i].columns;
     }
@@ -91,9 +91,9 @@ function help() {
             s = tableAliases[s];
         }
         if (columnsByTable[s]) {
-            if (top.h2menu.goToTable(s)) {
-                top.h2menu.document.location='tables.do?jsessionid=${sessionId}#' + s;
-                // top.h2menu.window.blur();
+            if (parent.h2menu.goToTable(s)) {
+                parent.h2menu.document.location='tables.do?jsessionid=${sessionId}#' + s;
+                // parent.h2menu.window.blur();
                 document.h2query.sql.focus();
             }
         }
@@ -333,13 +333,11 @@ function highlightThisRow(row) {
 }
 
 function getAutoCompleteTable() {
-    return top.h2result.document.getElementById('h2auto');
-//    return top.frames['h2result'].document.getElementById('h2auto');
-//    return top.h2menu.h2result.document.getElementById('h2auto');
+    return parent.h2result.document.getElementById('h2auto');
 }
 
 function showOutput(x) {
-//     top.h2result.document.getElementById('output').style.display=x;
+//     parent.h2result.document.getElementById('output').style.display=x;
 }
 
 function showList(s) {
@@ -357,7 +355,7 @@ function showList(s) {
     }
     selectedRow = 0;
     var count = 0;
-    var doc = top.h2result.document;
+    var doc = parent.h2result.document;
     var tbody = table.tBodies[0];
     for(var i=0; list != null && i<list.length; i++) {
         var kv = list[i].split('#');
@@ -401,7 +399,7 @@ function showList(s) {
         showOutput('');
     }
     // scroll to the top left
-    top.h2result.scrollTo(0, 0);
+    parent.h2result.scrollTo(0, 0);
     autoCompleteManual = false;
 }
 

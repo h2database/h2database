@@ -96,7 +96,7 @@ public class TestReadOnly extends TestBase {
         conn.close();
         conn = getConnection(
                 "readonlyTemp;ACCESS_MODE_DATA=r;" +
-                "MAX_MEMORY_ROWS_DISTINCT=10");
+                "MAX_MEMORY_ROWS=10");
         stat = conn.createStatement();
         stat.execute("SELECT DISTINCT ID FROM TEST");
         conn.close();

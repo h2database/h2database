@@ -96,7 +96,7 @@ public class TestDeadlock extends TestBase {
 
     private void testConcurrentLobReadAndTempResultTableDelete() throws Exception {
         deleteDb("deadlock");
-        String url = "deadlock;MAX_MEMORY_ROWS_DISTINCT=10";
+        String url = "deadlock;MAX_MEMORY_ROWS=10";
         Connection conn, conn2;
         Statement stat2;
         conn = getConnection(url);

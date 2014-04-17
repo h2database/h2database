@@ -98,7 +98,7 @@ public class TestTempTables extends TestBase {
     private void testTempTableResultSet() throws SQLException {
         deleteDb("tempTables");
         Connection conn = getConnection(
-                "tempTables;MAX_MEMORY_ROWS_DISTINCT=10");
+                "tempTables;MAX_MEMORY_ROWS=10");
         Statement stat1 = conn.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         Statement stat2 = conn.createStatement(

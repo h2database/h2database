@@ -157,16 +157,6 @@ public class DbSettings extends SettingsBase {
     public final int maxCompactTime = get("MAX_COMPACT_TIME", 200);
 
     /**
-     * Database setting <code>MAX_MEMORY_ROWS_DISTINCT</code> (default:
-     * 10000).<br />
-     * The maximum number of rows kept in-memory for SELECT DISTINCT queries. If
-     * more than this number of rows are in a result set, a temporary table is
-     * used.
-     */
-    public final int maxMemoryRowsDistinct = get("MAX_MEMORY_ROWS_DISTINCT",
-            10000);
-
-    /**
      * Database setting <code>MAX_QUERY_TIMEOUT</code> (default: 0).<br />
      * The maximum timeout of a query in milliseconds. The default is 0, meaning
      * no limit. Please note the actual query timeout may be set to a lower

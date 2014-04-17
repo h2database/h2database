@@ -260,7 +260,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
                 Database db = session.getDatabase();
-                if (rowCount > db.getSettings().maxMemoryRowsDistinct &&
+                if (rowCount > db.getMaxMemoryRows() &&
                         db.isPersistent() && !db.isReadOnly()) {
                     external = new ResultTempTable(session, sort);
                     rowCount = external.addRows(distinctRows.values());

@@ -53,7 +53,7 @@ public class TestCases extends TestBase {
         testDependencies();
         testConvertType();
         testSortedSelect();
-        testMaxMemoryRowsDistinct();
+        testMaxMemoryRows();
         testDeleteTop();
         testUnicode();
         testOuterJoin();
@@ -278,10 +278,10 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
-    private void testMaxMemoryRowsDistinct() throws SQLException {
+    private void testMaxMemoryRows() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection(
-                "cases;max_memory_rows_distinct=1");
+                "cases;max_memory_rows=1");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(1), (2)");

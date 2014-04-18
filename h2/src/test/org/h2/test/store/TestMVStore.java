@@ -52,6 +52,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testVolatileMap();
         testEntrySet();
         testCompressEmptyPage();
         testCompressed();
@@ -108,6 +109,28 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testVolatileMap() {
+        String fileName = getBaseDir() + "/testVolatile.h3";
+        MVStore store = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        MVMap<String, String> map = store.openMap("test");
+        assertFalse(map.isVolatile());
+        map.setVolatile(true);
+        assertTrue(map.isVolatile());
+        map.put("1", "Hello");
+        assertEquals("Hello", map.get("1"));
+        assertEquals(1, map.size());
+        store.close();
+        store = new MVStore.Builder().
+                fileName(fileName).
+                open();
+        assertTrue(store.hasMap("test"));
+        map = store.openMap("test");
+        assertEquals(0, map.size());
+        store.close();
     }
 
     private void testEntrySet() {

@@ -110,7 +110,7 @@ public class UndoLogRecord {
             try {
                 table.addRow(session, row);
                 table.fireAfterRow(session, null, row, true);
-                // reset session id, otherwise other session think
+                // reset session id, otherwise other sessions think
                 // that this row was inserted by this session
                 row.commit();
             } catch (DbException e) {

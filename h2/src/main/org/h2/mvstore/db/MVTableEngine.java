@@ -119,6 +119,7 @@ public class MVTableEngine implements TableEngine {
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
         if (!data.persistData) {
+            ; // TODO need in-memory tables for persistent stores
             return new RegularTable(data);
         }
         Store store = init(db);

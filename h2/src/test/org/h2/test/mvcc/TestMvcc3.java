@@ -11,6 +11,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
 /**
@@ -31,6 +33,7 @@ public class TestMvcc3 extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testFailedUpdate();
         testConcurrentUpdate();
         testInsertUpdateRollback();
         testCreateTableAsSelect();
@@ -38,6 +41,25 @@ public class TestMvcc3 extends TestBase {
         testDisableAutoCommit();
         testRollback();
         deleteDb("mvcc3");
+    }
+    
+    private void testFailedUpdate() throws SQLException {
+        deleteDb("mvcc3");
+        Connection conn = getConnection("mvcc3");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, a int unique, b int)");
+        stat.execute("insert into test values(1, 1, 1)");
+        stat.execute("insert into test values(2, 2, 2)");
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).execute("update test set a = 1 where id = 2");
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test where id = 2");
+        assertTrue(rs.next());
+        rs = stat.executeQuery("select * from test where a = 2");
+        assertTrue(rs.next());
+        rs = stat.executeQuery("select * from test where b = 2");
+        assertTrue(rs.next());
+        conn.close();
     }
 
     private void testConcurrentUpdate() throws SQLException {

@@ -20,9 +20,9 @@ public class Constants {
     public static final String BUILD_DATE = "2014-04-12";
 
     /**
-     * The build date is updated for each public release.
+     * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2014-01-18";
+    public static final String BUILD_DATE_STABLE = "2014-04-05";
 
     /**
      * The build id is incremented for each public release.

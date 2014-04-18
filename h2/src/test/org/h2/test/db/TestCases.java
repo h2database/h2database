@@ -281,7 +281,7 @@ public class TestCases extends TestBase {
     private void testMaxMemoryRows() throws SQLException {
         deleteDb("cases");
         Connection conn = getConnection(
-                "cases;max_memory_rows=1");
+                "cases;MAX_MEMORY_ROWS=1");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key)");
         stat.execute("insert into test values(1), (2)");

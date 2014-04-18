@@ -74,6 +74,9 @@ public class MVPrimaryIndex extends BaseIndex {
         mapName = "table." + getId();
         dataMap = mvTable.getTransaction(null).openMap(mapName, keyType,
                 valueType);
+        if (!table.isPersistData()) {
+            dataMap.map.setVolatile(true);
+        }
         Value k = dataMap.lastKey();
         lastKey = k == null ? 0 : k.getLong();
     }

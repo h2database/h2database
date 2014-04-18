@@ -58,6 +58,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private boolean closed;
     private boolean readOnly;
+    private boolean isVolatile;
 
     protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
@@ -916,6 +917,26 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public boolean isReadOnly() {
         return readOnly;
     }
+    
+    /**
+     * Set the volatile flag of the map.
+     *
+     * @param isVolatile the volatile flag
+     */
+    public void setVolatile(boolean isVolatile) {
+        this.isVolatile = isVolatile;
+    }
+    
+    /**
+     * Whether this is volatile map, meaning that changes
+     * are not persisted. By default (even if the store is not persisted),
+     * maps are not volatile.
+     * 
+     * @return whether this map is volatile
+     */
+    public boolean isVolatile() {
+        return isVolatile;
+    }
 
     /**
      * This method is called before writing to the map. The default
@@ -1145,7 +1166,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         return buff.toString();
     }
-
+    
     void setWriteVersion(long writeVersion) {
         this.writeVersion = writeVersion;
     }

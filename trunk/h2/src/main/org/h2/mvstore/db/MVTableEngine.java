@@ -30,7 +30,6 @@ import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.RegularTable;
 import org.h2.table.TableBase;
 import org.h2.util.New;
 
@@ -118,10 +117,6 @@ public class MVTableEngine implements TableEngine {
     @Override
     public TableBase createTable(CreateTableData data) {
         Database db = data.session.getDatabase();
-        if (!data.persistData) {
-            ; // TODO need in-memory tables for persistent stores
-            return new RegularTable(data);
-        }
         Store store = init(db);
         MVTable table = new MVTable(data, store);
         table.init(data.session);

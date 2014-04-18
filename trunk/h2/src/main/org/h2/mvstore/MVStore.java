@@ -952,6 +952,9 @@ public class MVStore {
                 // the map was created after storing started
                 continue;
             }
+            if (m.isVolatile()) {
+                continue;
+            }
             if (v >= 0 && v >= lastStoredVersion) {
                 m.waitUntilWritten(storeVersion);
                 MVMap<?, ?> r = m.openVersion(storeVersion);

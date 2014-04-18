@@ -91,16 +91,16 @@ public class Page {
     private long[] children;
 
     /**
+     * The entry count for the given children.
+     */
+    private long[] counts;
+
+    /**
      * The child pages.
      * <p>
      * The array might be larger than needed, to avoid frequent re-sizing.
      */
     private Page[] childrenPages;
-
-    /**
-     * The entry count for the given children.
-     */
-    private long[] counts;
 
     Page(MVMap<?, ?> map, long version) {
         this.map = map;
@@ -318,7 +318,7 @@ public class Page {
         // the default value is used
         int x = cachedCompare - 1;
         if (x < 0 || x > high) {
-            x = (low + high) >>> 1;
+            x = high >>> 1;
         }
         Object[] k = keys;
         while (low <= high) {

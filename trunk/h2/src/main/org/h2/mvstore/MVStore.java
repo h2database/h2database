@@ -54,7 +54,6 @@ MVStore:
 
 - automated 'kill process' and 'power failure' test
 - test and possibly improve compact operation (for large dbs)
-- possibly split chunk metadata into immutable and mutable
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - store number of write operations per page (maybe defragment
@@ -109,6 +108,9 @@ MVStore:
 - test chunk id rollover
 - feature to auto-compact from time to time and on close
 - compact very small chunks
+- Page: to save memory, combine keys & values into one array 
+    (also children & counts). Maybe remove some other 
+    fields (childrenCount for example)
 
 */
 

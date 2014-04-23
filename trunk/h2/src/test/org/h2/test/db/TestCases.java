@@ -106,7 +106,7 @@ public class TestCases extends TestBase {
         testBinaryCollation();
         deleteDb("cases");
     }
-    
+
     private void testAutoCommitInDatabaseURL() throws SQLException {
         Connection conn = getConnection("cases;autocommit=false");
         assertFalse(conn.getAutoCommit());

@@ -871,7 +871,7 @@ public class DataUtils {
      * @return the parsed value
      * @throws IllegalStateException if parsing fails
      */
-    public static long readHexLong(HashMap<String, ? extends Object> map,
+    public static long readHexLong(Map<String, ? extends Object> map,
             String key, long defaultValue) {
         Object v = map.get(key);
         if (v == null) {

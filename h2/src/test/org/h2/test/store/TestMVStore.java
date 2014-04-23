@@ -110,7 +110,7 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testVolatileMap() {
         String fileName = getBaseDir() + "/testVolatile.h3";
         MVStore store = new MVStore.Builder().
@@ -1673,7 +1673,7 @@ public class TestMVStore extends TestBase {
 
         m = s.openMap("data");
         assertTrue(s.compact(80, 16 * 1024));
-        assertTrue(s.compact(80, 1024));
+        assertFalse(s.compact(80, 1024));
 
         int chunkCount3 = 0;
         for (String k : meta.keySet()) {

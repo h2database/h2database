@@ -11,9 +11,14 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.sql.Timestamp;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FileUtils;
 
 /**
  * Utility methods used in combination with the MVStore.
@@ -24,8 +29,10 @@ public class MVStoreTool {
      * Runs this tool.
      * Options are case sensitive. Supported options are:
      * <table>
-     * <tr><td>[-dump &lt;dir&gt;]</td>
+     * <tr><td>[-dump &lt;fileName&gt;]</td>
      * <td>Dump the contends of the file</td></tr>
+     * <tr><td>[-info &lt;fileName&gt;]</td>
+     * <td>Get summary information about a file</td></tr>
      * </table>
      *
      * @param args the command line arguments
@@ -35,6 +42,9 @@ public class MVStoreTool {
             if ("-dump".equals(args[i])) {
                 String fileName = args[++i];
                 dump(fileName, new PrintWriter(System.out));
+            } else if ("-info".equals(args[i])) {
+                String fileName = args[++i];
+                info(fileName, new PrintWriter(System.out));
             }
         }
     }
@@ -46,6 +56,15 @@ public class MVStoreTool {
      */
     public static void dump(String fileName) {
         dump(fileName, new PrintWriter(System.out));
+    }
+
+    /**
+     * Read the summary information of the file and write them to system out.
+     *
+     * @param fileName the name of the file
+     */
+    public static void info(String fileName) {
+        info(fileName, new PrintWriter(System.out));
     }
 
     /**
@@ -85,7 +104,13 @@ public class MVStoreTool {
                     continue;
                 }
                 block.position(0);
-                Chunk c = Chunk.readChunkHeader(block, pos);
+                Chunk c = null;
+                try {
+                    c = Chunk.readChunkHeader(block, pos);
+                } catch (IllegalStateException e) {
+                    pos += blockSize;
+                    continue;
+                }
                 int length = c.len * MVStore.BLOCK_SIZE;
                 pw.printf("%n%0" + len + "x chunkHeader %s%n",
                         pos, c.toString());
@@ -152,7 +177,7 @@ public class MVStoreTool {
                             pw.printf("    %d children >= %s @ chunk %x +%0" +
                                     len + "x%n",
                                     counts[entries],
-                                    keys[entries],
+                                    keys.length >= entries ? null : keys[entries],
                                     DataUtils.getPageChunkId(cp),
                                     DataUtils.getPageOffset(cp));
                         } else if (!compressed) {
@@ -202,6 +227,69 @@ public class MVStoreTool {
             }
         }
         pw.flush();
+    }
+
+    /**
+     * Read the summary information of the file and write them to system out.
+     *
+     * @param fileName the name of the file
+     * @param writer the print writer
+     */
+    public static void info(String fileName, Writer writer) {
+        PrintWriter pw = new PrintWriter(writer, true);
+        if (!FilePath.get(fileName).exists()) {
+            pw.println("File not found: " + fileName);
+            return;
+        }
+        long fileLength = FileUtils.size(fileName);
+        MVStore store = new MVStore.Builder().
+                fileName(fileName).
+                readOnly().open();
+        try {
+            MVMap<String, String> meta = store.getMetaMap();
+            Map<String, Object> header = store.getStoreHeader();
+            long fileCreated = DataUtils.readHexLong(header, "created", 0L);
+            TreeMap<Integer, Chunk> chunks = new TreeMap<Integer, Chunk>();
+            long chunkLength = 0;
+            long maxLength = 0;
+            long maxLengthLive = 0;
+            for (Entry<String, String> e : meta.entrySet()) {
+                String k = e.getKey();
+                if (k.startsWith("chunk.")) {
+                    Chunk c = Chunk.fromString(e.getValue());
+                    chunks.put(c.id, c);
+                    chunkLength += c.len * MVStore.BLOCK_SIZE;
+                    maxLength += c.maxLen;
+                    maxLengthLive += c.maxLenLive;
+                }
+            }
+            pw.printf("Created: %s\n", formatTimestamp(fileCreated));
+            pw.printf("File length: %d\n", fileLength);
+            pw.printf("Chunk length: %d\n", chunkLength);
+            pw.printf("Chunk count: %d\n", chunks.size());
+            pw.printf("Used space: %d%%\n", 100 * chunkLength / fileLength);
+            pw.printf("Chunk fill rate: %d%%\n", 100 * maxLengthLive / maxLength);
+            for (Entry<Integer, Chunk> e : chunks.entrySet()) {
+                Chunk c = e.getValue();
+                long created = fileCreated + c.time;
+                pw.printf("  Chunk %d: %s, %d%% used, %d blocks\n",
+                        c.id, formatTimestamp(created),
+                        100 * c.maxLenLive / c.maxLen,
+                        c.len
+                        );
+            }
+        } catch (Exception e) {
+            pw.println("ERROR: " + e);
+            e.printStackTrace(pw);
+        } finally {
+            store.close();
+        }
+        pw.flush();
+    }
+
+    private static String formatTimestamp(long t) {
+        String x = new Timestamp(t).toString();
+        return x.substring(0, 19);
     }
 
 }

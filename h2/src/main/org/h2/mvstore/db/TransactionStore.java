@@ -24,7 +24,7 @@ import org.h2.mvstore.type.ObjectDataType;
 import org.h2.util.New;
 
 /**
- * A store that supports concurrent transactions.
+ * A store that supports concurrent MVCC read-committed transactions.
  */
 public class TransactionStore {
 

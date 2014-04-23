@@ -223,6 +223,24 @@ public class Page {
     }
 
     /**
+     * Get the child page at the given index, if it is live.
+     *
+     * @param index the child index
+     * @return the page, or null if the chunk is not live
+     */
+    public Page getLiveChildPage(int index) {
+        Page p = childrenPages[index];
+        if (p != null) {
+            return p;
+        }
+        long pos = children[index];
+        if (!map.store.isChunkLive(pos)) {
+            return null;
+        }
+        return getChildPage(index);
+    }
+
+    /**
      * Get the value at the given index.
      *
      * @param index the index
@@ -264,6 +282,10 @@ public class Page {
         StringBuilder buff = new StringBuilder();
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
         buff.append("pos: ").append(Long.toHexString(pos)).append("\n");
+        if (pos != 0) {
+            int chunkId = DataUtils.getPageChunkId(pos);
+            buff.append("chunk: ").append(Long.toHexString(chunkId)).append("\n");
+        }
         for (int i = 0; i <= keyCount; i++) {
             if (i > 0) {
                 buff.append(" ");
@@ -734,16 +756,16 @@ public class Page {
         if (pageLength > maxLength) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted, expected page length =< {0}, got {1}",
-                    maxLength, pageLength);
+                    "File corrupted in chunk {0}, expected page length =< {1}, got {2}",
+                    chunkId, maxLength, pageLength);
         }
         short check = buff.getShort();
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted, expected map id {0}, got {1}",
-                    map.getId(), mapId);
+                    "File corrupted in chunk {0}, expected map id {1}, got {2}",
+                    chunkId, map.getId(), mapId);
         }
         int checkTest = DataUtils.getCheckValue(chunkId)
                 ^ DataUtils.getCheckValue(offset)
@@ -751,8 +773,8 @@ public class Page {
         if (check != (short) checkTest) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted, expected check value {0}, got {1}",
-                    checkTest, check);
+                    "File corrupted in chunk {0}, expected check value {1}, got {2}",
+                    chunkId, checkTest, check);
         }
         int len = DataUtils.readVarInt(buff);
         keys = new Object[len];
@@ -1005,6 +1027,10 @@ public class Page {
      */
     public void removePage() {
         map.removePage(pos, memory);
+    }
+
+    public void setPos(long pos) {
+        this.pos = pos;
     }
 
 }

@@ -644,12 +644,12 @@ public class ErrorCode {
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
 
     /**
-     * The error with code <code>90021</code> is thrown when 
+     * The error with code <code>90021</code> is thrown when
      * trying to change a specific database property that conflicts with other
      * database properties.
      */
     public static final int UNSUPPORTED_SETTING_COMBINATION = 90021;
-    
+
     /**
      * The error with code <code>90022</code> is thrown when
      * trying to call a unknown function.

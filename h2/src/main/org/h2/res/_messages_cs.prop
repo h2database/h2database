@@ -48,6 +48,7 @@
 90018=Připojení nebylo ukončeno aplikací a bude automaticky odstraněno
 90019=Nelze smazat stávajícího uživatele
 90020=Databáze je pravděpodobně používána: {0}. Možná řešení: uzavřete všechny ostatní připojení; použijte režim server
+#90021=This combination of database settings: {0} is not supported
 90022=Funkce {0} nenalezena
 90023=Sloupec {0} nesmí mít možnou hodnotu NULL
 90024=Chyba při přejmenování souboru {0} na {1}

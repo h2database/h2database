@@ -48,6 +48,7 @@
 90018=La conexión no fue cerrada por la aplicación y esta siendo limpiada (garbage collected)
 90019=Imposible eliminar el usuario actual
 90020=La base de datos puede que ya esté siendo utilizada: {0}. Soluciones Posibles: cierre todas las otras conexiones; use el modo server
+#90021=This combination of database settings: {0} is not supported
 90022=Función {0} no encontrada
 90023=Columna {0} no puede ser nullable
 90024=Error mientras se renombraba el archivo {0} a {1}

@@ -48,6 +48,7 @@
 90018=The connection was not closed by the application and is garbage collected
 90019=Cannot drop the current user
 90020=Database may be already in use: {0}. Possible solutions: close all other connection(s); use the server mode
+90021=This combination of database settings: {0} is not supported
 90022=Function {0} not found
 90023=Column {0} must not be nullable
 90024=Error while renaming file {0} to {1}

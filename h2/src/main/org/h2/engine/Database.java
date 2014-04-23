@@ -2071,7 +2071,7 @@ public class Database implements DataHandler {
                 // currently the combination of LOCK_MODE=0 and MULTI_THREADED
                 // is not supported
                 throw DbException.get(
-                        ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
+                        ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
                         "LOCK_MODE=0 & MULTI_THREADED");
             }
             break;
@@ -2250,14 +2250,14 @@ public class Database implements DataHandler {
                 // currently the combination of MVCC and MULTI_THREADED is not
                 // supported
                 throw DbException.get(
-                        ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
+                        ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
                         "MVCC & MULTI_THREADED");
             }
             if (lockMode == 0) {
                 // currently the combination of LOCK_MODE=0 and MULTI_THREADED
                 // is not supported
                 throw DbException.get(
-                        ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1,
+                        ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
                         "LOCK_MODE=0 & MULTI_THREADED");
             }
         }

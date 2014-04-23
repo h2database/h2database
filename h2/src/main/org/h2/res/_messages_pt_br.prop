@@ -48,7 +48,7 @@
 90018=A conecção foi fechada pela aplicação e retirada da memória
 90019=Não pode remover o usuário corrente
 90020=A base de dados talvez esteja em uso: {0}. Solução possível: fechar todas as outras conecções; use o modo servidor
-#90021=This combination of database settings: {0} is not supported
+90021=#This combination of database settings is not supported: {0}
 90022=Função {0} não encontrada
 90023=Coluna {0} não deve permitir valor nulo
 90024=Erro ao renomear arquivo {0} para {1}

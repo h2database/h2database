@@ -48,7 +48,7 @@
 90018=连接未被关闭但已被垃圾回收器回收
 90019=不能移除当前用户
 90020=数据可可能当前已正被使用: {0}. 解决方案有：关闭所有其他连接; 使用服务器模式(server mode)
-#90021=This combination of database settings: {0} is not supported
+90021=#This combination of database settings is not supported: {0}
 90022=未找到函数 {0}
 90023=字段 {0} 不能为空
 90024=将文件 {0} 命名为 {1} 发生错误

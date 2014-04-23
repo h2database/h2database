@@ -459,13 +459,31 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Get the page for the given value.
+     * Get a key that is referenced in the given page or a child page.
      *
-     * @param key the key
-     * @return the value, or null if not found
+     * @param p the page
+     * @return the key, or null if not found
      */
-    protected Page getPage(K key) {
-        return binarySearchPage(root, key);
+    protected K getLiveKey(Page p) {
+        while (!p.isLeaf()) {
+            p = p.getLiveChildPage(0);
+            if (p == null) {
+                return null;
+            }
+        }
+        @SuppressWarnings("unchecked")
+        K key = (K) p.getKey(0);
+        Page p2 = binarySearchPage(root, key);
+        if (p2 == null) {
+            return null;
+        }
+        if (p2.getPos() == 0) {
+            return p2 == p ? key : null;
+        }
+        if (p2.getPos() == p.getPos()) {
+            return key;
+        }
+        return null;
     }
 
     /**
@@ -917,7 +935,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public boolean isReadOnly() {
         return readOnly;
     }
-    
+
     /**
      * Set the volatile flag of the map.
      *
@@ -926,12 +944,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public void setVolatile(boolean isVolatile) {
         this.isVolatile = isVolatile;
     }
-    
+
     /**
      * Whether this is volatile map, meaning that changes
      * are not persisted. By default (even if the store is not persisted),
      * maps are not volatile.
-     * 
+     *
      * @return whether this map is volatile
      */
     public boolean isVolatile() {
@@ -1166,7 +1184,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         return buff.toString();
     }
-    
+
     void setWriteVersion(long writeVersion) {
         this.writeVersion = writeVersion;
     }

@@ -585,6 +585,8 @@ public class Recover extends Tool implements DataHandler {
                 Constants.SUFFIX_MV_FILE.length()));
         MVStore mv = new MVStore.Builder().fileName(fileName).readOnly().open();
         dumpLobMaps(writer, mv);
+        writer.println("-- Meta");
+        dumpMeta(writer, mv);
         writer.println("-- Tables");
         TransactionStore store = new TransactionStore(mv);
         try {
@@ -651,6 +653,13 @@ public class Recover extends Tool implements DataHandler {
             writeError(writer, e);
         } finally {
             mv.close();
+        }
+    }
+
+    private static void dumpMeta(PrintWriter writer, MVStore mv) {
+        MVMap<String, String> meta = mv.getMetaMap();
+        for (Entry<String, String> e : meta.entrySet()) {
+            writer.println("-- " + e.getKey() + " = " + e.getValue());
         }
     }
 

@@ -108,8 +108,8 @@ MVStore:
 - test chunk id rollover
 - feature to auto-compact from time to time and on close
 - compact very small chunks
-- Page: to save memory, combine keys & values into one array 
-    (also children & counts). Maybe remove some other 
+- Page: to save memory, combine keys & values into one array
+    (also children & counts). Maybe remove some other
     fields (childrenCount for example)
 
 */
@@ -799,12 +799,35 @@ public class MVStore {
     }
 
     /**
+     * Whether the chunk at the given position is live.
+     *
+     * @param pos the position of the page
+     * @return true if it is live
+     */
+    boolean isChunkLive(long pos) {
+        int chunkId = DataUtils.getPageChunkId(pos);
+        String s = meta.get(Chunk.getMetaKey(chunkId));
+        return s != null;
+    }
+
+    /**
      * Get the chunk for the given position.
      *
      * @param pos the position
      * @return the chunk
      */
     private Chunk getChunk(long pos) {
+        Chunk c = getChunkIfFound(pos);
+        if (c == null) {
+            int chunkId = DataUtils.getPageChunkId(pos);
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Chunk {0} not found", chunkId);
+        }
+        return c;
+    }
+
+    private Chunk getChunkIfFound(long pos) {
         int chunkId = DataUtils.getPageChunkId(pos);
         Chunk c = chunks.get(chunkId);
         if (c == null) {
@@ -815,9 +838,7 @@ public class MVStore {
             }
             String s = meta.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
-                throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_FILE_CORRUPT,
-                        "Chunk {0} not found", chunkId);
+                return null;
             }
             c = Chunk.fromString(s);
             if (c.block == Long.MAX_VALUE) {
@@ -1450,7 +1471,8 @@ public class MVStore {
      * before calling this method.
      *
      * @param targetFillRate the minimum percentage of live entries
-     * @param minSaving the minimum amount of saved space
+     * @param minSaving the amount of saved space,
+     *      which is also the size of the new chunk
      * @return if a chunk was re-written
      */
     public synchronized boolean compact(int targetFillRate, int minSaving) {
@@ -1497,22 +1519,28 @@ public class MVStore {
         Collections.sort(old, new Comparator<Chunk>() {
             @Override
             public int compare(Chunk o1, Chunk o2) {
-                return new Integer(o1.collectPriority)
-                        .compareTo(o2.collectPriority);
+                int comp = new Integer(o1.collectPriority).
+                        compareTo(o2.collectPriority);
+                if (comp == 0) {
+                    comp = new Long(o1.maxLenLive).
+                        compareTo(o2.maxLenLive);
+                }
+                return comp;
             }
         });
-
         // find out up to were in the old list we need to move
         long saved = 0;
+        long totalSize = 0;
         Chunk move = null;
         for (Chunk c : old) {
-            long save = c.maxLen - c.maxLenLive;
+            long size = c.maxLen - c.maxLenLive;
+            totalSize += c.maxLenLive;
             if (move != null) {
-                if (saved > minSaving) {
+                if (saved > minSaving && totalSize > minSaving) {
                     break;
                 }
             }
-            saved += save;
+            saved += size;
             move = c;
         }
         if (saved < minSaving) {
@@ -1532,20 +1560,32 @@ public class MVStore {
 
         // iterate over all the pages in the old pages
         for (Chunk c : old) {
-            copyLive(c, old);
+            copyLive(c);
         }
 
         commitAndSave();
         return true;
     }
 
-    private void copyLive(Chunk chunk, ArrayList<Chunk> old) {
+    private void copyLive(Chunk chunk) {
+        if (chunk.pageCountLive == 0) {
+            // remove this chunk in the next save operation
+            registerFreePage(currentVersion, chunk.id, 0, 0);
+            return;
+        }
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(start, length);
-        Chunk.readChunkHeader(buff, start);
+        Chunk c = Chunk.readChunkHeader(buff, start);
+        if (c.id != chunk.id) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "Expected chunk {0}, got {1}", chunk.id, c.id);
+        }
         int pagesRemaining = chunk.pageCount;
         markMetaChanged();
+        boolean mapNotOpen = false;
+        int changeCount = 0;
         while (pagesRemaining-- > 0) {
             int offset = buff.position();
             int pageLength = buff.getInt();
@@ -1559,31 +1599,50 @@ public class MVStore {
             @SuppressWarnings("unchecked")
             MVMap<Object, Object> map = (MVMap<Object, Object>) getMap(mapId);
             if (map == null) {
-                // pages of maps that are not open or that have been removed
-                // later on are not moved (for maps that are not open, the live
-                // counter is not decremented, so the chunk is not removed)
+                boolean mapExists = meta.containsKey("root." + Integer.toHexString(mapId));
+                if (mapExists) {
+                    // pages of maps that were removed: the live count was
+                    // already decremented, but maps that are not open, the
+                    // chunk is not removed
+                    mapNotOpen = true;
+                }
                 buff.position(offset + pageLength);
                 continue;
             }
             buff.position(offset);
             Page page = new Page(map, 0);
             page.read(buff, chunk.id, buff.position(), length);
-            for (int i = 0; i < page.getKeyCount(); i++) {
-                Object k = page.getKey(i);
-                Page p = map.getPage(k);
-                if (p == null) {
-                    // was removed later - ignore
-                    // or the chunk no longer exists
-                } else if (p.getPos() == 0) {
-                    // temporarily changed - ok
-                    // TODO move old data if there is an uncommitted change?
-                } else {
-                    Chunk c = getChunk(p.getPos());
-                    if (old.contains(c)) {
-                        Object value = map.remove(k);
-                        map.put(k, value);
+            int type = page.isLeaf() ? 0 : 1;
+            long pos = DataUtils.getPagePos(chunk.id, offset, pageLength, type);
+            page.setPos(pos);
+            Object k = map.getLiveKey(page);
+            if (k != null) {
+                Object value = map.remove(k);
+                if (value != null) {
+                    map.put(k, value);
+                    changeCount++;
+                }
+            }
+        }
+        if (!mapNotOpen && changeCount == 0) {
+            // if all maps are open, but no changes were made,
+            // then live bookkeeping is wrong, and we anyway
+            // remove the chunk
+            // (but we first need to check that there are no
+            // pending changes)
+            for (HashMap<Integer, Chunk> e : freedPageSpace.values()) {
+                for (int x : e.keySet()) {
+                    if (x == chunk.id) {
+                        changeCount++;
+                        break;
                     }
                 }
+            }
+            if (changeCount == 0) {
+                // bookkeeping is broken for this chunk:
+                // fix it
+                registerFreePage(currentVersion, chunk.id,
+                        chunk.maxLenLive, chunk.pageCountLive);
             }
         }
     }

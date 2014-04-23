@@ -126,6 +126,9 @@ public class Chunk {
             }
         } catch (Exception e) {
             // there could be various reasons
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_FILE_CORRUPT,
+                    "File corrupt reading chunk at position {0}", start, e);
         }
         throw DataUtils.newIllegalStateException(
                 DataUtils.ERROR_FILE_CORRUPT,

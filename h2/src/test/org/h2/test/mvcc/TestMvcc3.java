@@ -42,7 +42,7 @@ public class TestMvcc3 extends TestBase {
         testRollback();
         deleteDb("mvcc3");
     }
-    
+
     private void testFailedUpdate() throws SQLException {
         deleteDb("mvcc3");
         Connection conn = getConnection("mvcc3");
@@ -51,7 +51,8 @@ public class TestMvcc3 extends TestBase {
         stat.execute("create table test(id int primary key, a int unique, b int)");
         stat.execute("insert into test values(1, 1, 1)");
         stat.execute("insert into test values(2, 2, 2)");
-        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).execute("update test set a = 1 where id = 2");
+        assertThrows(ErrorCode.DUPLICATE_KEY_1, stat).
+                execute("update test set a = 1 where id = 2");
         ResultSet rs;
         rs = stat.executeQuery("select * from test where id = 2");
         assertTrue(rs.next());

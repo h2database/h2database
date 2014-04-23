@@ -112,7 +112,7 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
-    
+
     private void testCloseLobTwice() throws SQLException {
         deleteDb("lob");
         Connection conn = getConnection("lob");

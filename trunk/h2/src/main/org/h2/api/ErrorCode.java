@@ -644,6 +644,13 @@ public class ErrorCode {
     public static final int DATABASE_ALREADY_OPEN_1 = 90020;
 
     /**
+     * The error with code <code>90021</code> is thrown when 
+     * trying to change a specific database property that conflicts with other
+     * database properties.
+     */
+    public static final int UNSUPPORTED_SETTING_COMBINATION = 90021;
+    
+    /**
      * The error with code <code>90022</code> is thrown when
      * trying to call a unknown function.
      * Example:
@@ -1908,8 +1915,7 @@ public class ErrorCode {
     public static final int JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE = 90141;
 
 
-    // next are 90021, 90039,
-    // 90051, 90056, 90110, 90122, 90142
+    // next are 90039, 90051, 90056, 90110, 90122, 90142
 
     private ErrorCode() {
         // utility class

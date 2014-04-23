@@ -48,6 +48,7 @@
 90018=Połączenie zostało zamknięte przez aplikacje i zostało usunięte przez kolektor nieużytków
 90019=Nie można skasować aktualnego użytkownika
 90020=Baza danych może być już otwarta: {0}
+#90021=This combination of database settings: {0} is not supported
 90022=Funkcja {0} nie istnieje
 90023=Kolumna {0} nie może zawierać wartości pustej
 90024=Błąd w zmianie nazwy pliku {0} na {1}

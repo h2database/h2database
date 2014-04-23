@@ -48,7 +48,7 @@
 90018=Die Datenbank-Verbindung wurde nicht explizit geschlossen (jetzt in der Müllabfuhr)
 90019=Kann aktuellen Benutzer nicht löschen
 90020=Datenbank wird wahrscheinlich bereits benutzt: {0}. Mögliche Lösungen: alle Verbindungen schliessen; Server Modus verwenden
-#90021=This combination of database settings: {0} is not supported
+90021=Diese Kombination von Einstellungen wird nicht unterstützt {0}
 90022=Funktion {0} nicht gefunden
 90023=Feld {0} darf nicht NULL nicht erlauben
 90024=Fehler beim Umbenennen der Datei {0} nach {1}

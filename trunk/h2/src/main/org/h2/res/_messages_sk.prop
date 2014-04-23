@@ -48,7 +48,7 @@
 90018=Spojenie neuzatvorené aplikáciou bolo zrušené
 90019=Nemôžem zmazať aktuálneho používateľa
 90020=Databáza sa už asi používa: {0}. Možné riešenia: zatvorte všetky dalšie spojenia; použite serverový mód
-#90021=This combination of database settings: {0} is not supported
+90021=#This combination of database settings is not supported: {0}
 90022=Funkcia {0} nenájdená
 90023=Stĺpec {0} nesmie umožniť vložiť NULL
 90024=Chyba pri premenovaní súboru {0} na {1}

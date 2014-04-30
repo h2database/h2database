@@ -29,11 +29,6 @@ import org.h2.util.New;
 public class TransactionStore {
 
     /**
-     * Whether the concurrent maps should be used.
-     */
-    private static final boolean CONCURRENT = false;
-
-    /**
      * The store.
      */
     final MVStore store;
@@ -55,6 +50,11 @@ public class TransactionStore {
      * Key: [ opId ], value: [ mapId, key, oldValue ].
      */
     final MVMap<Long, Object[]> undoLog;
+
+    /**
+     * Whether concurrent maps should be used.
+     */
+    private final boolean concurrent;
 
     /**
      * The map of maps.
@@ -79,7 +79,7 @@ public class TransactionStore {
      * @param store the store
      */
     public TransactionStore(MVStore store) {
-        this(store, new ObjectDataType());
+        this(store, new ObjectDataType(), false);
     }
 
     /**
@@ -87,10 +87,12 @@ public class TransactionStore {
      *
      * @param store the store
      * @param dataType the data type for map keys and values
+     * @param concurrent whether concurrent maps should be used
      */
-    public TransactionStore(MVStore store, DataType dataType) {
+    public TransactionStore(MVStore store, DataType dataType, boolean concurrent) {
         this.store = store;
         this.dataType = dataType;
+        this.concurrent = concurrent;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Integer, Object[]>());
         VersionedValueType oldValueType = new VersionedValueType(dataType);
@@ -362,7 +364,7 @@ public class TransactionStore {
         }
         VersionedValueType vt = new VersionedValueType(valueType);
         MVMap<K, VersionedValue> map;
-        if (CONCURRENT) {
+        if (concurrent) {
             MVMapConcurrent.Builder<K, VersionedValue> builder =
                     new MVMapConcurrent.Builder<K, VersionedValue>().
                     keyType(keyType).valueType(vt);
@@ -1219,9 +1221,16 @@ public class TransactionStore {
                     d = transaction.store.undoLog.get(id);
                 }
                 if (d == null) {
-                    // this entry was committed or rolled back
+                    // this entry should be committed or rolled back
                     // in the meantime (the transaction might still be open)
                     data = map.get(key);
+                    if (data != null && data.operationId == id) {
+                        // the transaction was not committed correctly
+                        throw DataUtils.newIllegalStateException(
+                                DataUtils.ERROR_TRANSACTION_CORRUPT,
+                                "The transaction log might be corrupt for key {0}", 
+                                key);
+                    }
                 } else {
                     data = (VersionedValue) d[2];
                 }
@@ -1232,10 +1241,8 @@ public class TransactionStore {
                     if (id2 != 0) {
                         int tx2 = getTransactionId(id2);
                         if (tx2 != tx) {
-                            // a different transaction
-                            break;
-                        }
-                        if (getLogId(id2) > getLogId(id)) {
+                            // a different transaction - ok
+                        } else if (getLogId(id2) > getLogId(id)) {
                             // newer than before
                             break;
                         }

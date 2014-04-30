@@ -158,8 +158,11 @@ public class MVTableEngine implements TableEngine {
         public Store(Database db, MVStore store) {
             this.db = db;
             this.store = store;
-            this.transactionStore = new TransactionStore(store,
-                    new ValueDataType(null, db, null));
+            this.transactionStore = new TransactionStore(
+                    store,
+                    new ValueDataType(null, db, null),
+                    db.isMultiThreaded()
+                    );
         }
 
         public MVStore getStore() {

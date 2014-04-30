@@ -19,6 +19,7 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>Improve error message when the user specifies an unsupported combination of database settings.
+</li><li>MVStore: in the multi-threaded mode, NullPointerException and other exceptions could occur.
 </li><li>MVStore: some database file could not be compacted due to a bug in 
     the bookkeeping of the fill rate. Also, database file were compacted quite slowly.
     This has been improved; but more changes in this area are expected.
@@ -31,7 +32,7 @@ Change Log
     at session commit (LobStorageMap.removeLob).
 </li><li>Remove the "h2.MAX_MEMORY_ROWS_DISTINCT" system property to reduce confusion.
     We already have the MAX_MEMORY_ROWS setting which does a very similar thing, and is better documented.
-</li><li>Issue 554: Web Console in an IFrame not fully supported
+</li><li>Issue 554: Web Console in an IFrame was not fully supported.
 </li></ul>
 
 <h2>Version 1.4.177 Beta (2014-04-12)</h2>

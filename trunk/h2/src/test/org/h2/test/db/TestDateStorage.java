@@ -61,7 +61,7 @@ public class TestDateStorage extends TestBase {
         ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
         try {
             for (TimeZone tz : distinct) {
-                println("insert using " + tz.getID());
+                // println("insert using " + tz.getID());
                 TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();
                 conn = getConnection(db);
@@ -76,9 +76,9 @@ public class TestDateStorage extends TestBase {
                 }
                 conn.close();
             }
-            printTime("inserted");
+            // printTime("inserted");
             for (TimeZone target : distinct) {
-                println("select from " + target.getID());
+                // println("select from " + target.getID());
                 if ("Pacific/Kiritimati".equals(target.getID())) {
                     // there is a problem with this time zone, but it seems
                     // unrelated to this database (possibly wrong timezone
@@ -105,7 +105,7 @@ public class TestDateStorage extends TestBase {
             TimeZone.setDefault(defaultTimeZone);
             DateTimeUtils.resetCalendar();
         }
-        printTime("done");
+        // printTime("done");
         conn = getConnection(db);
         stat = conn.createStatement();
         stat.execute("drop table date_list");

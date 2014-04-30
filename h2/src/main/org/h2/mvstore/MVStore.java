@@ -78,7 +78,7 @@ MVStore:
     possibly using a callback for serialization
 - optional pluggable checksum mechanism (per page), which
     requires that everything is a page (including headers)
-- rename setStoreVersion to setDataVersion or similar
+- rename setStoreVersion to setDataVersion, setSchemaVersion or similar
 - temporary file storage
 - simple rollback method (rollback to last committed version)
 - MVMap to implement SortedMap, then NavigableMap
@@ -111,6 +111,8 @@ MVStore:
 - Page: to save memory, combine keys & values into one array
     (also children & counts). Maybe remove some other
     fields (childrenCount for example)
+- Support SortedMap for MVMap
+- compact: copy whole pages (without having to open all maps)
 
 */
 

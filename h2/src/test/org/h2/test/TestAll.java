@@ -127,6 +127,7 @@ import org.h2.test.store.TestSpinLock;
 import org.h2.test.store.TestStreamStore;
 import org.h2.test.store.TestTransactionStore;
 import org.h2.test.synth.TestBtreeIndex;
+import org.h2.test.synth.TestConcurrentUpdate;
 import org.h2.test.synth.TestCrashAPI;
 import org.h2.test.synth.TestDiskFull;
 import org.h2.test.synth.TestFuzzOptimizations;
@@ -704,6 +705,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // synth
         new TestBtreeIndex().runTest(this);
+        new TestConcurrentUpdate().runTest(this);
         new TestDiskFull().runTest(this);
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);

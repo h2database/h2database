@@ -240,6 +240,8 @@ public class Database implements DataHandler {
                 ci.getProperty("LOG", PageStore.LOG_MODE_SYNC);
         this.javaObjectSerializerName =
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
+        this.multiThreaded =
+                ci.getProperty("MULTI_THREADED", false);
 
         boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;

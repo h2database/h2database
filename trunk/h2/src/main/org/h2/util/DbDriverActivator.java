@@ -6,11 +6,8 @@
  */
 package org.h2.util;
 
-import java.util.Properties;
-import org.h2.engine.Constants;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.jdbc.DataSourceFactory;
 
 /**
  * The driver activator loads the H2 driver when starting the bundle. The driver
@@ -18,28 +15,27 @@ import org.osgi.service.jdbc.DataSourceFactory;
  */
 public class DbDriverActivator implements BundleActivator {
 
+    private static final String DATASOURCE_FACTORY_CLASS =
+            "org.osgi.service.jdbc.DataSourceFactory";
+
     /**
-     * Start the bundle. This will load the database driver and register the
-     * DataSourceFactory service.
+     * Start the bundle. If the 'org.osgi.service.jdbc.DataSourceFactory' class
+     * is available in the class path, this will load the database driver and
+     * register the DataSourceFactory service.
      *
      * @param bundleContext the bundle context
      */
     @Override
     public void start(BundleContext bundleContext) {
         org.h2.Driver driver = org.h2.Driver.load();
-        Properties properties = new Properties();
-        properties.put(
-                DataSourceFactory.OSGI_JDBC_DRIVER_CLASS,
-                org.h2.Driver.class.getName());
-        properties.put(
-                DataSourceFactory.OSGI_JDBC_DRIVER_NAME,
-                "H2 JDBC Driver");
-        properties.put(
-                DataSourceFactory.OSGI_JDBC_DRIVER_VERSION,
-                Constants.getFullVersion());
-        bundleContext.registerService(
-                DataSourceFactory.class.getName(),
-                new OsgiDataSourceFactory(driver), properties);
+        try {
+            Utils.loadUserClass(DATASOURCE_FACTORY_CLASS);
+        } catch (Exception e) {
+            // class not found - don't register
+            return;
+        }
+        // but don't ignore exceptions in this call
+        OsgiDataSourceFactory.registerService(bundleContext, driver);
     }
 
     /**

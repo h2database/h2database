@@ -9,11 +9,14 @@ package org.h2.util;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
+
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
+
 import org.h2.engine.Constants;
 import org.h2.jdbcx.JdbcDataSource;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.jdbc.DataSourceFactory;
 
 /**
@@ -278,5 +281,28 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
             throw new SQLFeatureNotSupportedException(
                     "Pooling properties are not supported by H2");
         }
+    }
+
+    /**
+     * Register the H2 JDBC driver service.
+     *
+     * @param bundleContext the bundle context
+     * @param driver the driver
+     */
+    static void registerService(BundleContext bundleContext,
+            org.h2.Driver driver) {
+        Properties properties = new Properties();
+        properties.put(
+                DataSourceFactory.OSGI_JDBC_DRIVER_CLASS,
+                org.h2.Driver.class.getName());
+        properties.put(
+                DataSourceFactory.OSGI_JDBC_DRIVER_NAME,
+                "H2 JDBC Driver");
+        properties.put(
+                DataSourceFactory.OSGI_JDBC_DRIVER_VERSION,
+                Constants.getFullVersion());
+        bundleContext.registerService(
+                DataSourceFactory.class.getName(),
+                new OsgiDataSourceFactory(driver), properties);
     }
 }

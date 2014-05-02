@@ -27,7 +27,7 @@ Change Log
 </li><li>MVStore mode: in-memory databases now also use the MVStore.
 </li><li>In server mode, appending ";autocommit=false" to the database URL was working,
     but the return value of Connection.getAutoCommit() was wrong.
-</li><li>OSGi: the import package declaration of org.h2 excluded version 1.4.
+</li><li>Issue 561: OSGi: the import package declaration of org.h2 excluded version 1.4.
 </li><li>Issue 558: with the MVStore, a NullPointerException could occur when using LOBs
     at session commit (LobStorageMap.removeLob).
 </li><li>Remove the "h2.MAX_MEMORY_ROWS_DISTINCT" system property to reduce confusion.

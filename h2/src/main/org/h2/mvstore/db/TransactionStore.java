@@ -1228,7 +1228,7 @@ public class TransactionStore {
                         // the transaction was not committed correctly
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_TRANSACTION_CORRUPT,
-                                "The transaction log might be corrupt for key {0}", 
+                                "The transaction log might be corrupt for key {0}",
                                 key);
                     }
                 } else {

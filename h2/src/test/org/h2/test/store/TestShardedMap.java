@@ -44,7 +44,7 @@ public class TestShardedMap extends TestBase {
         assertEquals(10, map.size());
         for (int i = 0; i < 10; i++) {
             assertEquals(i * 10, map.get(i).intValue());
-        }        
+        }
         assertEquals("[0, 1, 2, 3, 4]",
                 a.keySet().toString());
         assertEquals("[5, 6, 7, 8, 9]",
@@ -53,7 +53,7 @@ public class TestShardedMap extends TestBase {
                 map.keySet().toString());
         assertEquals(10, map.sizeAsLong());
     }
-    
+
     private void testReplication() {
         ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
         TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
@@ -66,7 +66,7 @@ public class TestShardedMap extends TestBase {
         assertEquals(10, map.size());
         for (int i = 0; i < 10; i++) {
             assertEquals(i * 10, map.get(i).intValue());
-        }        
+        }
         assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]",
                 a.keySet().toString());
         assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]",
@@ -89,7 +89,7 @@ public class TestShardedMap extends TestBase {
         assertEquals(-1, map.size());
         for (int i = 0; i < 20; i++) {
             assertEquals(i * 10, map.get(i).intValue());
-        }        
+        }
         assertEquals("[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]",
                 a.keySet().toString());
         assertEquals("[5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]",

@@ -1,0 +1,47 @@
+package com.caucho.jdbc;
+
+import com.caucho.util.Log;
+
+import javax.sql.DataSource;
+import java.util.logging.Logger;
+
+/**
+ * Metadata for the H2 database.
+ * For details, see
+ * http://wondering.ru/java/H2ejb3onResinSupport1.0.zip
+ */
+public class H2MetaData extends JdbcMetaData {
+    private static final Logger log = Log.open(H2MetaData.class);
+
+    protected H2MetaData(DataSource ds) {
+        super(ds);
+    }
+
+    /**
+    * Returns the blob type.
+    */
+    public String getBlobType(){
+        return "BLOB";
+    }
+
+    /**
+    * Returns the long type.
+    */
+    public String getLongType() {
+        return "BIGINT";
+    }
+
+    /**
+    * Returns true if identity is supported.
+    */
+    public boolean supportsIdentity() {
+        return true;
+    }
+
+    /**
+    * Returns the identity property
+    */
+    public String createIdentitySQL(String sqlType) {
+        return "IDENTITY";
+    }
+}

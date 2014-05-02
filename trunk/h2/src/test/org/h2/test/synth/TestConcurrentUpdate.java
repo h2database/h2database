@@ -21,10 +21,10 @@ import org.h2.util.Task;
  * A concurrent test.
  */
 public class TestConcurrentUpdate extends TestBase {
-    
+
     private static final int THREADS = 3;
     private static final int ROW_COUNT = 10;
-    
+
     /**
      * Run just this test.
      *
@@ -42,7 +42,7 @@ public class TestConcurrentUpdate extends TestBase {
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");
-        
+
         Task[] tasks = new Task[THREADS];
         for (int i = 0; i < THREADS; i++) {
             final int threadId = i;
@@ -112,7 +112,12 @@ public class TestConcurrentUpdate extends TestBase {
         }
         conn.close();
     }
-    
+
+    /**
+     * Handle or ignore the exception.
+     *
+     * @param e the exception
+     */
     void handleException(SQLException e) throws SQLException {
         switch (e.getErrorCode()) {
         case ErrorCode.CONCURRENT_UPDATE_1:

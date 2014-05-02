@@ -21,7 +21,7 @@ import org.h2.mvstore.type.ObjectDataType;
 /**
  * A sharded map. It is typically split into multiple sub-maps that don't have
  * overlapping keys.
- * 
+ *
  * @param <K> the key type
  * @param <V> the value type
  */
@@ -38,7 +38,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
      * are applied to all maps within the range.
      */
     private Shard<K, V>[] shards;
-    
+
     public ShardedMap() {
         this(new ObjectDataType());
     }
@@ -48,14 +48,20 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         this.keyType = keyType;
         shards = new Shard[0];
     }
-    
-    public static long getSize(Map<?, ?> map) {
+
+    /**
+     * Get the size of the map.
+     *
+     * @param map the map
+     * @return the size
+     */
+    static long getSize(Map<?, ?> map) {
         if (map instanceof LargeMap) {
             return ((LargeMap) map).sizeAsLong();
         }
         return map.size();
     }
-    
+
     /**
      * Add the given shard.
      *
@@ -76,7 +82,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         newShards[len - 1] = newShard;
         shards = newShards;
     }
-    
+
     private boolean isInRange(K key, Shard<K, V> shard) {
         if (shard.minIncluding != null) {
             if (keyType.compare(key, shard.minIncluding) < 0) {
@@ -90,13 +96,18 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         }
         return true;
     }
-    
+
     @Override
     public int size() {
         long size = sizeAsLong();
         return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) size;
     }
-    
+
+    /**
+     * The size of the map.
+     *
+     * @return the size
+     */
     public long sizeAsLong() {
         Shard<K, V>[] copy = shards;
         for (Shard<K, V> s : copy) {
@@ -113,7 +124,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         }
         return -1;
     }
-    
+
     private boolean isSimpleSplit(Shard<K, V>[] shards) {
         K last = null;
         for (int i = 0; i < shards.length; i++) {
@@ -127,7 +138,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
             }
             if (s.maxExcluding == null) {
                 return i == shards.length - 1;
-            } 
+            }
             last = s.maxExcluding;
         }
         return last == null;
@@ -212,7 +223,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         }
 
     }
-    
+
     /**
      * A combination of multiple sets.
      *
@@ -220,10 +231,10 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
      * @param <V> the value type
      */
     private static class CombinedSet<K, V> extends AbstractSet<Entry<K, V>> {
-        
+
         final int size;
         final Shard<K, V>[] shards;
-        
+
         CombinedSet(int size, Shard<K, V>[] shards) {
             this.size = size;
             this.shards = shards;
@@ -232,12 +243,12 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         @Override
         public Iterator<Entry<K, V>> iterator() {
             return new Iterator<Entry<K, V>>() {
-                
+
                 boolean init;
                 Entry<K, V> current;
                 Iterator<Entry<K, V>> currentIterator;
                 int shardIndex;
-                
+
                 private void fetchNext() {
                     while (currentIterator == null || !currentIterator.hasNext()) {
                         if (shardIndex >= shards.length) {
@@ -272,7 +283,7 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
                 public void remove() {
                     throw new UnsupportedOperationException();
                 }
-                
+
             };
         }
 
@@ -280,13 +291,19 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
         public int size() {
             return size;
         }
-        
+
     }
-    
+
     /**
      * A large map.
      */
     public interface LargeMap {
+
+        /**
+         * The size of the map.
+         *
+         * @return the size
+         */
         long sizeAsLong();
     }
 
@@ -295,7 +312,26 @@ public class ShardedMap<K, V> extends AbstractMap<K, V>
      * given index.
      */
     public interface CountedMap<K, V> {
+
+        /**
+         * Get the key at the given index.
+         *
+         * @param index the index
+         * @return the key
+         */
         K getKey(long index);
+
+        /**
+         * Get the index of the given key in the map.
+         * <p>
+         * If the key was found, the returned value is the index in the key
+         * array. If not found, the returned value is negative, where -1 means
+         * the provided key is smaller than any keys. See also
+         * Arrays.binarySearch.
+         *
+         * @param key the key
+         * @return the index
+         */
         long getKeyIndex(K key);
     }
 

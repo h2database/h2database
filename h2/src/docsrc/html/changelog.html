@@ -18,9 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Improve error message when the user specifies an unsupported combination of database settings.
+<ul><li>Issue 559: Make dependency on org.osgi.service.jdbc optional.
+</li><li>Improve error message when the user specifies an unsupported combination of database settings.
 </li><li>MVStore: in the multi-threaded mode, NullPointerException and other exceptions could occur.
-</li><li>MVStore: some database file could not be compacted due to a bug in 
+</li><li>MVStore: some database file could not be compacted due to a bug in
     the bookkeeping of the fill rate. Also, database file were compacted quite slowly.
     This has been improved; but more changes in this area are expected.
 </li><li>MVStore: support for volatile maps (that don't store changes).

@@ -1235,6 +1235,46 @@ public class MetaTable extends Table {
                     database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
+                    // Add return column index 0
+                    if(method.getDataType() != Value.NULL) {
+                        DataType dt = DataType.getDataType(method.getDataType());
+                        add(rows,
+                                // ALIAS_CATALOG
+                                catalog,
+                                // ALIAS_SCHEMA
+                                alias.getSchema().getName(),
+                                // ALIAS_NAME
+                                identifier(alias.getName()),
+                                // JAVA_CLASS
+                                alias.getJavaClassName(),
+                                // JAVA_METHOD
+                                alias.getJavaMethodName(),
+                                // COLUMN_COUNT
+                                "" + method.getParameterCount(),
+                                // POS INT
+                                "0",
+                                // COLUMN_NAME
+                                "P0",
+                                // DATA_TYPE
+                                "" + DataType.convertTypeToSQLType(method.getDataType()),
+                                // TYPE_NAME
+                                dt.name,
+                                // PRECISION INT
+                                "" + MathUtils.convertLongToInt(dt.defaultPrecision),
+                                // SCALE
+                                "" + dt.defaultScale,
+                                // RADIX
+                                "10",
+                                // NULLABLE SMALLINT
+                                "" + DatabaseMetaData.columnNullableUnknown,
+                                // COLUMN_TYPE
+                                "" + DatabaseMetaData.procedureColumnReturn,
+                                // REMARKS
+                                "",
+                                // COLUMN_DEFAULT
+                                null
+                        );
+                    }
                     Class<?>[] columnList = method.getColumnClasses();
                     for (int k = 0; k < columnList.length; k++) {
                         if (method.hasConnectionParam() && k == 0) {

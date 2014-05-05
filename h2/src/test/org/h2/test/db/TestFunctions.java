@@ -544,6 +544,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedureColumns(null, null, "MEAN2", null);
         assertTrue(rs.next());
+        assertEquals("P0", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
         assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
         assertEquals("MEAN2", rs.getString("PROCEDURE_NAME"));
@@ -767,6 +769,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         DatabaseMetaData meta = conn.getMetaData();
         rs = meta.getProcedureColumns(null, null, "ADD_ROW", null);
+        assertTrue(rs.next());
+        assertEquals("P0", rs.getString("COLUMN_NAME"));
         assertTrue(rs.next());
         assertEquals("FUNCTIONS", rs.getString("PROCEDURE_CAT"));
         assertEquals("PUBLIC", rs.getString("PROCEDURE_SCHEM"));
@@ -1017,6 +1021,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("NULL_RESULT", rs.getString("SPECIFIC_NAME"));
 
         rs = meta.getProcedureColumns(null, null, "NULL_RESULT", null);
+        assertTrue(rs.next());
+        assertEquals("P0", rs.getString("COLUMN_NAME"));
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" +

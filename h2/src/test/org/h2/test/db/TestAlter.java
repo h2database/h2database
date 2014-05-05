@@ -41,6 +41,7 @@ public class TestAlter extends TestBase {
         testAlterTableDropColumnWithReferences();
         testAlterTableAlterColumnWithConstraint();
         testAlterTableAlterColumn();
+        testAlterTableAddColumnIdentity();
         testAlterTableDropIdentityColumn();
         testAlterTableAddColumnIfNotExists();
         testAlterTableAddMultipleColumns();
@@ -154,6 +155,20 @@ public class TestAlter extends TestBase {
         stat.execute("drop table t");
     }
 
+    private void testAlterTableAddColumnIdentity() throws SQLException {
+        stat.execute("create table t(x varchar)");
+        stat.execute("alter table t add id bigint identity(5, 5) not null");
+        stat.execute("insert into t values (null, null)");
+        stat.execute("insert into t values (null, null)");
+        ResultSet rs = stat.executeQuery("select id from t order by id");
+        assertTrue(rs.next());
+        assertEquals(5, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(10, rs.getInt(1));
+        assertFalse(rs.next());
+        stat.execute("drop table t");
+    }
+    
     private void testAlterTableAddColumnIfNotExists() throws SQLException {
         stat.execute("create table t(x varchar) as select 'x'");
         stat.execute("alter table t add if not exists x int");

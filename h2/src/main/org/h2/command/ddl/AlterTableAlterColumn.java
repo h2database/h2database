@@ -153,7 +153,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 break;
             }
             for (Column column : columnsToAdd) {
-                convertAutoIncrementColumn(column);
+                if (column.isAutoIncrement()) {
+                    int objId = getObjectId();
+                    column.convertAutoIncrementToSequence(session, getSchema(), objId,
+                            table.isTemporary());
+                }
             }
             copyData();
             break;

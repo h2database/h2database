@@ -38,20 +38,12 @@ Documentation
 - better document how to do non-unique indexes
 - document pluggable store and OffHeapStore
 
-MVTableEngine:
-- test and possibly allow MVCC & MULTI_THREADED
-- maybe enable MVCC by default (but allow to disable it)
-- test with MVStore.ASSERT enabled
-
 TransactionStore:
 - ability to disable the transaction log,
     if there is only one connection
 
 MVStore:
-
-- maybe change the length code to have lower gaps
 - data kept in stream store if transaction is not committed?
-
 - automated 'kill process' and 'power failure' test
 - test and possibly improve compact operation (for large dbs)
 - compact: avoid processing pages using a counting bloom filter
@@ -99,8 +91,6 @@ MVStore:
 - write a LSM-tree (log structured merge tree) utility on top of the MVStore
     with blind writes and/or a bloom filter that
     internally uses regular maps and merge sort
-- StreamStore: split blocks similar to rsync crypto, where the split is made
-    "if the sum of the past 8196 bytes divides by 4096 with zero remainder"
 - LIRS cache: maybe remove 'mask' field, and dynamically grow the arrays
 - chunk metadata: maybe split into static and variable,
     or use a small page size for metadata
@@ -113,6 +103,7 @@ MVStore:
     fields (childrenCount for example)
 - Support SortedMap for MVMap
 - compact: copy whole pages (without having to open all maps)
+- maybe change the length code to have lower gaps
 
 */
 

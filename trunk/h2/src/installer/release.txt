@@ -29,4 +29,6 @@ Add to http://twitter.com
 - tweet: add @geospatialnews for the new geometry type and disk spatial index
 Close bugs: http://code.google.com/p/h2database/issues/list
 Update statistics
+svn move -m "" https://h2database.googlecode.com/svn/tags/version-1.3.162 https://h2database.googlecode.com/svn/tags/version-1.3/version-1.3.162
+
 

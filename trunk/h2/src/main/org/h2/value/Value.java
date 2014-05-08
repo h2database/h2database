@@ -732,7 +732,7 @@ public abstract class Value {
                     return ValueTime.fromNanos(0);
                 case TIMESTAMP:
                     return ValueTime.fromNanos(
-                            ((ValueTimestamp) this).getNanos());
+                            ((ValueTimestamp) this).getTimeNanos());
                 }
                 break;
             }

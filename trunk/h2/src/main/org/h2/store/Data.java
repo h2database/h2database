@@ -519,7 +519,7 @@ public class Data {
                 ValueTimestamp ts = (ValueTimestamp) v;
                 long dateValue = ts.getDateValue();
                 writeVarLong(dateValue);
-                long nanos = ts.getNanos();
+                long nanos = ts.getTimeNanos();
                 long millis = nanos / 1000000;
                 nanos -= millis * 1000000;
                 writeVarLong(millis);
@@ -1006,7 +1006,7 @@ public class Data {
             if (SysProperties.STORE_LOCAL_TIME) {
                 ValueTimestamp ts = (ValueTimestamp) v;
                 long dateValue = ts.getDateValue();
-                long nanos = ts.getNanos();
+                long nanos = ts.getTimeNanos();
                 long millis = nanos / 1000000;
                 nanos -= millis * 1000000;
                 return 1 + getVarLongLen(dateValue) + getVarLongLen(millis) +

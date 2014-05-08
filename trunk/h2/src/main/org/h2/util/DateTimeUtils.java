@@ -149,7 +149,7 @@ public class DateTimeUtils {
         cal.clear();
         cal.setLenient(true);
         long dateValue = ts.getDateValue();
-        long nanos = ts.getNanos();
+        long nanos = ts.getTimeNanos();
         long millis = nanos / 1000000;
         nanos -= millis * 1000000;
         long s = millis / 1000;
@@ -651,13 +651,13 @@ public class DateTimeUtils {
      * timezone.
      *
      * @param dateValue the date value
-     * @param nanos the nanoseconds since midnight
+     * @param timeNanos the nanoseconds since midnight
      * @return the timestamp
      */
     public static Timestamp convertDateValueToTimestamp(long dateValue,
-            long nanos) {
-        long millis = nanos / 1000000;
-        nanos -= millis * 1000000;
+            long timeNanos) {
+        long millis = timeNanos / 1000000;
+        timeNanos -= millis * 1000000;
         long s = millis / 1000;
         millis -= s * 1000;
         long m = s / 60;
@@ -670,7 +670,7 @@ public class DateTimeUtils {
                 dayFromDateValue(dateValue),
                 (int) h, (int) m, (int) s, 0);
         Timestamp ts = new Timestamp(ms);
-        ts.setNanos((int) (nanos + millis * 1000000));
+        ts.setNanos((int) (timeNanos + millis * 1000000));
         return ts;
     }
 

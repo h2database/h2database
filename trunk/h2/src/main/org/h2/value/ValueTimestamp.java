@@ -40,23 +40,29 @@ public class ValueTimestamp extends Value {
      */
     static final int DEFAULT_SCALE = 10;
 
+    /**
+     * A bit field with bits for the year, month, and day (see DateTimeUtils for encoding)
+     */
     private final long dateValue;
-    private final long nanos;
+    /**
+     * The nanoseconds since midnight.
+     */
+    private final long timeNanos;
 
-    private ValueTimestamp(long dateValue, long nanos) {
+    private ValueTimestamp(long dateValue, long timeNanos) {
         this.dateValue = dateValue;
-        this.nanos = nanos;
+        this.timeNanos = timeNanos;
     }
 
     /**
      * Get or create a date value for the given date.
      *
-     * @param dateValue the date value
-     * @param nanos the nanoseconds
+     * @param dateValue the date value, a bit field with bits for the year, month, and day
+     * @param timeNanos the nanoseconds since midnight
      * @return the value
      */
-    public static ValueTimestamp fromDateValueAndNanos(long dateValue, long nanos) {
-        return (ValueTimestamp) Value.cache(new ValueTimestamp(dateValue, nanos));
+    public static ValueTimestamp fromDateValueAndNanos(long dateValue, long timeNanos) {
+        return (ValueTimestamp) Value.cache(new ValueTimestamp(dateValue, timeNanos));
     }
 
     /**
@@ -165,17 +171,23 @@ public class ValueTimestamp extends Value {
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
+    /**
+     * A bit field with bits for the year, month, and day (see DateTimeUtils for encoding)
+     */
     public long getDateValue() {
         return dateValue;
     }
 
-    public long getNanos() {
-        return nanos;
+    /**
+     * The nanoseconds since midnight.
+     */
+    public long getTimeNanos() {
+        return timeNanos;
     }
 
     @Override
     public Timestamp getTimestamp() {
-        return DateTimeUtils.convertDateValueToTimestamp(dateValue, nanos);
+        return DateTimeUtils.convertDateValueToTimestamp(dateValue, timeNanos);
     }
 
     @Override
@@ -188,7 +200,7 @@ public class ValueTimestamp extends Value {
         StringBuilder buff = new StringBuilder(DISPLAY_SIZE);
         ValueDate.appendDate(buff, dateValue);
         buff.append(' ');
-        ValueTime.appendTime(buff, nanos, true);
+        ValueTime.appendTime(buff, timeNanos, true);
         return buff.toString();
     }
 
@@ -220,7 +232,7 @@ public class ValueTimestamp extends Value {
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
         }
-        long n = nanos;
+        long n = timeNanos;
         BigDecimal bd = BigDecimal.valueOf(n);
         bd = bd.movePointLeft(9);
         bd = ValueDecimal.setScale(bd, targetScale);
@@ -239,7 +251,7 @@ public class ValueTimestamp extends Value {
         if (c != 0) {
             return c;
         }
-        return MathUtils.compareLong(nanos, t.nanos);
+        return MathUtils.compareLong(timeNanos, t.timeNanos);
     }
 
     @Override
@@ -250,12 +262,12 @@ public class ValueTimestamp extends Value {
             return false;
         }
         ValueTimestamp x = (ValueTimestamp) other;
-        return dateValue == x.dateValue && nanos == x.nanos;
+        return dateValue == x.dateValue && timeNanos == x.timeNanos;
     }
 
     @Override
     public int hashCode() {
-        return (int) (dateValue ^ (dateValue >>> 32) ^ nanos ^ (nanos >>> 32));
+        return (int) (dateValue ^ (dateValue >>> 32) ^ timeNanos ^ (timeNanos >>> 32));
     }
 
     @Override
@@ -274,7 +286,7 @@ public class ValueTimestamp extends Value {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalizeTimestamp(d1 + d2, nanos + t.nanos);
+        return DateTimeUtils.normalizeTimestamp(d1 + d2, timeNanos + t.timeNanos);
     }
 
     @Override
@@ -282,7 +294,7 @@ public class ValueTimestamp extends Value {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalizeTimestamp(d1 - d2, nanos - t.nanos);
+        return DateTimeUtils.normalizeTimestamp(d1 - d2, timeNanos - t.timeNanos);
     }
 
 }

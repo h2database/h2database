@@ -234,7 +234,7 @@ public class TestDate extends TestBase {
         assertEquals("TIMESTAMP '2001-01-01 01:01:01.111'", t1.toString());
         assertEquals(Value.TIMESTAMP, t1.getType());
         long dateValue = t1.getDateValue();
-        long nanos = t1.getNanos();
+        long nanos = t1.getTimeNanos();
         assertEquals((int) ((dateValue >>> 32) ^ dateValue ^
                 (nanos >>> 32) ^ nanos),
                 t1.hashCode());
@@ -311,7 +311,7 @@ public class TestDate extends TestBase {
         assertEquals(0, DateTimeUtils.absoluteDayFromDateValue(
                 ValueTimestamp.parse("1970-01-01").getDateValue()));
         assertEquals(0, ValueTimestamp.parse(
-                "1970-01-01").getNanos());
+                "1970-01-01").getTimeNanos());
         assertEquals(0, ValueTimestamp.parse(
                 "1970-01-01 00:00:00.000 UTC").getTimestamp().getTime());
         assertEquals(0, ValueTimestamp.parse(

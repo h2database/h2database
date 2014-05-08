@@ -379,7 +379,7 @@ public class Transfer {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 ValueTimestamp ts = (ValueTimestamp) v;
                 writeLong(ts.getDateValue());
-                writeLong(ts.getNanos());
+                writeLong(ts.getTimeNanos());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 Timestamp ts = v.getTimestamp();
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));

@@ -387,7 +387,7 @@ public class DateTimeUtils {
             int year, int month, int day, int hour, int minute, int second,
             int millis) {
         Calendar c;
-        if (tz == null) {
+        if (tz == TimeZone.getDefault()) {
             c = getCalendar();
         } else {
             c = Calendar.getInstance(tz);

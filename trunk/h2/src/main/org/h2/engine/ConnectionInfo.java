@@ -386,9 +386,14 @@ public class ConnectionInfo implements Cloneable {
                 if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
                     if (!FileUtils.isAbsolute(name)) {
                         if (name.indexOf("./") < 0 &&
-                                name.indexOf(".\\") < 0) {
+                                name.indexOf(".\\") < 0 &&
+                                name.indexOf(":/") < 0 &&
+                                name.indexOf(":\\") < 0) {
                             // the name could start with "./", or
                             // it could start with a prefix such as "nio:./"
+                            // for Windows, the path "\test" is not considered
+                            // absolute as the drive letter is missing,
+                            // but we consider it absolute
                             throw DbException.get(
                                     ErrorCode.URL_RELATIVE_TO_CWD,
                                     originalURL);

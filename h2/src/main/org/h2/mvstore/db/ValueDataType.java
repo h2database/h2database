@@ -261,7 +261,7 @@ public class ValueDataType implements DataType {
         case Value.TIMESTAMP: {
             ValueTimestamp ts = (ValueTimestamp) v;
             long dateValue = ts.getDateValue();
-            long nanos = ts.getNanos();
+            long nanos = ts.getTimeNanos();
             long millis = nanos / 1000000;
             nanos -= millis * 1000000;
             buff.put((byte) type).

@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
@@ -79,6 +78,28 @@ public class ValueTimestamp extends Value {
         return fromDateValueAndNanos(dateValue, nanos);
     }
 
+    /**
+     * Get or create a timestamp value for the given date/time in millis.
+     *
+     * @return the value
+     */
+    public static ValueTimestamp fromMillisNanos(long ms, int nanos) {
+        long dateValue = DateTimeUtils.dateValueFromDate(ms);
+        long timeNanos = nanos + DateTimeUtils.nanosFromDate(ms);
+        return fromDateValueAndNanos(dateValue, timeNanos);
+    }
+    
+    /**
+     * Get or create a timestamp value for the given date/time in millis.
+     *
+     * @return the value
+     */
+    public static ValueTimestamp fromMillis(long ms) {
+        long dateValue = DateTimeUtils.dateValueFromDate(ms);
+        long nanos = DateTimeUtils.nanosFromDate(ms);
+        return fromDateValueAndNanos(dateValue, nanos);
+    }
+    
     /**
      * Parse a string to a ValueTimestamp. This method supports the format
      * +/-year-month-day hour:minute:seconds.fractional and an optional timezone

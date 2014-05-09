@@ -763,10 +763,9 @@ public class Data {
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
         }
         case Value.TIMESTAMP: {
-            Timestamp ts = new Timestamp(
-                    DateTimeUtils.getTimeUTCWithoutDst(readVarLong()));
-            ts.setNanos(readVarInt());
-            return ValueTimestamp.get(ts);
+            return ValueTimestamp.fromMillisNanos(
+                    DateTimeUtils.getTimeUTCWithoutDst(readVarLong()),
+                    readVarInt());
         }
         case Value.BYTES: {
             int len = readVarInt();

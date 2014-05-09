@@ -565,13 +565,11 @@ public class Transfer {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                Timestamp ts = new Timestamp(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
-                ts.setNanos(readInt());
-                return ValueTimestamp.get(ts);
+                return ValueTimestamp.fromMillisNanos(
+                        DateTimeUtils.getTimeUTCWithoutDst(readLong()),
+                        readInt());
             }
-            Timestamp ts = new Timestamp(readLong());
-            ts.setNanos(readInt());
-            return ValueTimestamp.get(ts);
+            return ValueTimestamp.fromMillisNanos(readLong(), readInt());
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));

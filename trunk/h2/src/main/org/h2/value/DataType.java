@@ -990,8 +990,7 @@ public class DataType {
         } else if (x instanceof Timestamp) {
             return ValueTimestamp.get((Timestamp) x);
         } else if (x instanceof java.util.Date) {
-            return ValueTimestamp.get(
-                    new Timestamp(((java.util.Date) x).getTime()));
+            return ValueTimestamp.fromMillis(((java.util.Date) x).getTime());
         } else if (x instanceof java.io.Reader) {
             Reader r = new BufferedReader((java.io.Reader) x);
             return session.getDataHandler().getLobStorage().

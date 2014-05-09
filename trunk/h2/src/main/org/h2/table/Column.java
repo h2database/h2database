@@ -294,8 +294,7 @@ public class Column {
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
-                        value = ValueTimestamp.get(new Timestamp(
-                                session.getTransactionStart()));
+                        value = ValueTimestamp.fromMillis(session.getTransactionStart());
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {

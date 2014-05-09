@@ -885,7 +885,7 @@ public class Function extends Expression implements FunctionCall {
         case NOW:
         case CURRENT_TIMESTAMP: {
             long now = session.getTransactionStart();
-            ValueTimestamp vt = ValueTimestamp.get(new Timestamp(now));
+            ValueTimestamp vt = ValueTimestamp.fromMillis(now);
             if (v0 != null) {
                 Mode mode = database.getMode();
                 vt = (ValueTimestamp) vt.convertScale(
@@ -1226,8 +1226,7 @@ public class Function extends Expression implements FunctionCall {
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);
-                result = ValueTimestamp.get(
-                        new java.sql.Timestamp(c.getTimeInMillis()));
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else {
                 double d = v0.getDouble();
                 int p = v1 == null ? 0 : v1.getInt();
@@ -1453,7 +1452,7 @@ public class Function extends Expression implements FunctionCall {
                         null : v3 == ValueNull.INSTANCE ? null : v3.getString();
                 java.util.Date d = DateTimeUtils.parseDateTime(
                         v0.getString(), v1.getString(), locale, tz);
-                result = ValueTimestamp.get(new Timestamp(d.getTime()));
+                result = ValueTimestamp.fromMillis(d.getTime());
             }
             break;
         }

@@ -162,7 +162,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.DATE:
             return ValueDate.get(new java.sql.Date(random.nextLong()));
         case Value.TIMESTAMP:
-            return ValueTimestamp.get(new java.sql.Timestamp(random.nextLong()));
+            return ValueTimestamp.fromMillis(random.nextLong());
         case Value.BYTES:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
         case Value.STRING:

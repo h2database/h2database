@@ -82,28 +82,24 @@ class FileNio extends FileBase {
 
     @Override
     public FileChannel truncate(long newLength) throws IOException {
-        try {
-            long size = channel.size();
-            if (newLength < size) {
-                long pos = channel.position();
-                channel.truncate(newLength);
-                long newPos = channel.position();
-                if (pos < newLength) {
-                    // position should stay
-                    // in theory, this should not be needed
-                    if (newPos != pos) {
-                        channel.position(pos);
-                    }
-                } else if (newPos > newLength) {
-                    // looks like a bug in this FileChannel implementation, as
-                    // the documentation says the position needs to be changed
-                    channel.position(newLength);
+        long size = channel.size();
+        if (newLength < size) {
+            long pos = channel.position();
+            channel.truncate(newLength);
+            long newPos = channel.position();
+            if (pos < newLength) {
+                // position should stay
+                // in theory, this should not be needed
+                if (newPos != pos) {
+                    channel.position(pos);
                 }
+            } else if (newPos > newLength) {
+                // looks like a bug in this FileChannel implementation, as
+                // the documentation says the position needs to be changed
+                channel.position(newLength);
             }
-            return this;
-        } catch (NonWritableChannelException e) {
-            throw new IOException("read only");
         }
+        return this;
     }
 
     @Override

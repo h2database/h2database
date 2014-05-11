@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -549,7 +550,7 @@ public class TestFileSystem extends TestBase {
                 fc.write(ByteBuffer.wrap(test, 0, 10));
             }
         };
-        new AssertThrows(IOException.class) {
+        new AssertThrows(NonWritableChannelException.class) {
             @Override
             public void test() throws Exception {
                 fc.truncate(10);

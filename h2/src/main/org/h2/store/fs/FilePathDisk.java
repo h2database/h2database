@@ -18,6 +18,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -395,10 +396,12 @@ class FileDisk extends FileBase {
 
     private final RandomAccessFile file;
     private final String name;
+    private final boolean readOnly;
 
     FileDisk(String fileName, String mode) throws FileNotFoundException {
         this.file = new RandomAccessFile(fileName, mode);
         this.name = fileName;
+        this.readOnly = mode.equals("r");
     }
 
     @Override
@@ -419,6 +422,10 @@ class FileDisk extends FileBase {
 
     @Override
     public FileChannel truncate(long newLength) throws IOException {
+    	// compatibility with JDK FileChannel#truncate
+    	if (readOnly) {
+    		throw new NonWritableChannelException();
+    	}
         if (newLength < file.length()) {
             file.setLength(newLength);
         }

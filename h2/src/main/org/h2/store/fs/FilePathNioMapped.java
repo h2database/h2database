@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
 
 import org.h2.engine.SysProperties;
 
@@ -203,6 +204,10 @@ class FileNioMapped extends FileBase {
 
     @Override
     public synchronized FileChannel truncate(long newLength) throws IOException {
+    	// compatibility with JDK FileChannel#truncate
+    	if (mode == MapMode.READ_ONLY) {
+    		throw new NonWritableChannelException();
+    	}
         if (newLength < size()) {
             setFileLength(newLength);
         }

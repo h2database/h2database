@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.channels.NonWritableChannelException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -256,6 +257,10 @@ class FileNioMem extends FileBase {
 
     @Override
     public FileChannel truncate(long newLength) throws IOException {
+    	// compatibility with JDK FileChannel#truncate
+    	if (readOnly) {
+    		throw new NonWritableChannelException();
+    	}
         if (newLength < size()) {
             data.touch(readOnly);
             pos = Math.min(pos, newLength);

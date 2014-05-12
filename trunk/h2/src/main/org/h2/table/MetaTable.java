@@ -40,6 +40,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.MetaIndex;
 import org.h2.index.MultiVersionIndex;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
@@ -688,6 +689,13 @@ public class MetaTable extends Table {
                     storageType = table.isPersistIndexes() ?
                             "CACHED" : "MEMORY";
                 }
+                String sql = table.getCreateSQL();
+                if (!admin) {
+                    if (sql != null && sql.indexOf(JdbcSQLException.HIDE_SQL) >= 0) {
+                        // hide the password of linked tables
+                        sql = "-";
+                    }
+                }
                 add(rows,
                         // TABLE_CATALOG
                         catalog,
@@ -700,7 +708,7 @@ public class MetaTable extends Table {
                         // STORAGE_TYPE
                         storageType,
                         // SQL
-                        table.getCreateSQL(),
+                        sql,
                         // REMARKS
                         replaceNullWithEmpty(table.getComment()),
                         // LAST_MODIFICATION
@@ -1236,7 +1244,7 @@ public class MetaTable extends Table {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
                 for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
                     // Add return column index 0
-                    if(method.getDataType() != Value.NULL) {
+                    if (method.getDataType() != Value.NULL) {
                         DataType dt = DataType.getDataType(method.getDataType());
                         add(rows,
                                 // ALIAS_CATALOG

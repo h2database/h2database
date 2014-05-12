@@ -151,9 +151,6 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 } else {
                     Value nextValue = it.next();
                     sources.remove(s);
-                    if (sources.size() == 0) {
-                        break;
-                    }
                     s.value = nextValue;
                     sources.add(s);
                 }

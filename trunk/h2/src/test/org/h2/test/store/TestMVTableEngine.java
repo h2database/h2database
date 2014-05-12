@@ -49,6 +49,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testSecondaryIndex();
         testGarbageCollectionForLOB();
         testSpatial();
         testCount();
@@ -74,6 +75,28 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testSecondaryIndex() throws SQLException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        int size = 8 * 1024;
+        stat.execute("insert into test select mod(x * 111, " + size + ") " + 
+                "from system_range(1, " + size + ")");
+        stat.execute("create index on test(id)");
+        ResultSet rs = stat.executeQuery(
+                "select count(*) from test inner join " +
+                "system_range(1, " + size + ") where " + 
+                "id = mod(x * 111, " + size + ")");
+        rs.next();
+        assertEquals(size, rs.getInt(1));
+        conn.close();
     }
 
     private void testGarbageCollectionForLOB() throws SQLException {

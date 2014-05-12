@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Metadata: the password of linked tables is now only visible for admin users.
+<ul><li>MVStore: creating secondary indexes on large tables 
+    results in missing rows in the index.
+</li><li>Metadata: the password of linked tables is now only visible for admin users.
 </li><li>For Windows, database URLs of the form "jdbc:h2:/test" where considered
     relative and did not work unless the system property "h2.implicitRelativePath" was used.
 </li><li>Follow JDBC specification on Procedures MetaData, use P0 as

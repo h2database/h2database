@@ -379,7 +379,10 @@ java org.h2.test.TestAll timer
         SelfDestructor.startCountdown(4 * 60);
         long time = System.currentTimeMillis();
         printSystemInfo();
-        System.setProperty("h2.maxMemoryRowsDistinct", "128");
+        
+        // use lower values, to better test those cases,
+        // and to speed up the tests (for delays)
+        System.setProperty("h2.maxMemoryRows", "128");
         System.setProperty("h2.check2", "true");
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");

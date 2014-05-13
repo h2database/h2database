@@ -226,11 +226,6 @@ public class Constants {
     public static final long DEFAULT_MAX_LOG_SIZE = 16 * 1024 * 1024;
 
     /**
-     * The default maximum number of rows to be kept in memory in a result set.
-     */
-    public static final int DEFAULT_MAX_MEMORY_ROWS = 10000;
-
-    /**
      * The default value for the MAX_MEMORY_UNDO setting.
      */
     public static final int DEFAULT_MAX_MEMORY_UNDO = 50000;

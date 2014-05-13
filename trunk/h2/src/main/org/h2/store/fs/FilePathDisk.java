@@ -422,10 +422,10 @@ class FileDisk extends FileBase {
 
     @Override
     public FileChannel truncate(long newLength) throws IOException {
-    	// compatibility with JDK FileChannel#truncate
-    	if (readOnly) {
-    		throw new NonWritableChannelException();
-    	}
+        // compatibility with JDK FileChannel#truncate
+        if (readOnly) {
+            throw new NonWritableChannelException();
+        }
         if (newLength < file.length()) {
             file.setLength(newLength);
         }

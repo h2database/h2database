@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: creating secondary indexes on large tables 
+<ul><li>MVStore: unique indexes that were created later on did not work correctly
+    if there were over 5000 rows in the table.
+</li><li>MVStore: creating secondary indexes on large tables 
     results in missing rows in the index.
 </li><li>Metadata: the password of linked tables is now only visible for admin users.
 </li><li>For Windows, database URLs of the form "jdbc:h2:/test" where considered

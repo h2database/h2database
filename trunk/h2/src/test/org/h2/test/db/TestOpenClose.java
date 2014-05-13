@@ -84,7 +84,7 @@ public class TestOpenClose extends TestBase {
         c.write(ByteBuffer.wrap(new byte[1]));
         c.close();
         if (config.mvStore) {
-            assertThrows(ErrorCode.FILE_CORRUPTED_1, this).getConnection(url);
+            assertThrows(ErrorCode.IO_EXCEPTION_1, this).getConnection(url);
         } else {
             assertThrows(ErrorCode.IO_EXCEPTION_2, this).getConnection(url);
         }

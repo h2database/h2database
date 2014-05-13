@@ -265,10 +265,10 @@ class FileMem extends FileBase {
 
     @Override
     public FileChannel truncate(long newLength) throws IOException {
-    	// compatibility with JDK FileChannel#truncate
-    	if (readOnly) {
-    		throw new NonWritableChannelException();
-    	}
+        // compatibility with JDK FileChannel#truncate
+        if (readOnly) {
+            throw new NonWritableChannelException();
+        }
         if (newLength < size()) {
             data.touch(readOnly);
             pos = Math.min(pos, newLength);

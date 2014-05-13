@@ -204,10 +204,10 @@ class FileNioMapped extends FileBase {
 
     @Override
     public synchronized FileChannel truncate(long newLength) throws IOException {
-    	// compatibility with JDK FileChannel#truncate
-    	if (mode == MapMode.READ_ONLY) {
-    		throw new NonWritableChannelException();
-    	}
+        // compatibility with JDK FileChannel#truncate  
+        if (mode == MapMode.READ_ONLY) {
+            throw new NonWritableChannelException();
+        }
         if (newLength < size()) {
             setFileLength(newLength);
         }

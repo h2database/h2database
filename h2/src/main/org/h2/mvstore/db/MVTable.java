@@ -470,7 +470,7 @@ public class MVTable extends TableBase {
         long i = 0;
         Store store = session.getDatabase().getMvStore();
 
-        int bufferSize = Constants.DEFAULT_MAX_MEMORY_ROWS / 2;
+        int bufferSize = SysProperties.MAX_MEMORY_ROWS / 2;
         ArrayList<Row> buffer = New.arrayList(bufferSize);
         String n = getName() + ":" + index.getName();
         int t = MathUtils.convertLongToInt(total);
@@ -511,7 +511,7 @@ public class MVTable extends TableBase {
         long total = remaining;
         Cursor cursor = scan.find(session, null, null);
         long i = 0;
-        int bufferSize = (int) Math.min(total, Constants.DEFAULT_MAX_MEMORY_ROWS);
+        int bufferSize = (int) Math.min(total, SysProperties.MAX_MEMORY_ROWS);
         ArrayList<Row> buffer = New.arrayList(bufferSize);
         String n = getName() + ":" + index.getName();
         int t = MathUtils.convertLongToInt(total);

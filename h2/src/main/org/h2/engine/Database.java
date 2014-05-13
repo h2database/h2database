@@ -132,7 +132,7 @@ public class Database implements DataHandler {
     private boolean readOnly;
     private int writeDelay = Constants.DEFAULT_WRITE_DELAY;
     private DatabaseEventListener eventListener;
-    private int maxMemoryRows = Constants.DEFAULT_MAX_MEMORY_ROWS;
+    private int maxMemoryRows = SysProperties.MAX_MEMORY_ROWS;
     private int maxMemoryUndo = Constants.DEFAULT_MAX_MEMORY_UNDO;
     private int lockMode = Constants.DEFAULT_LOCK_MODE;
     private int maxLengthInplaceLob;

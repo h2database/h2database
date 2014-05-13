@@ -252,6 +252,13 @@ public class SysProperties {
             Utils.getProperty("h2.maxReconnect", 3);
 
     /**
+     * System property <code>h2.maxMemoryRows</code> (default: 10000).<br />
+     * The default maximum number of rows to be kept in memory in a result set.
+     */
+    public static final int MAX_MEMORY_ROWS =
+            Utils.getProperty("h2.maxMemoryRows", 10000);
+
+    /**
      * System property <code>h2.maxTraceDataLength</code>
      * (default: 65535).<br />
      * The maximum size of a LOB value that is written as data to the trace

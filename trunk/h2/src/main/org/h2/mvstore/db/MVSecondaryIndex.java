@@ -123,11 +123,11 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 Value v = s.value;
 
                 if (indexType.isUnique()) {
-                    ValueArray unique = (ValueArray) v;
-                    Value[] array = unique.getList();
+                    Value[] array = ((ValueArray) v).getList();
+                    // don't change the original value
                     array = Arrays.copyOf(array, array.length);
-                    unique = ValueArray.get(unique.getList());
-                    unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+                    array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+                    ValueArray unique = ValueArray.get(array);
                     ValueArray key = (ValueArray) dataMap.getLatestCeilingKey(unique);
                     if (key != null) {
                         SearchRow r2 = getRow(key.getList());

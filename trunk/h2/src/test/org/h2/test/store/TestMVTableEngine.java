@@ -49,6 +49,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testUniqueIndex();
         testSecondaryIndex();
         testGarbageCollectionForLOB();
         testSpatial();
@@ -75,6 +76,22 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testUniqueIndex() throws SQLException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("create table test as select x, 0 from system_range(1, 5000)");
+        stat.execute("create unique index on test(x)");
+        ResultSet rs = stat.executeQuery("select * from test where x=1");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        conn.close();
     }
     
     private void testSecondaryIndex() throws SQLException {

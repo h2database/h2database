@@ -7,8 +7,8 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -30,13 +30,11 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
-import org.h2.util.IntArray;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.SynchronizedVerifier;
-import org.h2.util.Utils;
 import org.h2.value.Value;
 
 /**
@@ -47,6 +45,41 @@ import org.h2.value.Value;
 public class TableView extends Table {
 
     private static final long ROW_COUNT_APPROXIMATION = 100;
+    
+    private static final class CacheKey {
+        private final int[] masks;
+        private final Session session;
+        
+        public CacheKey(int[] masks, Session session) {
+            this.masks = masks;
+            this.session = session;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Arrays.hashCode(masks);
+            result = prime * result + session.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            CacheKey other = (CacheKey) obj;
+            if (!Arrays.equals(masks, other.masks))
+                return false;
+            if (session != other.session)
+                return false;
+            return true;
+        }
+    }
 
     private String querySQL;
     private ArrayList<Table> tables;
@@ -55,7 +88,7 @@ public class TableView extends Table {
     private ViewIndex index;
     private boolean recursive;
     private DbException createException;
-    private final SmallLRUCache<IntArray, ViewIndex> indexCache =
+    private final SmallLRUCache<CacheKey, ViewIndex> indexCache =
             SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private long lastModificationCheck;
     private long maxDataModificationId;
@@ -228,19 +261,33 @@ public class TableView extends Table {
     }
 
     @Override
-    public synchronized PlanItem getBestPlanItem(Session session, int[] masks,
+    public PlanItem getBestPlanItem(Session session, int[] masks,
             TableFilter filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, filter, sortOrder);
-        IntArray masksArray = new IntArray(masks == null ?
-                Utils.EMPTY_INT_ARRAY : masks);
-        SynchronizedVerifier.check(indexCache);
-        ViewIndex i2 = indexCache.get(masksArray);
-        if (i2 == null || i2.getSession() != session) {
-            i2 = new ViewIndex(this, index, session, masks);
-            indexCache.put(masksArray, i2);
+        final CacheKey cacheKey = new CacheKey(masks, session);
+        
+        synchronized (this) {
+            SynchronizedVerifier.check(indexCache);
+            ViewIndex i2 = indexCache.get(cacheKey);
+            if (i2 != null) {
+                item.setIndex(i2);
+                return item;
+            }
         }
-        item.setIndex(i2);
+        // We cannot hold the lock during the ViewIndex creation or we risk ABBA deadlocks
+        // if the view creation calls back into H2 via something like a FunctionTable.
+        ViewIndex i2 = new ViewIndex(this, index, session, masks);
+        synchronized (this) {
+            // have to check again in case another session has beat us to it
+            ViewIndex i3 = indexCache.get(cacheKey);
+            if (i3 != null) {
+                item.setIndex(i3);
+                return item;
+            }
+            indexCache.put(cacheKey, i2);
+            item.setIndex(i2);
+        }
         return item;
     }
 

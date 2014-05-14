@@ -183,7 +183,9 @@ public class ConnectionInfo implements Cloneable {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, normalizedName + " outside " +
                         absDir);
             }
-            if (normalizedName.charAt(absDir.length()) != '/') {
+            if (absDir.endsWith("/") || absDir.endsWith("\\")) {
+                // no further checks are needed for C:/ and similar
+            } else if (normalizedName.charAt(absDir.length()) != '/') {
                 // database must be within the directory
                 // (with baseDir=/test, the database name must not be
                 // /test2/x and not /test2)

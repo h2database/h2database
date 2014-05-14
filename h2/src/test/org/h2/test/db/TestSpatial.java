@@ -87,6 +87,7 @@ public class TestSpatial extends TestBase {
         testTableViewSpatialPredicate();
         testValueGeometryScript();
         testInPlaceUpdate();
+        testScanIndexOnNonSpatialQuery();
     }
 
     private void testHashCode() {
@@ -829,5 +830,23 @@ public class TestSpatial extends TestBase {
         } finally {
             conn.close();
         }
+    }
+
+    private void testScanIndexOnNonSpatialQuery() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("drop table if exists test");
+            stat.execute("create table test(id serial primary key, value double, the_geom geometry)");
+            stat.execute("create spatial index spatial on test(the_geom)");
+            ResultSet rs = stat.executeQuery("explain select * from test where _ROWID_ = 5");
+            assertTrue(rs.next());
+            assertContains(rs.getString(1), "tableScan");
+        } finally {
+            // Close the database
+            conn.close();
+        }
+        deleteDb("spatial");
     }
 }

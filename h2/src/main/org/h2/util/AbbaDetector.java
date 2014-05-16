@@ -26,11 +26,14 @@ public class AbbaDetector {
                     return new ArrayDeque<Object>();
             }
         };
-        
-    private static final Map<Object, Map<Object, Exception>> ORDER = 
+
+    /**
+     * Map of (object A) -> ( map of (object locked before object A) -> (stacktrace where locked) ) 
+     */
+    private static final Map<Object, Map<Object, Exception>> LOCK_ORDERING = 
             new WeakHashMap<Object, Map<Object, Exception>>();
     
-    private static final Set<String> KNOWN = new HashSet<String>();
+    private static final Set<String> KNOWN_DEADLOCKS = new HashSet<String>();
     
     public static Object begin(Object o) {
         if (o == null) {
@@ -40,6 +43,8 @@ public class AbbaDetector {
         }
         Deque<Object> stack = STACK.get();
         if (!stack.isEmpty()) {
+            // Ignore locks which are locked multiple times in succession -
+            // Java locks are recursive
             if (stack.contains(o)) {
                 // already synchronized on this
                 return o;
@@ -56,7 +61,7 @@ public class AbbaDetector {
             String thread = "[thread " + Thread.currentThread().getId() + "]";
             String ident = new String(new char[stack.size() * 2]).replace((char) 0, ' ');
             System.out.println(thread + " " + ident + 
-                    "sync " + getName(o));
+                    "sync " + getObjectName(o));
         }
         if (stack.size() > 0) {
             markHigher(o, stack);
@@ -70,16 +75,16 @@ public class AbbaDetector {
         return o;
     }
     
-    private static String getName(Object o) {
-        return o.getClass().getSimpleName() + ":" + System.identityHashCode(o);
+    private static String getObjectName(Object o) {
+        return o.getClass().getSimpleName() + "@" + System.identityHashCode(o);
     }
     
     public static synchronized void markHigher(Object o, Deque<Object> older) {
         Object test = getTest(o);
-        Map<Object, Exception> map = ORDER.get(test);
+        Map<Object, Exception> map = LOCK_ORDERING.get(test);
         if (map == null) {
             map = new WeakHashMap<Object, Exception>();
-            ORDER.put(test, map);
+            LOCK_ORDERING.put(test, map);
         }
         Exception oldException = null;
         for (Object old : older) {
@@ -87,20 +92,20 @@ public class AbbaDetector {
             if (oldTest == test) {
                 continue;
             }
-            Map<Object, Exception> oldMap = ORDER.get(oldTest);
+            Map<Object, Exception> oldMap = LOCK_ORDERING.get(oldTest);
             if (oldMap != null) {
                 Exception e = oldMap.get(test);
                 if (e != null) {
                     String deadlockType = test.getClass() + " " + oldTest.getClass();
-                    if (!KNOWN.contains(deadlockType)) {
-                        String message = getName(test) +
-                                " synchronized after \n " + getName(oldTest) +
+                    if (!KNOWN_DEADLOCKS.contains(deadlockType)) {
+                        String message = getObjectName(test) +
+                                " synchronized after \n " + getObjectName(oldTest) +
                                 ", but in the past before";
                         RuntimeException ex = new RuntimeException(message);
                         ex.initCause(e);
                         ex.printStackTrace(System.out);
                         // throw ex;
-                        KNOWN.add(deadlockType);
+                        KNOWN_DEADLOCKS.add(deadlockType);
                     }
                 }
             }

@@ -298,8 +298,7 @@ public class Column {
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
-                        value = ValueDate.get(new Date(
-                                session.getTransactionStart()));
+                        value = ValueDate.fromMillis(session.getTransactionStart());
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }

@@ -551,16 +551,16 @@ public class Transfer {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueDate.fromDateValue(readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                return ValueDate.get(new Date(DateTimeUtils.getTimeUTCWithoutDst(readLong())));
+                return ValueDate.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
             }
-            return ValueDate.get(new Date(readLong()));
+            return ValueDate.fromMillis(readLong());
         case Value.TIME:
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueTime.fromNanos(readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
-                return ValueTime.get(new Time(DateTimeUtils.getTimeUTCWithoutDst(readLong())));
+                return ValueTime.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(readLong()));
             }
-            return ValueTime.get(new Time(readLong()));
+            return ValueTime.fromMillis(readLong());
         case Value.TIMESTAMP: {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
                 return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());

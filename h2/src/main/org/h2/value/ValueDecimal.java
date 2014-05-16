@@ -101,15 +101,7 @@ public class ValueDecimal extends Value {
             bd = BigDecimal.ZERO;
         } else if (bd.scale() > 0) {
             if (!bd.unscaledValue().testBit(0)) {
-                String s = bd.toString();
-                int i = s.length() - 1;
-                while (i >= 0 && s.charAt(i) == '0') {
-                    i--;
-                }
-                if (i < s.length() - 1) {
-                    s = s.substring(0, i + 1);
-                    bd = new BigDecimal(s);
-                }
+                bd = bd.stripTrailingZeros();
             }
         }
         return ValueDecimal.get(bd);

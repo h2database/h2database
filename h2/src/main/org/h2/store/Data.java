@@ -746,8 +746,7 @@ public class Data {
         }
         case Value.DATE: {
             long x = readVarLong() * MILLIS_PER_MINUTE;
-            return ValueDate.get(new Date(
-                    DateTimeUtils.getTimeUTCWithoutDst(x)));
+            return ValueDate.fromMillis(DateTimeUtils.getTimeUTCWithoutDst(x));
         }
         case LOCAL_TIME: {
             long nanos = readVarLong() * 1000000 + readVarLong();
@@ -755,8 +754,8 @@ public class Data {
         }
         case Value.TIME:
             // need to normalize the year, month and day
-            return ValueTime.get(new Time(
-                    DateTimeUtils.getTimeUTCWithoutDst(readVarLong())));
+            return ValueTime.fromMillis(
+                    DateTimeUtils.getTimeUTCWithoutDst(readVarLong()));
         case LOCAL_TIMESTAMP: {
             long dateValue = readVarLong();
             long nanos = readVarLong() * 1000000 + readVarLong();

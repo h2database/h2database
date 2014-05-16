@@ -226,7 +226,7 @@ public class TraceSystem implements TraceWriter {
         if (dateFormat == null) {
             dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
         }
-        return dateFormat.format(new Date()) + module + ": " + s;
+        return dateFormat.format(System.currentTimeMillis()) + module + ": " + s;
     }
 
     @Override

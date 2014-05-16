@@ -273,7 +273,7 @@ public class WebServer implements Service {
             SimpleDateFormat format = new SimpleDateFormat(
                     "EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
             format.setTimeZone(TimeZone.getTimeZone("GMT"));
-            startDateTime = format.format(new Date());
+            startDateTime = format.format(System.currentTimeMillis());
         }
         return startDateTime;
     }

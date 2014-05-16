@@ -59,6 +59,17 @@ public class ValueDate extends Value {
     }
 
     /**
+     * Calculate the date value (in the default timezone) from a given time in
+     * milliseconds in UTC.
+     *
+     * @param ms the milliseconds
+     * @return the value
+     */
+    public static ValueDate fromMillis(long ms) {
+        return fromDateValue(DateTimeUtils.dateValueFromDate(ms));
+    }
+    
+    /**
      * Parse a string to a ValueDate.
      *
      * @param s the string to parse

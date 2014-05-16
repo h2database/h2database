@@ -872,14 +872,14 @@ public class Function extends Expression implements FunctionCall {
         case CURRENT_DATE: {
             long now = session.getTransactionStart();
             // need to normalize
-            result = ValueDate.get(new Date(now));
+            result = ValueDate.fromMillis(now);
             break;
         }
         case CURTIME:
         case CURRENT_TIME: {
             long now = session.getTransactionStart();
             // need to normalize
-            result = ValueTime.get(new Time(now));
+            result = ValueTime.fromMillis(now);
             break;
         }
         case NOW:
@@ -1769,10 +1769,10 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        calendar.setTime(new Timestamp(t1));
+        calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);
-        calendar.setTime(new Timestamp(t2));
+        calendar.setTimeInMillis(t2);
         int year2 = calendar.get(Calendar.YEAR);
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;

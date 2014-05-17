@@ -52,31 +52,22 @@ public class DateTimeUtils {
     private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184,
             214, 245, 275, 306, 337, 366 };
 
-    private static int zoneOffset;
-    private static Calendar cachedCalendar;
+    private static final ThreadLocal<Calendar> cachedCalendar = new ThreadLocal<Calendar>() {
+    	@Override
+    	protected Calendar initialValue() {
+            return Calendar.getInstance();
+    	}
+    };
 
     private DateTimeUtils() {
         // utility class
-    }
-
-    static {
-        getCalendar();
     }
 
     /**
      * Reset the calendar, for example after changing the default timezone.
      */
     public static void resetCalendar() {
-        cachedCalendar = null;
-        getCalendar();
-    }
-
-    private static Calendar getCalendar() {
-        if (cachedCalendar == null) {
-            cachedCalendar = Calendar.getInstance();
-            zoneOffset = cachedCalendar.get(Calendar.ZONE_OFFSET);
-        }
-        return cachedCalendar;
+        cachedCalendar.remove();
     }
 
     /**
@@ -388,16 +379,14 @@ public class DateTimeUtils {
             int millis) {
         Calendar c;
         if (tz == TimeZone.getDefault()) {
-            c = getCalendar();
+            c = cachedCalendar.get();
         } else {
             c = Calendar.getInstance(tz);
         }
-        synchronized (c) {
-            c.clear();
-            c.setLenient(lenient);
-            setCalendarFields(c, year, month, day, hour, minute, second, millis);
-            return c.getTime().getTime();
-        }
+        c.clear();
+        c.setLenient(lenient);
+        setCalendarFields(c, year, month, day, hour, minute, second, millis);
+        return c.getTime().getTime();
     }
 
     private static void setCalendarFields(Calendar cal, int year, int month,
@@ -427,18 +416,16 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = getCalendar();
-        synchronized (c) {
-            c.setTime(d);
-            if (field == Calendar.YEAR) {
-                return getYear(c);
-            }
-            int value = c.get(field);
-            if (field == Calendar.MONTH) {
-                return value + 1;
-            }
-            return value;
+        Calendar c = cachedCalendar.get();
+        c.setTime(d);
+        if (field == Calendar.YEAR) {
+            return getYear(c);
         }
+        int value = c.get(field);
+        if (field == Calendar.MONTH) {
+            return value + 1;
+        }
+        return value;
     }
 
     /**
@@ -463,7 +450,7 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + zoneOffset;
+        return d.getTime() + cachedCalendar.get().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -474,7 +461,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds in UTC
      */
     public static long getTimeUTCWithoutDst(long millis) {
-        return millis - zoneOffset;
+        return millis - cachedCalendar.get().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -744,12 +731,10 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromDate(long ms) {
-        Calendar cal = getCalendar();
-        synchronized (cal) {
-            cal.clear();
-            cal.setTimeInMillis(ms);
-            return dateValueFromCalendar(cal);
-        }
+        Calendar cal = cachedCalendar.get();
+        cal.clear();
+        cal.setTimeInMillis(ms);
+        return dateValueFromCalendar(cal);
     }
 
     /**
@@ -774,12 +759,10 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
-        Calendar cal = getCalendar();
-        synchronized (cal) {
-            cal.clear();
-            cal.setTimeInMillis(ms);
-            return nanosFromCalendar(cal);
-        }
+        Calendar cal = cachedCalendar.get();
+        cal.clear();
+        cal.setTimeInMillis(ms);
+        return nanosFromCalendar(cal);
     }
 
     /**

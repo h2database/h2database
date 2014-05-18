@@ -10,6 +10,8 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -105,21 +107,22 @@ public class AbbaLockingDetector implements Runnable {
      */
     private static void generateOrdering(final List<String> lockOrder, ThreadInfo info) {
         final MonitorInfo[] lockedMonitors = info.getLockedMonitors();
-        final StackTraceElement[] stackTrace = info.getStackTrace();
-        for (int i = stackTrace.length - 1; i >= 0; i--) {
-            for (MonitorInfo mi : lockedMonitors) {
-                if (mi.getLockedStackDepth() == i) {
-                    String lockName = getObjectName(mi);
-                    if (lockName.equals("sun.misc.Launcher$AppClassLoader")) {
-                        // ignore, it shows up everywhere
-                        continue;
-                    }
-                    // Ignore locks which are locked multiple times in
-                    // succession - Java locks are recursive.
-                    if (!lockOrder.contains(lockName)) {
-                        lockOrder.add(lockName);
-                    }
-                }
+        Arrays.sort(lockedMonitors, new Comparator<MonitorInfo>() {
+	        @Override
+	        public int compare(MonitorInfo a, MonitorInfo b) {
+	        	return b.getLockedStackDepth() - a.getLockedStackDepth();
+	        }
+        });
+        for (MonitorInfo mi : lockedMonitors) {
+            String lockName = getObjectName(mi);
+            if (lockName.equals("sun.misc.Launcher$AppClassLoader")) {
+                // ignore, it shows up everywhere
+                continue;
+            }
+            // Ignore locks which are locked multiple times in
+            // succession - Java locks are recursive.
+            if (!lockOrder.contains(lockName)) {
+                lockOrder.add(lockName);
             }
         }
     }
@@ -179,20 +182,23 @@ public class AbbaLockingDetector implements Runnable {
             sb.append(" (in native)");
         }
         sb.append('\n');
-        StackTraceElement[] stackTrace = info.getStackTrace();
+        final StackTraceElement[] stackTrace = info.getStackTrace();
+        final MonitorInfo[] lockedMonitors = info.getLockedMonitors();
+        boolean startDumping = false;
         for (int i = 0; i < stackTrace.length; i++) {
-            boolean dumpedStackTraceElement = false;
             StackTraceElement ste = stackTrace[i];
+            if (startDumping) {
+                dumpStackTraceElement(info, sb, i, ste);
+            }
 
-            MonitorInfo[] lockedMonitors = info.getLockedMonitors();
             for (MonitorInfo mi : lockedMonitors) {
                 if (mi.getLockedStackDepth() == i) {
                     // Only start dumping the stack from the first time we lock
                     // something.
                     // Removes a lot of unnecessary noise from the output.
-                    if (!dumpedStackTraceElement) {
+                    if (!startDumping) {
                         dumpStackTraceElement(info, sb, i, ste);
-                        dumpedStackTraceElement = true;
+                        startDumping = true;
                     }
                     sb.append("\t-  locked " + mi);
                     sb.append('\n');

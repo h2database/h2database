@@ -197,6 +197,7 @@ import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
+import org.h2.util.AbbaLockingDetector;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -363,6 +364,8 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    AbbaLockingDetector abbaLockingDetector;
+    
     /**
      * Run all tests.
      *
@@ -509,6 +512,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     private void runTests() throws SQLException {
 
+        if (Boolean.getBoolean("abba")) {
+            abbaLockingDetector = new AbbaLockingDetector().startCollecting();
+        }
+        
         coverage = isCoverage();
 
         smallLog = big = networked = memory = ssl = false;

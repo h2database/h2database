@@ -138,6 +138,9 @@ public abstract class TestBase {
      * @param conf the test configuration
      */
     public void runTest(TestAll conf) {
+        if (conf.abbaLockingDetector != null) {
+            conf.abbaLockingDetector.reset();
+        }
         try {
             init(conf);
             start = System.currentTimeMillis();

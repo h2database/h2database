@@ -48,6 +48,11 @@ public class AbbaLockingDetector implements Runnable {
         return this;
     }
 
+    public synchronized void reset() {
+        LOCK_ORDERING.clear();
+        KNOWN_DEADLOCKS.clear();
+    }
+    
     /**
      * Stop collecting.
      * 
@@ -127,7 +132,7 @@ public class AbbaLockingDetector implements Runnable {
         }
     }
 
-    private void markHigher(List<String> lockOrder, ThreadInfo threadInfo) {
+    private synchronized void markHigher(List<String> lockOrder, ThreadInfo threadInfo) {
         String topLock = lockOrder.get(lockOrder.size() - 1);
         Map<String, String> map = LOCK_ORDERING.get(topLock);
         if (map == null) {
@@ -232,7 +237,7 @@ public class AbbaLockingDetector implements Runnable {
     }
 
     private static String getObjectName(MonitorInfo info) {
-        return info.getClassName();// + "@" + info.getIdentityHashCode();
+        return info.getClassName() + "@" + Integer.toHexString(info.getIdentityHashCode());
     }
 
 }

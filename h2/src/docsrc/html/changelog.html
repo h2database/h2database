@@ -31,6 +31,10 @@ Change Log
     return type of procedure.
 </li><li>Issue 531: IDENTITY ignored for added column.
 </li><li>FileSystem: improve exception throwing compatibility with JDK
+</li><li>Spatial Index: adjust costs so we do not use the spatial index if the 
+    query does not contain an intersects operator.
+</li><li>Fix multi-threaded deadlock when using a View that includes a TableFunction.
+</li><li>Fix bug in dividing very-small BigDecimal numbers.
 </li></ul>
 
 <h2>Version 1.4.178 Beta (2014-05-02)</h2>

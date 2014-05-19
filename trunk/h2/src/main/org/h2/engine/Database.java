@@ -718,8 +718,10 @@ public class Database implements DataHandler {
             records.add(rec);
         }
         Collections.sort(records);
-        for (MetaRecord rec : records) {
-            rec.execute(this, systemSession, eventListener);
+        synchronized (systemSession) {
+            for (MetaRecord rec : records) {
+                rec.execute(this, systemSession, eventListener);
+            }
         }
         if (mvStore != null) {
             mvStore.initTransactions();

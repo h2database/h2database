@@ -59,17 +59,19 @@ public class BackupCommand extends Prepared {
             throw DbException.get(ErrorCode.DATABASE_IS_NOT_PERSISTENT);
         }
         try {
-            Store store = db.getMvStore();
-            if (store != null) {
-                store.flush();
+            Store mvStore = db.getMvStore();
+            if (mvStore != null) {
+                mvStore.flush();
             }
             String name = db.getName();
             name = FileUtils.getName(name);
             OutputStream zip = FileUtils.newOutputStream(fileName, false);
             ZipOutputStream out = new ZipOutputStream(zip);
             db.flush();
-            String fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
-            backupPageStore(out, fn, db.getPageStore());
+            if (db.getPageStore() != null) {
+                String fn = db.getName() + Constants.SUFFIX_PAGE_FILE;
+                backupPageStore(out, fn, db.getPageStore());
+            }
             // synchronize on the database, to avoid concurrent temp file
             // creation / deletion / backup
             String base = FileUtils.getParent(db.getName());
@@ -82,12 +84,12 @@ public class BackupCommand extends Prepared {
                     if (n.endsWith(Constants.SUFFIX_LOB_FILE)) {
                         backupFile(out, base, n);
                     }
-                    if (n.endsWith(Constants.SUFFIX_MV_FILE)) {
-                        MVStore s = store.getStore();
+                    if (n.endsWith(Constants.SUFFIX_MV_FILE) && mvStore != null) {
+                        MVStore s = mvStore.getStore();
                         boolean before = s.getReuseSpace();
                         s.setReuseSpace(false);
                         try {
-                            InputStream in = store.getInputStream();
+                            InputStream in = mvStore.getInputStream();
                             backupFile(out, base, n, in);
                         } finally {
                             s.setReuseSpace(before);
@@ -104,9 +106,6 @@ public class BackupCommand extends Prepared {
 
     private void backupPageStore(ZipOutputStream out, String fileName,
             PageStore store) throws IOException {
-        if (store == null) {
-            return;
-        }
         Database db = session.getDatabase();
         fileName = FileUtils.getName(fileName);
         out.putNextEntry(new ZipEntry(fileName));

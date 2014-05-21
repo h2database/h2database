@@ -330,7 +330,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             }
             if (sessionFactory == null) {
                 sessionFactory = (SessionFactory) Class.forName(
-                        "org.h2.engine.Engine").newInstance();
+                        "org.h2.engine.Engine").getMethod("getInstance").invoke(null);
             }
             return sessionFactory.createSession(ci);
         } catch (Exception re) {

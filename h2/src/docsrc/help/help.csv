@@ -517,7 +517,8 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "
 
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ] LINKED TABLE [ IF NOT EXISTS ]
+CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ] 
+LINKED TABLE [ IF NOT EXISTS ]
 name ( driverString, urlString, userString, passwordString,
 [ originalSchemaString, ] originalTableString ) [ EMIT UPDATES | READONLY ]
 ","

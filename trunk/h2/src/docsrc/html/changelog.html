@@ -18,7 +18,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The license has changed to MPL 2.0 + EPL 1.0.
+<ul><li>Recursive queries with many result rows (more than the setting "max_memory_rows") 
+    did not work correctly.
+</li><li>The license has changed to MPL 2.0 + EPL 1.0.
+</li><li>MVStore: temporary tables from result sets could survive re-opening a database,
+    which could result in a ClassCastException.
 </li><li>MVStore: unique indexes that were created later on did not work correctly
     if there were over 5000 rows in the table.
 </li><li>MVStore: creating secondary indexes on large tables 

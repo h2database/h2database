@@ -772,6 +772,72 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public Iterator<K> keyIterator(K from) {
         return new Cursor<K, V>(this, root, from);
     }
+    
+    /**
+     * Re-write any pages that belong to one of the chunks in the given set.
+     * 
+     * @param set the set of chunk ids
+     */
+    public void rewrite(Set<Integer> set) {
+        rewrite(root, set);
+    }
+
+    public int rewrite(Page p, Set<Integer> set) {
+        ; // TODO write more tests
+        if (p.isLeaf()) {
+            long pos = p.getPos();
+            if (pos == 0) {
+                return 0;
+            }
+            int chunkId = DataUtils.getPageChunkId(pos);
+            if (!set.contains(chunkId)) {
+                return 0;
+            }
+            @SuppressWarnings("unchecked")
+            K key = (K) p.getKey(0);
+            @SuppressWarnings("unchecked")
+            V value = (V) p.getValue(0);
+            put(key, value);
+            return 1;
+        }
+        int writtenPageCount = 0;
+        for (int i = 0; i < p.getChildPageCount(); i++) {
+            long pos = p.getChildPagePos(i);
+            if (pos == 0) {
+                continue;
+            }
+            if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
+                int chunkId = DataUtils.getPageChunkId(pos);
+                if (!set.contains(chunkId)) {
+                    continue;
+                }
+            }
+            writtenPageCount += rewrite(p.getChildPage(i), set);
+        }
+        if (writtenPageCount == 0) {
+            long pos = p.getPos();
+            if (pos != 0) {
+                int chunkId = DataUtils.getPageChunkId(pos);
+                if (set.contains(chunkId)) {
+                    // an inner node page that is in one of the chunks,
+                    // but only points to chunks that are not in the set:
+                    // if no child was changed, we need to do that now
+                    Page p2 = p;
+                    while (!p2.isLeaf()) {
+                        p2 = p2.getChildPage(0);
+                    }
+                    @SuppressWarnings("unchecked")
+                    K key = (K) p2.getKey(0);
+                    @SuppressWarnings("unchecked")
+                    V value = (V) p2.getValue(0);
+                    put(key, value);
+                    writtenPageCount++;
+                }
+            }
+        }
+        return writtenPageCount;
+    }
+
 
     /**
      * Get a cursor to iterate over a number of keys and values.

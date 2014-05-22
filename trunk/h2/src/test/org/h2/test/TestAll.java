@@ -362,10 +362,10 @@ java org.h2.test.TestAll timer
      */
     String cacheType;
 
-    private Server server;
-
     AbbaLockingDetector abbaLockingDetector;
     
+    private Server server;
+
     /**
      * Run all tests.
      *
@@ -385,7 +385,15 @@ java org.h2.test.TestAll timer
         
         // use lower values, to better test those cases,
         // and to speed up the tests (for delays)
-        System.setProperty("h2.maxMemoryRows", "128");
+  
+        ; // TEST
+//        System.setProperty("h2.maxMemoryRows", "2");
+        
+        System.setProperty("h2.maxMemoryRows", "100");
+//        System.setProperty("h2.maxMemoryRows", "1000");
+//        System.setProperty("h2.maxMemoryRows", "2");
+        
+        
         System.setProperty("h2.check2", "true");
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
@@ -610,7 +618,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestAlterSchemaRename().runTest(this);
         new TestAutoRecompile().runTest(this);
         new TestBitField().runTest(this);
-        new TestBnf().runTest(this);
         new TestBackup().runTest(this);
         new TestBigDb().runTest(this);
         new TestBigResult().runTest(this);
@@ -752,6 +759,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // unit
         new TestAutoReconnect().runTest(this);
+        new TestBnf().runTest(this);
         new TestCache().runTest(this);
         new TestClearReferences().runTest(this);
         new TestCollation().runTest(this);

@@ -26,7 +26,6 @@ import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
@@ -46,41 +45,6 @@ public class TableView extends Table {
 
     private static final long ROW_COUNT_APPROXIMATION = 100;
     
-    private static final class CacheKey {
-        private final int[] masks;
-        private final Session session;
-        
-        public CacheKey(int[] masks, Session session) {
-            this.masks = masks;
-            this.session = session;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + Arrays.hashCode(masks);
-            result = prime * result + session.hashCode();
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            CacheKey other = (CacheKey) obj;
-            if (!Arrays.equals(masks, other.masks))
-                return false;
-            if (session != other.session)
-                return false;
-            return true;
-        }
-    }
-
     private String querySQL;
     private ArrayList<Table> tables;
     private String[] columnNames;
@@ -572,7 +536,7 @@ public class TableView extends Table {
         this.recursiveResult = value;
     }
 
-    public ResultInterface getRecursiveResult() {
+    public LocalResult getRecursiveResult() {
         return recursiveResult;
     }
 
@@ -593,6 +557,50 @@ public class TableView extends Table {
                     t.addDependencies(dependencies);
                 }
             }
+        }
+    }
+    
+    /**
+     * The key of the index cache for views.
+     */
+    private static final class CacheKey {
+        
+        private final int[] masks;
+        private final Session session;
+        
+        public CacheKey(int[] masks, Session session) {
+            this.masks = masks;
+            this.session = session;
+        }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Arrays.hashCode(masks);
+            result = prime * result + session.hashCode();
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            CacheKey other = (CacheKey) obj;
+            if (session != other.session) {
+                return false;
+            }
+            if (!Arrays.equals(masks, other.masks)) {
+                return false;
+            }
+            return true;
         }
     }
 

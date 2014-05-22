@@ -203,12 +203,12 @@ public class MVStore {
     private long lastStoredVersion;
 
     /**
-     * The estimated number of average-sized unsaved pages. This number may not
-     * be completely accurate, because it may be changed concurrently, and
-     * because temporary pages are counted.
+     * The estimated memory used by unsaved pages. This number is not accurate,
+     * also because it may be changed concurrently, and because temporary pages
+     * are counted.
      */
-    private int unsavedPageCount;
-    private int autoCommitPageCount;
+    private int unsavedMemory;
+    private int autoCommitMemory;
     private boolean saveNeeded;
 
     /**
@@ -287,9 +287,7 @@ public class MVStore {
         o = config.get("autoCommitBufferSize");
         int kb = o == null ? 512 : (Integer) o;
         // 19 KB memory is about 1 KB storage
-        int autoCommitBufferSize = kb * 1024 * 19;
-        int div = pageSplitSize;
-        autoCommitPageCount = autoCommitBufferSize / (div == 0 ? 1 : div);
+        autoCommitMemory = kb * 1024 * 19;
         char[] encryptionKey = (char[]) config.get("encryptionKey");
         try {
             fileStore.open(fileName, readOnly, encryptionKey);
@@ -916,7 +914,7 @@ public class MVStore {
     }
 
     private long storeNow() {
-        int currentUnsavedPageCount = unsavedPageCount;
+        int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
         long version = ++currentVersion;
         setWriteVersion(version);
@@ -1099,18 +1097,6 @@ public class MVStore {
                         chunkId++;
                     }
                 }
-
-//                    }
-//                    while (chunkId <= lastChunk.id) {
-//                        if (chunks.get(chunkId) == null) {
-//                            // one of the chunks in between
-//                            // was removed
-//                            needHeader = true;
-//                            break;
-//                        }
-//                        chunkId++;
-//                    }
-//                }
             }
         }
 
@@ -1133,7 +1119,7 @@ public class MVStore {
 
         // some pages might have been changed in the meantime (in the newest
         // version)
-        unsavedPageCount = Math.max(0, unsavedPageCount
+        unsavedMemory = Math.max(0, unsavedMemory
                 - currentUnsavedPageCount);
 
         metaChanged = false;
@@ -1321,7 +1307,40 @@ public class MVStore {
         ByteBuffer buff = fileStore.readFully(p, Chunk.MAX_HEADER_LENGTH);
         return Chunk.readChunkHeader(buff, p);
     }
-
+    
+    /**
+     * Compact the store by moving all live pages to new chunks.
+     *
+     * @return if anything was written
+     */
+    public synchronized boolean compactRewriteFully() {
+        checkOpen();
+        if (lastChunk == null) {
+            // nothing to do
+            return false;
+        }
+        ; // TODO write tests
+        for (MVMap<?, ?> m : maps.values()) {
+            @SuppressWarnings("unchecked")
+            MVMap<Object, Object> map = (MVMap<Object, Object>) m;
+            Cursor<Object, Object> cursor = map.cursor(null);
+            Page lastPage = null;
+            while (cursor.hasNext()) {
+                cursor.next();
+                Page p = cursor.getPage();
+                if (p == lastPage) {
+                    continue;
+                }
+                Object k = p.getKey(0);
+                Object v = p.getValue(0);
+                map.put(k, v);
+                lastPage = p;
+            }
+        }
+        commitAndSave();
+        return true;
+    }
+    
     /**
      * Compact the store by moving all chunks next to each other, if there is
      * free space between chunks. This might temporarily double the file size.
@@ -1447,6 +1466,132 @@ public class MVStore {
     public void sync() {
         fileStore.sync();
     }
+    
+    /**
+     * Try to increase the fill rate by re-writing partially full chunks. Chunks
+     * with a low number of live items are re-written.
+     * <p>
+     * If the current fill rate is higher than the target fill rate, nothing is
+     * done. If not at least a minimum amount of space can be saved, nothing is
+     * done.
+     * <p>
+     * Please note this method will not necessarily reduce the file size, as
+     * empty chunks are not overwritten.
+     * <p>
+     * Only data of open maps can be moved. For maps that are not open, the old
+     * chunk is still referenced. Therefore, it is recommended to open all maps
+     * before calling this method.
+     *
+     * @param targetFillRate the minimum percentage of live entries
+     * @param saving the amount of saved space
+     * @return if a chunk was re-written
+     */
+    public synchronized boolean compact(int targetFillRate, int saving) {
+        checkOpen();
+        if (lastChunk == null) {
+            // nothing to do
+            return false;
+        }
+
+        // calculate the fill rate
+        long maxLengthSum = 0;
+        long maxLengthLiveSum = 0;
+        for (Chunk c : chunks.values()) {
+            maxLengthSum += c.maxLen;
+            maxLengthLiveSum += c.maxLenLive;
+        }
+        // the fill rate of all chunks combined
+        if (maxLengthSum <= 0) {
+            // avoid division by 0
+            maxLengthSum = 1;
+        }
+        int fillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
+        if (fillRate >= targetFillRate) {
+            return false;
+        }
+
+        long time = getTime();
+
+        // the 'old' list contains the chunks we want to free up
+        ArrayList<Chunk> old = New.arrayList();
+        Chunk last = chunks.get(lastChunk.id);
+        for (Chunk c : chunks.values()) {
+            if (canOverwriteChunk(c, time)) {
+                long age = last.version - c.version + 1;
+                c.collectPriority = (int) (c.getFillRate() / age);
+                old.add(c);
+            }
+        }
+        if (old.size() == 0) {
+            return false;
+        }
+
+        // sort the list, so the first entry should be collected first
+        Collections.sort(old, new Comparator<Chunk>() {
+            @Override
+            public int compare(Chunk o1, Chunk o2) {
+                int comp = new Integer(o1.collectPriority).
+                        compareTo(o2.collectPriority);
+                if (comp == 0) {
+                    comp = new Long(o1.maxLenLive).
+                        compareTo(o2.maxLenLive);
+                }
+                return comp;
+            }
+        });
+        // find out up to were in the old list we need to move
+        long saved = 0;
+        int chunkCount = 0;
+        Chunk move = null;
+        for (Chunk c : old) {
+            long size = c.maxLen - c.maxLenLive;
+            if (move != null) {
+                if (saved > saving) {
+                    break;
+                }
+            }
+            saved += size;
+            chunkCount++;
+            move = c;
+        }
+        if (chunkCount <= 1) {
+            return false;
+        }
+        // remove the chunks we want to keep from this list
+        boolean remove = false;
+        for (Iterator<Chunk> it = old.iterator(); it.hasNext();) {
+            Chunk c = it.next();
+            if (move == c) {
+                remove = true;
+            } else if (remove) {
+                it.remove();
+            }
+        }
+        HashSet<Integer> set = New.hashSet();
+        for (Chunk c : old) {
+            set.add(c.id);
+        }
+        for (MVMap<?, ?> m : maps.values()) {
+            @SuppressWarnings("unchecked")
+            MVMap<Object, Object> map = (MVMap<Object, Object>) m;
+            ; // TODO write more tests
+            map.rewrite(set);
+        }
+        commitAndSave();
+        boolean again = false;
+        for (Chunk c : old) {
+            if (c.maxLenLive > 0) {
+                // not cleared - that means bookkeeping of live pages
+                // is broken; copyLive will fix this
+                again = true;
+                copyLive(c);
+            }
+        }
+        if (again) {
+            commitAndSave();
+        }
+        return true;
+    }
 
     /**
      * Try to increase the fill rate by re-writing partially full chunks. Chunks
@@ -1468,7 +1613,7 @@ public class MVStore {
      *      which is also the size of the new chunk
      * @return if a chunk was re-written
      */
-    public synchronized boolean compact(int targetFillRate, int minSaving) {
+    public synchronized boolean compactOld(int targetFillRate, int minSaving) {
         checkOpen();
         if (lastChunk == null) {
             // nothing to do
@@ -1689,8 +1834,7 @@ public class MVStore {
             // the value could be smaller than 0 because
             // in some cases a page is allocated,
             // but never stored
-            int count = 1 + memory / pageSplitSize;
-            unsavedPageCount = Math.max(0, unsavedPageCount - count);
+            unsavedMemory = Math.max(0, unsavedMemory - memory);
             return;
         }
 
@@ -1891,10 +2035,9 @@ public class MVStore {
      * @param memory the memory usage of the page
      */
     void registerUnsavedPage(int memory) {
-        int count = 1 + memory / pageSplitSize;
-        unsavedPageCount += count;
-        int newValue = unsavedPageCount;
-        if (newValue > autoCommitPageCount && autoCommitPageCount > 0) {
+        unsavedMemory += memory;
+        int newValue = unsavedMemory;
+        if (newValue > autoCommitMemory && autoCommitMemory > 0) {
             saveNeeded = true;
         }
     }
@@ -1905,7 +2048,10 @@ public class MVStore {
     void beforeWrite() {
         if (saveNeeded) {
             saveNeeded = false;
-            commitAndSave();
+            // check again, because it could have been written by now
+            if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
+                commitAndSave();
+            }
         }
     }
 
@@ -2162,7 +2308,7 @@ public class MVStore {
      * Commit and save all changes, if there are any.
      */
     void commitInBackground() {
-        if (unsavedPageCount == 0 || closed) {
+        if (unsavedMemory == 0 || closed) {
             return;
         }
 
@@ -2266,26 +2412,25 @@ public class MVStore {
     }
 
     /**
-     * Get the maximum number of unsaved pages. If this number is exceeded,
-     * unsaved changes are stored to disk.
-     *
-     * @return the number of maximum unsaved pages
+     * Get the maximum memory (in bytes) used for unsaved pages. If this number
+     * is exceeded, unsaved changes are stored to disk.
+     * 
+     * @return the memory in bytes
      */
-    public int getAutoCommitPageCount() {
-        return autoCommitPageCount;
+    public int getAutoCommitMemory() {
+        return autoCommitMemory;
     }
 
     /**
-     * Get the estimated number of unsaved pages. If the value exceeds the
-     * auto-commit page count, the changes are committed.
+     * Get the estimated memory (in bytes) of unsaved data. If the value exceeds the
+     * auto-commit memory, the changes are committed.
      * <p>
-     * The returned value may not be completely accurate, but can be used to
-     * estimate the memory usage for unsaved data.
+     * The returned value is an estimation only.
      *
-     * @return the number of unsaved pages
+     * @return the memory in bytes
      */
-    public int getUnsavedPageCount() {
-        return unsavedPageCount;
+    public int getUnsavedMemory() {
+        return unsavedMemory;
     }
 
     /**
@@ -2399,15 +2544,15 @@ public class MVStore {
         }
 
         /**
-         * Set the size of the write buffer, in KB (for file-based stores).
-         * Unless auto-commit is disabled, changes are automatically saved if
-         * there are more than this amount of changes.
+         * Set the size of the write buffer, in KB disk space (for file-based
+         * stores). Unless auto-commit is disabled, changes are automatically
+         * saved if there are more than this amount of changes.
          * <p>
          * The default is 512 KB.
          * <p>
          * When the value is set to 0 or lower, data is not automatically
          * stored.
-         *
+         * 
          * @param kb the write buffer size, in kilobytes
          * @return this
          */

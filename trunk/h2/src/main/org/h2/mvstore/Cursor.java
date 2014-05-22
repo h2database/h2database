@@ -21,6 +21,7 @@ public class Cursor<K, V> implements Iterator<K> {
     private CursorPos pos;
     private K current, last;
     private V currentValue, lastValue;
+    private Page lastPage;
     private final Page root;
     private boolean initialized;
 
@@ -46,6 +47,7 @@ public class Cursor<K, V> implements Iterator<K> {
         K c = current;
         last = current;
         lastValue = currentValue;
+        lastPage = pos == null ? null : pos.page;
         fetchNext();
         return c;
     }
@@ -66,6 +68,10 @@ public class Cursor<K, V> implements Iterator<K> {
      */
     public V getValue() {
         return lastValue;
+    }
+    
+    Page getPage() {
+        return lastPage;
     }
 
     /**
@@ -147,5 +153,5 @@ public class Cursor<K, V> implements Iterator<K> {
         }
         current = null;
     }
-
+    
 }

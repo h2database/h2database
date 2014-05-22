@@ -27,7 +27,7 @@ import org.h2.message.TraceSystem;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
-import org.h2.result.ResultInterface;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
@@ -99,7 +99,7 @@ public class Session extends SessionWithState {
     private long transactionStart;
     private long currentCommandStart;
     private HashMap<String, Value> variables;
-    private HashSet<ResultInterface> temporaryResults;
+    private HashSet<LocalResult> temporaryResults;
     private int queryTimeout;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
@@ -1268,7 +1268,7 @@ public class Session extends SessionWithState {
      *
      * @param result the temporary result set
      */
-    public void addTemporaryResult(ResultInterface result) {
+    public void addTemporaryResult(LocalResult result) {
         if (!result.needToClose()) {
             return;
         }
@@ -1283,7 +1283,7 @@ public class Session extends SessionWithState {
 
     private void closeTemporaryResults() {
         if (temporaryResults != null) {
-            for (ResultInterface result : temporaryResults) {
+            for (LocalResult result : temporaryResults) {
                 result.close();
             }
             temporaryResults = null;

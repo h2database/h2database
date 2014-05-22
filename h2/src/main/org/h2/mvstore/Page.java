@@ -221,6 +221,10 @@ public class Page {
         Page p = childrenPages[index];
         return p != null ? p : map.readPage(children[index]);
     }
+    
+    public long getChildPagePos(int index) {
+        return children[index];
+    }
 
     /**
      * Get the child page at the given index, if it is live.

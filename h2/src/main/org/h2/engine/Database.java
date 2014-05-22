@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
+import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
@@ -725,7 +726,7 @@ public class Database implements DataHandler {
         }
         if (mvStore != null) {
             mvStore.initTransactions();
-            mvStore.removeTemporaryMaps();
+            mvStore.removeTemporaryMaps(objectIds);
         }
         recompileInvalidViews(systemSession);
         starting = false;
@@ -1325,8 +1326,12 @@ public class Database implements DataHandler {
         }
         reconnectModified(false);
         if (mvStore != null) {
-            if (!readOnly && compactMode != 0) {
-                mvStore.compactFile(dbSettings.maxCompactTime);
+            if (!readOnly) {
+                if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
+                    mvStore.compactFile(dbSettings.maxCompactTime);
+                } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
+                    mvStore.compactFile(Long.MAX_VALUE);
+                }
             }
             mvStore.close(dbSettings.maxCompactTime);
         }

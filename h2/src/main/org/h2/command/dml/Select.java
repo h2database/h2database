@@ -603,7 +603,6 @@ public class Select extends Query {
         }
         if (randomAccessResult) {
             result = createLocalResult(result);
-            result.setRandomAccess();
         }
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);

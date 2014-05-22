@@ -7,7 +7,7 @@
 package org.h2.index;
 
 import org.h2.message.DbException;
-import org.h2.result.ResultInterface;
+import org.h2.result.LocalResult;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.table.Table;
@@ -20,12 +20,12 @@ import org.h2.value.ValueNull;
 public class ViewCursor implements Cursor {
 
     private final Table table;
-    private final Index index;
-    private final ResultInterface result;
+    private final ViewIndex index;
+    private final LocalResult result;
     private final SearchRow first, last;
     private Row current;
 
-    ViewCursor(Index index, ResultInterface result, SearchRow first,
+    ViewCursor(ViewIndex index, LocalResult result, SearchRow first,
             SearchRow last) {
         this.table = index.getTable();
         this.index = index;
@@ -49,7 +49,11 @@ public class ViewCursor implements Cursor {
         while (true) {
             boolean res = result.next();
             if (!res) {
-                result.close();
+                if (index.isRecursive()) {
+                    result.reset();
+                } else {
+                    result.close();
+                }
                 current = null;
                 return false;
             }

@@ -17,7 +17,6 @@ import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
-import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
@@ -187,7 +186,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     private Cursor find(Session session, SearchRow first, SearchRow last,
             SearchRow intersection) {
         if (recursive) {
-            ResultInterface recResult = view.getRecursiveResult();
+            LocalResult recResult = view.getRecursiveResult();
             if (recResult != null) {
                 recResult.reset();
                 return new ViewCursor(this, recResult, first, last);
@@ -209,6 +208,9 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             left.disableCache();
             LocalResult r = left.query(0);
             LocalResult result = union.getEmptyResult();
+            // ensure it is not written to disk,
+            // because it is not closed normally
+            result.setMaxMemoryRows(Integer.MAX_VALUE);
             while (r.next()) {
                 result.addRow(r.currentRow());
             }
@@ -280,7 +282,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 }
             }
         }
-        ResultInterface result = query.query(0);
+        LocalResult result = query.query(0);
         return new ViewCursor(this, result, first, last);
     }
 

@@ -64,12 +64,21 @@ public class LocalResult implements ResultInterface, ResultTarget {
         if (session == null) {
             this.maxMemoryRows = Integer.MAX_VALUE;
         } else {
-            this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
+            Database db = session.getDatabase();
+            if (db.isPersistent() && !db.isReadOnly()) {
+                this.maxMemoryRows = session.getDatabase().getMaxMemoryRows();
+            } else {
+                this.maxMemoryRows = Integer.MAX_VALUE;
+            }
         }
         rows = New.arrayList();
         this.visibleColumnCount = visibleColumnCount;
         rowId = -1;
         this.expressions = expressions;
+    }
+    
+    public void setMaxMemoryRows(int maxValue) {
+        this.maxMemoryRows = maxValue;
     }
 
     /**
@@ -227,7 +236,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
 
     @Override
     public boolean next() {
-        if (rowId < rowCount) {
+        if (!closed && rowId < rowCount) {
             rowId++;
             if (rowId < rowCount) {
                 if (external != null) {
@@ -259,10 +268,8 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 ValueArray array = ValueArray.get(values);
                 distinctRows.put(array, values);
                 rowCount = distinctRows.size();
-                Database db = session.getDatabase();
-                if (rowCount > db.getMaxMemoryRows() &&
-                        db.isPersistent() && !db.isReadOnly()) {
-                    external = new ResultTempTable(session, sort);
+                if (rowCount > maxMemoryRows) {
+                    external = new ResultTempTable(session, true, sort);
                     rowCount = external.addRows(distinctRows.values());
                     distinctRows = null;
                 }
@@ -273,16 +280,9 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         rows.add(values);
         rowCount++;
-        if (rows.size() > maxMemoryRows && session.getDatabase().isPersistent()) {
+        if (rows.size() > maxMemoryRows) {
             if (external == null) {
-                if (randomAccess) {
-                    Database db = session.getDatabase();
-                    if (!db.isReadOnly()) {
-                        external = new ResultTempTable(session, sort);
-                    }
-                } else {
-                    external = new ResultDiskBuffer(session, sort, values.length);
-                }
+                external = new ResultTempTable(session, false, sort);
             }
             addRowsToDisk();
         }
@@ -319,14 +319,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                             break;
                         }
                         if (external == null) {
-                            if (randomAccess) {
-                                Database db = session.getDatabase();
-                                if (!db.isReadOnly()) {
-                                    external = new ResultTempTable(session, sort);
-                                }
-                            } else {
-                                external = new ResultDiskBuffer(session, sort, list.length);
-                            }
+                            external = new ResultTempTable(session, true, sort);
                         }
                         rows.add(list);
                         if (rows.size() > maxMemoryRows) {

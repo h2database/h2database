@@ -447,8 +447,8 @@ public class TransactionStore {
         // if there is no open transaction,
         // and if there have been many changes, store them now
         if (undoLog.isEmpty()) {
-            int unsaved = store.getUnsavedPageCount();
-            int max = store.getAutoCommitPageCount();
+            int unsaved = store.getUnsavedMemory();
+            int max = store.getAutoCommitMemory();
             // save at 3/4 capacity
             if (unsaved * 4 > max * 3) {
                 store.commit();
@@ -1162,7 +1162,6 @@ public class TransactionStore {
          */
         @SuppressWarnings("unchecked")
         public V get(K key, long maxLogId) {
-            transaction.checkNotClosed();
             VersionedValue data = getValue(key, maxLogId);
             return data == null ? null : (V) data.value;
         }

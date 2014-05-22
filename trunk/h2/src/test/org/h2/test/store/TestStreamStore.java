@@ -64,7 +64,7 @@ public class TestStreamStore extends TestBase {
         StreamStore streamStore = new StreamStore(map);
         int blockSize = 256 * 1024;
         assertEquals(blockSize, streamStore.getMaxBlockSize());
-        for (int i = 0; i < 4 * 16; i++) {
+        for (int i = 0; i < 8 * 16; i++) {
             streamStore.put(new RandomStream(blockSize, i));
         }
         long writeCount = s.getFileStore().getWriteCount();
@@ -126,7 +126,7 @@ public class TestStreamStore extends TestBase {
         return new StreamStore(map) {
             @Override
             protected void onStore(int len) {
-                if (s.getUnsavedPageCount() > s.getAutoCommitPageCount() / 2) {
+                if (s.getUnsavedMemory() > s.getAutoCommitMemory() / 2) {
                     s.commit();
                 }
             }

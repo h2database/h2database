@@ -176,7 +176,7 @@ public class TestBtreeIndex extends TestBase {
             testCount = 0;
             while (rs.next() && rs2.next()) {
                 if (!rs.getString(1).equals(rs2.getString(1))) {
-                    assertEquals("" + testCount, rs.getString(1), rs.getString(2));
+                    assertEquals("" + testCount, rs.getString(1), rs2.getString(1));
                 }
                 testCount++;
             }

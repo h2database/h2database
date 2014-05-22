@@ -49,6 +49,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testTemporaryTables();
         testUniqueIndex();
         testSecondaryIndex();
         testGarbageCollectionForLOB();
@@ -76,6 +77,34 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testTemporaryTables() throws SQLException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        Statement stat;
+        String url = "mvstore;MV_STORE=TRUE";
+        url = getURL(url, true);
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("set max_memory_rows 100");
+        stat.execute("create table t1 as select x from system_range(1, 200)");
+        stat.execute("create table t2 as select x from system_range(1, 200)");
+        for (int i = 0; i < 20; i++) {
+            // this will create temporary results that
+            // internally use temporary tables, which are not all closed
+            stat.execute("select count(*) from t1 where t1.x in (select t2.x from t2)");
+        }
+        conn.close();
+        conn = getConnection(url);
+        stat = conn.createStatement();
+        for (int i = 0; i < 20; i++) {
+            stat.execute("create table a" + i + "(id int primary key)");
+            ResultSet rs = stat.executeQuery("select count(*) from a" + i);
+            rs.next();
+            assertEquals(0, rs.getInt(1));
+        }
+        conn.close();
     }
     
     private void testUniqueIndex() throws SQLException {

@@ -1299,9 +1299,8 @@ public class TestMVStore extends TestBase {
             m.remove(i);
         }
         s.commit();
-        assertTrue(s.compact(100, 1));
-        assertTrue(s.compact(100, 1));
-        assertTrue(s.compact(100, 1));
+        assertTrue(s.compact(100, 50 * 1024));
+        assertTrue(s.compact(100, 1024));
         s.close();
         long len2 = FileUtils.size(fileName);
         assertTrue("len2: " + len2 + " len: " + len, len2 < len);
@@ -1319,7 +1318,7 @@ public class TestMVStore extends TestBase {
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        assertEquals(285, s.getUnsavedPageCount());
+        assertEquals(131896, s.getUnsavedMemory());
         s.commit();
         assertEquals(2, s.getFileStore().getWriteCount());
         s.close();
@@ -1672,7 +1671,7 @@ public class TestMVStore extends TestBase {
         assertTrue(chunkCount2 >= chunkCount1);
 
         m = s.openMap("data");
-        assertTrue(s.compact(80, 16 * 1024));
+        assertTrue(s.compact(80, 50 * 1024));
         assertFalse(s.compact(80, 1024));
 
         int chunkCount3 = 0;

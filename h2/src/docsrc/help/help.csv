@@ -423,8 +423,8 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ] [ NOBUFFER ]
-{ FOR classAndMethodName | AS sourceCodeString }
+CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ] 
+[ NOBUFFER ] { FOR classAndMethodName | AS sourceCodeString }
 ","
 Creates a new function alias. If this is a ResultSet returning function,
 by default the return value is cached in a local temporary file.
@@ -500,7 +500,7 @@ CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 
 "Commands (DDL)","CREATE INDEX","
 CREATE
-{ [ UNIQUE ] [ HASH ] [ SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+{ [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","

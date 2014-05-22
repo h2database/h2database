@@ -27,10 +27,12 @@ import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore.Transaction;
+import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.TableBase;
+import org.h2.util.BitField;
 import org.h2.util.New;
 
 /**
@@ -230,12 +232,23 @@ public class MVTableEngine implements TableEngine {
 
         /**
          * Remove all temporary maps.
+         * @param objectIds 
          */
-        public void removeTemporaryMaps() {
+        public void removeTemporaryMaps(BitField objectIds) {
             for (String mapName : store.getMapNames()) {
                 if (mapName.startsWith("temp.")) {
                     MVMap<?, ?> map = store.openMap(mapName);
                     store.removeMap(map);
+                } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
+                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf(".")));
+                    if (!objectIds.get(id)) {
+                        ValueDataType keyType = new ValueDataType(null, null, null);
+                        ValueDataType valueType = new ValueDataType(null, null, null);
+                        Transaction t = transactionStore.begin();
+                        TransactionMap<?, ?> m = t.openMap(mapName, keyType, valueType);
+                        transactionStore.removeMap(m);
+                        t.commit();
+                    }
                 }
             }
         }
@@ -303,12 +316,16 @@ public class MVTableEngine implements TableEngine {
          */
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
-            long start = System.currentTimeMillis();
-            while (store.compact(99, 4 * 1024 * 1024)) {
-                store.sync();
-                long time = System.currentTimeMillis() - start;
-                if (time > maxCompactTime) {
-                    break;
+            if (maxCompactTime == Long.MAX_VALUE) {
+                store.compactRewriteFully();
+            } else {
+                long start = System.currentTimeMillis();
+                while (store.compact(99, 4 * 1024 * 1024)) {
+                    store.sync();
+                    long time = System.currentTimeMillis() - start;
+                    if (time > maxCompactTime) {
+                        break;
+                    }
                 }
             }
             store.compactMoveChunks();

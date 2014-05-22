@@ -29,6 +29,7 @@ import org.h2.value.ValueArray;
 public class ResultTempTable implements ResultExternal {
 
     private static final String COLUMN_NAME = "DATA";
+    private final boolean distinct;
     private final SortOrder sort;
     private final Index index;
     private Session session;
@@ -40,8 +41,9 @@ public class ResultTempTable implements ResultExternal {
     private boolean closed;
     private int childCount;
 
-    ResultTempTable(Session session, SortOrder sort) {
+    ResultTempTable(Session session, boolean distinct, SortOrder sort) {
         this.session = session;
+        this.distinct = distinct;
         this.sort = sort;
         Schema schema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         Column column = new Column(COLUMN_NAME, Value.ARRAY);
@@ -61,13 +63,14 @@ public class ResultTempTable implements ResultExternal {
         indexColumn.column = column;
         indexColumn.columnName = COLUMN_NAME;
         IndexType indexType;
-        indexType = IndexType.createPrimaryKey(true, false);
         IndexColumn[] indexCols = { indexColumn };
         if (session.getDatabase().getMvStore() != null) {
+            indexType = IndexType.createNonUnique(true);
             index = table.addIndex(session, data.tableName, indexId, indexCols,
                     indexType, true, null);
             index.setTemporary(true);
         } else {
+            indexType = IndexType.createPrimaryKey(true, false);
             index = new PageBtreeIndex((RegularTable) table, indexId,
                     data.tableName, indexCols, indexType, true, session);
             index.setTemporary(true);
@@ -78,6 +81,7 @@ public class ResultTempTable implements ResultExternal {
 
     private ResultTempTable(ResultTempTable parent) {
         this.parent = parent;
+        this.distinct = parent.distinct;
         this.session = parent.session;
         this.table = parent.table;
         this.index = parent.index;
@@ -119,8 +123,13 @@ public class ResultTempTable implements ResultExternal {
     @Override
     public int addRow(Value[] values) {
         Row row = convertToRow(values);
-        Cursor cursor = find(row);
-        if (cursor == null) {
+        if (distinct) {
+            Cursor cursor = find(row);
+            if (cursor == null) {
+                table.addRow(session, row);
+                rowCount++;
+            }
+        } else {
             table.addRow(session, row);
             rowCount++;
         }
@@ -199,14 +208,20 @@ public class ResultTempTable implements ResultExternal {
     public Value[] next() {
         if (resultCursor == null) {
             if (session.getDatabase().getMvStore() != null) {
+                Index idx;
+                if (distinct || sort != null) {
+                    idx = index;
+                } else {
+                    idx = table.getScanIndex(session);
+                }
                 // sometimes the transaction is already committed,
                 // in which case we can't use the session
-                if (index.getRowCount(session) == 0 && rowCount > 0) {
+                if (idx.getRowCount(session) == 0 && rowCount > 0) {
                     // this means querying is not transactional
-                    resultCursor = index.find((Session) null, null, null);
+                    resultCursor = idx.find((Session) null, null, null);
                 } else {
                     // the transaction is still open
-                    resultCursor = index.find(session, null, null);
+                    resultCursor = idx.find(session, null, null);
                 }
             } else {
                 resultCursor = index.find(session, null, null);

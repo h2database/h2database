@@ -1323,7 +1323,7 @@ public class WebApp {
                 generatedKeys = true;
                 sql = sql.substring("@generated".length()).trim();
             } else if (isBuiltIn(sql, "@history")) {
-                buff.append(getHistoryString());
+                buff.append(getCommandHistoryString());
                 return buff.toString();
             } else if (isBuiltIn(sql, "@loop")) {
                 sql = sql.substring("@loop".length()).trim();
@@ -1511,9 +1511,9 @@ public class WebApp {
         return buff.append(") ").append(sql).toString();
     }
 
-    private String getHistoryString() {
+    private String getCommandHistoryString() {
         StringBuilder buff = new StringBuilder();
-        ArrayList<String> history = session.getCommands();
+        ArrayList<String> history = session.getCommandHistory();
         buff.append("<table cellspacing=0 cellpadding=0>" +
                 "<tr><th></th><th>Command</th></tr>");
         for (int i = history.size() - 1; i >= 0; i--) {

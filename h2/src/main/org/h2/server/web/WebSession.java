@@ -180,7 +180,7 @@ class WebSession {
      *
      * @return the commands
      */
-    ArrayList<String> getCommands() {
+    ArrayList<String> getCommandHistory() {
         return commandHistory;
     }
 

@@ -118,6 +118,15 @@ public class TestObjectDataType extends TestBase {
             }
             last = x;
         }
+        Random r = new Random(1);
+        for (int i = 0; i < 1000; i++) {
+            Object x = array[r.nextInt(array.length)];
+            Object y = array[r.nextInt(array.length)];
+            int comp = ot.compare(x, y);
+            if (comp != 0) {
+                assertEquals("x:" + x + " y:" + y, -comp, ot.compare(y, x));
+            }
+        }
     }
 
     private void test(Object last, Object x) {

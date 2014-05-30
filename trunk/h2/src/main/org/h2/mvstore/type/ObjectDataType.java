@@ -1488,8 +1488,11 @@ public class ObjectDataType implements DataType {
             }
             DataType ta = getType(aObj);
             DataType tb = getType(bObj);
-            if (ta != this && ta == tb) {
-                return ta.compare(aObj, bObj);
+            if (ta != this || tb != this) {
+                if (ta == tb) {
+                    return ta.compare(aObj, bObj);
+                }
+                return super.compare(aObj, bObj);
             }
             // TODO ensure comparable type (both may be comparable but not
             // with each other)

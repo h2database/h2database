@@ -135,7 +135,7 @@ public class TestDateStorage extends TestBase {
         try {
             ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
             for (TimeZone tz : distinct) {
-                println(tz.getID());
+                // println(tz.getID());
                 TimeZone.setDefault(tz);
                 DateTimeUtils.resetCalendar();
                 for (int d = 101; d < 129; d++) {

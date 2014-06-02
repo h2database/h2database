@@ -18,7 +18,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: the ObjectDataType comparison method was incorrect if one
+<ul><li>When using the PageStore, opening a database failed in some cases with a NullPointerException
+    if temporary tables were used (explicitly, or implicitly when using large result sets).
+</li><li>If a database file in the PageStore file format exists, this file and this mode
+    is now used, even if the database URL does not contain "MV_STORE=FALSE".
+    If a MVStore file exists, it is used.
+</li><li>Databases created with version 1.3.175 and earlier
+    that contained foreign keys in combination with multi-column indexes
+    could not be opened in some cases.
+    This was due to a bugfix in version 1.3.176:
+    Referential integrity constraints sometimes used the wrong index.
+</li><li>MVStore: the ObjectDataType comparison method was incorrect if one
     key was Serializable and the other was of a common class.
 </li><li>Recursive queries with many result rows (more than the setting "max_memory_rows") 
     did not work correctly.

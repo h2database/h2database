@@ -196,11 +196,19 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             boolean isOwner = false;
             IndexColumn.mapColumns(indexColumns, table);
-            if (index != null && canUseIndex(index, table, indexColumns)) {
+            if (index != null && canUseIndex(index, table, indexColumns, false)) {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                index = getIndex(table, indexColumns);
+                if (db.isStarting()) {
+                    // before version 1.3.176, an existing index was used:
+                    // must do the same to avoid
+                    // Unique index or primary key violation: 
+                    // "PRIMARY KEY ON """".PAGE_INDEX"
+                    index = getIndex(table, indexColumns, true);
+                } else {
+                    index = getIndex(table, indexColumns, false);
+                }
                 if (index == null) {
                     index = createIndex(table, indexColumns, false);
                     isOwner = true;
@@ -217,14 +225,14 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             boolean isRefOwner = false;
             if (refIndex != null && refIndex.getTable() == refTable &&
-                    canUseIndex(refIndex, refTable, refIndexColumns)) {
+                    canUseIndex(refIndex, refTable, refIndexColumns, false)) {
                 isRefOwner = true;
                 refIndex.getIndexType().setBelongsToConstraint(true);
             } else {
                 refIndex = null;
             }
             if (refIndex == null) {
-                refIndex = getIndex(refTable, refIndexColumns);
+                refIndex = getIndex(refTable, refIndexColumns, false);
                 if (refIndex == null) {
                     refIndex = createIndex(refTable, refIndexColumns, true);
                     isRefOwner = true;
@@ -303,9 +311,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private static Index getIndex(Table t, IndexColumn[] cols) {
+    private static Index getIndex(Table t, IndexColumn[] cols, boolean moreColumnOk) {
         for (Index idx : t.getIndexes()) {
-            if (canUseIndex(idx, t, cols)) {
+            if (canUseIndex(idx, t, cols, moreColumnOk)) {
                 return idx;
             }
         }
@@ -336,20 +344,37 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private static boolean canUseIndex(Index existingIndex, Table table,
-            IndexColumn[] cols) {
+            IndexColumn[] cols, boolean moreColumnsOk) {
         if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
             // can't use the scan index or index of another table
             return false;
         }
         Column[] indexCols = existingIndex.getColumns();
-        if (indexCols.length != cols.length) {
-            return false;
-        }
-        for (IndexColumn col : cols) {
-            // all columns of the list must be part of the index
-            int idx = existingIndex.getColumnIndex(col.column);
-            if (idx < 0) {
+
+        if (moreColumnsOk) {
+            if (indexCols.length < cols.length) {
                 return false;
+            }
+            for (IndexColumn col : cols) {
+                // all columns of the list must be part of the index,
+                // but not all columns of the index need to be part of the list
+                // holes are not allowed (index=a,b,c & list=a,b is ok; but list=a,c
+                // is not)
+                int idx = existingIndex.getColumnIndex(col.column);
+                if (idx < 0 || idx >= cols.length) {
+                    return false;
+                }
+            }
+        } else {
+            if (indexCols.length != cols.length) {
+                return false;
+            }
+            for (IndexColumn col : cols) {
+                // all columns of the list must be part of the index
+                int idx = existingIndex.getColumnIndex(col.column);
+                if (idx < 0) {
+                    return false;
+                }
             }
         }
         return true;

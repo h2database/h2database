@@ -584,6 +584,9 @@ public class Database implements DataHandler {
             if (existsMv && !FileUtils.canWrite(mvFileName)) {
                 readOnly = true;
             }
+            if (existsPage && !existsMv) {
+                dbSettings.mvStore = false;
+            }
             if (readOnly) {
                 if (traceLevelFile >= TraceSystem.DEBUG) {
                     String traceFile = Utils.getProperty("java.io.tmpdir", ".") +

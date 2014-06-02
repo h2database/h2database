@@ -49,6 +49,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testOldAndNew();
         testTemporaryTables();
         testUniqueIndex();
         testSecondaryIndex();
@@ -77,6 +78,34 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testOldAndNew() throws SQLException {
+        FileUtils.deleteRecursive(getBaseDir(), true);
+        Connection conn;
+        
+        String urlOld = getURL("mvstore;MV_STORE=FALSE", true);
+        String urlNew = getURL("mvstore;MV_STORE=TRUE", true);
+        String url = getURL("mvstore", true);
+        
+        conn = getConnection(urlOld);
+        conn.createStatement().execute("create table test_old(id int)");
+        conn.close();
+        conn = getConnection(url);
+        conn.createStatement().execute("select * from test_old");
+        conn.close();
+        conn = getConnection(urlNew);
+        conn.createStatement().execute("create table test_new(id int)");
+        conn.close();
+        conn = getConnection(url);
+        conn.createStatement().execute("select * from test_new");
+        conn.close();
+        conn = getConnection(urlOld);
+        conn.createStatement().execute("select * from test_old");
+        conn.close();
+        conn = getConnection(urlNew);
+        conn.createStatement().execute("select * from test_new");
+        conn.close();
     }
     
     private void testTemporaryTables() throws SQLException {

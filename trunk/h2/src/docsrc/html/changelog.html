@@ -18,7 +18,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Large result sets now always create temporary tables instead of temporary files.
+<ul><li>MVStore: descending indexes with "nulls first" did not work as expected
+    (null was ordered last).
+</li><li>Large result sets now always create temporary tables instead of temporary files.
 </li><li>When using the PageStore, opening a database failed in some cases with a NullPointerException
     if temporary tables were used (explicitly, or implicitly when using large result sets).
 </li><li>If a database file in the PageStore file format exists, this file and this mode

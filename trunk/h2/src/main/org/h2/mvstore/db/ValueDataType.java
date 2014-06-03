@@ -115,7 +115,8 @@ public class ValueDataType implements DataType {
         if (a == b) {
             return 0;
         }
-        boolean aNull = a == null, bNull = b == null;
+        boolean aNull = a == null || a == ValueNull.INSTANCE;
+        boolean bNull = b == null || b == ValueNull.INSTANCE;
         if (aNull || bNull) {
             return SortOrder.compareNull(aNull, sortType);
         }

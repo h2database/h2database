@@ -526,7 +526,7 @@ public class Data {
                 Timestamp ts = v.getTimestamp();
                 writeByte((byte) type);
                 writeVarLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeVarInt(ts.getNanos());
+                writeVarInt(ts.getNanos() % 1000000);
             }
             break;
         }
@@ -1010,7 +1010,7 @@ public class Data {
             }
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) +
-                    getVarIntLen(ts.getNanos());
+                    getVarIntLen(ts.getNanos() % 1000000);
         }
         case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {

@@ -225,7 +225,6 @@ public class TestDataPage extends TestBase implements DataHandler {
         assertEquals(123, data.readInt());
     }
 
-
     private void testAll() {
         Data page = Data.create(this, 128);
 

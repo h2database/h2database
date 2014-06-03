@@ -15,11 +15,9 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Time;
 import java.sql.Timestamp;
 
 import org.h2.api.ErrorCode;
@@ -383,11 +381,11 @@ public class Transfer {
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 Timestamp ts = v.getTimestamp();
                 writeLong(DateTimeUtils.getTimeLocalWithoutDst(ts));
-                writeInt(ts.getNanos());
+                writeInt(ts.getNanos() % 1000000);
             } else {
                 Timestamp ts = v.getTimestamp();
                 writeLong(ts.getTime());
-                writeInt(ts.getNanos());
+                writeInt(ts.getNanos() % 1000000);
             }
             break;
         }
@@ -563,13 +561,15 @@ public class Transfer {
             return ValueTime.fromMillis(readLong());
         case Value.TIMESTAMP: {
             if (version >= Constants.TCP_PROTOCOL_VERSION_9) {
-                return ValueTimestamp.fromDateValueAndNanos(readLong(), readLong());
+                return ValueTimestamp.fromDateValueAndNanos(
+                        readLong(), readLong());
             } else if (version >= Constants.TCP_PROTOCOL_VERSION_7) {
                 return ValueTimestamp.fromMillisNanos(
                         DateTimeUtils.getTimeUTCWithoutDst(readLong()),
-                        readInt());
+                        readInt() % 1000000);
             }
-            return ValueTimestamp.fromMillisNanos(readLong(), readInt());
+            return ValueTimestamp.fromMillisNanos(readLong(), 
+                    readInt() % 1000000);
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));

@@ -430,7 +430,7 @@ public class MVTable extends TableBase {
 
     private void rebuildIndex(Session session, MVIndex index, String indexName) {
         try {
-            if (session.getDatabase().getMvStore() == null) {
+            if (session.getDatabase().getMvStore() == null || index instanceof MVSpatialIndex) {
                 // in-memory
                 rebuildIndexBuffered(session, index);
             } else {

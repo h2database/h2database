@@ -69,11 +69,13 @@ public class TestJmx extends TestBase {
                 getAttribute(name, "FileWriteCount").toString());
         assertEquals("0", mbeanServer.
                 getAttribute(name, "FileWriteCountTotal").toString());
-        assertEquals("1", mbeanServer.
-                getAttribute(name, "LogMode").toString());
-        mbeanServer.setAttribute(name, new Attribute("LogMode", 2));
-        assertEquals("2", mbeanServer.
-                getAttribute(name, "LogMode").toString());
+        if (config.mvStore) {
+            assertEquals("1", mbeanServer.
+                    getAttribute(name, "LogMode").toString());
+            mbeanServer.setAttribute(name, new Attribute("LogMode", 2));
+            assertEquals("2", mbeanServer.
+                    getAttribute(name, "LogMode").toString());
+        }
         assertEquals("REGULAR", mbeanServer.
                 getAttribute(name, "Mode").toString());
         assertEquals("false", mbeanServer.

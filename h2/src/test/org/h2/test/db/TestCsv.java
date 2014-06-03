@@ -351,10 +351,10 @@ public class TestCsv extends TestBase {
         Connection conn = getConnection("csv");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
-        stat.execute("create table test(a varchar, b varchar)");
+        stat.execute("create table test(id identity, a varchar, b varchar)");
         int len = getSize(1000, 10000);
         PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(?, ?)");
+                "insert into test(a, b) values(?, ?)");
         ArrayList<String[]> list = New.arrayList();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
@@ -364,8 +364,8 @@ public class TestCsv extends TestBase {
             list.add(new String[] { a, b });
             prep.execute();
         }
-        stat.execute("CALL CSVWRITE('" + getBaseDir() +
-                "/test.csv', 'SELECT * FROM test', 'UTF-8', '|', '#')");
+        stat.execute("call csvwrite('" + getBaseDir() +
+                "/test.csv', 'select a, b from test order by id', 'UTF-8', '|', '#')");
         Csv csv = new Csv();
         csv.setFieldSeparatorRead('|');
         csv.setFieldDelimiter('#');

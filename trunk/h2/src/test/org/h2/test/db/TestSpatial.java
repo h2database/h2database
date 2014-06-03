@@ -424,7 +424,9 @@ public class TestSpatial extends TestBase {
                 "explain select * from test " +
                 "where polygon && 'POLYGON ((1 1, 1 2, 2 2, 1 1))'::Geometry");
         rs.next();
-        assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
+        if (config.mvStore) {
+            assertContains(rs.getString(1), "/* PUBLIC.IDX_TEST_POLYGON: POLYGON &&");
+        }
 
         // TODO equality should probably also use the spatial index
         // rs = stat.executeQuery("explain select * from test " +

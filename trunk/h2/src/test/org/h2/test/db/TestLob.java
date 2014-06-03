@@ -1534,7 +1534,7 @@ public class TestLob extends TestBase {
             String read = rs.getString(2);
             if (!read.equals(data)) {
                 for (int j = 0; j < read.length(); j++) {
-                    assertEquals("pos: " + j, read.charAt(j), data.charAt(j));
+                    assertEquals("pos: " + j + " i:" + i, read.charAt(j), data.charAt(j));
                 }
             }
             assertEquals(read, data);

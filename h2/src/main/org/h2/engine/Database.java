@@ -675,7 +675,9 @@ public class Database implements DataHandler {
             }
             traceSystem = new TraceSystem(null);
             trace = traceSystem.getTrace(Trace.DATABASE);
-            getPageStore();
+            if (dbSettings.mvStore) {
+                getPageStore();
+            }
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
         mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);

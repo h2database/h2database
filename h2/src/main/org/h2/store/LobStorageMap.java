@@ -225,6 +225,9 @@ public class LobStorageMap implements LobStorageInterface {
             throws IOException {
         init();
         Object[] value = lobMap.get(lob.getLobId());
+        if (value == null) {
+            throw DbException.throwInternalError("Lob not found: " + lob.getLobId());
+        }
         byte[] streamStoreId = (byte[]) value[0];
         return streamStore.get(streamStoreId);
     }

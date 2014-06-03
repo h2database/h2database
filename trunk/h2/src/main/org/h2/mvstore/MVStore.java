@@ -104,6 +104,7 @@ MVStore:
 - Support SortedMap for MVMap
 - compact: copy whole pages (without having to open all maps)
 - maybe change the length code to have lower gaps
+- test with very low limits (such as: short chunks, small pages)
 
 */
 

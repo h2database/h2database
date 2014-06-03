@@ -389,7 +389,7 @@ java org.h2.test.TestAll timer
         ; // TEST
 //        System.setProperty("h2.maxMemoryRows", "2");
         
-        System.setProperty("h2.maxMemoryRows", "100");
+        System.setProperty("h2.maxMemoryRows", "10");
 //        System.setProperty("h2.maxMemoryRows", "1000");
 //        System.setProperty("h2.maxMemoryRows", "2");
         

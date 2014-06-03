@@ -17,11 +17,9 @@ import org.h2.expression.Expression;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
-import org.h2.index.PageBtreeIndex;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
@@ -114,16 +112,9 @@ public class ResultTempTable implements ResultExternal {
                 table, Constants.PREFIX_INDEX);
         int indexId = session.getDatabase().allocateObjectId();
         IndexType indexType = IndexType.createNonUnique(true);
-        if (session.getDatabase().getMvStore() != null) {
-            index = table.addIndex(session, indexName, indexId, indexCols,
-                    indexType, true, null);
-            index.setTemporary(true);
-        } else {
-            index = new PageBtreeIndex((RegularTable) table, indexId,
-                    indexName, indexCols, indexType, true, session);
-            index.setTemporary(true);
-            table.getIndexes().add(index);
-        }
+        index = table.addIndex(session, indexName, indexId, indexCols,
+                indexType, true, null);
+        index.setTemporary(true);
     }
 
     @Override
@@ -301,10 +292,10 @@ public class ResultTempTable implements ResultExternal {
             createIndex();
         }
         Cursor cursor = index.find(session, row, row);
-        Database db = session.getDatabase();
         while (cursor.next()) {
             SearchRow found = cursor.getSearchRow();
             boolean ok = true;
+            Database db = session.getDatabase();
             for (int i = 0; i < row.getColumnCount(); i++) {
                 if (!db.areEqual(row.getValue(i), found.getValue(i))) {
                     ok = false;

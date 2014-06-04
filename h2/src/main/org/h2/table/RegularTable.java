@@ -700,6 +700,8 @@ public class RegularTable extends TableBase {
             if (index.getName() != null) {
                 database.removeSchemaObject(session, index);
             }
+            // needed for session temporary indexes
+            indexes.remove(index);
         }
         if (SysProperties.CHECK) {
             for (SchemaObject obj : database.getAllSchemaObjects(DbObject.INDEX)) {

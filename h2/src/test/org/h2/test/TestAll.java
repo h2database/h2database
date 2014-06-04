@@ -386,13 +386,7 @@ java org.h2.test.TestAll timer
         // use lower values, to better test those cases,
         // and to speed up the tests (for delays)
   
-        ; // TEST
-//        System.setProperty("h2.maxMemoryRows", "2");
-        
-        System.setProperty("h2.maxMemoryRows", "10");
-//        System.setProperty("h2.maxMemoryRows", "1000");
-//        System.setProperty("h2.maxMemoryRows", "2");
-        
+        System.setProperty("h2.maxMemoryRows", "100");
         
         System.setProperty("h2.check2", "true");
         System.setProperty("h2.delayWrongPasswordMin", "0");

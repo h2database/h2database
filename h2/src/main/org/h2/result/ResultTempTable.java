@@ -114,7 +114,6 @@ public class ResultTempTable implements ResultExternal {
         IndexType indexType = IndexType.createNonUnique(true);
         index = table.addIndex(session, indexName, indexId, indexCols,
                 indexType, true, null);
-        index.setTemporary(true);
     }
 
     @Override
@@ -221,12 +220,21 @@ public class ResultTempTable implements ResultExternal {
             // time. (the table is truncated, so this is just one record)
             if (!database.isSysTableLocked()) {
                 Session sysSession = database.getSystemSession();
-                if (index != null) {
-                    index.removeChildrenAndResources(sysSession);
-                }
                 table.removeChildrenAndResources(sysSession);
+                if (index != null) {
+                    // need to explicitly do this, 
+                    // as it's not registered in the system session
+                    session.removeLocalTempTableIndex(index);
+                }
                 // the transaction must be committed immediately
-                sysSession.commit(false);
+                // TODO this synchronization cascade is very ugly
+                synchronized (session) {
+                    synchronized (database) {
+                        synchronized (sysSession) {
+                            sysSession.commit(false);
+                        }
+                    }
+                }
             }
         } finally {
             table = null;

@@ -74,13 +74,20 @@ public class ValueDataType implements DataType {
     final DataHandler handler;
     final CompareMode compareMode;
     final int[] sortTypes;
-    final SpatialDataType spatialType = new SpatialDataType(2);
+    SpatialDataType spatialType;
 
     public ValueDataType(CompareMode compareMode, DataHandler handler,
             int[] sortTypes) {
         this.compareMode = compareMode;
         this.handler = handler;
         this.sortTypes = sortTypes;
+    }
+    
+    private SpatialDataType getSpatialDataType() {
+        if (spatialType == null) {
+            spatialType = new SpatialDataType(2);
+        }
+        return spatialType;
     }
 
     @Override
@@ -137,7 +144,7 @@ public class ValueDataType implements DataType {
     @Override
     public int getMemory(Object obj) {
         if (obj instanceof SpatialKey) {
-            return spatialType.getMemory(obj);
+            return getSpatialDataType().getMemory(obj);
         }
         return getMemory((Value) obj);
     }
@@ -169,7 +176,7 @@ public class ValueDataType implements DataType {
     public void write(WriteBuffer buff, Object obj) {
         if (obj instanceof SpatialKey) {
             buff.put((byte) SPATIAL_KEY_2D);
-            spatialType.write(buff, obj);
+            getSpatialDataType().write(buff, obj);
             return;
         }
         Value x = (Value) obj;
@@ -566,7 +573,7 @@ public class ValueDataType implements DataType {
             return ValueGeometry.get(b);
         }
         case SPATIAL_KEY_2D:
-            return spatialType.read(buff);
+            return getSpatialDataType().read(buff);
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {
                 return ValueInt.get(type - INT_0_15);

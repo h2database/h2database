@@ -762,10 +762,6 @@ public class TransactionStore {
          * Commit the transaction. Afterwards, this transaction is closed.
          */
         public void commit() {
-            if (status == STATUS_CLOSED) {
-                // TODO analyze why this happens
-                return;
-            }
             checkNotClosed();
             store.commit(this, logId);
         }

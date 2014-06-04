@@ -191,8 +191,8 @@ public class SelectUnion extends Query {
         default:
             DbException.throwInternalError("type=" + unionType);
         }
-        ResultInterface l = left.query(0);
-        ResultInterface r = right.query(0);
+        LocalResult l = left.query(0);
+        LocalResult r = right.query(0);
         l.reset();
         r.reset();
         switch (unionType) {
@@ -242,6 +242,8 @@ public class SelectUnion extends Query {
                 result.setLimit(v.getInt());
             }
         }
+        l.close();
+        r.close();
         result.done();
         if (target != null) {
             while (result.next()) {

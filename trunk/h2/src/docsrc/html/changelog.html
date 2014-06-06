@@ -18,7 +18,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: descending indexes with "nulls first" did not work as expected
+<ul><li>There was a way to prevent a database from being re-opened,
+    by creating a column constraint that references a table with a higher id.
+    This is now detected, and creating the table is prohibited.
+    In future versions of H2, most likely creating references to other
+    tables will no longer be supported because of such problems.
+</li><li>MVStore: descending indexes with "nulls first" did not work as expected
     (null was ordered last).
 </li><li>Large result sets now always create temporary tables instead of temporary files.
 </li><li>When using the PageStore, opening a database failed in some cases with a NullPointerException

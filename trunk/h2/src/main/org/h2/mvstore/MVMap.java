@@ -782,7 +782,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         rewrite(root, set);
     }
 
-    public int rewrite(Page p, Set<Integer> set) {
+    private int rewrite(Page p, Set<Integer> set) {
         ; // TODO write more tests
         if (p.isLeaf()) {
             long pos = p.getPos();
@@ -837,7 +837,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         return writtenPageCount;
     }
-
 
     /**
      * Get a cursor to iterate over a number of keys and values.

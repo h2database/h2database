@@ -384,8 +384,8 @@ java org.h2.test.TestAll timer
         printSystemInfo();
         
         // use lower values, to better test those cases,
-        // and to speed up the tests (for delays)
-  
+        // and (for delays) to speed up the tests
+
         System.setProperty("h2.maxMemoryRows", "100");
         
         System.setProperty("h2.check2", "true");

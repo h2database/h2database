@@ -43,9 +43,9 @@ TransactionStore:
     if there is only one connection
 
 MVStore:
-- data kept in stream store if transaction is not committed?
-- automated 'kill process' and 'power failure' test
 - test and possibly improve compact operation (for large dbs)
+- is data kept in the stream store if the transaction is not committed?
+- automated 'kill process' and 'power failure' test
 - compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - store number of write operations per page (maybe defragment
@@ -65,11 +65,11 @@ MVStore:
 - remove features that are not really needed; simplify the code
     possibly using a separate layer or tools
     (retainVersion?)
-- rename "store" to "save", as "store" is used in "storeVersion"
 - MVStoreTool.dump should dump the data if possible;
     possibly using a callback for serialization
 - optional pluggable checksum mechanism (per page), which
     requires that everything is a page (including headers)
+- rename "store" to "save", as "store" is used in "storeVersion"
 - rename setStoreVersion to setDataVersion, setSchemaVersion or similar
 - temporary file storage
 - simple rollback method (rollback to last committed version)

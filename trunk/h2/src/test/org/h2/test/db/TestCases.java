@@ -41,6 +41,7 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testReferenceLaterTable();
         testAutoCommitInDatabaseURL();
         testReferenceableIndexUsage();
         testClearSyntaxException();
@@ -105,6 +106,23 @@ public class TestCases extends TestBase {
         testCollation();
         testBinaryCollation();
         deleteDb("cases");
+    }
+    
+    private void testReferenceLaterTable() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        stat.execute("create table a(id int)");
+        stat.execute("create table b(id int)");
+        stat.execute("drop table a");
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
+            execute("create table a(id int check id < select max(id) from b)");
+        stat.execute("drop table b");
+        stat.execute("create table b(id int)");
+        stat.execute("create table a(id int check id < select max(id) from b)");
+        conn.close();
+        conn = getConnection("cases");
+        conn.close();
     }
 
     private void testAutoCommitInDatabaseURL() throws SQLException {

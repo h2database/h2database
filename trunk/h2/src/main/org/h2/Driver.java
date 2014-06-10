@@ -14,7 +14,6 @@ import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.message.TraceSystem;
 import org.h2.upgrade.DbUpgrade;
 
 /*## Java 1.7 ##
@@ -161,7 +160,7 @@ public class Driver implements java.sql.Driver {
                 DriverManager.registerDriver(INSTANCE);
             }
         } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
         return INSTANCE;
     }
@@ -176,7 +175,7 @@ public class Driver implements java.sql.Driver {
                 DriverManager.deregisterDriver(INSTANCE);
             }
         } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
     }
 

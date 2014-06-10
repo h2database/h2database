@@ -128,7 +128,7 @@ public class Shell extends Tool implements Runnable {
                 password = args[++i];
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
-                Utils.loadUserClass(driver);
+                JdbcUtils.loadUserClass(driver);
             } else if (arg.equals("-sql")) {
                 sql = args[++i];
             } else if (arg.equals("-properties")) {

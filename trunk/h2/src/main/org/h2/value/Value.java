@@ -27,6 +27,7 @@ import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
@@ -817,7 +818,7 @@ public abstract class Value {
                 case BYTES:
                     return ValueGeometry.get(getBytesNoCopy());
                 case JAVA_OBJECT:
-                    Object object = Utils.deserialize(getBytesNoCopy(), getDataHandler());
+                    Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
                     if (DataType.isGeometry(object)) {
                         return ValueGeometry.getFromGeometry(object);
                     }

@@ -27,6 +27,7 @@ import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 
 /**
@@ -375,7 +376,7 @@ public class TestCallableStatement extends TestBase {
 
     private void testClassLoader(Connection conn) throws SQLException {
         Utils.ClassFactory myFactory = new TestClassFactory();
-        Utils.addClassFactory(myFactory);
+        JdbcUtils.addClassFactory(myFactory);
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS T_CLASSLOADER FOR \"TestClassFactory.testClassF\"");
@@ -383,7 +384,7 @@ public class TestCallableStatement extends TestBase {
             assertTrue(rs.next());
             assertEquals(false, rs.getBoolean(1));
         } finally {
-            Utils.removeClassFactory(myFactory);
+            JdbcUtils.removeClassFactory(myFactory);
         }
     }
 

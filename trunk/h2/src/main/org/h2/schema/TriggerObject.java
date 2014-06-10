@@ -18,7 +18,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
-import org.h2.util.Utils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -67,7 +67,7 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             Session sysSession = database.getSystemSession();
             Connection c2 = sysSession.createConnection(false);
-            Object obj = Utils.loadUserClass(triggerClassName).newInstance();
+            Object obj = JdbcUtils.loadUserClass(triggerClassName).newInstance();
             triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(),
                     table.getName(), before, typeMask);

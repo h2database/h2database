@@ -56,6 +56,7 @@ import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.BitField;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
@@ -486,7 +487,7 @@ public class Database implements DataHandler {
                     traceSystem.close();
                 }
             } catch (DbException e) {
-                TraceSystem.traceThrowable(e);
+                DbException.traceThrowable(e);
             }
         }
         Engine.getInstance().close(databaseName);
@@ -1996,7 +1997,7 @@ public class Database implements DataHandler {
         } else {
             try {
                 eventListener = (DatabaseEventListener)
-                        Utils.loadUserClass(className).newInstance();
+                        JdbcUtils.loadUserClass(className).newInstance();
                 String url = databaseURL;
                 if (cipher != null) {
                     url += ";CIPHER=" + cipher;
@@ -2726,7 +2727,7 @@ public class Database implements DataHandler {
                         !serializerName.equals("null")) {
                     try {
                         javaObjectSerializer = (JavaObjectSerializer)
-                                Utils.loadUserClass(serializerName).newInstance();
+                                JdbcUtils.loadUserClass(serializerName).newInstance();
                     } catch (Exception e) {
                         throw DbException.convert(e);
                     }

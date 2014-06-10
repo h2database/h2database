@@ -12,6 +12,7 @@ import java.sql.Types;
 
 import org.h2.engine.SysProperties;
 import org.h2.store.DataHandler;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 
 /**
@@ -45,7 +46,7 @@ public class ValueJavaObject extends ValueBytes {
         ValueJavaObject obj;
         if (SysProperties.serializeJavaObject) {
             if (b == null) {
-                b = Utils.serialize(javaObject, dataHandler);
+                b = JdbcUtils.serialize(javaObject, dataHandler);
             }
             obj = new ValueJavaObject(b, dataHandler);
         } else {
@@ -65,7 +66,7 @@ public class ValueJavaObject extends ValueBytes {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        Object obj = Utils.deserialize(getBytesNoCopy(), getDataHandler());
+        Object obj = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
         prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
     }
 
@@ -95,7 +96,7 @@ public class ValueJavaObject extends ValueBytes {
         @Override
         public byte[] getBytesNoCopy() {
             if (value == null) {
-                value = Utils.serialize(javaObject, null);
+                value = JdbcUtils.serialize(javaObject, null);
             }
             return value;
         }
@@ -163,7 +164,7 @@ public class ValueJavaObject extends ValueBytes {
         @Override
         public Object getObject() {
             if (javaObject == null) {
-                javaObject = Utils.deserialize(value, getDataHandler());
+                javaObject = JdbcUtils.deserialize(value, getDataHandler());
             }
             return javaObject;
         }

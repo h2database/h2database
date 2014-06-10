@@ -24,7 +24,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.message.DbException;
-import org.h2.message.TraceSystem;
 import org.h2.mvstore.DataUtils;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
@@ -32,6 +31,7 @@ import org.h2.store.DataReader;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.StringUtils;
@@ -321,7 +321,7 @@ public class Transfer {
                     socket.close();
                 }
             } catch (IOException e) {
-                TraceSystem.traceThrowable(e);
+                DbException.traceThrowable(e);
             } finally {
                 socket = null;
             }
@@ -665,7 +665,7 @@ public class Transfer {
             Class<?> componentType = Object.class;
             if (len < 0) {
                 len = -(len + 1);
-                componentType = Utils.loadUserClass(readString());
+                componentType = JdbcUtils.loadUserClass(readString());
             }
             Value[] list = new Value[len];
             for (int i = 0; i < len; i++) {

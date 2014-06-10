@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -22,11 +23,11 @@ import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.Table;
+import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -143,7 +144,7 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     private void loadClass() {
-        Class<?> javaClass = Utils.loadUserClass(className);
+        Class<?> javaClass = JdbcUtils.loadUserClass(className);
         Method[] methods = javaClass.getMethods();
         ArrayList<JavaMethod> list = New.arrayList();
         for (int i = 0, len = methods.length; i < len; i++) {

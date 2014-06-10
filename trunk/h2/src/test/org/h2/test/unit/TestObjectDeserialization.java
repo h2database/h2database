@@ -8,8 +8,8 @@ package org.h2.test.unit;
 
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * Tests the ability to deserialize objects that are not part of the system
@@ -46,7 +46,7 @@ public class TestObjectDeserialization extends TestBase {
         usesThreadContextClassLoader = false;
         Thread.currentThread().setContextClassLoader(new TestClassLoader());
         try {
-            Utils.deserialize(StringUtils.convertHexToBytes(OBJECT), null);
+            JdbcUtils.deserialize(StringUtils.convertHexToBytes(OBJECT), null);
             fail();
         } catch (DbException e) {
             // expected

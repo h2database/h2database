@@ -6,17 +6,17 @@
  */
 package org.h2.engine;
 
-import org.h2.api.AggregateFunction;
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import org.h2.api.Aggregate;
+import org.h2.api.AggregateFunction;
 import org.h2.command.Parser;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.table.Table;
-import org.h2.util.Utils;
+import org.h2.util.JdbcUtils;
 import org.h2.value.DataType;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * Represents a user-defined aggregate function.
@@ -37,7 +37,7 @@ public class UserAggregate extends DbObjectBase {
 
     public Aggregate getInstance() {
         if (javaClass == null) {
-            javaClass = Utils.loadUserClass(className);
+            javaClass = JdbcUtils.loadUserClass(className);
         }
         Object obj;
         try {

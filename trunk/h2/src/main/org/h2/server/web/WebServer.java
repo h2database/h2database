@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
@@ -30,7 +29,7 @@ import java.util.TimeZone;
 
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.message.TraceSystem;
+import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.store.fs.FileUtils;
@@ -406,7 +405,7 @@ public class WebServer implements Service {
             try {
                 listenerThread.join(1000);
             } catch (InterruptedException e) {
-                TraceSystem.traceThrowable(e);
+                DbException.traceThrowable(e);
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
@@ -477,7 +476,7 @@ public class WebServer implements Service {
                 }
             }
         } catch (IOException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
         session.put("text", new HashMap<Object, Object>(text));
     }
@@ -563,7 +562,7 @@ public class WebServer implements Service {
             return SortedProperties.loadProperties(
                     serverPropertiesDir + "/" + Constants.SERVER_PROPERTIES_NAME);
         } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
             return new Properties();
         }
     }
@@ -650,7 +649,7 @@ public class WebServer implements Service {
                 out.close();
             }
         } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
     }
 

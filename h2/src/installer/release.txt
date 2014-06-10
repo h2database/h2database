@@ -3,6 +3,7 @@ svn up
 ./build.sh spellcheck
 ./build.sh javadocImpl
 ./build.sh docs
+./build.sh jarMVStore (should be about 200 KB)
 Update Constants.java - change version and build number
 Update changelog.html - add new version, remove oldest
 Update newsfeed.sql - add new version, remove oldest

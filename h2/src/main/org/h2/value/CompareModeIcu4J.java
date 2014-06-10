@@ -9,9 +9,10 @@ package org.h2.value;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.Locale;
+
 import org.h2.message.DbException;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * An implementation of CompareMode that uses the ICU4J Collator.
@@ -45,7 +46,7 @@ public class CompareModeIcu4J extends CompareMode {
     private static Comparator<String> getIcu4jCollator(String name, int strength) {
         try {
             Comparator<String> result = null;
-            Class<?> collatorClass = Utils.loadUserClass(
+            Class<?> collatorClass = JdbcUtils.loadUserClass(
                     "com.ibm.icu.text.Collator");
             Method getInstanceMethod = collatorClass.getMethod(
                     "getInstance", Locale.class);

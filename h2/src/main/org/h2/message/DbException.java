@@ -8,7 +8,9 @@ package org.h2.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -63,9 +65,9 @@ public class DbException extends RuntimeException {
                 }
             }
         } catch (OutOfMemoryError e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         } catch (IOException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
     }
 
@@ -239,7 +241,7 @@ public class DbException extends RuntimeException {
      */
     public static RuntimeException throwInternalError(String s) {
         RuntimeException e = new RuntimeException(s);
-        TraceSystem.traceThrowable(e);
+        DbException.traceThrowable(e);
         throw e;
     }
 
@@ -369,6 +371,18 @@ public class DbException extends RuntimeException {
 
     public void setSource(Object source) {
         this.source = source;
+    }
+
+    /**
+     * Write the exception to the driver manager log writer if configured.
+     *
+     * @param e the exception
+     */
+    public static void traceThrowable(Throwable e) {
+        PrintWriter writer = DriverManager.getLogWriter();
+        if (writer != null) {
+            e.printStackTrace(writer);
+        }
     }
 
 }

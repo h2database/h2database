@@ -36,7 +36,6 @@ import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
-import org.h2.util.Utils;
 
 /**
  * Tests LOB and CLOB data types.
@@ -1430,7 +1429,7 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("drop table test");
         stat.execute("create table test(value other)");
         prep = conn.prepareStatement("insert into test values(?)");
-        prep.setObject(1, Utils.serialize("", conn.getSession().getDataHandler()));
+        prep.setObject(1, JdbcUtils.serialize("", conn.getSession().getDataHandler()));
         prep.execute();
         rs = stat.executeQuery("select value from test");
         while (rs.next()) {

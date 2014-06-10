@@ -40,6 +40,7 @@ import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.CloseWatcher;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
@@ -1908,7 +1909,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
         case Value.JAVA_OBJECT:
             if (SysProperties.serializeJavaObject) {
-                o = Utils.deserialize(v.getBytesNoCopy(), session.getDataHandler());
+                o = JdbcUtils.deserialize(v.getBytesNoCopy(), session.getDataHandler());
                 break;
             }
         default:

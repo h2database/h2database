@@ -22,8 +22,6 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.Map.Entry;
-import org.h2.message.DbException;
-import org.h2.message.TraceSystem;
 import org.h2.store.fs.FileUtils;
 
 /**
@@ -58,7 +56,7 @@ public class SortedProperties extends Properties {
         try {
             return Boolean.parseBoolean(value);
         } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
+            e.printStackTrace();
             return def;
         }
     }
@@ -76,7 +74,7 @@ public class SortedProperties extends Properties {
         try {
             return Integer.decode(value);
         } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
+            e.printStackTrace();
             return def;
         }
     }
@@ -119,7 +117,7 @@ public class SortedProperties extends Properties {
         try {
             w = new OutputStreamWriter(FileUtils.newOutputStream(fileName, false));
         } catch (Exception e) {
-            throw DbException.convertToIOException(e);
+            throw new IOException(e.toString(), e);
         }
         PrintWriter writer = new PrintWriter(new BufferedWriter(w));
         while (true) {

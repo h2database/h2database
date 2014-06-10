@@ -371,7 +371,7 @@ public class TraceObject {
     protected SQLException logAndConvert(Exception ex) {
         SQLException e = DbException.toSQLException(ex);
         if (trace == null) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         } else {
             int errorCode = e.getErrorCode();
             if (errorCode >= 23000 && errorCode < 24000) {

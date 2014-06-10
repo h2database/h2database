@@ -29,7 +29,7 @@ public class DbDriverActivator implements BundleActivator {
     public void start(BundleContext bundleContext) {
         org.h2.Driver driver = org.h2.Driver.load();
         try {
-            Utils.loadUserClass(DATASOURCE_FACTORY_CLASS);
+            JdbcUtils.loadUserClass(DATASOURCE_FACTORY_CLASS);
         } catch (Exception e) {
             // class not found - don't register
             return;

@@ -6,7 +6,6 @@
  */
 package org.h2.engine;
 
-import org.h2.message.TraceSystem;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -172,7 +171,7 @@ public class SysProperties {
      * error.
      */
     public static final int DATASOURCE_TRACE_LEVEL =
-            Utils.getProperty("h2.dataSourceTraceLevel", TraceSystem.ERROR);
+            Utils.getProperty("h2.dataSourceTraceLevel", 1);
 
     /**
      * System property <code>h2.delayWrongPasswordMin</code>

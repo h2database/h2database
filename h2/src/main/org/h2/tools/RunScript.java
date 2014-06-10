@@ -17,11 +17,11 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.Utils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.ScriptReader;
@@ -116,7 +116,7 @@ public class RunScript extends Tool {
                 showTime = true;
             } else if (arg.equals("-driver")) {
                 String driver = args[++i];
-                Utils.loadUserClass(driver);
+                JdbcUtils.loadUserClass(driver);
             } else if (arg.equals("-options")) {
                 StringBuilder buff = new StringBuilder();
                 i++;

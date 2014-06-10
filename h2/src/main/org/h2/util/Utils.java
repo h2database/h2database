@@ -6,39 +6,22 @@
  */
 package org.h2.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.ObjectStreamClass;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import org.h2.api.ErrorCode;
-import org.h2.api.JavaObjectSerializer;
-import org.h2.engine.SysProperties;
-import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 
 /**
  * This utility class contains miscellaneous functions.
  */
 public class Utils {
-
-    /**
-     * The serializer to use.
-     */
-    public static JavaObjectSerializer serializer;
 
     /**
      * An 0-size byte array.
@@ -61,59 +44,10 @@ public class Utils {
 
     private static final HashMap<String, byte[]> RESOURCES = New.hashMap();
 
-    private static boolean allowAllClasses;
-    private static HashSet<String> allowedClassNames;
-
-    /**
-     *  In order to manage more than one class loader
-     */
-    private static ArrayList<ClassFactory> userClassFactories =
-            new ArrayList<ClassFactory>();
-
-    private static String[] allowedClassNamePrefixes;
-
-    static {
-        String clazz = SysProperties.JAVA_OBJECT_SERIALIZER;
-        if (clazz != null) {
-            try {
-                serializer = (JavaObjectSerializer) loadUserClass(clazz).newInstance();
-            } catch (Exception e) {
-                throw DbException.convert(e);
-            }
-        }
-    }
-
     private Utils() {
         // utility class
     }
-
-    /**
-     * Add a class factory in order to manage more than one class loader.
-     *
-     * @param classFactory An object that implements ClassFactory
-     */
-    public static void addClassFactory(ClassFactory classFactory) {
-        getUserClassFactories().add(classFactory);
-    }
-
-    /**
-     * Remove a class factory
-     *
-     * @param classFactory Already inserted class factory instance
-     */
-    public static void removeClassFactory(ClassFactory classFactory) {
-        getUserClassFactories().remove(classFactory);
-    }
-
-    private static ArrayList<ClassFactory> getUserClassFactories() {
-        if (userClassFactories == null) {
-            // initially, it is empty
-            // but Apache Tomcat may clear the fields as well
-            userClassFactories = new ArrayList<ClassFactory>();
-        }
-        return userClassFactories;
-    }
-
+    
     private static int readInt(byte[] buff, int pos) {
         return (buff[pos++] << 24) +
                 ((buff[pos++] & 0xff) << 16) +
@@ -333,94 +267,6 @@ public class Utils {
     }
 
     /**
-     * Serialize the object to a byte array, using the serializer specified by
-     * the connection info if set, or the default serializer.
-     *
-     * @param obj the object to serialize
-     * @param dataHandler provides the object serializer (may be null)
-     * @return the byte array
-     */
-    public static byte[] serialize(Object obj, DataHandler dataHandler) {
-        try {
-            JavaObjectSerializer handlerSerializer = null;
-            if (dataHandler != null) {
-                handlerSerializer = dataHandler.getJavaObjectSerializer();
-            }
-            if (handlerSerializer != null) {
-                return handlerSerializer.serialize(obj);
-            }
-            if (serializer != null) {
-                return serializer.serialize(obj);
-            }
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            ObjectOutputStream os = new ObjectOutputStream(out);
-            os.writeObject(obj);
-            return out.toByteArray();
-        } catch (Throwable e) {
-            throw DbException.get(ErrorCode.SERIALIZATION_FAILED_1, e, e.toString());
-        }
-    }
-
-    /**
-     * De-serialize the byte array to an object.
-     *
-     * @param data the byte array
-     * @return the object
-     * @throws DbException if serialization fails
-     *
-     * @deprecated use {@link #deserialize(byte[], DataHandler)} instead
-     */
-    @Deprecated
-    public static Object deserialize(byte[] data) {
-        return deserialize(data, null);
-    }
-
-    /**
-     * De-serialize the byte array to an object, eventually using the serializer
-     * specified by the connection info.
-     *
-     * @param data the byte array
-     * @param dataHandler provides the object serializer (may be null)
-     * @return the object
-     * @throws DbException if serialization fails
-     */
-    public static Object deserialize(byte[] data, DataHandler dataHandler) {
-        try {
-            JavaObjectSerializer dbJavaObjectSerializer = null;
-            if (dataHandler != null) {
-                dbJavaObjectSerializer = dataHandler.getJavaObjectSerializer();
-            }
-            if (dbJavaObjectSerializer != null) {
-                return dbJavaObjectSerializer.deserialize(data);
-            }
-            if (serializer != null) {
-                return serializer.deserialize(data);
-            }
-            ByteArrayInputStream in = new ByteArrayInputStream(data);
-            ObjectInputStream is;
-            if (SysProperties.USE_THREAD_CONTEXT_CLASS_LOADER) {
-                final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                is = new ObjectInputStream(in) {
-                    @Override
-                    protected Class<?> resolveClass(ObjectStreamClass desc)
-                            throws IOException, ClassNotFoundException {
-                        try {
-                            return Class.forName(desc.getName(), true, loader);
-                        } catch (ClassNotFoundException e) {
-                            return super.resolveClass(desc);
-                        }
-                    }
-                };
-            } else {
-                is = new ObjectInputStream(in);
-            }
-            return is.readObject();
-        } catch (Throwable e) {
-            throw DbException.get(ErrorCode.DESERIALIZATION_FAILED_1, e, e.toString());
-        }
-    }
-
-    /**
      * Calculate the hash code of the given object. The object may be null.
      *
      * @param o the object
@@ -603,83 +449,6 @@ public class Utils {
         } while (Comparable.class.isAssignableFrom(c2));
 
         return top1 == top2;
-    }
-
-    /**
-     * Load a class, but check if it is allowed to load this class first. To
-     * perform access rights checking, the system property h2.allowedClasses
-     * needs to be set to a list of class file name prefixes.
-     *
-     * @param className the name of the class
-     * @return the class object
-     */
-    public static Class<?> loadUserClass(String className) {
-        if (allowedClassNames == null) {
-            // initialize the static fields
-            String s = SysProperties.ALLOWED_CLASSES;
-            ArrayList<String> prefixes = New.arrayList();
-            boolean allowAll = false;
-            HashSet<String> classNames = New.hashSet();
-            for (String p : StringUtils.arraySplit(s, ',', true)) {
-                if (p.equals("*")) {
-                    allowAll = true;
-                } else if (p.endsWith("*")) {
-                    prefixes.add(p.substring(0, p.length() - 1));
-                } else {
-                    classNames.add(p);
-                }
-            }
-            allowedClassNamePrefixes = new String[prefixes.size()];
-            prefixes.toArray(allowedClassNamePrefixes);
-            allowAllClasses = allowAll;
-            allowedClassNames = classNames;
-        }
-        if (!allowAllClasses && !allowedClassNames.contains(className)) {
-            boolean allowed = false;
-            for (String s : allowedClassNamePrefixes) {
-                if (className.startsWith(s)) {
-                    allowed = true;
-                }
-            }
-            if (!allowed) {
-                throw DbException.get(
-                        ErrorCode.ACCESS_DENIED_TO_CLASS_1, className);
-            }
-        }
-        // Use provided class factory first.
-        for (ClassFactory classFactory : getUserClassFactories()) {
-            if (classFactory.match(className)) {
-                try {
-                    Class<?> userClass = classFactory.loadClass(className);
-                    if (!(userClass == null)) {
-                        return userClass;
-                    }
-                } catch (Exception e) {
-                    throw DbException.get(
-                            ErrorCode.CLASS_NOT_FOUND_1, e, className);
-                }
-            }
-        }
-        // Use local ClassLoader
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            try {
-                return Class.forName(
-                        className, true,
-                        Thread.currentThread().getContextClassLoader());
-            } catch (Exception e2) {
-                throw DbException.get(
-                        ErrorCode.CLASS_NOT_FOUND_1, e, className);
-            }
-        } catch (NoClassDefFoundError e) {
-            throw DbException.get(
-                    ErrorCode.CLASS_NOT_FOUND_1, e, className);
-        } catch (Error e) {
-            // UnsupportedClassVersionError
-            throw DbException.get(
-                    ErrorCode.GENERAL_ERROR_1, e, className);
-        }
     }
 
     /**

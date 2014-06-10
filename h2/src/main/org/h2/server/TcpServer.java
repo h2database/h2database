@@ -25,7 +25,6 @@ import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
-import org.h2.message.TraceSystem;
 import org.h2.util.JdbcUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.New;
@@ -139,7 +138,7 @@ public class TcpServer implements Service {
             managementDbAdd.setString(3, user);
             managementDbAdd.execute();
         } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
     }
 
@@ -153,7 +152,7 @@ public class TcpServer implements Service {
             managementDbRemove.setInt(1, id);
             managementDbRemove.execute();
         } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
     }
 
@@ -162,7 +161,7 @@ public class TcpServer implements Service {
             try {
                 managementDb.close();
             } catch (SQLException e) {
-                TraceSystem.traceThrowable(e);
+                DbException.traceThrowable(e);
             }
             managementDb = null;
         }
@@ -260,7 +259,7 @@ public class TcpServer implements Service {
             serverSocket = NetUtils.closeSilently(serverSocket);
         } catch (Exception e) {
             if (!stop) {
-                TraceSystem.traceThrowable(e);
+                DbException.traceThrowable(e);
             }
         }
         stopManagementDb();
@@ -296,7 +295,7 @@ public class TcpServer implements Service {
                 try {
                     serverSocket.close();
                 } catch (IOException e) {
-                    TraceSystem.traceThrowable(e);
+                    DbException.traceThrowable(e);
                 } catch (NullPointerException e) {
                     // ignore
                 }
@@ -306,7 +305,7 @@ public class TcpServer implements Service {
                 try {
                     listenerThread.join(1000);
                 } catch (InterruptedException e) {
-                    TraceSystem.traceThrowable(e);
+                    DbException.traceThrowable(e);
                 }
             }
         }
@@ -317,7 +316,7 @@ public class TcpServer implements Service {
                 try {
                     c.getThread().join(100);
                 } catch (Exception e) {
-                    TraceSystem.traceThrowable(e);
+                    DbException.traceThrowable(e);
                 }
             }
         }

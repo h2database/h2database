@@ -19,7 +19,7 @@ import java.util.Locale;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbContextRule;
-import org.h2.message.TraceSystem;
+import org.h2.message.DbException;
 import org.h2.util.New;
 
 /**
@@ -203,7 +203,7 @@ class WebSession {
             m.put("executing", executingStatement == null ?
                     "${text.admin.no}" : "${text.admin.yes}");
         } catch (SQLException e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
         return m;
     }

@@ -33,6 +33,7 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.Utils;
 
@@ -175,7 +176,7 @@ public class DataType {
     static {
         Class<?> g;
         try {
-            g = Utils.loadUserClass(GEOMETRY_CLASS_NAME);
+            g = JdbcUtils.loadUserClass(GEOMETRY_CLASS_NAME);
         } catch (Exception e) {
             // class is not in the classpath - ignore
             g = null;
@@ -1194,7 +1195,7 @@ public class DataType {
             return new JdbcClob(conn, v, 0);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
-            Object o = SysProperties.serializeJavaObject ? Utils.deserialize(v.getBytes(),
+            Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
                     conn.getSession().getDataHandler()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;

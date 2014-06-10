@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
-import org.h2.message.TraceSystem;
+import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.NetUtils;
@@ -96,7 +96,7 @@ class WebThread extends WebApp implements Runnable {
                 }
             }
         } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
         IOUtils.closeSilently(output);
         IOUtils.closeSilently(input);

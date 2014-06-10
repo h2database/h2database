@@ -13,7 +13,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.test.TestBase;
-import org.h2.util.Utils;
+import org.h2.util.JdbcUtils;
 
 /**
  * Tests {@link JavaObjectSerializer}.
@@ -47,7 +47,7 @@ public class TestJavaObjectSerializer extends TestBase {
     }
 
     private void testStaticGlobalSerializer() throws Exception {
-        Utils.serializer = new JavaObjectSerializer() {
+        JdbcUtils.serializer = new JavaObjectSerializer() {
             @Override
             public byte[] serialize(Object obj) throws Exception {
                 assertEquals(100500, ((Integer) obj).intValue());
@@ -86,7 +86,7 @@ public class TestJavaObjectSerializer extends TestBase {
             conn.close();
             deleteDb("javaSerializer");
         } finally {
-            Utils.serializer = null;
+            JdbcUtils.serializer = null;
         }
     }
 

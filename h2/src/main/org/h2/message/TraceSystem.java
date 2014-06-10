@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.sql.DriverManager;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
@@ -117,18 +115,6 @@ public class TraceSystem implements TraceWriter {
      */
     public void setSysOut(PrintStream out) {
         this.sysOut = out;
-    }
-
-    /**
-     * Write the exception to the driver manager log writer if configured.
-     *
-     * @param e the exception
-     */
-    public static void traceThrowable(Throwable e) {
-        PrintWriter writer = DriverManager.getLogWriter();
-        if (writer != null) {
-            e.printStackTrace(writer);
-        }
     }
 
     /**

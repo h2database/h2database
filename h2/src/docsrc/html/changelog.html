@@ -18,7 +18,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>There was a way to prevent a database from being re-opened,
+<ul><li>Issue 565: MVStore: concurrently adding LOB objects 
+    (with MULTI_THREADED option) resulted in a NullPointerException.
+</li><li>MVStore: reduced dependencies to other H2 classes.
+</li><li>There was a way to prevent a database from being re-opened,
     by creating a column constraint that references a table with a higher id.
     This is now detected, and creating the table is prohibited.
     In future versions of H2, most likely creating references to other

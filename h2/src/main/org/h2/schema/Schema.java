@@ -28,8 +28,8 @@ import org.h2.mvstore.db.MVTableEngine;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
+import org.h2.util.JdbcUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
 
 /**
  * A schema as created by the SQL statement
@@ -576,7 +576,7 @@ public class Schema extends DbObjectBase {
             if (data.tableEngine != null) {
                 TableEngine engine;
                 try {
-                    engine = (TableEngine) Utils.loadUserClass(data.tableEngine).newInstance();
+                    engine = (TableEngine) JdbcUtils.loadUserClass(data.tableEngine).newInstance();
                 } catch (Exception e) {
                     throw DbException.convert(e);
                 }

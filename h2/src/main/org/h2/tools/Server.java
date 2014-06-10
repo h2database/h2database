@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
-import org.h2.message.TraceSystem;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.server.TcpServer;
@@ -569,7 +568,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
         try {
             service.listen();
         } catch (Exception e) {
-            TraceSystem.traceThrowable(e);
+            DbException.traceThrowable(e);
         }
     }
 

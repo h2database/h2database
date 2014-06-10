@@ -27,7 +27,6 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
 
 /**
  * This file system stores files on disk.
@@ -362,7 +361,7 @@ public class FilePathDisk extends FilePath {
         String prefix = new File(fileName).getName();
         File dir;
         if (inTempDir) {
-            dir = new File(Utils.getProperty("java.io.tmpdir", "."));
+            dir = new File(System.getProperty("java.io.tmpdir", "."));
         } else {
             dir = new File(fileName).getAbsoluteFile().getParentFile();
         }

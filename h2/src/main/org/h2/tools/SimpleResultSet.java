@@ -32,9 +32,9 @@ import java.util.Map;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -528,7 +528,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
         if (o == null || o instanceof byte[]) {
             return (byte[]) o;
         }
-        return Utils.serialize(o, null);
+        return JdbcUtils.serialize(o, null);
     }
 
     /**

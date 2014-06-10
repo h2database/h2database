@@ -6,11 +6,15 @@
  */
 package org.h2.util;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * A method call that is executed in a separate thread. If the method throws an
  * exception, it is wrapped in a RuntimeException.
  */
 public abstract class Task implements Runnable {
+    
+    private static AtomicInteger counter = new AtomicInteger();
 
     /**
      * A flag indicating the get() method has been called.
@@ -51,7 +55,7 @@ public abstract class Task implements Runnable {
      * @return this
      */
     public Task execute() {
-        return execute(getClass().getName());
+        return execute(getClass().getName() + ":" + counter.getAndIncrement());
     }
 
     /**

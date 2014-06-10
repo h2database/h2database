@@ -6,6 +6,7 @@
  */
 package org.h2.test.db;
 
+import java.io.StringReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,10 +54,47 @@ public class TestMultiThread extends TestBase implements Runnable {
 
     @Override
     public void test() throws Exception {
+        testConcurrentLobAdd();
         testConcurrentView();
         testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
+    }
+    
+    private void testConcurrentLobAdd() throws Exception {
+        String db = "concurrentLobAdd";
+        deleteDb(db);
+        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity, data clob)");
+        Task[] tasks = new Task[2];
+        for (int i = 0; i < tasks.length; i++) {
+            Task t = new Task() {
+                @Override
+                public void call() throws Exception {
+                    Connection c2 = getConnection(url);
+                    PreparedStatement p2 = c2
+                            .prepareStatement("insert into test(data) values(?)");
+                    try {
+                        while (!stop) {
+                            p2.setCharacterStream(1, new StringReader(new String(
+                                    new char[10 * 1024])));
+                            p2.execute();
+                        }
+                    } finally {
+                        c2.close();
+                    }
+                }
+            };
+            tasks[i] = t;
+            t.execute();
+        }
+        Thread.sleep(500);
+        for (Task t : tasks) {
+            t.get();
+        }
+        conn.close();
     }
 
     private void testConcurrentView() throws Exception {

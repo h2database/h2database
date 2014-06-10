@@ -35,11 +35,14 @@ import org.h2.value.ValueLobDb;
  */
 public class LobStorageMap implements LobStorageInterface {
 
-    private static final boolean TRACE = false;
+    private static final boolean TRACE = true;
 
     private final Database database;
 
     private boolean init;
+    
+    private Object nextLobIdSync = new Object();
+    private long nextLobId;
 
     /**
      * The lob metadata map. It contains the mapping from the lob id
@@ -190,8 +193,13 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     private long generateLobId() {
-        Long id = lobMap.lastKey();
-        return id == null ? 1 : id + 1;
+        synchronized (nextLobIdSync) {
+            if (nextLobId == 0) {
+                Long id = lobMap.lastKey();
+                nextLobId = id == null ? 1 : id + 1;
+            }
+            return nextLobId++;
+        }
     }
 
     @Override
@@ -299,7 +307,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     private static void trace(String op) {
-        System.out.println("LOB " + op);
+        System.out.println(Thread.currentThread().getName() + " LOB " + op);
     }
 
 }

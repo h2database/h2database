@@ -128,15 +128,6 @@ public class DbSettings extends SettingsBase {
     public final boolean functionsInSchema = get("FUNCTIONS_IN_SCHEMA", true);
 
     /**
-     * Database setting <code>LARGE_RESULT_BUFFER_SIZE</code>
-     * (default: 4096).<br />
-     * Buffer size for large result sets. Set this value to 0 to disable the
-     * buffer.
-     */
-    public final int largeResultBufferSize = get("LARGE_RESULT_BUFFER_SIZE",
-            4 * 1024);
-
-    /**
      * Database setting <code>LARGE_TRANSACTIONS</code> (default: true).<br />
      * Support very large transactions
      */

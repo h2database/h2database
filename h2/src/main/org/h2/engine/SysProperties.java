@@ -94,7 +94,7 @@ public class SysProperties {
      * to use Safari, use:
      * <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
      */
-    public static final String BROWSER =
+    public static final String BROWSER1 =
             Utils.getProperty(H2_BROWSER, null);
 
     /**

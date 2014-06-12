@@ -116,7 +116,6 @@
 90089=A coleção não pode ser alterada, porque existe uma tabela de dados: {0}
 90090=Esquema {0} não pode ser apagado
 90091=Regra {0} não pode ser apagada
-90092=Esta versão do Java não é suportada (Java 1.4 é requerido no mínimo)
 90093=Erro de clusterização - base de dados rodando no modo standalone no momento
 90094=Erro de clusterização - base de dados rodando no modo cluster, lista do servidor: {0}
 90095=Erro no formato da string: {0}
@@ -124,7 +123,6 @@
 90097=Base de dados é somente leitura
 90098=Base de dados foi fechada
 90099=Erro na definição do evento listener {0} da base de dados, causa: {1}
-90100=Não há espaço em disco suficiente
 90101=Formato XID incorreto: {0}
 90102=Não é suportado as opções de compressão: {0}
 90103=Não é suportado o algorítimo de compressão: {0}

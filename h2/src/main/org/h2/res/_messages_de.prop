@@ -116,7 +116,6 @@
 90089=Textvergleich-Modus kann nicht geändert werden wenn eine Daten-Tabelle existiert : {0}
 90090=Schema {0} kann nicht gelöscht werden
 90091=Rolle {0} kann nicht gelöscht werden
-90092=Diese Java-Version wird nicht unterstützt (Java 1.4 oder neuer wird benötigt)
 90093=Clustering Fehler - Datenbank läuft bereits im autonomen Modus
 90094=Clustering Fehler - Datenbank läuft bereits im Cluster Modus, Serverliste: {0}
 90095=Textformat Fehler: {0}
@@ -124,7 +123,6 @@
 90097=Die Datenbank ist schreibgeschützt
 90098=Die Datenbank ist bereits geschlossen
 90099=Fehler beim Setzen des Datenbank Ereignis Empfängers {0}, Grund: {1}
-90100=Kein Festplatten Speicherplatz verfügbar
 90101=Falsches XID Format: {0}
 90102=Datenkompressions-Option nicht unterstützt: {0}
 90103=Datenkompressions-Algorithmus nicht unterstützt: {0}

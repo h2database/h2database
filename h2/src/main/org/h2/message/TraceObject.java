@@ -52,11 +52,6 @@ public class TraceObject {
     protected static final int SAVEPOINT = 6;
 
     /**
-     * The trace type id  for sql exceptions.
-     */
-    protected static final int SQL_EXCEPTION = 7;
-
-    /**
      * The trace type id  for statements.
      */
     protected static final int STATEMENT = 8;
@@ -85,11 +80,6 @@ public class TraceObject {
      * The trace type id  for XA data sources.
      */
     protected static final int XA_DATA_SOURCE = 13;
-
-    /**
-     * The trace type id  for XA resources.
-     */
-    protected static final int XA_RESOURCE = 14;
 
     /**
      * The trace type id  for transaction ids.
@@ -126,15 +116,6 @@ public class TraceObject {
         this.trace = trace;
         this.traceType = type;
         this.id = id;
-    }
-
-    /**
-     * Get the trace object.
-     *
-     * @return the trace object
-     */
-    protected Trace getTrace() {
-        return trace;
     }
 
     /**

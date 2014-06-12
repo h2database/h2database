@@ -321,35 +321,4 @@ public abstract class FilePath {
         return this;
     }
     
-    /**
-     * The options to open a file.
-     */
-    public enum FileOpenOption {
-        
-        /**
-         * Append at the end of the file.
-         */
-        APPEND,
-        
-        /**
-         * Written data is not buffered.
-         */
-        DSYNC,
-        
-        /**
-         * Open the file for read access.
-         */
-        READ,
-        
-        /**
-         * Written data and metadata is not buffered.
-         */
-        SYNC,
-        
-        /**
-         * Open the file for write access.
-         */
-        WRITE,
-    }
-
 }

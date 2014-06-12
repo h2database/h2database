@@ -116,7 +116,6 @@
 90089=Porovnání nemůže být změněno, protože jde o datovou tabulku: {0}
 90090=Schéma {0} nemůže být odstraněno
 90091=Role {0} nemůže být odstraněna
-90092=Tato verze Javy není podporována (je vyžadována alespoň Java 1.4)
 90093=Chyba clusteru - databáze je spuštěna v samostatném režimu
 90094=Chyba clusteru - databáze je spuštěna v cluster režimu, seznam serverů: {0}
 90095=Chyba formátu řetězce: {0}
@@ -124,7 +123,6 @@
 90097=Databáze je pouze pro čtení
 90098=Databáze byla ukončena
 90099=Chyba nastavení posluchače událostí databáze {0}, příčina: {1}
-90100=Na disku není k dispozici žádné volné místo
 90101=Špatný XID formát: {0}
 90102=Nepodporovaná kompresní volba: {0}
 90103=Nepodporovaný kompresní algoritmus: {0}

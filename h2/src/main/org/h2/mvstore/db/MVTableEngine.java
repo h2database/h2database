@@ -232,7 +232,6 @@ public class MVTableEngine implements TableEngine {
 
         /**
          * Remove all temporary maps.
-         * @param objectIds 
          */
         public void removeTemporaryMaps(BitField objectIds) {
             for (String mapName : store.getMapNames()) {

@@ -23,13 +23,6 @@ public interface FunctionCall {
     String getName();
 
     /**
-     * Get the number of parameters.
-     *
-     * @return the number of parameters
-     */
-    int getParameterCount();
-
-    /**
      * Get an empty result set with the column names set.
      *
      * @param session the session

@@ -181,26 +181,6 @@ public class ValueGeometry extends Value {
         return get(gf.toGeometry(mergedEnvelope));
     }
 
-    /**
-     * Get the intersection.
-     *
-     * @param r the other geometry
-     * @return the intersection of this geometry envelope and another
-     */
-    public ValueGeometry getEnvelopeIntersection(ValueGeometry r) {
-        Envelope e1 = getGeometryNoCopy().getEnvelopeInternal();
-        Envelope e2 = r.getGeometryNoCopy().getEnvelopeInternal();
-        Envelope e3 = e1.intersection(e2);
-        // try to re-use the object
-        if (e3 == e1) {
-            return this;
-        } else if (e3 == e2) {
-            return r;
-        }
-        GeometryFactory gf = new GeometryFactory();
-        return get(gf.toGeometry(e3));
-    }
-
     @Override
     public int getType() {
         return Value.GEOMETRY;

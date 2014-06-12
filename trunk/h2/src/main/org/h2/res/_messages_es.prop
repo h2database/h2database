@@ -116,7 +116,6 @@
 90089=Collation no puede ser cambiado debido a que existe una tabla de datos: {0}
 90090=Schema {0} no puede ser eliminado
 90091=Role {0} no puede ser eliminado
-90092=Esta versión de Java no esta suportada (Java 1.4 es requerida)
 90093=Clustering error - la base de datos se esta corriendo en modo standalone
 90094=Clustering error - la base de datos esta corriendo en modo CLUSTER, lista de servidores: {0}
 90095=String con error de formato: {0}
@@ -124,7 +123,6 @@
 90097=La base de datos es de solo lectura (read only)
 90098=La base de datos ha sido cerrada
 90099=Error setting database event listener {0}, causa: {1}
-90100=No hay suficiente espacio disponible en disco
 90101=Formato erroneo de XID : {0}
 90102=Opciones de compresión No soportadas: {0}
 90103=Algoritmo de compresión No soportado: {0}

@@ -136,11 +136,6 @@ public class MVTableEngine implements TableEngine {
     public static class Store {
 
         /**
-         * The database.
-         */
-        final Database db;
-
-        /**
          * The map of open tables.
          * Key: the map name, value: the table.
          */
@@ -162,7 +157,6 @@ public class MVTableEngine implements TableEngine {
         private int temporaryMapId;
 
         public Store(Database db, MVStore store) {
-            this.db = db;
             this.store = store;
             this.transactionStore = new TransactionStore(
                     store,

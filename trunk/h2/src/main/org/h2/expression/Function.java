@@ -2508,11 +2508,6 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public int getParameterCount() {
-        return args.length;
-    }
-
-    @Override
     public ValueResultSet getValueForColumnList(Session session,
             Expression[] argList) {
         switch (info.type) {

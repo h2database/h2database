@@ -1403,13 +1403,6 @@ public class ErrorCode {
     public static final int ROLE_CAN_NOT_BE_DROPPED_1 = 90091;
 
     /**
-     * The error with code <code>90092</code> is thrown when
-     * the source code is not compiled for the Java platform used.
-     * At runtime, the existence of the class java.sql.Savepoint is checked.
-     */
-    public static final int UNSUPPORTED_JAVA_VERSION = 90092;
-
-    /**
      * The error with code <code>90093</code> is thrown when
      * trying to connect to a clustered database that runs in standalone
      * mode. This can happen if clustering is not enabled on the database,
@@ -1471,13 +1464,6 @@ public class ErrorCode {
      * </pre>
      */
     public static final int ERROR_SETTING_DATABASE_EVENT_LISTENER_2 = 90099;
-
-    /**
-     * The error with code <code>90100</code> is thrown when
-     * there is no more space available on the device where the database
-     * files are stored.
-     */
-    public static final int NO_DISK_SPACE_AVAILABLE = 90100;
 
     /**
      * The error with code <code>90101</code> is thrown when

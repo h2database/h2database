@@ -116,7 +116,6 @@
 90089=Collation cannot be changed because there is a data table: {0}
 90090=Schema {0} cannot be dropped
 90091=Role {0} cannot be dropped
-90092=This Java version is not supported (Java 1.4 is required)
 90093=Clustering error - database currently runs in standalone mode
 90094=Clustering error - database currently runs in cluster mode, server list: {0}
 90095=String format error: {0}
@@ -124,7 +123,6 @@
 90097=The database is read only
 90098=The database has been closed
 90099=Error setting database event listener {0}, cause: {1}
-90100=No disk space available
 90101=Wrong XID format: {0}
 90102=Unsupported compression options: {0}
 90103=Unsupported compression algorithm: {0}

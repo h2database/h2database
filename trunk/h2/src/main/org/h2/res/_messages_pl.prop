@@ -116,7 +116,6 @@
 90089=Metoda porównywania językowego nie może być zmieniona z powodu istnienia danych w tabeli {0}
 90090=Schemat {0} nie może zostać skasowany
 90091=Rola {0} nie może zostać skasowana
-90092=Obecna wersja Javy nie jest wspierana (Java 1.4 lub nowsza jest wymagana)
 90093=Błąd klastrowania - baza obecnie pracuje w trybie autonomicznym
 90094=Błąd klastrowania - baza obecnie pracuje w trybie klastra, lista serwerów: {0}
 90095=Błąd ciągu formatowania: {0}
@@ -124,7 +123,6 @@
 90097=Baza danych jest w trybie tylko do odczytu
 90098=Baza danych została zamknięta
 90099=Błąd ustawiania detektora zdarzeń bazy danych {0}, błąd: {1}
-90100=Brak miejsca na dysku
 90101=Zły format XID: {0}
 90102=Nie wspierana opcja kompresji: {0}
 90103=Nie wspierany algorytm kompresji: {0}

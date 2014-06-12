@@ -54,8 +54,6 @@ import org.h2.value.ValueUuid;
  */
 public class ValueDataType implements DataType {
 
-    static final String PREFIX = ValueDataType.class.getName();
-
     private static final int INT_0_15 = 32;
     private static final int LONG_0_7 = 48;
     private static final int DECIMAL_0_1 = 56;

@@ -12,17 +12,6 @@ package org.h2.store.fs;
 public interface Recorder {
 
     /**
-     * Copy a file. The file name contains the source and the target file
-     * separated with a colon.
-     */
-    int COPY = 0;
-
-    /**
-     * Create a directory.
-     */
-    int CREATE_DIRECTORY = 1;
-
-    /**
      * Create a new file.
      */
     int CREATE_NEW_FILE = 2;

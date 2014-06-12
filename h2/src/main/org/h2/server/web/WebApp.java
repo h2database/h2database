@@ -1267,10 +1267,10 @@ public class WebApp {
             sql = sql.trim();
             StringBuilder buff = new StringBuilder();
             String sqlUpper = StringUtils.toUpperEnglish(sql);
-            if (sqlUpper.indexOf("CREATE") >= 0 ||
-                    sqlUpper.indexOf("DROP") >= 0 ||
-                    sqlUpper.indexOf("ALTER") >= 0 ||
-                    sqlUpper.indexOf("RUNSCRIPT") >= 0) {
+            if (sqlUpper.contains("CREATE") ||
+                    sqlUpper.contains("DROP") ||
+                    sqlUpper.contains("ALTER") ||
+                    sqlUpper.contains("RUNSCRIPT")) {
                 String sessionId = attributes.getProperty("jsessionid");
                 buff.append("<script type=\"text/javascript\">" +
                         "parent['h2menu'].location='tables.do?jsessionid="

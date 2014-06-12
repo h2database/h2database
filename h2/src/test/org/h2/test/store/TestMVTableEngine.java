@@ -281,7 +281,7 @@ public class TestMVTableEngine extends TestBase {
         rs.next();
         plan = rs.getString(1);
         // transaction log is larger than the table, so read the table
-        assertTrue(plan, plan.indexOf("reads:") >= 0);
+        assertTrue(plan, plan.contains("reads:"));
         rs = stat2.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(10000, rs.getInt(1));
@@ -363,7 +363,7 @@ public class TestMVTableEngine extends TestBase {
         rs.next();
         String plan = rs.getString(1);
         // expect about 249 reads
-        assertTrue(plan, plan.indexOf("reads: 2") >= 0);
+        assertTrue(plan, plan.contains("reads: 2"));
         conn.close();
     }
 

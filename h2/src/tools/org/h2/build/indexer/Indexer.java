@@ -196,7 +196,7 @@ public class Indexer {
         if (!lower.endsWith(".html") && !lower.endsWith(".htm")) {
             return;
         }
-        if (lower.indexOf("_ja.") >= 0) {
+        if (lower.contains("_ja.")) {
             return;
         }
         if (!noIndex.contains(fileName)) {

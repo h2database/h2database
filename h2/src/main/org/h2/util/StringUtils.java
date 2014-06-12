@@ -619,7 +619,7 @@ public class StringUtils {
      * @return <![CDATA[data]]>
      */
     public static String xmlCData(String data) {
-        if (data.indexOf("]]>") >= 0) {
+        if (data.contains("]]>")) {
             return xmlText(data);
         }
         boolean newline = data.endsWith("\n");

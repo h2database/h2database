@@ -295,7 +295,7 @@ public class BuildBase {
     }
 
     private static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().indexOf("windows") >= 0;
+        return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
     /**

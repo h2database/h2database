@@ -154,7 +154,7 @@ public class TestScript extends TestBase {
         while (rs.next()) {
             String sql = rs.getString("SQL");
             if (sql != null) {
-                if (sql.indexOf("TEMPORARY") >= 0) {
+                if (sql.contains("TEMPORARY")) {
                     return true;
                 }
             }
@@ -281,7 +281,7 @@ public class TestScript extends TestBase {
     }
 
     private void writeResultSet(String sql, ResultSet rs) throws Exception {
-        boolean ordered = StringUtils.toLowerEnglish(sql).indexOf("order by") >= 0;
+        boolean ordered = StringUtils.toLowerEnglish(sql).contains("order by");
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
         int[] max = new int[len];

@@ -309,7 +309,7 @@ public class TestOuterJoins extends TestBase {
                 "left outer join (test c) on a.id = c.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        assertTrue(sql.indexOf("PRIMARY_KEY") >= 0);
+        assertTrue(sql.contains("PRIMARY_KEY"));
         stat.execute("drop table test");
 
         /*
@@ -584,7 +584,7 @@ public class TestOuterJoins extends TestBase {
         r.setSkipRemarks(true);
         sql = r.readStatement();
         sql = sql.replaceAll("\\n", " ");
-        while (sql.indexOf("  ") >= 0) {
+        while (sql.contains("  ")) {
             sql = sql.replaceAll("  ", " ");
         }
         return sql;

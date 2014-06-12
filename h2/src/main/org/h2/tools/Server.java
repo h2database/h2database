@@ -623,13 +623,13 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 if (browser.startsWith("call:")) {
                     browser = browser.substring("call:".length());
                     Utils.callStaticMethod(browser, url);
-                } else if (browser.indexOf("%url") >= 0) {
+                } else if (browser.contains("%url")) {
                     String[] args = StringUtils.arraySplit(browser, ',', false);
                     for (int i = 0; i < args.length; i++) {
                         args[i] = StringUtils.replaceAll(args[i], "%url", url);
                     }
                     rt.exec(args);
-                } else if (osName.indexOf("windows") >= 0) {
+                } else if (osName.contains("windows")) {
                     rt.exec(new String[] { "cmd.exe", "/C",  browser, url });
                 } else {
                     rt.exec(new String[] { browser, url });
@@ -655,9 +655,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
             } catch (Exception e) {
                 // ignore
             }
-            if (osName.indexOf("windows") >= 0) {
+            if (osName.contains("windows")) {
                 rt.exec(new String[] { "rundll32", "url.dll,FileProtocolHandler", url });
-            } else if (osName.indexOf("mac") >= 0 || osName.indexOf("darwin") >= 0) {
+            } else if (osName.contains("mac") || osName.contains("darwin")) {
                 // Mac OS: to open a page with Safari, use "open -a Safari"
                 Runtime.getRuntime().exec(new String[] { "open", url });
             } else {

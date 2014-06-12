@@ -90,7 +90,7 @@ public class LinkChecker {
             if (targets.get(name).equals("id")) {
                 boolean ignore = false;
                 for (String to : IGNORE_MISSING_LINKS_TO) {
-                    if (name.indexOf(to) >= 0) {
+                    if (name.contains(to)) {
                         ignore = true;
                         break;
                     }

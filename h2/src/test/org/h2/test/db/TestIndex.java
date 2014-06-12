@@ -147,7 +147,7 @@ public class TestIndex extends TestBase {
             int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
             String s = m.substring(start + 1, end);
             for (String t : expected) {
-                assertTrue(t + " not in " + s, s.indexOf(t) >= 0);
+                assertTrue(t + " not in " + s, s.contains(t));
             }
         }
         stat.execute("drop table test");

@@ -104,7 +104,7 @@ public class TestConnectionPool extends TestBase {
             man.getConnection();
             fail();
         } catch (SQLException e) {
-            assertTrue(e.toString().toLowerCase().indexOf("timeout") >= 0);
+            assertTrue(e.toString().toLowerCase().contains("timeout"));
             time = System.currentTimeMillis() - time;
             assertTrue("timeout after " + time + " ms", time > 1000);
         } finally {

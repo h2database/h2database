@@ -160,7 +160,7 @@ public class TestRecovery extends TestBase {
         byte[] buff = new byte[Constants.DEFAULT_PAGE_SIZE];
         while (f.position() < f.size()) {
             FileUtils.readFully(f, ByteBuffer.wrap(buff));
-            if (new String(buff).indexOf("Hello World1") >= 0) {
+            if (new String(buff).contains("Hello World1")) {
                 buff[buff.length - 1]++;
                 f.position(f.position() - buff.length);
                 f.write(ByteBuffer.wrap(buff));
@@ -291,7 +291,7 @@ public class TestRecovery extends TestBase {
         rec.setOut(new PrintStream(buff));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
         String out = new String(buff.toByteArray());
-        assertTrue(out.indexOf("Created file") >= 0);
+        assertTrue(out.contains("Created file"));
 
         Connection conn2 = getConnection("recovery2");
         Statement stat2 = conn2.createStatement();

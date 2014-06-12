@@ -684,7 +684,7 @@ public class Session extends SessionWithState {
      */
     public void addLock(Table table) {
         if (SysProperties.CHECK) {
-            if (locks.indexOf(table) >= 0) {
+            if (locks.contains(table)) {
                 DbException.throwInternalError();
             }
         }
@@ -1127,7 +1127,7 @@ public class Session extends SessionWithState {
         String identifier;
         do {
             identifier = SYSTEM_IDENTIFIER_PREFIX + systemIdentifier++;
-        } while (sql.indexOf(identifier) >= 0);
+        } while (sql.contains(identifier));
         return identifier;
     }
 

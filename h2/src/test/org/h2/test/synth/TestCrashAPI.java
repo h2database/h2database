@@ -406,7 +406,7 @@ if (connectTime > 2000) {
     private void printIfBad(int seed, int id, int objectId, Throwable t) {
         if (t instanceof BatchUpdateException) {
             // do nothing
-        } else if (t.getClass().getName().indexOf("SQLClientInfoException") >= 0) {
+        } else if (t.getClass().getName().contains("SQLClientInfoException")) {
             // do nothing
         } else if (t instanceof SQLException) {
             SQLException s = (SQLException) t;

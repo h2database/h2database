@@ -1960,14 +1960,14 @@ public class Function extends Expression implements FunctionCall {
         }
         StringBuilder s = new StringBuilder();
         s.append(d);
-        if (s.toString().indexOf("E") >= 0) {
+        if (s.toString().indexOf('E') >= 0) {
             return d;
         }
         int len = s.length();
         if (len < 16) {
             return d;
         }
-        if (s.toString().indexOf(".") > len - 3) {
+        if (s.toString().indexOf('.') > len - 3) {
             return d;
         }
         s.delete(len - 2, len);

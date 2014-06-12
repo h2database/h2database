@@ -186,8 +186,8 @@ class Parser {
                 Float v = Float.parseFloat(number);
                 return new Arg(float.class, v);
             } else if (number.endsWith("d") ||
-                    number.indexOf("e") >= 0 ||
-                    number.indexOf(".") >= 0) {
+                    number.indexOf('e') >= 0 ||
+                    number.indexOf('.') >= 0) {
                 Double v = Double.parseDouble(number);
                 return new Arg(double.class, v);
             } else if (number.endsWith("L") || number.endsWith("l")) {

@@ -508,36 +508,36 @@ public class TestTools extends TestBase {
         Connection conn;
 
         result = runServer(0, new String[]{"-?"});
-        assertTrue(result.indexOf("Starts the H2 Console") >= 0);
+        assertTrue(result.contains("Starts the H2 Console"));
         assertTrue(result.indexOf("Unknown option") < 0);
 
         result = runServer(1, new String[]{"-xy"});
-        assertTrue(result.indexOf("Starts the H2 Console") >= 0);
-        assertTrue(result.indexOf("Feature not supported") >= 0);
+        assertTrue(result.contains("Starts the H2 Console"));
+        assertTrue(result.contains("Feature not supported"));
         result = runServer(0, new String[]{"-tcp",
                 "-tcpPort", "9001", "-tcpPassword", "abc"});
-        assertTrue(result.indexOf("tcp://") >= 0);
-        assertTrue(result.indexOf(":9001") >= 0);
-        assertTrue(result.indexOf("only local") >= 0);
+        assertTrue(result.contains("tcp://"));
+        assertTrue(result.contains(":9001"));
+        assertTrue(result.contains("only local"));
         assertTrue(result.indexOf("Starts the H2 Console") < 0);
         conn = getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
         conn.close();
         result = runServer(0, new String[]{"-tcpShutdown",
                 "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
-        assertTrue(result.indexOf("Shutting down") >= 0);
+        assertTrue(result.contains("Shutting down"));
 
         result = runServer(0, new String[]{"-tcp",
                 "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
-        assertTrue(result.indexOf("ssl://") >= 0);
-        assertTrue(result.indexOf(":9001") >= 0);
-        assertTrue(result.indexOf("others can") >= 0);
+        assertTrue(result.contains("ssl://"));
+        assertTrue(result.contains(":9001"));
+        assertTrue(result.contains("others can"));
         assertTrue(result.indexOf("Starts the H2 Console") < 0);
         conn = getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
         conn.close();
 
         result = runServer(0, new String[]{"-tcpShutdown",
                 "ssl://localhost:9001", "-tcpPassword", "abcdef"});
-        assertTrue(result.indexOf("Shutting down") >= 0);
+        assertTrue(result.contains("Shutting down"));
         assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
                 getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
 
@@ -546,21 +546,21 @@ public class TestTools extends TestBase {
                         "-pg", "-pgAllowOthers", "-pgPort", "9003",
                         "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"});
         Server stop = server;
-        assertTrue(result.indexOf("https://") >= 0);
-        assertTrue(result.indexOf(":9002") >= 0);
-        assertTrue(result.indexOf("pg://") >= 0);
-        assertTrue(result.indexOf(":9003") >= 0);
-        assertTrue(result.indexOf("others can") >= 0);
+        assertTrue(result.contains("https://"));
+        assertTrue(result.contains(":9002"));
+        assertTrue(result.contains("pg://"));
+        assertTrue(result.contains(":9003"));
+        assertTrue(result.contains("others can"));
         assertTrue(result.indexOf("only local") < 0);
-        assertTrue(result.indexOf("tcp://") >= 0);
-        assertTrue(result.indexOf(":9006") >= 0);
+        assertTrue(result.contains("tcp://"));
+        assertTrue(result.contains(":9006"));
 
         conn = getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
         conn.close();
 
         result = runServer(0, new String[]{"-tcpShutdown",
                 "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
-        assertTrue(result.indexOf("Shutting down") >= 0);
+        assertTrue(result.contains("Shutting down"));
         stop.shutdown();
         assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
                 getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
@@ -868,7 +868,7 @@ public class TestTools extends TestBase {
         tool.setOut(new PrintStream(buff));
         tool.runTool("-url", url, "-user", user, "-password", password,
                 "-script", fileName + ".txt", "-showResults");
-        assertTrue(buff.toString().indexOf("Hello") >= 0);
+        assertTrue(buff.toString().contains("Hello"));
     }
 
     private void testBackupRestore() throws SQLException {

@@ -290,7 +290,7 @@ public class TestNestedJoins extends TestBase {
                 "inner join c on c.id = b.id on b.id = a.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        assertTrue("nested", sql.indexOf("(") >= 0);
+        assertTrue("nested", sql.contains("("));
         stat.execute("drop table a, b, c");
 
         // see roadmap, tag: swapInnerJoinTables
@@ -355,7 +355,7 @@ public class TestNestedJoins extends TestBase {
                 "left outer join (test c) on a.id = c.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        assertTrue(sql.indexOf("PRIMARY_KEY") >= 0);
+        assertTrue(sql.contains("PRIMARY_KEY"));
         stat.execute("drop table test");
 
         /*
@@ -634,7 +634,7 @@ public class TestNestedJoins extends TestBase {
         r.setSkipRemarks(true);
         sql = r.readStatement();
         sql = sql.replaceAll("\\n", " ");
-        while (sql.indexOf("  ") >= 0) {
+        while (sql.contains("  ")) {
             sql = sql.replaceAll("  ", " ");
         }
         return sql;

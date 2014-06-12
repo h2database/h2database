@@ -311,12 +311,12 @@ public class TestOptimizations extends TestBase {
         rs = stat.executeQuery("explain select * from test " +
                 "where id > 10 order by id");
         rs.next();
-        assertTrue(rs.getString(1).indexOf("IDX_ID_ASC") >= 0);
+        assertTrue(rs.getString(1).contains("IDX_ID_ASC"));
 
         rs = stat.executeQuery("explain select * from test " +
                 "where id < 10 order by id desc");
         rs.next();
-        assertTrue(rs.getString(1).indexOf("IDX_ID_DESC") >= 0);
+        assertTrue(rs.getString(1).contains("IDX_ID_DESC"));
 
         rs.next();
         stat.execute("drop table test");

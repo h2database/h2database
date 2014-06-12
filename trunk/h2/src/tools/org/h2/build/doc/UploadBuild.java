@@ -56,7 +56,7 @@ public class UploadBuild {
             byte[] data = IOUtils.readBytesAndClose(
                     new FileInputStream("coverage/index.html"), -1);
             String index = new String(data, "ISO-8859-1");
-            coverageFailed = index.indexOf("CLASS=\"h\"") >= 0;
+            coverageFailed = index.contains("CLASS=\"h\"");
             while (true) {
                 int idx = index.indexOf("<A HREF=\"");
                 if (idx < 0) {
@@ -90,7 +90,7 @@ public class UploadBuild {
         if (new File("docs/html/testOutput.html").exists()) {
             testOutput = IOUtils.readStringAndClose(
                     new FileReader("docs/html/testOutput.html"), -1);
-            error = testOutput.indexOf(OutputCatcher.START_ERROR) >= 0;
+            error = testOutput.contains(OutputCatcher.START_ERROR);
         } else if (new File("log.txt").exists()) {
             testOutput = IOUtils.readStringAndClose(new FileReader("log.txt"), -1);
             error = true;

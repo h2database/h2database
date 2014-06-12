@@ -691,7 +691,7 @@ public class MetaTable extends Table {
                 }
                 String sql = table.getCreateSQL();
                 if (!admin) {
-                    if (sql != null && sql.indexOf(JdbcSQLException.HIDE_SQL) >= 0) {
+                    if (sql != null && sql.contains(JdbcSQLException.HIDE_SQL)) {
                         // hide the password of linked tables
                         sql = "-";
                     }

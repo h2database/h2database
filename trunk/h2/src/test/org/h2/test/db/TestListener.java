@@ -110,7 +110,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     @Override
     public void closingDatabase() {
-        if (databaseUrl.toUpperCase().indexOf("CIPHER") >= 0) {
+        if (databaseUrl.toUpperCase().contains("CIPHER")) {
             return;
         }
         Connection conn = null;
@@ -132,7 +132,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     @Override
     public void opened() {
-        if (databaseUrl.toUpperCase().indexOf("CIPHER") >= 0) {
+        if (databaseUrl.toUpperCase().contains("CIPHER")) {
             return;
         }
         Connection conn = null;

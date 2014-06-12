@@ -141,7 +141,7 @@ public class TestWeb extends TestBase {
         Server server = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         server.start();
-        assertTrue(server.getStatus().indexOf("server running") >= 0);
+        assertTrue(server.getStatus().contains("server running"));
         Server server2 = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         assertEquals("Not started", server2.getStatus());
@@ -149,9 +149,9 @@ public class TestWeb extends TestBase {
             server2.start();
             fail();
         } catch (Exception e) {
-            assertTrue(e.toString().indexOf("port may be in use") >= 0);
-            assertTrue(server2.getStatus().indexOf(
-                    "could not be started") >= 0);
+            assertTrue(e.toString().contains("port may be in use"));
+            assertTrue(server2.getStatus().contains(
+                    "could not be started"));
         }
         server.stop();
     }

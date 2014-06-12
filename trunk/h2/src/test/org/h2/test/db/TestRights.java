@@ -67,7 +67,7 @@ public class TestRights extends TestBase {
         ResultSetMetaData meta = rs.getMetaData();
         for (int i = 1; i <= meta.getColumnCount(); i++) {
             String s = rs.getString(i);
-            assertFalse(s != null && s.indexOf("'sa'") >= 0);
+            assertFalse(s != null && s.contains("'sa'"));
         }
         conn2.close();
         // password is visible to admin
@@ -79,7 +79,7 @@ public class TestRights extends TestBase {
         boolean foundPassword = false;
         for (int i = 1; i <= meta.getColumnCount(); i++) {
             String s = rs.getString(i);
-            if (s != null && s.indexOf("'sa'") >= 0) {
+            if (s != null && s.contains("'sa'")) {
                 foundPassword = true;
             }
         }

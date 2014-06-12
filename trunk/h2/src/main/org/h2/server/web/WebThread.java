@@ -280,7 +280,7 @@ class WebThread extends WebApp implements Runnable {
                 len = Integer.parseInt(getHeaderLineValue(line));
                 trace("len=" + len);
             } else if (lower.startsWith("user-agent")) {
-                boolean isWebKit = lower.indexOf("webkit/") >= 0;
+                boolean isWebKit = lower.contains("webkit/");
                 if (isWebKit && session != null) {
                     // workaround for what seems to be a WebKit bug:
                     // http://code.google.com/p/chromium/issues/detail?id=6402

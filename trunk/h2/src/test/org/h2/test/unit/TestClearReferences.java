@@ -120,7 +120,7 @@ public class TestClearReferences extends TestBase {
             try {
                 clazz = Class.forName(className);
             } catch (NoClassDefFoundError e) {
-                if (e.toString().indexOf("lucene") >= 0) {
+                if (e.toString().contains("lucene")) {
                     // Lucene is not in the classpath, OK
                 }
             } catch (ClassNotFoundException e) {
@@ -142,13 +142,13 @@ public class TestClearReferences extends TestBase {
         try {
             fields = clazz.getDeclaredFields();
         } catch (NoClassDefFoundError e) {
-            if (e.toString().indexOf("lucene") >= 0) {
+            if (e.toString().contains("lucene")) {
                 // Lucene is not in the classpath, OK
                 return;
-            } else if (e.toString().indexOf("jts") >= 0) {
+            } else if (e.toString().contains("jts")) {
                 // JTS is not in the classpath, OK
                 return;
-            } else if (e.toString().indexOf("slf4j") >= 0) {
+            } else if (e.toString().contains("slf4j")) {
                 // slf4j is not in the classpath, OK
                 return;
             }

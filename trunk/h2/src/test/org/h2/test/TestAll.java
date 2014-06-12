@@ -589,7 +589,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      */
     private static boolean isCoverage() {
         for (StackTraceElement e : Thread.currentThread().getStackTrace()) {
-            if (e.toString().indexOf(".emma.") >= 0) {
+            if (e.toString().contains(".emma.")) {
                 return true;
             }
         }

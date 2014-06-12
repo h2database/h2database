@@ -941,7 +941,7 @@ public class TableFilter implements ColumnResolver {
      * @return true if this is a joined natural join column
      */
     public boolean isNaturalJoinColumn(Column c) {
-        return naturalJoinColumns != null && naturalJoinColumns.indexOf(c) >= 0;
+        return naturalJoinColumns != null && naturalJoinColumns.contains(c);
     }
 
     @Override

@@ -333,7 +333,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.views");
         rs.next();
-        assertTrue(rs.getString("VIEW_DEFINITION").indexOf("SCHEMA2.FUNC") >= 0);
+        assertTrue(rs.getString("VIEW_DEFINITION").contains("SCHEMA2.FUNC"));
 
         stat.execute("drop view test");
         stat.execute("drop schema schema2");
@@ -736,7 +736,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         boolean found = false;
         while (rs.next()) {
             String sql = rs.getString(1);
-            if (sql.indexOf("MEDIAN") >= 0) {
+            if (sql.contains("MEDIAN")) {
                 found = true;
             }
         }

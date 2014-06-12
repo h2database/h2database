@@ -137,7 +137,7 @@ public class TestCompatibility extends TestBase {
             String tableName = meta.getTableName(1);
             if ("ID".equals(columnName) && "TEST".equals(tableName)) {
                 assertTrue(mode + " mode should not support columnAlias",
-                        columnAlias.indexOf(mode) >= 0);
+                        columnAlias.contains(mode));
             } else if ("I".equals(columnName) && tableName.equals("")) {
                 assertTrue(mode + " mode should support columnAlias",
                         columnAlias.indexOf(mode) < 0);
@@ -160,7 +160,7 @@ public class TestCompatibility extends TestBase {
             try {
                 stat.execute("INSERT INTO TEST VALUES(1), (2), (NULL), (NULL)");
                 assertTrue(mode + " mode should not support multiple NULL",
-                        multiNull.indexOf(mode) >= 0);
+                        multiNull.contains(mode));
             } catch (SQLException e) {
                 assertTrue(mode + " mode should support multiple NULL",
                         multiNull.indexOf(mode) < 0);

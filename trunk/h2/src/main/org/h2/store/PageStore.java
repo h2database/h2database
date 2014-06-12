@@ -329,7 +329,7 @@ public class PageStore implements CacheWriter {
             file = database.openFile(fileName, accessMode, true);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.IO_EXCEPTION_2) {
-                if (e.getMessage().indexOf("locked") >= 0) {
+                if (e.getMessage().contains("locked")) {
                     // in Windows, you can't open a locked file
                     // (in other operating systems, you can)
                     // the exact error message is:

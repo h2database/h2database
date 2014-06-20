@@ -222,7 +222,8 @@ public class StringUtils {
      * @return the text with asterisk
      */
     public static String addAsterisk(String s, int index) {
-        if (s != null && index < s.length()) {
+        if (s != null) {
+            index = Math.min(index, s.length());
             s = s.substring(0, index) + "[*]" + s.substring(index);
         }
         return s;

@@ -35,7 +35,7 @@ import org.h2.value.ValueLobDb;
  */
 public class LobStorageMap implements LobStorageInterface {
 
-    private static final boolean TRACE = true;
+    private static final boolean TRACE = false;
 
     private final Database database;
 

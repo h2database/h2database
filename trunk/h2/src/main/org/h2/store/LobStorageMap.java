@@ -40,7 +40,7 @@ public class LobStorageMap implements LobStorageInterface {
     private final Database database;
 
     private boolean init;
-    
+
     private Object nextLobIdSync = new Object();
     private long nextLobId;
 

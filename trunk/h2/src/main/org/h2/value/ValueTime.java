@@ -68,7 +68,7 @@ public class ValueTime extends Value {
     public static ValueTime fromMillis(long ms) {
         return fromNanos(DateTimeUtils.nanosFromDate(ms));
     }
-    
+
     /**
      * Parse a string to a ValueTime.
      *

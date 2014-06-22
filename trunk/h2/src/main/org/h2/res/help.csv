@@ -155,8 +155,8 @@ CREATE AGGREGATE [ IF NOT EXISTS ] newAggregateName FOR className
 ","
 Creates a new user-defined aggregate function."
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ] [ NOBUFFER ]
-{ FOR classAndMethodName | AS sourceCodeString }
+CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
+[ NOBUFFER ] { FOR classAndMethodName | AS sourceCodeString }
 ","
 Creates a new function alias."
 "Commands (DDL)","CREATE CONSTANT","
@@ -171,13 +171,14 @@ CREATE DOMAIN [ IF NOT EXISTS ] newDomainName AS dataType
 Creates a new data type (domain)."
 "Commands (DDL)","CREATE INDEX","
 CREATE
-{ [ UNIQUE ] [ HASH ] [ SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
+{ [ UNIQUE ] [ HASH | SPATIAL] INDEX [ [ IF NOT EXISTS ] newIndexName ]
     | PRIMARY KEY [ HASH ] }
 ON tableName ( indexColumn [,...] )
 ","
 Creates a new index."
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ] LINKED TABLE [ IF NOT EXISTS ]
+CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ]
+LINKED TABLE [ IF NOT EXISTS ]
 name ( driverString, urlString, userString, passwordString,
 [ originalSchemaString, ] originalTableString ) [ EMIT UPDATES | READONLY ]
 ","

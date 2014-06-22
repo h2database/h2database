@@ -226,6 +226,8 @@ public class MVTableEngine implements TableEngine {
 
         /**
          * Remove all temporary maps.
+         *
+         * @param objectIds the ids of the objects to keep
          */
         public void removeTemporaryMaps(BitField objectIds) {
             for (String mapName : store.getMapNames()) {

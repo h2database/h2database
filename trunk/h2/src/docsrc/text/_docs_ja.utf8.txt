@@ -1843,751 +1843,820 @@ Centralリ�?ジトリ�?�利用
 @changelog_1001_h2
 #Next Version (unreleased)
 
-@changelog_1002_h2
-#Version 1.4.178 Beta (2014-05-02)
+@changelog_1002_li
+#Issue 565: MVStore: concurrently adding LOB objects (with MULTI_THREADED option) resulted in a NullPointerException. 
 
 @changelog_1003_li
-#Issue 559: Make dependency on org.osgi.service.jdbc optional. 
+#MVStore: reduced dependencies to other H2 classes. 
 
 @changelog_1004_li
-#Improve error message when the user specifies an unsupported combination of database settings. 
+#There was a way to prevent a database from being re-opened, by creating a column constraint that references a table with a higher id. This is now detected, and creating the table is prohibited. In future versions of H2, most likely creating references to other tables will no longer be supported because of such problems. 
 
 @changelog_1005_li
-#MVStore: in the multi-threaded mode, NullPointerException and other exceptions could occur. 
+#MVStore: descending indexes with "nulls first" did not work as expected (null was ordered last). 
 
 @changelog_1006_li
-#MVStore: some database file could not be compacted due to a bug in the bookkeeping of the fill rate. Also, database file were compacted quite slowly. This has been improved; but more changes in this area are expected. 
+#Large result sets now always create temporary tables instead of temporary files. 
 
 @changelog_1007_li
-#MVStore: support for volatile maps (that don't store changes). 
+#When using the PageStore, opening a database failed in some cases with a NullPointerException if temporary tables were used (explicitly, or implicitly when using large result sets). 
 
 @changelog_1008_li
-#MVStore mode: in-memory databases now also use the MVStore. 
+#If a database file in the PageStore file format exists, this file and this mode is now used, even if the database URL does not contain "MV_STORE=FALSE". If a MVStore file exists, it is used. 
 
 @changelog_1009_li
-#In server mode, appending ";autocommit=false" to the database URL was working, but the return value of Connection.getAutoCommit() was wrong. 
+#Databases created with version 1.3.175 and earlier that contained foreign keys in combination with multi-column indexes could not be opened in some cases. This was due to a bugfix in version 1.3.176: Referential integrity constraints sometimes used the wrong index. 
 
 @changelog_1010_li
-#Issue 561: OSGi: the import package declaration of org.h2 excluded version 1.4. 
+#MVStore: the ObjectDataType comparison method was incorrect if one key was Serializable and the other was of a common class. 
 
 @changelog_1011_li
-#Issue 558: with the MVStore, a NullPointerException could occur when using LOBs at session commit (LobStorageMap.removeLob). 
+#Recursive queries with many result rows (more than the setting "max_memory_rows") did not work correctly. 
 
 @changelog_1012_li
-#Remove the "h2.MAX_MEMORY_ROWS_DISTINCT" system property to reduce confusion. We already have the MAX_MEMORY_ROWS setting which does a very similar thing, and is better documented. 
+#The license has changed to MPL 2.0 + EPL 1.0. 
 
 @changelog_1013_li
-#Issue 554: Web Console in an IFrame was not fully supported. 
+#MVStore: temporary tables from result sets could survive re-opening a database, which could result in a ClassCastException. 
 
-@changelog_1014_h2
-#Version 1.4.177 Beta (2014-04-12)
+@changelog_1014_li
+#Issue 566: MVStore: unique indexes that were created later on did not work correctly if there were over 5000 rows in the table. 
 
 @changelog_1015_li
-#By default, the MV_STORE option is enabled, so it is using the new MVStore storage. The MVCC setting is by default set to the same values as the MV_STORE setting, so it is also enabled by default. For testing, both settings can be disabled by appending ";MV_STORE=FALSE" and/or ";MVCC=FALSE" to the database URL. 
+#MVStore: creating secondary indexes on large tables results in missing rows in the index. 
 
 @changelog_1016_li
-#The file locking method 'serialized' is no longer supported. This mode might return in a future version, however this is not clear right now. A new implementation and new tests would be needed. 
+#Metadata: the password of linked tables is now only visible for admin users. 
 
 @changelog_1017_li
-#Enable the new storage format for dates (system property "h2.storeLocalTime"). For the MVStore mode, this is always enabled, but with version 1.4 this is even enabled in the PageStore mode. 
+#For Windows, database URLs of the form "jdbc:h2:/test" where considered relative and did not work unless the system property "h2.implicitRelativePath" was used. 
 
 @changelog_1018_li
-#Implicit relative paths are disabled (system property "h2.implicitRelativePath"), so that the database URL jdbc:h2:test now needs to be written as jdbc:h2:./test. 
+#Windows: using a base directory of "C:/" and similar did not work as expected. 
 
 @changelog_1019_li
-#"select ... fetch first 1 row only" is supported with the regular mode. This was disabled so far because "fetch" is now a keyword. See also Mode.supportOffsetFetch. 
+#Follow JDBC specification on Procedures MetaData, use P0 as return type of procedure. 
 
 @changelog_1020_li
-#Byte arrays are now sorted in unsigned mode (x'99' is larger than x'09'). (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned, setting "binary_collation"). 
+#Issue 531: IDENTITY ignored for added column. 
 
 @changelog_1021_li
-#Csv.getInstance will be removed in future versions of 1.4. Use the public constructor instead. 
+#FileSystem: improve exception throwing compatibility with JDK 
 
 @changelog_1022_li
-#Remove support for the limited old-style outer join syntax using "(+)". Use "outer join" instead. System property "h2.oldStyleOuterJoin". 
+#Spatial Index: adjust costs so we do not use the spatial index if the query does not contain an intersects operator. 
 
 @changelog_1023_li
-#Support the data type "DATETIME2" as an alias for "DATETIME", for MS SQL Server compatibility. 
+#Fix multi-threaded deadlock when using a View that includes a TableFunction. 
 
 @changelog_1024_li
-#Add Oracle-compatible TRANSLATE function, patch by Eric Chatellier. 
+#Fix bug in dividing very-small BigDecimal numbers. 
 
 @changelog_1025_h2
-#Version 1.3.176 (2014-04-05)
+#Version 1.4.178 Beta (2014-05-02)
 
 @changelog_1026_li
-#The file locking method 'serialized' is no longer documented, as it will not be available in version 1.4. 
+#Issue 559: Make dependency on org.osgi.service.jdbc optional. 
 
 @changelog_1027_li
-#The static method Csv.getInstance() was removed. Use the public constructor instead. 
+#Improve error message when the user specifies an unsupported combination of database settings. 
 
 @changelog_1028_li
-#The default user name for the Script, RunScript, Shell, and CreateCluster tools are no longer "sa" but an empty string. 
+#MVStore: in the multi-threaded mode, NullPointerException and other exceptions could occur. 
 
 @changelog_1029_li
-#The stack trace of the exception "The object is already closed" is no longer logged by default. 
+#MVStore: some database file could not be compacted due to a bug in the bookkeeping of the fill rate. Also, database file were compacted quite slowly. This has been improved; but more changes in this area are expected. 
 
 @changelog_1030_li
-#If a value of a result set was itself a result set, the result could only be read once. 
+#MVStore: support for volatile maps (that don't store changes). 
 
 @changelog_1031_li
-#Column constraints are also visible in views (patch from Nicolas Fortin for H2GIS). 
+#MVStore mode: in-memory databases now also use the MVStore. 
 
 @changelog_1032_li
-#Granting a additional right to a role that already had a right for that table was not working. 
+#In server mode, appending ";autocommit=false" to the database URL was working, but the return value of Connection.getAutoCommit() was wrong. 
 
 @changelog_1033_li
-#Spatial index: a few bugs have been fixed (using spatial constraints in views, transferring geometry objects over TCP/IP, the returned geometry object is copied when needed). 
+#Issue 561: OSGi: the import package declaration of org.h2 excluded version 1.4. 
 
 @changelog_1034_li
-#Issue 551: the datatype documentation was incorrect (found by Bernd Eckenfels). 
+#Issue 558: with the MVStore, a NullPointerException could occur when using LOBs at session commit (LobStorageMap.removeLob). 
 
 @changelog_1035_li
-#Issue 368: ON DUPLICATE KEY UPDATE did not work for multi-row inserts. Test case from Angus Macdonald. 
+#Remove the "h2.MAX_MEMORY_ROWS_DISTINCT" system property to reduce confusion. We already have the MAX_MEMORY_ROWS setting which does a very similar thing, and is better documented. 
 
 @changelog_1036_li
-#OSGi: the package javax.tools is now imported (as an optional). 
+#Issue 554: Web Console in an IFrame was not fully supported. 
 
-@changelog_1037_li
-#H2 Console: auto-complete is now disabled by default, but there is a hot-key (Ctrl+Space). 
+@changelog_1037_h2
+#Version 1.4.177 Beta (2014-04-12)
 
 @changelog_1038_li
-#H2 Console: auto-complete did not work with multi-line statements. 
+#By default, the MV_STORE option is enabled, so it is using the new MVStore storage. The MVCC setting is by default set to the same values as the MV_STORE setting, so it is also enabled by default. For testing, both settings can be disabled by appending ";MV_STORE=FALSE" and/or ";MVCC=FALSE" to the database URL. 
 
 @changelog_1039_li
-#CLOB and BLOB data was not immediately removed after a rollback. 
+#The file locking method 'serialized' is no longer supported. This mode might return in a future version, however this is not clear right now. A new implementation and new tests would be needed. 
 
 @changelog_1040_li
-#There is a new Aggregate API that supports the internal H2 data types (GEOMETRY for example). Thanks a lot to Nicolas Fortin for the patch! 
+#Enable the new storage format for dates (system property "h2.storeLocalTime"). For the MVStore mode, this is always enabled, but with version 1.4 this is even enabled in the PageStore mode. 
 
 @changelog_1041_li
-#Referential integrity constraints sometimes used the wrong index, such that updating a row in the referenced table incorrectly failed with a constraint violation. 
+#Implicit relative paths are disabled (system property "h2.implicitRelativePath"), so that the database URL jdbc:h2:test now needs to be written as jdbc:h2:./test. 
 
 @changelog_1042_li
-#The Polish translation was completed and corrected by Wojtek Jurczyk. Thanks a lot! 
+#"select ... fetch first 1 row only" is supported with the regular mode. This was disabled so far because "fetch" is now a keyword. See also Mode.supportOffsetFetch. 
 
 @changelog_1043_li
-#Issue 545: Unnecessary duplicate code was removed. 
+#Byte arrays are now sorted in unsigned mode (x'99' is larger than x'09'). (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned, setting "binary_collation"). 
 
 @changelog_1044_li
-#The profiler tool can now process files with full thread dumps. 
+#Csv.getInstance will be removed in future versions of 1.4. Use the public constructor instead. 
 
 @changelog_1045_li
-#MVStore: the file format was changed slightly. 
+#Remove support for the limited old-style outer join syntax using "(+)". Use "outer join" instead. System property "h2.oldStyleOuterJoin". 
 
 @changelog_1046_li
-#MVStore mode: the CLOB and BLOB storage was re-implemented and is now much faster than with the PageStore (which is still the default storage). 
+#Support the data type "DATETIME2" as an alias for "DATETIME", for MS SQL Server compatibility. 
 
 @changelog_1047_li
-#MVStore mode: creating indexes is now much faster (in many cases faster than with the default PageStore). 
+#Add Oracle-compatible TRANSLATE function, patch by Eric Chatellier. 
 
-@changelog_1048_li
-#Various bugs in the MVStore storage and have been fixed, including a bug in the R-tree implementation. The database could get corrupt if there were transient IO exceptions while storing. 
+@changelog_1048_h2
+#Version 1.3.176 (2014-04-05)
 
 @changelog_1049_li
-#The method org.h2.expression.Function.getCost could throw a NullPointException. 
+#The file locking method 'serialized' is no longer documented, as it will not be available in version 1.4. 
 
 @changelog_1050_li
-#Storing LOBs in separate files (outside of the main database file) is no longer supported for new databases. 
+#The static method Csv.getInstance() was removed. Use the public constructor instead. 
 
 @changelog_1051_li
-#Lucene 2 is no longer supported. 
+#The default user name for the Script, RunScript, Shell, and CreateCluster tools are no longer "sa" but an empty string. 
 
 @changelog_1052_li
-#Fix bug in calculating default MIN and MAX values for SEQUENCE. 
+#The stack trace of the exception "The object is already closed" is no longer logged by default. 
 
 @changelog_1053_li
-#Fix bug in performing IN queries with multiple values when IGNORECASE=TRUE 
+#If a value of a result set was itself a result set, the result could only be read once. 
 
 @changelog_1054_li
-#Add entry-point to org.h2.tools.Shell so it can be called from inside an application. patch by Thomas Gillet. 
+#Column constraints are also visible in views (patch from Nicolas Fortin for H2GIS). 
 
 @changelog_1055_li
-#Fix bug that prevented the PgServer from being stopped and started multiple times. 
+#Granting a additional right to a role that already had a right for that table was not working. 
 
 @changelog_1056_li
-#Support some more DDL syntax for MySQL, patch from Peter Jentsch. 
+#Spatial index: a few bugs have been fixed (using spatial constraints in views, transferring geometry objects over TCP/IP, the returned geometry object is copied when needed). 
 
 @changelog_1057_li
-#Issue 548: TO_CHAR does not format MM and DD correctly when the month or day of the month is 1 digit, patch from "the.tucc" 
+#Issue 551: the datatype documentation was incorrect (found by Bernd Eckenfels). 
 
 @changelog_1058_li
-#Fix bug in varargs support in ALIAS's, patch from Nicolas Fortin 
+#Issue 368: ON DUPLICATE KEY UPDATE did not work for multi-row inserts. Test case from Angus Macdonald. 
 
-@changelog_1059_h2
-#Version 1.3.175 (2014-01-18)
+@changelog_1059_li
+#OSGi: the package javax.tools is now imported (as an optional). 
 
 @changelog_1060_li
-#EXPLAIN was incorrect for queries with "ANY" or "SOME" conditions. 
+#H2 Console: auto-complete is now disabled by default, but there is a hot-key (Ctrl+Space). 
 
 @changelog_1061_li
-#CallableStatement with "out" parameters: running the same statement twice could result in an exception ("parameter not set"). 
+#H2 Console: auto-complete did not work with multi-line statements. 
 
 @changelog_1062_li
-#Union queries: duplicate rows could be returned if the sub-queries contained "order by". 
+#CLOB and BLOB data was not immediately removed after a rollback. 
 
 @changelog_1063_li
-#The GEOMETRY data type now works for user defined functions that return a result set. 
+#There is a new Aggregate API that supports the internal H2 data types (GEOMETRY for example). Thanks a lot to Nicolas Fortin for the patch! 
 
 @changelog_1064_li
-#PostgreSQL compatibility: the PgServer was not working properly when the setting database_to_upper was set to false. 
+#Referential integrity constraints sometimes used the wrong index, such that updating a row in the referenced table incorrectly failed with a constraint violation. 
 
 @changelog_1065_li
-#JdbcDataSource: the methods setUrl and getUrl where added as aliases for setURL and getURL. This should solve problems with the HikariCP (Hikari connection pool). 
+#The Polish translation was completed and corrected by Wojtek Jurczyk. Thanks a lot! 
 
 @changelog_1066_li
-#Issue 537: H2 Console: when loading the schema, incorrect JDBC calls where issued, which caused the exception "Column PRECISION not found". 
+#Issue 545: Unnecessary duplicate code was removed. 
 
 @changelog_1067_li
-#Improved Geometry processing (issue 535). 
+#The profiler tool can now process files with full thread dumps. 
 
 @changelog_1068_li
-#The collation can now be set in the database URL, even if there are data tables, if the collection is the same as the current collation. 
+#MVStore: the file format was changed slightly. 
 
 @changelog_1069_li
-#Improved Oracle compatibility for CASE WHEN and DECODE. 
+#MVStore mode: the CLOB and BLOB storage was re-implemented and is now much faster than with the PageStore (which is still the default storage). 
 
 @changelog_1070_li
-#The statement "drop all objects" did not work if a table depends on a view via a constraint. 
+#MVStore mode: creating indexes is now much faster (in many cases faster than with the default PageStore). 
 
 @changelog_1071_li
-#Subqueries or views with "order by" an alias expression could not be executed due to a regression introduced in version 1.3.174. 
+#Various bugs in the MVStore storage and have been fixed, including a bug in the R-tree implementation. The database could get corrupt if there were transient IO exceptions while storing. 
 
 @changelog_1072_li
-#Issue 73: MySQL compatibility: support REPLACE, patch by Cemo Koc. 
+#The method org.h2.expression.Function.getCost could throw a NullPointException. 
 
 @changelog_1073_li
-#The spatial index now works in MVCC mode when using the MVStore storage. 
+#Storing LOBs in separate files (outside of the main database file) is no longer supported for new databases. 
 
 @changelog_1074_li
-#MVStore: concurrency problems have been fixed. The API has been simplified. 
+#Lucene 2 is no longer supported. 
 
 @changelog_1075_li
-#Improve error message when dropping an index that belongs to a constraint, specify constraint in error message. 
+#Fix bug in calculating default MIN and MAX values for SEQUENCE. 
 
 @changelog_1076_li
-#Issue 518: java.sql.Connection.commit() freezes after LOB modification with EXCLUSIVE connection 
+#Fix bug in performing IN queries with multiple values when IGNORECASE=TRUE 
 
 @changelog_1077_li
-#Issue 517: Create or replace view statement has no effect on the others already existing JDBC connection 
+#Add entry-point to org.h2.tools.Shell so it can be called from inside an application. patch by Thomas Gillet. 
 
 @changelog_1078_li
-#Support 123L syntax as in Java; example: SELECT (2000000000L*2). 
+#Fix bug that prevented the PgServer from being stopped and started multiple times. 
 
 @changelog_1079_li
-#Issue 520: Add support for sequence max value, min value and cycle, patch by Daniel Gredler. 
+#Support some more DDL syntax for MySQL, patch from Peter Jentsch. 
 
 @changelog_1080_li
-#Issue 521: ScriptReader should implement Closeable 
+#Issue 548: TO_CHAR does not format MM and DD correctly when the month or day of the month is 1 digit, patch from "the.tucc" 
 
 @changelog_1081_li
-#Issue 524: RunScript.execute does not close its Statement, patch from Gaul. 
+#Fix bug in varargs support in ALIAS's, patch from Nicolas Fortin 
 
-@changelog_1082_li
-#Add support for DB2 "WITH UR" clause, patch from litailang 
+@changelog_1082_h2
+#Version 1.3.175 (2014-01-18)
 
 @changelog_1083_li
-#Added support for ON DUPLICATE KEY UPDATE like MySQL with the values() function to update with the value that was to be inserted. Patch from Jean-Francois Noel. 
+#EXPLAIN was incorrect for queries with "ANY" or "SOME" conditions. 
 
 @changelog_1084_li
-#Issue 522: Treat empty strings like NULL in Oracle compatibility mode, patch by Daniel Gredler. 
+#CallableStatement with "out" parameters: running the same statement twice could result in an exception ("parameter not set"). 
 
 @changelog_1085_li
-#Issue 527: Oracle compatibility mode: incorrect scale behavior, patch by Daniel Gredler. 
+#Union queries: duplicate rows could be returned if the sub-queries contained "order by". 
 
 @changelog_1086_li
-#Slightly reduce the memory cost of View metadata. 
+#The GEOMETRY data type now works for user defined functions that return a result set. 
 
 @changelog_1087_li
-#Extend support of "GRANT ALTER ANY SCHEMA TO &lt;user&gt;" to allow grantee ability to manipulate tables 
+#PostgreSQL compatibility: the PgServer was not working properly when the setting database_to_upper was set to false. 
 
 @changelog_1088_li
-#Issue 532: Javadoc for ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED looks wrong 
+#JdbcDataSource: the methods setUrl and getUrl where added as aliases for setURL and getURL. This should solve problems with the HikariCP (Hikari connection pool). 
 
 @changelog_1089_li
-#Issue 528: Add Oracle-compatible TO_CHAR function, patch by Daniel Gredler. 
+#Issue 537: H2 Console: when loading the schema, incorrect JDBC calls where issued, which caused the exception "Column PRECISION not found". 
 
 @changelog_1090_li
-#Issue 534: CREATE ALIAS NOCACHE, Patch by Nicolas Fortin 
+#Improved Geometry processing (issue 535). 
 
 @changelog_1091_li
-#Fix an issue with storing Unicode surrogate pairs in CLOB columns. 
+#The collation can now be set in the database URL, even if there are data tables, if the collection is the same as the current collation. 
 
 @changelog_1092_li
-#H2 console: add SHIFT+ENTER "run selected" functionality 
+#Improved Oracle compatibility for CASE WHEN and DECODE. 
 
 @changelog_1093_li
-#Fix bug in DB2 syntax "select * from test with ur", patch from litailang 
+#The statement "drop all objects" did not work if a table depends on a view via a constraint. 
 
 @changelog_1094_li
-#Fix bug in DROP ALL OBJECTS when dealing with inter-schema dependencies. 
+#Subqueries or views with "order by" an alias expression could not be executed due to a regression introduced in version 1.3.174. 
 
-@changelog_1095_h2
-#Version 1.3.174 (2013-10-19)
+@changelog_1095_li
+#Issue 73: MySQL compatibility: support REPLACE, patch by Cemo Koc. 
 
 @changelog_1096_li
-#LIRS cache: bugfix for caches that only contain non-resident entries. 
+#The spatial index now works in MVCC mode when using the MVStore storage. 
 
 @changelog_1097_li
-#For in-memory databases, queries with a "group by" column that is also a hash index threw a RuntimeException. 
+#MVStore: concurrency problems have been fixed. The API has been simplified. 
 
 @changelog_1098_li
-#Improved error message for some syntax errors. 
+#Improve error message when dropping an index that belongs to a constraint, specify constraint in error message. 
 
 @changelog_1099_li
-#File system abstraction: if used directly, some file systems did not work correctly with spliced byte buffers (the database engine doesn't use those). 
+#Issue 518: java.sql.Connection.commit() freezes after LOB modification with EXCLUSIVE connection 
 
 @changelog_1100_li
-#To use the MVStore storage engine (which is still work in progress), append ";mv_store=true" to the database URL. Using the MVTableEngine when creating the table is no longer recommended. 
+#Issue 517: Create or replace view statement has no effect on the others already existing JDBC connection 
 
 @changelog_1101_li
-#To compile user defined functions, the javax.tools.JavaCompiler is now used if available, and no temporary files are created. This should solve problems when multiple H2 database concurrently compile the same user defined functions. To disable, system the system property "h2.javaSystemCompiler" to false. 
+#Support 123L syntax as in Java; example: SELECT (2000000000L*2). 
 
 @changelog_1102_li
-#Concurrently creating function aliases in different databases could result in the exception "javac: file not found". 
+#Issue 520: Add support for sequence max value, min value and cycle, patch by Daniel Gredler. 
 
 @changelog_1103_li
-#The function "regexp_replace" threw the wrong kind of exception if the replacement string was invalid. 
+#Issue 521: ScriptReader should implement Closeable 
 
 @changelog_1104_li
-#A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every MAX_LOG_SIZE, so that the transaction log doesn't grow as large. 
+#Issue 524: RunScript.execute does not close its Statement, patch from Gaul. 
 
 @changelog_1105_li
-#MVStore table engine: new setting "retention_time" to configure the time to retain old data. The default is 45 seconds. 
+#Add support for DB2 "WITH UR" clause, patch from litailang 
 
 @changelog_1106_li
-#The method TableEngine.createTable() now returns a Table object. 
+#Added support for ON DUPLICATE KEY UPDATE like MySQL with the values() function to update with the value that was to be inserted. Patch from Jean-Francois Noel. 
 
 @changelog_1107_li
-#For read-only databases, for the trace level "debug", the trace info is written to the temp directory. 
+#Issue 522: Treat empty strings like NULL in Oracle compatibility mode, patch by Daniel Gredler. 
 
 @changelog_1108_li
-#Closing the file lock will now wait until the background thread is stopped. 
+#Issue 527: Oracle compatibility mode: incorrect scale behavior, patch by Daniel Gredler. 
 
 @changelog_1109_li
-#In version 1.3.172, a performance regression was introduced when fixing the issue 389 (when there is a multi-column primary key, H2 does not seem to always pick the right index). This was related to boosting an index that matches the "order by" column list (the wrong index was used in some cases). 
+#Slightly reduce the memory cost of View metadata. 
 
 @changelog_1110_li
-#Improved spatial index and data type. 
+#Extend support of "GRANT ALTER ANY SCHEMA TO &lt;user&gt;" to allow grantee ability to manipulate tables 
 
 @changelog_1111_li
-#Issue 467: OSGi Class Loader (ability to create reference to class in other ClassLoader, for example in another OSGi bundle). 
+#Issue 532: Javadoc for ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED looks wrong 
 
 @changelog_1112_li
-#Queries "group by" that contain a subquery with an aggregate function returned the wrong result in some cases. 
+#Issue 528: Add Oracle-compatible TO_CHAR function, patch by Daniel Gredler. 
 
 @changelog_1113_li
-#Fix bug in unique and non-unique hash indexes which manifested as incorrect results when the search key was a different cardinal type from the table index key. e.g. where the one was INT and the other was LONG 
+#Issue 534: CREATE ALIAS NOCACHE, Patch by Nicolas Fortin 
 
 @changelog_1114_li
-#Bug: Changes to the database structure did not result in the Session query cache being invalidated. 
+#Fix an issue with storing Unicode surrogate pairs in CLOB columns. 
 
 @changelog_1115_li
-#New feature from Davide Cavestro - allow using custom Java object serialization engines on a per-DB basis. 
+#H2 console: add SHIFT+ENTER "run selected" functionality 
 
 @changelog_1116_li
-#When running the Recover tool on very large (&gt;6G) databases, some statistics were reported with negative numbers. 
+#Fix bug in DB2 syntax "select * from test with ur", patch from litailang 
 
 @changelog_1117_li
-#Add a CONTAINS_UNCOMMITTED column to the SESSIONS metadata table, to allow detecting when rogue sessions are creating large transactions. 
+#Fix bug in DROP ALL OBJECTS when dealing with inter-schema dependencies. 
 
-@changelog_1118_li
-#Some small fixes to the GEOMETRY support, patches by Nicolas Fortin. 
+@changelog_1118_h2
+#Version 1.3.174 (2013-10-19)
 
 @changelog_1119_li
-#The BNF tool and the autocomplete feature are exported in OSGi, which makes it possible for smart editors to do autocomplete. Patch from Nicolas Fortin. 
+#LIRS cache: bugfix for caches that only contain non-resident entries. 
 
 @changelog_1120_li
-#Fix DROP ALL OBJECTS and DROP SCHEMA in the presence of tables with computed column dependencies. 
+#For in-memory databases, queries with a "group by" column that is also a hash index threw a RuntimeException. 
 
 @changelog_1121_li
-#Session-temporary LOB's could sometimes accumulate, increasing the size of the DB file until shutdown. Now they are cleared out at every commit. 
+#Improved error message for some syntax errors. 
 
 @changelog_1122_li
-#There was a bug where a hash index with more than one column would be silently converted to a regular index. It will now throw an exception. 
+#File system abstraction: if used directly, some file systems did not work correctly with spliced byte buffers (the database engine doesn't use those). 
 
 @changelog_1123_li
-#Query Statistics: new feature which stores the newest 100 SQL queries executed and their performance data. Useful for tracking down badly performing queries. 
+#To use the MVStore storage engine (which is still work in progress), append ";mv_store=true" to the database URL. Using the MVTableEngine when creating the table is no longer recommended. 
 
 @changelog_1124_li
-#Fix an LOB deadlock between reading and updating LOB columns. 
+#To compile user defined functions, the javax.tools.JavaCompiler is now used if available, and no temporary files are created. This should solve problems when multiple H2 database concurrently compile the same user defined functions. To disable, system the system property "h2.javaSystemCompiler" to false. 
 
 @changelog_1125_li
-#Support the JDBC DatabaseMetaData#getClientInfoProperties() method, in the sense of returning an empty result, in order to make WebSphere happy. 
+#Concurrently creating function aliases in different databases could result in the exception "javac: file not found". 
 
 @changelog_1126_li
-#Make Server#openBrowser respect the $BROWSER environment variable. Add "chromium" to the list of browsers tried. Patch from Felix Kaiser. 
+#The function "regexp_replace" threw the wrong kind of exception if the replacement string was invalid. 
 
 @changelog_1127_li
-#Fix to org.h2.util.ScriptReader when handling unclosed block comments. 
+#A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every MAX_LOG_SIZE, so that the transaction log doesn't grow as large. 
 
 @changelog_1128_li
-#Make org.h2.util.ScriptReader throw a better exception when handling broken scripts which generate extremely large statements. 
+#MVStore table engine: new setting "retention_time" to configure the time to retain old data. The default is 45 seconds. 
 
 @changelog_1129_li
-#Fix bug with ALLOW_LITERALS=NONE, where the periodic analyze table on insert would throw an exception. A similar problem was fixed in the Console tool. 
+#The method TableEngine.createTable() now returns a Table object. 
 
 @changelog_1130_li
-#Issue 510: Make org.h2.bnf public for consumption by external projects, patch by Nicolas Fortin 
+#For read-only databases, for the trace level "debug", the trace info is written to the temp directory. 
 
 @changelog_1131_li
-#Issue 509: Important fix on ValueGeometry, patch by Nicolas Fortin (with some tweaking) Make ValueGeometry#getDimensionCount more reliable. Add unit test to check for illegal ValueGeometry comparison Add unit test for conversion of Geometry object into Object Add optional export to MANIFEST.MF for JTS Geometry classes Validate that geometry values can be represented in WKB. 
+#Closing the file lock will now wait until the background thread is stopped. 
 
 @changelog_1132_li
-#Issue 506: RFE: Include Thread.getName() in case of a deadlock 
+#In version 1.3.172, a performance regression was introduced when fixing the issue 389 (when there is a multi-column primary key, H2 does not seem to always pick the right index). This was related to boosting an index that matches the "order by" column list (the wrong index was used in some cases). 
 
 @changelog_1133_li
-#Adding support for "GRANT ALTER ANY SCHEMA TO &lt;user&gt;", patch by John Yates 
+#Improved spatial index and data type. 
 
-@changelog_1134_h2
-#Version 1.3.173 (2013-07-28)
+@changelog_1134_li
+#Issue 467: OSGi Class Loader (ability to create reference to class in other ClassLoader, for example in another OSGi bundle). 
 
 @changelog_1135_li
-#Support empty statements that just contains a comment. 
+#Queries "group by" that contain a subquery with an aggregate function returned the wrong result in some cases. 
 
 @changelog_1136_li
-#Server mode: if there was an error while reading from a LOB, the session was closed in some cases. 
+#Fix bug in unique and non-unique hash indexes which manifested as incorrect results when the search key was a different cardinal type from the table index key. e.g. where the one was INT and the other was LONG 
 
 @changelog_1137_li
-#Issue 463: Driver name and version are now the same in OsgiDataSourceFactory and JdbcDatabaseMetaData. 
+#Bug: Changes to the database structure did not result in the Session query cache being invalidated. 
 
 @changelog_1138_li
-#JaQu: The data type VARCHAR is now (again) used for Strings (no longer TEXT, except when explicitly set). 
+#New feature from Davide Cavestro - allow using custom Java object serialization engines on a per-DB basis. 
 
 @changelog_1139_li
-#For in-memory databases, creating an index on a CLOB or BLOB column is no longer supported. This is to simplify the MVTableEngine. 
+#When running the Recover tool on very large (&gt;6G) databases, some statistics were reported with negative numbers. 
 
 @changelog_1140_li
-#New column "information_schema.tables.row_count_estimate". 
+#Add a CONTAINS_UNCOMMITTED column to the SESSIONS metadata table, to allow detecting when rogue sessions are creating large transactions. 
 
 @changelog_1141_li
-#Issue 468: trunc(timestamp) could return the wrong value (+12 hours), and trunc(number) throw a NullPointerException. 
+#Some small fixes to the GEOMETRY support, patches by Nicolas Fortin. 
 
 @changelog_1142_li
-#The expression trunc(number) threw a NullPointerException. 
+#The BNF tool and the autocomplete feature are exported in OSGi, which makes it possible for smart editors to do autocomplete. Patch from Nicolas Fortin. 
 
 @changelog_1143_li
-#Fixed a deadlock when updating LOB's concurrently. See TestLob.testDeadlock2(). 
+#Fix DROP ALL OBJECTS and DROP SCHEMA in the presence of tables with computed column dependencies. 
 
 @changelog_1144_li
-#Fixed a deadlock related to very large temporary result sets. 
+#Session-temporary LOB's could sometimes accumulate, increasing the size of the DB file until shutdown. Now they are cleared out at every commit. 
 
 @changelog_1145_li
-#Add "-list" command line option to Shell tool so that result-list-mode can be triggered when reading from a file. 
+#There was a bug where a hash index with more than one column would be silently converted to a regular index. It will now throw an exception. 
 
 @changelog_1146_li
-#Issue 474: H2 MySQL Compatibility code fails to ignore "COMMENT" in CREATE TABLE, patch from Aaron Azeckoski. 
+#Query Statistics: new feature which stores the newest 100 SQL queries executed and their performance data. Useful for tracking down badly performing queries. 
 
 @changelog_1147_li
-#Issue 476: Broken link in jaqu.html 
+#Fix an LOB deadlock between reading and updating LOB columns. 
 
 @changelog_1148_li
-#Fix potential UTF8 encoding issue in org.h2.store.FileStore, reported by Juerg Spiess. 
+#Support the JDBC DatabaseMetaData#getClientInfoProperties() method, in the sense of returning an empty result, in order to make WebSphere happy. 
 
 @changelog_1149_li
-#Improve error message when check constraint is broken, test case from Gili (cowwoc). 
+#Make Server#openBrowser respect the $BROWSER environment variable. Add "chromium" to the list of browsers tried. Patch from Felix Kaiser. 
 
 @changelog_1150_li
-#Improve error message when we have a unique constraint violation, displays the offending key in the error message. 
+#Fix to org.h2.util.ScriptReader when handling unclosed block comments. 
 
 @changelog_1151_li
-#Issue 478: Support for "SHOW TRANSACTION ISOLATION LEVEL", patch from Andrew Franklin. 
+#Make org.h2.util.ScriptReader throw a better exception when handling broken scripts which generate extremely large statements. 
 
 @changelog_1152_li
-#Issue 475: PgServer: add support for CancelRequest, patch from Andrew Franklin. 
+#Fix bug with ALLOW_LITERALS=NONE, where the periodic analyze table on insert would throw an exception. A similar problem was fixed in the Console tool. 
 
 @changelog_1153_li
-#Issue 473: PgServer missing -key option, patch from Andrew Franklin. 
+#Issue 510: Make org.h2.bnf public for consumption by external projects, patch by Nicolas Fortin 
 
 @changelog_1154_li
-#Issue 471: CREATE VIEW does not check user rights, patch from Andrew Franklin. 
+#Issue 509: Important fix on ValueGeometry, patch by Nicolas Fortin (with some tweaking) Make ValueGeometry#getDimensionCount more reliable. Add unit test to check for illegal ValueGeometry comparison Add unit test for conversion of Geometry object into Object Add optional export to MANIFEST.MF for JTS Geometry classes Validate that geometry values can be represented in WKB. 
 
 @changelog_1155_li
-#Issue 477: PgServer binary transmission of query params is unimplemented, patch from Andrew Franklin. 
+#Issue 506: RFE: Include Thread.getName() in case of a deadlock 
 
 @changelog_1156_li
-#Issue 479: Support for SUBSTRING without a FROM condition, patch from Andrew Franklin. 
+#Adding support for "GRANT ALTER ANY SCHEMA TO &lt;user&gt;", patch by John Yates 
 
-@changelog_1157_li
-#Issue 472: PgServer does not work with any recent Postgres JDBC driver, patch from Andrew Franklin. 
+@changelog_1157_h2
+#Version 1.3.173 (2013-07-28)
 
 @changelog_1158_li
-#Add syntax for passing additional parameters into custom TableEngine implementations. 
+#Support empty statements that just contains a comment. 
 
 @changelog_1159_li
-#Issue 480: Bugfix post issue 475, 477, patch from Andrew Franklin. 
+#Server mode: if there was an error while reading from a LOB, the session was closed in some cases. 
 
 @changelog_1160_li
-#Issue 481: Further extensions to PgServer to support better support PG JDBC, patch from Andrew Franklin. 
+#Issue 463: Driver name and version are now the same in OsgiDataSourceFactory and JdbcDatabaseMetaData. 
 
 @changelog_1161_li
-#Add support for spatial datatype GEOMETRY. 
+#JaQu: The data type VARCHAR is now (again) used for Strings (no longer TEXT, except when explicitly set). 
 
 @changelog_1162_li
-#Add support for in-memory spatial index. 
+#For in-memory databases, creating an index on a CLOB or BLOB column is no longer supported. This is to simplify the MVTableEngine. 
 
 @changelog_1163_li
-#change the PageStore#changeCount field from an int to a long, to cope with databases with very high transaction rates. 
+#New column "information_schema.tables.row_count_estimate". 
 
 @changelog_1164_li
-#Fix a NullPointerException when attempting to add foreign key reference to a view. 
+#Issue 468: trunc(timestamp) could return the wrong value (+12 hours), and trunc(number) throw a NullPointerException. 
 
 @changelog_1165_li
-#Add sufficient ClientInfo support to our javax.sql.Connection implementation to make WebSphere happy. 
+#The expression trunc(number) threw a NullPointerException. 
 
 @changelog_1166_li
-#Issue 482: class LobStorageBackend$LobInputStream does not override the method InputStream.available(). 
+#Fixed a deadlock when updating LOB's concurrently. See TestLob.testDeadlock2(). 
 
 @changelog_1167_li
-#Fix corruption resulting from a mix of the "WRITE_DELAY=0" option and "SELECT DISTINCT" queries that don't fit in memory. 
+#Fixed a deadlock related to very large temporary result sets. 
 
 @changelog_1168_li
-#Fix the combination of updating a table which contains an LOB, and reading from the LOB at the same time. Previously it would throw an exception, now it works. 
+#Add "-list" command line option to Shell tool so that result-list-mode can be triggered when reading from a file. 
 
 @changelog_1169_li
-#Issue 484: In the H2 Console tool, all schemas starting with "INFO" where hidden. Now they are hidden only if the database is not H2. Patch from "mgcodeact"/"cumer d" 
+#Issue 474: H2 MySQL Compatibility code fails to ignore "COMMENT" in CREATE TABLE, patch from Aaron Azeckoski. 
 
 @changelog_1170_li
-#MySQL compatibility, support the "AUTO_INCREMENT=3" part of the CREATE TABLE statement. 
+#Issue 476: Broken link in jaqu.html 
 
 @changelog_1171_li
-#Issue 486: MySQL compatibility, support the "DEFAULT CHARSET" part of the CREATE TABLE statement. 
+#Fix potential UTF8 encoding issue in org.h2.store.FileStore, reported by Juerg Spiess. 
 
 @changelog_1172_li
-#Issue 487: support the MySQL "SET foreign_key_checks = 0" command 
+#Improve error message when check constraint is broken, test case from Gili (cowwoc). 
 
 @changelog_1173_li
-#Issue 490: support MySQL "USING BTREE" index declaration 
+#Improve error message when we have a unique constraint violation, displays the offending key in the error message. 
 
 @changelog_1174_li
-#Issue 485: Database get corrupted when column is renamed for which check constraint was defined inside create table statement. 
+#Issue 478: Support for "SHOW TRANSACTION ISOLATION LEVEL", patch from Andrew Franklin. 
 
 @changelog_1175_li
-#Issue 499: support MySQL "UNIQUE KEY (ID) USING BTREE" constraint syntax 
+#Issue 475: PgServer: add support for CancelRequest, patch from Andrew Franklin. 
 
 @changelog_1176_li
-#Issue 501: "CREATE TABLE .. WITH" not serialized, patch from nico.devel 
+#Issue 473: PgServer missing -key option, patch from Andrew Franklin. 
 
 @changelog_1177_li
-#Avoid problems with runtime-compiled ALIAS methods when people have set the JAVA_TOOL_OPTIONS environment variable. 
+#Issue 471: CREATE VIEW does not check user rights, patch from Andrew Franklin. 
 
-@changelog_1178_h2
-#Version 1.3.172 (2013-05-25)
+@changelog_1178_li
+#Issue 477: PgServer binary transmission of query params is unimplemented, patch from Andrew Franklin. 
 
 @changelog_1179_li
-#Referential integrity: when adding a referential integrity constraint failed, and if creating the constraint automatically created an index, this index was not removed. 
+#Issue 479: Support for SUBSTRING without a FROM condition, patch from Andrew Franklin. 
 
 @changelog_1180_li
-#The auto-analyze feature now only reads 1000 rows per table instead of 10000. 
+#Issue 472: PgServer does not work with any recent Postgres JDBC driver, patch from Andrew Franklin. 
 
 @changelog_1181_li
-#The optimization for IN(...) queries combined with OR could result in a strange exception of the type "column x must be included in the group by list". 
+#Add syntax for passing additional parameters into custom TableEngine implementations. 
 
 @changelog_1182_li
-#Issue 454: Use Charset for type-safety. 
+#Issue 480: Bugfix post issue 475, 477, patch from Andrew Franklin. 
 
 @changelog_1183_li
-#Queries with both LIMIT and OFFSET could throw an IllegalArgumentException. 
+#Issue 481: Further extensions to PgServer to support better support PG JDBC, patch from Andrew Franklin. 
 
 @changelog_1184_li
-#MVStore: multiple issues were fixed: 460, 461, 462, 464, 466. 
+#Add support for spatial datatype GEOMETRY. 
 
 @changelog_1185_li
-#MVStore: larger stores (multiple GB) are now much faster. 
+#Add support for in-memory spatial index. 
 
 @changelog_1186_li
-#When using local temporary tables and not dropping them manually before closing the session, and then killing the process could result in a database that couldn't be opened (except when using the recover tool). 
+#change the PageStore#changeCount field from an int to a long, to cope with databases with very high transaction rates. 
 
 @changelog_1187_li
-#Support TRUNC(timestamp) for improved Oracle compatibility. 
+#Fix a NullPointerException when attempting to add foreign key reference to a view. 
 
 @changelog_1188_li
-#Add support for CREATE TABLE TEST (ID BIGSERIAL) for PostgreSQL compatibility. Patch from Jesse Long. 
+#Add sufficient ClientInfo support to our javax.sql.Connection implementation to make WebSphere happy. 
 
 @changelog_1189_li
-#Add new collation command SET BINARY_COLLATION UNSIGNED, helps with people testing BINARY columns in MySQL mode. 
+#Issue 482: class LobStorageBackend$LobInputStream does not override the method InputStream.available(). 
 
 @changelog_1190_li
-#Issue 453: ABBA race conditions in TABLE LINK connection sharing. 
+#Fix corruption resulting from a mix of the "WRITE_DELAY=0" option and "SELECT DISTINCT" queries that don't fit in memory. 
 
 @changelog_1191_li
-#Issue 449: Postgres Serial data type should not automatically be marked as primary key 
+#Fix the combination of updating a table which contains an LOB, and reading from the LOB at the same time. Previously it would throw an exception, now it works. 
 
 @changelog_1192_li
-#Issue 406: Support "select h2version()" 
+#Issue 484: In the H2 Console tool, all schemas starting with "INFO" where hidden. Now they are hidden only if the database is not H2. Patch from "mgcodeact"/"cumer d" 
 
 @changelog_1193_li
-#Issue 389: When there is a multi-column primary key, H2 does not seem to always pick the right index 
+#MySQL compatibility, support the "AUTO_INCREMENT=3" part of the CREATE TABLE statement. 
 
 @changelog_1194_li
-#Issue 305: Implement SELECT ... FOR FETCH ONLY 
+#Issue 486: MySQL compatibility, support the "DEFAULT CHARSET" part of the CREATE TABLE statement. 
 
 @changelog_1195_li
-#Issue 274: Sybase/MSSQLServer compatibility - Add GETDATE and CHARINDEX system functions 
+#Issue 487: support the MySQL "SET foreign_key_checks = 0" command 
 
 @changelog_1196_li
-#Issue 274: Sybase/MSSQLServer compatibility - swap parameters of CONVERT function. 
+#Issue 490: support MySQL "USING BTREE" index declaration 
 
 @changelog_1197_li
-#Issue 274: Sybase/MSSQLServer compatibility - support index clause e.g. "select * from test (index table1_index)" 
+#Issue 485: Database get corrupted when column is renamed for which check constraint was defined inside create table statement. 
 
 @changelog_1198_li
-#Fix bug in Optimizing SELECT * FROM A WHERE X=1 OR X=2 OR X=3 into SELECT * FROM A WHERE X IN (1,2,3) 
+#Issue 499: support MySQL "UNIQUE KEY (ID) USING BTREE" constraint syntax 
 
 @changelog_1199_li
-#Issue 442: Groovy patch for SourceCompiler (function ALIAS) 
+#Issue 501: "CREATE TABLE .. WITH" not serialized, patch from nico.devel 
 
 @changelog_1200_li
-#Issue 459: Improve LOB documentation 
+#Avoid problems with runtime-compiled ALIAS methods when people have set the JAVA_TOOL_OPTIONS environment variable. 
 
 @changelog_1201_h2
-#Version 1.3.171 (2013-03-17)
+#Version 1.3.172 (2013-05-25)
 
 @changelog_1202_li
-#Security: the TCP server did not correctly restrict access rights of clients in some cases. This was specially a problem when using the flag "tcpAllowOthers". 
+#Referential integrity: when adding a referential integrity constraint failed, and if creating the constraint automatically created an index, this index was not removed. 
 
 @changelog_1203_li
-#H2 Console: the session timeout can now be configured using the system property "h2.consoleTimeout". 
+#The auto-analyze feature now only reads 1000 rows per table instead of 10000. 
 
 @changelog_1204_li
-#Issue 431: Improved compatibility with MySQL: support for "ENGINE=InnoDB charset=UTF8" when creating a table. 
+#The optimization for IN(...) queries combined with OR could result in a strange exception of the type "column x must be included in the group by list". 
 
 @changelog_1205_li
-#Issue 249: Improved compatibility with MySQL in the MySQL mode: now the methods DatabaseMetaData methods stores*Case*Identifiers return the same as MySQL when using the MySQL mode. 
+#Issue 454: Use Charset for type-safety. 
 
 @changelog_1206_li
-#Issue 434: H2 Console didn't work in the Chrome browser due to a wrong viewport argument. 
+#Queries with both LIMIT and OFFSET could throw an IllegalArgumentException. 
 
 @changelog_1207_li
-#There was a possibility that the .lock.db file was not deleted when the database was closed, which could slow down opening the database. 
+#MVStore: multiple issues were fixed: 460, 461, 462, 464, 466. 
 
 @changelog_1208_li
-#The SQL script generated by the "script" command contained inconsistent newlines on Windows. 
+#MVStore: larger stores (multiple GB) are now much faster. 
 
 @changelog_1209_li
-#When using trace level 4 (SLF4J) in the server mode, a directory "trace.db" and an empty file was created on the client side. This is no longer made. 
+#When using local temporary tables and not dropping them manually before closing the session, and then killing the process could result in a database that couldn't be opened (except when using the recover tool). 
 
 @changelog_1210_li
-#Optimize IN(...) queries: there was a bug in version 1.3.170 if the type of the left hand side didn't match the type of the right hand side. Fixed. 
+#Support TRUNC(timestamp) for improved Oracle compatibility. 
 
 @changelog_1211_li
-#Optimize IN(...) queries: there was a bug in version 1.3.170 for comparison of the type "X IN(NULL, NULL)". Fixed. 
+#Add support for CREATE TABLE TEST (ID BIGSERIAL) for PostgreSQL compatibility. Patch from Jesse Long. 
 
 @changelog_1212_li
-#Timestamps with timezone that were passed as a string were not always converted correctly. For example "2012-11-06T23:00:00.000Z" was converted to "2012-11-06" instead of to "2012-11-07" in the timezone CET. Thanks a lot to Steve Hruda for reporting the problem! 
+#Add new collation command SET BINARY_COLLATION UNSIGNED, helps with people testing BINARY columns in MySQL mode. 
 
 @changelog_1213_li
-#New table engine "org.h2.mvstore.db.MVTableEngine" that internally uses the MVStore to persist data. To try it out, append ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine" to the database URL. This is still very experimental, and many features are not supported yet. The data is stored in a file with the suffix ".mv.db". 
+#Issue 453: ABBA race conditions in TABLE LINK connection sharing. 
 
 @changelog_1214_li
-#New connection setting "DEFAULT_TABLE_ENGINE" to use a specific table engine if none is set explicitly. This is to simplify testing the MVStore table engine. 
+#Issue 449: Postgres Serial data type should not automatically be marked as primary key 
 
 @changelog_1215_li
-#MVStore: encrypted stores are now supported. Only standardized algorithms are used: PBKDF2, SHA-256, XTS-AES, AES-128. 
+#Issue 406: Support "select h2version()" 
 
 @changelog_1216_li
-#MVStore: improved API thanks to Simo Tripodi. 
+#Issue 389: When there is a multi-column primary key, H2 does not seem to always pick the right index 
 
 @changelog_1217_li
-#MVStore: maps can now be renamed. 
+#Issue 305: Implement SELECT ... FOR FETCH ONLY 
 
 @changelog_1218_li
-#MVStore: store the file header also at the end of each chunk, which results in a further reduced number of write operations. 
+#Issue 274: Sybase/MSSQLServer compatibility - Add GETDATE and CHARINDEX system functions 
 
 @changelog_1219_li
-#MVStore: a map implementation that supports concurrent operations. 
+#Issue 274: Sybase/MSSQLServer compatibility - swap parameters of CONVERT function. 
 
 @changelog_1220_li
-#MVStore: unified exception handling; the version is included in the messages. 
+#Issue 274: Sybase/MSSQLServer compatibility - support index clause e.g. "select * from test (index table1_index)" 
 
 @changelog_1221_li
-#MVStore: old data is now retained for 45 seconds by default. 
+#Fix bug in Optimizing SELECT * FROM A WHERE X=1 OR X=2 OR X=3 into SELECT * FROM A WHERE X IN (1,2,3) 
 
 @changelog_1222_li
-#MVStore: compress is now disabled by default, and can be enabled on request. 
+#Issue 442: Groovy patch for SourceCompiler (function ALIAS) 
 
 @changelog_1223_li
-#Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul (argaul at gmail.com). Fixes issue 401. 
+#Issue 459: Improve LOB documentation 
 
-@changelog_1224_li
-#Improved OSGi support. H2 now registers itself as a DataSourceFactory service. Fixes issue 365. 
+@changelog_1224_h2
+#Version 1.3.171 (2013-03-17)
 
 @changelog_1225_li
-#Add a DISK_SPACE_USED system function. Fixes issue 270. 
+#Security: the TCP server did not correctly restrict access rights of clients in some cases. This was specially a problem when using the flag "tcpAllowOthers". 
 
 @changelog_1226_li
-#Fix a compile-time ambiguity when compiling with JDK7, thanks to a patch from Lukas Eder. 
+#H2 Console: the session timeout can now be configured using the system property "h2.consoleTimeout". 
 
 @changelog_1227_li
-#Supporting dropping an index for Lucene full-text indexes. 
+#Issue 431: Improved compatibility with MySQL: support for "ENGINE=InnoDB charset=UTF8" when creating a table. 
 
 @changelog_1228_li
-#Optimized performance for SELECT ... ORDER BY X LIMIT Y OFFSET Z queries for in-memory databases using partial sort (by Sergi Vladykin). 
+#Issue 249: Improved compatibility with MySQL in the MySQL mode: now the methods DatabaseMetaData methods stores*Case*Identifiers return the same as MySQL when using the MySQL mode. 
 
 @changelog_1229_li
-#Experimental off-heap memory storage engine "nioMemFS:" and "nioMemLZF:", suggestion from Mark Addleman. 
+#Issue 434: H2 Console didn't work in the Chrome browser due to a wrong viewport argument. 
 
 @changelog_1230_li
-#Issue 438: JdbcDatabaseMetaData.getSchemas() is no longer supported as of 1.3.169. 
+#There was a possibility that the .lock.db file was not deleted when the database was closed, which could slow down opening the database. 
 
 @changelog_1231_li
-#MySQL compatibility: support for ALTER TABLE tableName MODIFY [COLUMN] columnName columnDef. Patch from Ville Koskela. 
+#The SQL script generated by the "script" command contained inconsistent newlines on Windows. 
 
 @changelog_1232_li
-#Issue 404: SHOW COLUMNS FROM tableName does not work with ALLOW_LITERALS=NUMBERS. 
+#When using trace level 4 (SLF4J) in the server mode, a directory "trace.db" and an empty file was created on the client side. This is no longer made. 
 
 @changelog_1233_li
-#Throw an explicit error to make it clear we don't support the TRIGGER combination of SELECT and FOR EACH ROW. 
+#Optimize IN(...) queries: there was a bug in version 1.3.170 if the type of the left hand side didn't match the type of the right hand side. Fixed. 
 
 @changelog_1234_li
-#Issue 439: Utils.sortTopN does not handle single-element arrays. 
+#Optimize IN(...) queries: there was a bug in version 1.3.170 for comparison of the type "X IN(NULL, NULL)". Fixed. 
 
-@changelog_1235_h2
-#Version 1.3.170 (2012-11-30)
+@changelog_1235_li
+#Timestamps with timezone that were passed as a string were not always converted correctly. For example "2012-11-06T23:00:00.000Z" was converted to "2012-11-06" instead of to "2012-11-07" in the timezone CET. Thanks a lot to Steve Hruda for reporting the problem! 
 
 @changelog_1236_li
-#Issue 407: The TriggerAdapter didn't work with CLOB and BLOB columns. 
+#New table engine "org.h2.mvstore.db.MVTableEngine" that internally uses the MVStore to persist data. To try it out, append ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine" to the database URL. This is still very experimental, and many features are not supported yet. The data is stored in a file with the suffix ".mv.db". 
 
 @changelog_1237_li
-#PostgreSQL compatibility: support for data types BIGSERIAL and SERIAL as an alias for AUTO_INCREMENT. 
+#New connection setting "DEFAULT_TABLE_ENGINE" to use a specific table engine if none is set explicitly. This is to simplify testing the MVStore table engine. 
 
 @changelog_1238_li
-#Issue 417: H2 Console: the web session timeout didn't work, resulting in a memory leak. This was only a problem if the H2 Console was run for a long time and many sessions were opened. 
+#MVStore: encrypted stores are now supported. Only standardized algorithms are used: PBKDF2, SHA-256, XTS-AES, AES-128. 
 
 @changelog_1239_li
-#Issue 412: Running the Server tool with just the option "-browser" will now log a warning. 
+#MVStore: improved API thanks to Simo Tripodi. 
 
 @changelog_1240_li
-#Issue 411: CloseWatcher registration was not concurrency-safe. 
+#MVStore: maps can now be renamed. 
 
 @changelog_1241_li
-#MySQL compatibility: support for CONCAT_WS. Thanks a lot to litailang for the patch! 
+#MVStore: store the file header also at the end of each chunk, which results in a further reduced number of write operations. 
 
 @changelog_1242_li
-#PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn). Thanks to Prashant Bhat for the patch! 
+#MVStore: a map implementation that supports concurrent operations. 
 
 @changelog_1243_li
-#Fix for a bug where we would sometimes use the wrong unique constraint to validate foreign key constraints. 
+#MVStore: unified exception handling; the version is included in the messages. 
 
 @changelog_1244_li
-#Support BOM at the beginning of files for the RUNSCRIPT command 
+#MVStore: old data is now retained for 45 seconds by default. 
 
 @changelog_1245_li
-#Fix in calling SET @X = IDENTITY() where it would return NULL incorrectly 
+#MVStore: compress is now disabled by default, and can be enabled on request. 
 
 @changelog_1246_li
-#Fix ABBA deadlock between adding a constraint and the H2-Log-Writer thread. 
+#Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul (argaul at gmail.com). Fixes issue 401. 
 
 @changelog_1247_li
-#Optimize IN(...) queries where the values are constant and of the same type. 
+#Improved OSGi support. H2 now registers itself as a DataSourceFactory service. Fixes issue 365. 
 
 @changelog_1248_li
-#Restore tool: the parameter "quiet" was not used and is now removed. 
+#Add a DISK_SPACE_USED system function. Fixes issue 270. 
 
 @changelog_1249_li
-#Fix ConcurrentModificationException when creating tables and executing SHOW TABLES in parallel. Reported by Viktor Voytovych. 
+#Fix a compile-time ambiguity when compiling with JDK7, thanks to a patch from Lukas Eder. 
 
 @changelog_1250_li
+#Supporting dropping an index for Lucene full-text indexes. 
+
+@changelog_1251_li
+#Optimized performance for SELECT ... ORDER BY X LIMIT Y OFFSET Z queries for in-memory databases using partial sort (by Sergi Vladykin). 
+
+@changelog_1252_li
+#Experimental off-heap memory storage engine "nioMemFS:" and "nioMemLZF:", suggestion from Mark Addleman. 
+
+@changelog_1253_li
+#Issue 438: JdbcDatabaseMetaData.getSchemas() is no longer supported as of 1.3.169. 
+
+@changelog_1254_li
+#MySQL compatibility: support for ALTER TABLE tableName MODIFY [COLUMN] columnName columnDef. Patch from Ville Koskela. 
+
+@changelog_1255_li
+#Issue 404: SHOW COLUMNS FROM tableName does not work with ALLOW_LITERALS=NUMBERS. 
+
+@changelog_1256_li
+#Throw an explicit error to make it clear we don't support the TRIGGER combination of SELECT and FOR EACH ROW. 
+
+@changelog_1257_li
+#Issue 439: Utils.sortTopN does not handle single-element arrays. 
+
+@changelog_1258_h2
+#Version 1.3.170 (2012-11-30)
+
+@changelog_1259_li
+#Issue 407: The TriggerAdapter didn't work with CLOB and BLOB columns. 
+
+@changelog_1260_li
+#PostgreSQL compatibility: support for data types BIGSERIAL and SERIAL as an alias for AUTO_INCREMENT. 
+
+@changelog_1261_li
+#Issue 417: H2 Console: the web session timeout didn't work, resulting in a memory leak. This was only a problem if the H2 Console was run for a long time and many sessions were opened. 
+
+@changelog_1262_li
+#Issue 412: Running the Server tool with just the option "-browser" will now log a warning. 
+
+@changelog_1263_li
+#Issue 411: CloseWatcher registration was not concurrency-safe. 
+
+@changelog_1264_li
+#MySQL compatibility: support for CONCAT_WS. Thanks a lot to litailang for the patch! 
+
+@changelog_1265_li
+#PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn). Thanks to Prashant Bhat for the patch! 
+
+@changelog_1266_li
+#Fix for a bug where we would sometimes use the wrong unique constraint to validate foreign key constraints. 
+
+@changelog_1267_li
+#Support BOM at the beginning of files for the RUNSCRIPT command 
+
+@changelog_1268_li
+#Fix in calling SET @X = IDENTITY() where it would return NULL incorrectly 
+
+@changelog_1269_li
+#Fix ABBA deadlock between adding a constraint and the H2-Log-Writer thread. 
+
+@changelog_1270_li
+#Optimize IN(...) queries where the values are constant and of the same type. 
+
+@changelog_1271_li
+#Restore tool: the parameter "quiet" was not used and is now removed. 
+
+@changelog_1272_li
+#Fix ConcurrentModificationException when creating tables and executing SHOW TABLES in parallel. Reported by Viktor Voytovych. 
+
+@changelog_1273_li
 #Serialization is now pluggable using the system property "h2.javaObjectSerializer". Thanks to Sergi Vladykin for the patch! 
 
 @cheatSheet_1000_h1
@@ -5615,7 +5684,7 @@ Sourceファイル
 # Summary and License FAQ
 
 @license_1002_a
-# H2 License - Version 1.0
+# Mozilla Public License Version 2.0
 
 @license_1003_a
 # Eclipse Public License - Version 1.0
@@ -5627,13 +5696,13 @@ Sourceファイル
 #Summary and License FAQ
 
 @license_1006_p
-# H2 is dual licensed and available under a modified version of the MPL 1.1 (<a href="http://www.mozilla.org/MPL">Mozilla Public License</a>) or under the (unmodified) EPL 1.0 (<a href="http://opensource.org/licenses/eclipse-1.0.php">Eclipse Public License</a>). The changes to the MPL are 
+# H2 is dual licensed and available under the MPL 2.0 (<a href="http://www.mozilla.org/MPL/2.0">Mozilla Public License Version 2.0</a>) or under the EPL 1.0 (<a href="http://opensource.org/licenses/eclipse-1.0.php">Eclipse Public License</a>). There is a license FAQ for both the MPL and the EPL. 
 
-@license_1007_em
-#underlined</em>. There is a license FAQ for both the MPL and the EPL, most of that is applicable to the H2 license as well. 
+@license_1007_li
+#You can use H2 for free. 
 
 @license_1008_li
-#You can use H2 for free. You can integrate it into your applications (including in commercial applications), and you can distribute it. 
+#You can integrate it into your applications (including in commercial applications) and distribute it. 
 
 @license_1009_li
 #Files containing only your code are not covered by this license (it is 'commercial friendly'). 
@@ -5654,453 +5723,387 @@ Sourceファイル
 # About porting the source code to another language (for example C# or C++): converted source code (even if done manually) stays under the same copyright and license as the original code. The copyright of the ported source code does not (automatically) go to the person who ported the code. 
 
 @license_1015_p
-# If you distribute a binary that includes H2, you need to add the license and a disclaimer of liability (as you should do for your own code). You should add a disclaimer for each open source libraries you use. For example, add a file <code>3rdparty_license.txt</code> in the directory where the jar files are, and list all open source libraries, each one with its license and disclaimer. For H2, a simple solution is to copy the following text below. You may also include a copy of the complete license. 
+# If you distribute a binary that includes H2, you need to add the license and a disclaimer of liability (as you should do for your own code). You should add a disclaimer for each open source library you use. For example, add a file <code>3rdparty_license.txt</code> in the directory where the jar files are, and list all open source libraries, each one with its license and disclaimer. For H2, a simple solution is to copy the following text below. You may also include a copy of the complete license. 
 
 @license_1016_h2
-#H2 License - Version 1.0
+#Mozilla Public License Version 2.0
 
 @license_1017_h3
 #1. Definitions
 
-@license_1018_b
-#1.0.1. "Commercial Use"
+@license_1018_p
+#1.1. "Contributor" means each individual or legal entity that creates, contributes to the creation of, or owns Covered Software.
 
 @license_1019_p
-# means distribution or otherwise making the Covered Code available to a third party. 
+#1.2. "Contributor Version" means the combination of the Contributions of others (if any) used by a Contributor and that particular Contributor's Contribution.
 
-@license_1020_b
-#1.1. "Contributor"
+@license_1020_p
+#1.3. "Contribution" means Covered Software of a particular Contributor.
 
 @license_1021_p
-# means each entity that creates or contributes to the creation of Modifications. 
+#1.4. "Covered Software" means Source Code Form to which the initial Contributor has attached the notice in Exhibit A, the Executable Form of such Source Code Form, and Modifications of such Source Code Form, in each case including portions thereof.
 
-@license_1022_b
-#1.2. "Contributor Version"
+@license_1022_p
+#1.5. "Incompatible With Secondary Licenses" means
 
 @license_1023_p
-# means the combination of the Original Code, prior Modifications used by a Contributor, and the Modifications made by that particular Contributor. 
+#a. that the initial Contributor has attached the notice described in Exhibit B to the Covered Software; or
 
-@license_1024_b
-#1.3. "Covered Code"
+@license_1024_p
+#b. that the Covered Software was made available under the terms of version 1.1 or earlier of the License, but not also under the terms of a Secondary License.
 
 @license_1025_p
-# means the Original Code or Modifications or the combination of the Original Code and Modifications, in each case including portions thereof. 
+#1.6. "Executable Form" means any form of the work other than Source Code Form.
 
-@license_1026_b
-#1.4. "Electronic Distribution Mechanism"
+@license_1026_p
+#1.7. "Larger Work" means a work that combines Covered Software with other material, in a separate file or files, that is not Covered Software.
 
 @license_1027_p
-# means a mechanism generally accepted in the software development community for the electronic transfer of data. 
+#1.8. "License" means this document.
 
-@license_1028_b
-#1.5. "Executable"
+@license_1028_p
+#1.9. "Licensable" means having the right to grant, to the maximum extent possible, whether at the time of the initial grant or subsequently, any and all of the rights conveyed by this License.
 
 @license_1029_p
-# means Covered Code in any form other than Source Code. 
+#1.10. "Modifications" means any of the following:
 
-@license_1030_b
-#1.6. "Initial Developer"
+@license_1030_p
+#a. any file in Source Code Form that results from an addition to, deletion from, or modification of the contents of Covered Software; or
 
 @license_1031_p
-# means the individual or entity identified as the Initial Developer in the Source Code notice required by <a href="#exhibit-a">Exhibit A</a>. 
+#b. any new file in Source Code Form that contains any Covered Software.
 
-@license_1032_b
-#1.7. "Larger Work"
+@license_1032_p
+#1.11. "Patent Claims" of a Contributor means any patent claim(s), including without limitation, method, process, and apparatus claims, in any patent Licensable by such Contributor that would be infringed, but for the grant of the License, by the making, using, selling, offering for sale, having made, import, or transfer of either its Contributions or its Contributor Version.
 
 @license_1033_p
-# means a work which combines Covered Code or portions thereof with code not governed by the terms of this License. 
+#1.12. "Secondary License" means either the GNU General Public License, Version 2.0, the GNU Lesser General Public License, Version 2.1, the GNU Affero General Public License, Version 3.0, or any later versions of those licenses.
 
-@license_1034_b
-#1.8. "License"
+@license_1034_p
+#1.13. "Source Code Form" means the form of the work preferred for making modifications.
 
 @license_1035_p
-# means this document. 
+#1.14. "You" (or "Your") means an individual or a legal entity exercising rights under this License. For legal entities, "You" includes any entity that controls, is controlled by, or is under common control with You. For purposes of this definition, "control" means (a) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (b) ownership of more than fifty percent (50%) of the outstanding shares or beneficial ownership of such entity.
 
-@license_1036_b
-#1.8.1. "Licensable"
+@license_1036_h3
+#2. License Grants and Conditions
 
-@license_1037_p
-# means having the right to grant, to the maximum extent possible, whether at the time of the initial grant or subsequently acquired, any and all of the rights conveyed herein. 
+@license_1037_h4
+#2.1. Grants
 
-@license_1038_b
-#1.9. "Modifications"
+@license_1038_p
+#Each Contributor hereby grants You a world-wide, royalty-free, non-exclusive license:
 
 @license_1039_p
-# means any addition to or deletion from the substance or structure of either the Original Code or any previous Modifications. When Covered Code is released as a series of files, a Modification is: 
+#under intellectual property rights (other than patent or trademark) Licensable by such Contributor to use, reproduce, make available, modify, display, perform, distribute, and otherwise exploit its Contributions, either on an unmodified basis, with Modifications, or as part of a Larger Work; and
 
 @license_1040_p
-#1.9.a. Any addition to or deletion from the contents of a file containing Original Code or previous Modifications. 
+#under Patent Claims of such Contributor to make, use, sell, offer for sale, have made, import, and otherwise transfer either its Contributions or its Contributor Version.
 
-@license_1041_p
-#1.9.b. Any new file that contains any part of the Original Code or previous Modifications. 
+@license_1041_h4
+#2.2. Effective Date
 
-@license_1042_b
-#1.10. "Original Code"
+@license_1042_p
+#The licenses granted in Section&nbsp;2.1 with respect to any Contribution become effective for each Contribution on the date the Contributor first distributes such Contribution.
 
-@license_1043_p
-# means Source Code of computer software code which is described in the Source Code notice required by <a href="#exhibit-a">Exhibit A</a> as Original Code, and which, at the time of its release under this License is not already Covered Code governed by this License. 
+@license_1043_h4
+#2.3. Limitations on Grant Scope
 
-@license_1044_b
-#1.10.1. "Patent Claims"
+@license_1044_p
+#The licenses granted in this Section&nbsp;2 are the only rights granted under this License. No additional rights or licenses will be implied from the distribution or licensing of Covered Software under this License. Notwithstanding Section&nbsp;2.1(b) above, no patent license is granted by a Contributor:
 
 @license_1045_p
-# means any patent claim(s), now owned or hereafter acquired, including without limitation, method, process, and apparatus claims, in any patent Licensable by grantor. 
+#for any code that a Contributor has removed from Covered Software; or
 
-@license_1046_b
-#1.11. "Source Code"
+@license_1046_p
+#for infringements caused by: (i) Your and any other third party's modifications of Covered Software, or (ii) the combination of its Contributions with other software (except as part of its Contributor Version); or
 
 @license_1047_p
-# means the preferred form of the Covered Code for making modifications to it, including all modules it contains, plus any associated interface definition files, scripts used to control compilation and installation of an Executable, or source code differential comparisons against either the Original Code or another well known, available Covered Code of the Contributor's choice. The Source Code can be in a compressed or archival form, provided the appropriate decompression or de-archiving software is widely available for no charge. 
+#under Patent Claims infringed by Covered Software in the absence of its Contributions.
 
-@license_1048_b
-#1.12. "You" (or "Your")
+@license_1048_p
+#This License does not grant any rights in the trademarks, service marks, or logos of any Contributor (except as may be necessary to comply with the notice requirements in Section&nbsp;3.4).
 
-@license_1049_p
-# means an individual or a legal entity exercising rights under, and complying with all of the terms of, this License or a future version of this License issued under <a href="#section-6.1">Section 6.1.</a> For legal entities, "You" includes any entity which controls, is controlled by, or is under common control with You. For purposes of this definition, "control" means (a) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (b) ownership of more than fifty percent (50%) of the outstanding shares or beneficial ownership of such entity. 
+@license_1049_h4
+#2.4. Subsequent Licenses
 
-@license_1050_h3
-#2. Source Code License
+@license_1050_p
+#No Contributor makes additional grants as a result of Your choice to distribute the Covered Software under a subsequent version of this License (see Section&nbsp;10.2) or under the terms of a Secondary License (if permitted under the terms of Section&nbsp;3.3).
 
 @license_1051_h4
-#2.1. The Initial Developer Grant
+#2.5. Representation
 
 @license_1052_p
-# The Initial Developer hereby grants You a world-wide, royalty-free, non-exclusive license, subject to third party intellectual property claims: 
+#Each Contributor represents that the Contributor believes its Contributions are its original creation(s) or it has sufficient rights to grant the rights to its Contributions conveyed by this License.
 
-@license_1053_p
-#2.1.a. under intellectual property rights (other than patent or trademark) Licensable by Initial Developer to use, reproduce, modify, display, perform, sublicense and distribute the Original Code (or portions thereof) with or without Modifications, and/or as part of a Larger Work; and 
+@license_1053_h4
+#2.6. Fair Use
 
 @license_1054_p
-#2.1.b. under Patents Claims infringed by the making, using or selling of Original Code, to make, have made, use, practice, sell, and offer for sale, and/or otherwise dispose of the Original Code (or portions thereof). 
+#This License is not intended to limit any rights You have under applicable copyright doctrines of fair use, fair dealing, or other equivalents.
 
-@license_1055_p
-#2.1.c. the licenses granted in this Section 2.1 (<a href="#section-2.1-a">a</a>) and (<a href="#section-2.1-b">b</a>) are effective on the date Initial Developer first distributes Original Code under the terms of this License. 
+@license_1055_h4
+#2.7. Conditions
 
 @license_1056_p
-#2.1.d. Notwithstanding Section 2.1 (<a href="#section-2.1-b">b</a>) above, no patent license is granted: 1) for code that You delete from the Original Code; 2) separate from the Original Code; or 3) for infringements caused by: i) the modification of the Original Code or ii) the combination of the Original Code with other software or devices. 
+#Sections 3.1, 3.2, 3.3, and 3.4 are conditions of the licenses granted in Section&nbsp;2.1.
 
-@license_1057_h4
-#2.2. Contributor Grant
+@license_1057_h3
+#3. Responsibilities
 
-@license_1058_p
-# Subject to third party intellectual property claims, each Contributor hereby grants You a world-wide, royalty-free, non-exclusive license 
+@license_1058_h4
+#3.1. Distribution of Source Form
 
 @license_1059_p
-#2.2.a. under intellectual property rights (other than patent or trademark) Licensable by Contributor, to use, reproduce, modify, display, perform, sublicense and distribute the Modifications created by such Contributor (or portions thereof) either on an unmodified basis, with other Modifications, as Covered Code and/or as part of a Larger Work; and 
+#All distribution of Covered Software in Source Code Form, including any Modifications that You create or to which You contribute, must be under the terms of this License. You must inform recipients that the Source Code Form of the Covered Software is governed by the terms of this License, and how they can obtain a copy of this License. You may not attempt to alter or restrict the recipients' rights in the Source Code Form.
 
-@license_1060_p
-#2.2.b. under Patent Claims infringed by the making, using, or selling of Modifications made by that Contributor either alone and/or in combination with its Contributor Version (or portions of such combination), to make, use, sell, offer for sale, have made, and/or otherwise dispose of: 1) Modifications made by that Contributor (or portions thereof); and 2) the combination of Modifications made by that Contributor with its Contributor Version (or portions of such combination). 
+@license_1060_h4
+#3.2. Distribution of Executable Form
 
 @license_1061_p
-#2.2.c. the licenses granted in Sections 2.2 (<a href="#section-2.2-a">a</a>) and 2.2 (<a href="#section-2.2-b">b</a>) are effective on the date Contributor first makes Commercial Use of the Covered Code. 
+#If You distribute Covered Software in Executable Form then:
 
 @license_1062_p
-#2.2.c. Notwithstanding Section 2.2 (<a href="#section-2.2-b">b</a>) above, no patent license is granted: 1) for any code that Contributor has deleted from the Contributor Version; 2) separate from the Contributor Version; 3) for infringements caused by: i) third party modifications of Contributor Version or ii) the combination of Modifications made by that Contributor with other software (except as part of the Contributor Version) or other devices; or 4) under Patent Claims infringed by Covered Code in the absence of Modifications made by that Contributor. 
+#such Covered Software must also be made available in Source Code Form, as described in Section&nbsp;3.1, and You must inform recipients of the Executable Form how they can obtain a copy of such Source Code Form by reasonable means in a timely manner, at a charge no more than the cost of distribution to the recipient; and
 
-@license_1063_h3
-#3. Distribution Obligations
+@license_1063_p
+#You may distribute such Executable Form under the terms of this License, or sublicense it under different terms, provided that the license for the Executable Form does not attempt to limit or alter the recipients' rights in the Source Code Form under this License.
 
 @license_1064_h4
-#3.1. Application of License
+#3.3. Distribution of a Larger Work
 
 @license_1065_p
-# The Modifications which You create or to which You contribute are governed by the terms of this License, including without limitation Section <a href="#section-2.2">2.2</a>. The Source Code version of Covered Code may be distributed only under the terms of this License or a future version of this License released under Section <a href="#section-6.1">6.1</a>, and You must include a copy of this License with every copy of the Source Code You distribute. You may not offer or impose any terms on any Source Code version that alters or restricts the applicable version of this License or the recipients' rights hereunder. However, You may include an additional document offering the additional rights described in Section <a href="#section-3.5">3.5</a>. 
+#You may create and distribute a Larger Work under terms of Your choice, provided that You also comply with the requirements of this License for the Covered Software. If the Larger Work is a combination of Covered Software with a work governed by one or more Secondary Licenses, and the Covered Software is not Incompatible With Secondary Licenses, this License permits You to additionally distribute such Covered Software under the terms of such Secondary License(s), so that the recipient of the Larger Work may, at their option, further distribute the Covered Software under the terms of either this License or such Secondary License(s).
 
 @license_1066_h4
-#3.2. Availability of Source Code
+#3.4. Notices
 
 @license_1067_p
-# Any Modification which You create or to which You contribute must be made available in Source Code form under the terms of this License either on the same media as an Executable version or via an accepted Electronic Distribution Mechanism to anyone to whom you made an Executable version available; and if made available via Electronic Distribution Mechanism, must remain available for at least twelve (12) months after the date it initially became available, or at least six (6) months after a subsequent version of that particular Modification has been made available to such recipients. You are responsible for ensuring that the Source Code version remains available even if the Electronic Distribution Mechanism is maintained by a third party. 
+#You may not remove or alter the substance of any license notices (including copyright notices, patent notices, disclaimers of warranty, or limitations of liability) contained within the Source Code Form of the Covered Software, except that You may alter any license notices to the extent required to remedy known factual inaccuracies.
 
 @license_1068_h4
-#3.3. Description of Modifications
+#3.5. Application of Additional Terms
 
 @license_1069_p
-# You must cause all Covered Code to which You contribute to contain a file documenting the changes You made to create that Covered Code and the date of any change. You must include a prominent statement that the Modification is derived, directly or indirectly, from Original Code provided by the Initial Developer and including the name of the Initial Developer in (a) the Source Code, and (b) in any notice in an Executable version or related documentation in which You describe the origin or ownership of the Covered Code. 
+#You may choose to offer, and to charge a fee for, warranty, support, indemnity or liability obligations to one or more recipients of Covered Software. However, You may do so only on Your own behalf, and not on behalf of any Contributor. You must make it absolutely clear that any such warranty, support, indemnity, or liability obligation is offered by You alone, and You hereby agree to indemnify every Contributor for any liability incurred by such Contributor as a result of warranty, support, indemnity or liability terms You offer. You may include additional disclaimers of warranty and limitations of liability specific to any jurisdiction.
 
-@license_1070_h4
-#3.4. Intellectual Property Matters
+@license_1070_h3
+#4. Inability to Comply Due to Statute or Regulation
 
-@license_1071_b
-#3.4.a. Third Party Claims:
+@license_1071_p
+#If it is impossible for You to comply with any of the terms of this License with respect to some or all of the Covered Software due to statute, judicial order, or regulation then You must: (a) comply with the terms of this License to the maximum extent possible; and (b) describe the limitations and the code they affect. Such description must be placed in a text file included with all distributions of the Covered Software under this License. Except to the extent prohibited by statute or regulation, such description must be sufficiently detailed for a recipient of ordinary skill to be able to understand it.
 
-@license_1072_p
-# If Contributor has knowledge that a license under a third party's intellectual property rights is required to exercise the rights granted by such Contributor under Sections <a href="#section-2.1">2.1</a> or <a href="#section-2.2">2.2</a>, Contributor must include a text file with the Source Code distribution titled "LEGAL" which describes the claim and the party making the claim in sufficient detail that a recipient will know whom to contact. If Contributor obtains such knowledge after the Modification is made available as described in Section <a href="#section-3.2">3.2</a>, Contributor shall promptly modify the LEGAL file in all copies Contributor makes available thereafter and shall take other steps (such as notifying appropriate mailing lists or newsgroups) reasonably calculated to inform those who received the Covered Code that new knowledge has been obtained. 
+@license_1072_h3
+#5. Termination
 
-@license_1073_b
-#3.4.b. Contributor APIs:
+@license_1073_p
+#5.1. The rights granted under this License will terminate automatically if You fail to comply with any of its terms. However, if You become compliant, then the rights granted under this License from a particular Contributor are reinstated (a) provisionally, unless and until such Contributor explicitly and finally terminates Your grants, and (b) on an ongoing basis, if such Contributor fails to notify You of the non-compliance by some reasonable means prior to 60 days after You have come back into compliance. Moreover, Your grants from a particular Contributor are reinstated on an ongoing basis if such Contributor notifies You of the non-compliance by some reasonable means, this is the first time You have received notice of non-compliance with this License from such Contributor, and You become compliant prior to 30 days after Your receipt of the notice.
 
 @license_1074_p
-# If Contributor's Modifications include an application programming interface and Contributor has knowledge of patent licenses which are reasonably necessary to implement that API, Contributor must also include this information in the legal file. 
+#5.2. If You initiate litigation against any entity by asserting a patent infringement claim (excluding declaratory judgment actions, counter-claims, and cross-claims) alleging that a Contributor Version directly or indirectly infringes any patent, then the rights granted to You by any and all Contributors for the Covered Software under Section&nbsp;2.1 of this License shall terminate.
 
-@license_1075_b
-#3.4.c. Representations:
+@license_1075_p
+#5.3. In the event of termination under Sections&nbsp;5.1 or 5.2 above, all end user license agreements (excluding distributors and resellers) which have been validly granted by You or Your distributors under this License prior to termination shall survive termination.
 
-@license_1076_p
-# Contributor represents that, except as disclosed pursuant to Section 3.4 (<a href="#section-3.4-a">a</a>) above, Contributor believes that Contributor's Modifications are Contributor's original creation(s) and/or Contributor has sufficient rights to grant the rights conveyed by this License. 
+@license_1076_h3
+#6. Disclaimer of Warranty
 
-@license_1077_h4
-#3.5. Required Notices
+@license_1077_p
+#Covered Software is provided under this License on an "as is" basis, without warranty of any kind, either expressed, implied, or statutory, including, without limitation, warranties that the Covered Software is free of defects, merchantable, fit for a particular purpose or non-infringing. The entire risk as to the quality and performance of the Covered Software is with You. Should any Covered Software prove defective in any respect, You (not any Contributor) assume the cost of any necessary servicing, repair, or correction. This disclaimer of warranty constitutes an essential part of this License. No use of any Covered Software is authorized under this License except under this disclaimer.
 
-@license_1078_p
-# You must duplicate the notice in <a href="#exhibit-a">Exhibit A</a> in each file of the Source Code. If it is not possible to put such notice in a particular Source Code file due to its structure, then You must include such notice in a location (such as a relevant directory) where a user would be likely to look for such a notice. If You created one or more Modification(s) You may add your name as a Contributor to the notice described in <a href="#exhibit-a">Exhibit A</a>. You must also duplicate this License in any documentation for the Source Code where You describe recipients' rights or ownership rights relating to Covered Code. You may choose to offer, and to charge a fee for, warranty, support, indemnity or liability obligations to one or more recipients of Covered Code. However, You may do so only on Your own behalf, and not on behalf of the Initial Developer or any Contributor. You must make it absolutely clear than any such warranty, support, indemnity or liability obligation is offered by You alone, and You hereby agree to indemnify the Initial Developer and every Contributor for any liability incurred by the Initial Developer or such Contributor as a result of warranty, support, indemnity or liability terms You offer. 
+@license_1078_h3
+#7. Limitation of Liability
 
-@license_1079_h4
-#3.6. Distribution of Executable Versions
+@license_1079_p
+#Under no circumstances and under no legal theory, whether tort (including negligence), contract, or otherwise, shall any Contributor, or anyone who distributes Covered Software as permitted above, be liable to You for any direct, indirect, special, incidental, or consequential damages of any character including, without limitation, damages for lost profits, loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses, even if such party shall have been informed of the possibility of such damages. This limitation of liability shall not apply to liability for death or personal injury resulting from such party's negligence to the extent applicable law prohibits such limitation. Some jurisdictions do not allow the exclusion or limitation of incidental or consequential damages, so this exclusion and limitation may not apply to You.
 
-@license_1080_p
-# You may distribute Covered Code in Executable form only if the requirements of Sections <a href="#section-3.1">3.1</a>, <a href="#section-3.2">3.2</a>, <a href="#section-3.3">3.3</a>, <a href="#section-3.4">3.4</a> and <a href="#section-3.5">3.5</a> have been met for that Covered Code, and if You include a notice stating that the Source Code version of the Covered Code is available under the terms of this License, including a description of how and where You have fulfilled the obligations of Section <a href="#section-3.2">3.2</a>. The notice must be conspicuously included in any notice in an Executable version, related documentation or collateral in which You describe recipients' rights relating to the Covered Code. You may distribute the Executable version of Covered Code or ownership rights under a license of Your choice, which may contain terms different from this License, provided that You are in compliance with the terms of this License and that the license for the Executable version does not attempt to limit or alter the recipient's rights in the Source Code version from the rights set forth in this License. If You distribute the Executable version under a different license You must make it absolutely clear that any terms which differ from this License are offered by You alone, not by the Initial Developer or any Contributor. You hereby agree to indemnify the Initial Developer and every Contributor for any liability incurred by the Initial Developer or such Contributor as a result of any such terms You offer. 
+@license_1080_h3
+#8. Litigation
 
-@license_1081_h4
-#3.7. Larger Works
+@license_1081_p
+#Any litigation relating to this License may be brought only in the courts of a jurisdiction where the defendant maintains its principal place of business and such litigation shall be governed by laws of that jurisdiction, without reference to its conflict-of-law provisions. Nothing in this Section shall prevent a party's ability to bring cross-claims or counter-claims.
 
-@license_1082_p
-# You may create a Larger Work by combining Covered Code with other code not governed by the terms of this License and distribute the Larger Work as a single product. In such a case, You must make sure the requirements of this License are fulfilled for the Covered Code. 
+@license_1082_h3
+#9. Miscellaneous
 
-@license_1083_h3
-#4. Inability to Comply Due to Statute or Regulation.
+@license_1083_p
+#This License represents the complete agreement concerning the subject matter hereof. If any provision of this License is held to be unenforceable, such provision shall be reformed only to the extent necessary to make it enforceable. Any law or regulation which provides that the language of a contract shall be construed against the drafter shall not be used to construe this License against a Contributor.
 
-@license_1084_p
-# If it is impossible for You to comply with any of the terms of this License with respect to some or all of the Covered Code due to statute, judicial order, or regulation then You must: (a) comply with the terms of this License to the maximum extent possible; and (b) describe the limitations and the code they affect. Such description must be included in the <b>legal</b> file described in Section <a href="#section-3.4">3.4</a> and must be included with all distributions of the Source Code. Except to the extent prohibited by statute or regulation, such description must be sufficiently detailed for a recipient of ordinary skill to be able to understand it. 
+@license_1084_h3
+#10. Versions of the License
 
-@license_1085_h3
-#5. Application of this License.
+@license_1085_h4
+#10.1. New Versions
 
 @license_1086_p
-# This License applies to code to which the Initial Developer has attached the notice in <a href="#exhibit-a">Exhibit A</a> and to related Covered Code. 
+#Mozilla Foundation is the license steward. Except as provided in Section&nbsp;10.3, no one other than the license steward has the right to modify or publish new versions of this License. Each version will be given a distinguishing version number.
 
-@license_1087_h3
-#6. Versions of the License.
+@license_1087_h4
+#10.2. Effect of New Versions
 
-@license_1088_h4
-#6.1. New Versions
+@license_1088_p
+#You may distribute the Covered Software under the terms of the version of the License under which You originally received the Covered Software, or under the terms of any subsequent version published by the license steward.
 
-@license_1089_p
-# The 
+@license_1089_h4
+#10.3. Modified Versions
 
-@license_1090_em
-#H2 Group</em> may publish revised and/or new versions of the License from time to time. Each version will be given a distinguishing version number. 
+@license_1090_p
+#If you create software not governed by this License, and you want to create a new license for such software, you may create and use a modified version of this License if you rename the license and remove any references to the name of the license steward (except to note that such modified license differs from this License).
 
 @license_1091_h4
-#6.2. Effect of New Versions
+#10.4. Distributing Source Code Form that is Incompatible With Secondary Licenses
 
 @license_1092_p
-# Once Covered Code has been published under a particular version of the License, You may always continue to use it under the terms of that version. You may also choose to use such Covered Code under the terms of any subsequent version of the License published by the 
+#If You choose to distribute Source Code Form that is Incompatible With Secondary Licenses under the terms of this version of the License, the notice described in Exhibit B of this License must be attached.
 
-@license_1093_em
-#H2 Group</em>. No one other than the 
+@license_1093_h3
+#Exhibit A - Source Code Form License Notice
 
-@license_1094_em
-#H2 Group</em> has the right to modify the terms applicable to Covered Code created under this License. 
+@license_1094_p
+#If it is not possible or desirable to put the notice in a particular file, then You may include the notice in a location (such as a LICENSE file in a relevant directory) where a recipient would be likely to look for such a notice.
 
-@license_1095_h4
-#6.3. Derivative Works
+@license_1095_p
+#You may add additional accurate notices of copyright ownership.
 
-@license_1096_p
-# If You create or use a modified version of this License (which you may only do in order to apply it to code which is not already Covered Code governed by this License), You must (a) rename Your license so that the phrases 
+@license_1096_h3
+#Exhibit B - "Incompatible With Secondary Licenses" Notice
 
-@license_1097_em
-#"H2 Group", "H2"</em> or any confusingly similar phrase do not appear in your license (except to note that your license differs from this License) and (b) otherwise make it clear that Your version of the license contains terms which differ from the 
-
-@license_1098_em
-#H2 License</em>. (Filling in the name of the Initial Developer, Original Code or Contributor in the notice described in <a href="#exhibit-a">Exhibit A</a> shall not of themselves be deemed to be modifications of this License.) 
-
-@license_1099_h3
-#7. Disclaimer of Warranty
-
-@license_1100_p
-# Covered code is provided under this license on an "as is" basis, without warranty of any kind, either expressed or implied, including, without limitation, warranties that the covered code is free of defects, merchantable, fit for a particular purpose or non-infringing. The entire risk as to the quality and performance of the covered code is with you. Should any covered code prove defective in any respect, you (not the initial developer or any other contributor) assume the cost of any necessary servicing, repair or correction. This disclaimer of warranty constitutes an essential part of this license. No use of any covered code is authorized hereunder except under this disclaimer. 
-
-@license_1101_h3
-#8. Termination
-
-@license_1102_p
-#8.1. This License and the rights granted hereunder will terminate automatically if You fail to comply with terms herein and fail to cure such breach within 30 days of becoming aware of the breach. All sublicenses to the Covered Code which are properly granted shall survive any termination of this License. Provisions which, by their nature, must remain in effect beyond the termination of this License shall survive. 
-
-@license_1103_p
-#8.2. If You initiate litigation by asserting a patent infringement claim (excluding declaratory judgment actions) against Initial Developer or a Contributor (the Initial Developer or Contributor against whom You file such action is referred to as "Participant") alleging that: 
-
-@license_1104_p
-#8.2.a. such Participant's Contributor Version directly or indirectly infringes any patent, then any and all rights granted by such Participant to You under Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> of this License shall, upon 60 days notice from Participant terminate prospectively, unless if within 60 days after receipt of notice You either: (i) agree in writing to pay Participant a mutually agreeable reasonable royalty for Your past and future use of Modifications made by such Participant, or (ii) withdraw Your litigation claim with respect to the Contributor Version against such Participant. If within 60 days of notice, a reasonable royalty and payment arrangement are not mutually agreed upon in writing by the parties or the litigation claim is not withdrawn, the rights granted by Participant to You under Sections <a href="#section-2.1">2.1</a> and/or <a href="#section-2.2">2.2</a> automatically terminate at the expiration of the 60 day notice period specified above. 
-
-@license_1105_p
-#8.2.b. any software, hardware, or device, other than such Participant's Contributor Version, directly or indirectly infringes any patent, then any rights granted to You by such Participant under Sections 2.1(<a href="#section-2.1-b">b</a>) and 2.2(<a href="#section-2.2-b">b</a>) are revoked effective as of the date You first made, used, sold, distributed, or had made, Modifications made by that Participant. 
-
-@license_1106_p
-#8.3. If You assert a patent infringement claim against Participant alleging that such Participant's Contributor Version directly or indirectly infringes any patent where such claim is resolved (such as by license or settlement) prior to the initiation of patent infringement litigation, then the reasonable value of the licenses granted by such Participant under Sections <a href="#section-2.1">2.1</a> or <a href="#section-2.2">2.2</a> shall be taken into account in determining the amount or value of any payment or license. 
-
-@license_1107_p
-#8.4. In the event of termination under Sections <a href="#section-8.1">8.1</a> or <a href="#section-8.2">8.2</a> above, all end user license agreements (excluding distributors and resellers) which have been validly granted by You or any distributor hereunder prior to termination shall survive termination. 
-
-@license_1108_h3
-#9. Limitation of Liability
-
-@license_1109_p
-# Under no circumstances and under no legal theory, whether tort (including negligence), contract, or otherwise, shall you, the initial developer, any other contributor, or any distributor of covered code, or any supplier of any of such parties, be liable to any person for any indirect, special, incidental, or consequential damages of any character including, without limitation, damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses, even if such party shall have been informed of the possibility of such damages. This limitation of liability shall not apply to liability for death or personal injury resulting from such party's negligence to the extent applicable law prohibits such limitation. Some jurisdictions do not allow the exclusion or limitation of incidental or consequential damages, so this exclusion and limitation may not apply to you. 
-
-@license_1110_h3
-#10. United States Government End Users
-
-@license_1111_p
-# The Covered Code is a "commercial item", as that term is defined in 48 C.F.R. 2.101 (October 1995), consisting of "commercial computer software" and "commercial computer software documentation", as such terms are used in 48 C.F.R. 12.212 (September 1995). Consistent with 48 C.F.R. 12.212 and 48 C.F.R. 227.7202-1 through 227.7202-4 (June 1995), all U.S. Government End Users acquire Covered Code with only those rights set forth herein. 
-
-@license_1112_h3
-#11. Miscellaneous
-
-@license_1113_p
-# This License represents the complete agreement concerning subject matter hereof. If any provision of this License is held to be unenforceable, such provision shall be reformed only to the extent necessary to make it enforceable. This License shall be governed by California law provisions (except to the extent applicable law, if any, provides otherwise), excluding its conflict-of-law provisions. With respect to disputes in which at least one party is a citizen of, or an entity chartered or registered to do business in United States of America, any litigation relating to this License shall be subject to the jurisdiction of the Federal Courts of the Northern District of California, with venue lying in Santa Clara County, California, with the losing party responsible for costs, including without limitation, court costs and reasonable attorneys' fees and expenses. The application of the United Nations Convention on Contracts for the International Sale of Goods is expressly excluded. Any law or regulation which provides that the language of a contract shall be construed against the drafter shall not apply to this License. 
-
-@license_1114_h3
-#12. Responsibility for Claims
-
-@license_1115_p
-# As between Initial Developer and the Contributors, each party is responsible for claims and damages arising, directly or indirectly, out of its utilization of rights under this License and You agree to work with Initial Developer and Contributors to distribute such responsibility on an equitable basis. Nothing herein is intended or shall be deemed to constitute any admission of liability. 
-
-@license_1116_h3
-#13. Multiple-Licensed Code
-
-@license_1117_p
-# Initial Developer may designate portions of the Covered Code as "Multiple-Licensed". "Multiple-Licensed" means that the Initial Developer permits you to utilize portions of the Covered Code under Your choice of this or the alternative licenses, if any, specified by the Initial Developer in the file described in <a href="#exhibit-a">Exhibit A</a>. 
-
-@license_1118_h3
-#Exhibit A
-
-@license_1119_h2
+@license_1097_h2
 #Eclipse Public License - Version 1.0
 
-@license_1120_p
+@license_1098_p
 # THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE PUBLIC LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION OF THE PROGRAM CONSTITUTES RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT. 
 
-@license_1121_h3
+@license_1099_h3
 #1. DEFINITIONS
 
-@license_1122_p
+@license_1100_p
 # "Contribution" means: 
 
-@license_1123_p
+@license_1101_p
 # a) in the case of the initial Contributor, the initial code and documentation distributed under this Agreement, and 
 
-@license_1124_p
+@license_1102_p
 # b) in the case of each subsequent Contributor: 
 
-@license_1125_p
+@license_1103_p
 # i) changes to the Program, and 
 
-@license_1126_p
+@license_1104_p
 # ii) additions to the Program; 
 
-@license_1127_p
+@license_1105_p
 # where such changes and/or additions to the Program originate from and are distributed by that particular Contributor. A Contribution 'originates' from a Contributor if it was added to the Program by such Contributor itself or anyone acting on such Contributor's behalf. Contributions do not include additions to the Program which: (i) are separate modules of software distributed in conjunction with the Program under their own license agreement, and (ii) are not derivative works of the Program. 
 
-@license_1128_p
+@license_1106_p
 # "Contributor" means any person or entity that distributes the Program. 
 
-@license_1129_p
+@license_1107_p
 # "Licensed Patents " mean patent claims licensable by a Contributor which are necessarily infringed by the use or sale of its Contribution alone or when combined with the Program. 
 
-@license_1130_p
+@license_1108_p
 # "Program" means the Contributions distributed in accordance with this Agreement. 
 
-@license_1131_p
+@license_1109_p
 # "Recipient" means anyone who receives the Program under this Agreement, including all Contributors. 
 
-@license_1132_h3
+@license_1110_h3
 #2. GRANT OF RIGHTS
 
-@license_1133_p
+@license_1111_p
 # a) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free copyright license to reproduce, prepare derivative works of, publicly display, publicly perform, distribute and sublicense the Contribution of such Contributor, if any, and such derivative works, in source code and object code form. 
 
-@license_1134_p
+@license_1112_p
 # b) Subject to the terms of this Agreement, each Contributor hereby grants Recipient a non-exclusive, worldwide, royalty-free patent license under Licensed Patents to make, use, sell, offer to sell, import and otherwise transfer the Contribution of such Contributor, if any, in source code and object code form. This patent license shall apply to the combination of the Contribution and the Program if, at the time the Contribution is added by the Contributor, such addition of the Contribution causes such combination to be covered by the Licensed Patents. The patent license shall not apply to any other combinations which include the Contribution. No hardware per se is licensed hereunder. 
 
-@license_1135_p
+@license_1113_p
 # c) Recipient understands that although each Contributor grants the licenses to its Contributions set forth herein, no assurances are provided by any Contributor that the Program does not infringe the patent or other intellectual property rights of any other entity. Each Contributor disclaims any liability to Recipient for claims brought by any other entity based on infringement of intellectual property rights or otherwise. As a condition to exercising the rights and licenses granted hereunder, each Recipient hereby assumes sole responsibility to secure any other intellectual property rights needed, if any. For example, if a third party patent license is required to allow Recipient to distribute the Program, it is Recipient's responsibility to acquire that license before distributing the Program. 
 
-@license_1136_p
+@license_1114_p
 # d) Each Contributor represents that to its knowledge it has sufficient copyright rights in its Contribution, if any, to grant the copyright license set forth in this Agreement. 
 
-@license_1137_h3
+@license_1115_h3
 #3. REQUIREMENTS
 
-@license_1138_p
+@license_1116_p
 # A Contributor may choose to distribute the Program in object code form under its own license agreement, provided that: 
 
-@license_1139_p
+@license_1117_p
 # a) it complies with the terms and conditions of this Agreement; and 
 
-@license_1140_p
+@license_1118_p
 # b) its license agreement: 
 
-@license_1141_p
+@license_1119_p
 # i) effectively disclaims on behalf of all Contributors all warranties and conditions, express and implied, including warranties or conditions of title and non-infringement, and implied warranties or conditions of merchantability and fitness for a particular purpose; 
 
-@license_1142_p
+@license_1120_p
 # ii) effectively excludes on behalf of all Contributors all liability for damages, including direct, indirect, special, incidental and consequential damages, such as lost profits; 
 
-@license_1143_p
+@license_1121_p
 # iii) states that any provisions which differ from this Agreement are offered by that Contributor alone and not by any other party; and 
 
-@license_1144_p
+@license_1122_p
 # iv) states that source code for the Program is available from such Contributor, and informs licensees how to obtain it in a reasonable manner on or through a medium customarily used for software exchange. 
 
-@license_1145_p
+@license_1123_p
 # When the Program is made available in source code form: 
 
-@license_1146_p
+@license_1124_p
 # a) it must be made available under this Agreement; and 
 
-@license_1147_p
+@license_1125_p
 # b) a copy of this Agreement must be included with each copy of the Program. 
 
-@license_1148_p
+@license_1126_p
 # Contributors may not remove or alter any copyright notices contained within the Program. 
 
-@license_1149_p
+@license_1127_p
 # Each Contributor must identify itself as the originator of its Contribution, if any, in a manner that reasonably allows subsequent Recipients to identify the originator of the Contribution. 
 
-@license_1150_h3
+@license_1128_h3
 #4. COMMERCIAL DISTRIBUTION
 
-@license_1151_p
+@license_1129_p
 # Commercial distributors of software may accept certain responsibilities with respect to end users, business partners and the like. While this license is intended to facilitate the commercial use of the Program, the Contributor who includes the Program in a commercial product offering should do so in a manner which does not create potential liability for other Contributors. Therefore, if a Contributor includes the Program in a commercial product offering, such Contributor ("Commercial Contributor") hereby agrees to defend and indemnify every other Contributor ("Indemnified Contributor") against any losses, damages and costs (collectively "Losses") arising from claims, lawsuits and other legal actions brought by a third party against the Indemnified Contributor to the extent caused by the acts or omissions of such Commercial Contributor in connection with its distribution of the Program in a commercial product offering. The obligations in this section do not apply to any claims or Losses relating to any actual or alleged intellectual property infringement. In order to qualify, an Indemnified Contributor must: a) promptly notify the Commercial Contributor in writing of such claim, and b) allow the Commercial Contributor to control, and cooperate with the Commercial Contributor in, the defense and any related settlement negotiations. The Indemnified Contributor may participate in any such claim at its own expense. 
 
-@license_1152_p
+@license_1130_p
 # For example, a Contributor might include the Program in a commercial product offering, Product X. That Contributor is then a Commercial Contributor. If that Commercial Contributor then makes performance claims, or offers warranties related to Product X, those performance claims and warranties are such Commercial Contributor's responsibility alone. Under this section, the Commercial Contributor would have to defend claims against the other Contributors related to those performance claims and warranties, and if a court requires any other Contributor to pay any damages as a result, the Commercial Contributor must pay those damages. 
 
-@license_1153_h3
+@license_1131_h3
 #5. NO WARRANTY
 
-@license_1154_p
+@license_1132_p
 # EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, THE PROGRAM IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING, WITHOUT LIMITATION, ANY WARRANTIES OR CONDITIONS OF TITLE, NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Each Recipient is solely responsible for determining the appropriateness of using and distributing the Program and assumes all risks associated with its exercise of rights under this Agreement, including but not limited to the risks and costs of program errors, compliance with applicable laws, damage to or loss of data, programs or equipment, and unavailability or interruption of operations. 
 
-@license_1155_h3
+@license_1133_h3
 #6. DISCLAIMER OF LIABILITY
 
-@license_1156_p
+@license_1134_p
 # EXCEPT AS EXPRESSLY SET FORTH IN THIS AGREEMENT, NEITHER RECIPIENT NOR ANY CONTRIBUTORS SHALL HAVE ANY LIABILITY FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING WITHOUT LIMITATION LOST PROFITS), HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OR DISTRIBUTION OF THE PROGRAM OR THE EXERCISE OF ANY RIGHTS GRANTED HEREUNDER, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. 
 
-@license_1157_h3
+@license_1135_h3
 #7. GENERAL
 
-@license_1158_p
+@license_1136_p
 # If any provision of this Agreement is invalid or unenforceable under applicable law, it shall not affect the validity or enforceability of the remainder of the terms of this Agreement, and without further action by the parties hereto, such provision shall be reformed to the minimum extent necessary to make such provision valid and enforceable. 
 
-@license_1159_p
+@license_1137_p
 # If Recipient institutes patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Program itself (excluding combinations of the Program with other software or hardware) infringes such Recipient's patent(s), then such Recipient's rights granted under Section 2(b) shall terminate as of the date such litigation is filed. 
 
-@license_1160_p
+@license_1138_p
 # All Recipient's rights under this Agreement shall terminate if it fails to comply with any of the material terms or conditions of this Agreement and does not cure such failure in a reasonable period of time after becoming aware of such noncompliance. If all Recipient's rights under this Agreement terminate, Recipient agrees to cease use and distribution of the Program as soon as reasonably practicable. However, Recipient's obligations under this Agreement and any licenses granted by Recipient relating to the Program shall continue and survive. 
 
-@license_1161_p
+@license_1139_p
 # Everyone is permitted to copy and distribute copies of this Agreement, but in order to avoid inconsistency the Agreement is copyrighted and may only be modified in the following manner. The Agreement Steward reserves the right to publish new versions (including revisions) of this Agreement from time to time. No one other than the Agreement Steward has the right to modify this Agreement. The Eclipse Foundation is the initial Agreement Steward. The Eclipse Foundation may assign the responsibility to serve as the Agreement Steward to a suitable separate entity. Each new version of the Agreement will be given a distinguishing version number. The Program (including Contributions) may always be distributed subject to the version of the Agreement under which it was received. In addition, after a new version of the Agreement is published, Contributor may elect to distribute the Program (including its Contributions) under the new version. Except as expressly stated in Sections 2(a) and 2(b) above, Recipient receives no rights or licenses to the intellectual property of any Contributor under this Agreement, whether expressly, by implication, estoppel or otherwise. All rights in the Program not expressly granted under this Agreement are reserved. 
 
-@license_1162_p
+@license_1140_p
 # This Agreement is governed by the laws of the State of New York and the intellectual property laws of the United States of America. No party to this Agreement will bring a legal action under this Agreement more than one year after the cause of action arose. Each party waives its rights to a jury trial in any resulting litigation. 
 
-@license_1163_h2
+@license_1141_h2
 #Export Control Classification Number (ECCN)
 
-@license_1164_p
+@license_1142_p
 # As far as we know, the <a href="http://www.bis.doc.gov/licensing/exportingbasics.htm">U.S. Export Control Classification Number (ECCN)</a> for this software is <code>5D002</code>. However, for legal reasons, we can make no warranty that this information is correct. For details, see also the <a href="http://www.apache.org/licenses/exports/">Apache Software Foundation Export Classifications page</a>. 
 
 @links_1000_h1
@@ -7790,7 +7793,7 @@ H2 データベース エンジン
 # To build just the MVStore (without the database engine), run: 
 
 @mvstore_1192_p
-# This will create the file <code>bin/h2mvstore-1.4.178.jar</code> (about 130 KB). 
+# This will create the file <code>bin/h2mvstore-1.4.178.jar</code> (about 200 KB). 
 
 @performance_1000_h1
 パフォーマンス
@@ -9481,1525 +9484,1528 @@ H2 コンソール アプリケーション
 @roadmap_1005_li
 #Remove the encryption algorithm XTEA. 
 
-@roadmap_1006_h2
+@roadmap_1006_li
+#Disallow referencing other tables in a table (via constraints for example). 
+
+@roadmap_1007_h2
 #Version 1.4.x: Planned Changes
 
-@roadmap_1007_li
+@roadmap_1008_li
 #Change license to MPL 2.0. 
 
-@roadmap_1008_li
+@roadmap_1009_li
 #Automatic migration from 1.3 databases to 1.4. 
 
-@roadmap_1009_li
+@roadmap_1010_li
 #Option to disable the file name suffix somehow (issue 447). 
 
-@roadmap_1010_h2
+@roadmap_1011_h2
 #Priority 1
 
-@roadmap_1011_li
+@roadmap_1012_li
 #Bugfixes. 
 
-@roadmap_1012_li
+@roadmap_1013_li
 #More tests with MULTI_THREADED=1 (and MULTI_THREADED with MVCC): Online backup (using the 'backup' statement). 
 
-@roadmap_1013_li
+@roadmap_1014_li
 #Server side cursors. 
 
-@roadmap_1014_h2
+@roadmap_1015_h2
 #Priority 2
 
-@roadmap_1015_li
+@roadmap_1016_li
 #Support hints for the optimizer (which index to use, enforce the join order). 
 
-@roadmap_1016_li
+@roadmap_1017_li
 #Full outer joins. 
 
-@roadmap_1017_li
+@roadmap_1018_li
 #Access rights: remember the owner of an object. Create, alter and drop privileges. COMMENT: allow owner of object to change it. Issue 208: Access rights for schemas. 
 
-@roadmap_1018_li
+@roadmap_1019_li
 #Test multi-threaded in-memory db access. 
 
-@roadmap_1019_li
+@roadmap_1020_li
 #MySQL, MS SQL Server compatibility: support case sensitive (mixed case) identifiers without quotes. 
 
-@roadmap_1020_li
+@roadmap_1021_li
 #Support GRANT SELECT, UPDATE ON [schemaName.] *. 
 
-@roadmap_1021_li
+@roadmap_1022_li
 #Migrate database tool (also from other database engines). For Oracle, maybe use DBMS_METADATA.GET_DDL / GET_DEPENDENT_DDL. 
 
-@roadmap_1022_li
+@roadmap_1023_li
 #Clustering: support mixed clustering mode (one embedded, others in server mode). 
 
-@roadmap_1023_li
+@roadmap_1024_li
 #Clustering: reads should be randomly distributed (optional) or to a designated database on RAM (parameter: READ_FROM=3). 
 
-@roadmap_1024_li
+@roadmap_1025_li
 #Window functions: RANK() and DENSE_RANK(), partition using OVER(). select *, count(*) over() as fullCount from ... limit 4; 
 
-@roadmap_1025_li
+@roadmap_1026_li
 #PostgreSQL catalog: use BEFORE SELECT triggers instead of views over metadata tables. 
 
-@roadmap_1026_li
+@roadmap_1027_li
 #Compatibility: automatically load functions from a script depending on the mode - see FunctionsMySQL.java, issue 211. 
 
-@roadmap_1027_li
+@roadmap_1028_li
 #Test very large databases and LOBs (up to 256 GB). 
 
-@roadmap_1028_li
+@roadmap_1029_li
 #Store all temp files in the temp directory. 
 
-@roadmap_1029_li
+@roadmap_1030_li
 #Don't use temp files, specially not deleteOnExit (bug 4513817: File.deleteOnExit consumes memory). Also to allow opening client / server (remote) connections when using LOBs. 
 
-@roadmap_1030_li
+@roadmap_1031_li
 #Make DDL (Data Definition) operations transactional. 
 
-@roadmap_1031_li
+@roadmap_1032_li
 #Deferred integrity checking (DEFERRABLE INITIALLY DEFERRED). 
 
-@roadmap_1032_li
+@roadmap_1033_li
 #Groovy Stored Procedures: http://groovy.codehaus.org/GSQL 
 
-@roadmap_1033_li
+@roadmap_1034_li
 #Add a migration guide (list differences between databases). 
 
-@roadmap_1034_li
+@roadmap_1035_li
 #Optimization: automatic index creation suggestion using the trace file? 
 
-@roadmap_1035_li
+@roadmap_1036_li
 #Fulltext search Lucene: analyzer configuration, mergeFactor. 
 
-@roadmap_1036_li
+@roadmap_1037_li
 #Compression performance: don't allocate buffers, compress / expand in to out buffer. 
 
-@roadmap_1037_li
+@roadmap_1038_li
 #Rebuild index functionality to shrink index size and improve performance. 
 
-@roadmap_1038_li
+@roadmap_1039_li
 #Console: add accesskey to most important commands (A, AREA, BUTTON, INPUT, LABEL, LEGEND, TEXTAREA). 
 
-@roadmap_1039_li
+@roadmap_1040_li
 #Test performance again with SQL Server, Oracle, DB2. 
 
-@roadmap_1040_li
+@roadmap_1041_li
 #Test with Spatial DB in a box / JTS: http://www.opengeospatial.org/standards/sfs - OpenGIS Implementation Specification. 
 
-@roadmap_1041_li
+@roadmap_1042_li
 #Write more tests and documentation for MVCC (Multi Version Concurrency Control). 
 
-@roadmap_1042_li
+@roadmap_1043_li
 #Find a tool to view large text file (larger than 100 MB), with find, page up and down (like less), truncate before / after. 
 
-@roadmap_1043_li
+@roadmap_1044_li
 #Implement, test, document XAConnection and so on. 
 
-@roadmap_1044_li
+@roadmap_1045_li
 #Pluggable data type (for streaming, hashing, compression, validation, conversion, encryption). 
 
-@roadmap_1045_li
+@roadmap_1046_li
 #CHECK: find out what makes CHECK=TRUE slow, move to CHECK2. 
 
-@roadmap_1046_li
+@roadmap_1047_li
 #Drop with invalidate views (so that source code is not lost). Check what other databases do exactly. 
 
-@roadmap_1047_li
+@roadmap_1048_li
 #Index usage for (ID, NAME)=(1, 'Hi'); document. 
 
-@roadmap_1048_li
+@roadmap_1049_li
 #Set a connection read only (Connection.setReadOnly) or using a connection parameter. 
 
-@roadmap_1049_li
+@roadmap_1050_li
 #Access rights: finer grained access control (grant access for specific functions). 
 
-@roadmap_1050_li
+@roadmap_1051_li
 #ROW_NUMBER() OVER([PARTITION BY columnName][ORDER BY columnName]). 
 
-@roadmap_1051_li
+@roadmap_1052_li
 #Version check: docs / web console (using Javascript), and maybe in the library (using TCP/IP). 
 
-@roadmap_1052_li
+@roadmap_1053_li
 #Web server classloader: override findResource / getResourceFrom. 
 
-@roadmap_1053_li
+@roadmap_1054_li
 #Cost for embedded temporary view is calculated wrong, if result is constant. 
 
-@roadmap_1054_li
+@roadmap_1055_li
 #Count index range query (count(*) where id between 10 and 20). 
 
-@roadmap_1055_li
+@roadmap_1056_li
 #Performance: update in-place. 
 
-@roadmap_1056_li
+@roadmap_1057_li
 #Clustering: when a database is back alive, automatically synchronize with the master (requires readable transaction log). 
 
-@roadmap_1057_li
+@roadmap_1058_li
 #Database file name suffix: a way to use no or a different suffix (for example using a slash). 
 
-@roadmap_1058_li
+@roadmap_1059_li
 #Eclipse plugin. 
 
-@roadmap_1059_li
+@roadmap_1060_li
 #Asynchronous queries to support publish/subscribe: SELECT ... FOR READ WAIT [maxMillisToWait]. See also MS SQL Server "Query Notification". 
 
-@roadmap_1060_li
+@roadmap_1061_li
 #Fulltext search (native): reader / tokenizer / filter. 
 
-@roadmap_1061_li
+@roadmap_1062_li
 #Linked schema using CSV files: one schema for a directory of files; support indexes for CSV files. 
 
-@roadmap_1062_li
+@roadmap_1063_li
 #iReport to support H2. 
 
-@roadmap_1063_li
+@roadmap_1064_li
 #Include SMTP (mail) client (alert on cluster failure, low disk space,...). 
 
-@roadmap_1064_li
+@roadmap_1065_li
 #Option for SCRIPT to only process one or a set of schemas or tables, and append to a file. 
 
-@roadmap_1065_li
+@roadmap_1066_li
 #JSON parser and functions. 
 
-@roadmap_1066_li
+@roadmap_1067_li
 #Copy database: tool with config GUI and batch mode, extensible (example: compare). 
 
-@roadmap_1067_li
+@roadmap_1068_li
 #Document, implement tool for long running transactions using user-defined compensation statements. 
 
-@roadmap_1068_li
+@roadmap_1069_li
 #Support SET TABLE DUAL READONLY. 
 
-@roadmap_1069_li
+@roadmap_1070_li
 #GCJ: what is the state now? 
 
-@roadmap_1070_li
+@roadmap_1071_li
 #Events for: database Startup, Connections, Login attempts, Disconnections, Prepare (after parsing), Web Server. See http://docs.openlinksw.com/virtuoso/fn_dbev_startup.html 
 
-@roadmap_1071_li
+@roadmap_1072_li
 #Optimization: simpler log compression. 
 
-@roadmap_1072_li
+@roadmap_1073_li
 #Support standard INFORMATION_SCHEMA tables, as defined in http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt - specially KEY_COLUMN_USAGE: http://dev.mysql.com/doc/refman/5.0/en/information-schema.html, http://www.xcdsql.org/Misc/INFORMATION_SCHEMA%20With%20Rolenames.gif 
 
-@roadmap_1073_li
+@roadmap_1074_li
 #Compatibility: in MySQL, HSQLDB, /0.0 is NULL; in PostgreSQL, Derby: division by zero. HSQLDB: 0.0e1 / 0.0e1 is NaN. 
 
-@roadmap_1074_li
+@roadmap_1075_li
 #Functional tables should accept parameters from other tables (see FunctionMultiReturn) SELECT * FROM TEST T, P2C(T.A, T.R). 
 
-@roadmap_1075_li
+@roadmap_1076_li
 #Custom class loader to reload functions on demand. 
 
-@roadmap_1076_li
+@roadmap_1077_li
 #Test http://mysql-je.sourceforge.net/ 
 
-@roadmap_1077_li
+@roadmap_1078_li
 #H2 Console: the webclient could support more features like phpMyAdmin. 
 
-@roadmap_1078_li
+@roadmap_1079_li
 #Support Oracle functions: TO_DATE, TO_NUMBER. 
 
-@roadmap_1079_li
+@roadmap_1080_li
 #Work on the Java to C converter. 
 
-@roadmap_1080_li
+@roadmap_1081_li
 #The HELP information schema can be directly exposed in the Console. 
 
-@roadmap_1081_li
+@roadmap_1082_li
 #Maybe use the 0x1234 notation for binary fields, see MS SQL Server. 
 
-@roadmap_1082_li
+@roadmap_1083_li
 #Support Oracle CONNECT BY in some way: http://www.adp-gmbh.ch/ora/sql/connect_by.html http://philip.greenspun.com/sql/trees.html 
 
-@roadmap_1083_li
+@roadmap_1084_li
 #SQL Server 2005, Oracle: support COUNT(*) OVER(). See http://www.orafusion.com/art_anlytc.htm 
 
-@roadmap_1084_li
+@roadmap_1085_li
 #SQL 2003: http://www.wiscorp.com/sql_2003_standard.zip 
 
-@roadmap_1085_li
+@roadmap_1086_li
 #Version column (number/sequence and timestamp based). 
 
-@roadmap_1086_li
+@roadmap_1087_li
 #Optimize getGeneratedKey: send last identity after each execute (server). 
 
-@roadmap_1087_li
+@roadmap_1088_li
 #Test and document UPDATE TEST SET (ID, NAME) = (SELECT ID*10, NAME || '!' FROM TEST T WHERE T.ID=TEST.ID). 
 
-@roadmap_1088_li
+@roadmap_1089_li
 #Max memory rows / max undo log size: use block count / row size not row count. 
 
-@roadmap_1089_li
+@roadmap_1090_li
 #Implement point-in-time recovery. 
 
-@roadmap_1090_li
+@roadmap_1091_li
 #Support PL/SQL (programming language / control flow statements). 
 
-@roadmap_1091_li
+@roadmap_1092_li
 #LIKE: improved version for larger texts (currently using naive search). 
 
-@roadmap_1092_li
+@roadmap_1093_li
 #Throw an exception when the application calls getInt on a Long (optional). 
 
-@roadmap_1093_li
+@roadmap_1094_li
 #Default date format for input and output (local date constants). 
 
-@roadmap_1094_li
+@roadmap_1095_li
 #Document ROWNUM usage for reports: SELECT ROWNUM, * FROM (subquery). 
 
-@roadmap_1095_li
+@roadmap_1096_li
 #File system that writes to two file systems (replication, replicating file system). 
 
-@roadmap_1096_li
+@roadmap_1097_li
 #Standalone tool to get relevant system properties and add it to the trace output. 
 
-@roadmap_1097_li
+@roadmap_1098_li
 #Support 'call proc(1=value)' (PostgreSQL, Oracle). 
 
-@roadmap_1098_li
+@roadmap_1099_li
 #Console: improve editing data (Tab, Shift-Tab, Enter, Up, Down, Shift+Del?). 
 
-@roadmap_1099_li
+@roadmap_1100_li
 #Console: autocomplete Ctrl+Space inserts template. 
 
-@roadmap_1100_li
+@roadmap_1101_li
 #Option to encrypt .trace.db file. 
 
-@roadmap_1101_li
+@roadmap_1102_li
 #Auto-Update feature for database, .jar file. 
 
-@roadmap_1102_li
+@roadmap_1103_li
 #ResultSet SimpleResultSet.readFromURL(String url): id varchar, state varchar, released timestamp. 
 
-@roadmap_1103_li
+@roadmap_1104_li
 #Partial indexing (see PostgreSQL). 
 
-@roadmap_1104_li
+@roadmap_1105_li
 #Add GUI to build a custom version (embedded, fulltext,...) using build flags. 
 
-@roadmap_1105_li
+@roadmap_1106_li
 #http://rubyforge.org/projects/hypersonic/ 
 
-@roadmap_1106_li
+@roadmap_1107_li
 #Add a sample application that runs the H2 unit test and writes the result to a file (so it can be included in the user app). 
 
-@roadmap_1107_li
+@roadmap_1108_li
 #Table order: ALTER TABLE TEST ORDER BY NAME DESC (MySQL compatibility). 
 
-@roadmap_1108_li
+@roadmap_1109_li
 #Backup tool should work with other databases as well. 
 
-@roadmap_1109_li
+@roadmap_1110_li
 #Console: -ifExists doesn't work for the console. Add a flag to disable other dbs. 
 
-@roadmap_1110_li
+@roadmap_1111_li
 #Check if 'FSUTIL behavior set disablelastaccess 1' improves the performance (fsutil behavior query disablelastaccess). 
 
-@roadmap_1111_li
+@roadmap_1112_li
 #Java static code analysis: http://pmd.sourceforge.net/ 
 
-@roadmap_1112_li
+@roadmap_1113_li
 #Java static code analysis: http://www.eclipse.org/tptp/ 
 
-@roadmap_1113_li
+@roadmap_1114_li
 #Compatibility for CREATE SCHEMA AUTHORIZATION. 
 
-@roadmap_1114_li
+@roadmap_1115_li
 #Implement Clob / Blob truncate and the remaining functionality. 
 
-@roadmap_1115_li
+@roadmap_1116_li
 #Add multiple columns at the same time with ALTER TABLE .. ADD .. ADD ... 
 
-@roadmap_1116_li
+@roadmap_1117_li
 #File locking: writing a system property to detect concurrent access from the same VM (different classloaders). 
 
-@roadmap_1117_li
+@roadmap_1118_li
 #Pure SQL triggers (example: update parent table if the child table is changed). 
 
-@roadmap_1118_li
+@roadmap_1119_li
 #Add H2 to Gem (Ruby install system). 
 
-@roadmap_1119_li
+@roadmap_1120_li
 #Support linked JCR tables. 
 
-@roadmap_1120_li
+@roadmap_1121_li
 #Native fulltext search: min word length; store word positions. 
 
-@roadmap_1121_li
+@roadmap_1122_li
 #Add an option to the SCRIPT command to generate only portable / standard SQL. 
 
-@roadmap_1122_li
+@roadmap_1123_li
 #Updatable views: create 'instead of' triggers automatically if possible (simple cases first). 
 
-@roadmap_1123_li
+@roadmap_1124_li
 #Improve create index performance. 
 
-@roadmap_1124_li
+@roadmap_1125_li
 #Compact databases without having to close the database (vacuum). 
 
-@roadmap_1125_li
+@roadmap_1126_li
 #Implement more JDBC 4.0 features. 
 
-@roadmap_1126_li
+@roadmap_1127_li
 #Support TRANSFORM / PIVOT as in MS Access. 
 
-@roadmap_1127_li
+@roadmap_1128_li
 #SELECT * FROM (VALUES (...), (...), ....) AS alias(f1, ...). 
 
-@roadmap_1128_li
+@roadmap_1129_li
 #Support updatable views with join on primary keys (to extend a table). 
 
-@roadmap_1129_li
+@roadmap_1130_li
 #Public interface for functions (not public static). 
 
-@roadmap_1130_li
+@roadmap_1131_li
 #Support reading the transaction log. 
 
-@roadmap_1131_li
+@roadmap_1132_li
 #Feature matrix as in <a href="http://www.inetsoftware.de/products/jdbc/mssql/features/default.asp">i-net software</a>. 
 
-@roadmap_1132_li
+@roadmap_1133_li
 #Updatable result set on table without primary key or unique index. 
 
-@roadmap_1133_li
+@roadmap_1134_li
 #Compatibility with Derby and PostgreSQL: VALUES(1), (2); SELECT * FROM (VALUES (1), (2)) AS myTable(c1). Issue 221. 
 
-@roadmap_1134_li
+@roadmap_1135_li
 #Allow execution time prepare for SELECT * FROM CSVREAD(?, 'columnNameString') 
 
-@roadmap_1135_li
+@roadmap_1136_li
 #Support data type INTERVAL 
 
-@roadmap_1136_li
+@roadmap_1137_li
 #Support nested transactions (possibly using savepoints internally). 
 
-@roadmap_1137_li
+@roadmap_1138_li
 #Add a benchmark for bigger databases, and one for many users. 
 
-@roadmap_1138_li
+@roadmap_1139_li
 #Compression in the result set over TCP/IP. 
 
-@roadmap_1139_li
+@roadmap_1140_li
 #Support curtimestamp (like curtime, curdate). 
 
-@roadmap_1140_li
+@roadmap_1141_li
 #Support ANALYZE {TABLE|INDEX} tableName COMPUTE|ESTIMATE|DELETE STATISTICS ptnOption options. 
 
-@roadmap_1141_li
+@roadmap_1142_li
 #Release locks (shared or exclusive) on demand 
 
-@roadmap_1142_li
+@roadmap_1143_li
 #Support OUTER UNION 
 
-@roadmap_1143_li
+@roadmap_1144_li
 #Support parameterized views (similar to CSVREAD, but using just SQL for the definition) 
 
-@roadmap_1144_li
+@roadmap_1145_li
 #A way (JDBC driver) to map an URL (jdbc:h2map:c1) to a connection object 
 
-@roadmap_1145_li
+@roadmap_1146_li
 #Support dynamic linked schema (automatically adding/updating/removing tables) 
 
-@roadmap_1146_li
+@roadmap_1147_li
 #Clustering: adding a node should be very fast and without interrupting clients (very short lock) 
 
-@roadmap_1147_li
+@roadmap_1148_li
 #Compatibility: # is the start of a single line comment (MySQL) but date quote (Access). Mode specific 
 
-@roadmap_1148_li
+@roadmap_1149_li
 #Run benchmarks with Android, Java 7, java -server 
 
-@roadmap_1149_li
+@roadmap_1150_li
 #Optimizations: faster hash function for strings. 
 
-@roadmap_1150_li
+@roadmap_1151_li
 #DatabaseEventListener: callback for all operations (including expected time, RUNSCRIPT) and cancel functionality 
 
-@roadmap_1151_li
+@roadmap_1152_li
 #Benchmark: add a graph to show how databases scale (performance/database size) 
 
-@roadmap_1152_li
+@roadmap_1153_li
 #Implement a SQLData interface to map your data over to a custom object 
 
-@roadmap_1153_li
+@roadmap_1154_li
 #In the MySQL and PostgreSQL mode, use lower case identifiers by default (DatabaseMetaData.storesLowerCaseIdentifiers = true) 
 
-@roadmap_1154_li
+@roadmap_1155_li
 #Support multiple directories (on different hard drives) for the same database 
 
-@roadmap_1155_li
+@roadmap_1156_li
 #Server protocol: use challenge response authentication, but client sends hash(user+password) encrypted with response 
 
-@roadmap_1156_li
+@roadmap_1157_li
 #Support EXEC[UTE] (doesn't return a result set, compatible to MS SQL Server) 
 
-@roadmap_1157_li
+@roadmap_1158_li
 #Support native XML data type - see http://en.wikipedia.org/wiki/SQL/XML 
 
-@roadmap_1158_li
+@roadmap_1159_li
 #Support triggers with a string property or option: SpringTrigger, OSGITrigger 
 
-@roadmap_1159_li
+@roadmap_1160_li
 #MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id; 
 
-@roadmap_1160_li
+@roadmap_1161_li
 #Ability to resize the cache array when resizing the cache 
 
-@roadmap_1161_li
+@roadmap_1162_li
 #Time based cache writing (one second after writing the log) 
 
-@roadmap_1162_li
+@roadmap_1163_li
 #Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185 
 
-@roadmap_1163_li
+@roadmap_1164_li
 #Index usage for REGEXP LIKE. 
 
-@roadmap_1164_li
+@roadmap_1165_li
 #Compatibility: add a role DBA (like ADMIN). 
 
-@roadmap_1165_li
+@roadmap_1166_li
 #Better support multiple processors for in-memory databases. 
 
-@roadmap_1166_li
+@roadmap_1167_li
 #Support N'text' 
 
-@roadmap_1167_li
+@roadmap_1168_li
 #Support compatibility for jdbc:hsqldb:res: 
 
-@roadmap_1168_li
+@roadmap_1169_li
 #HSQLDB compatibility: automatically convert to the next 'higher' data type. Example: cast(2000000000 as int) + cast(2000000000 as int); (HSQLDB: long; PostgreSQL: integer out of range) 
 
-@roadmap_1169_li
+@roadmap_1170_li
 #Provide an Java SQL builder with standard and H2 syntax 
 
-@roadmap_1170_li
+@roadmap_1171_li
 #Trace: write OS, file system, JVM,... when opening the database 
 
-@roadmap_1171_li
+@roadmap_1172_li
 #Support indexes for views (probably requires materialized views) 
 
-@roadmap_1172_li
+@roadmap_1173_li
 #Document SET SEARCH_PATH, BEGIN, EXECUTE, parameters 
 
-@roadmap_1173_li
+@roadmap_1174_li
 #Server: use one listener (detect if the request comes from an PG or TCP client) 
 
-@roadmap_1174_li
+@roadmap_1175_li
 #Optimize SELECT MIN(ID), MAX(ID), COUNT(*) FROM TEST WHERE ID BETWEEN 100 AND 200 
 
-@roadmap_1175_li
+@roadmap_1176_li
 #Sequence: PostgreSQL compatibility (rename, create) http://www.postgresql.org/docs/8.2/static/sql-altersequence.html 
 
-@roadmap_1176_li
+@roadmap_1177_li
 #DISTINCT: support large result sets by sorting on all columns (additionally) and then removing duplicates. 
 
-@roadmap_1177_li
+@roadmap_1178_li
 #Support a special trigger on all tables to allow building a transaction log reader. 
 
-@roadmap_1178_li
+@roadmap_1179_li
 #File system with a background writer thread; test if this is faster 
 
-@roadmap_1179_li
+@roadmap_1180_li
 #Better document the source code (high level documentation). 
 
-@roadmap_1180_li
+@roadmap_1181_li
 #Support select * from dual a left join dual b on b.x=(select max(x) from dual) 
 
-@roadmap_1181_li
+@roadmap_1182_li
 #Optimization: don't lock when the database is read-only 
 
-@roadmap_1182_li
+@roadmap_1183_li
 #Issue 146: Support merge join. 
 
-@roadmap_1183_li
+@roadmap_1184_li
 #Integrate spatial functions from http://geosysin.iict.ch/irstv-trac/wiki/H2spatial/Download 
 
-@roadmap_1184_li
+@roadmap_1185_li
 #Cluster: hot deploy (adding a node at runtime). 
 
-@roadmap_1185_li
+@roadmap_1186_li
 #Support DatabaseMetaData.insertsAreDetected: updatable result sets should detect inserts. 
 
-@roadmap_1186_li
+@roadmap_1187_li
 #Oracle: support DECODE method (convert to CASE WHEN). 
 
-@roadmap_1187_li
+@roadmap_1188_li
 #Native search: support "phrase search", wildcard search (* and ?), case-insensitive search, boolean operators, and grouping 
 
-@roadmap_1188_li
+@roadmap_1189_li
 #Improve documentation of access rights. 
 
-@roadmap_1189_li
+@roadmap_1190_li
 #Support opening a database that is in the classpath, maybe using a new file system. Workaround: detect jar file using getClass().getProtectionDomain().getCodeSource().getLocation(). 
 
-@roadmap_1190_li
+@roadmap_1191_li
 #Support ENUM data type (see MySQL, PostgreSQL, MS SQL Server, maybe others). 
 
-@roadmap_1191_li
+@roadmap_1192_li
 #Remember the user defined data type (domain) of a column. 
 
-@roadmap_1192_li
+@roadmap_1193_li
 #MVCC: support multi-threaded kernel with multi-version concurrency. 
 
-@roadmap_1193_li
+@roadmap_1194_li
 #Auto-server: add option to define the port range or list. 
 
-@roadmap_1194_li
+@roadmap_1195_li
 #Support Jackcess (MS Access databases) 
 
-@roadmap_1195_li
+@roadmap_1196_li
 #Built-in methods to write large objects (BLOB and CLOB): FILE_WRITE('test.txt', 'Hello World') 
 
-@roadmap_1196_li
+@roadmap_1197_li
 #Improve time to open large databases (see mail 'init time for distributed setup') 
 
-@roadmap_1197_li
+@roadmap_1198_li
 #Move Maven 2 repository from hsql.sf.net to h2database.sf.net 
 
-@roadmap_1198_li
+@roadmap_1199_li
 #Java 1.5 tool: JdbcUtils.closeSilently(s1, s2,...) 
 
-@roadmap_1199_li
+@roadmap_1200_li
 #Optimize A=? OR B=? to UNION if the cost is lower. 
 
-@roadmap_1200_li
+@roadmap_1201_li
 #Javadoc: document design patterns used 
 
-@roadmap_1201_li
+@roadmap_1202_li
 #Support custom collators, for example for natural sort (for text that contains numbers). 
 
-@roadmap_1202_li
+@roadmap_1203_li
 #Write an article about SQLInjection (h2/src/docsrc/html/images/SQLInjection.txt) 
 
-@roadmap_1203_li
+@roadmap_1204_li
 #Convert SQL-injection-2.txt to html document, include SQLInjection.java sample 
 
-@roadmap_1204_li
+@roadmap_1205_li
 #Support OUT parameters in user-defined procedures. 
 
-@roadmap_1205_li
+@roadmap_1206_li
 #Web site design: http://www.igniterealtime.org/projects/openfire/index.jsp 
 
-@roadmap_1206_li
+@roadmap_1207_li
 #HSQLDB compatibility: Openfire server uses: CREATE SCHEMA PUBLIC AUTHORIZATION DBA; CREATE USER SA PASSWORD ""; GRANT DBA TO SA; SET SCHEMA PUBLIC 
 
-@roadmap_1207_li
+@roadmap_1208_li
 #Translation: use ?? in help.csv 
 
-@roadmap_1208_li
+@roadmap_1209_li
 #Translated .pdf 
 
-@roadmap_1209_li
+@roadmap_1210_li
 #Recovery tool: bad blocks should be converted to INSERT INTO SYSTEM_ERRORS(...), and things should go into the .trace.db file 
 
-@roadmap_1210_li
+@roadmap_1211_li
 #Issue 357: support getGeneratedKeys to return multiple rows when used with batch updates. This is supported by MySQL, but not Derby. Both PostgreSQL and HSQLDB don't support getGeneratedKeys. Also support it when using INSERT ... SELECT. 
 
-@roadmap_1211_li
+@roadmap_1212_li
 #RECOVER=2 to backup the database, run recovery, open the database 
 
-@roadmap_1212_li
+@roadmap_1213_li
 #Recovery should work with encrypted databases 
 
-@roadmap_1213_li
+@roadmap_1214_li
 #Corruption: new error code, add help 
 
-@roadmap_1214_li
+@roadmap_1215_li
 #Space reuse: after init, scan all storages and free those that don't belong to a live database object 
 
-@roadmap_1215_li
+@roadmap_1216_li
 #Access rights: add missing features (users should be 'owner' of objects; missing rights for sequences; dropping objects) 
 
-@roadmap_1216_li
+@roadmap_1217_li
 #Support NOCACHE table option (Oracle). 
 
-@roadmap_1217_li
+@roadmap_1218_li
 #Support table partitioning. 
 
-@roadmap_1218_li
+@roadmap_1219_li
 #Add regular javadocs (using the default doclet, but another css) to the homepage. 
 
-@roadmap_1219_li
+@roadmap_1220_li
 #The database should be kept open for a longer time when using the server mode. 
 
-@roadmap_1220_li
+@roadmap_1221_li
 #Javadocs: for each tool, add a copy &amp; paste sample in the class level. 
 
-@roadmap_1221_li
+@roadmap_1222_li
 #Javadocs: add @author tags. 
 
-@roadmap_1222_li
+@roadmap_1223_li
 #Fluent API for tools: Server.createTcpServer().setPort(9081).setPassword(password).start(); 
 
-@roadmap_1223_li
+@roadmap_1224_li
 #MySQL compatibility: real SQL statement for DESCRIBE TEST 
 
-@roadmap_1224_li
+@roadmap_1225_li
 #Use a default delay of 1 second before closing a database. 
 
-@roadmap_1225_li
+@roadmap_1226_li
 #Write (log) to system table before adding to internal data structures. 
 
-@roadmap_1226_li
+@roadmap_1227_li
 #Support direct lookup for MIN and MAX when using WHERE (see todo.txt / Direct Lookup). 
 
-@roadmap_1227_li
+@roadmap_1228_li
 #Support other array types (String[], double[]) in PreparedStatement.setObject(int, Object) (with test case). 
 
-@roadmap_1228_li
+@roadmap_1229_li
 #MVCC should not be memory bound (uncommitted data is kept in memory in the delta index; maybe using a regular b-tree index solves the problem). 
 
-@roadmap_1229_li
+@roadmap_1230_li
 #Oracle compatibility: support NLS_DATE_FORMAT. 
 
-@roadmap_1230_li
+@roadmap_1231_li
 #Support for Thread.interrupt to cancel running statements. 
 
-@roadmap_1231_li
+@roadmap_1232_li
 #Cluster: add feature to make sure cluster nodes can not get out of sync (for example by stopping one process). 
 
-@roadmap_1232_li
+@roadmap_1233_li
 #H2 Console: support CLOB/BLOB download using a link. 
 
-@roadmap_1233_li
+@roadmap_1234_li
 #Support flashback queries as in Oracle. 
 
-@roadmap_1234_li
+@roadmap_1235_li
 #Import / Export of fixed with text files. 
 
-@roadmap_1235_li
+@roadmap_1236_li
 #HSQLDB compatibility: automatic data type for SUM if value is the value is too big (by default use the same type as the data). 
 
-@roadmap_1236_li
+@roadmap_1237_li
 #Improve the optimizer to select the right index for special cases: where id between 2 and 4 and booleanColumn 
 
-@roadmap_1237_li
+@roadmap_1238_li
 #Linked tables: make hidden columns available (Oracle: rowid and ora_rowscn columns). 
 
-@roadmap_1238_li
+@roadmap_1239_li
 #H2 Console: in-place autocomplete. 
 
-@roadmap_1239_li
+@roadmap_1240_li
 #Support large databases: split database files to multiple directories / disks (similar to tablespaces). 
 
-@roadmap_1240_li
+@roadmap_1241_li
 #H2 Console: support configuration option for fixed width (monospace) font. 
 
-@roadmap_1241_li
+@roadmap_1242_li
 #Native fulltext search: support analyzers (specially for Chinese, Japanese). 
 
-@roadmap_1242_li
+@roadmap_1243_li
 #Automatically compact databases from time to time (as a background process). 
 
-@roadmap_1243_li
+@roadmap_1244_li
 #Test Eclipse DTP. 
 
-@roadmap_1244_li
+@roadmap_1245_li
 #H2 Console: autocomplete: keep the previous setting 
 
-@roadmap_1245_li
+@roadmap_1246_li
 #executeBatch: option to stop at the first failed statement. 
 
-@roadmap_1246_li
+@roadmap_1247_li
 #Implement OLAP features as described here: http://www.devx.com/getHelpOn/10MinuteSolution/16573/0/page/5 
 
-@roadmap_1247_li
+@roadmap_1248_li
 #Support Oracle ROWID (unique identifier for each row). 
 
-@roadmap_1248_li
+@roadmap_1249_li
 #MySQL compatibility: alter table add index i(c), add constraint c foreign key(c) references t(c); 
 
-@roadmap_1249_li
+@roadmap_1250_li
 #Server mode: improve performance for batch updates. 
 
-@roadmap_1250_li
+@roadmap_1251_li
 #Applets: support read-only databases in a zip file (accessed as a resource). 
 
-@roadmap_1251_li
+@roadmap_1252_li
 #Long running queries / errors / trace system table. 
 
-@roadmap_1252_li
+@roadmap_1253_li
 #H2 Console should support JaQu directly. 
 
-@roadmap_1253_li
+@roadmap_1254_li
 #Better document FTL_SEARCH, FTL_SEARCH_DATA. 
 
-@roadmap_1254_li
+@roadmap_1255_li
 #Sequences: CURRVAL should be session specific. Compatibility with PostgreSQL. 
 
-@roadmap_1255_li
+@roadmap_1256_li
 #Index creation using deterministic functions. 
 
-@roadmap_1256_li
+@roadmap_1257_li
 #ANALYZE: for unique indexes that allow null, count the number of null. 
 
-@roadmap_1257_li
+@roadmap_1258_li
 #MySQL compatibility: multi-table delete: DELETE .. FROM .. [,...] USING - See http://dev.mysql.com/doc/refman/5.0/en/delete.html 
 
-@roadmap_1258_li
+@roadmap_1259_li
 #AUTO_SERVER: support changing IP addresses (disable a network while the database is open). 
 
-@roadmap_1259_li
+@roadmap_1260_li
 #Avoid using java.util.Calendar internally because it's slow, complicated, and buggy. 
 
-@roadmap_1260_li
+@roadmap_1261_li
 #Support TRUNCATE .. CASCADE like PostgreSQL. 
 
-@roadmap_1261_li
+@roadmap_1262_li
 #Fulltext search: lazy result generation using SimpleRowSource. 
 
-@roadmap_1262_li
+@roadmap_1263_li
 #Fulltext search: support alternative syntax: WHERE FTL_CONTAINS(name, 'hello'). 
 
-@roadmap_1263_li
+@roadmap_1264_li
 #MySQL compatibility: support REPLACE, see http://dev.mysql.com/doc/refman/6.0/en/replace.html and issue 73. 
 
-@roadmap_1264_li
+@roadmap_1265_li
 #MySQL compatibility: support INSERT INTO table SET column1 = value1, column2 = value2 
 
-@roadmap_1265_li
+@roadmap_1266_li
 #Docs: add a one line description for each functions and SQL statements at the top (in the link section). 
 
-@roadmap_1266_li
+@roadmap_1267_li
 #Javadoc search: weight for titles should be higher ('random' should list Functions as the best match). 
 
-@roadmap_1267_li
+@roadmap_1268_li
 #Replace information_schema tables with regular tables that are automatically re-built when needed. Use indexes. 
 
-@roadmap_1268_li
+@roadmap_1269_li
 #Issue 50: Oracle compatibility: support calling 0-parameters functions without parenthesis. Make constants obsolete. 
 
-@roadmap_1269_li
+@roadmap_1270_li
 #MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL) 
 
-@roadmap_1270_li
+@roadmap_1271_li
 #Support a data type "timestamp with timezone" using java.util.Calendar. 
 
-@roadmap_1271_li
+@roadmap_1272_li
 #Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62 
 
-@roadmap_1272_li
+@roadmap_1273_li
 #Add database creation date and time to the database. 
 
-@roadmap_1273_li
+@roadmap_1274_li
 #Support ASSERTION. 
 
-@roadmap_1274_li
+@roadmap_1275_li
 #MySQL compatibility: support comparing 1='a' 
 
-@roadmap_1275_li
+@roadmap_1276_li
 #Support PostgreSQL lock modes: http://www.postgresql.org/docs/8.3/static/explicit-locking.html 
 
-@roadmap_1276_li
+@roadmap_1277_li
 #PostgreSQL compatibility: test DbVisualizer and Squirrel SQL using a new PostgreSQL JDBC driver. 
 
-@roadmap_1277_li
+@roadmap_1278_li
 #RunScript should be able to read from system in (or quite mode for Shell). 
 
-@roadmap_1278_li
+@roadmap_1279_li
 #Natural join: support select x from dual natural join dual. 
 
-@roadmap_1279_li
+@roadmap_1280_li
 #Support using system properties in database URLs (may be a security problem). 
 
-@roadmap_1280_li
+@roadmap_1281_li
 #Natural join: somehow support this: select a.x, b.x, x from dual a natural join dual b 
 
-@roadmap_1281_li
+@roadmap_1282_li
 #Use the Java service provider mechanism to register file systems and function libraries. 
 
-@roadmap_1282_li
+@roadmap_1283_li
 #MySQL compatibility: for auto_increment columns, convert 0 to next value (as when inserting NULL). 
 
-@roadmap_1283_li
+@roadmap_1284_li
 #Optimization for multi-column IN: use an index if possible. Example: (A, B) IN((1, 2), (2, 3)). 
 
-@roadmap_1284_li
+@roadmap_1285_li
 #Optimization for EXISTS: convert to inner join or IN(..) if possible. 
 
-@roadmap_1285_li
+@roadmap_1286_li
 #Functions: support hashcode(value); cryptographic and fast 
 
-@roadmap_1286_li
+@roadmap_1287_li
 #Serialized file lock: support long running queries. 
 
-@roadmap_1287_li
+@roadmap_1288_li
 #Network: use 127.0.0.1 if other addresses don't work. 
 
-@roadmap_1288_li
+@roadmap_1289_li
 #Pluggable network protocol (currently Socket/ServerSocket over TCP/IP) - see also TransportServer with master slave replication. 
 
-@roadmap_1289_li
+@roadmap_1290_li
 #Support reading JCR data: one table per node type; query table; cache option 
 
-@roadmap_1290_li
+@roadmap_1291_li
 #OSGi: create a sample application, test, document. 
 
-@roadmap_1291_li
+@roadmap_1292_li
 #help.csv: use complete examples for functions; run as test case. 
 
-@roadmap_1292_li
+@roadmap_1293_li
 #Functions to calculate the memory and disk space usage of a table, a row, or a value. 
 
-@roadmap_1293_li
+@roadmap_1294_li
 #Re-implement PooledConnection; use a lightweight connection object. 
 
-@roadmap_1294_li
+@roadmap_1295_li
 #Doclet: convert tests in javadocs to a java class. 
 
-@roadmap_1295_li
+@roadmap_1296_li
 #Doclet: format fields like methods, but support sorting by name and value. 
 
-@roadmap_1296_li
+@roadmap_1297_li
 #Doclet: shrink the html files. 
 
-@roadmap_1297_li
+@roadmap_1298_li
 #MySQL compatibility: support SET NAMES 'latin1' - See also http://code.google.com/p/h2database/issues/detail?id=56 
 
-@roadmap_1298_li
+@roadmap_1299_li
 #Allow to scan index backwards starting with a value (to better support ORDER BY DESC). 
 
-@roadmap_1299_li
+@roadmap_1300_li
 #Java Service Wrapper: try http://yajsw.sourceforge.net/ 
 
-@roadmap_1300_li
+@roadmap_1301_li
 #Batch parameter for INSERT, UPDATE, and DELETE, and commit after each batch. See also MySQL DELETE. 
 
-@roadmap_1301_li
+@roadmap_1302_li
 #MySQL compatibility: support ALTER TABLE .. MODIFY COLUMN. 
 
-@roadmap_1302_li
+@roadmap_1303_li
 #Use a lazy and auto-close input stream (open resource when reading, close on eof). 
 
-@roadmap_1303_li
+@roadmap_1304_li
 #PostgreSQL compatibility: generate_series. 
 
-@roadmap_1304_li
+@roadmap_1305_li
 #Connection pool: 'reset session' command (delete temp tables, rollback, auto-commit true). 
 
-@roadmap_1305_li
+@roadmap_1306_li
 #Improve SQL documentation, see http://www.w3schools.com/sql/ 
 
-@roadmap_1306_li
+@roadmap_1307_li
 #MySQL compatibility: DatabaseMetaData.stores*() methods should return the same values. Test with SquirrelSQL. 
 
-@roadmap_1307_li
+@roadmap_1308_li
 #MS SQL Server compatibility: support DATEPART syntax. 
 
-@roadmap_1308_li
+@roadmap_1309_li
 #Sybase/DB2/Oracle compatibility: support out parameters in stored procedures - See http://code.google.com/p/h2database/issues/detail?id=83 
 
-@roadmap_1309_li
+@roadmap_1310_li
 #Support INTERVAL data type (see Oracle and others). 
 
-@roadmap_1310_li
+@roadmap_1311_li
 #Combine Server and Console tool (only keep Server). 
 
-@roadmap_1311_li
+@roadmap_1312_li
 #Store the Lucene index in the database itself. 
 
-@roadmap_1312_li
+@roadmap_1313_li
 #Support standard MERGE statement: http://en.wikipedia.org/wiki/Merge_%28SQL%29 
 
-@roadmap_1313_li
+@roadmap_1314_li
 #Oracle compatibility: support DECODE(x, ...). 
 
-@roadmap_1314_li
+@roadmap_1315_li
 #MVCC: compare concurrent update behavior with PostgreSQL and Oracle. 
 
-@roadmap_1315_li
+@roadmap_1316_li
 #HSQLDB compatibility: CREATE FUNCTION (maybe using a Function interface). 
 
-@roadmap_1316_li
+@roadmap_1317_li
 #HSQLDB compatibility: support CALL "java.lang.Math.sqrt"(2.0) 
 
-@roadmap_1317_li
+@roadmap_1318_li
 #Support comma as the decimal separator in the CSV tool. 
 
-@roadmap_1318_li
+@roadmap_1319_li
 #Compatibility: Java functions with SQLJ Part1 http://www.acm.org/sigmod/record/issues/9912/standards.pdf.gz 
 
-@roadmap_1319_li
+@roadmap_1320_li
 #Compatibility: Java functions with SQL/PSM (Persistent Stored Modules) - need to find the documentation. 
 
-@roadmap_1320_li
+@roadmap_1321_li
 #CACHE_SIZE: automatically use a fraction of Runtime.maxMemory - maybe automatically the second level cache. 
 
-@roadmap_1321_li
+@roadmap_1322_li
 #Support date/time/timestamp as documented in http://en.wikipedia.org/wiki/ISO_8601 
 
-@roadmap_1322_li
+@roadmap_1323_li
 #PostgreSQL compatibility: when in PG mode, treat BYTEA data like PG. 
 
-@roadmap_1323_li
+@roadmap_1324_li
 #Support =ANY(array) as in PostgreSQL. See also http://www.postgresql.org/docs/8.0/interactive/arrays.html 
 
-@roadmap_1324_li
+@roadmap_1325_li
 #IBM DB2 compatibility: support PREVIOUS VALUE FOR sequence. 
 
-@roadmap_1325_li
+@roadmap_1326_li
 #Compatibility: use different LIKE ESCAPE characters depending on the mode (disable for Derby, HSQLDB, DB2, Oracle, MSSQLServer). 
 
-@roadmap_1326_li
+@roadmap_1327_li
 #Oracle compatibility: support CREATE SYNONYM table FOR schema.table. 
 
-@roadmap_1327_li
+@roadmap_1328_li
 #FTP: document the server, including -ftpTask option to execute / kill remote processes 
 
-@roadmap_1328_li
+@roadmap_1329_li
 #FTP: problems with multithreading? 
 
-@roadmap_1329_li
+@roadmap_1330_li
 #FTP: implement SFTP / FTPS 
 
-@roadmap_1330_li
+@roadmap_1331_li
 #FTP: access to a database (.csv for a table, a directory for a schema, a file for a lob, a script.sql file). 
 
-@roadmap_1331_li
+@roadmap_1332_li
 #More secure default configuration if remote access is enabled. 
 
-@roadmap_1332_li
+@roadmap_1333_li
 #Improve database file locking (maybe use native file locking). The current approach seems to be problematic if the file system is on a remote share (see Google Group 'Lock file modification time is in the future'). 
 
-@roadmap_1333_li
+@roadmap_1334_li
 #Document internal features such as BELONGS_TO_TABLE, NULL_TO_DEFAULT, SEQUENCE. 
 
-@roadmap_1334_li
+@roadmap_1335_li
 #Issue 107: Prefer using the ORDER BY index if LIMIT is used. 
 
-@roadmap_1335_li
+@roadmap_1336_li
 #An index on (id, name) should be used for a query: select * from t where s=? order by i 
 
-@roadmap_1336_li
+@roadmap_1337_li
 #Support reading sequences using DatabaseMetaData.getTables(null, null, null, new String[]{"SEQUENCE"}). See PostgreSQL. 
 
-@roadmap_1337_li
+@roadmap_1338_li
 #Add option to enable TCP_NODELAY using Socket.setTcpNoDelay(true). 
 
-@roadmap_1338_li
+@roadmap_1339_li
 #Maybe disallow = within database names (jdbc:h2:mem:MODE=DB2 means database name MODE=DB2). 
 
-@roadmap_1339_li
+@roadmap_1340_li
 #Fast alter table add column. 
 
-@roadmap_1340_li
+@roadmap_1341_li
 #Improve concurrency for in-memory database operations. 
 
-@roadmap_1341_li
+@roadmap_1342_li
 #Issue 122: Support for connection aliases for remote tcp connections. 
 
-@roadmap_1342_li
+@roadmap_1343_li
 #Fast scrambling (strong encryption doesn't help if the password is included in the application). 
 
-@roadmap_1343_li
+@roadmap_1344_li
 #H2 Console: support -webPassword to require a password to access preferences or shutdown. 
 
-@roadmap_1344_li
+@roadmap_1345_li
 #Issue 126: The index name should be "IDX_" plus the constraint name unless there is a conflict, in which case append a number. 
 
-@roadmap_1345_li
+@roadmap_1346_li
 #Issue 127: Support activation/deactivation of triggers 
 
-@roadmap_1346_li
+@roadmap_1347_li
 #Issue 130: Custom log event listeners 
 
-@roadmap_1347_li
+@roadmap_1348_li
 #Issue 131: IBM DB2 compatibility: sysibm.sysdummy1 
 
-@roadmap_1348_li
+@roadmap_1349_li
 #Issue 132: Use Java enum trigger type. 
 
-@roadmap_1349_li
+@roadmap_1350_li
 #Issue 134: IBM DB2 compatibility: session global variables. 
 
-@roadmap_1350_li
+@roadmap_1351_li
 #Cluster: support load balance with values for each server / auto detect. 
 
-@roadmap_1351_li
+@roadmap_1352_li
 #FTL_SET_OPTION(keyString, valueString) with key stopWords at first. 
 
-@roadmap_1352_li
+@roadmap_1353_li
 #Pluggable access control mechanism. 
 
-@roadmap_1353_li
+@roadmap_1354_li
 #Fulltext search (Lucene): support streaming CLOB data. 
 
-@roadmap_1354_li
+@roadmap_1355_li
 #Document/example how to create and read an encrypted script file. 
 
-@roadmap_1355_li
+@roadmap_1356_li
 #Check state of https://issues.apache.org/jira/browse/OPENJPA-1367 (H2 does support cross joins). 
 
-@roadmap_1356_li
+@roadmap_1357_li
 #Fulltext search (Lucene): only prefix column names with _ if they already start with _. Instead of DATA / QUERY / modified use _DATA, _QUERY, _MODIFIED if possible. 
 
-@roadmap_1357_li
+@roadmap_1358_li
 #Support a way to create or read compressed encrypted script files using an API. 
 
-@roadmap_1358_li
+@roadmap_1359_li
 #Scripting language support (Javascript). 
 
-@roadmap_1359_li
+@roadmap_1360_li
 #The network client should better detect if the server is not an H2 server and fail early. 
 
-@roadmap_1360_li
+@roadmap_1361_li
 #H2 Console: support CLOB/BLOB upload. 
 
-@roadmap_1361_li
+@roadmap_1362_li
 #Database file lock: detect hibernate / standby / very slow threads (compare system time). 
 
-@roadmap_1362_li
+@roadmap_1363_li
 #Automatic detection of redundant indexes. 
 
-@roadmap_1363_li
+@roadmap_1364_li
 #Maybe reject join without "on" (except natural join). 
 
-@roadmap_1364_li
+@roadmap_1365_li
 #Implement GiST (Generalized Search Tree for Secondary Storage). 
 
-@roadmap_1365_li
+@roadmap_1366_li
 #Function to read a number of bytes/characters from an BLOB or CLOB. 
 
-@roadmap_1366_li
+@roadmap_1367_li
 #Issue 156: Support SELECT ? UNION SELECT ?. 
 
-@roadmap_1367_li
+@roadmap_1368_li
 #Automatic mixed mode: support a port range list (to avoid firewall problems). 
 
-@roadmap_1368_li
+@roadmap_1369_li
 #Support the pseudo column rowid, oid, _rowid_. 
 
-@roadmap_1369_li
+@roadmap_1370_li
 #H2 Console / large result sets: stream early instead of keeping a whole result in-memory 
 
-@roadmap_1370_li
+@roadmap_1371_li
 #Support TRUNCATE for linked tables. 
 
-@roadmap_1371_li
+@roadmap_1372_li
 #UNION: evaluate INTERSECT before UNION (like most other database except Oracle). 
 
-@roadmap_1372_li
+@roadmap_1373_li
 #Delay creating the information schema, and share metadata columns. 
 
-@roadmap_1373_li
+@roadmap_1374_li
 #TCP Server: use a nonce (number used once) to protect unencrypted channels against replay attacks. 
 
-@roadmap_1374_li
+@roadmap_1375_li
 #Simplify running scripts and recovery: CREATE FORCE USER (overwrites an existing user). 
 
-@roadmap_1375_li
+@roadmap_1376_li
 #Support CREATE DATABASE LINK (a custom JDBC driver is already supported). 
 
-@roadmap_1376_li
+@roadmap_1377_li
 #Support large GROUP BY operations. Issue 216. 
 
-@roadmap_1377_li
+@roadmap_1378_li
 #Issue 163: Allow to create foreign keys on metadata types. 
 
-@roadmap_1378_li
+@roadmap_1379_li
 #Logback: write a native DBAppender. 
 
-@roadmap_1379_li
+@roadmap_1380_li
 #Cache size: don't use more cache than what is available. 
 
-@roadmap_1380_li
+@roadmap_1381_li
 #Allow to defragment at runtime (similar to SHUTDOWN DEFRAG) in a background thread. 
 
-@roadmap_1381_li
+@roadmap_1382_li
 #Tree index: Instead of an AVL tree, use a general balanced trees or a scapegoat tree. 
 
-@roadmap_1382_li
+@roadmap_1383_li
 #User defined functions: allow to store the bytecode (of just the class, or the jar file of the extension) in the database. 
 
-@roadmap_1383_li
+@roadmap_1384_li
 #Compatibility: ResultSet.getObject() on a CLOB (TEXT) should return String for PostgreSQL and MySQL. 
 
-@roadmap_1384_li
+@roadmap_1385_li
 #Optimizer: WHERE X=? AND Y IN(?), it always uses the index on Y. Should be cost based. 
 
-@roadmap_1385_li
+@roadmap_1386_li
 #Common Table Expression (CTE) / recursive queries: support parameters. Issue 314. 
 
-@roadmap_1386_li
+@roadmap_1387_li
 #Oracle compatibility: support INSERT ALL. 
 
-@roadmap_1387_li
+@roadmap_1388_li
 #Issue 178: Optimizer: index usage when both ascending and descending indexes are available. 
 
-@roadmap_1388_li
+@roadmap_1389_li
 #Issue 179: Related subqueries in HAVING clause. 
 
-@roadmap_1389_li
+@roadmap_1390_li
 #IBM DB2 compatibility: NOT NULL WITH DEFAULT. Similar to MySQL Mode.convertInsertNullToZero. 
 
-@roadmap_1390_li
+@roadmap_1391_li
 #Creating primary key: always create a constraint. 
 
-@roadmap_1391_li
+@roadmap_1392_li
 #Maybe use a different page layout: keep the data at the head of the page, and ignore the tail (don't store / read it). This may increase write / read performance depending on the file system. 
 
-@roadmap_1392_li
+@roadmap_1393_li
 #Indexes of temporary tables are currently kept in-memory. Is this how it should be? 
 
-@roadmap_1393_li
+@roadmap_1394_li
 #The Shell tool should support the same built-in commands as the H2 Console. 
 
-@roadmap_1394_li
+@roadmap_1395_li
 #Maybe use PhantomReference instead of finalize. 
 
-@roadmap_1395_li
+@roadmap_1396_li
 #Database file name suffix: should only have one dot by default. Example: .h2db 
 
-@roadmap_1396_li
+@roadmap_1397_li
 #Issue 196: Function based indexes 
 
-@roadmap_1397_li
+@roadmap_1398_li
 #ALTER TABLE ... ADD COLUMN IF NOT EXISTS columnName. 
 
-@roadmap_1398_li
+@roadmap_1399_li
 #Fix the disk space leak (killing the process at the exact right moment will increase the disk space usage; this space is not re-used). See TestDiskSpaceLeak.java 
 
-@roadmap_1399_li
+@roadmap_1400_li
 #ROWNUM: Oracle compatibility when used within a subquery. Issue 198. 
 
-@roadmap_1400_li
+@roadmap_1401_li
 #Allow to access the database over HTTP (possibly using port 80) and a servlet in a REST way. 
 
-@roadmap_1401_li
+@roadmap_1402_li
 #ODBC: encrypted databases are not supported because the ;CIPHER= can not be set. 
 
-@roadmap_1402_li
+@roadmap_1403_li
 #Support CLOB and BLOB update, specially conn.createBlob().setBinaryStream(1); 
 
-@roadmap_1403_li
+@roadmap_1404_li
 #Optimizer: index usage when both ascending and descending indexes are available. Issue 178. 
 
-@roadmap_1404_li
+@roadmap_1405_li
 #Issue 306: Support schema specific domains. 
 
-@roadmap_1405_li
+@roadmap_1406_li
 #Triggers: support user defined execution order. Oracle: CREATE OR REPLACE TRIGGER TEST_2 BEFORE INSERT ON TEST FOR EACH ROW FOLLOWS TEST_1. SQL specifies that multiple triggers should be fired in time-of-creation order. PostgreSQL uses name order, which was judged to be more convenient. Derby: triggers are fired in the order in which they were created. 
 
-@roadmap_1406_li
+@roadmap_1407_li
 #PostgreSQL compatibility: combine "users" and "roles". See: http://www.postgresql.org/docs/8.1/interactive/user-manag.html 
 
-@roadmap_1407_li
+@roadmap_1408_li
 #Improve documentation of system properties: only list the property names, default values, and description. 
 
-@roadmap_1408_li
+@roadmap_1409_li
 #Support running totals / cumulative sum using SUM(..) OVER(..). 
 
-@roadmap_1409_li
+@roadmap_1410_li
 #Improve object memory size calculation. Use constants for known VMs, or use reflection to call java.lang.instrument.Instrumentation.getObjectSize(Object objectToSize) 
 
-@roadmap_1410_li
+@roadmap_1411_li
 #Triggers: NOT NULL checks should be done after running triggers (Oracle behavior, maybe others). 
 
-@roadmap_1411_li
+@roadmap_1412_li
 #Common Table Expression (CTE) / recursive queries: support INSERT INTO ... SELECT ... Issue 219. 
 
-@roadmap_1412_li
+@roadmap_1413_li
 #Common Table Expression (CTE) / recursive queries: support non-recursive queries. Issue 217. 
 
-@roadmap_1413_li
+@roadmap_1414_li
 #Common Table Expression (CTE) / recursive queries: avoid endless loop. Issue 218. 
 
-@roadmap_1414_li
+@roadmap_1415_li
 #Common Table Expression (CTE) / recursive queries: support multiple named queries. Issue 220. 
 
-@roadmap_1415_li
+@roadmap_1416_li
 #Common Table Expression (CTE) / recursive queries: identifier scope may be incorrect. Issue 222. 
 
-@roadmap_1416_li
+@roadmap_1417_li
 #Log long running transactions (similar to long running statements). 
 
-@roadmap_1417_li
+@roadmap_1418_li
 #Parameter data type is data type of other operand. Issue 205. 
 
-@roadmap_1418_li
+@roadmap_1419_li
 #Some combinations of nested join with right outer join are not supported. 
 
-@roadmap_1419_li
+@roadmap_1420_li
 #DatabaseEventListener.openConnection(id) and closeConnection(id). 
 
-@roadmap_1420_li
+@roadmap_1421_li
 #Listener or authentication module for new connections, or a way to restrict the number of different connections to a tcp server, or to prevent to login with the same username and password from different IPs. Possibly using the DatabaseEventListener API, or a new API. 
 
-@roadmap_1421_li
+@roadmap_1422_li
 #Compatibility for data type CHAR (Derby, HSQLDB). Issue 212. 
 
-@roadmap_1422_li
+@roadmap_1423_li
 #Compatibility with MySQL TIMESTAMPDIFF. Issue 209. 
 
-@roadmap_1423_li
+@roadmap_1424_li
 #Optimizer: use a histogram of the data, specially for non-normal distributions. 
 
-@roadmap_1424_li
+@roadmap_1425_li
 #Trigger: allow declaring as source code (like functions). 
 
-@roadmap_1425_li
+@roadmap_1426_li
 #User defined aggregate: allow declaring as source code (like functions). 
 
-@roadmap_1426_li
+@roadmap_1427_li
 #The error "table not found" is sometimes caused by using the wrong database. Add "(this database is empty)" to the exception message if applicable. 
 
-@roadmap_1427_li
+@roadmap_1428_li
 #MySQL + PostgreSQL compatibility: support string literal escape with \n. 
 
-@roadmap_1428_li
+@roadmap_1429_li
 #PostgreSQL compatibility: support string literal escape with double \\. 
 
-@roadmap_1429_li
+@roadmap_1430_li
 #Document the TCP server "management_db". Maybe include the IP address of the client. 
 
-@roadmap_1430_li
+@roadmap_1431_li
 #Use javax.tools.JavaCompilerTool instead of com.sun.tools.javac.Main 
 
-@roadmap_1431_li
+@roadmap_1432_li
 #If a database object was not found in the current schema, but one with the same name existed in another schema, included that in the error message. 
 
-@roadmap_1432_li
+@roadmap_1433_li
 #Optimization to use an index for OR when using multiple keys: where (key1 = ? and key2 = ?) OR (key1 = ? and key2 = ?) 
 
-@roadmap_1433_li
+@roadmap_1434_li
 #Issue 302: Support optimizing queries with both inner and outer joins, as in: select * from test a inner join test b on a.id=b.id inner join o on o.id=a.id where b.x=1 (the optimizer should swap a and b here). See also TestNestedJoins, tag "swapInnerJoinTables". 
 
-@roadmap_1434_li
+@roadmap_1435_li
 #JaQu should support a DataSource and a way to create a Db object using a Connection (for multi-threaded usage with a connection pool). 
 
-@roadmap_1435_li
+@roadmap_1436_li
 #Move table to a different schema (rename table to a different schema), possibly using ALTER TABLE ... SET SCHEMA ...; 
 
-@roadmap_1436_li
+@roadmap_1437_li
 #nioMapped file system: automatically fall back to regular (non mapped) IO if there is a problem (out of memory exception for example). 
 
-@roadmap_1437_li
+@roadmap_1438_li
 #Column as parameter of function table. Issue 228. 
 
-@roadmap_1438_li
+@roadmap_1439_li
 #Connection pool: detect ;AUTOCOMMIT=FALSE in the database URL, and if set, disable autocommit for all connections. 
 
-@roadmap_1439_li
+@roadmap_1440_li
 #Compatibility with MS Access: support "&amp;" to concatenate text. 
 
-@roadmap_1440_li
+@roadmap_1441_li
 #The BACKUP statement should not synchronize on the database, and therefore should not block other users. 
 
-@roadmap_1441_li
+@roadmap_1442_li
 #Document the database file format. 
 
-@roadmap_1442_li
+@roadmap_1443_li
 #Support reading LOBs. 
 
-@roadmap_1443_li
+@roadmap_1444_li
 #Require appending DANGEROUS=TRUE when using certain dangerous settings such as LOG=0, LOG=1, LOCK_MODE=0, disabling FILE_LOCK,... 
 
-@roadmap_1444_li
+@roadmap_1445_li
 #Support UDT (user defined types) similar to how Apache Derby supports it: check constraint, allow to use it in Java functions as parameters (return values already seem to work). 
 
-@roadmap_1445_li
+@roadmap_1446_li
 #Encrypted file system (use cipher text stealing so file length doesn't need to decrypt; 4 KB header per file, optional compatibility with current encrypted database files). 
 
-@roadmap_1446_li
+@roadmap_1447_li
 #Issue 229: SELECT with simple OR tests uses tableScan when it could use indexes. 
 
-@roadmap_1447_li
+@roadmap_1448_li
 #GROUP BY queries should use a temporary table if there are too many rows. 
 
-@roadmap_1448_li
+@roadmap_1449_li
 #BLOB: support random access when reading. 
 
-@roadmap_1449_li
+@roadmap_1450_li
 #CLOB: support random access when reading (this is harder than for BLOB as data is stored in UTF-8 form). 
 
-@roadmap_1450_li
+@roadmap_1451_li
 #Compatibility: support SELECT INTO (as an alias for CREATE TABLE ... AS SELECT ...). 
 
-@roadmap_1451_li
+@roadmap_1452_li
 #Compatibility with MySQL: support SELECT INTO OUTFILE (cannot be an existing file) as an alias for CSVWRITE(...). 
 
-@roadmap_1452_li
+@roadmap_1453_li
 #Compatibility with MySQL: support non-strict mode (sql_mode = "") any data that is too large for the column will just be truncated or set to the default value. 
 
-@roadmap_1453_li
+@roadmap_1454_li
 #The full condition should be sent to the linked table, not just the indexed condition. Example: TestLinkedTableFullCondition 
 
-@roadmap_1454_li
+@roadmap_1455_li
 #Compatibility with IBM DB2: CREATE PROCEDURE. 
 
-@roadmap_1455_li
+@roadmap_1456_li
 #Compatibility with IBM DB2: SQL cursors. 
 
-@roadmap_1456_li
+@roadmap_1457_li
 #Single-column primary key values are always stored explicitly. This is not required. 
 
-@roadmap_1457_li
+@roadmap_1458_li
 #Compatibility with MySQL: support CREATE TABLE TEST(NAME VARCHAR(255) CHARACTER SET UTF8). 
 
-@roadmap_1458_li
+@roadmap_1459_li
 #CALL is incompatible with other databases because it returns a result set, so that CallableStatement.execute() returns true. 
 
-@roadmap_1459_li
+@roadmap_1460_li
 #Optimization for large lists for column IN(1, 2, 3, 4,...) - currently an list is used, could potentially use a hash set (maybe only for a part of the values - the ones that can be evaluated). 
 
-@roadmap_1460_li
+@roadmap_1461_li
 #Compatibility for ARRAY data type (Oracle: VARRAY(n) of VARCHAR(m); HSQLDB: VARCHAR(n) ARRAY; Postgres: VARCHAR(n)[]). 
 
-@roadmap_1461_li
+@roadmap_1462_li
 #PostgreSQL compatible array literal syntax: ARRAY[['a', 'b'], ['c', 'd']] 
 
-@roadmap_1462_li
+@roadmap_1463_li
 #PostgreSQL compatibility: UPDATE with FROM. 
 
-@roadmap_1463_li
+@roadmap_1464_li
 #Issue 297: Oracle compatibility for "at time zone". 
 
-@roadmap_1464_li
+@roadmap_1465_li
 #IBM DB2 compatibility: IDENTITY_VAL_LOCAL(). 
 
-@roadmap_1465_li
+@roadmap_1466_li
 #Support SQL/XML. 
 
-@roadmap_1466_li
+@roadmap_1467_li
 #Support concurrent opening of databases. 
 
-@roadmap_1467_li
+@roadmap_1468_li
 #Improved error message and diagnostics in case of network configuration problems. 
 
-@roadmap_1468_li
+@roadmap_1469_li
 #TRUNCATE should reset the identity columns as in MySQL and MS SQL Server (and possibly other databases). 
 
-@roadmap_1469_li
+@roadmap_1470_li
 #Adding a primary key should make the columns 'not null' unless if there is a row with null (compatibility with MySQL, PostgreSQL, HSQLDB; not Derby). 
 
-@roadmap_1470_li
+@roadmap_1471_li
 #ARRAY data type: support Integer[] and so on in Java functions (currently only Object[] is supported). 
 
-@roadmap_1471_li
+@roadmap_1472_li
 #MySQL compatibility: LOCK TABLES a READ, b READ - see also http://dev.mysql.com/doc/refman/5.0/en/lock-tables.html 
 
-@roadmap_1472_li
+@roadmap_1473_li
 #The HTML to PDF converter should use http://code.google.com/p/wkhtmltopdf/ 
 
-@roadmap_1473_li
+@roadmap_1474_li
 #Issue 303: automatically convert "X NOT IN(SELECT...)" to "NOT EXISTS(...)". 
 
-@roadmap_1474_li
+@roadmap_1475_li
 #MySQL compatibility: update test1 t1, test2 t2 set t1.name=t2.name where t1.id=t2.id. 
 
-@roadmap_1475_li
+@roadmap_1476_li
 #Issue 283: Improve performance of H2 on Android. 
 
-@roadmap_1476_li
+@roadmap_1477_li
 #Support INSERT INTO / UPDATE / MERGE ... RETURNING to retrieve the generated key(s). 
 
-@roadmap_1477_li
+@roadmap_1478_li
 #Column compression option - see http://groups.google.com/group/h2-database/browse_thread/thread/3e223504e52671fa/243da82244343f5d 
 
-@roadmap_1478_li
+@roadmap_1479_li
 #PostgreSQL compatibility: ALTER TABLE ADD combined with adding a foreign key constraint, as in ALTER TABLE FOO ADD COLUMN PARENT BIGINT REFERENCES FOO(ID). 
 
-@roadmap_1479_li
+@roadmap_1480_li
 #MS SQL Server compatibility: support @@ROWCOUNT. 
 
-@roadmap_1480_li
+@roadmap_1481_li
 #PostgreSQL compatibility: LOG(x) is LOG10(x) and not LN(x). 
 
-@roadmap_1481_li
+@roadmap_1482_li
 #Issue 311: Serialized lock mode: executeQuery of write operations fails. 
 
-@roadmap_1482_li
+@roadmap_1483_li
 #PostgreSQL compatibility: support PgAdmin III (specially the function current_setting). 
 
-@roadmap_1483_li
+@roadmap_1484_li
 #MySQL compatibility: support TIMESTAMPADD. 
 
-@roadmap_1484_li
+@roadmap_1485_li
 #Support SELECT ... FOR UPDATE with joins (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby). 
 
-@roadmap_1485_li
+@roadmap_1486_li
 #Support SELECT ... FOR UPDATE OF [field-list] (supported by PostgreSQL, MySQL, and HSQLDB; but not Derby). 
 
-@roadmap_1486_li
+@roadmap_1487_li
 #Support SELECT ... FOR UPDATE OF [table-list] (supported by PostgreSQL, HSQLDB, Sybase). 
 
-@roadmap_1487_li
+@roadmap_1488_li
 #TRANSACTION_ID() for in-memory databases. 
 
-@roadmap_1488_li
+@roadmap_1489_li
 #TRANSACTION_ID() should be long (same as HSQLDB and PostgreSQL). 
 
-@roadmap_1489_li
+@roadmap_1490_li
 #Support [INNER | OUTER] JOIN USING(column [,...]). 
 
-@roadmap_1490_li
+@roadmap_1491_li
 #Support NATURAL [ { LEFT | RIGHT } [ OUTER ] | INNER ] JOIN (Derby, Oracle) 
 
-@roadmap_1491_li
+@roadmap_1492_li
 #GROUP BY columnNumber (similar to ORDER BY columnNumber) (MySQL, PostgreSQL, SQLite; not by HSQLDB and Derby). 
 
-@roadmap_1492_li
+@roadmap_1493_li
 #Sybase / MS SQL Server compatibility: CONVERT(..) parameters are swapped. 
 
-@roadmap_1493_li
+@roadmap_1494_li
 #Index conditions: WHERE AGE>1 should not scan through all rows with AGE=1. 
 
-@roadmap_1494_li
+@roadmap_1495_li
 #PHP support: H2 should support PDO, or test with PostgreSQL PDO. 
 
-@roadmap_1495_li
+@roadmap_1496_li
 #Outer joins: if no column of the outer join table is referenced, the outer join table could be removed from the query. 
 
-@roadmap_1496_li
+@roadmap_1497_li
 #Cluster: allow using auto-increment and identity columns by ensuring executed in lock-step. 
 
-@roadmap_1497_li
+@roadmap_1498_li
 #MySQL compatibility: index names only need to be unique for the given table. 
 
-@roadmap_1498_li
+@roadmap_1499_li
 #Issue 352: constraints: distinguish between 'no action' and 'restrict'. Currently, only restrict is supported, and 'no action' is internally mapped to 'restrict'. The database meta data returns 'restrict' in all cases. 
 
-@roadmap_1499_li
+@roadmap_1500_li
 #Oracle compatibility: support MEDIAN aggregate function. 
 
-@roadmap_1500_li
+@roadmap_1501_li
 #Issue 348: Oracle compatibility: division should return a decimal result. 
 
-@roadmap_1501_li
+@roadmap_1502_li
 #Read rows on demand: instead of reading the whole row, only read up to that column that is requested. Keep an pointer to the data area and the column id that is already read. 
 
-@roadmap_1502_li
+@roadmap_1503_li
 #Long running transactions: log session id when detected. 
 
-@roadmap_1503_li
+@roadmap_1504_li
 #Optimization: "select id from test" should use the index on id even without "order by". 
 
-@roadmap_1504_li
+@roadmap_1505_li
 #Issue 362: LIMIT support for UPDATE statements (MySQL compatibility). 
 
-@roadmap_1505_li
+@roadmap_1506_li
 #Sybase SQL Anywhere compatibility: SELECT TOP ... START AT ... 
 
-@roadmap_1506_li
+@roadmap_1507_li
 #Use Java 6 SQLException subclasses. 
 
-@roadmap_1507_li
+@roadmap_1508_li
 #Issue 390: RUNSCRIPT FROM '...' CONTINUE_ON_ERROR 
 
-@roadmap_1508_li
+@roadmap_1509_li
 #Use Java 6 exceptions: SQLDataException, SQLSyntaxErrorException, SQLTimeoutException,.. 
 
-@roadmap_1509_h2
+@roadmap_1510_h2
 #Not Planned
 
-@roadmap_1510_li
+@roadmap_1511_li
 #HSQLDB (did) support this: select id i from test where i&lt;0 (other databases don't). Supporting it may break compatibility. 
 
-@roadmap_1511_li
+@roadmap_1512_li
 #String.intern (so that Strings can be compared with ==) will not be used because some VMs have problems when used extensively. 
 
-@roadmap_1512_li
+@roadmap_1513_li
 #In prepared statements, identifier names (table names and so on) can not be parameterized. Adding such a feature would complicate the source code without providing reasonable speedup, and would slow down regular prepared statements. 
 
 @sourceError_1000_h1

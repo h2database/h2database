@@ -568,7 +568,7 @@ public class Transfer {
                         DateTimeUtils.getTimeUTCWithoutDst(readLong()),
                         readInt() % 1000000);
             }
-            return ValueTimestamp.fromMillisNanos(readLong(), 
+            return ValueTimestamp.fromMillisNanos(readLong(),
                     readInt() % 1000000);
         }
         case Value.DECIMAL:

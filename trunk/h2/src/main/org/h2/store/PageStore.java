@@ -1548,7 +1548,7 @@ public class PageStore implements CacheWriter {
         PageDataIndex scan = (PageDataIndex) index;
         Row row = scan.getRowWithKey(key);
         if (row == null || row.getKey() != key) {
-            trace.error(null, "Entry not found: " + key + 
+            trace.error(null, "Entry not found: " + key +
                     " found instead: " + row + " - ignoring");
             return;
         }

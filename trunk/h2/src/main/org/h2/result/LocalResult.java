@@ -76,7 +76,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         rowId = -1;
         this.expressions = expressions;
     }
-    
+
     public void setMaxMemoryRows(int maxValue) {
         this.maxMemoryRows = maxValue;
     }

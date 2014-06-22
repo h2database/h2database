@@ -49,7 +49,7 @@ public class AbbaDetect {
         in.close();
         String source = new String(data, "UTF-8");
         String original = source;
-        
+
         source = disable(source);
         if (enable) {
             String s2 = enable(source);
@@ -66,13 +66,13 @@ public class AbbaDetect {
         RandomAccessFile out = new RandomAccessFile(newFile, "rw");
         out.write(source.getBytes("UTF-8"));
         out.close();
-        
+
         File oldFile = new File(file + ".old");
         file.renameTo(oldFile);
         newFile.renameTo(file);
         oldFile.delete();
     }
-    
+
     private static String disable(String source) {
         source = source.replaceAll("\\{org.h2.util.AbbaDetector.begin\\(.*\\);", "{");
         source = source.replaceAll("org.h2.util.AbbaDetector.begin\\((.*\\(\\))\\)", "$1");
@@ -80,17 +80,21 @@ public class AbbaDetect {
         source = source.replaceAll("synchronized  ", "synchronized ");
         return source;
     }
-    
+
     private static String enable(String source) {
         // the word synchronized within single line comments comments
         source = source.replaceAll("(// .* synchronized )([^ ])", "$1 $2");
-        
-        source = source.replaceAll("synchronized \\((.*)\\(\\)\\)", "synchronized  \\(org.h2.util.AbbaDetector.begin\\($1\\(\\)\\)\\)");
-        source = source.replaceAll("synchronized \\((.*)\\)", "synchronized  \\(org.h2.util.AbbaDetector.begin\\($1\\)\\)");
 
-        source = source.replaceAll("static synchronized ([^ (].*)\\{", "static synchronized  $1{org.h2.util.AbbaDetector.begin\\(null\\);");
-        source = source.replaceAll("synchronized ([^ (].*)\\{", "synchronized  $1{org.h2.util.AbbaDetector.begin\\(this\\);");
-        
+        source = source.replaceAll("synchronized \\((.*)\\(\\)\\)",
+                "synchronized  \\(org.h2.util.AbbaDetector.begin\\($1\\(\\)\\)\\)");
+        source = source.replaceAll("synchronized \\((.*)\\)",
+                "synchronized  \\(org.h2.util.AbbaDetector.begin\\($1\\)\\)");
+
+        source = source.replaceAll("static synchronized ([^ (].*)\\{",
+                "static synchronized  $1{org.h2.util.AbbaDetector.begin\\(null\\);");
+        source = source.replaceAll("synchronized ([^ (].*)\\{",
+                "synchronized  $1{org.h2.util.AbbaDetector.begin\\(this\\);");
+
         return source;
     }
 

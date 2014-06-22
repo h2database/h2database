@@ -52,11 +52,12 @@ public class DateTimeUtils {
     private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184,
             214, 245, 275, 306, 337, 366 };
 
-    private static final ThreadLocal<Calendar> cachedCalendar = new ThreadLocal<Calendar>() {
-    	@Override
-    	protected Calendar initialValue() {
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR = 
+            new ThreadLocal<Calendar>() {
+        @Override
+        protected Calendar initialValue() {
             return Calendar.getInstance();
-    	}
+        }
     };
 
     private DateTimeUtils() {
@@ -67,7 +68,7 @@ public class DateTimeUtils {
      * Reset the calendar, for example after changing the default timezone.
      */
     public static void resetCalendar() {
-        cachedCalendar.remove();
+        CACHED_CALENDAR.remove();
     }
 
     /**
@@ -379,7 +380,7 @@ public class DateTimeUtils {
             int millis) {
         Calendar c;
         if (tz == TimeZone.getDefault()) {
-            c = cachedCalendar.get();
+            c = CACHED_CALENDAR.get();
         } else {
             c = Calendar.getInstance(tz);
         }
@@ -416,7 +417,7 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = cachedCalendar.get();
+        Calendar c = CACHED_CALENDAR.get();
         c.setTime(d);
         if (field == Calendar.YEAR) {
             return getYear(c);
@@ -450,7 +451,7 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + cachedCalendar.get().get(Calendar.ZONE_OFFSET);
+        return d.getTime() + CACHED_CALENDAR.get().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -461,7 +462,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds in UTC
      */
     public static long getTimeUTCWithoutDst(long millis) {
-        return millis - cachedCalendar.get().get(Calendar.ZONE_OFFSET);
+        return millis - CACHED_CALENDAR.get().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -731,7 +732,7 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromDate(long ms) {
-        Calendar cal = cachedCalendar.get();
+        Calendar cal = CACHED_CALENDAR.get();
         cal.clear();
         cal.setTimeInMillis(ms);
         return dateValueFromCalendar(cal);
@@ -759,7 +760,7 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
-        Calendar cal = cachedCalendar.get();
+        Calendar cal = CACHED_CALENDAR.get();
         cal.clear();
         cal.setTimeInMillis(ms);
         return nanosFromCalendar(cal);

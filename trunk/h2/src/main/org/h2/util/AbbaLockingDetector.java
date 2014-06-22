@@ -23,22 +23,24 @@ import java.util.WeakHashMap;
  */
 public class AbbaLockingDetector implements Runnable {
 
-    private int tickInterval_ms = 2;
+    private int tickIntervalMs = 2;
     private volatile boolean stop;
 
-    private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    private final ThreadMXBean threadMXBean =
+            ManagementFactory.getThreadMXBean();
     private Thread thread;
 
     /**
      * Map of (object A) -> ( map of (object locked before object A) ->
-     * (stacktrace where locked) )
+     * (stack trace where locked) )
      */
-    private final Map<String, Map<String, String>> LOCK_ORDERING = new WeakHashMap<String, Map<String, String>>();
-    private final Set<String> KNOWN_DEADLOCKS = new HashSet<String>();
+    private final Map<String, Map<String, String>> lockOrdering =
+            new WeakHashMap<String, Map<String, String>>();
+    private final Set<String> knownDeadlocks = new HashSet<String>();
 
     /**
      * Start collecting locking data.
-     * 
+     *
      * @return this
      */
     public AbbaLockingDetector startCollecting() {
@@ -48,14 +50,17 @@ public class AbbaLockingDetector implements Runnable {
         return this;
     }
 
+    /**
+     * Reset the state.
+     */
     public synchronized void reset() {
-        LOCK_ORDERING.clear();
-        KNOWN_DEADLOCKS.clear();
+        lockOrdering.clear();
+        knownDeadlocks.clear();
     }
-    
+
     /**
      * Stop collecting.
-     * 
+     *
      * @return this
      */
     public AbbaLockingDetector stopCollecting() {
@@ -83,15 +88,19 @@ public class AbbaLockingDetector implements Runnable {
     }
 
     private void tick() {
-        if (tickInterval_ms > 0) {
+        if (tickIntervalMs > 0) {
             try {
-                Thread.sleep(tickInterval_ms);
+                Thread.sleep(tickIntervalMs);
             } catch (InterruptedException ex) {
                 // ignore
             }
         }
 
-        ThreadInfo[] list = threadMXBean.dumpAllThreads(true/* lockedMonitors */, false/* lockedSynchronizers */);
+        ThreadInfo[] list = threadMXBean.dumpAllThreads(
+                // lockedMonitors
+                true,
+                // lockedSynchronizers
+                false);
         processThreadList(list);
     }
 
@@ -110,13 +119,14 @@ public class AbbaLockingDetector implements Runnable {
      * We cannot simply call getLockedMonitors because it is not guaranteed to
      * return the locks in the correct order.
      */
-    private static void generateOrdering(final List<String> lockOrder, ThreadInfo info) {
+    private static void generateOrdering(final List<String> lockOrder,
+            ThreadInfo info) {
         final MonitorInfo[] lockedMonitors = info.getLockedMonitors();
         Arrays.sort(lockedMonitors, new Comparator<MonitorInfo>() {
-	        @Override
-	        public int compare(MonitorInfo a, MonitorInfo b) {
-	        	return b.getLockedStackDepth() - a.getLockedStackDepth();
-	        }
+            @Override
+            public int compare(MonitorInfo a, MonitorInfo b) {
+                return b.getLockedStackDepth() - a.getLockedStackDepth();
+            }
         });
         for (MonitorInfo mi : lockedMonitors) {
             String lockName = getObjectName(mi);
@@ -132,28 +142,30 @@ public class AbbaLockingDetector implements Runnable {
         }
     }
 
-    private synchronized void markHigher(List<String> lockOrder, ThreadInfo threadInfo) {
+    private synchronized void markHigher(List<String> lockOrder,
+            ThreadInfo threadInfo) {
         String topLock = lockOrder.get(lockOrder.size() - 1);
-        Map<String, String> map = LOCK_ORDERING.get(topLock);
+        Map<String, String> map = lockOrdering.get(topLock);
         if (map == null) {
             map = new WeakHashMap<String, String>();
-            LOCK_ORDERING.put(topLock, map);
+            lockOrdering.put(topLock, map);
         }
         String oldException = null;
         for (int i = 0; i < lockOrder.size() - 1; i++) {
             String olderLock = lockOrder.get(i);
-            Map<String, String> oldMap = LOCK_ORDERING.get(olderLock);
+            Map<String, String> oldMap = lockOrdering.get(olderLock);
             boolean foundDeadLock = false;
             if (oldMap != null) {
                 String e = oldMap.get(topLock);
                 if (e != null) {
                     foundDeadLock = true;
                     String deadlockType = topLock + " " + olderLock;
-                    if (!KNOWN_DEADLOCKS.contains(deadlockType)) {
+                    if (!knownDeadlocks.contains(deadlockType)) {
                         System.out.println(topLock + " synchronized after \n " + olderLock
-                                + ", but in the past before\n" + "AFTER\n" + getStackTraceForThread(threadInfo)
+                                + ", but in the past before\n" + "AFTER\n" +
+                                    getStackTraceForThread(threadInfo)
                                 + "BEFORE\n" + e);
-                        KNOWN_DEADLOCKS.add(deadlockType);
+                        knownDeadlocks.add(deadlockType);
                     }
                 }
             }
@@ -172,13 +184,15 @@ public class AbbaLockingDetector implements Runnable {
      * stack frames)
      */
     private static String getStackTraceForThread(ThreadInfo info) {
-        StringBuilder sb = new StringBuilder("\"" + info.getThreadName() + "\"" + " Id=" + info.getThreadId() + " "
-                + info.getThreadState());
+        StringBuilder sb = new StringBuilder("\"" +
+                info.getThreadName() + "\"" + " Id=" +
+                info.getThreadId() + " " + info.getThreadState());
         if (info.getLockName() != null) {
             sb.append(" on " + info.getLockName());
         }
         if (info.getLockOwnerName() != null) {
-            sb.append(" owned by \"" + info.getLockOwnerName() + "\" Id=" + info.getLockOwnerId());
+            sb.append(" owned by \"" + info.getLockOwnerName() +
+                    "\" Id=" + info.getLockOwnerId());
         }
         if (info.isSuspended()) {
             sb.append(" (suspended)");
@@ -191,9 +205,9 @@ public class AbbaLockingDetector implements Runnable {
         final MonitorInfo[] lockedMonitors = info.getLockedMonitors();
         boolean startDumping = false;
         for (int i = 0; i < stackTrace.length; i++) {
-            StackTraceElement ste = stackTrace[i];
+            StackTraceElement e = stackTrace[i];
             if (startDumping) {
-                dumpStackTraceElement(info, sb, i, ste);
+                dumpStackTraceElement(info, sb, i, e);
             }
 
             for (MonitorInfo mi : lockedMonitors) {
@@ -202,7 +216,7 @@ public class AbbaLockingDetector implements Runnable {
                     // something.
                     // Removes a lot of unnecessary noise from the output.
                     if (!startDumping) {
-                        dumpStackTraceElement(info, sb, i, ste);
+                        dumpStackTraceElement(info, sb, i, e);
                         startDumping = true;
                     }
                     sb.append("\t-  locked " + mi);
@@ -213,8 +227,9 @@ public class AbbaLockingDetector implements Runnable {
         return sb.toString();
     }
 
-    private static void dumpStackTraceElement(ThreadInfo info, StringBuilder sb, int i, StackTraceElement ste) {
-        sb.append("\tat " + ste.toString());
+    private static void dumpStackTraceElement(ThreadInfo info,
+            StringBuilder sb, int i, StackTraceElement e) {
+        sb.append('\t').append("at ").append(e.toString());
         sb.append('\n');
         if (i == 0 && info.getLockInfo() != null) {
             Thread.State ts = info.getThreadState();
@@ -237,7 +252,8 @@ public class AbbaLockingDetector implements Runnable {
     }
 
     private static String getObjectName(MonitorInfo info) {
-        return info.getClassName() + "@" + Integer.toHexString(info.getIdentityHashCode());
+        return info.getClassName() + "@" +
+                Integer.toHexString(info.getIdentityHashCode());
     }
 
 }

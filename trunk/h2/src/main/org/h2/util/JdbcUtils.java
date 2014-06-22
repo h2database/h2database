@@ -35,12 +35,12 @@ import org.h2.util.Utils.ClassFactory;
  * This is a utility class with JDBC helper functions.
  */
 public class JdbcUtils {
-    
+
     /**
      * The serializer to use.
      */
     public static JavaObjectSerializer serializer;
-    
+
     private static final String[] DRIVERS = {
         "h2:", "org.h2.Driver",
         "Cache:", "com.intersys.jdbc.CacheDriver",
@@ -68,7 +68,7 @@ public class JdbcUtils {
         "sqlserver:", "com.microsoft.sqlserver.jdbc.SQLServerDriver",
         "teradata:", "com.ncr.teradata.TeraDriver",
     };
-    
+
     private static boolean allowAllClasses;
     private static HashSet<String> allowedClassNames;
 
@@ -79,7 +79,7 @@ public class JdbcUtils {
             new ArrayList<ClassFactory>();
 
     private static String[] allowedClassNamePrefixes;
-    
+
     private JdbcUtils() {
         // utility class
     }
@@ -121,7 +121,7 @@ public class JdbcUtils {
             }
         }
     }
-    
+
     /**
      * Load a class, but check if it is allowed to load this class first. To
      * perform access rights checking, the system property h2.allowedClasses
@@ -334,7 +334,7 @@ public class JdbcUtils {
             loadUserClass(driver);
         }
     }
-    
+
     /**
      * Serialize the object to a byte array, using the serializer specified by
      * the connection info if set, or the default serializer.

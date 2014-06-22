@@ -28,7 +28,7 @@ import org.h2.value.ValueNull;
  * This class implements the temp table buffer for the LocalResult class.
  */
 public class ResultTempTable implements ResultExternal {
-    
+
     private static final String COLUMN_NAME = "DATA";
     private final boolean distinct;
     private final SortOrder sort;
@@ -73,7 +73,7 @@ public class ResultTempTable implements ResultExternal {
         }
         parent = null;
     }
-    
+
     private ResultTempTable(ResultTempTable parent) {
         this.parent = parent;
         this.columnCount = parent.columnCount;
@@ -86,15 +86,15 @@ public class ResultTempTable implements ResultExternal {
         this.containsLob = parent.containsLob;
         reset();
     }
-    
+
     private void createIndex() {
         IndexColumn[] indexCols = null;
         if (sort != null) {
-            int[] colInd = sort.getQueryColumnIndexes();
-            indexCols = new IndexColumn[colInd.length];
-            for (int i = 0; i < colInd.length; i++) {
+            int[] colIndex = sort.getQueryColumnIndexes();
+            indexCols = new IndexColumn[colIndex.length];
+            for (int i = 0; i < colIndex.length; i++) {
                 IndexColumn indexColumn = new IndexColumn();
-                indexColumn.column = table.getColumn(colInd[i]);
+                indexColumn.column = table.getColumn(colIndex[i]);
                 indexColumn.sortType = sort.getSortTypes()[i];
                 indexColumn.columnName = COLUMN_NAME + i;
                 indexCols[i] = indexColumn;
@@ -222,7 +222,7 @@ public class ResultTempTable implements ResultExternal {
                 Session sysSession = database.getSystemSession();
                 table.removeChildrenAndResources(sysSession);
                 if (index != null) {
-                    // need to explicitly do this, 
+                    // need to explicitly do this,
                     // as it's not registered in the system session
                     session.removeLocalTempTableIndex(index);
                 }

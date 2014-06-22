@@ -203,7 +203,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 if (db.isStarting()) {
                     // before version 1.3.176, an existing index was used:
                     // must do the same to avoid
-                    // Unique index or primary key violation: 
+                    // Unique index or primary key violation:
                     // "PRIMARY KEY ON """".PAGE_INDEX"
                     index = getIndex(table, indexColumns, true);
                 } else {
@@ -358,8 +358,8 @@ public class AlterTableAddConstraint extends SchemaCommand {
             for (IndexColumn col : cols) {
                 // all columns of the list must be part of the index,
                 // but not all columns of the index need to be part of the list
-                // holes are not allowed (index=a,b,c & list=a,b is ok; but list=a,c
-                // is not)
+                // holes are not allowed (index=a,b,c & list=a,b is ok;
+                // but list=a,c is not)
                 int idx = existingIndex.getColumnIndex(col.column);
                 if (idx < 0 || idx >= cols.length) {
                     return false;

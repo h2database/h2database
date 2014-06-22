@@ -60,7 +60,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
     }
-    
+
     private void testConcurrentLobAdd() throws Exception {
         String db = "concurrentLobAdd";
         deleteDb(db);

@@ -14,7 +14,7 @@ import org.h2.util.MathUtils;
  * A free space bit set.
  */
 public class FreeSpaceBitSet {
-    
+
     private static final boolean DETAILED_INFO = false;
 
     /**
@@ -178,7 +178,7 @@ public class FreeSpaceBitSet {
             int onCount = 0, offCount = 0;
             int on = 0;
             for (int i = 0; i < set.length(); i++) {
-                if (set.get(i)) { 
+                if (set.get(i)) {
                     onCount++;
                     on++;
                 } else {
@@ -210,5 +210,5 @@ public class FreeSpaceBitSet {
         buff.append(']');
         return buff.toString();
     }
-    
+
 }

@@ -1,7 +1,6 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.build.code;
@@ -21,10 +20,10 @@ public class CheckTextFiles {
     private static final int MAX_SOURCE_LINE_SIZE = 100;
 
     // must contain "+" otherwise this here counts as well
-    private static final String COPYRIGHT = "Copyright 2004-2013 " +
+    private static final String COPYRIGHT = "Copyright 2004-2014 " +
             "H2 Group.";
     private static final String LICENSE = "Multiple-Licensed " +
-            "under the H2 License";
+            "under the MPL 2.0";
 
     private static final String[] SUFFIX_CHECK = { "html", "jsp", "js", "css",
             "bat", "nsi", "java", "txt", "properties", "sql", "xml", "csv",

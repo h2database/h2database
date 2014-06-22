@@ -423,7 +423,7 @@ CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
 
 "Commands (DDL)","CREATE ALIAS","
-CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ] 
+CREATE ALIAS [ IF NOT EXISTS ] newFunctionAliasName [ DETERMINISTIC ]
 [ NOBUFFER ] { FOR classAndMethodName | AS sourceCodeString }
 ","
 Creates a new function alias. If this is a ResultSet returning function,
@@ -517,7 +517,7 @@ CREATE INDEX IDXNAME ON TEST(NAME)
 "
 
 "Commands (DDL)","CREATE LINKED TABLE","
-CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ] 
+CREATE [ FORCE ] [ [ GLOBAL | LOCAL ] TEMPORARY ]
 LINKED TABLE [ IF NOT EXISTS ]
 name ( driverString, urlString, userString, passwordString,
 [ originalSchemaString, ] originalTableString ) [ EMIT UPDATES | READONLY ]

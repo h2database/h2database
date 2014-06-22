@@ -47,7 +47,7 @@ public class Utils {
     private Utils() {
         // utility class
     }
-    
+
     private static int readInt(byte[] buff, int pos) {
         return (buff[pos++] << 24) +
                 ((buff[pos++] & 0xff) << 16) +

@@ -40,7 +40,8 @@ public class ValueTimestamp extends Value {
     static final int DEFAULT_SCALE = 10;
 
     /**
-     * A bit field with bits for the year, month, and day (see DateTimeUtils for encoding)
+     * A bit field with bits for the year, month, and day (see DateTimeUtils for
+     * encoding)
      */
     private final long dateValue;
     /**
@@ -56,7 +57,8 @@ public class ValueTimestamp extends Value {
     /**
      * Get or create a date value for the given date.
      *
-     * @param dateValue the date value, a bit field with bits for the year, month, and day
+     * @param dateValue the date value, a bit field with bits for the year,
+     *            month, and day
      * @param timeNanos the nanoseconds since midnight
      * @return the value
      */
@@ -81,6 +83,8 @@ public class ValueTimestamp extends Value {
     /**
      * Get or create a timestamp value for the given date/time in millis.
      *
+     * @param ms the milliseconds
+     * @param nanos the nanoseconds
      * @return the value
      */
     public static ValueTimestamp fromMillisNanos(long ms, int nanos) {
@@ -88,10 +92,11 @@ public class ValueTimestamp extends Value {
         long timeNanos = nanos + DateTimeUtils.nanosFromDate(ms);
         return fromDateValueAndNanos(dateValue, timeNanos);
     }
-    
+
     /**
      * Get or create a timestamp value for the given date/time in millis.
      *
+     * @param ms the milliseconds
      * @return the value
      */
     public static ValueTimestamp fromMillis(long ms) {
@@ -99,7 +104,7 @@ public class ValueTimestamp extends Value {
         long nanos = DateTimeUtils.nanosFromDate(ms);
         return fromDateValueAndNanos(dateValue, nanos);
     }
-    
+
     /**
      * Parse a string to a ValueTimestamp. This method supports the format
      * +/-year-month-day hour:minute:seconds.fractional and an optional timezone
@@ -193,7 +198,10 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * A bit field with bits for the year, month, and day (see DateTimeUtils for encoding)
+     * A bit field with bits for the year, month, and day (see DateTimeUtils for
+     * encoding).
+     *
+     * @return the data value
      */
     public long getDateValue() {
         return dateValue;
@@ -201,6 +209,8 @@ public class ValueTimestamp extends Value {
 
     /**
      * The nanoseconds since midnight.
+     *
+     * @return the nanoseconds
      */
     public long getTimeNanos() {
         return timeNanos;

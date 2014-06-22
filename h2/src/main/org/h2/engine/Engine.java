@@ -34,7 +34,7 @@ public class Engine implements SessionFactory {
     private boolean jmx;
 
     private Engine() {}
-    
+
     public static Engine getInstance() {
         return INSTANCE;
     }

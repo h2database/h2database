@@ -292,7 +292,7 @@ public class MVStoreTool {
         String x = new Timestamp(t).toString();
         return x.substring(0, 19);
     }
-    
+
     /**
      * A data type that can read any data that is persisted, and converts it to
      * a byte array.
@@ -340,7 +340,7 @@ public class MVStoreTool {
                 obj[i] = read(buff);
             }
         }
-        
+
     }
-    
+
 }

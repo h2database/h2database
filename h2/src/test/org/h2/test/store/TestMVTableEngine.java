@@ -79,15 +79,15 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
     private void testOldAndNew() throws SQLException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
-        
+
         String urlOld = getURL("mvstore;MV_STORE=FALSE", true);
         String urlNew = getURL("mvstore;MV_STORE=TRUE", true);
         String url = getURL("mvstore", true);
-        
+
         conn = getConnection(urlOld);
         conn.createStatement().execute("create table test_old(id int)");
         conn.close();
@@ -107,7 +107,7 @@ public class TestMVTableEngine extends TestBase {
         conn.createStatement().execute("select * from test_new");
         conn.close();
     }
-    
+
     private void testTemporaryTables() throws SQLException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -135,7 +135,7 @@ public class TestMVTableEngine extends TestBase {
         }
         conn.close();
     }
-    
+
     private void testUniqueIndex() throws SQLException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -151,7 +151,7 @@ public class TestMVTableEngine extends TestBase {
         assertFalse(rs.next());
         conn.close();
     }
-    
+
     private void testSecondaryIndex() throws SQLException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
@@ -162,12 +162,12 @@ public class TestMVTableEngine extends TestBase {
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
         int size = 8 * 1024;
-        stat.execute("insert into test select mod(x * 111, " + size + ") " + 
+        stat.execute("insert into test select mod(x * 111, " + size + ") " +
                 "from system_range(1, " + size + ")");
         stat.execute("create index on test(id)");
         ResultSet rs = stat.executeQuery(
                 "select count(*) from test inner join " +
-                "system_range(1, " + size + ") where " + 
+                "system_range(1, " + size + ") where " +
                 "id = mod(x * 111, " + size + ")");
         rs.next();
         assertEquals(size, rs.getInt(1));

@@ -69,7 +69,7 @@ public class Cursor<K, V> implements Iterator<K> {
     public V getValue() {
         return lastValue;
     }
-    
+
     Page getPage() {
         return lastPage;
     }
@@ -153,5 +153,5 @@ public class Cursor<K, V> implements Iterator<K> {
         }
         current = null;
     }
-    
+
 }

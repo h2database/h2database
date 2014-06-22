@@ -362,8 +362,11 @@ java org.h2.test.TestAll timer
      */
     String cacheType;
 
+    /**
+     * The AB-BA locking detector.
+     */
     AbbaLockingDetector abbaLockingDetector;
-    
+
     private Server server;
 
     /**
@@ -382,12 +385,12 @@ java org.h2.test.TestAll timer
         SelfDestructor.startCountdown(4 * 60);
         long time = System.currentTimeMillis();
         printSystemInfo();
-        
+
         // use lower values, to better test those cases,
         // and (for delays) to speed up the tests
 
         System.setProperty("h2.maxMemoryRows", "100");
-        
+
         System.setProperty("h2.check2", "true");
         System.setProperty("h2.delayWrongPasswordMin", "0");
         System.setProperty("h2.delayWrongPasswordMax", "0");
@@ -517,7 +520,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         if (Boolean.getBoolean("abba")) {
             abbaLockingDetector = new AbbaLockingDetector().startCollecting();
         }
-        
+
         coverage = isCoverage();
 
         smallLog = big = networked = memory = ssl = false;

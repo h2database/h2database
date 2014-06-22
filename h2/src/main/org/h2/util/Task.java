@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * exception, it is wrapped in a RuntimeException.
  */
 public abstract class Task implements Runnable {
-    
+
     private static AtomicInteger counter = new AtomicInteger();
 
     /**

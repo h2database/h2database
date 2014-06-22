@@ -168,7 +168,7 @@ public class TestAlter extends TestBase {
         assertFalse(rs.next());
         stat.execute("drop table t");
     }
-    
+
     private void testAlterTableAddColumnIfNotExists() throws SQLException {
         stat.execute("create table t(x varchar) as select 'x'");
         stat.execute("alter table t add if not exists x int");

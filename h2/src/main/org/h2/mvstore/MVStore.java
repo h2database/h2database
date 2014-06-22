@@ -1308,7 +1308,7 @@ public class MVStore {
         ByteBuffer buff = fileStore.readFully(p, Chunk.MAX_HEADER_LENGTH);
         return Chunk.readChunkHeader(buff, p);
     }
-    
+
     /**
      * Compact the store by moving all live pages to new chunks.
      *
@@ -1340,11 +1340,16 @@ public class MVStore {
         commitAndSave();
         return true;
     }
-    
+
+    /**
+     * Compact by moving all chunks next to each other.
+     *
+     * @return if anything was written
+     */
     public synchronized boolean compactMoveChunks() {
         return compactMoveChunks(Long.MAX_VALUE);
     }
-    
+
     /**
      * Compact the store by moving all chunks next to each other, if there is
      * free space between chunks. This might temporarily double the file size.
@@ -1378,7 +1383,7 @@ public class MVStore {
         }
         return true;
     }
-    
+
     private ArrayList<Chunk> compactGetMoveBlocks(long startBlock, long moveSize) {
         ArrayList<Chunk> move = New.arrayList();
         for (Chunk c : chunks.values()) {
@@ -1403,16 +1408,16 @@ public class MVStore {
             }
             size += chunkSize;
             count++;
-        }            
+        }
         // move the first block (so the first gap is moved),
         // and the one at the end (so the file shrinks)
         while (move.size() > count && move.size() > 1) {
             move.remove(1);
         }
-        
+
         return move;
     }
-    
+
     private void compactFreeUnusedChunks() {
         long time = getTime();
         ArrayList<Chunk> free = New.arrayList();
@@ -1510,7 +1515,7 @@ public class MVStore {
     public void sync() {
         fileStore.sync();
     }
-    
+
     /**
      * Try to increase the fill rate by re-writing partially full chunks. Chunks
      * with a low number of live items are re-written.
@@ -2459,7 +2464,7 @@ public class MVStore {
     /**
      * Get the maximum memory (in bytes) used for unsaved pages. If this number
      * is exceeded, unsaved changes are stored to disk.
-     * 
+     *
      * @return the memory in bytes
      */
     public int getAutoCommitMemory() {
@@ -2467,8 +2472,8 @@ public class MVStore {
     }
 
     /**
-     * Get the estimated memory (in bytes) of unsaved data. If the value exceeds the
-     * auto-commit memory, the changes are committed.
+     * Get the estimated memory (in bytes) of unsaved data. If the value exceeds
+     * the auto-commit memory, the changes are committed.
      * <p>
      * The returned value is an estimation only.
      *
@@ -2597,7 +2602,7 @@ public class MVStore {
          * <p>
          * When the value is set to 0 or lower, data is not automatically
          * stored.
-         * 
+         *
          * @param kb the write buffer size, in kilobytes
          * @return this
          */

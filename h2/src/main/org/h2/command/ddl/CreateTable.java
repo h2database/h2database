@@ -201,11 +201,11 @@ public class CreateTable extends SchemaCommand {
                         if (t.getId() > table.getId()) {
                             throw DbException.get(
                                     ErrorCode.FEATURE_NOT_SUPPORTED_1,
-                                    "Table depends on another table " + 
-                                    "with a higher ID: " + t + 
-                                    ", this is currently not supported, " + 
-                                    "as it would prevent the database from " + 
-                                    "beeing re-opened");
+                                    "Table depends on another table " +
+                                    "with a higher ID: " + t +
+                                    ", this is currently not supported, " +
+                                    "as it would prevent the database from " +
+                                    "being re-opened");
                         }
                     }
                 }

@@ -18,7 +18,7 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 565: MVStore: concurrently adding LOB objects 
+<ul><li>Issue 565: MVStore: concurrently adding LOB objects
     (with MULTI_THREADED option) resulted in a NullPointerException.
 </li><li>MVStore: reduced dependencies to other H2 classes.
 </li><li>There was a way to prevent a database from being re-opened,
@@ -41,14 +41,14 @@ Change Log
     Referential integrity constraints sometimes used the wrong index.
 </li><li>MVStore: the ObjectDataType comparison method was incorrect if one
     key was Serializable and the other was of a common class.
-</li><li>Recursive queries with many result rows (more than the setting "max_memory_rows") 
+</li><li>Recursive queries with many result rows (more than the setting "max_memory_rows")
     did not work correctly.
 </li><li>The license has changed to MPL 2.0 + EPL 1.0.
 </li><li>MVStore: temporary tables from result sets could survive re-opening a database,
     which could result in a ClassCastException.
 </li><li>Issue 566: MVStore: unique indexes that were created later on did not work correctly
     if there were over 5000 rows in the table.
-</li><li>MVStore: creating secondary indexes on large tables 
+</li><li>MVStore: creating secondary indexes on large tables
     results in missing rows in the index.
 </li><li>Metadata: the password of linked tables is now only visible for admin users.
 </li><li>For Windows, database URLs of the form "jdbc:h2:/test" where considered
@@ -58,7 +58,7 @@ Change Log
     return type of procedure.
 </li><li>Issue 531: IDENTITY ignored for added column.
 </li><li>FileSystem: improve exception throwing compatibility with JDK
-</li><li>Spatial Index: adjust costs so we do not use the spatial index if the 
+</li><li>Spatial Index: adjust costs so we do not use the spatial index if the
     query does not contain an intersects operator.
 </li><li>Fix multi-threaded deadlock when using a View that includes a TableFunction.
 </li><li>Fix bug in dividing very-small BigDecimal numbers.

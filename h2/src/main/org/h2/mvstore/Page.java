@@ -221,7 +221,13 @@ public class Page {
         Page p = childrenPages[index];
         return p != null ? p : map.readPage(children[index]);
     }
-    
+
+    /**
+     * Get the position of the child.
+     *
+     * @param index the index
+     * @return the position
+     */
     public long getChildPagePos(int index) {
         return children[index];
     }

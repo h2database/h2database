@@ -17,9 +17,9 @@ import java.util.WeakHashMap;
  * Utility to detect AB-BA deadlocks.
  */
 public class AbbaDetector {
-    
+
     private static final boolean TRACE = false;
-    
+
     private static final ThreadLocal<Deque<Object>> STACK =
             new ThreadLocal<Deque<Object>>() {
                 @Override protected Deque<Object> initialValue() {
@@ -28,13 +28,22 @@ public class AbbaDetector {
         };
 
     /**
-     * Map of (object A) -> ( map of (object locked before object A) -> (stacktrace where locked) ) 
+     * Map of (object A) -> (
+     *      map of (object locked before object A) ->
+     *      (stack trace where locked) )
      */
-    private static final Map<Object, Map<Object, Exception>> LOCK_ORDERING = 
+    private static final Map<Object, Map<Object, Exception>> LOCK_ORDERING =
             new WeakHashMap<Object, Map<Object, Exception>>();
-    
+
     private static final Set<String> KNOWN_DEADLOCKS = new HashSet<String>();
-    
+
+    /**
+     * This method is called just before or just after an object is
+     * synchronized.
+     *
+     * @param o the object, or null for the current class
+     * @return the object that was passed
+     */
     public static Object begin(Object o) {
         if (o == null) {
             o = new SecurityManager() {
@@ -57,10 +66,10 @@ public class AbbaDetector {
                 stack.pop();
             }
         }
-        if (TRACE) { 
+        if (TRACE) {
             String thread = "[thread " + Thread.currentThread().getId() + "]";
-            String ident = new String(new char[stack.size() * 2]).replace((char) 0, ' ');
-            System.out.println(thread + " " + ident + 
+            String indent = new String(new char[stack.size() * 2]).replace((char) 0, ' ');
+            System.out.println(thread + " " + indent +
                     "sync " + getObjectName(o));
         }
         if (stack.size() > 0) {
@@ -69,17 +78,17 @@ public class AbbaDetector {
         stack.push(o);
         return o;
     }
-    
+
     private static Object getTest(Object o) {
         // return o.getClass();
         return o;
     }
-    
+
     private static String getObjectName(Object o) {
         return o.getClass().getSimpleName() + "@" + System.identityHashCode(o);
     }
-    
-    public static synchronized void markHigher(Object o, Deque<Object> older) {
+
+    private static synchronized void markHigher(Object o, Deque<Object> older) {
         Object test = getTest(o);
         Map<Object, Exception> map = LOCK_ORDERING.get(test);
         if (map == null) {
@@ -117,20 +126,5 @@ public class AbbaDetector {
             }
         }
     }
-    
-    public static void main(String... args) {
-        Integer a = 1;
-        Float b = 2.0f;
-        synchronized (a) {
-            synchronized (b) {
-                System.out.println("a, then b");
-            }
-        }
-        synchronized (b) {
-            synchronized (a) {
-                System.out.println("b, then a");
-            }
-        }
-    }
-    
+
 }

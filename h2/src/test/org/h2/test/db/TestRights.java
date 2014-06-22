@@ -48,20 +48,20 @@ public class TestRights extends TestBase {
         testSchemaAdminRole();
         deleteDb("rights");
     }
-    
+
     private void testLinkedTableMeta() throws SQLException {
         deleteDb("rights");
         Connection conn = getConnection("rights");
         stat = conn.createStatement();
         stat.execute("create user test password 'test'");
-        stat.execute("create linked table test" + 
+        stat.execute("create linked table test" +
                 "(null, 'jdbc:h2:mem:', 'sa', 'sa', 'DUAL')");
         // password is invisible to non-admin
         Connection conn2 = getConnection(
                 "rights", "test", getPassword("test"));
         Statement stat2 = conn2.createStatement();
         ResultSet rs = stat2.executeQuery(
-                "select * from information_schema.tables " + 
+                "select * from information_schema.tables " +
                 "where table_name = 'TEST'");
         assertTrue(rs.next());
         ResultSetMetaData meta = rs.getMetaData();
@@ -72,7 +72,7 @@ public class TestRights extends TestBase {
         conn2.close();
         // password is visible to admin
         rs = stat.executeQuery(
-                "select * from information_schema.tables " + 
+                "select * from information_schema.tables " +
                 "where table_name = 'TEST'");
         assertTrue(rs.next());
         meta = rs.getMetaData();
@@ -85,7 +85,7 @@ public class TestRights extends TestBase {
         }
         assertTrue(foundPassword);
         conn2.close();
-        
+
         stat.execute("drop table test");
         conn.close();
     }

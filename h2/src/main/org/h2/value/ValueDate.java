@@ -68,7 +68,7 @@ public class ValueDate extends Value {
     public static ValueDate fromMillis(long ms) {
         return fromDateValue(DateTimeUtils.dateValueFromDate(ms));
     }
-    
+
     /**
      * Parse a string to a ValueDate.
      *

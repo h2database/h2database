@@ -80,7 +80,7 @@ public class ValueDataType implements DataType {
         this.handler = handler;
         this.sortTypes = sortTypes;
     }
-    
+
     private SpatialDataType getSpatialDataType() {
         if (spatialType == null) {
             spatialType = new SpatialDataType(2);

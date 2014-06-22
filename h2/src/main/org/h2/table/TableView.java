@@ -44,7 +44,7 @@ import org.h2.value.Value;
 public class TableView extends Table {
 
     private static final long ROW_COUNT_APPROXIMATION = 100;
-    
+
     private String querySQL;
     private ArrayList<Table> tables;
     private String[] columnNames;
@@ -230,7 +230,7 @@ public class TableView extends Table {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, filter, sortOrder);
         final CacheKey cacheKey = new CacheKey(masks, session);
-        
+
         synchronized (this) {
             SynchronizedVerifier.check(indexCache);
             ViewIndex i2 = indexCache.get(cacheKey);
@@ -239,8 +239,9 @@ public class TableView extends Table {
                 return item;
             }
         }
-        // We cannot hold the lock during the ViewIndex creation or we risk ABBA deadlocks
-        // if the view creation calls back into H2 via something like a FunctionTable.
+        // We cannot hold the lock during the ViewIndex creation or we risk ABBA
+        // deadlocks if the view creation calls back into H2 via something like
+        // a FunctionTable.
         ViewIndex i2 = new ViewIndex(this, index, session, masks);
         synchronized (this) {
             // have to check again in case another session has beat us to it
@@ -559,15 +560,15 @@ public class TableView extends Table {
             }
         }
     }
-    
+
     /**
      * The key of the index cache for views.
      */
     private static final class CacheKey {
-        
+
         private final int[] masks;
         private final Session session;
-        
+
         public CacheKey(int[] masks, Session session) {
             this.masks = masks;
             this.session = session;

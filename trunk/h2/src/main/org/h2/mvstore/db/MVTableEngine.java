@@ -310,18 +310,21 @@ public class MVTableEngine implements TableEngine {
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
             if (maxCompactTime == Long.MAX_VALUE) {
+                store.setReuseSpace(false);
                 store.compactRewriteFully();
+                store.setReuseSpace(true);
+                store.compactMoveChunks();
             } else {
                 long start = System.currentTimeMillis();
-                while (store.compact(99, 4 * 1024 * 1024)) {
+                while (store.compact(99, 16 * 1024 * 1024)) {
                     store.sync();
+                    store.compactMoveChunks(16 * 1024 * 1024);
                     long time = System.currentTimeMillis() - start;
                     if (time > maxCompactTime) {
                         break;
                     }
                 }
             }
-            store.compactMoveChunks();
         }
 
         /**
@@ -336,12 +339,9 @@ public class MVTableEngine implements TableEngine {
                 if (!store.isClosed() && store.getFileStore() != null) {
                     if (!store.getFileStore().isReadOnly()) {
                         transactionStore.close();
-                        long start = System.currentTimeMillis();
-                        while (store.compact(90, 4 * 1024 * 1024)) {
-                            long time = System.currentTimeMillis() - start;
-                            if (time > maxCompactTime) {
-                                break;
-                            }
+                        if (maxCompactTime > 0) {
+                            store.compact(99, 1 * 1024 * 1024);
+                            store.compactMoveChunks(1 * 1024 * 1024);
                         }
                     }
                     store.close();

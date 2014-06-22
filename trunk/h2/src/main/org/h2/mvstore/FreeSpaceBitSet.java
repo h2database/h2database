@@ -14,6 +14,8 @@ import org.h2.util.MathUtils;
  * A free space bit set.
  */
 public class FreeSpaceBitSet {
+    
+    private static final boolean DETAILED_INFO = false;
 
     /**
      * The first usable block.
@@ -171,7 +173,27 @@ public class FreeSpaceBitSet {
 
     @Override
     public String toString() {
-        StringBuilder buff = new StringBuilder("[");
+        StringBuilder buff = new StringBuilder();
+        if (DETAILED_INFO) {
+            int onCount = 0, offCount = 0;
+            int on = 0;
+            for (int i = 0; i < set.length(); i++) {
+                if (set.get(i)) { 
+                    onCount++;
+                    on++;
+                } else {
+                    offCount++;
+                }
+                if ((i & 1023) == 1023) {
+                    buff.append(String.format("%3x", on)).append(' ');
+                    on = 0;
+                }
+            }
+            buff.append("\n");
+            buff.append(" on " + onCount + " off " + offCount);
+            buff.append(" " + 100 * onCount / (onCount+offCount) + "% used ");
+        }
+        buff.append('[');
         for (int i = 0;;) {
             if (i > 0) {
                 buff.append(", ");
@@ -185,7 +207,8 @@ public class FreeSpaceBitSet {
             buff.append(Integer.toHexString(end - 1));
             i = end + 1;
         }
-        return buff.append(']').toString();
+        buff.append(']');
+        return buff.toString();
     }
-
+    
 }

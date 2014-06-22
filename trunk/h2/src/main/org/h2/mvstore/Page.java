@@ -763,6 +763,7 @@ public class Page {
                     "File corrupted in chunk {0}, expected page length =< {1}, got {2}",
                     chunkId, maxLength, pageLength);
         }
+        buff.limit(start + pageLength);
         short check = buff.getShort();
         int mapId = DataUtils.readVarInt(buff);
         if (mapId != map.getId()) {

@@ -9,7 +9,7 @@
     <description>H2 Database Engine</description>
     <licenses>
         <license>
-            <name>The H2 License, Version 1.0</name>
+            <name>MPL 2.0, and EPL 1.0</name>
             <url>http://h2database.com/html/license.html</url>
             <distribution>repo</distribution>
         </license>

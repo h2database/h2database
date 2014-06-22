@@ -783,7 +783,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     private int rewrite(Page p, Set<Integer> set) {
-        ; // TODO write more tests
         if (p.isLeaf()) {
             long pos = p.getPos();
             if (pos == 0) {

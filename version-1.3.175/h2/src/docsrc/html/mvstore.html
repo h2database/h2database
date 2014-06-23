@@ -1,0 +1,520 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+MVStore
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>MVStore</h1>
+<a href="#overview">
+    Overview</a><br />
+<a href="#example_code">
+    Example Code</a><br />
+<a href="#store_builder">
+    Store Builder</a><br />
+<a href="#r_tree">
+    R-Tree</a><br />
+
+<a href="#features">
+    Features</a><br />
+<a href="#maps">- Maps</a><br />
+<a href="#versions">- Versions</a><br />
+<a href="#transactions">- Transactions</a><br />
+<a href="#inMemory">- In-Memory Performance and Usage</a><br />
+<a href="#dataTypes">- Pluggable Data Types</a><br />
+<a href="#blob">- BLOB Support</a><br />
+<a href="#pluggableMap">- R-Tree and Pluggable Map Implementations</a><br />
+<a href="#caching">- Concurrent Operations and Caching</a><br />
+<a href="#logStructured">- Log Structured Storage</a><br />
+<a href="#offHeap">- Off-Heap and Pluggable Storage</a><br />
+<a href="#fileSystem">- File System Abstraction, File Locking and Online Backup</a><br />
+<a href="#encryption">- Encrypted Files</a><br />
+<a href="#tools">- Tools</a><br />
+<a href="#exceptionHandling">- Exception Handling</a><br />
+<a href="#storageEngine">- Storage Engine for H2</a><br />
+
+<a href="#differences">
+    Similar Projects and Differences to Other Storage Engines</a><br />
+<a href="#current_state">
+    Current State</a><br />
+<a href="#requirements">
+    Requirements</a><br />
+
+<h2 id="overview">Overview</h2>
+<p>
+The MVStore is work in progress, and is planned to be the next storage subsystem of H2.
+But it can also be used directly within an application, without using JDBC or SQL.
+</p>
+<ul><li>MVStore stands for "multi-version store".
+</li><li>Each store contains a number of maps that can be accessed using the <code>java.util.Map</code> interface.
+</li><li>Both file-based persistence and in-memory operation are supported.
+</li><li>It is intended to be fast, simple to use, and small.
+</li><li>Old versions of the data can be read concurrently with all other operations.
+</li><li>Transaction are supported (including concurrent transactions and 2-phase commit).
+</li><li>The tool is very modular.
+    It supports pluggable data types and serialization,
+    pluggable storage (to a file, to off-heap memory),
+    pluggable map implementations (B-tree, R-tree, concurrent B-tree currently),
+    BLOB storage,
+    and a file system abstraction to support encrypted files and zip files.
+</li></ul>
+
+<h2 id="example_code">Example Code</h2>
+<p>
+The following sample code show how to use the tool:
+</p>
+<pre>
+import org.h2.mvstore.*;
+
+// open the store (in-memory if fileName is null)
+MVStore s = MVStore.open(fileName);
+
+// create/get the map named "data"
+MVMap&lt;Integer, String&gt; map = s.openMap("data");
+
+// add and read some data
+map.put(1, "Hello World");
+System.out.println(map.get(1));
+
+// close the store (this will persist changes)
+s.close();
+</pre>
+
+<h2 id="store_builder">Store Builder</h2>
+<p>
+The <code>MVStore.Builder</code> provides a fluid interface
+to build a store if more complex configuration options are used.
+Example usage:
+</p>
+<pre>
+MVStore s = new MVStore.Builder().
+    fileName(fileName).
+    encryptionKey("007".toCharArray()).
+    compressData().
+    open();
+</pre>
+<p>
+The list of available options is:
+</p>
+<ul><li>autoCommitBufferSize: the size of the write buffer.
+</li><li>autoCommitDisabled: to disable auto-commit.
+</li><li>backgroundExceptionHandler: specify a handler for
+    exceptions that could occur while writing in the background.
+</li><li>cacheSize: the cache size in MB.
+</li><li>compressData: compress the data when storing.
+</li><li>encryptionKey: the encryption key for file encryption.
+</li><li>fileName: the name of the file, for file based stores.
+</li><li>fileStore: the storage implementation to use.
+</li><li>pageSplitSize: the point where pages are split.
+</li><li>readOnly: open the file in read-only mode.
+</li></ul>
+
+<h2 id="r_tree">R-Tree</h2>
+<p>
+The <code>MVRTreeMap</code> is an R-tree implementation
+that supports fast spatial queries. It can be used as follows:
+</p>
+<pre>
+// create an in-memory store
+MVStore s = MVStore.open(null);
+
+// open an R-tree map
+MVRTreeMap&lt;String&gt; r = s.openMap("data",
+        new MVRTreeMap.Builder&lt;String&gt;());
+
+// add two key-value pairs
+// the first value is the key id (to make the key unique)
+// then the min x, max x, min y, max y
+r.add(new SpatialKey(0, -3f, -2f, 2f, 3f), "left");
+r.add(new SpatialKey(1, 3f, 4f, 4f, 5f), "right");
+
+// iterate over the intersecting keys
+Iterator&lt;SpatialKey&gt; it =
+        r.findIntersectingKeys(new SpatialKey(0, 0f, 9f, 3f, 6f));
+for (SpatialKey k; it.hasNext();) {
+    k = it.next();
+    System.out.println(k + ": " + r.get(k));
+}
+s.close();
+</pre>
+<p>
+The default number of dimensions is 2. To use a different number of dimensions,
+call <code>new MVRTreeMap.Builder&lt;String&gt;().dimensions(3)</code>.
+The minimum number of dimensions is 1, the maximum is 255.
+</p>
+
+<h2 id="features">Features</h2>
+
+<h3 id="maps">Maps</h3>
+<p>
+Each store contains a set of named maps.
+A map is sorted by key, and supports the common lookup operations,
+including access to the first and last key, iterate over some or all keys, and so on.
+</p><p>
+Also supported, and very uncommon for maps, is fast index lookup:
+the entries of the map can be be efficiently accessed like a random-access list
+(get the entry at the given index), and the index of a key can be calculated efficiently.
+That also means getting the median of two keys is very fast,
+and a range of keys can be counted very quickly.
+The iterator supports fast skipping.
+This is possible because internally, each map is organized in the form of a counted B+-tree.
+</p><p>
+In database terms, a map can be used like a table, where the key of the map is the primary key of the table,
+and the value is the row. A map can also represent an index, where the key of the map is the key
+of the index, and the value of the map is the primary key of the table (for non-unique indexes,
+the key of the map must also contain the primary key).
+</p>
+
+<h3 id="versions">Versions</h3>
+<p>
+A version is a snapshot of all the data of all maps at a given point in time.
+Creating a snapshot is fast: only those pages that are changed after a snapshot are copied.
+This behavior is also called COW (copy on write).
+Rollback to an old version is supported.
+Old versions are readable until old data is purged.
+</p><p>
+The following sample code show how to create a store, open a map, add some data,
+and access the current and an old version:
+</p>
+<pre>
+// create/get the map named "data"
+MVMap&lt;Integer, String&gt; map = s.openMap("data");
+
+// add some data
+map.put(1, "Hello");
+map.put(2, "World");
+
+// get the current version, for later use
+long oldVersion = s.getCurrentVersion();
+
+// from now on, the old version is read-only
+s.commit();
+
+// more changes, in the new version
+// changes can be rolled back if required
+// changes always go into "head" (the newest version)
+map.put(1, "Hi");
+map.remove(2);
+
+// access the old data (before incrementVersion)
+MVMap&lt;Integer, String&gt; oldMap =
+        map.openVersion(oldVersion);
+
+// print the old version (can be done
+// concurrently with further modifications)
+// this will print "Hello" and "World":
+System.out.println(oldMap.get(1));
+System.out.println(oldMap.get(2));
+
+// print the newest version ("Hi")
+System.out.println(map.get(1));
+</pre>
+
+<h3 id="transactions">Transactions</h3>
+<p>
+To support multiple concurrent open transactions, a transaction utility is included,
+the <code>TransactionStore</code>.
+The tool supports PostgreSQL style "read committed" transaction isolation
+with savepoints, two-phase commit, and other features typically available in a database.
+There is no limit on the size of a transaction
+(the log is written to disk for large or long running transactions).
+</p><p>
+Internally, this utility stores the old versions of changed entries in a separate map, similar to a transaction log
+(except that entries of a closed transaction are removed,
+and the log is usually not stored for short transactions).
+For common use cases, the storage overhead of this utility is very small compared to the overhead of a regular transaction log.
+</p>
+
+<h3 id="inMemory">In-Memory Performance and Usage</h3>
+<p>
+Performance of in-memory operations is comparable with <code>java.util.TreeMap</code>,
+but usually slower than <code>java.util.HashMap</code>.
+</p><p>
+The memory overhead for large maps is slightly better than for the regular
+map implementations, but there is a higher overhead per map.
+For maps with less than about 25 entries, the regular map implementations need less memory.
+</p><p>
+If no file name is specified, the store operates purely in memory.
+Except for persisting data, all features are supported in this mode
+(multi-versioning, index lookup, R-tree and so on).
+If a file name is specified, all operations occur in memory (with the same
+performance characteristics) until data is persisted.
+</p><p>
+As in all map implementations, keys need to be immutable, that means
+changing the key object after an entry has been added is not allowed.
+If a file name is specified, the value may also not be changed after
+adding an entry, because it might be serialized
+(which could happen at any time when autocommit is enabled).
+</p>
+
+<h3 id="dataTypes">Pluggable Data Types</h3>
+<p>
+Serialization is pluggable. The default serialization currently supports many common data types,
+and uses Java serialization for other objects. The following classes are currently directly supported:
+<code>Boolean, Byte, Short, Character, Integer, Long, Float, Double, BigInteger, BigDecimal,
+String, UUID, Date</code> and arrays (both primitive arrays and object arrays).
+</p><p>
+Parameterized data types are supported
+(for example one could build a string data type that limits the length).
+</p><p>
+The storage engine itself does not have any length limits, so that keys, values,
+pages, and chunks can be very big (as big as fits in memory).
+Also, there is no inherent limit to the number of maps and chunks.
+Due to using a log structured storage, there is no special case handling for large keys or pages.
+</p>
+
+<h3 id="blob">BLOB Support</h3>
+<p>
+There is a mechanism that stores large binary objects by splitting them into smaller blocks.
+This allows to store objects that don't fit in memory.
+Streaming as well as random access reads on such objects are supported.
+This tool is written on top of the store, using only the map interface.
+</p>
+
+<h3 id="pluggableMap">R-Tree and Pluggable Map Implementations</h3>
+<p>
+The map implementation is pluggable.
+In addition to the default <code>MVMap</code> (multi-version map),
+there is a map that supports concurrent write operations,
+and a multi-version R-tree map implementation for spatial operations.
+</p>
+
+<h3 id="caching">Concurrent Operations and Caching</h3>
+<p>
+The default map implementation supports concurrent reads on old versions of the data.
+All such read operations can occur in parallel. Concurrent reads from the page cache,
+as well as concurrent reads from the file system are supported.
+Writing changes to the file can occur concurrently to modifying the data,
+as writing operates on a snapshot.
+</p><p>
+Caching is done on the page level.
+The page cache is a concurrent LIRS cache, which should be resistant against scan operations.
+</p><p>
+The default map implementation does not support concurrent modification
+operations on a map (the same as <code>HashMap</code> and <code>TreeMap</code>).
+Similar to those classes, the map tries to detect concurrent modification.
+</p><p>
+With the <code>MVMapConcurrent</code> implementation,
+read operations even on the newest version can happen concurrently with all other
+operations, without risk of corruption.
+This comes with slightly reduced speed in single threaded mode,
+the same as with other <code>ConcurrentHashMap</code> implementations.
+Write operations first read the relevant area from disk to memory
+(this can happen concurrently), and only then modify the data. The in-memory part of write
+operations is synchronized.
+</p><p>
+For fully scalable concurrent write operations to a map (in-memory and to disk),
+the map could be split into multiple maps in different stores ('sharding').
+The plan is to add such a mechanism later when needed.
+</p>
+
+<h3 id="logStructured">Log Structured Storage</h3>
+<p>
+Internally, changes are buffered in memory, and once enough changes have accumulated,
+they are written in one continuous disk write operation.
+Compared to traditional database storage engines,
+this should improve write performance for file systems and storage systems
+that do not efficiently support small random writes, such as Btrfs, as well as SSDs.
+(According to a test, write throughput of a common SSD increases with write block size,
+until a block size of 2 MB, and then does not further increase.)
+By default, changes are automatically written when more than a number of pages are modified,
+and once every second in a background thread, even if only little data was changed.
+Changes can also be written explicitly by calling <code>commit()</code>.
+</p><p>
+When storing, all changed pages are serialized,
+optionally compressed using the LZF algorithm,
+and written sequentially to a free area of the file.
+Each such change set is called a chunk.
+All parent pages of the changed B-trees are stored in this chunk as well,
+so that each chunk also contains the root of each changed map
+(which is the entry point for reading this version of the data).
+There is no separate index: all data is stored as a list of pages.
+Per store, there is one additional map that contains the metadata (the list of
+maps, where the root page of each map is stored, and the list of chunks).
+</p><p>
+There are usually two write operations per chunk:
+one to store the chunk data (the pages), and one to update the file header (so it points to the latest chunk).
+If the chunk is appended at the end of the file, the file header is only written at the end of the chunk.
+There is no transaction log, no undo log,
+and there are no in-place updates (however, unused chunks are overwritten by default).
+</p><p>
+Old data is kept for at least 45 seconds (configurable),
+so that there are no explicit sync operations required to guarantee data consistency.
+An application can also sync explicitly when needed.
+To reuse disk space, the chunks with the lowest amount of live data are compacted
+(the live data is stored again in the next chunk).
+To improve data locality and disk space usage, the plan is to automatically defragment and compact data.
+</p><p>
+Compared to traditional storage engines (that use a transaction log, undo log, and main storage area),
+the log structured storage is simpler, more flexible, and typically needs less disk operations per change,
+as data is only written once instead of twice or 3 times, and because the B-tree pages are
+always full (they are stored next to each other) and can be easily compressed.
+But temporarily, disk space usage might actually be a bit higher than for a regular database,
+as disk space is not immediately re-used (there are no in-place updates).
+</p>
+
+<h3 id="offHeap">Off-Heap and Pluggable Storage</h3>
+<p>
+Storage is pluggable. The default storage is to a single file (unless pure in-memory operation is used).
+</p>
+<p>
+An off-heap storage implementation is available. This storage keeps the data in the off-heap memory,
+meaning outside of the regular garbage collected heap. This allows to use very large in-memory
+stores without having to increase the JVM heap (which would increase Java garbage collection
+pauses a lot). Memory is allocated using <code>ByteBuffer.allocateDirect</code>.
+One chunk is allocated at a time (each chunk is usually a few MB large), so that
+allocation cost is low. To use the off-heap storage, call:
+</p>
+<pre>
+OffHeapStore offHeap = new OffHeapStore();
+MVStore s = new MVStore.Builder().
+        fileStore(offHeap).open();
+</pre>
+
+<h3 id="fileSystem">File System Abstraction, File Locking and Online Backup</h3>
+<p>
+The file system is pluggable (the same file system abstraction is used as H2 uses).
+The file can be encrypted using a encrypting file system wrapper.
+Other file system implementations support reading from a compressed zip or jar file.
+The file system abstraction closely matches the Java 7 file system API.
+</p>
+<p>
+Each store may only be opened once within a JVM.
+When opening a store, the file is locked in exclusive mode, so that
+the file can only be changed from within one process.
+Files can be opened in read-only mode, in which case a shared lock is used.
+</p>
+<p>
+The persisted data can be backed up at any time,
+even during write operations (online backup).
+To do that, automatic disk space reuse needs to be first disabled, so that
+new data is always appended at the end of the file.
+Then, the file can be copied (the file handle is available to the application).
+It is recommended to use the utility class <code>FileChannelInputStream</code> to do this.
+For encrypted databases, both the encrypted (raw) file content,
+as well as the clear text content, can be backed up.
+</p>
+
+<h3 id="encryption">Encrypted Files</h3>
+<p>
+File encryption ensures the data can only be read with the correct password.
+Data can be encrypted as follows:
+</p>
+<pre>
+MVStore s = new MVStore.Builder().
+    fileName(fileName).
+    encryptionKey("007".toCharArray()).
+    open();
+</pre>
+<p>
+</p><p>
+The following algorithms and settings are used:
+</p>
+<ul><li>The password char array is cleared after use,
+    to reduce the risk that the password is stolen
+    even if the attacker has access to the main memory.
+</li><li>The password is hashed according to the PBKDF2 standard,
+    using the SHA-256 hash algorithm.
+</li><li>The length of the salt is 64 bits,
+    so that an attacker can not use a pre-calculated password hash table (rainbow table).
+    It is generated using a cryptographically secure random number generator.
+</li><li>To speed up opening an encrypted stores on Android,
+    the number of PBKDF2 iterations is 10.
+    The higher the value, the better the protection against brute-force password cracking attacks,
+    but the slower is opening a file.
+</li><li>The file itself is encrypted using the standardized disk encryption mode XTS-AES.
+    Only little more than one AES-128 round per block is needed.
+</li></ul>
+
+<h3 id="tools">Tools</h3>
+<p>
+There is a tool (<code>MVStoreTool</code>) to dump the contents of a file.
+</p>
+
+<h3 id="exceptionHandling">Exception Handling</h3>
+<p>
+This tool does not throw checked exceptions.
+Instead, unchecked exceptions are thrown if needed.
+The error message always contains the version of the tool.
+The following exceptions can occur:
+</p>
+<ul><li><code>IllegalStateException</code> if a map was already closed or
+    an IO exception occurred, for example if the file was locked, is already closed,
+    could not be opened or closed, if reading or writing failed,
+    if the file is corrupt, or if there is an internal error in the tool.
+    For such exceptions, an error code is added to the exception
+    so that the application can distinguish between different error cases.
+</li><li><code>IllegalArgumentException</code> if a method was called with an illegal argument.
+</li><li><code>UnsupportedOperationException</code> if a method was called that is not supported,
+    for example trying to modify a read-only map.
+</li><li><code>ConcurrentModificationException</code> if a map is modified concurrently.
+</li></ul>
+
+<h3 id="storageEngine">Storage Engine for H2</h3>
+<p>
+The plan is to use the MVStore as the default storage engine for the H2 database
+in the future (supporting SQL, JDBC, transactions, MVCC, and so on).
+This is work in progress. To try it out, append
+<code>;MV_STORE=TRUE</code>
+to the database URL. In general, performance should be
+similar than the current default storage engine (the page store).
+Even though it can be used with the default table level locking,
+it is recommended to use it together with the MVCC mode
+(to do that, append <code>;MVCC=TRUE</code> to the database URL).
+</p>
+
+<h2 id="differences">Similar Projects and Differences to Other Storage Engines</h2>
+<p>
+Unlike similar storage engines like LevelDB and Kyoto Cabinet,
+the MVStore is written in Java
+and can easily be embedded in a Java and Android application.
+</p><p>
+The MVStore is somewhat similar to the Berkeley DB Java Edition
+because it is also written in Java,
+and is also a log structured storage, but the H2 license is more liberal.
+</p><p>
+Like SQLite 3, the MVStore keeps all data in one file.
+Unlike SQLite 3, the MVStore uses is a log structured storage.
+The plan is to make the MVStore both easier to use as well as faster than SQLite 3.
+In a recent (very simple) test, the MVStore was about twice as fast as SQLite 3 on Android.
+</p><p>
+The API of the MVStore is similar to MapDB (previously known as JDBM) from Jan Kotek,
+and some code is shared between MVStore and MapDB.
+However, unlike MapDB, the MVStore uses is a log structured storage.
+The MVStore does not have a record size limit.
+</p>
+
+<h2 id="current_state">Current State</h2>
+<p>
+The code is still experimental at this stage.
+The API as well as the behavior may partially change.
+Features may be added and removed (even though the main features will stay).
+</p>
+
+<h2 id="requirements">Requirements</h2>
+<p>
+The MVStore is included in the latest H2 jar file.
+</p><p>
+There are no special requirements to use it.
+The MVStore should run on any JVM as well as on Android.
+</p><p>
+To build just the MVStore (without the database engine), run:
+</p>
+<pre>
+./build.sh jarMVStore
+</pre>
+<p>
+This will create the file <code>bin/h2mvstore-${version}.jar</code> (about 130 KB).
+</p>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

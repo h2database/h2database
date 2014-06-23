@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+Change Log
+</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>Change Log</h1>
+
+<h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.3.173 (2013-07-28)</h2>
+<ul><li>Support empty statements that just contains a comment.
+</li><li>Server mode: if there was an error while reading from a LOB, the session was closed in some cases.
+</li><li>Issue 463: Driver name and version are now the same in OsgiDataSourceFactory and JdbcDatabaseMetaData.
+</li><li>JaQu: The data type VARCHAR is now (again) used for Strings
+    (no longer TEXT, except when explicitly set).
+</li><li>For in-memory databases, creating an index on a CLOB or BLOB column
+    is no longer supported. This is to simplify the MVTableEngine.
+</li><li>New column "information_schema.tables.row_count_estimate".
+</li><li>Issue 468: trunc(timestamp) could return the wrong value (+12 hours), and trunc(number) throw a NullPointerException.
+</li><li>The expression trunc(number) threw a NullPointerException.
+</li><li>Fixed a deadlock when updating LOB's concurrently. See TestLob.testDeadlock2().
+</li><li>Fixed a deadlock related to very large temporary result sets.
+</li><li>Add "-list" command line option to Shell tool so that result-list-mode can be triggered when reading from a file.
+</li><li>Issue 474: H2 MySQL Compatibility code fails to ignore "COMMENT" in CREATE TABLE, patch from Aaron Azeckoski.
+</li><li>Issue 476: Broken link in jaqu.html
+</li><li>Fix potential UTF8 encoding issue in org.h2.store.FileStore, reported by Juerg Spiess.
+</li><li>Improve error message when check constraint is broken, test case from Gili (cowwoc).
+</li><li>Improve error message when we have a unique constraint violation, displays the offending key in the error message.
+</li><li>Issue 478: Support for "SHOW TRANSACTION ISOLATION LEVEL", patch from Andrew Franklin.
+</li><li>Issue 475: PgServer: add support for CancelRequest, patch from Andrew Franklin.
+</li><li>Issue 473: PgServer missing -key option, patch from Andrew Franklin.
+</li><li>Issue 471: CREATE VIEW does not check user rights, patch from Andrew Franklin.
+</li><li>Issue 477: PgServer binary transmission of query params is unimplemented, patch from Andrew Franklin.
+</li><li>Issue 479: Support for SUBSTRING without a FROM condition, patch from Andrew Franklin.
+</li><li>Issue 472: PgServer does not work with any recent Postgres JDBC driver, patch from Andrew Franklin.
+</li><li>Add syntax for passing additional parameters into custom TableEngine implementations.
+</li><li>Issue 480: Bugfix post issue 475, 477, patch from Andrew Franklin.
+</li><li>Issue 481: Further extensions to PgServer to support better support PG JDBC, patch from Andrew Franklin.
+</li><li>Add support for spatial datatype GEOMETRY.
+</li><li>Add support for in-memory spatial index.
+</li><li>change the PageStore#changeCount field from an int to a long,
+    to cope with databases with very high transaction rates.
+</li><li>Fix a NullPointerException when attempting to add foreign key reference to a view.
+</li><li>Add sufficient ClientInfo support to our javax.sql.Connection implementation to make WebSphere happy.
+</li><li>Issue 482: class LobStorageBackend$LobInputStream does not override the method InputStream.available().
+</li><li>Fix corruption resulting from a mix of the "WRITE_DELAY=0" option
+    and "SELECT DISTINCT" queries that don't fit in memory.
+</li><li>Fix the combination of updating a table which contains an LOB,
+    and reading from the LOB at the same time.
+    Previously it would throw an exception, now it works.
+</li><li>Issue 484: In the H2 Console tool, all schemas starting with "INFO" where hidden.
+    Now they are hidden only if the database is not H2. Patch from "mgcodeact"/"cumer d"
+</li><li>MySQL compatibility, support the "AUTO_INCREMENT=3" part of the CREATE TABLE statement.
+</li><li>Issue 486: MySQL compatibility, support the "DEFAULT CHARSET" part of the CREATE TABLE statement.
+</li><li>Issue 487: support the MySQL "SET foreign_key_checks = 0" command
+</li><li>Issue 490: support MySQL "USING BTREE" index declaration
+</li><li>Issue 485: Database get corrupted when column is renamed for which check constraint was defined inside create table statement.
+</li><li>Issue 499: support MySQL "UNIQUE KEY (ID) USING BTREE" constraint syntax
+</li><li>Issue 501: "CREATE TABLE .. WITH" not serialized, patch from nico.devel
+</li><li>Avoid problems with runtime-compiled ALIAS methods when people have set the JAVA_TOOL_OPTIONS environment variable.
+</li></ul>
+
+<h2>Version 1.3.172 (2013-05-25)</h2>
+<ul><li>Referential integrity: when adding a referential integrity constraint failed,
+    and if creating the constraint automatically created an index, this index was not removed.
+</li><li>The auto-analyze feature now only reads 1000 rows per table instead of 10000.
+</li><li>The optimization for IN(...) queries combined with OR could result
+    in a strange exception of the type "column x must be included in the group by list".
+</li><li>Issue 454: Use Charset for type-safety.
+</li><li>Queries with both LIMIT and OFFSET could throw an IllegalArgumentException.
+</li><li>MVStore: multiple issues were fixed: 460, 461, 462, 464, 466.
+</li><li>MVStore: larger stores (multiple GB) are now much faster.
+</li><li>When using local temporary tables and not dropping them manually before closing the session,
+    and then killing the process could result in a database that couldn't be opened (except when using
+    the recover tool).
+</li><li>Support TRUNC(timestamp) for improved Oracle compatibility.
+</li><li>Add support for CREATE TABLE TEST (ID BIGSERIAL) for PostgreSQL compatibility. Patch from Jesse Long.
+</li><li>Add new collation command SET BINARY_COLLATION UNSIGNED, helps with people testing BINARY columns in MySQL mode.
+</li><li>Issue 453: ABBA race conditions in TABLE LINK connection sharing.
+</li><li>Issue 449: Postgres Serial data type should not automatically be marked as primary key
+</li><li>Issue 406: Support "select h2version()"
+</li><li>Issue 389: When there is a multi-column primary key, H2 does not seem to always pick the right index
+</li><li>Issue 305: Implement SELECT ... FOR FETCH ONLY
+</li><li>Issue 274: Sybase/MSSQLServer compatibility - Add GETDATE and CHARINDEX system functions
+</li><li>Issue 274: Sybase/MSSQLServer compatibility - swap parameters of CONVERT function.
+</li><li>Issue 274: Sybase/MSSQLServer compatibility - support index clause e.g. "select * from test (index table1_index)"
+</li><li>Fix bug in Optimizing SELECT * FROM A WHERE X=1 OR X=2 OR X=3 into SELECT * FROM A WHERE X IN (1,2,3)
+</li><li>Issue 442: Groovy patch for SourceCompiler (function ALIAS)
+</li><li>Issue 459: Improve LOB documentation
+</li></ul>
+
+<h2>Version 1.3.171 (2013-03-17)</h2>
+<ul><li>Security: the TCP server did not correctly restrict access rights of clients in some cases.
+    This was specially a problem when using the flag "tcpAllowOthers".
+</li><li>H2 Console: the session timeout can now be configured using the system property "h2.consoleTimeout".
+</li><li>Issue 431: Improved compatibility with MySQL: support for
+    "ENGINE=InnoDB charset=UTF8" when creating a table.
+</li><li>Issue 249: Improved compatibility with MySQL in the MySQL mode:
+    now the methods DatabaseMetaData methods stores*Case*Identifiers return the same as MySQL
+    when using the MySQL mode.
+</li><li>Issue 434: H2 Console didn't work in the Chrome browser
+    due to a wrong viewport argument.
+</li><li>There was a possibility that the .lock.db file was not deleted
+    when the database was closed, which could slow down opening the database.
+</li><li>The SQL script generated by the "script" command contained
+    inconsistent newlines on Windows.
+</li><li>When using trace level 4 (SLF4J) in the server mode, a directory "trace.db"
+    and an empty file was created on the client side. This is no longer made.
+</li><li>Optimize IN(...) queries: there was a bug in version 1.3.170
+    if the type of the left hand side didn't match the type of the right hand side. Fixed.
+</li><li>Optimize IN(...) queries: there was a bug in version 1.3.170 for comparison of the type
+    "X IN(NULL, NULL)". Fixed.
+</li><li>Timestamps with timezone that were passed as a string were not always
+    converted correctly. For example "2012-11-06T23:00:00.000Z" was converted to
+    "2012-11-06" instead of to "2012-11-07" in the timezone CET.
+    Thanks a lot to Steve Hruda for reporting the problem!
+</li><li>New table engine "org.h2.mvstore.db.MVTableEngine"
+    that internally uses the MVStore to persist data.
+    To try it out, append ";DEFAULT_TABLE_ENGINE=org.h2.mvstore.db.MVTableEngine"
+    to the database URL.
+    This is still very experimental, and many features are not supported yet.
+    The data is stored in a file with the suffix ".mv.db".
+</li><li>New connection setting "DEFAULT_TABLE_ENGINE" to use a specific
+    table engine if none is set explicitly. This is to simplify testing
+    the MVStore table engine.
+</li><li>MVStore: encrypted stores are now supported.
+    Only standardized algorithms are used: PBKDF2, SHA-256, XTS-AES, AES-128.
+</li><li>MVStore: improved API thanks to Simo Tripodi.
+</li><li>MVStore: maps can now be renamed.
+</li><li>MVStore: store the file header also at the end of each chunk,
+    which results in a further reduced number of write operations.
+</li><li>MVStore: a map implementation that supports concurrent operations.
+</li><li>MVStore: unified exception handling; the version is included in the messages.
+</li><li>MVStore: old data is now retained for 45 seconds by default.
+</li><li>MVStore: compress is now disabled by default, and can be enabled on request.
+</li><li>Support ALTER TABLE ADD ... AFTER. Patch from Andrew Gaul (argaul at gmail.com). Fixes issue 401.
+</li><li>Improved OSGi support. H2 now registers itself as a DataSourceFactory service. Fixes issue 365.
+</li><li>Add a DISK_SPACE_USED system function. Fixes issue 270.
+</li><li>Fix a compile-time ambiguity when compiling with JDK7, thanks to a patch from Lukas Eder.
+</li><li>Supporting dropping an index for Lucene full-text indexes.
+</li><li>Optimized performance for SELECT ... ORDER BY X LIMIT Y OFFSET Z
+    queries for in-memory databases using partial sort (by Sergi Vladykin).
+</li><li>Experimental off-heap memory storage engine "nioMemFS:" and "nioMemLZF:",
+    suggestion from Mark Addleman.
+</li><li>Issue 438: JdbcDatabaseMetaData.getSchemas() is no longer supported as of 1.3.169.
+</li><li>MySQL compatibility: support for ALTER TABLE tableName MODIFY [COLUMN] columnName columnDef. Patch from Ville Koskela.
+</li><li>Issue 404: SHOW COLUMNS FROM tableName does not work with ALLOW_LITERALS=NUMBERS.
+</li><li>Throw an explicit error to make it clear we don't support the TRIGGER combination of SELECT and FOR EACH ROW.
+</li><li>Issue 439: Utils.sortTopN does not handle single-element arrays.
+</li></ul>
+
+<h2>Version 1.3.170 (2012-11-30)</h2>
+<ul><li>Issue 407: The TriggerAdapter didn't work with CLOB and BLOB columns.
+</li><li>PostgreSQL compatibility: support for data types BIGSERIAL and SERIAL
+    as an alias for AUTO_INCREMENT.
+</li><li>Issue 417: H2 Console: the web session timeout didn't work, resulting in a memory leak.
+    This was only a problem if the H2 Console was run for a long time and many sessions were opened.
+</li><li>Issue 412: Running the Server tool with just the option "-browser" will now log a warning.
+</li><li>Issue 411: CloseWatcher registration was not concurrency-safe.
+</li><li>MySQL compatibility: support for CONCAT_WS.
+    Thanks a lot to litailang for the patch!
+</li><li>PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn).
+    Thanks to Prashant Bhat for the patch!
+</li><li>Fix for a bug where we would sometimes use the wrong unique constraint to validate foreign key constraints.
+</li><li>Support BOM at the beginning of files for the RUNSCRIPT command
+</li><li>Fix in calling SET @X = IDENTITY() where it would return NULL incorrectly
+</li><li>Fix ABBA deadlock between adding a constraint and the H2-Log-Writer thread.
+</li><li>Optimize IN(...) queries where the values are constant and of the same type.
+</li><li>Restore tool: the parameter "quiet" was not used and is now removed.
+</li><li>Fix ConcurrentModificationException when creating tables and executing SHOW TABLES in parallel. Reported by Viktor Voytovych.
+</li><li>Serialization is now pluggable using the system property "h2.javaObjectSerializer". Thanks to Sergi Vladykin for the patch!
+</li></ul>
+
+<h2>Version 1.3.169 (2012-09-09)</h2>
+<ul><li>The default jar file is now compiled for Java 6.
+</li><li>The new jar file will probably not end up in the central Maven repository
+    in the next few weeks because Sonatype has disabled automatic synchronization
+    from SourceForge (which they call 'legacy sync' now).
+    It will probably take some time until this is sorted out. The H2 jar files are deployed to
+    http://h2database.com/m2-repo/com/h2database/h2/maven-metadata.xml
+    and http://hsql.sourceforge.net/m2-repo/com/h2database/h2/maven-metadata.xml
+    as usual.
+</li><li>A part of the documentation and the H2 Console has been changed to support the Apple retina display.
+</li><li>The CreateCluster tool could not be used if the source database contained a CLOB or BLOB.
+    The root cause was that the TCP server did not synchronize on the session, which caused a problem
+    when using the exclusive mode.
+</li><li>Statement.getQueryTimeout(): only the first call to this method will query the database.
+    If the query timeout was changed in another way than calling setQueryTimeout,
+    this method will always return the last value. This was changed because Hibernate
+    calls getQueryTimeout() a lot.
+</li><li>Issue 416: PreparedStatement.setNString throws AbstractMethodError.
+    All implemented JDBC 4 methods that don't break compatibility with Java 5
+    are now included in the default jar file.
+</li><li>Issue 414: for some functions, the parameters were evaluated twice
+    (for example "char(nextval(..))" ran "nextval(..)" twice).
+</li><li>The ResultSetMetaData methods getSchemaName and getTableName
+    could return null instead of "" (an empty string) as specified in the JDBC API.
+</li><li>Added compatibility for "SET NAMES" query in MySQL compatibility mode.</li>
+</ul>
+
+<h2>Version 1.3.168 (2012-07-13)</h2>
+<ul><li>The message "Transaction log could not be truncated" was sometimes written
+    to the .trace.db file even if there was no problem truncating the transaction log.
+</li><li>New system property "h2.serializeJavaObject" (default: true) that allows to disable
+    serializing Java objects, so that the objects compareTo and toString methods can be used.
+</li><li>Dylan has translated the H2 Console tool to Korean. Thanks a lot!
+</li><li>Executing the statement CREATE INDEX IF ALREADY EXISTS if the index already exists
+    no longer fails for a read only database.
+</li><li>MVCC: concurrently updating a row could result in the row to appear deleted in the second connection,
+    if there are multiple unique indexes (or a primary key and at least one unique index).
+    Thanks a lot to Teruo for the patch!
+</li><li>Fulltext search: in-memory Lucene indexes are now supported.
+</li><li>Fulltext search: UUID primary keys are now supported.
+</li><li>Apache Tomcat 7.x will now longer log a warning when unloading the web application, if using a connection pool.
+</li><li>H2 Console: support the Midori browser (for Debian / Raspberry Pi)
+</li><li>When opening a remote session, don't open a temporary file if the trace level is set to zero
+</li><li>Use HMAC for authenticating remote LOB id's, removing the need for maintaining a cache, and removing the limit
+    on the number of LOBs per result set.
+</li><li>H2 Console: HTML and XML documents can now be edited in an updatable result set.
+    There is (limited) support for editing multi-line documents.
+</li></ul>
+
+<h2>Version 1.3.167 (2012-05-23)</h2>
+<ul><li>H2 Console: when editing a row, an empty varchar column was replaced with a single space.
+</li><li>Lukas Eder has updated the jOOQ documentation.
+</li><li>Some nested joins could not be executed, for example:
+    select * from (select * from (select * from a) a right join b b) c;
+</li><li>MS SQL Server compatibility: ISNULL is now an alias for IFNULL.
+</li><li>Terrence Huang has completed the translation of the H2 Console tool to Chinese. Thanks a lot!
+</li><li>Server mode: the number of CLOB / BLOB values that were cached on the server
+    is now the maximum of: 5 times the SERVER_RESULT_SET_FETCH_SIZE (which is 100 by default),
+    and SysProperties.SERVER_CACHED_OBJECTS.
+</li><li>In the trace file, the query execution time was incorrect in some cases, specially
+    for the statement SET TRACE_LEVEL_FILE 2.
+</li><li>The feature LOG_SIZE_LIMIT that was introduced in version 1.3.165 did not always work
+    correctly (specially with regards to multithreading) and has been removed.
+    The message "Transaction log could not be truncated" is still written to the .trace.db file
+    if required.
+</li><li>Then reading from a resource using the prefix "classpath:", the ContextClassLoader
+    is now used if the resource can't be read otherwise.
+</li><li>DatabaseEventListener now calls setProgress whenever a statement starts and ends.
+</li><li>DatabaseEventListener now calls setProgress periodically while a statement is running.
+</li><li>The table INFORMATION_SCHEMA.FUNCTION_ALIASES now includes a column TYPE_NAME.
+</li><li>Issue 378: when using views, the wrong values were bound to a parameter in some cases.
+</li><li>Terrence Huang has translated the error messages to Chinese. Thanks a lot!
+</li><li>TRUNC was added as an alias for TRUNCATE.
+</li><li>Small optimisation for accessing result values by column name.
+</li><li>Fix for bug in Statement.getMoreResults(int)
+</li><li>The SCRIPT statements now supports filtering by schema and table. Thanks a lot to Jacob Qvortrup for providing the patch!
+</li></ul>
+
+<h2>Version 1.3.166 (2012-04-08)</h2>
+<ul><li>Indexes on column that are larger than half the page size (wide indexes)
+    could sometimes get corrupt, resulting in an ArrayIndexOutOfBoundsException in PageBtree.getRow
+    or "Row not found" in PageBtreeLeaf. Also, such indexes used too much disk space.
+</li><li>Server mode: when retrieving more than 64 rows each containing a CLOB or BLOB,
+    the error message "The object is already closed" was thrown.
+</li><li>ConvertTraceFile: the time in the trace file is now parsed as a long.
+</li><li>Invalid connection settings are now detected.
+</li><li>Issue 387: WHERE condition getting pushed into sub-query with LIMIT.
+</li></ul>
+
+<h2>Version 1.3.165 (2012-03-18)</h2>
+<ul><li>Better string representation for decimal values (for example 0.00000000 instead of 0E-26).
+</li><li>Prepared statements could only be re-used if the same data types were used
+    the second time they were executed.
+</li><li>In error messages about referential constraint violation, the values are now included.
+</li><li>SCRIPT and RUNSCRIPT: the password can now be set using a prepared statement.
+    Previously, it was required to be a literal in the SQL statement.
+</li><li>MySQL compatibility: SUBSTR with a negative start index now works like MySQL.
+</li><li>When enabling autocommit, the transaction is now committed (as required by the JDBC API).
+</li><li>The shell script <code>h2.sh</code> did not work with spaces in the path.
+    It also works now with quoted spaces in the argument list.
+    Thanks a lot to Shimizu Fumiyuki for the patch!
+</li><li>If the transaction log could not be truncated because of an uncommitted transaction,
+    now "Transaction log could not be truncated" is written to the .trace.db file.
+    Before, the database file was growing and it was hard to find out what the root cause was.
+    To avoid the database file from growing, a new feature to automatically rollback the oldest
+    transaction is available now. To enable it, append ;LOG_SIZE_LIMIT=32 to the database URL
+    (in that case, the oldest session is rolled back if the transaction log is 32 MB).
+</li><li>ALTER TABLE ADD can now add more than one column at a time.
+</li><li>Issue 380: ALTER TABLE ADD FOREIGN KEY with an explicit index didn't verify
+    the index can be used, which would lead to a NullPointerException later on.
+</li><li>Issue 384: the wrong kind of exception (NullPointerException) was thrown in a UNION query
+    with an incorrect ORDER BY expression.
+</li><li>Issue 362: support LIMIT in UPDATE statements.
+</li><li>Browser: if no default browser is set, Google Chrome is now used if available.
+    If not available, then Konqueror, Netscape, or Opera is used if available (as before).
+</li><li>CSV tool: new feature to disable writing the column header
+    (option writeColumnHeader).
+</li><li>CSV tool: new feature to preserve the case sensitivity of column names
+    (option caseSensitiveColumnNames).
+</li><li>PostgreSQL compatibility: LOG(x) is base 10 in the PostgreSQL mode.
+</li></ul>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

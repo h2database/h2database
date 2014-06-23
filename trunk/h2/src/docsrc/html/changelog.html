@@ -17,6 +17,8 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+
+<h2>Version 1.4.179 Beta (2014-06-23)</h2>
 <ul><li>The license was changed to MPL 2.0 (from 1.0) and EPL 1.0.
 </li><li>Issue 565: MVStore: concurrently adding LOB objects
     (with MULTI_THREADED option) resulted in a NullPointerException.
@@ -430,28 +432,6 @@ Change Log
 </li><li>Issue 404: SHOW COLUMNS FROM tableName does not work with ALLOW_LITERALS=NUMBERS.
 </li><li>Throw an explicit error to make it clear we don't support the TRIGGER combination of SELECT and FOR EACH ROW.
 </li><li>Issue 439: Utils.sortTopN does not handle single-element arrays.
-</li></ul>
-
-<h2>Version 1.3.170 (2012-11-30)</h2>
-<ul><li>Issue 407: The TriggerAdapter didn't work with CLOB and BLOB columns.
-</li><li>PostgreSQL compatibility: support for data types BIGSERIAL and SERIAL
-    as an alias for AUTO_INCREMENT.
-</li><li>Issue 417: H2 Console: the web session timeout didn't work, resulting in a memory leak.
-    This was only a problem if the H2 Console was run for a long time and many sessions were opened.
-</li><li>Issue 412: Running the Server tool with just the option "-browser" will now log a warning.
-</li><li>Issue 411: CloseWatcher registration was not concurrency-safe.
-</li><li>MySQL compatibility: support for CONCAT_WS.
-    Thanks a lot to litailang for the patch!
-</li><li>PostgreSQL compatibility: support for EXTRACT(WEEK FROM dateColumn).
-    Thanks to Prashant Bhat for the patch!
-</li><li>Fix for a bug where we would sometimes use the wrong unique constraint to validate foreign key constraints.
-</li><li>Support BOM at the beginning of files for the RUNSCRIPT command
-</li><li>Fix in calling SET @X = IDENTITY() where it would return NULL incorrectly
-</li><li>Fix ABBA deadlock between adding a constraint and the H2-Log-Writer thread.
-</li><li>Optimize IN(...) queries where the values are constant and of the same type.
-</li><li>Restore tool: the parameter "quiet" was not used and is now removed.
-</li><li>Fix ConcurrentModificationException when creating tables and executing SHOW TABLES in parallel. Reported by Viktor Voytovych.
-</li><li>Serialization is now pluggable using the system property "h2.javaObjectSerializer". Thanks to Sergi Vladykin for the patch!
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

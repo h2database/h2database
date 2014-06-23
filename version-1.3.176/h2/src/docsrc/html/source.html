@@ -1,0 +1,76 @@
+<!--
+Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+(http://h2database.com/html/license.html).
+Initial Developer: H2 Group
+-->
+<html><head>
+<title>Source Code Viewer</title>
+</head>
+<script type="text/javascript">
+// <!--
+
+function getVersion(build) {
+    if (build == 64) {
+        return '1.0/version-1.0.' + build;
+    } else if (build >= 146 && build != 147) {
+        return '1.3.' + build;
+    } else if (build >= 120) {
+        return '1.2/version-1.2.' + build;
+    } else if (build >= 100) {
+        return '1.1/version-1.1.' + build;
+    }
+    return '1.0.' + build;
+}
+
+var line = 0, file = '';
+var params = location.search.substring(1).split('&');
+var tag = 'trunk/h2';
+for (var i = 0; i<params.length; i++) {
+    var k = params[i].split('=');
+    var key = k[0], value = k[1];
+    if (key == 'line') {
+        line = value;
+    } else if (key == 'file') {
+        file = value;
+    } else if (key == 'build') {
+        tag = 'tags/version-' + getVersion(value) + '/h2';
+    }
+}
+
+// -->
+</script>
+<pre>
+<table width="100%">
+    <tr>
+        <td style="width: 50px; vertical-align: top">
+            <script type="text/javascript">
+// <!--
+                for(var i = 1; i <= 5000; i++) {
+                    if (line == i) {
+                        document.write('<b>' + i + '></b><br />');
+                    } else if (line <= 4 || i + 4 == line) {
+                        document.write(i + '<a id = "here"></a><br />');
+                    } else {
+                        document.write(i + '<br />');
+                    }
+                }
+// -->
+            </script>
+        </td>
+        <td style="width: 3950px; vertical-align: top">
+            <iframe id = "source" frameborder="0" marginwidth="0" marginheight="0" width="100%" height="80000px" scrolling="no" src="">
+            </iframe>
+        </td>
+    </tr>
+</table>
+<a href="#here"></a>
+<script type="text/javascript">
+// <!--
+    var source = document.getElementById('source');
+    source.src = 'http://h2database.googlecode.com/svn/' + tag + '/src/main/' + file;
+    document.location = '#here';
+// -->
+</script>
+<!-- analytics -->
+</pre></html>

@@ -1,0 +1,32 @@
+Check dictionary.txt
+svn up
+./build.sh spellcheck
+./build.sh javadocImpl
+./build.sh docs
+Update Constants.java - change version and build number
+Update changelog.html - add new version, remove oldest
+Update newsfeed.sql - add new version, remove oldest
+Minor version change: change sourceError.html and source.html
+If a beta, change download.html: Version ${version} (${versionDate}), Beta
+If a beta, change mainWeb.html: Version ${version} (${versionDate}), Beta
+Benchmark: use latest versions of other dbs, change version(s) in performance.html
+Run ./buildRelease.sh / buildRelease.bat
+
+Scan for viruses
+Test installer, H2 Console (test new languages)
+Check docs, versions and links in main, downloads, build numbers
+Check the PDF file size
+
+Upload to SourceForge
+Upload to ftp://h2database.com
+Upload to ftp://h2database.com/m2-repo
+svn commit
+svn copy: /svn/trunk /svn/tags/version-1.1.x; Version 1.1.x (yyyy-mm-dd)
+Newsletter: prepare (always to BCC)
+Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
+Add to http://freecode.com/
+Add to http://twitter.com
+- tweet: add @geospatialnews for the new geometry type and disk spatial index
+Close bugs: http://code.google.com/p/h2database/issues/list
+Update statistics
+

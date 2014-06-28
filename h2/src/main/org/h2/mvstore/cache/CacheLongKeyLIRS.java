@@ -93,8 +93,8 @@ public class CacheLongKeyLIRS<V> {
         this.stackMoveDistance = stackMoveDistance;
         segments = new Segment[segmentCount];
         clear();
-        this.segmentShift = Integer.numberOfTrailingZeros(
-                segments[0].entries.length);
+        // use the high bits for the segment
+        this.segmentShift = 32 - Integer.bitCount(segmentMask);
     }
 
     /**
@@ -102,10 +102,24 @@ public class CacheLongKeyLIRS<V> {
      */
     public void clear() {
         long max = Math.max(1, maxMemory / segmentCount);
+        int segmentLen = getSegmentLen(max);
         for (int i = 0; i < segmentCount; i++) {
             segments[i] = new Segment<V>(
-                    max, averageMemory, stackMoveDistance);
+                    max, segmentLen, stackMoveDistance);
         }
+    }
+    
+    private int getSegmentLen(long max) {
+        // calculate the size of the map array
+        // assume a fill factor of at most 75%
+        long maxLen = (long) (max / averageMemory / 0.75);
+        // the size needs to be a power of 2
+        long l = 8;
+        while (l < maxLen) {
+            l += l;
+        }
+        // the array size is at most 2^31 elements
+        return (int) Math.min(1L << 31, l);
     }
 
     private Entry<V> find(long key) {
@@ -160,7 +174,23 @@ public class CacheLongKeyLIRS<V> {
      */
     public V put(long key, V value, int memory) {
         int hash = getHash(key);
-        return getSegment(hash).put(key, hash, value, memory);
+        int segmentIndex = getSegmentIndex(hash);
+        Segment<V> s = segments[segmentIndex];
+        // check whether resize is required:
+        // synchronize on s, to avoid concurrent writes also
+        // resize (concurrent reads read from the old segment)
+        synchronized (s) {
+            if (s.isFull()) {
+                // another thread might have resized
+                // (as we retrieved the segment before synchronizing on it)
+                s = segments[segmentIndex];
+                if (s.isFull()) {
+                    s = new Segment<V>(s, 2);
+                    segments[segmentIndex] = s;
+                }
+            }
+            return s.put(key, hash, value, memory);
+        }
     }
 
     /**
@@ -211,8 +241,11 @@ public class CacheLongKeyLIRS<V> {
     }
 
     private Segment<V> getSegment(int hash) {
-        int segmentIndex = (hash >>> segmentShift) & segmentMask;
-        return segments[segmentIndex];
+        return segments[getSegmentIndex(hash)];
+    }
+    
+    private int getSegmentIndex(int hash) {
+        return (hash >>> segmentShift) & segmentMask;
     }
 
     /**
@@ -276,11 +309,6 @@ public class CacheLongKeyLIRS<V> {
                 averageMemory > 0,
                 "Average memory must be larger than 0, is {0}", averageMemory);
         this.averageMemory = averageMemory;
-        if (segments != null) {
-            for (Segment<V> s : segments) {
-                s.setAverageMemory(averageMemory);
-            }
-        }
     }
 
     /**
@@ -483,7 +511,7 @@ public class CacheLongKeyLIRS<V> {
         /**
          * The map array. The size is always a power of 2.
          */
-        Entry<V>[] entries;
+        final Entry<V>[] entries;
 
         /**
          * The currently used memory.
@@ -500,11 +528,6 @@ public class CacheLongKeyLIRS<V> {
          * The maximum memory this cache should use.
          */
         private long maxMemory;
-
-        /**
-         * The average memory used by one entry.
-         */
-        private int averageMemory;
 
         /**
          * The bit mask that is applied to the key hash code to get the index in
@@ -546,32 +569,17 @@ public class CacheLongKeyLIRS<V> {
         private int stackMoveCounter;
 
         /**
-         * Create a new cache.
+         * Create a new cache segment.
          *
          * @param maxMemory the maximum memory to use
-         * @param averageMemory the average memory usage of an object
+         * @param len the number of hash table buckets (must be a power of 2)
          * @param stackMoveDistance the number of other entries to be moved to
          *        the top of the stack before moving an entry to the top
          */
-        Segment(long maxMemory, int averageMemory, int stackMoveDistance) {
+        Segment(long maxMemory, int len, int stackMoveDistance) {
             setMaxMemory(maxMemory);
-            setAverageMemory(averageMemory);
             this.stackMoveDistance = stackMoveDistance;
-            clear();
-        }
 
-        private void clear() {
-
-            // calculate the size of the map array
-            // assume a fill factor of at most 80%
-            long maxLen = (long) (maxMemory / averageMemory / 0.75);
-            // the size needs to be a power of 2
-            long l = 8;
-            while (l < maxLen) {
-                l += l;
-            }
-            // the array size is at most 2^31 elements
-            int len = (int) Math.min(1L << 31, l);
             // the bit mask has all bits set
             mask = len - 1;
 
@@ -583,8 +591,6 @@ public class CacheLongKeyLIRS<V> {
             queue2 = new Entry<V>();
             queue2.queuePrev = queue2.queueNext = queue2;
 
-            // first set to null - avoiding out of memory
-            entries = null;
             @SuppressWarnings("unchecked")
             Entry<V>[] e = new Entry[len];
             entries = e;
@@ -592,6 +598,74 @@ public class CacheLongKeyLIRS<V> {
             mapSize = 0;
             usedMemory = 0;
             stackSize = queueSize = queue2Size = 0;
+        }
+        
+        /**
+         * Create a new, larger cache segment from an existing one.
+         * The caller must synchronize on the old segment, to avoid
+         * concurrent modifications.
+         * 
+         * @param old the old segment
+         * @param resizeFactor the factor to use to calculate the number of hash
+         *            table buckets (must be a power of 2)
+         */
+        Segment(Segment<V> old, int resizeFactor) {
+            this(old.maxMemory, 
+                    old.entries.length * resizeFactor, 
+                    old.stackMoveDistance);
+            Entry<V> s = old.stack.stackPrev;
+            while (s != old.stack) {
+                Entry<V> e = copy(s);
+                addToMap(e);
+                addToStack(e);
+                s = s.stackPrev;
+            }
+            s = old.queue.queuePrev;
+            while (s != old.queue) {
+                Entry<V> e = find(s.key, getHash(s.key));
+                if (e == null) {
+                    e = copy(s);
+                    addToMap(e);
+                }
+                addToQueue(queue, e);
+                s = s.queuePrev;
+            }
+            s = old.queue2.queuePrev;
+            while (s != old.queue2) {
+                Entry<V> e = find(s.key, getHash(s.key));
+                if (e == null) {
+                    e = copy(s);
+                    addToMap(e);
+                }
+                addToQueue(queue2, e);
+                s = s.queuePrev;
+            }
+        }
+        
+        private void addToMap(Entry<V> e) {
+            int index = getHash(e.key) & mask;
+            e.mapNext = entries[index];
+            entries[index] = e;
+            usedMemory += e.memory;
+            mapSize++;
+        }
+        
+        private static <V> Entry<V> copy(Entry<V> old) {
+            Entry<V> e = new Entry<V>();
+            e.key = old.key;
+            e.value = old.value;
+            e.memory = old.memory;
+            e.topMove = old.topMove;
+            return e;
+        }
+
+        /**
+         * Check whether the cache segment is full.
+         * 
+         * @return true if it contains more entries than hash table buckets.
+         */
+        public boolean isFull() {
+            return mapSize > mask;
         }
 
         /**
@@ -982,16 +1056,6 @@ public class CacheLongKeyLIRS<V> {
             this.maxMemory = maxMemory;
         }
 
-        /**
-         * Set the average memory used per entry. It is used to calculate the
-         * length of the internal array.
-         *
-         * @param averageMemory the average memory used (1 or larger)
-         */
-        void setAverageMemory(int averageMemory) {
-            this.averageMemory = averageMemory;
-        }
-
     }
 
     /**
@@ -1047,7 +1111,7 @@ public class CacheLongKeyLIRS<V> {
         Entry<V> queuePrev;
 
         /**
-         * The next entry in the map
+         * The next entry in the map (the chained entry).
          */
         Entry<V> mapNext;
 

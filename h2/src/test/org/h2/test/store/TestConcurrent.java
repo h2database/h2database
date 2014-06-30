@@ -47,6 +47,7 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
 
+        testConcurrentChangeAndGetVersion();
         testConcurrentFree();
         testConcurrentStoreAndRemoveMap();
         testConcurrentStoreAndClose();
@@ -56,7 +57,49 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-
+    
+    private void testConcurrentChangeAndGetVersion() throws InterruptedException {
+        for (int test = 0; test < 10; test++) {
+            final MVStore s = new MVStore.Builder().
+                    autoCommitDisabled().open();
+            s.setVersionsToKeep(10);
+            final MVMapConcurrent<Integer, Integer> m = s.openMap("data",
+                    new MVMapConcurrent.Builder<Integer, Integer>());
+            m.put(1, 1);
+            Task task = new Task() {
+                @Override
+                public void call() throws Exception {
+                    while (!stop) {
+                        m.put(1, 1);
+                        s.commit();
+                    }
+                }
+            };
+            task.execute();
+            Thread.sleep(1);
+            for (int i = 0; i < 10000; i++) {
+                if (task.isFinished()) {
+                    break;
+                }
+                for (int j = 0; j < 20; j++) {
+                    m.put(1, 1);
+                    s.commit();
+                }
+                s.setVersionsToKeep(15);
+                long version = s.getCurrentVersion() - 1;
+                try {
+                    m.openVersion(version);
+                } catch (IllegalArgumentException e) {
+                    // ignore
+                }
+                s.setVersionsToKeep(20);
+            }
+            task.get();
+            s.commit();
+            s.close();
+        }
+        FileUtils.deleteRecursive("memFS:", false);
+    }
     private void testConcurrentFree() throws InterruptedException {
         String fileName = "memFS:testConcurrentFree.h3";
         for (int test = 0; test < 10; test++) {

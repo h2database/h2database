@@ -64,6 +64,26 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.valueType = valueType;
         this.root = Page.createEmpty(this,  -1);
     }
+    
+    /**
+     * Get the metadata key for the root of the given map id.
+     *
+     * @param mapId the map id
+     * @return the metadata key
+     */
+    public static String getMapRootKey(int mapId) {
+        return "root." + Integer.toHexString(mapId);
+    }
+
+    /**
+     * Get the metadata key for the given map id.
+     *
+     * @param mapId the map id
+     * @return the metadata key
+     */
+    public static String getMapKey(int mapId) {
+        return "map." + Integer.toHexString(mapId);
+    }
 
     /**
      * Open this map with the given store and configuration.
@@ -698,14 +718,22 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (root != newRoot) {
             removeUnusedOldVersions();
             if (root.getVersion() != newRoot.getVersion()) {
-                ArrayList<Page> list = oldRoots;
-                if (list.size() > 0) {
-                    Page last = list.get(list.size() - 1);
+                // directly append to the list, modifying the list
+                // (if somebody concurrently replaces the oldRoots
+                // field, the change is lost, but in many cases this is
+                // detected at the end of this method)
+                ArrayList<Page> roots = oldRoots;
+                if (roots.size() > 0) {
+                    Page last = roots.get(roots.size() - 1);
                     if (last.getVersion() != root.getVersion()) {
-                        list.add(root);
+                        roots.add(root);
                     }
                 } else {
-                    list.add(root);
+                    roots.add(root);
+                }
+                if (roots != oldRoots) {
+                    throw DataUtils.newConcurrentModificationException(
+                            getName());
                 }
             }
             root = newRoot;
@@ -955,16 +983,17 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             } else if (root.getVersion() >= version) {
                 // iterating in descending order -
                 // this is not terribly efficient if there are many versions
-                ArrayList<Page> list = oldRoots;
-                while (list.size() > 0) {
-                    int i = list.size() - 1;
-                    Page p = list.get(i);
+                ArrayList<Page> roots = new ArrayList<Page>(oldRoots);
+                while (roots.size() > 0) {
+                    int i = roots.size() - 1;
+                    Page p = roots.get(i);
                     root = p;
-                    list.remove(i);
+                    roots.remove(i);
                     if (p.getVersion() < version) {
                         break;
                     }
                 }
+                oldRoots = roots;
             }
         } finally {
             afterWrite();
@@ -979,7 +1008,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (oldest == -1) {
             return;
         }
-        int i = searchRoot(oldest);
+        // operate on a stable array
+        // (items might be appended concurrently,
+        // but not removed)
+        ArrayList<Page> roots = oldRoots;
+        int i = searchRoot(roots, oldest);
         if (i < 0) {
             i = -i - 1;
         }
@@ -989,9 +1022,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         // create a new instance
         // because another thread might iterate over it
-        int size = oldRoots.size() - i;
+        int size = roots.size() - i;
         ArrayList<Page> list = new ArrayList<Page>(size);
-        list.addAll(oldRoots.subList(i, oldRoots.size()));
+        list.addAll(roots.subList(i, roots.size()));
+        if (roots != oldRoots) {
+            throw DataUtils.newConcurrentModificationException(
+                    getName());
+        }
         oldRoots = list;
     }
 
@@ -1153,8 +1190,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 store.getFileStore() == null)) {
             newest = r;
         } else {
+            // operate on a stable array
+            // (items might be appended concurrently)
+            ArrayList<Page> roots = oldRoots;
             // find the newest page that has a getVersion() <= version
-            int i = searchRoot(version);
+            int i = searchRoot(roots, version);
             if (i < 0) {
                 // not found
                 if (i == -1) {
@@ -1163,7 +1203,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 i = -i - 2;
             }
-            newest = oldRoots.get(i);
+            newest = roots.get(i);
         }
         MVMap<K, V> m = openReadOnly();
         m.root = newest;
@@ -1186,11 +1226,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return m;
     }
 
-    private int searchRoot(long version) {
-        int low = 0, high = oldRoots.size() - 1;
+    private static int searchRoot(ArrayList<Page> roots, long version) {
+        int low = 0, high = roots.size() - 1;
         while (low <= high) {
             int x = (low + high) >>> 1;
-            long v = oldRoots.get(x).getVersion();
+            long v = roots.get(x).getVersion();
             if (v < version) {
                 low = x + 1;
             } else if (version < v) {
@@ -1250,6 +1290,25 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     void setWriteVersion(long writeVersion) {
         this.writeVersion = writeVersion;
+    }
+    
+    public void copyFrom(MVMap<K, V> sourceMap) {
+        Page sourceRoot = sourceMap.root;
+        root = Page.create(this, writeVersion, sourceRoot);
+        root = copy(root, sourceRoot);
+    }
+    
+    private Page copy(Page target, Page source) {
+        target = copyOnWrite(target, writeVersion);
+        if (!target.isLeaf()) {
+            for (int i = 0; i < target.getChildPageCount(); i++) {
+                Page sourceChild = source.getChildPage(i);
+                Page targetChild = Page.create(this, writeVersion, sourceChild);
+                targetChild = copy(targetChild, sourceChild);
+                target.setChild(i, targetChild);
+            }
+        }
+        return target;
     }
 
     @Override

@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -80,6 +79,7 @@ public class MVStoreTool {
             pw.println("File not found: " + fileName);
             return;
         }
+        pw.printf("File %s, length %d\n", fileName, FileUtils.size(fileName));
         FileChannel file = null;
         int blockSize = MVStore.BLOCK_SIZE;
         try {
@@ -290,56 +290,6 @@ public class MVStoreTool {
     private static String formatTimestamp(long t) {
         String x = new Timestamp(t).toString();
         return x.substring(0, 19);
-    }
-
-    /**
-     * A data type that can read any data that is persisted, and converts it to
-     * a byte array.
-     */
-    static class GenericDataType implements DataType {
-
-        @Override
-        public int compare(Object a, Object b) {
-            throw DataUtils.newUnsupportedOperationException("Can not compare");
-        }
-
-        @Override
-        public int getMemory(Object obj) {
-            return obj == null ? 0 : ((byte[]) obj).length;
-        }
-
-        @Override
-        public void write(WriteBuffer buff, Object obj) {
-            if (obj != null) {
-                buff.put((byte[]) obj);
-            }
-        }
-
-        @Override
-        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
-            for (Object o : obj) {
-                write(buff, o);
-            }
-        }
-
-        @Override
-        public Object read(ByteBuffer buff) {
-            int len = buff.remaining();
-            if (len == 0) {
-                return null;
-            }
-            byte[] data = new byte[len];
-            buff.get(data);
-            return data;
-        }
-
-        @Override
-        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
-            for (int i = 0; i < obj.length; i++) {
-                obj[i] = read(buff);
-            }
-        }
-
     }
 
 }

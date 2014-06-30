@@ -163,6 +163,29 @@ public class Page {
         }
         return p;
     }
+    
+    public static Page create(MVMap<?, ?> map, long version, Page source) {
+        Page p = new Page(map, version);
+        // the position is 0
+        p.keyCount = source.keyCount;
+        p.keys = source.keys;
+        if (source.isLeaf()) {
+            p.values = source.values;
+        } else {
+            p.childCount = source.childCount;
+            p.children = new long[source.children.length];
+            p.childrenPages = new Page[source.childrenPages.length];
+            p.counts = source.counts;
+        }
+        p.totalCount = source.totalCount;
+        p.sharedFlags = source.sharedFlags;
+        p.memory = source.memory;
+        MVStore store = map.store;
+        if (store != null) {
+            store.registerUnsavedPage(p.memory);
+        }
+        return p;
+    }
 
     /**
      * Read a page.

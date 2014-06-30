@@ -395,7 +395,7 @@ public class MVStore {
                 return old;
             }
             map = builder.create();
-            String config = meta.get("map." + x);
+            String config = meta.get(MVMap.getMapKey(id));
             c = New.hashMap();
             c.putAll(DataUtils.parseMap(config));
             c.put("id", id);
@@ -410,7 +410,7 @@ public class MVStore {
             map.init(this, c);
             markMetaChanged();
             x = Integer.toHexString(id);
-            meta.put("map." + x, map.asString(name));
+            meta.put(MVMap.getMapKey(id), map.asString(name));
             meta.put("name." + name, x);
             root = 0;
         }
@@ -977,7 +977,7 @@ public class MVStore {
         }
         for (MVMap<?, ?> m : changed) {
             Page p = m.getRoot();
-            String key = "root." + Long.toHexString(m.getId());
+            String key = MVMap.getMapRootKey(m.getId());
             if (p.getTotalCount() == 0) {
                 meta.put(key, "0");
             } else {
@@ -998,7 +998,7 @@ public class MVStore {
             if (p.getTotalCount() > 0) {
                 p.writeUnsavedRecursive(c, buff);
                 long root = p.getPos();
-                String key = "root." + Long.toHexString(m.getId());
+                String key = MVMap.getMapRootKey(m.getId());
                 meta.put(key, Long.toHexString(root));
             }
         }
@@ -1784,7 +1784,7 @@ public class MVStore {
             @SuppressWarnings("unchecked")
             MVMap<Object, Object> map = (MVMap<Object, Object>) getMap(mapId);
             if (map == null) {
-                boolean mapExists = meta.containsKey("root." + Integer.toHexString(mapId));
+                boolean mapExists = meta.containsKey(MVMap.getMapRootKey(mapId));
                 if (mapExists) {
                     // pages of maps that were removed: the live count was
                     // already decremented, but maps that are not open, the
@@ -2242,7 +2242,7 @@ public class MVStore {
     }
 
     private static long getRootPos(MVMap<String, String> map, int mapId) {
-        String root = map.get("root." + Integer.toHexString(mapId));
+        String root = map.get(MVMap.getMapRootKey(mapId));
         return root == null ? 0 : DataUtils.parseHexLong(root);
     }
 
@@ -2318,7 +2318,7 @@ public class MVStore {
         markMetaChanged();
         String x = Integer.toHexString(id);
         meta.remove("name." + oldName);
-        meta.put("map." + x, map.asString(newName));
+        meta.put(MVMap.getMapKey(id), map.asString(newName));
         meta.put("name." + newName, x);
     }
 
@@ -2335,10 +2335,9 @@ public class MVStore {
         int id = map.getId();
         String name = getMapName(id);
         markMetaChanged();
-        String x = Integer.toHexString(id);
-        meta.remove("map." + x);
+        meta.remove(MVMap.getMapKey(id));
         meta.remove("name." + name);
-        meta.remove("root." + x);
+        meta.remove(MVMap.getMapRootKey(id));
         maps.remove(id);
     }
 
@@ -2349,7 +2348,7 @@ public class MVStore {
      * @return the name, or null if not found
      */
     public synchronized String getMapName(int id) {
-        String m = meta.get("map." + Integer.toHexString(id));
+        String m = meta.get(MVMap.getMapKey(id));
         return m == null ? null : DataUtils.parseMap(m).get("name");
     }
 
@@ -2388,6 +2387,7 @@ public class MVStore {
     public void setCacheSize(int mb) {
         if (cache != null) {
             cache.setMaxMemory((long) mb * 1024 * 1024);
+            cache.clear();
         }
     }
 

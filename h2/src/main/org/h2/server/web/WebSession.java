@@ -56,7 +56,7 @@ class WebSession {
 
     private final WebServer server;
 
-    private final ArrayList<String> commandHistory = New.arrayList();
+    private final ArrayList<String> commandHistory;
 
     private Connection conn;
     private DatabaseMetaData meta;
@@ -66,6 +66,10 @@ class WebSession {
 
     WebSession(WebServer server) {
         this.server = server;
+        /* This must be stored in the session rather than in the server.
+         * Otherwise, one client could allow saving history for others (insecure).
+         */
+        this.commandHistory = server.getCommandHistoryList();
     }
 
     /**
@@ -172,6 +176,9 @@ class WebSession {
             commandHistory.remove(idx);
         }
         commandHistory.add(sql);
+        if (server.isCommandHistoryAllowed()) {
+            server.saveCommandHistoryList(commandHistory);
+        }
     }
 
     /**

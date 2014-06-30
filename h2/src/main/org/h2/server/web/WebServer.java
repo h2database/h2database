@@ -48,6 +48,8 @@ import org.h2.util.Utils;
  */
 public class WebServer implements Service {
 
+    private static final String COMMAND_HISTORY = "commandHistory";
+
     static final String TRANSFER = "transfer";
 
     static final String[][] LANGUAGES = {
@@ -157,6 +159,8 @@ public class WebServer implements Service {
     private TranslateThread translateThread;
     private boolean allowChunked = true;
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
+    /** null means the history is not allowed to be stored */
+    private String commandHistoryString;
 
     /**
      * Read the given file from the file system or from the resources.
@@ -291,6 +295,7 @@ public class WebServer implements Service {
                 "webSSL", false);
         allowOthers = SortedProperties.getBooleanProperty(prop,
                 "webAllowOthers", false);
+        commandHistoryString = prop.getProperty(COMMAND_HISTORY);
         for (int i = 0; args != null && i < args.length; i++) {
             String a = args[i];
             if (Tool.isOption(a, "-webPort")) {
@@ -524,6 +529,59 @@ public class WebServer implements Service {
         return port;
     }
 
+    public boolean isCommandHistoryAllowed() {
+        return commandHistoryString != null;
+    }
+
+    public void setCommandHistoryAllowed(boolean allowed) {
+        if (allowed) {
+            if (commandHistoryString == null) {
+                commandHistoryString = "";
+            }
+        } else {
+          commandHistoryString = null;
+        }
+    }
+
+    public ArrayList<String> getCommandHistoryList() {
+        ArrayList<String> result = New.arrayList();
+        if (commandHistoryString == null) {
+            return result;
+        }
+
+        // Split the commandHistoryString on non-escaped semicolons and unescape it.
+        StringBuilder sb = new StringBuilder();
+        for (int end = 0; ; end++) {
+            if (end == commandHistoryString.length() || commandHistoryString.charAt(end) == ';') {
+                if (sb.length() > 0) {
+                    result.add(sb.toString());
+                    sb.delete(0, sb.length());
+                }
+                if (end == commandHistoryString.length()) {
+                    break;
+                }
+            } else if (commandHistoryString.charAt(end) == '\\' && end < commandHistoryString.length() - 1) {
+                sb.append(commandHistoryString.charAt(++end));
+            } else {
+                sb.append(commandHistoryString.charAt(end));
+            }
+        }
+
+        return result;
+    }
+
+    public void saveCommandHistoryList(ArrayList<String> commandHistory) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : commandHistory) {
+            if (sb.length() > 0) {
+                sb.append(';');
+            }
+            sb.append(s.replace("\\", "\\\\").replace(";", "\\;"));
+        }
+        commandHistoryString = sb.toString();
+        saveProperties(null);
+    }
+
     /**
      * Get the connection information for this setting.
      *
@@ -632,6 +690,9 @@ public class WebServer implements Service {
                 prop.setProperty("webSSL",
                         "" + SortedProperties.getBooleanProperty(old,
                         "webSSL", ssl));
+                if (commandHistoryString != null) {
+                    prop.setProperty(COMMAND_HISTORY, commandHistoryString);
+                }
             }
             ArrayList<ConnectionInfo> settings = getSettings();
             int len = settings.size();

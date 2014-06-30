@@ -95,6 +95,15 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         this.connectionInfo = ci;
     }
 
+    public ArrayList<String> getClusterServers() {
+        ArrayList<String> serverList = new ArrayList<String>();
+        for (int i = 0; i < transferList.size(); i++) {
+            Transfer transfer = transferList.get(i);
+            serverList.add(transfer.getSocket().getInetAddress().getHostAddress().toString() + ":" + String.valueOf(transfer.getSocket().getPort()));
+        }
+        return serverList;
+    }
+    
     private Transfer initTransfer(ConnectionInfo ci, String db, String server)
             throws IOException {
         Socket socket = NetUtils.createSocket(server,

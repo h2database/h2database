@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
@@ -39,6 +40,7 @@ public class TestCluster extends TestBase {
         testRecover();
         testRollback();
         testCase();
+        testClientInfo();
         testCreateClusterAtRuntime();
         testStartStopCluster();
     }
@@ -250,6 +252,60 @@ public class TestCluster extends TestBase {
         n1.stop();
         deleteFiles();
     }
+    
+    private void testClientInfo() throws SQLException {
+        if (config.memory || config.networked || config.cipher != null) {
+            return;
+        }
+        int port1 = 9191, port2 = 9192;
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
+        deleteFiles();
+
+        org.h2.Driver.load();
+        String user = getUser(), password = getPassword();
+        Connection conn;
+
+        String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", true);
+        String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", true);
+        String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", true);
+
+        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort",
+                "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort",
+                "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+
+        CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
+                "-user", user, "-password", password, "-serverList",
+                serverList);
+
+        conn = getConnection(urlCluster, user, password);
+        Properties p = conn.getClientInfo();
+		
+		    assertEquals("2", p.getProperty("numServers"));
+        assertEquals("127.0.0.1:" + port1, p.getProperty("server0"));
+        assertEquals("127.0.0.1:" + port2, p.getProperty("server1"));
+
+		    assertEquals("2", conn.getClientInfo("numServers"));
+        assertEquals("127.0.0.1:" + port1, conn.getClientInfo("server0"));
+        assertEquals("127.0.0.1:" + port2, conn.getClientInfo("server1"));
+        conn.close();
+
+        // stop server 2, and test if only one server is available
+        n2.stop();
+
+        conn = getConnection(urlCluster, user, password);
+        p = conn.getClientInfo();
+        
+        assertEquals("1", p.getProperty("numServers"));
+        assertEquals("127.0.0.1:" + port1, p.getProperty("server0"));
+        assertEquals("1", conn.getClientInfo("numServers"));
+        assertEquals("127.0.0.1:" + port1, conn.getClientInfo("server0"));
+        conn.close();
+
+        n1.stop();
+        deleteFiles();
+    }
+    
     private void testCreateClusterAtRuntime() throws SQLException {
         if (config.memory || config.networked || config.cipher != null) {
             return;

@@ -25,6 +25,7 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
@@ -1715,35 +1716,44 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Get the client properties.
-     * This method always returns null.
      *
-     * @return always null
+     * @return the property list
      */
     @Override
     public Properties getClientInfo() throws SQLException {
         try {
-            debugCode("getClientInfo();");
-            // we don't have any client properties, so return null
-            return null;
+            if (isDebugEnabled()) {
+                debugCode("getClientInfo();");
+						}
+            checkClosed();
+            ArrayList<String> serverList = session.getClusterServers();
+            Properties p = new Properties();
+
+            p.setProperty("numServers", String.valueOf(serverList.size()));
+            for (int i = 0; i < serverList.size(); i++) {
+                p.setProperty("server" + String.valueOf(i), serverList.get(i));
+            }
+            return p;
         } catch (Exception e) {
             throw logAndConvert(e);
         }
     }
 
     /**
-     * Set a client property.
-     * This method always throws a SQLClientInfoException.
+     * Get a client property.
      *
      * @param name the client info name (ignored)
-     * @return this method never returns normally
+     * @return the property value
      */
     @Override
     public String getClientInfo(String name) throws SQLException {
         try {
-            debugCodeCall("getClientInfo", name);
+            if (isDebugEnabled()) {
+                debugCodeCall("getClientInfo", name);
+            }
             checkClosed();
-            // we don't have any client properties, so just throw
-            throw new SQLClientInfoException();
+        	  Properties p = getClientInfo();
+            return p.getProperty(name);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

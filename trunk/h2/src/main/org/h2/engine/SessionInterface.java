@@ -6,6 +6,8 @@
 package org.h2.engine;
 
 import java.io.Closeable;
+import java.util.ArrayList;
+
 import org.h2.command.CommandInterface;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
@@ -16,6 +18,13 @@ import org.h2.value.Value;
  */
 public interface SessionInterface extends Closeable {
 
+    /**
+     * Get the list of the cluster servers for this session.
+     *
+     * @return A list of "IP:PORT" strings for the cluster servers in this session.
+     */
+    ArrayList<String> getClusterServers();
+    
     /**
      * Parse a command and prepare it for execution.
      *

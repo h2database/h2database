@@ -95,6 +95,7 @@ public class TestTools extends TestBase {
         if (!config.splitFileSystem) {
             testChangeFileEncryption(true);
         }
+        testChangeFileEncryptionWithWrongPassword();
         testServer();
         testScriptRunscript();
         testBackupRestore();
@@ -910,10 +911,9 @@ public class TestTools extends TestBase {
     private void testChangeFileEncryption(boolean split) throws SQLException {
         org.h2.Driver.load();
         final String dir = (split ? "split:19:" : "") + getBaseDir();
-        String url = "jdbc:h2:" + dir;
+        String url = "jdbc:h2:" + dir + "/testChangeFileEncryption;CIPHER=AES";
         DeleteDbFiles.execute(dir, "testChangeFileEncryption", true);
-        Connection conn = getConnection(url +
-                "/testChangeFileEncryption;CIPHER=AES", "sa", "abc 123");
+        Connection conn = getConnection(url, "sa", "abc 123");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB) "
                 + "AS SELECT X, SPACE(3000) FROM SYSTEM_RANGE(1, 300)");
@@ -924,8 +924,7 @@ public class TestTools extends TestBase {
         args = new String[] { "-dir", dir, "-db", "testChangeFileEncryption",
                 "-cipher", "AES", "-encrypt", "def", "-quiet" };
         ChangeFileEncryption.main(args);
-        conn = getConnection(url + "/testChangeFileEncryption;CIPHER=AES",
-                "sa", "def 123");
+        conn = getConnection(url, "sa", "def 123");
         stat = conn.createStatement();
         stat.execute("SELECT * FROM TEST");
         new AssertThrows(ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1) {
@@ -942,6 +941,37 @@ public class TestTools extends TestBase {
         DeleteDbFiles.main(args);
     }
 
+    private void testChangeFileEncryptionWithWrongPassword() throws SQLException {
+        org.h2.Driver.load();
+        final String dir = getBaseDir();
+        // TODO: this doesn't seem to work in MVSTORE mode yet
+        String url = "jdbc:h2:" + dir + "/testChangeFileEncryption;CIPHER=AES;MV_STORE=false";
+        DeleteDbFiles.execute(dir, "testChangeFileEncryption", true);
+        Connection conn = getConnection(url, "sa", "abc 123");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, DATA CLOB) "
+                + "AS SELECT X, SPACE(3000) FROM SYSTEM_RANGE(1, 300)");
+        conn.close();
+        // try with wrong password, this used to have a bug where it kept the
+        // file handle open
+        new AssertThrows(SQLException.class) {
+            @Override
+            public void test() throws SQLException {
+                ChangeFileEncryption.execute(dir, "testChangeFileEncryption", "AES", "wrong".toCharArray(),
+                        "def".toCharArray(), true);
+            }
+        };
+        ChangeFileEncryption.execute(dir, "testChangeFileEncryption", "AES", "abc".toCharArray(), "def".toCharArray(),
+                true);
+
+        conn = getConnection(url, "sa", "def 123");
+        stat = conn.createStatement();
+        stat.execute("SELECT * FROM TEST");
+        conn.close();
+        String[] args = new String[] { "-dir", dir, "-db", "testChangeFileEncryption", "-quiet" };
+        DeleteDbFiles.main(args);
+    }
+    
     private void testServer() throws SQLException {
         Connection conn;
         deleteDb("test");

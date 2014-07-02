@@ -207,8 +207,12 @@ public class ChangeFileEncryption extends Tool {
         } else {
             in = FileStore.open(null, fileName, "r", cipherType, decrypt);
         }
-        in.init();
-        copy(fileName, in, encrypt);
+        try {
+            in.init();
+            copy(fileName, in, encrypt);
+        } finally {
+            in.closeSilently();
+        }
     }
 
     private void copy(String fileName) throws IOException {

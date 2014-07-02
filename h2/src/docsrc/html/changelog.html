@@ -20,7 +20,9 @@ Change Log
 <ul><li>The LIRS cache now re-sizes the internal hash map if needed.
 <ul><li>Optionally persist session history in the H2 console. (patch from Martin Grajcar)
 <ul><li>Add client-info property to get the number of servers currently in the cluster
-and which servers that are available. (patch from  Nikolaj Fogh) 
+and which servers that are available. (patch from Nikolaj Fogh) 
+<ul><li>Fix bug in changing encrypted DB password that kept the file handle 
+open when the wrong password was supplied. (test case from Jens Hohmuth).
 </li></ul>
 
 <h2>Version 1.4.179 Beta (2014-06-23)</h2>

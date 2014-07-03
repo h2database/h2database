@@ -97,7 +97,7 @@ public abstract class Command implements CommandInterface {
      * @return the update count
      * @throws DbException if the command is not an updating statement
      */
-    public int update() {
+    public int updateOrInsert() {
         throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
@@ -250,7 +250,7 @@ public abstract class Command implements CommandInterface {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        return update();
+                        return updateOrInsert();
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {

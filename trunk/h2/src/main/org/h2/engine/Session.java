@@ -831,6 +831,7 @@ public class Session extends SessionWithState {
     public void setLastIdentity(Value last) {
         this.lastIdentity = last;
         this.lastScopeIdentity = last;
+        new Throwable("lastScopeIdentity=" + last).printStackTrace();
     }
 
     public Value getLastIdentity() {
@@ -839,6 +840,7 @@ public class Session extends SessionWithState {
 
     public void setLastScopeIdentity(Value last) {
         this.lastScopeIdentity = last;
+        new Throwable("lastScopeIdentity=" + last).printStackTrace();
     }
 
     public Value getLastScopeIdentity() {

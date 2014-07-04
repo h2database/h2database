@@ -48,8 +48,6 @@ import org.h2.util.Utils;
  */
 public class WebServer implements Service {
 
-    private static final String COMMAND_HISTORY = "commandHistory";
-
     static final String TRANSFER = "transfer";
 
     static final String[][] LANGUAGES = {
@@ -74,6 +72,8 @@ public class WebServer implements Service {
         { "zh_CN", "\u4e2d\u6587 (\u7b80\u4f53)"},
         { "zh_TW", "\u4e2d\u6587 (\u7e41\u9ad4)"},
     };
+
+    private static final String COMMAND_HISTORY = "commandHistory";
 
     private static final String DEFAULT_LANGUAGE = "en";
 
@@ -539,7 +539,7 @@ public class WebServer implements Service {
                 commandHistoryString = "";
             }
         } else {
-          commandHistoryString = null;
+            commandHistoryString = null;
         }
     }
 
@@ -549,10 +549,12 @@ public class WebServer implements Service {
             return result;
         }
 
-        // Split the commandHistoryString on non-escaped semicolons and unescape it.
+        // Split the commandHistoryString on non-escaped semicolons
+        // and unescape it.
         StringBuilder sb = new StringBuilder();
-        for (int end = 0; ; end++) {
-            if (end == commandHistoryString.length() || commandHistoryString.charAt(end) == ';') {
+        for (int end = 0;; end++) {
+            if (end == commandHistoryString.length() ||
+                    commandHistoryString.charAt(end) == ';') {
                 if (sb.length() > 0) {
                     result.add(sb.toString());
                     sb.delete(0, sb.length());
@@ -560,16 +562,21 @@ public class WebServer implements Service {
                 if (end == commandHistoryString.length()) {
                     break;
                 }
-            } else if (commandHistoryString.charAt(end) == '\\' && end < commandHistoryString.length() - 1) {
+            } else if (commandHistoryString.charAt(end) == '\\' &&
+                    end < commandHistoryString.length() - 1) {
                 sb.append(commandHistoryString.charAt(++end));
             } else {
                 sb.append(commandHistoryString.charAt(end));
             }
         }
-
         return result;
     }
 
+    /**
+     * Save the command history to the properties file.
+     *
+     * @param commandHistory the history
+     */
     public void saveCommandHistoryList(ArrayList<String> commandHistory) {
         StringBuilder sb = new StringBuilder();
         for (String s : commandHistory) {

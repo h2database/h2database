@@ -1724,7 +1724,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         try {
             if (isDebugEnabled()) {
                 debugCode("getClientInfo();");
-						}
+                        }
             checkClosed();
             ArrayList<String> serverList = session.getClusterServers();
             Properties p = new Properties();
@@ -1752,7 +1752,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeCall("getClientInfo", name);
             }
             checkClosed();
-        	  Properties p = getClientInfo();
+            Properties p = getClientInfo();
             return p.getProperty(name);
         } catch (Exception e) {
             throw logAndConvert(e);

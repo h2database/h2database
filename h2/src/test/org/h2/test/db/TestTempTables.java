@@ -47,7 +47,7 @@ public class TestTempTables extends TestBase {
         c2.close();
         deleteDb("tempTables");
     }
-    
+
     private void testTempSequence() throws SQLException {
         deleteDb("tempTables");
         Connection conn = getConnection("tempTables");

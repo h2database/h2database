@@ -32,7 +32,9 @@ public class Engine implements SessionFactory {
             SysProperties.DELAY_WRONG_PASSWORD_MIN;
     private boolean jmx;
 
-    private Engine() {}
+    private Engine() {
+        // use getInstance()
+    }
 
     public static Engine getInstance() {
         return INSTANCE;

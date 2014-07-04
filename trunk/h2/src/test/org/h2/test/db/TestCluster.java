@@ -280,12 +280,11 @@ public class TestCluster extends TestBase {
 
         conn = getConnection(urlCluster, user, password);
         Properties p = conn.getClientInfo();
-		
-		    assertEquals("2", p.getProperty("numServers"));
+        assertEquals("2", p.getProperty("numServers"));
         assertEquals("127.0.0.1:" + port1, p.getProperty("server0"));
         assertEquals("127.0.0.1:" + port2, p.getProperty("server1"));
 
-		    assertEquals("2", conn.getClientInfo("numServers"));
+        assertEquals("2", conn.getClientInfo("numServers"));
         assertEquals("127.0.0.1:" + port1, conn.getClientInfo("server0"));
         assertEquals("127.0.0.1:" + port2, conn.getClientInfo("server1"));
         conn.close();

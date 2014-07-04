@@ -395,14 +395,14 @@ It is also possible to get the list of servers by using Connection.getClientInfo
 </p>
 
 <p>
-The property list returned from <code>getClientInfo()</code> contains a <code>numServers</code> property that returns the 
+The property list returned from <code>getClientInfo()</code> contains a <code>numServers</code> property that returns the
 number of servers that are in the connection list. To get the actual servers, <code>getClientInfo()</code> also has
 properties <code>server0</code>..<code>serverX</code>, where serverX is the number of servers minus 1.
 </p>
 
 <p>
-Example: To get the 2nd server in the connection list one uses <code>getClientInfo('server1')<code>. <b>Note:</b> The 
-<code>serverX</code> property only returns IP addresses and ports and not hostnames.
+Example: To get the 2nd server in the connection list one uses <code>getClientInfo('server1')</code>.
+<b>Note:</b> The <code>serverX</code> property only returns IP addresses and ports and not hostnames.
 </p>
 
 <h3>Clustering Algorithm and Limitations</h3>

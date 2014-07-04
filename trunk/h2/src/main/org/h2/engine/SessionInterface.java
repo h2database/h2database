@@ -21,10 +21,11 @@ public interface SessionInterface extends Closeable {
     /**
      * Get the list of the cluster servers for this session.
      *
-     * @return A list of "IP:PORT" strings for the cluster servers in this session.
+     * @return A list of "ip:port" strings for the cluster servers in this
+     *         session.
      */
     ArrayList<String> getClusterServers();
-    
+
     /**
      * Parse a command and prepare it for execution.
      *

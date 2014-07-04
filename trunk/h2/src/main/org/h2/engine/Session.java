@@ -127,10 +127,11 @@ public class Session extends SessionWithState {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
+    @Override
     public ArrayList<String> getClusterServers() {
         return new ArrayList<String>();
     }
-    
+
     public boolean setCommitOrRollbackDisabled(boolean x) {
         boolean old = commitOrRollbackDisabled;
         commitOrRollbackDisabled = x;

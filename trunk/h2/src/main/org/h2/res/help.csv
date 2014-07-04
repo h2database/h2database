@@ -1408,7 +1408,8 @@ Returns the name of the default  schema for this session."
 "Functions (System)","SCOPE_IDENTITY","
 SCOPE_IDENTITY()
 ","
-Returns the last inserted identity value for this session for the current scope."
+Returns the last inserted identity value for this session for the current scope
+(ie."
 "Functions (System)","SESSION_ID","
 SESSION_ID()
 ","

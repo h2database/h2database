@@ -18,16 +18,16 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul><li>MVStore: new utility to compress a store.
-</li><li>Sequences of temporary tables (auto-increment or identity columns) 
+</li><li>Sequences of temporary tables (auto-increment or identity columns)
     were persisted unnecessarily in the database file, and were not removed
     when re-opening the database.
 </li><li>MVStore: an IndexOutOfBoundsException could sometimes
     occur MVMap.openVersion when concurrently accessing the store.
 </li><li>The LIRS cache now re-sizes the internal hash map if needed.
 </li><li>Optionally persist session history in the H2 console. (patch from Martin Grajcar)
-<ul><li>Add client-info property to get the number of servers currently in the cluster
-and which servers that are available. (patch from Nikolaj Fogh) 
-</li><li>Fix bug in changing encrypted DB password that kept the file handle 
+</li><li>Add client-info property to get the number of servers currently in the cluster
+and which servers that are available. (patch from Nikolaj Fogh)
+</li><li>Fix bug in changing encrypted DB password that kept the file handle
 open when the wrong password was supplied. (test case from Jens Hohmuth).
 </li></ul>
 

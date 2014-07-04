@@ -32,6 +32,7 @@ public class TestTempTables extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("tempTables");
+        testTempSequence();
         testTempFileResultSet();
         testTempTableResultSet();
         testTransactionalTemp();
@@ -45,6 +46,21 @@ public class TestTempTables extends TestBase {
         c1.close();
         c2.close();
         deleteDb("tempTables");
+    }
+    
+    private void testTempSequence() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables");
+        Statement stat = conn.createStatement();
+        stat.execute("create local temporary table test(id identity)");
+        stat.execute("insert into test values(null)");
+        stat.execute("shutdown");
+        conn.close();
+        conn = getConnection("tempTables");
+        ResultSet rs = conn.createStatement().executeQuery(
+                "select * from information_schema.sequences");
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testTempFileResultSet() throws SQLException {

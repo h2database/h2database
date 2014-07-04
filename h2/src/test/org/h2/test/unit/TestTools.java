@@ -957,11 +957,13 @@ public class TestTools extends TestBase {
         new AssertThrows(SQLException.class) {
             @Override
             public void test() throws SQLException {
-                ChangeFileEncryption.execute(dir, "testChangeFileEncryption", "AES", "wrong".toCharArray(),
+                ChangeFileEncryption.execute(dir, "testChangeFileEncryption",
+                        "AES", "wrong".toCharArray(),
                         "def".toCharArray(), true);
             }
         };
-        ChangeFileEncryption.execute(dir, "testChangeFileEncryption", "AES", "abc".toCharArray(), "def".toCharArray(),
+        ChangeFileEncryption.execute(dir, "testChangeFileEncryption",
+                "AES", "abc".toCharArray(), "def".toCharArray(),
                 true);
 
         conn = getConnection(url, "sa", "def 123");
@@ -971,7 +973,7 @@ public class TestTools extends TestBase {
         String[] args = new String[] { "-dir", dir, "-db", "testChangeFileEncryption", "-quiet" };
         DeleteDbFiles.main(args);
     }
-    
+
     private void testServer() throws SQLException {
         Connection conn;
         deleteDb("test");

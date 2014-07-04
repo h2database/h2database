@@ -34,7 +34,7 @@ public class TestMVStoreTool extends TestBase {
     public void test() throws Exception {
         testCompress();
     }
-    
+
     private void testCompress() {
         String fileName = getBaseDir() + "/testCompress.h3";
         FileUtils.delete(fileName);
@@ -60,7 +60,7 @@ public class TestMVStoreTool extends TestBase {
                 fileName(fileName + ".new").readOnly().open();
         assertEquals(s1, s2);
     }
-    
+
     private void assertEquals(MVStore a, MVStore b) {
         assertEquals(a.getMapNames().size(), b.getMapNames().size());
         for (String mapName : a.getMapNames()) {
@@ -73,5 +73,5 @@ public class TestMVStoreTool extends TestBase {
             }
         }
     }
-    
+
 }

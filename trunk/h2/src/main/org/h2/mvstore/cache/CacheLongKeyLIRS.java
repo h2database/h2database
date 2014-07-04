@@ -108,7 +108,7 @@ public class CacheLongKeyLIRS<V> {
                     max, segmentLen, stackMoveDistance);
         }
     }
-    
+
     private int getSegmentLen(long max) {
         // calculate the size of the map array
         // assume a fill factor of at most 75%
@@ -243,7 +243,7 @@ public class CacheLongKeyLIRS<V> {
     private Segment<V> getSegment(int hash) {
         return segments[getSegmentIndex(hash)];
     }
-    
+
     private int getSegmentIndex(int hash) {
         return (hash >>> segmentShift) & segmentMask;
     }
@@ -599,19 +599,19 @@ public class CacheLongKeyLIRS<V> {
             usedMemory = 0;
             stackSize = queueSize = queue2Size = 0;
         }
-        
+
         /**
          * Create a new, larger cache segment from an existing one.
          * The caller must synchronize on the old segment, to avoid
          * concurrent modifications.
-         * 
+         *
          * @param old the old segment
          * @param resizeFactor the factor to use to calculate the number of hash
          *            table buckets (must be a power of 2)
          */
         Segment(Segment<V> old, int resizeFactor) {
-            this(old.maxMemory, 
-                    old.entries.length * resizeFactor, 
+            this(old.maxMemory,
+                    old.entries.length * resizeFactor,
                     old.stackMoveDistance);
             Entry<V> s = old.stack.stackPrev;
             while (s != old.stack) {
@@ -641,7 +641,7 @@ public class CacheLongKeyLIRS<V> {
                 s = s.queuePrev;
             }
         }
-        
+
         private void addToMap(Entry<V> e) {
             int index = getHash(e.key) & mask;
             e.mapNext = entries[index];
@@ -649,7 +649,7 @@ public class CacheLongKeyLIRS<V> {
             usedMemory += e.memory;
             mapSize++;
         }
-        
+
         private static <V> Entry<V> copy(Entry<V> old) {
             Entry<V> e = new Entry<V>();
             e.key = old.key;
@@ -661,7 +661,7 @@ public class CacheLongKeyLIRS<V> {
 
         /**
          * Check whether the cache segment is full.
-         * 
+         *
          * @return true if it contains more entries than hash table buckets.
          */
         public boolean isFull() {

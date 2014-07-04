@@ -515,7 +515,8 @@ public class ErrorCode {
      * are used. Instead, use "jdbc:h2:~/name" (relative to the current user
      * home directory), use an absolute path, set the base directory (baseDir),
      * use "jdbc:h2:./name" (explicit relative path), or set the system property
-     * "h2.implicitRelativePath" to "true" (to prevent this check). Please see
+     * "h2.implicitRelativePath" to "true" (to prevent this check). For Windows,
+     * an absolute path also needs to include the drive ("C:/..."). Please see
      * the documentation on the supported URL format. Example:
      * <pre>
      * jdbc:h2:test

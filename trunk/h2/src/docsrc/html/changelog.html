@@ -17,11 +17,17 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The LIRS cache now re-sizes the internal hash map if needed.
-<ul><li>Optionally persist session history in the H2 console. (patch from Martin Grajcar)
+<ul><li>MVStore: new utility to compress a store.
+</li><li>Sequences of temporary tables (auto-increment or identity columns) 
+    were persisted unnecessarily in the database file, and were not removed
+    when re-opening the database.
+</li><li>MVStore: an IndexOutOfBoundsException could sometimes
+    occur MVMap.openVersion when concurrently accessing the store.
+</li><li>The LIRS cache now re-sizes the internal hash map if needed.
+</li><li>Optionally persist session history in the H2 console. (patch from Martin Grajcar)
 <ul><li>Add client-info property to get the number of servers currently in the cluster
 and which servers that are available. (patch from Nikolaj Fogh) 
-<ul><li>Fix bug in changing encrypted DB password that kept the file handle 
+</li><li>Fix bug in changing encrypted DB password that kept the file handle 
 open when the wrong password was supplied. (test case from Jens Hohmuth).
 </li></ul>
 
@@ -31,7 +37,8 @@ open when the wrong password was supplied. (test case from Jens Hohmuth).
     (with MULTI_THREADED option) resulted in a NullPointerException.
 </li><li>MVStore: reduced dependencies to other H2 classes.
 </li><li>There was a way to prevent a database from being re-opened,
-    by creating a column constraint that references a table with a higher id.
+    by creating a column constraint that references a table with a higher id,
+    for example with "check" constraints that contains queries.
     This is now detected, and creating the table is prohibited.
     In future versions of H2, most likely creating references to other
     tables will no longer be supported because of such problems.
@@ -57,6 +64,7 @@ open when the wrong password was supplied. (test case from Jens Hohmuth).
     which could result in a ClassCastException.
 </li><li>Issue 566: MVStore: unique indexes that were created later on did not work correctly
     if there were over 5000 rows in the table.
+    Existing databases need to be re-created (at least the broken index need to be re-built).
 </li><li>MVStore: creating secondary indexes on large tables
     results in missing rows in the index.
 </li><li>Metadata: the password of linked tables is now only visible for admin users.

@@ -46,14 +46,14 @@ public class TestCacheLongKeyLIRS extends TestBase {
         testScanResistance();
         testRandomOperations();
     }
-    
+
     private void testResize() {
-        // cache with 100 memory, average memory 10 
+        // cache with 100 memory, average memory 10
         // (that means 10 entries)
-        CacheLongKeyLIRS<Integer> t1 = 
+        CacheLongKeyLIRS<Integer> t1 =
                 new CacheLongKeyLIRS<Integer>(100, 10, 1, 0);
         // another cache with more entries
-        CacheLongKeyLIRS<Integer> t2 = 
+        CacheLongKeyLIRS<Integer> t2 =
                 new CacheLongKeyLIRS<Integer>(100, 1, 1, 0);
         for (int i = 0; i < 200; i++) {
             t1.put(i, i, 1);

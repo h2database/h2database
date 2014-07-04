@@ -57,7 +57,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentChangeAndGetVersion() throws InterruptedException {
         for (int test = 0; test < 10; test++) {
             final MVStore s = new MVStore.Builder().

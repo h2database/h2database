@@ -1029,6 +1029,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             throw DataUtils.newConcurrentModificationException(
                     getName());
         }
+        ;
+        // TODO work in progress
+        if(oldRoots.size() - list.size() > 1) {
+        //    System.out.println("reduced! from " + oldRoots.size() + " to " + list.size() +"  " + getClass());
+        }
+        
         oldRoots = list;
     }
 
@@ -1292,21 +1298,23 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.writeVersion = writeVersion;
     }
     
-    public void copyFrom(MVMap<K, V> sourceMap) {
+    void copyFrom(MVMap<K, V> sourceMap) {
         ; // TODO work in progress
-        Page sourceRoot = sourceMap.root;
-        root = Page.create(this, writeVersion, sourceRoot);
-        root = copy(root, sourceRoot);
+        root = copy(sourceMap.root, null);
     }
     
-    private Page copy(Page target, Page source) {
-        target = copyOnWrite(target, writeVersion);
+    private Page copy(Page source, CursorPos parent) {
+        Page target = Page.create(this, writeVersion, source);
+        for (CursorPos p = parent; p != null; p = p.parent) {
+            p.page.setChild(p.index, target);
+        }
         if (!target.isLeaf()) {
+            CursorPos pos = new CursorPos(target, 0, parent);            
+            target = copyOnWrite(target, writeVersion);
             for (int i = 0; i < target.getChildPageCount(); i++) {
                 Page sourceChild = source.getChildPage(i);
-                Page targetChild = Page.create(this, writeVersion, sourceChild);
-                targetChild = copy(targetChild, sourceChild);
-                target.setChild(i, targetChild);
+                pos.index = i;
+                copy(sourceChild, pos);
             }
         }
         return target;

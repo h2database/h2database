@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
@@ -79,7 +80,8 @@ public class MVStoreTool {
             pw.println("File not found: " + fileName);
             return;
         }
-        pw.printf("File %s, length %d\n", fileName, FileUtils.size(fileName));
+        long size = FileUtils.size(fileName);
+        pw.printf("File %s, %d bytes, %d MB\n", fileName, size, size / 1024 / 1024);
         FileChannel file = null;
         int blockSize = MVStore.BLOCK_SIZE;
         try {
@@ -214,6 +216,7 @@ public class MVStoreTool {
                                 Chunk.FOOTER_LENGTH, DataUtils.LATIN).trim());
             }
             pw.printf("%n%0" + len + "x eof%n", fileSize);
+            pw.printf("\n");
         } catch (IOException e) {
             pw.println("ERROR: " + e);
             e.printStackTrace(pw);
@@ -278,6 +281,7 @@ public class MVStoreTool {
                         c.len
                         );
             }
+            pw.printf("\n");
         } catch (Exception e) {
             pw.println("ERROR: " + e);
             e.printStackTrace(pw);
@@ -291,5 +295,110 @@ public class MVStoreTool {
         String x = new Timestamp(t).toString();
         return x.substring(0, 19);
     }
+
+    /**
+     * Compress the store by creating a new file and copying the live pages there.
+     * 
+     * @param fileName the file name
+     */
+    public static void compress(String fileName) {
+        compress(fileName, fileName + ".new");
+        FileUtils.moveTo(fileName, fileName + ".old");
+        FileUtils.moveTo(fileName, fileName);
+        FileUtils.delete(fileName + ".old");
+    }
+    
+    /**
+     * Copy all live pages from the source store to the target store.
+     * 
+     * @param sourceFileName the name of the source store
+     * @param targetFileName the name of the target store
+     */
+    public static void compress(String sourceFileName, String targetFileName) {
+        MVStore source = new MVStore.Builder().
+                fileName(sourceFileName).readOnly().open();
+        FileUtils.delete(targetFileName);
+        MVStore target = new MVStore.Builder().
+                fileName(targetFileName).open();
+        MVMap<String, String> sourceMeta = source.getMetaMap();
+        MVMap<String, String> targetMeta = target.getMetaMap();
+        for (Entry<String, String> m : sourceMeta.entrySet()) {
+            String key = m.getKey();
+            if (key.startsWith("chunk.")) {
+                // ignore
+            } else if (key.startsWith("map.")) {
+                // ignore
+            } else if (key.startsWith("name.")) {
+                // ignore
+            } else if (key.startsWith("root.")) {
+                // ignore
+            } else {
+                targetMeta.put(key, m.getValue());
+            }
+        }
+        for (String mapName : source.getMapNames()) {
+            MVMap.Builder<Object, Object> mp = 
+                    new MVMap.Builder<Object, Object>().
+                    keyType(new GenericDataType()).
+                    valueType(new GenericDataType());
+            MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
+            MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
+            targetMap.copyFrom(sourceMap);
+            target.commit();
+        }
+        target.close();
+        source.close();
+    }
+
+    /**
+     * A data type that can read any data that is persisted, and converts it to
+     * a byte array.
+     */
+    static class GenericDataType implements DataType {
+
+        @Override
+        public int compare(Object a, Object b) {
+            throw DataUtils.newUnsupportedOperationException("Can not compare");
+        }
+
+        @Override
+        public int getMemory(Object obj) {
+            return obj == null ? 0 : ((byte[]) obj).length;
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Object obj) {
+            if (obj != null) {
+                buff.put((byte[]) obj);
+            }
+        }
+
+        @Override
+        public void write(WriteBuffer buff, Object[] obj, int len, boolean key) {
+            for (Object o : obj) {
+                write(buff, o);
+            }
+        }
+
+        @Override
+        public Object read(ByteBuffer buff) {
+            int len = buff.remaining();
+            if (len == 0) {
+                return null;
+            }
+            byte[] data = new byte[len];
+            buff.get(data);
+            return data;
+        }
+
+        @Override
+        public void read(ByteBuffer buff, Object[] obj, int len, boolean key) {
+            for (int i = 0; i < obj.length; i++) {
+                obj[i] = read(buff);
+            }
+        }
+
+    }
+
 
 }

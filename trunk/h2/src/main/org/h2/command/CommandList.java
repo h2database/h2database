@@ -33,12 +33,12 @@ class CommandList extends Command {
         if (remainingCommand.isQuery()) {
             remainingCommand.query(0);
         } else {
-            remainingCommand.updateOrInsert();
+            remainingCommand.update();
         }
     }
 
     @Override
-    public int updateOrInsert() {
+    public int update() {
         int updateCount = command.executeUpdate();
         executeRemaining();
         return updateCount;

@@ -69,7 +69,7 @@ class CommandContainer extends Command {
     }
 
     @Override
-    public int updateOrInsert() {
+    public int update() {
         recompileIfRequired();
         setProgress(DatabaseEventListener.STATE_STATEMENT_START);
         start();

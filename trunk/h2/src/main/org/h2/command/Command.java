@@ -92,12 +92,13 @@ public abstract class Command implements CommandInterface {
     public abstract ResultInterface queryMeta();
 
     /**
-     * Execute an updating statement, if this is possible.
+     * Execute an updating statement (for example an insert, a delete, or an update), 
+     * if this is possible.
      *
      * @return the update count
      * @throws DbException if the command is not an updating statement
      */
-    public int updateOrInsert() {
+    public int update() {
         throw DbException.get(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY);
     }
 
@@ -250,7 +251,7 @@ public abstract class Command implements CommandInterface {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        return updateOrInsert();
+                        return update();
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {

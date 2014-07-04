@@ -64,7 +64,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.valueType = valueType;
         this.root = Page.createEmpty(this,  -1);
     }
-    
+
     /**
      * Get the metadata key for the root of the given map id.
      *
@@ -1032,9 +1032,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         ;
         // TODO work in progress
         if(oldRoots.size() - list.size() > 1) {
-        //    System.out.println("reduced! from " + oldRoots.size() + " to " + list.size() +"  " + getClass());
+        //    System.out.println("reduced! from " +
+        //        oldRoots.size() + " to " + list.size() +"  " + getClass());
         }
-        
+
         oldRoots = list;
     }
 
@@ -1297,19 +1298,19 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     void setWriteVersion(long writeVersion) {
         this.writeVersion = writeVersion;
     }
-    
+
     void copyFrom(MVMap<K, V> sourceMap) {
         ; // TODO work in progress
         root = copy(sourceMap.root, null);
     }
-    
+
     private Page copy(Page source, CursorPos parent) {
         Page target = Page.create(this, writeVersion, source);
         for (CursorPos p = parent; p != null; p = p.parent) {
             p.page.setChild(p.index, target);
         }
         if (!target.isLeaf()) {
-            CursorPos pos = new CursorPos(target, 0, parent);            
+            CursorPos pos = new CursorPos(target, 0, parent);
             target = copyOnWrite(target, writeVersion);
             for (int i = 0; i < target.getChildPageCount(); i++) {
                 Page sourceChild = source.getChildPage(i);

@@ -297,8 +297,9 @@ public class MVStoreTool {
     }
 
     /**
-     * Compress the store by creating a new file and copying the live pages there.
-     * 
+     * Compress the store by creating a new file and copying the live pages
+     * there.
+     *
      * @param fileName the file name
      */
     public static void compress(String fileName) {
@@ -307,10 +308,10 @@ public class MVStoreTool {
         FileUtils.moveTo(fileName, fileName);
         FileUtils.delete(fileName + ".old");
     }
-    
+
     /**
      * Copy all live pages from the source store to the target store.
-     * 
+     *
      * @param sourceFileName the name of the source store
      * @param targetFileName the name of the target store
      */
@@ -337,7 +338,7 @@ public class MVStoreTool {
             }
         }
         for (String mapName : source.getMapNames()) {
-            MVMap.Builder<Object, Object> mp = 
+            MVMap.Builder<Object, Object> mp =
                     new MVMap.Builder<Object, Object>().
                     keyType(new GenericDataType()).
                     valueType(new GenericDataType());

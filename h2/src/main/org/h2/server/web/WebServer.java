@@ -159,7 +159,7 @@ public class WebServer implements Service {
     private TranslateThread translateThread;
     private boolean allowChunked = true;
     private String serverPropertiesDir = Constants.SERVER_PROPERTIES_DIR;
-    /** null means the history is not allowed to be stored */
+    // null means the history is not allowed to be stored
     private String commandHistoryString;
 
     /**

@@ -382,7 +382,9 @@ public class Column {
             }
         }
         Sequence seq = new Sequence(schema, id, sequenceName, start, increment);
-        if (!temporary) {
+        if (temporary) {
+            seq.setTemporary(true);
+        } else {
             session.getDatabase().addSchemaObject(session, seq);
         }
         setAutoIncrement(false, 0, 0);

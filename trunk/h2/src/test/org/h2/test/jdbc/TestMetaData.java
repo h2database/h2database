@@ -1180,7 +1180,6 @@ public class TestMetaData extends TestBase {
 
     private void testClientInfo() throws SQLException {
         Connection conn = getConnection("metaData");
-        assertNull(conn.getClientInfo());
         assertThrows(SQLClientInfoException.class, conn).getClientInfo("xxx");
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();

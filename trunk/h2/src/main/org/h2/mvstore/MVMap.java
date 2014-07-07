@@ -995,7 +995,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (oldest == -1) {
             return;
         }
-        if (oldRootsList.peekFirst() == oldRootsList.peekLast()) {
+        Page last = oldRootsList.peekLast();
+        if (oldRootsList.peekFirst() == last) {
             // do nothing if there is no or only one entry
             return;
         }
@@ -1004,7 +1005,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         oldest--;
         while (true) {
             Page p = oldRootsList.peekFirst();
-            if (p == null || p.getVersion() >= oldest) {
+            if (p == null || p.getVersion() >= oldest || p == last) {
                 break;
             }
             oldRootsList.removeFirst(p);

@@ -53,7 +53,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private long createVersion;
     private final DataType keyType;
     private final DataType valueType;
-    private ArrayList<Page> oldRoots = new ArrayList<Page>();
+    
+    private ConcurrentLinkedList<Page> oldRootsList = 
+            new ConcurrentLinkedList<Page>();
 
     private boolean closed;
     private boolean readOnly;
@@ -718,22 +720,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (root != newRoot) {
             removeUnusedOldVersions();
             if (root.getVersion() != newRoot.getVersion()) {
-                // directly append to the list, modifying the list
-                // (if somebody concurrently replaces the oldRoots
-                // field, the change is lost, but in many cases this is
-                // detected at the end of this method)
-                ArrayList<Page> roots = oldRoots;
-                if (roots.size() > 0) {
-                    Page last = roots.get(roots.size() - 1);
-                    if (last.getVersion() != root.getVersion()) {
-                        roots.add(root);
-                    }
-                } else {
-                    roots.add(root);
-                }
-                if (roots != oldRoots) {
-                    throw DataUtils.newConcurrentModificationException(
-                            getName());
+                Page last = oldRootsList.peekLast();
+                if (last == null || last.getVersion() != root.getVersion()) {
+                    oldRootsList.add(root);
                 }
             }
             root = newRoot;
@@ -977,23 +966,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     void rollbackTo(long version) {
         beforeWrite();
         try {
-            removeUnusedOldVersions();
             if (version <= createVersion) {
                 // the map is removed later
             } else if (root.getVersion() >= version) {
-                // iterating in descending order -
-                // this is not terribly efficient if there are many versions
-                ArrayList<Page> roots = new ArrayList<Page>(oldRoots);
-                while (roots.size() > 0) {
-                    int i = roots.size() - 1;
-                    Page p = roots.get(i);
-                    root = p;
-                    roots.remove(i);
-                    if (p.getVersion() < version) {
+                while (true) {
+                    Page last = oldRootsList.peekLast();
+                    if (last == null) {
+                        break;
+                    }
+                    // slow, but rollback is not a common operation
+                    oldRootsList.removeLast(last);
+                    root = last;
+                    if (root.getVersion() < version) {
                         break;
                     }
                 }
-                oldRoots = roots;
             }
         } finally {
             afterWrite();
@@ -1008,35 +995,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (oldest == -1) {
             return;
         }
-        // operate on a stable array
-        // (items might be appended concurrently,
-        // but not removed)
-        ArrayList<Page> roots = oldRoots;
-        int i = searchRoot(roots, oldest);
-        if (i < 0) {
-            i = -i - 1;
-        }
-        i--;
-        if (i <= 0) {
+        if (oldRootsList.peekFirst() == oldRootsList.peekLast()) {
+            // do nothing if there is no or only one entry
             return;
         }
-        // create a new instance
-        // because another thread might iterate over it
-        int size = roots.size() - i;
-        ArrayList<Page> list = new ArrayList<Page>(size);
-        list.addAll(roots.subList(i, roots.size()));
-        if (roots != oldRoots) {
-            throw DataUtils.newConcurrentModificationException(
-                    getName());
-        }
         ;
-        // TODO work in progress
-        if(oldRoots.size() - list.size() > 1) {
-        //    System.out.println("reduced! from " +
-        //        oldRoots.size() + " to " + list.size() +"  " + getClass());
+        // TODO why is this?
+        oldest--;
+        while (true) {
+            Page p = oldRootsList.peekFirst();
+            if (p == null || p.getVersion() >= oldest) {
+                break;
+            }
+            oldRootsList.removeFirst(p);
         }
-
-        oldRoots = list;
     }
 
     public boolean isReadOnly() {
@@ -1197,20 +1169,20 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 store.getFileStore() == null)) {
             newest = r;
         } else {
-            // operate on a stable array
-            // (items might be appended concurrently)
-            ArrayList<Page> roots = oldRoots;
-            // find the newest page that has a getVersion() <= version
-            int i = searchRoot(roots, version);
-            if (i < 0) {
-                // not found
-                if (i == -1) {
-                    // smaller than all in-memory versions
-                    return store.openMapVersion(version, id, this);
+            Page last = oldRootsList.peekFirst();
+            if (last == null || version < last.getVersion()) {
+                // smaller than all in-memory versions
+                return store.openMapVersion(version, id, this);
+            }                
+            Iterator<Page> it = oldRootsList.iterator();
+            while (it.hasNext()) {
+                Page p = it.next();
+                if (p.getVersion() > version) {
+                    break;
                 }
-                i = -i - 2;
+                last = p;
             }
-            newest = roots.get(i);
+            newest = last;
         }
         MVMap<K, V> m = openReadOnly();
         m.root = newest;
@@ -1231,22 +1203,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         m.init(store, config);
         m.root = root;
         return m;
-    }
-
-    private static int searchRoot(ArrayList<Page> roots, long version) {
-        int low = 0, high = roots.size() - 1;
-        while (low <= high) {
-            int x = (low + high) >>> 1;
-            long v = roots.get(x).getVersion();
-            if (v < version) {
-                low = x + 1;
-            } else if (version < v) {
-                high = x - 1;
-            } else {
-                return x;
-            }
-        }
-        return -(low + 1);
     }
 
     public long getVersion() {

@@ -313,6 +313,7 @@ public class Page {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
+        buff.append("version: ").append(Long.toHexString(version)).append("\n");
         buff.append("pos: ").append(Long.toHexString(pos)).append("\n");
         if (pos != 0) {
             int chunkId = DataUtils.getPageChunkId(pos);

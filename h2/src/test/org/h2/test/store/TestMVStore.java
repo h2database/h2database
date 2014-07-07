@@ -1444,6 +1444,7 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/testRollback.h3";
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName, 5);
+        s.setAutoCommitDelay(0);
         assertEquals(0, s.getCurrentVersion());
         MVMap<String, String> m = s.openMap("data");
         s.rollbackTo(0);

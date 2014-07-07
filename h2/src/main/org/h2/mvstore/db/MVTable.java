@@ -50,8 +50,8 @@ public class MVTable extends TableBase {
     private MVPrimaryIndex primaryIndex;
     private ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
-    private volatile Session lockExclusive;
-    private HashSet<Session> lockShared = New.hashSet();
+    private volatile Session lockExclusiveSession;
+    private HashSet<Session> lockSharedSessions = New.hashSet();
     private final Trace traceLock;
     private int changesSinceAnalyze;
     private int nextAnalyze;
@@ -99,12 +99,12 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public void lock(Session session, boolean exclusive, boolean force) {
+    public void lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return;
         }
-        if (!force && database.isMultiVersion()) {
+        if (!forceLockEvenInMvcc && database.isMultiVersion()) {
             // MVCC: update, delete, and insert use a shared lock.
             // Select doesn't lock except when using FOR UPDATE and
             // the system property h2.selectForUpdateMvcc
@@ -112,15 +112,19 @@ public class MVTable extends TableBase {
             if (exclusive) {
                 exclusive = false;
             } else {
-                if (lockExclusive == null) {
+                if (lockExclusiveSession == null) {
                     return;
                 }
             }
         }
-        if (lockExclusive == session) {
+        if (lockExclusiveSession == session) {
             return;
         }
         synchronized (database) {
+            if (lockExclusiveSession == session) {
+                return;
+            }
+            session.setWaitForLock(this, Thread.currentThread());
             try {
                 doLock(session, lockMode, exclusive);
             } finally {
@@ -135,24 +139,21 @@ public class MVTable extends TableBase {
         long max = 0;
         boolean checkDeadlock = false;
         while (true) {
-            if (lockExclusive == session) {
-                return;
-            }
             if (exclusive) {
-                if (lockExclusive == null) {
-                    if (lockShared.isEmpty()) {
+                if (lockExclusiveSession == null) {
+                    if (lockSharedSessions.isEmpty()) {
                         traceLock(session, exclusive, "added for");
                         session.addLock(this);
-                        lockExclusive = session;
+                        lockExclusiveSession = session;
                         return;
-                    } else if (lockShared.size() == 1 && lockShared.contains(session)) {
+                    } else if (lockSharedSessions.size() == 1 && lockSharedSessions.contains(session)) {
                         traceLock(session, exclusive, "add (upgraded) for ");
-                        lockExclusive = session;
+                        lockExclusiveSession = session;
                         return;
                     }
                 }
             } else {
-                if (lockExclusive == null) {
+                if (lockExclusiveSession == null) {
                     if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
                         if (!database.isMultiThreaded() && !database.isMultiVersion()) {
                             // READ_COMMITTED: a read lock is acquired,
@@ -164,15 +165,14 @@ public class MVTable extends TableBase {
                             return;
                         }
                     }
-                    if (!lockShared.contains(session)) {
+                    if (!lockSharedSessions.contains(session)) {
                         traceLock(session, exclusive, "ok");
                         session.addLock(this);
-                        lockShared.add(session);
+                        lockSharedSessions.add(session);
                     }
                     return;
                 }
             }
-            session.setWaitForLock(this, Thread.currentThread());
             if (checkDeadlock) {
                 ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
@@ -239,7 +239,7 @@ public class MVTable extends TableBase {
                 }
                 buff.append(t.toString());
                 if (t instanceof RegularTable) {
-                    if (((MVTable) t).lockExclusive == s) {
+                    if (((MVTable) t).lockExclusiveSession == s) {
                         buff.append(" (exclusive)");
                     } else {
                         buff.append(" (shared)");
@@ -271,7 +271,7 @@ public class MVTable extends TableBase {
             }
             visited.add(session);
             ArrayList<Session> error = null;
-            for (Session s : lockShared) {
+            for (Session s : lockSharedSessions) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already
                     continue;
@@ -285,10 +285,10 @@ public class MVTable extends TableBase {
                     }
                 }
             }
-            if (error == null && lockExclusive != null) {
-                Table t = lockExclusive.getWaitForLock();
+            if (error == null && lockExclusiveSession != null) {
+                Table t = lockExclusiveSession.getWaitForLock();
                 if (t != null) {
-                    error = t.checkDeadlock(lockExclusive, clash, visited);
+                    error = t.checkDeadlock(lockExclusiveSession, clash, visited);
                     if (error != null) {
                         error.add(session);
                     }
@@ -308,23 +308,23 @@ public class MVTable extends TableBase {
 
     @Override
     public boolean isLockedExclusively() {
-        return lockExclusive != null;
+        return lockExclusiveSession != null;
     }
 
     @Override
     public boolean isLockedExclusivelyBy(Session session) {
-        return lockExclusive == session;
+        return lockExclusiveSession == session;
     }
 
     @Override
     public void unlock(Session s) {
         if (database != null) {
-            traceLock(s, lockExclusive == s, "unlock");
-            if (lockExclusive == s) {
-                lockExclusive = null;
+            traceLock(s, lockExclusiveSession == s, "unlock");
+            if (lockExclusiveSession == s) {
+                lockExclusiveSession = null;
             }
-            if (lockShared.size() > 0) {
-                lockShared.remove(s);
+            if (lockSharedSessions.size() > 0) {
+                lockSharedSessions.remove(s);
             }
             // TODO lock: maybe we need we fifo-queue to make sure nobody
             // starves. check what other databases do

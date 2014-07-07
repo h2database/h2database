@@ -590,7 +590,7 @@ public class MetaTable extends Table {
     }
 
     @Override
-    public void lock(Session session, boolean exclusive, boolean force) {
+    public void lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
         // nothing to do
     }
 

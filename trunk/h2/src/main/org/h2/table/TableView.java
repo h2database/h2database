@@ -320,7 +320,7 @@ public class TableView extends Table {
     }
 
     @Override
-    public void lock(Session session, boolean exclusive, boolean force) {
+    public void lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
         // exclusive lock means: the view will be dropped
     }
 

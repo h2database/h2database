@@ -861,7 +861,8 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void verifyMetaLocked(Session session) {
-        if (!lockMeta(session) && lockMode != Constants.LOCK_MODE_OFF) {
+        if (meta != null && !meta.isLockedExclusivelyBy(session)
+                && lockMode != Constants.LOCK_MODE_OFF) {
             throw DbException.throwInternalError();
         }
     }

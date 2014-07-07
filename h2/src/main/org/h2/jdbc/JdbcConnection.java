@@ -1755,7 +1755,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             Properties p = getClientInfo();
             String s = p.getProperty(name);
             if (s == null) {
-            	throw new SQLClientInfoException();
+                throw new SQLClientInfoException();
             }
             return s;
         } catch (Exception e) {

@@ -996,12 +996,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return;
         }
         Page last = oldRootsList.peekLast();
-        if (oldRootsList.peekFirst() == last) {
-            // do nothing if there is no or only one entry
-            return;
-        }
-        ;
         // TODO why is this?
+        ;
         oldest--;
         while (true) {
             Page p = oldRootsList.peekFirst();

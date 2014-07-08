@@ -41,24 +41,31 @@ public class ConcurrentLinkedList<K> {
     
     public void removeFirst(K obj) {
         Entry<K> x = head;
-        if (x == null || tail == x) {
-            throw DataUtils.newUnsupportedOperationException(
-                    "Must contain at least two entries");
+        if (x == null) {
+            return;
         }
         if (x.obj.equals(obj)) {
+            if (head == tail) {
+                tail = x.next;
+            }
             head = x.next;
         }
     }
 
     public void removeLast(K obj) {
         Entry<K> x = head;
-        Entry<K> prev = x;
+        if (x == null) {
+            return;
+        }
+        Entry<K> prev = null;
         while (x.next != null) {
             prev = x;
             x = x.next;
         }
         if (x.obj.equals(obj)) {
-            prev.next = null;
+            if (prev != null) {
+                prev.next = null;
+            }
             if (head == tail) {
                 head = prev;
             }

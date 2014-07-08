@@ -13,6 +13,9 @@ import org.h2.mvstore.ConcurrentLinkedList;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
+/**
+ * Test the concurrent linked list.
+ */
 public class TestConcurrentLinkedList extends TestBase {
 
     /**
@@ -21,19 +24,24 @@ public class TestConcurrentLinkedList extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        TestBase.createCaller().init().test();
+        TestConcurrentLinkedList test = (TestConcurrentLinkedList) TestBase.createCaller().init();
+        test.test();
+        test.testPerformance();
     }
 
     @Override
     public void test() throws Exception {
-        testPerformance(true);
-        testPerformance(false);
-        testPerformance(true);
-        testPerformance(false);
-        testPerformance(true);
-        testPerformance(false);
         testConcurrent();
         testRandomized();
+    }
+    
+    private void testPerformance() {
+        testPerformance(true);
+        testPerformance(false);
+        testPerformance(true);
+        testPerformance(false);
+        testPerformance(true);
+        testPerformance(false);
     }
     
     private void testPerformance(final boolean stock) {
@@ -100,64 +108,49 @@ public class TestConcurrentLinkedList extends TestBase {
             LinkedList<Integer> x = new LinkedList<Integer>();
             StringBuilder buff = new StringBuilder();
             for (int j = 0; j < 10000; j++) {
-                int opType = r.nextInt(10);
+                buff.append("[" + j + "] ");
+                int opType = r.nextInt(3);
                 switch (opType) {
                 case 0: {
                     int value = r.nextInt(100);
-                    buff.append(" add " + value);
+                    buff.append("add " + value + "\n");
                     test.add(value);
                     x.add(value);
                     break;
                 }
                 case 1: {
                     Integer value = x.peek();
-                    buff.append(" peek");
-                    if (value == null) {
-                        assertNull(test.peekFirst());
+                    if (value != null && r.nextBoolean()) {
+                        buff.append("removeFirst\n");
+                        x.removeFirst();
+                        test.removeFirst(value);
                     } else {
-                        assertEquals(value.intValue(), test.peekFirst().intValue());
+                        buff.append("removeFirst -1\n");
+                        test.removeFirst(-1);
                     }
                     break;
                 }
                 case 2: {
                     Integer value = x.peekLast();
-                    buff.append(" peeLast");
-                    if (value == null) {
-                        assertNull(test.peekLast());
+                    if (value != null && r.nextBoolean()) {
+                        buff.append("removeLast\n");
+                        x.removeLast();
+                        test.removeLast(value);
                     } else {
-                        assertEquals(value.intValue(), test.peekLast()
-                                .intValue());
-                    }
-                    break;
-                }
-                case 3: {
-                    if (x.size() >= 2) {
-                        Integer value = x.peek();
-                        if (value != null && r.nextBoolean()) {
-                            buff.append(" removeFirst");
-                            x.removeFirst();
-                            test.removeFirst(value);
-                        } else {
-                            test.removeFirst(-1);
-                        }
-                    }
-                    break;
-                }
-                case 4: {
-                    if (x.size() >= 2) {
-                        Integer value = x.peekLast();
-                        if (value != null && r.nextBoolean()) {
-                            buff.append(" removeLast");
-                            x.removeLast();
-                            test.removeLast(value);
-                        } else {
-                            test.removeLast(-1);
-                        }
+                        buff.append("removeLast -1\n");
+                        test.removeLast(-1);
                     }
                     break;
                 }
                 }
                 assertEquals(toString(x.iterator()), toString(test.iterator()));
+                if (x.isEmpty()) {
+                    assertNull(test.peekFirst());
+                    assertNull(test.peekLast());
+                } else {
+                    assertEquals(x.peekFirst().intValue(), test.peekFirst().intValue());
+                    assertEquals(x.peekLast().intValue(), test.peekLast().intValue());
+                }
             }
         }
     }

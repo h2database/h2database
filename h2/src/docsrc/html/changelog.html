@@ -29,6 +29,8 @@ Change Log
 and which servers that are available. (patch from Nikolaj Fogh)
 </li><li>Fix bug in changing encrypted DB password that kept the file handle
 open when the wrong password was supplied. (test case from Jens Hohmuth).
+</li><li>Issue 567: h2 hangs for a long time then (sometimes) recovers.
+Introduce a queue when doing table locking to prevent session starvation.
 </li></ul>
 
 <h2>Version 1.4.179 Beta (2014-06-23)</h2>

@@ -5,12 +5,12 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.Analyze;
@@ -48,10 +48,14 @@ import org.h2.value.Value;
 public class MVTable extends TableBase {
 
     private MVPrimaryIndex primaryIndex;
-    private ArrayList<Index> indexes = New.arrayList();
+    private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private volatile Session lockExclusiveSession;
-    private HashSet<Session> lockSharedSessions = New.hashSet();
+    private final HashSet<Session> lockSharedSessions = New.hashSet();
+    /**
+     * FIFO queue to prevent starvation, since Java's synchronized locking is biased.
+     */
+    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<Session>();
     private final Trace traceLock;
     private int changesSinceAnalyze;
     private int nextAnalyze;
@@ -59,13 +63,6 @@ public class MVTable extends TableBase {
     private Column rowIdColumn;
 
     private final TransactionStore store;
-
-    /**
-     * True if one thread ever was waiting to lock this table. This is to avoid
-     * calling notifyAll if no session was ever waiting to lock this table. If
-     * set, the flag stays. In theory, it could be reset, however not sure when.
-     */
-    private boolean waitForLock;
 
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
@@ -125,51 +122,25 @@ public class MVTable extends TableBase {
                 return;
             }
             session.setWaitForLock(this, Thread.currentThread());
+            waitingSessions.addLast(session);
             try {
-                doLock(session, lockMode, exclusive);
+                doLock1(session, lockMode, exclusive);
             } finally {
                 session.setWaitForLock(null, null);
+                waitingSessions.remove(session);
             }
         }
     }
 
-    private void doLock(Session session, int lockMode, boolean exclusive) {
+    private void doLock1(Session session, int lockMode, boolean exclusive) {
         traceLock(session, exclusive, "requesting for");
         // don't get the current time unless necessary
         long max = 0;
         boolean checkDeadlock = false;
         while (true) {
-            if (exclusive) {
-                if (lockExclusiveSession == null) {
-                    if (lockSharedSessions.isEmpty()) {
-                        traceLock(session, exclusive, "added for");
-                        session.addLock(this);
-                        lockExclusiveSession = session;
-                        return;
-                    } else if (lockSharedSessions.size() == 1 && lockSharedSessions.contains(session)) {
-                        traceLock(session, exclusive, "add (upgraded) for ");
-                        lockExclusiveSession = session;
-                        return;
-                    }
-                }
-            } else {
-                if (lockExclusiveSession == null) {
-                    if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
-                        if (!database.isMultiThreaded() && !database.isMultiVersion()) {
-                            // READ_COMMITTED: a read lock is acquired,
-                            // but released immediately after the operation
-                            // is complete.
-                            // When allowing only one thread, no lock is
-                            // required.
-                            // Row level locks work like read committed.
-                            return;
-                        }
-                    }
-                    if (!lockSharedSessions.contains(session)) {
-                        traceLock(session, exclusive, "ok");
-                        session.addLock(this);
-                        lockSharedSessions.add(session);
-                    }
+            // if I'm the next one in the queue
+            if (waitingSessions.getFirst() == session) {
+                if (doLock2(session, lockMode, exclusive)) {
                     return;
                 }
             }
@@ -210,12 +181,49 @@ public class MVTable extends TableBase {
                 if (sleep == 0) {
                     sleep = 1;
                 }
-                waitForLock = true;
                 database.wait(sleep);
             } catch (InterruptedException e) {
                 // ignore
             }
         }
+    }
+    
+    private boolean doLock2(Session session, int lockMode, boolean exclusive) {
+        if (exclusive) {
+            if (lockExclusiveSession == null) {
+                if (lockSharedSessions.isEmpty()) {
+                    traceLock(session, exclusive, "added for");
+                    session.addLock(this);
+                    lockExclusiveSession = session;
+                    return true;
+                } else if (lockSharedSessions.size() == 1 && lockSharedSessions.contains(session)) {
+                    traceLock(session, exclusive, "add (upgraded) for ");
+                    lockExclusiveSession = session;
+                    return true;
+                }
+            }
+        } else {
+            if (lockExclusiveSession == null) {
+                if (lockMode == Constants.LOCK_MODE_READ_COMMITTED) {
+                    if (!database.isMultiThreaded() && !database.isMultiVersion()) {
+                        // READ_COMMITTED: a read lock is acquired,
+                        // but released immediately after the operation
+                        // is complete.
+                        // When allowing only one thread, no lock is
+                        // required.
+                        // Row level locks work like read committed.
+                        return true;
+                    }
+                }
+                if (!lockSharedSessions.contains(session)) {
+                    traceLock(session, exclusive, "ok");
+                    session.addLock(this);
+                    lockSharedSessions.add(session);
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
     private static String getDeadlockDetails(ArrayList<Session> sessions) {
@@ -326,10 +334,8 @@ public class MVTable extends TableBase {
             if (lockSharedSessions.size() > 0) {
                 lockSharedSessions.remove(s);
             }
-            // TODO lock: maybe we need we fifo-queue to make sure nobody
-            // starves. check what other databases do
             synchronized (database) {
-                if (database.getSessionCount() > 1 && waitForLock) {
+                if (!waitingSessions.isEmpty()) {
                     database.notifyAll();
                 }
             }

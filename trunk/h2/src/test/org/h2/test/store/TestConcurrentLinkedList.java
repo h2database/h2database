@@ -8,8 +8,9 @@ package org.h2.test.store;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.h2.mvstore.ConcurrentLinkedList;
+import org.h2.mvstore.ConcurrentRing;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -47,18 +48,26 @@ public class TestConcurrentLinkedList extends TestBase {
     private void testPerformance(final boolean stock) {
         System.out.print(stock ? "stock " : "custom ");
         long start = System.currentTimeMillis();
-        final ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
+        // final ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
+        final ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
         final LinkedList<Integer> x = new LinkedList<Integer>();
+        final AtomicInteger counter = new AtomicInteger();
         Task task = new Task() {
             @Override
             public void call() throws Exception {
                 while (!stop) {
                     if (stock) {
                         synchronized (x) {
-                            x.peekFirst();
+                            Integer y = x.peekFirst();
+                            if (y == null) {
+                                counter.incrementAndGet();
+                            }
                         }
                     } else {
-                        test.peekFirst();
+                        Integer y = test.peekFirst();
+                        if (y == null) {
+                            counter.incrementAndGet();
+                        }
                     }
                 }
             }
@@ -66,28 +75,29 @@ public class TestConcurrentLinkedList extends TestBase {
         task.execute();
         test.add(-1);
         x.add(-1);
-        for (int i = 0; i < 10000000; i++) {
-            Integer value = i;
+        for (int i = 0; i < 2000000; i++) {
+            Integer value = Integer.valueOf(i & 63);
             if (stock) {
                 synchronized (x) {
                     Integer f = x.peekLast();
-                    if (!f.equals(value)) {
+                    if (f != value) {
                         x.add(i);
                     }
                 }
+                Math.sin(i);
                 synchronized (x) {
-                    if (x.peek() != x.peekLast()) {
-                        x.peek();
+                    if (x.peekFirst() != x.peekLast()) {
                         x.removeFirst();
                     }
                 }
             } else {
                 Integer f = test.peekLast();
-                if (!f.equals(value)) {
+                if (f != value) {
                     test.add(i);
                 }
-                if (test.peekFirst() != test.peekLast()) {
-                    f = test.peekFirst();
+                Math.sin(i);
+                f = test.peekFirst();
+                if (f != test.peekLast()) {
                     test.removeFirst(f);
                 }
             }
@@ -97,14 +107,40 @@ public class TestConcurrentLinkedList extends TestBase {
     }
 
     private void testConcurrent() {
-        // TODO Auto-generated method stub
-        
+//         final ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
+        final ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
+        final AtomicInteger counter = new AtomicInteger();
+        final AtomicInteger size = new AtomicInteger();
+        Task task = new Task() {
+            @Override
+            public void call() {
+                while (!stop) {
+                    if (size.get() < 10) {
+                        test.add(counter.getAndIncrement());
+                        size.getAndIncrement();
+                    }
+                }
+            }
+        };
+        task.execute();
+        for (int i = 0; i < 1000000;) {
+            Integer x = test.peekFirst();
+            if (x == null) {
+                continue;
+            }
+            assertEquals(i, x.intValue());
+            if (test.removeFirst(x)) {
+                size.getAndDecrement();
+                i++;
+            }
+        }
+        task.get();
     }
 
     private void testRandomized() {
         Random r = new Random(0);
         for (int i = 0; i < 100; i++) {
-            ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
+            ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
             LinkedList<Integer> x = new LinkedList<Integer>();
             StringBuilder buff = new StringBuilder();
             for (int j = 0; j < 10000; j++) {
@@ -120,7 +156,7 @@ public class TestConcurrentLinkedList extends TestBase {
                 }
                 case 1: {
                     Integer value = x.peek();
-                    if (value != null && r.nextBoolean()) {
+                    if (value != null && (x.size() > 5 || r.nextBoolean())) {
                         buff.append("removeFirst\n");
                         x.removeFirst();
                         test.removeFirst(value);
@@ -132,7 +168,7 @@ public class TestConcurrentLinkedList extends TestBase {
                 }
                 case 2: {
                     Integer value = x.peekLast();
-                    if (value != null && r.nextBoolean()) {
+                    if (value != null && (x.size() > 5 || r.nextBoolean())) {
                         buff.append("removeLast\n");
                         x.removeLast();
                         test.removeLast(value);

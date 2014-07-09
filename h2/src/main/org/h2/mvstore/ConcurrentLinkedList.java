@@ -39,38 +39,39 @@ public class ConcurrentLinkedList<K> {
         }
     }
     
-    public void removeFirst(K obj) {
+    public boolean removeFirst(K obj) {
         Entry<K> x = head;
-        if (x == null) {
-            return;
+        if (x == null || x.obj != obj) {
+            return false;
         }
-        if (x.obj.equals(obj)) {
-            if (head == tail) {
-                tail = x.next;
-            }
-            head = x.next;
+        if (head == tail) {
+            tail = x.next;
         }
+        head = x.next;
+        return true;
     }
 
-    public void removeLast(K obj) {
+    public boolean removeLast(K obj) {
         Entry<K> x = head;
         if (x == null) {
-            return;
+            return false;
         }
         Entry<K> prev = null;
         while (x.next != null) {
             prev = x;
             x = x.next;
         }
-        if (x.obj.equals(obj)) {
-            if (prev != null) {
-                prev.next = null;
-            }
-            if (head == tail) {
-                head = prev;
-            }
-            tail = prev;
+        if (x.obj != obj) {
+            return false;
         }
+        if (prev != null) {
+            prev.next = null;
+        }
+        if (head == tail) {
+            head = prev;
+        }
+        tail = prev;
+        return true;
     }
 
     public Iterator<K> iterator() {

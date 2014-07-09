@@ -54,8 +54,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType keyType;
     private final DataType valueType;
     
-    private ConcurrentLinkedList<Page> oldRootsList = 
-            new ConcurrentLinkedList<Page>();
+    private ConcurrentRing<Page> oldRoots = 
+            new ConcurrentRing<Page>();
 
     private boolean closed;
     private boolean readOnly;
@@ -720,9 +720,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (root != newRoot) {
             removeUnusedOldVersions();
             if (root.getVersion() != newRoot.getVersion()) {
-                Page last = oldRootsList.peekLast();
+                Page last = oldRoots.peekLast();
                 if (last == null || last.getVersion() != root.getVersion()) {
-                    oldRootsList.add(root);
+                    oldRoots.add(root);
                 }
             }
             root = newRoot;
@@ -970,12 +970,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 // the map is removed later
             } else if (root.getVersion() >= version) {
                 while (true) {
-                    Page last = oldRootsList.peekLast();
+                    Page last = oldRoots.peekLast();
                     if (last == null) {
                         break;
                     }
                     // slow, but rollback is not a common operation
-                    oldRootsList.removeLast(last);
+                    oldRoots.removeLast(last);
                     root = last;
                     if (root.getVersion() < version) {
                         break;
@@ -995,16 +995,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         if (oldest == -1) {
             return;
         }
-        Page last = oldRootsList.peekLast();
+        Page last = oldRoots.peekLast();
         // TODO why is this?
         ;
         oldest--;
         while (true) {
-            Page p = oldRootsList.peekFirst();
+            Page p = oldRoots.peekFirst();
             if (p == null || p.getVersion() >= oldest || p == last) {
                 break;
             }
-            oldRootsList.removeFirst(p);
+            oldRoots.removeFirst(p);
         }
     }
 
@@ -1166,12 +1166,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 store.getFileStore() == null)) {
             newest = r;
         } else {
-            Page last = oldRootsList.peekFirst();
+            Page last = oldRoots.peekFirst();
             if (last == null || version < last.getVersion()) {
                 // smaller than all in-memory versions
                 return store.openMapVersion(version, id, this);
             }                
-            Iterator<Page> it = oldRootsList.iterator();
+            Iterator<Page> it = oldRoots.iterator();
             while (it.hasNext()) {
                 Page p = it.next();
                 if (p.getVersion() > version) {

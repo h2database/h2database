@@ -119,7 +119,7 @@ public class CreateView extends SchemaCommand {
         if (old == null) {
             db.addSchemaObject(session, view);
         } else {
-            db.update(session, view);
+            db.updateMeta(session, view);
         }
         return 0;
     }

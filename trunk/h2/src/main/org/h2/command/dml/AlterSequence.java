@@ -104,7 +104,7 @@ public class AlterSequence extends SchemaCommand {
         // would keep other transactions from using the sequence
         Session sysSession = db.getSystemSession();
         synchronized (sysSession) {
-            db.update(sysSession, sequence);
+            db.updateMeta(sysSession, sequence);
             sysSession.commit(true);
         }
         return 0;

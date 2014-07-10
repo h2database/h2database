@@ -1564,7 +1564,7 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the database object
      */
-    public synchronized void update(Session session, DbObject obj) {
+    public synchronized void updateMeta(Session session, DbObject obj) {
         lockMeta(session);
         int id = obj.getId();
         removeMeta(session, id);
@@ -1591,12 +1591,12 @@ public class Database implements DataHandler {
         if (comment != null) {
             DbException.throwInternalError();
         }
-        update(session, obj);
+        updateMeta(session, obj);
         // remember that this scans only one level deep!
         if (list != null) {
             for (DbObject o : list) {
                 if (o.getCreateSQL() != null) {
-                    update(session, o);
+                    updateMeta(session, o);
                 }
             }
         }

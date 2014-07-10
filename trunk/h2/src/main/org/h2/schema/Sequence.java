@@ -303,7 +303,7 @@ public class Sequence extends SchemaObjectBase {
         try {
             value = valueWithMargin;
             if (!isTemporary()) {
-                database.update(session, this);
+                database.updateMeta(session, this);
             }
         } finally {
             value = realValue;

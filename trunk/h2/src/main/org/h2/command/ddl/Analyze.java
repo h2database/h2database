@@ -114,7 +114,7 @@ public class Analyze extends DefineCommand {
             columns[j].setSelectivity(selectivity);
         }
         if (manual) {
-            db.update(session, table);
+            db.updateMeta(session, table);
         } else {
             Session sysSession = db.getSystemSession();
             if (sysSession != session) {
@@ -122,7 +122,7 @@ public class Analyze extends DefineCommand {
                 // (which is the case if we are within a trigger)
                 // then we can't update the statistics because
                 // that would unlock all locked objects
-                db.update(sysSession, table);
+                db.updateMeta(sysSession, table);
                 sysSession.commit(true);
             }
         }

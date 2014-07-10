@@ -102,7 +102,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
             checkNoNullValues();
             oldColumn.setNullable(false);
-            db.update(session, table);
+            db.updateMeta(session, table);
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL: {
@@ -112,7 +112,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
             checkNullable();
             oldColumn.setNullable(true);
-            db.update(session, table);
+            db.updateMeta(session, table);
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
@@ -120,7 +120,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
             removeSequence(sequence);
-            db.update(session, table);
+            db.updateMeta(session, table);
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE: {
@@ -130,7 +130,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             if (oldColumn.isWideningConversion(newColumn)) {
                 convertAutoIncrementColumn(newColumn);
                 oldColumn.copy(newColumn);
-                db.update(session, table);
+                db.updateMeta(session, table);
             } else {
                 oldColumn.setSequence(null);
                 oldColumn.setDefaultExpression(session, null);
@@ -173,7 +173,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY: {
             int value = newSelectivity.optimize(session).getValue(session).getInt();
             oldColumn.setSelectivity(value);
-            db.update(session, table);
+            db.updateMeta(session, table);
             break;
         }
         default:

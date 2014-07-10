@@ -1582,10 +1582,10 @@ public class Database implements DataHandler {
             SchemaObject obj, String newName) {
         checkWritingAllowed();
         obj.getSchema().rename(obj, newName);
-        updateWithChildren(session, obj);
+        updateMetaAndFirstLevelChildren(session, obj);
     }
 
-    private synchronized void updateWithChildren(Session session, DbObject obj) {
+    private synchronized void updateMetaAndFirstLevelChildren(Session session, DbObject obj) {
         ArrayList<DbObject> list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
@@ -1629,7 +1629,7 @@ public class Database implements DataHandler {
         map.remove(obj.getName());
         obj.rename(newName);
         map.put(newName, obj);
-        updateWithChildren(session, obj);
+        updateMetaAndFirstLevelChildren(session, obj);
     }
 
     /**

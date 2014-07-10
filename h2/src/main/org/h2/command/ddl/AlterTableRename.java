@@ -46,7 +46,7 @@ public class AlterTableRename extends SchemaCommand {
             if (!t.isHidden()) {
                 t.setHidden(hidden);
                 oldTable.setHidden(true);
-                db.update(session, oldTable);
+                db.updateMeta(session, oldTable);
             }
             return 0;
         }

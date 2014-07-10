@@ -115,7 +115,7 @@ public class GrantRevoke extends DefineCommand {
                 db.addDatabaseObject(session, right);
             } else {
                 right.setRightMask(right.getRightMask() | rightMask);
-                db.update(session, right);
+                db.updateMeta(session, right);
             }
         }
     }
@@ -151,7 +151,7 @@ public class GrantRevoke extends DefineCommand {
                 db.removeDatabaseObject(session, right);
             } else {
                 right.setRightMask(newRight);
-                db.update(session, right);
+                db.updateMeta(session, right);
             }
         }
     }

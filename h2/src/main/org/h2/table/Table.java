@@ -1029,7 +1029,7 @@ public abstract class Table extends SchemaObjectBase {
             for (Constraint cons : constraints) {
                 if (cons.usesIndex(index)) {
                     cons.setIndexOwner(index);
-                    database.update(session, cons);
+                    database.updateMeta(session, cons);
                     stillNeeded = true;
                 }
             }

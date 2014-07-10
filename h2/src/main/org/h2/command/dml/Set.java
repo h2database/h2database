@@ -522,7 +522,7 @@ public class Set extends Prepared {
         if (addNew) {
             database.addDatabaseObject(session, setting);
         } else {
-            database.update(session, setting);
+            database.updateMeta(session, setting);
         }
     }
 

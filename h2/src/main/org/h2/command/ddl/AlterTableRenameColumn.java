@@ -53,10 +53,10 @@ public class AlterTableRenameColumn extends DefineCommand {
         column.removeCheckConstraint();
         column.addCheckConstraint(session, newCheckExpr);
         table.setModified();
-        db.update(session, table);
+        db.updateMeta(session, table);
         for (DbObject child : table.getChildren()) {
             if (child.getCreateSQL() != null) {
-                db.update(session, child);
+                db.updateMeta(session, child);
             }
         }
         return 0;

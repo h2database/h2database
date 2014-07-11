@@ -7,70 +7,51 @@ package org.h2.mvstore;
 
 import java.util.Iterator;
 
+
 /**
- * A very simple linked list that supports concurrent access.
+ * A very simple linked list that supports concurrent access. 
+ * Internally, it uses immutable objects. 
+ * It uses recursion and is not meant for long lists.
  * 
  * @param <K> the key type
  */
 public class ConcurrentLinkedList<K> {
+    
+    static final Entry<?> NULL = new Entry<Object>(null, null);
 
-    volatile Entry<K> head;
-    private volatile Entry<K> tail;
+    @SuppressWarnings("unchecked")
+    volatile Entry<K> head = (Entry<K>) NULL;
     
     public K peekFirst() {
         Entry<K> x = head;
-        return x == null ? null : x.obj;
+        return x.obj;
     }
 
     public K peekLast() {
-        Entry<K> x = tail;
-        return x == null ? null : x.obj;
+        Entry<K> x = head;
+        while (x != NULL && x.next != NULL) {
+            x = x.next;
+        }
+        return x.obj;
     }
 
-    public void add(K obj) {
-        Entry<K> x = new Entry<K>(obj);
-        Entry<K> t = tail;
-        if (t != null) {
-            t.next = x;
-        }
-        tail = x;
-        if (head == null) {
-            head = x;
-        }
+    public synchronized void add(K obj) {
+        head = Entry.append(head, obj);
     }
     
-    public boolean removeFirst(K obj) {
-        Entry<K> x = head;
-        if (x == null || x.obj != obj) {
+    public synchronized boolean removeFirst(K obj) {
+        if (head.obj != obj) {
             return false;
         }
-        if (head == tail) {
-            tail = x.next;
-        }
-        head = x.next;
+        head = head.next;
         return true;
     }
 
-    public boolean removeLast(K obj) {
-        Entry<K> x = head;
-        if (x == null) {
+    public synchronized boolean removeLast(K obj) {
+        if (peekLast() != obj) {
             return false;
         }
-        Entry<K> prev = null;
-        while (x.next != null) {
-            prev = x;
-            x = x.next;
-        }
-        if (x.obj != obj) {
-            return false;
-        }
-        if (prev != null) {
-            prev.next = null;
-        }
-        if (head == tail) {
-            head = prev;
-        }
-        tail = prev;
+        head = Entry.removeLast(head);
         return true;
     }
 
@@ -81,7 +62,7 @@ public class ConcurrentLinkedList<K> {
 
             @Override
             public boolean hasNext() {
-                return current != null;
+                return current != NULL;
             }
 
             @Override
@@ -106,9 +87,27 @@ public class ConcurrentLinkedList<K> {
         final K obj;
         Entry<K> next;
         
-        Entry(K obj) {
+        Entry(K obj, Entry<K> next) {
             this.obj = obj;
+            this.next = next;
         }
+
+        @SuppressWarnings("unchecked")
+        static <K> Entry<K> append(Entry<K> list, K obj) {
+            if (list == NULL) {
+                return new Entry<K>(obj, (Entry<K>) NULL);
+            }
+            return new Entry<K>(list.obj, append(list.next, obj));
+        }
+        
+        @SuppressWarnings("unchecked")
+        static <K> Entry<K> removeLast(Entry<K> list) {
+            if (list == NULL || list.next == NULL) {
+                return (Entry<K>) NULL;
+            }
+            return new Entry<K>(list.obj, removeLast(list.next));
+        }
+
     }
 
 }

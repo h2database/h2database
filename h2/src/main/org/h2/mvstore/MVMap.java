@@ -8,7 +8,6 @@ package org.h2.mvstore;
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -54,8 +53,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType keyType;
     private final DataType valueType;
     
-    private ConcurrentRing<Page> oldRoots = 
-            new ConcurrentRing<Page>();
+    private ConcurrentLinkedList<Page> oldRoots = 
+            new ConcurrentLinkedList<Page>();
 
     private boolean closed;
     private boolean readOnly;

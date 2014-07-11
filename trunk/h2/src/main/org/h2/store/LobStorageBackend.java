@@ -675,11 +675,11 @@ public class LobStorageBackend implements LobStorageInterface {
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, lobId);
             ResultSet rs = prep.executeQuery();
-            if (!rs.next()) {
+            int lobMapCount = rs.getInt(1);
+            if (lobMapCount == 0) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1,
                         "Missing lob entry: " + lobId).getSQLException();
             }
-            int lobMapCount = rs.getInt(1);
             reuse(sql, prep);
 
             this.lobMapBlocks = new long[lobMapCount];
@@ -782,6 +782,9 @@ public class LobStorageBackend implements LobStorageInterface {
             if (remainingBytes <= 0) {
                 return;
             }
+if (lobMapIndex >= lobMapBlocks.length) {
+    System.out.println("halt!");
+}
             try {
                 buffer = readBlock(lobMapBlocks[lobMapIndex]);
                 lobMapIndex++;

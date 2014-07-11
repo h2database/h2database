@@ -51,8 +51,9 @@ public class TestMVStoreTool extends TestBase {
             }
         }
         s.close();
-        MVStoreTool.dump(fileName);
-        MVStoreTool.dump(fileName + ".new");
+        ; // TODO testing
+//        MVStoreTool.dump(fileName);
+//        MVStoreTool.dump(fileName + ".new");
         MVStoreTool.compress(fileName, fileName + ".new");
         MVStore s1 = new MVStore.Builder().
                 fileName(fileName).readOnly().open();

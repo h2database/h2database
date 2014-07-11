@@ -675,6 +675,7 @@ public class LobStorageBackend implements LobStorageInterface {
             PreparedStatement prep = prepare(sql);
             prep.setLong(1, lobId);
             ResultSet rs = prep.executeQuery();
+            rs.next();
             int lobMapCount = rs.getInt(1);
             if (lobMapCount == 0) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1,

@@ -184,8 +184,18 @@ public class Chunk {
         return c;
     }
 
+    /**
+     * Calculate the fill rate in %. 0 means empty, 100 means full.
+     * 
+     * @return the fill rate
+     */
     public int getFillRate() {
-        return (int) (maxLen == 0 ? 0 : 100 * maxLenLive / maxLen);
+        if (maxLenLive == 0) {
+            return 0;
+        } else if (maxLenLive == maxLen) {
+            return 100;
+        }
+        return 1 + (int) (98 * maxLenLive / maxLen);
     }
 
     @Override

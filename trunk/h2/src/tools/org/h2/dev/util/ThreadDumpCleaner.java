@@ -6,9 +6,14 @@
 package org.h2.dev.util;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -29,6 +34,10 @@ public class ThreadDumpCleaner {
                 "at java.io.FileInputStream.readBytes(?s).*?\n\n",
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
                 "at sun.nio.ch.ServerSocketChannelImpl.accept(?s).*?\n\n",
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+                "at sun.nio.ch.EPollArrayWrapper.epollWait(?s).*?\n\n",
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+                "at java.lang.Object.wait(?s).*?\n\n",
         "JNI global references:.*\n\n",
     };
     
@@ -46,25 +55,45 @@ public class ThreadDumpCleaner {
      * @param args the command line arguments
      */
     public static void main(String... args) throws IOException {
-        FileReader r = new FileReader(args[0]);
-        LineNumberReader in = new LineNumberReader(new BufferedReader(r));
-        new ThreadDumpCleaner().run(in);
+        String inFile = null, outFile = null;
+        for (int i = 0; i < args.length; i++) {
+            if (args[i].equals("-in")) {
+                inFile = args[++i];
+            } else if (args[i].equals("-out")) {
+                outFile = args[++i];
+            }
+        }
+        PrintWriter writer;
+        if (outFile != null) {
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
+        } else {
+            writer = new PrintWriter(System.out);
+        }
+        Reader r;
+        if (inFile != null) {
+            r = new FileReader(inFile);
+        } else {
+            r = new InputStreamReader(System.in);
+        }
+        new ThreadDumpCleaner().run(
+                new LineNumberReader(new BufferedReader(r)), 
+                writer);
     }
     
-    private void run(LineNumberReader in) throws IOException {
+    private void run(LineNumberReader reader, PrintWriter writer) throws IOException {
         StringBuilder buff = new StringBuilder();
         while (true) {
-            String line = in.readLine();
+            String line = reader.readLine();
             if (line == null) {
                 break;
             }
             buff.append(line).append('\n');
             if (line.length() == 0) {
-                System.out.print(filter(buff.toString()));
+                writer.print(filter(buff.toString()));
                 buff = new StringBuilder();
             }
         }
-        System.out.print(filter(buff.toString()));
+        writer.println(filter(buff.toString()));
     }        
     
     private String filter(String s) {

@@ -1299,7 +1299,6 @@ public class TestMVStore extends TestBase {
         }
         s.commit();
         assertTrue(s.compact(100, 50 * 1024));
-        assertTrue(s.compact(100, 1024));
         s.close();
         long len2 = FileUtils.size(fileName);
         assertTrue("len2: " + len2 + " len: " + len, len2 < len);

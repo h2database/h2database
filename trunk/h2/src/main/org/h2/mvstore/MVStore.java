@@ -237,6 +237,9 @@ public class MVStore {
      * The delay in milliseconds to automatically commit and write changes.
      */
     private int autoCommitDelay;
+    
+    private int autoCompactFillRate = 10;
+    private int autoCompactSize = 2 * 1024 * 1024;
 
     /**
      * Create and open the store.
@@ -1531,10 +1534,10 @@ public class MVStore {
      * before calling this method.
      *
      * @param targetFillRate the minimum percentage of live entries
-     * @param saving the amount of saved space
+     * @param write the number of bytes to write
      * @return if a chunk was re-written
      */
-    public synchronized boolean compact(int targetFillRate, int saving) {
+    public synchronized boolean compact(int targetFillRate, int write) {
         checkOpen();
         if (lastChunk == null) {
             // nothing to do
@@ -1588,21 +1591,20 @@ public class MVStore {
             }
         });
         // find out up to were in the old list we need to move
-        long saved = 0;
+        long written = 0;
         int chunkCount = 0;
         Chunk move = null;
         for (Chunk c : old) {
-            long size = c.maxLen - c.maxLenLive;
             if (move != null) {
-                if (c.collectPriority > 0 && saved > saving) {
+                if (c.collectPriority > 0 && written > write) {
                     break;
                 }
             }
-            saved += size;
+            written += c.maxLenLive;
             chunkCount++;
             move = c;
         }
-        if (chunkCount <= 1) {
+        if (chunkCount < 1) {
             return false;
         }
         // remove the chunks we want to keep from this list
@@ -2367,14 +2369,23 @@ public class MVStore {
         if (time <= lastCommitTime + autoCommitDelay) {
             return;
         }
-        if (!hasUnsavedChanges()) {
-            return;
+        if (hasUnsavedChanges()) {
+            try {
+                commitAndSave();
+            } catch (Exception e) {
+                if (backgroundExceptionHandler != null) {
+                    backgroundExceptionHandler.uncaughtException(null, e);
+                    return;
+                }
+            }
         }
-        try {
-            commitAndSave();
-        } catch (Exception e) {
-            if (backgroundExceptionHandler != null) {
-                backgroundExceptionHandler.uncaughtException(null, e);
+        if (autoCompactSize > 0) {
+            try {
+                compact(autoCompactFillRate, autoCompactSize);
+            } catch (Exception e) {
+                if (backgroundExceptionHandler != null) {
+                    backgroundExceptionHandler.uncaughtException(null, e);
+                }
             }
         }
     }

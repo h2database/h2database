@@ -21,28 +21,28 @@ import java.util.regex.Pattern;
  * A tool that removes uninteresting lines from stack traces.
  */
 public class ThreadDumpCleaner {
-    
+
     private static final String[] PATTERN = {
         "\\$\\$YJP\\$\\$",
-        "\"(Attach|Service|VM|GC|DestroyJavaVM|Signal|AWT|AppKit|C2 |" + 
+        "\"(Attach|Service|VM|GC|DestroyJavaVM|Signal|AWT|AppKit|C2 |" +
                 "process reaper|YJPAgent-).*?\"(?s).*?\n\n",
         "   Locked ownable synchronizers:(?s).*?\n\n",
         "\".*?\".*?\n   java.lang.Thread.State: (TIMED_)?WAITING(?s).*?\n\n",
-        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.KQueueArrayWrapper.kevent0(?s).*?\n\n",
-        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.io.FileInputStream.readBytes(?s).*?\n\n",
-        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.ServerSocketChannelImpl.accept(?s).*?\n\n",
-        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.EPollArrayWrapper.epollWait(?s).*?\n\n",
-        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" + 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.lang.Object.wait(?s).*?\n\n",
         "JNI global references:.*\n\n",
     };
-    
+
     private ArrayList<Pattern> patterns = new ArrayList<Pattern>();
-    
+
     {
         for (String s : PATTERN) {
             patterns.add(Pattern.compile(s));
@@ -76,10 +76,10 @@ public class ThreadDumpCleaner {
             r = new InputStreamReader(System.in);
         }
         new ThreadDumpCleaner().run(
-                new LineNumberReader(new BufferedReader(r)), 
+                new LineNumberReader(new BufferedReader(r)),
                 writer);
     }
-    
+
     private void run(LineNumberReader reader, PrintWriter writer) throws IOException {
         StringBuilder buff = new StringBuilder();
         while (true) {
@@ -94,13 +94,13 @@ public class ThreadDumpCleaner {
             }
         }
         writer.println(filter(buff.toString()));
-    }        
-    
+    }
+
     private String filter(String s) {
         for (Pattern p : patterns) {
             s = p.matcher(s).replaceAll("");
         }
         return s;
     }
-    
+
 }

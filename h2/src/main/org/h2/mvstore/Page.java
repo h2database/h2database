@@ -164,6 +164,14 @@ public class Page {
         return p;
     }
 
+    /**
+     * Create a copy of a page.
+     *
+     * @param map the map
+     * @param version the version
+     * @param source the source page
+     * @return the page
+     */
     public static Page create(MVMap<?, ?> map, long version, Page source) {
         Page p = new Page(map, version);
         // the position is 0

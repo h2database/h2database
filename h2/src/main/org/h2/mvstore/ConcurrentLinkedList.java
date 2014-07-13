@@ -9,24 +9,40 @@ import java.util.Iterator;
 
 
 /**
- * A very simple linked list that supports concurrent access. 
- * Internally, it uses immutable objects. 
+ * A very simple linked list that supports concurrent access.
+ * Internally, it uses immutable objects.
  * It uses recursion and is not meant for long lists.
- * 
+ *
  * @param <K> the key type
  */
 public class ConcurrentLinkedList<K> {
-    
+
+    /**
+     * The sentinel entry.
+     */
     static final Entry<?> NULL = new Entry<Object>(null, null);
 
+    /**
+     * The head entry.
+     */
     @SuppressWarnings("unchecked")
     volatile Entry<K> head = (Entry<K>) NULL;
-    
+
+    /**
+     * Get the first element, or null if none.
+     *
+     * @return the first element
+     */
     public K peekFirst() {
         Entry<K> x = head;
         return x.obj;
     }
 
+    /**
+     * Get the last element, or null if none.
+     *
+     * @return the last element
+     */
     public K peekLast() {
         Entry<K> x = head;
         while (x != NULL && x.next != NULL) {
@@ -35,10 +51,21 @@ public class ConcurrentLinkedList<K> {
         return x.obj;
     }
 
+    /**
+     * Add an element at the end.
+     *
+     * @param obj the element
+     */
     public synchronized void add(K obj) {
         head = Entry.append(head, obj);
     }
-    
+
+    /**
+     * Remove the first element, if it matches.
+     *
+     * @param obj the element to remove
+     * @return true if the element matched and was removed
+     */
     public synchronized boolean removeFirst(K obj) {
         if (head.obj != obj) {
             return false;
@@ -47,6 +74,12 @@ public class ConcurrentLinkedList<K> {
         return true;
     }
 
+    /**
+     * Remove the last element, if it matches.
+     *
+     * @param obj the element to remove
+     * @return true if the element matched and was removed
+     */
     public synchronized boolean removeLast(K obj) {
         if (peekLast() != obj) {
             return false;
@@ -55,6 +88,11 @@ public class ConcurrentLinkedList<K> {
         return true;
     }
 
+    /**
+     * Get an iterator over all entries.
+     *
+     * @return the iterator
+     */
     public Iterator<K> iterator() {
         return new Iterator<K>() {
 
@@ -86,7 +124,7 @@ public class ConcurrentLinkedList<K> {
     private static class Entry<K> {
         final K obj;
         Entry<K> next;
-        
+
         Entry(K obj, Entry<K> next) {
             this.obj = obj;
             this.next = next;
@@ -99,7 +137,7 @@ public class ConcurrentLinkedList<K> {
             }
             return new Entry<K>(list.obj, append(list.next, obj));
         }
-        
+
         @SuppressWarnings("unchecked")
         static <K> Entry<K> removeLast(Entry<K> list) {
             if (list == NULL || list.next == NULL) {

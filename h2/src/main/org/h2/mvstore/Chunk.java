@@ -186,7 +186,7 @@ public class Chunk {
 
     /**
      * Calculate the fill rate in %. 0 means empty, 100 means full.
-     * 
+     *
      * @return the fill rate
      */
     public int getFillRate() {

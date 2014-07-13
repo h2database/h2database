@@ -21,7 +21,7 @@ public class TestConcurrentLinkedList extends TestBase {
 
     /**
      * Run just this test.
-     * 
+     *
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
@@ -35,7 +35,7 @@ public class TestConcurrentLinkedList extends TestBase {
         testRandomized();
         testConcurrent();
     }
-    
+
     private void testPerformance() {
         testPerformance(true);
         testPerformance(false);
@@ -44,7 +44,7 @@ public class TestConcurrentLinkedList extends TestBase {
         testPerformance(true);
         testPerformance(false);
     }
-    
+
     private void testPerformance(final boolean stock) {
         System.out.print(stock ? "stock " : "custom ");
         long start = System.currentTimeMillis();
@@ -191,7 +191,7 @@ public class TestConcurrentLinkedList extends TestBase {
             }
         }
     }
-    
+
     private static <T> String toString(Iterator<T> it) {
         StringBuilder buff = new StringBuilder();
         while (it.hasNext()) {

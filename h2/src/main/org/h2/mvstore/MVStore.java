@@ -237,7 +237,7 @@ public class MVStore {
      * The delay in milliseconds to automatically commit and write changes.
      */
     private int autoCommitDelay;
-    
+
     private int autoCompactFillRate = 10;
     private int autoCompactSize = 2 * 1024 * 1024;
 

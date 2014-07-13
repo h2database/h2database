@@ -52,8 +52,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private long createVersion;
     private final DataType keyType;
     private final DataType valueType;
-    
-    private ConcurrentLinkedList<Page> oldRoots = 
+
+    private ConcurrentLinkedList<Page> oldRoots =
             new ConcurrentLinkedList<Page>();
 
     private boolean closed;
@@ -1169,7 +1169,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (last == null || version < last.getVersion()) {
                 // smaller than all in-memory versions
                 return store.openMapVersion(version, id, this);
-            }                
+            }
             Iterator<Page> it = oldRoots.iterator();
             while (it.hasNext()) {
                 Page p = it.next();
@@ -1251,6 +1251,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.writeVersion = writeVersion;
     }
 
+    /**
+     * Copy a map. All pages are copied.
+     *
+     * @param sourceMap the source map
+     */
     void copyFrom(MVMap<K, V> sourceMap) {
         ; // TODO work in progress
         root = copy(sourceMap.root, null);

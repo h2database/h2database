@@ -52,8 +52,10 @@ public class MVTable extends TableBase {
     private long lastModificationId;
     private volatile Session lockExclusiveSession;
     private final HashSet<Session> lockSharedSessions = New.hashSet();
+
     /**
-     * FIFO queue to prevent starvation, since Java's synchronized locking is biased.
+     * The queue of sessions waiting to lock the table. It is a FIFO queue to
+     * prevent starvation, since Java's synchronized locking is biased.
      */
     private final ArrayDeque<Session> waitingSessions = new ArrayDeque<Session>();
     private final Trace traceLock;
@@ -96,7 +98,8 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public void lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
+    public void lock(Session session, boolean exclusive,
+            boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
             return;
@@ -187,7 +190,7 @@ public class MVTable extends TableBase {
             }
         }
     }
-    
+
     private boolean doLock2(Session session, int lockMode, boolean exclusive) {
         if (exclusive) {
             if (lockExclusiveSession == null) {
@@ -196,7 +199,8 @@ public class MVTable extends TableBase {
                     session.addLock(this);
                     lockExclusiveSession = session;
                     return true;
-                } else if (lockSharedSessions.size() == 1 && lockSharedSessions.contains(session)) {
+                } else if (lockSharedSessions.size() == 1 &&
+                        lockSharedSessions.contains(session)) {
                     traceLock(session, exclusive, "add (upgraded) for ");
                     lockExclusiveSession = session;
                     return true;

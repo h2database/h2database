@@ -252,7 +252,7 @@ public class TestCluster extends TestBase {
         n1.stop();
         deleteFiles();
     }
-    
+
     private void testClientInfo() throws SQLException {
         if (config.memory || config.networked || config.cipher != null) {
             return;
@@ -294,7 +294,7 @@ public class TestCluster extends TestBase {
 
         conn = getConnection(urlCluster, user, password);
         p = conn.getClientInfo();
-        
+
         assertEquals("1", p.getProperty("numServers"));
         assertEquals("127.0.0.1:" + port1, p.getProperty("server0"));
         assertEquals("1", conn.getClientInfo("numServers"));
@@ -304,7 +304,7 @@ public class TestCluster extends TestBase {
         n1.stop();
         deleteFiles();
     }
-    
+
     private void testCreateClusterAtRuntime() throws SQLException {
         if (config.memory || config.networked || config.cipher != null) {
             return;

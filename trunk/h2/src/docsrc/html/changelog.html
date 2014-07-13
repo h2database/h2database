@@ -17,6 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.4.180 Beta (2014-07-13)</h2>
 <ul><li>MVStore: the store is now auto-compacted automatically up to some point,
     to avoid very large file sizes. This area is still work in progress.
 </li><li>Sequences of temporary tables (auto-increment or identity columns)
@@ -27,11 +31,11 @@ Change Log
 </li><li>The LIRS cache now re-sizes the internal hash map if needed.
 </li><li>Optionally persist session history in the H2 console. (patch from Martin Grajcar)
 </li><li>Add client-info property to get the number of servers currently in the cluster
-and which servers that are available. (patch from Nikolaj Fogh)
+    and which servers that are available. (patch from Nikolaj Fogh)
 </li><li>Fix bug in changing encrypted DB password that kept the file handle
-open when the wrong password was supplied. (test case from Jens Hohmuth).
-</li><li>Issue 567: h2 hangs for a long time then (sometimes) recovers.
-Introduce a queue when doing table locking to prevent session starvation.
+    open when the wrong password was supplied. (test case from Jens Hohmuth).
+</li><li>Issue 567: H2 hangs for a long time then (sometimes) recovers.
+    Introduce a queue when doing table locking to prevent session starvation.
 </li></ul>
 
 <h2>Version 1.4.179 Beta (2014-06-23)</h2>

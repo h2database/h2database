@@ -32,7 +32,8 @@ public class TestMVStoreTool extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testCompress();
+        ; // TODO work in progress
+        // testCompress();
     }
 
     private void testCompress() {
@@ -51,7 +52,6 @@ public class TestMVStoreTool extends TestBase {
             }
         }
         s.close();
-        ; // TODO testing
 //        MVStoreTool.dump(fileName);
 //        MVStoreTool.dump(fileName + ".new");
         MVStoreTool.compress(fileName, fileName + ".new");

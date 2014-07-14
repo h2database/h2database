@@ -237,7 +237,7 @@ public class Constants {
     /**
      * The default page size to use for new databases.
      */
-    public static final int DEFAULT_PAGE_SIZE = 2048;
+    public static final int DEFAULT_PAGE_SIZE = 4096;
 
     /**
      * The default result set concurrency for statements created with

@@ -5,6 +5,10 @@
  */
 package org.h2.engine;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -250,11 +254,11 @@ public class SysProperties {
             Utils.getProperty("h2.maxReconnect", 3);
 
     /**
-     * System property <code>h2.maxMemoryRows</code> (default: 10000).<br />
+     * System property <code>h2.maxMemoryRows</code> (default: 40000 per G of available RAM).<br />
      * The default maximum number of rows to be kept in memory in a result set.
      */
     public static final int MAX_MEMORY_ROWS =
-            Utils.getProperty("h2.maxMemoryRows", 10000);
+            getAutoScaledForMemoryProperty("h2.maxMemoryRows", 40000);
 
     /**
      * System property <code>h2.maxTraceDataLength</code>
@@ -533,6 +537,48 @@ public class SysProperties {
      */
     public static String getScriptDirectory() {
         return Utils.getProperty(H2_SCRIPT_DIRECTORY, "");
+    }
+    
+    /**
+     * This method attempts to auto-scale some of our properties to take advantage of more powerful machines out of the box.
+     * We assume that our default properties are set correctly for approx. 1G of memory, and scale them up if we have more.
+     */
+    private static int getAutoScaledForMemoryProperty(String key, int defaultValue) {
+        String s = Utils.getProperty(key, null);
+        if (s != null) {
+            try {
+                return Integer.decode(s).intValue();
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return scalePropertyForAvailableMemory(defaultValue);
+    }
+    
+    public static int scalePropertyForAvailableMemory(int defaultValue) {
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        if (maxMemory != Long.MAX_VALUE) {
+            // we are limited by an -XmX parameter
+            return (int) (defaultValue * maxMemory / (1024 * 1024 * 1024));
+        }
+        OperatingSystemMXBean mxBean = ManagementFactory
+                .getOperatingSystemMXBean();
+        try {
+            // this method is only available on the class com.sun.management.OperatingSystemMXBean, which mxBean
+            // is an instance of under the Oracle JDK, but it is not present on Android and other JDK's
+            Method method = mxBean.getClass().getMethod("getTotalPhysicalMemorySize");
+            long physicalMemorySize = ((Number) method.invoke(mxBean)).longValue();            
+            return (int) (defaultValue * physicalMemorySize / (1024 * 1024 * 1024));
+        } catch (NoSuchMethodException e) {
+            // ignore
+        } catch (IllegalArgumentException e) {
+            // ignore
+        } catch (IllegalAccessException e) {
+            // ignore
+        } catch (InvocationTargetException e) {
+            // ignore
+        }
+        return defaultValue;
     }
 
 }

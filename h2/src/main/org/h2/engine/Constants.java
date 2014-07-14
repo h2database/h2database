@@ -159,7 +159,7 @@ public class Constants {
     /**
      * The default cache size in KB.
      */
-    public static final int CACHE_SIZE_DEFAULT = 16 * 1024;
+    public static final int CACHE_SIZE_DEFAULT = SysProperties.scalePropertyForAvailableMemory(64 * 1024);
 
     /**
      * The default cache type.

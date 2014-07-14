@@ -254,7 +254,7 @@ public class SysProperties {
             Utils.getProperty("h2.maxReconnect", 3);
 
     /**
-     * System property <code>h2.maxMemoryRows</code> (default: 40000 per G of available RAM).<br />
+     * System property <code>h2.maxMemoryRows</code> (default: 40000 per GB of available RAM).<br />
      * The default maximum number of rows to be kept in memory in a result set.
      */
     public static final int MAX_MEMORY_ROWS =
@@ -561,21 +561,17 @@ public class SysProperties {
             // we are limited by an -XmX parameter
             return (int) (defaultValue * maxMemory / (1024 * 1024 * 1024));
         }
-        OperatingSystemMXBean mxBean = ManagementFactory
-                .getOperatingSystemMXBean();
         try {
+            OperatingSystemMXBean mxBean = ManagementFactory
+                    .getOperatingSystemMXBean();
             // this method is only available on the class com.sun.management.OperatingSystemMXBean, which mxBean
             // is an instance of under the Oracle JDK, but it is not present on Android and other JDK's
-            Method method = mxBean.getClass().getMethod("getTotalPhysicalMemorySize");
+            Method method = Class.forName(
+                    "com.sun.management.OperatingSystemMXBean").
+                    getMethod("getTotalPhysicalMemorySize");
             long physicalMemorySize = ((Number) method.invoke(mxBean)).longValue();            
             return (int) (defaultValue * physicalMemorySize / (1024 * 1024 * 1024));
-        } catch (NoSuchMethodException e) {
-            // ignore
-        } catch (IllegalArgumentException e) {
-            // ignore
-        } catch (IllegalAccessException e) {
-            // ignore
-        } catch (InvocationTargetException e) {
+        } catch (Exception e) {
             // ignore
         }
         return defaultValue;

@@ -1057,7 +1057,8 @@ SET AUTOCOMMIT OFF
 SET CACHE_SIZE int
 ","
 Sets the size of the cache in KB (each KB being 1024 bytes) for the current database.
-The default value is = 65536 * available_RAM_in_G, i.e. 64 MB per G. The value is rounded to the next higher power of two.
+The default is 65536 per available GB of RAM, i.e. 64 MB per GB.
+The value is rounded to the next higher power of two.
 Depending on the virtual machine, the actual memory required may be higher.
 
 This setting is persistent and affects all connections as there is only one cache per database.
@@ -1359,7 +1360,7 @@ SET MAX_MEMORY_ROWS int
 ","
 The maximum number of rows in a result set that are kept in-memory. If more rows
 are read, then the rows are buffered to disk.
-The default value is 40000 per G of available RAM.
+The default is 40000 per GB of available RAM.
 
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.

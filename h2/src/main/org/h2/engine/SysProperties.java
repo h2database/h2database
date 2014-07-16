@@ -5,10 +5,6 @@
  */
 package org.h2.engine;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import org.h2.util.MathUtils;
 import org.h2.util.Utils;
 
@@ -460,6 +456,10 @@ public class SysProperties {
      */
     public static final boolean USE_THREAD_CONTEXT_CLASS_LOADER =
         Utils.getProperty("h2.useThreadContextClassLoader", false);
+    
+    static {
+        System.out.println("init sysprop");
+    }
 
     /**
      * System property <code>h2.serializeJavaObject</code>
@@ -552,29 +552,7 @@ public class SysProperties {
                 // ignore
             }
         }
-        return scalePropertyForAvailableMemory(defaultValue);
+        return Utils.scaleForAvailableMemory(defaultValue);
     }
     
-    public static int scalePropertyForAvailableMemory(int defaultValue) {
-        long maxMemory = Runtime.getRuntime().maxMemory();
-        if (maxMemory != Long.MAX_VALUE) {
-            // we are limited by an -XmX parameter
-            return (int) (defaultValue * maxMemory / (1024 * 1024 * 1024));
-        }
-        try {
-            OperatingSystemMXBean mxBean = ManagementFactory
-                    .getOperatingSystemMXBean();
-            // this method is only available on the class com.sun.management.OperatingSystemMXBean, which mxBean
-            // is an instance of under the Oracle JDK, but it is not present on Android and other JDK's
-            Method method = Class.forName(
-                    "com.sun.management.OperatingSystemMXBean").
-                    getMethod("getTotalPhysicalMemorySize");
-            long physicalMemorySize = ((Number) method.invoke(mxBean)).longValue();            
-            return (int) (defaultValue * physicalMemorySize / (1024 * 1024 * 1024));
-        } catch (Exception e) {
-            // ignore
-        }
-        return defaultValue;
-    }
-
 }

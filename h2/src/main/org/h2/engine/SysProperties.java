@@ -456,10 +456,6 @@ public class SysProperties {
      */
     public static final boolean USE_THREAD_CONTEXT_CLASS_LOADER =
         Utils.getProperty("h2.useThreadContextClassLoader", false);
-    
-    static {
-        System.out.println("init sysprop");
-    }
 
     /**
      * System property <code>h2.serializeJavaObject</code>

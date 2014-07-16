@@ -8,6 +8,8 @@ package org.h2.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -733,6 +735,35 @@ public class Utils {
             }
         }
         return defaultValue;
+    }
+    
+    /**
+     * Scale the value with the available memory. If 1 GB of RAM is available,
+     * the value is returned, if 2 GB are available, then twice the value, and so on.
+     * 
+     * @param value the value to scale
+     * @return the scaled value
+     */
+    public static int scaleForAvailableMemory(int value) {
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        if (maxMemory != Long.MAX_VALUE) {
+            // we are limited by an -XmX parameter
+            return (int) (value * maxMemory / (1024 * 1024 * 1024));
+        }
+        try {
+            OperatingSystemMXBean mxBean = ManagementFactory
+                    .getOperatingSystemMXBean();
+            // this method is only available on the class com.sun.management.OperatingSystemMXBean, which mxBean
+            // is an instance of under the Oracle JDK, but it is not present on Android and other JDK's
+            Method method = Class.forName(
+                    "com.sun.management.OperatingSystemMXBean").
+                    getMethod("getTotalPhysicalMemorySize");
+            long physicalMemorySize = ((Number) method.invoke(mxBean)).longValue();            
+            return (int) (value * physicalMemorySize / (1024 * 1024 * 1024));
+        } catch (Exception e) {
+            // ignore
+        }
+        return value;
     }
 
     /**

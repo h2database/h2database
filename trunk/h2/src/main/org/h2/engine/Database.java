@@ -206,9 +206,12 @@ public class Database implements DataHandler {
                 ci.getProperty("ACCESS_MODE_DATA", "rw"));
         this.autoServerMode = ci.getProperty("AUTO_SERVER", false);
         this.autoServerPort = ci.getProperty("AUTO_SERVER_PORT", 0);
+        int defaultCacheSize = Utils.scaleForAvailableMemory(
+                Constants.CACHE_SIZE_DEFAULT);
         this.cacheSize =
-                ci.getProperty("CACHE_SIZE", Constants.CACHE_SIZE_DEFAULT);
-        this.pageSize = ci.getProperty("PAGE_SIZE", Constants.DEFAULT_PAGE_SIZE);
+                ci.getProperty("CACHE_SIZE", defaultCacheSize);
+        this.pageSize = ci.getProperty("PAGE_SIZE", 
+                Constants.DEFAULT_PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;
         }

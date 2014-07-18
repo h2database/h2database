@@ -238,8 +238,8 @@ public class MVStore {
      */
     private int autoCommitDelay;
 
-    private int autoCompactFillRate = 10;
-    private int autoCompactSize = 2 * 1024 * 1024;
+    private int autoCompactFillRate;
+    private long autoCompactLastFileOpCount;
 
     /**
      * Create and open the store.
@@ -291,6 +291,10 @@ public class MVStore {
         int kb = o == null ? 512 : (Integer) o;
         // 19 KB memory is about 1 KB storage
         autoCommitMemory = kb * 1024 * 19;
+
+        o = config.get("autoCompactFillRate");
+        autoCompactFillRate = o == null ? 80 : (Integer) o;
+        
         char[] encryptionKey = (char[]) config.get("encryptionKey");
         try {
             fileStore.open(fileName, readOnly, encryptionKey);
@@ -1349,19 +1353,20 @@ public class MVStore {
      * @return if anything was written
      */
     public synchronized boolean compactMoveChunks() {
-        return compactMoveChunks(Long.MAX_VALUE);
+        return compactMoveChunks(100, Long.MAX_VALUE);
     }
 
     /**
      * Compact the store by moving all chunks next to each other, if there is
-     * free space between chunks. This might temporarily double the file size.
+     * free space between chunks. This might temporarily increase the file size.
      * Chunks are overwritten irrespective of the current retention time. Before
      * overwriting chunks and before resizing the file, syncFile() is called.
      *
+     * @param targetFillRate do nothing if the file store fill rate is higher than this
      * @param moveSize the number of bytes to move
      * @return if anything was written
      */
-    public synchronized boolean compactMoveChunks(long moveSize) {
+    public synchronized boolean compactMoveChunks(int targetFillRate, long moveSize) {
         checkOpen();
         if (lastChunk == null) {
             // nothing to do
@@ -1372,12 +1377,11 @@ public class MVStore {
         try {
             retentionTime = 0;
             compactFreeUnusedChunks();
-            if (fileStore.getFillRate() == 100) {
+            if (fileStore.getFillRate() > targetFillRate) {
                 return false;
             }
-            ArrayList<Chunk> move;
             long start = fileStore.getFirstFree() / BLOCK_SIZE;
-            move = compactGetMoveBlocks(start, moveSize);
+            ArrayList<Chunk> move = compactGetMoveBlocks(start, moveSize);
             compactMoveChunks(move);
         } finally {
             reuseSpace = oldReuse;
@@ -1523,7 +1527,6 @@ public class MVStore {
      * with a low number of live items are re-written.
      * <p>
      * If the current fill rate is higher than the target fill rate, nothing is
-     * done. If not at least a minimum amount of space can be saved, nothing is
      * done.
      * <p>
      * Please note this method will not necessarily reduce the file size, as
@@ -1534,7 +1537,7 @@ public class MVStore {
      * before calling this method.
      *
      * @param targetFillRate the minimum percentage of live entries
-     * @param write the number of bytes to write
+     * @param write the minimum number of bytes to write
      * @return if a chunk was re-written
      */
     public synchronized boolean compact(int targetFillRate, int write) {
@@ -1639,118 +1642,6 @@ public class MVStore {
         if (again) {
             commitAndSave();
         }
-        return true;
-    }
-
-    /**
-     * Try to increase the fill rate by re-writing partially full chunks. Chunks
-     * with a low number of live items are re-written.
-     * <p>
-     * If the current fill rate is higher than the target fill rate, nothing is
-     * done. If not at least a minimum amount of space can be saved, nothing is
-     * done.
-     * <p>
-     * Please note this method will not necessarily reduce the file size, as
-     * empty chunks are not overwritten.
-     * <p>
-     * Only data of open maps can be moved. For maps that are not open, the old
-     * chunk is still referenced. Therefore, it is recommended to open all maps
-     * before calling this method.
-     *
-     * @param targetFillRate the minimum percentage of live entries
-     * @param minSaving the amount of saved space,
-     *      which is also the size of the new chunk
-     * @return if a chunk was re-written
-     */
-    public synchronized boolean compactOld(int targetFillRate, int minSaving) {
-        checkOpen();
-        if (lastChunk == null) {
-            // nothing to do
-            return false;
-        }
-
-        // calculate the fill rate
-        long maxLengthSum = 0;
-        long maxLengthLiveSum = 0;
-        for (Chunk c : chunks.values()) {
-            maxLengthSum += c.maxLen;
-            maxLengthLiveSum += c.maxLenLive;
-        }
-        // the fill rate of all chunks combined
-        if (maxLengthSum <= 0) {
-            // avoid division by 0
-            maxLengthSum = 1;
-        }
-        int fillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
-        if (fillRate >= targetFillRate) {
-            return false;
-        }
-
-        long time = getTime();
-
-        // the 'old' list contains the chunks we want to free up
-        ArrayList<Chunk> old = New.arrayList();
-        Chunk last = chunks.get(lastChunk.id);
-        for (Chunk c : chunks.values()) {
-            if (canOverwriteChunk(c, time)) {
-                long age = last.version - c.version + 1;
-                c.collectPriority = (int) (c.getFillRate() / age);
-                old.add(c);
-            }
-        }
-        if (old.size() == 0) {
-            return false;
-        }
-
-        // sort the list, so the first entry should be collected first
-        Collections.sort(old, new Comparator<Chunk>() {
-            @Override
-            public int compare(Chunk o1, Chunk o2) {
-                int comp = new Integer(o1.collectPriority).
-                        compareTo(o2.collectPriority);
-                if (comp == 0) {
-                    comp = new Long(o1.maxLenLive).
-                        compareTo(o2.maxLenLive);
-                }
-                return comp;
-            }
-        });
-        // find out up to were in the old list we need to move
-        long saved = 0;
-        long totalSize = 0;
-        Chunk move = null;
-        for (Chunk c : old) {
-            long size = c.maxLen - c.maxLenLive;
-            totalSize += c.maxLenLive;
-            if (move != null) {
-                if (saved > minSaving && totalSize > minSaving) {
-                    break;
-                }
-            }
-            saved += size;
-            move = c;
-        }
-        if (saved < minSaving) {
-            return false;
-        }
-
-        // remove the chunks we want to keep from this list
-        boolean remove = false;
-        for (Iterator<Chunk> it = old.iterator(); it.hasNext();) {
-            Chunk c = it.next();
-            if (move == c) {
-                remove = true;
-            } else if (remove) {
-                it.remove();
-            }
-        }
-
-        // iterate over all the pages in the old pages
-        for (Chunk c : old) {
-            copyLive(c);
-        }
-
-        commitAndSave();
         return true;
     }
 
@@ -2355,10 +2246,11 @@ public class MVStore {
     }
 
     /**
-     * Commit and save all changes, if there are any.
+     * Commit and save all changes, if there are any, and compact the store if
+     * needed.
      */
-    void commitInBackground() {
-        if (unsavedMemory == 0 || closed) {
+    void writeInBackground() {
+        if (closed) {
             return;
         }
 
@@ -2379,9 +2271,26 @@ public class MVStore {
                 }
             }
         }
-        if (autoCompactSize > 0) {
+        if (autoCompactFillRate > 0) {
             try {
-                compact(autoCompactFillRate, autoCompactSize);
+                // whether there were file read or write operations since
+                // the last time
+                boolean fileOps;
+                long fileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
+                if (autoCompactLastFileOpCount != fileOpCount) {
+                    fileOps = true;
+                } else {
+                    fileOps = false;
+                }
+                // use a lower fill rate if there were any file operations
+                int fillRate = fileOps ? autoCompactFillRate / 4 : autoCompactFillRate;
+                compact(fillRate, autoCommitMemory);
+                if (!fileOps) {
+                    // if there were no file operations at all,
+                    // compact the file by moving chunks
+                    compactMoveChunks(autoCompactFillRate, autoCommitMemory);
+                }
+                autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
             } catch (Exception e) {
                 if (backgroundExceptionHandler != null) {
                     backgroundExceptionHandler.uncaughtException(null, e);
@@ -2570,7 +2479,7 @@ public class MVStore {
                         continue;
                     }
                 }
-                store.commitInBackground();
+                store.writeInBackground();
             }
         }
 
@@ -2618,6 +2527,24 @@ public class MVStore {
          */
         public Builder autoCommitBufferSize(int kb) {
             return set("autoCommitBufferSize", kb);
+        }
+        
+        /**
+         * Set the auto-compact target fill rate. If the average fill rate (the
+         * percentage of the storage space that contains active data) of the
+         * chunks is lower, then the chunks with a low fill rate are re-written.
+         * Also, if the percentage of empty space between chunks is higher than
+         * this value, then chunks at the end of the file are moved. Compaction
+         * stops if the target fill rate is reached.
+         * <p>
+         * The default value is 80 (80%). The value 0 disables auto-compacting.
+         * <p>
+         * 
+         * @param percent the target fill rate
+         * @return this
+         */
+        public Builder autoCompactFillRate(int percent) {
+            return set("autoCompactFillRate", percent);
         }
 
         /**

@@ -13,7 +13,7 @@ public class CursorPos {
     /**
      * The current page.
      */
-    public final Page page;
+    public Page page;
 
     /**
      * The current index.

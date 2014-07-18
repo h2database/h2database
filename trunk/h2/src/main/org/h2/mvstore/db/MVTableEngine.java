@@ -317,9 +317,9 @@ public class MVTableEngine implements TableEngine {
                 store.compactMoveChunks();
             } else {
                 long start = System.currentTimeMillis();
-                while (store.compact(99, 16 * 1024 * 1024)) {
+                while (store.compact(95, 16 * 1024 * 1024)) {
                     store.sync();
-                    store.compactMoveChunks(16 * 1024 * 1024);
+                    store.compactMoveChunks(95, 16 * 1024 * 1024);
                     long time = System.currentTimeMillis() - start;
                     if (time > maxCompactTime) {
                         break;
@@ -341,8 +341,8 @@ public class MVTableEngine implements TableEngine {
                     if (!store.getFileStore().isReadOnly()) {
                         transactionStore.close();
                         if (maxCompactTime > 0) {
-                            store.compact(99, 1 * 1024 * 1024);
-                            store.compactMoveChunks(1 * 1024 * 1024);
+                            store.compact(95, 1024 * 1024);
+                            store.compactMoveChunks(95, 1024 * 1024);
                         }
                     }
                     store.close();

@@ -995,7 +995,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return;
         }
         Page last = oldRoots.peekLast();
-        // TODO why is this?
+        // TODO why is this? (maybe not needed)
         ;
         oldest--;
         while (true) {
@@ -1257,23 +1257,32 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param sourceMap the source map
      */
     void copyFrom(MVMap<K, V> sourceMap) {
-        ; // TODO work in progress
-        root = copy(sourceMap.root, null);
+        beforeWrite();
+        newRoot(copy(sourceMap.root, null));
+        afterWrite();
     }
 
     private Page copy(Page source, CursorPos parent) {
         Page target = Page.create(this, writeVersion, source);
-        for (CursorPos p = parent; p != null; p = p.parent) {
-            p.page.setChild(p.index, target);
-        }
-        if (!target.isLeaf()) {
-            CursorPos pos = new CursorPos(target, 0, parent);
-            target = copyOnWrite(target, writeVersion);
-            for (int i = 0; i < target.getChildPageCount(); i++) {
-                Page sourceChild = source.getChildPage(i);
-                pos.index = i;
-                copy(sourceChild, pos);
+        if (target.isLeaf()) {
+            Page child = target;
+            for (CursorPos p = parent; p != null; p = p.parent) {
+                p.page.setChild(p.index, child);
+                p.page = copyOnWrite(p.page, writeVersion);
+                child = p.page;
+                if (p.parent == null) {
+                    newRoot(p.page);
+                    afterWrite();
+                    beforeWrite();
+                }
             }
+        } else {
+            CursorPos pos = new CursorPos(target, 0, parent);
+            for (int i = 0; i < target.getChildPageCount(); i++) {
+                pos.index = i;
+                copy(source.getChildPage(i), pos);
+            }
+            target = pos.page;
         }
         return target;
     }

@@ -32,12 +32,12 @@ public class TestMVStoreTool extends TestBase {
 
     @Override
     public void test() throws Exception {
-        ; // TODO work in progress
-        // testCompress();
+        testCompress();
     }
 
     private void testCompress() {
         String fileName = getBaseDir() + "/testCompress.h3";
+        FileUtils.createDirectory(getBaseDir());
         FileUtils.delete(fileName);
         // store with a very small page size, to make sure
         // there are many leaf pages
@@ -51,15 +51,26 @@ public class TestMVStoreTool extends TestBase {
                 s.commit();
             }
         }
+        for (int i = 0; i < 10; i++) {
+            map = s.openMap("data" + i);
+            for (int j = 0; j < i * i; j++) {
+                map.put(j, j * 10);
+            }
+            s.commit();
+        }
         s.close();
-//        MVStoreTool.dump(fileName);
-//        MVStoreTool.dump(fileName + ".new");
-        MVStoreTool.compress(fileName, fileName + ".new");
+        MVStoreTool.compact(fileName, fileName + ".new", false);
+        MVStoreTool.compact(fileName, fileName + ".new.compress", true);
         MVStore s1 = new MVStore.Builder().
                 fileName(fileName).readOnly().open();
         MVStore s2 = new MVStore.Builder().
                 fileName(fileName + ".new").readOnly().open();
+        MVStore s3 = new MVStore.Builder().
+                fileName(fileName + ".new.compress").readOnly().open();
         assertEquals(s1, s2);
+        assertEquals(s1, s3);
+        assertTrue(FileUtils.size(fileName + ".new") < FileUtils.size(fileName));
+        assertTrue(FileUtils.size(fileName + ".new.compress") < FileUtils.size(fileName + ".new"));
     }
 
     private void assertEquals(MVStore a, MVStore b) {

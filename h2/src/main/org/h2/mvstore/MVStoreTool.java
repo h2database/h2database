@@ -45,6 +45,12 @@ public class MVStoreTool {
             } else if ("-info".equals(args[i])) {
                 String fileName = args[++i];
                 info(fileName, new PrintWriter(System.out));
+            } else if ("-compact".equals(args[i])) {
+                String fileName = args[++i];
+                compact(fileName, false);
+            } else if ("-compress".equals(args[i])) {
+                String fileName = args[++i];
+                compact(fileName, true);
             }
         }
     }
@@ -301,9 +307,10 @@ public class MVStoreTool {
      * there.
      *
      * @param fileName the file name
+     * @param compress whether to compress the data
      */
-    public static void compress(String fileName) {
-        compress(fileName, fileName + ".new");
+    public static void compact(String fileName, boolean compress) {
+        compact(fileName, fileName + ".new", compress);
         FileUtils.moveTo(fileName, fileName + ".old");
         FileUtils.moveTo(fileName, fileName);
         FileUtils.delete(fileName + ".old");
@@ -315,12 +322,18 @@ public class MVStoreTool {
      * @param sourceFileName the name of the source store
      * @param targetFileName the name of the target store
      */
-    public static void compress(String sourceFileName, String targetFileName) {
+    public static void compact(String sourceFileName, String targetFileName, boolean compress) {
         MVStore source = new MVStore.Builder().
-                fileName(sourceFileName).readOnly().open();
+                fileName(sourceFileName).
+                readOnly().
+                open();
         FileUtils.delete(targetFileName);
-        MVStore target = new MVStore.Builder().
-                fileName(targetFileName).open();
+        MVStore.Builder b = new MVStore.Builder().
+                fileName(targetFileName);
+        if (compress) {
+            b.compress();
+        }
+        MVStore target = b.open();
         MVMap<String, String> sourceMeta = source.getMetaMap();
         MVMap<String, String> targetMeta = target.getMetaMap();
         for (Entry<String, String> m : sourceMeta.entrySet()) {
@@ -345,7 +358,6 @@ public class MVStoreTool {
             MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);
             MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
             targetMap.copyFrom(sourceMap);
-            target.commit();
         }
         target.close();
         source.close();
@@ -364,7 +376,7 @@ public class MVStoreTool {
 
         @Override
         public int getMemory(Object obj) {
-            return obj == null ? 0 : ((byte[]) obj).length;
+            return obj == null ? 0 : ((byte[]) obj).length * 8;
         }
 
         @Override

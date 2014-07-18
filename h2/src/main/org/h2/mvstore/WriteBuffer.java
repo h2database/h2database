@@ -304,7 +304,11 @@ public class WriteBuffer {
         // grow at least 50% of the current size
         grow = Math.max(temp.capacity() / 2, grow);
         int newCapacity = temp.capacity() + grow;
-        buff = ByteBuffer.allocate(newCapacity);
+        try {
+            buff = ByteBuffer.allocate(newCapacity);
+        } catch (OutOfMemoryError e) {
+            throw new OutOfMemoryError("Capacity: " + newCapacity);
+        }
         temp.flip();
         buff.put(temp);
         if (newCapacity <= MAX_REUSE_CAPACITY) {

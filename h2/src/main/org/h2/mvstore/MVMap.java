@@ -1280,7 +1280,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             CursorPos pos = new CursorPos(target, 0, parent);
             for (int i = 0; i < target.getChildPageCount(); i++) {
                 pos.index = i;
-                copy(source.getChildPage(i), pos);
+                long p = source.getChildPagePos(i);
+                if (p != 0) {
+                    // p == 0 means no child
+                    // (for example the last entry of an r-tree node)
+                    copy(source.getChildPage(i), pos);
+                }
             }
             target = pos.page;
         }

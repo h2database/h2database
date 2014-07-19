@@ -33,6 +33,10 @@ public class MVStoreTool {
      * <td>Dump the contends of the file</td></tr>
      * <tr><td>[-info &lt;fileName&gt;]</td>
      * <td>Get summary information about a file</td></tr>
+     * <tr><td>[-compact &lt;fileName&gt;]</td>
+     * <td>Compact a store</td></tr>
+     * <tr><td>[-compress &lt;fileName&gt;]</td>
+     * <td>Compact a store with compression enabled</td></tr>
      * </table>
      *
      * @param args the command line arguments
@@ -274,10 +278,12 @@ public class MVStoreTool {
             }
             pw.printf("Created: %s\n", formatTimestamp(fileCreated));
             pw.printf("File length: %d\n", fileLength);
+            pw.printf("Excluding the last chunk\n");
             pw.printf("Chunk length: %d\n", chunkLength);
             pw.printf("Chunk count: %d\n", chunks.size());
             pw.printf("Used space: %d%%\n", 100 * chunkLength / fileLength);
-            pw.printf("Chunk fill rate: %d%%\n", 100 * maxLengthLive / maxLength);
+            pw.printf("Chunk fill rate: %d%%\n", maxLength == 0 ? 100 : 
+                100 * maxLengthLive / maxLength);
             for (Entry<Integer, Chunk> e : chunks.entrySet()) {
                 Chunk c = e.getValue();
                 long created = fileCreated + c.time;

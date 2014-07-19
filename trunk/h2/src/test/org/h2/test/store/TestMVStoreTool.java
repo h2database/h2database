@@ -6,10 +6,13 @@
 package org.h2.test.store;
 
 import java.util.Map.Entry;
+import java.util.Random;
 
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
+import org.h2.mvstore.rtree.MVRTreeMap;
+import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 
@@ -32,17 +35,17 @@ public class TestMVStoreTool extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testCompress();
+        testCompact();
     }
 
-    private void testCompress() {
-        String fileName = getBaseDir() + "/testCompress.h3";
+    private void testCompact() {
+        String fileName = getBaseDir() + "/testCompact.h3";
         FileUtils.createDirectories(getBaseDir());
         FileUtils.delete(fileName);
         // store with a very small page size, to make sure
         // there are many leaf pages
         MVStore s = new MVStore.Builder().
-                pageSplitSize(100).
+                pageSplitSize(1000).
                 fileName(fileName).autoCommitDisabled().open();
         MVMap<Integer, String> map = s.openMap("data");
         for (int i = 0; i < 10; i++) {
@@ -51,14 +54,28 @@ public class TestMVStoreTool extends TestBase {
                 s.commit();
             }
         }
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 20; i++) {
             map = s.openMap("data" + i);
             for (int j = 0; j < i * i; j++) {
                 map.put(j, "Hello World " + j * 10);
             }
             s.commit();
         }
+        MVRTreeMap<String> rTreeMap = s.openMap("rtree", new MVRTreeMap.Builder<String>());
+        Random r = new Random(1);
+        for (int i = 0; i < 10; i++) {
+            float x = r.nextFloat();
+            float y = r.nextFloat();
+            float width = r.nextFloat() / 10;
+            float height = r.nextFloat() / 10;
+            SpatialKey k = new SpatialKey(i, x, x + width, y, y + height);
+            rTreeMap.put(k, "Hello World " + i * 10);
+            if (i % 3 == 0) {
+                s.commit();
+            }
+        }
         s.close();
+        
         MVStoreTool.compact(fileName, fileName + ".new", false);
         MVStoreTool.compact(fileName, fileName + ".new.compress", true);
         MVStore s1 = new MVStore.Builder().
@@ -78,12 +95,25 @@ public class TestMVStoreTool extends TestBase {
     private void assertEquals(MVStore a, MVStore b) {
         assertEquals(a.getMapNames().size(), b.getMapNames().size());
         for (String mapName : a.getMapNames()) {
-            MVMap<?, ?> ma = a.openMap(mapName);
-            MVMap<?, ?> mb = a.openMap(mapName);
-            assertEquals(ma.sizeAsLong(), mb.sizeAsLong());
-            for (Entry<?, ?> e : ma.entrySet()) {
-                Object x = mb.get(e.getKey());
-                assertEquals(e.getValue().toString(), x.toString());
+            if (mapName.startsWith("rtree")) {
+                MVRTreeMap<String> ma = a.openMap(
+                        mapName, new MVRTreeMap.Builder<String>());
+                MVRTreeMap<String> mb = b.openMap(
+                        mapName, new MVRTreeMap.Builder<String>());
+                assertEquals(ma.sizeAsLong(), mb.sizeAsLong());
+                for (Entry<SpatialKey, String> e : ma.entrySet()) {
+                    Object x = mb.get(e.getKey());
+                    assertEquals(e.getValue().toString(), x.toString());
+                }
+                
+            } else {
+                MVMap<?, ?> ma = a.openMap(mapName);
+                MVMap<?, ?> mb = a.openMap(mapName);
+                assertEquals(ma.sizeAsLong(), mb.sizeAsLong());
+                for (Entry<?, ?> e : ma.entrySet()) {
+                    Object x = mb.get(e.getKey());
+                    assertEquals(e.getValue().toString(), x.toString());
+                }
             }
         }
     }

@@ -37,16 +37,16 @@ public class TestMVStoreTool extends TestBase {
 
     private void testCompress() {
         String fileName = getBaseDir() + "/testCompress.h3";
-        FileUtils.createDirectory(getBaseDir());
+        FileUtils.createDirectories(getBaseDir());
         FileUtils.delete(fileName);
         // store with a very small page size, to make sure
         // there are many leaf pages
         MVStore s = new MVStore.Builder().
                 pageSplitSize(100).
                 fileName(fileName).autoCommitDisabled().open();
-        MVMap<Integer, Integer> map = s.openMap("data");
+        MVMap<Integer, String> map = s.openMap("data");
         for (int i = 0; i < 10; i++) {
-            map.put(i, i * 10);
+            map.put(i, "Hello World " + i * 10);
             if (i % 3 == 0) {
                 s.commit();
             }
@@ -54,7 +54,7 @@ public class TestMVStoreTool extends TestBase {
         for (int i = 0; i < 10; i++) {
             map = s.openMap("data" + i);
             for (int j = 0; j < i * i; j++) {
-                map.put(j, j * 10);
+                map.put(j, "Hello World " + j * 10);
             }
             s.commit();
         }
@@ -69,8 +69,10 @@ public class TestMVStoreTool extends TestBase {
                 fileName(fileName + ".new.compress").readOnly().open();
         assertEquals(s1, s2);
         assertEquals(s1, s3);
-        assertTrue(FileUtils.size(fileName + ".new") < FileUtils.size(fileName));
-        assertTrue(FileUtils.size(fileName + ".new.compress") < FileUtils.size(fileName + ".new"));
+        long size1 = FileUtils.size(fileName);
+        long size2 = FileUtils.size(fileName + ".new");
+        long size3 = FileUtils.size(fileName + ".new.compress");
+        assertTrue("size1: " + size1 + " size2: " + size2 + " size3: " + size3, size2 < size1 && size3 < size2);
     }
 
     private void assertEquals(MVStore a, MVStore b) {

@@ -83,14 +83,16 @@ public class Page {
     private Object[] values;
 
     /**
-     * The child page ids.
+     * The child page positions.
      * <p>
      * The array might be larger than needed, to avoid frequent re-sizing.
      */
     private long[] children;
 
     /**
-     * The entry count for the given children.
+     * The descendant count for each child page.
+     * <p>
+     * The array might be larger than needed, to avoid frequent re-sizing.
      */
     private long[] counts;
 
@@ -129,7 +131,7 @@ public class Page {
      * @param keys the keys
      * @param values the values
      * @param childCount the number of children
-     * @param children the children
+     * @param children the child page positions
      * @param childrenPages the children pages
      * @param counts the children counts
      * @param totalCount the total number of keys
@@ -580,7 +582,7 @@ public class Page {
     }
 
     /**
-     * Replace the key.
+     * Replace the key at an index in this page.
      *
      * @param index the index
      * @param key the new key
@@ -601,7 +603,7 @@ public class Page {
     }
 
     /**
-     * Replace the value.
+     * Replace the value at an index in this page.
      *
      * @param index the index
      * @param value the new value
@@ -678,7 +680,7 @@ public class Page {
     }
 
     /**
-     * Insert a child into this node.
+     * Insert a child page into this node.
      *
      * @param index the index
      * @param key the key

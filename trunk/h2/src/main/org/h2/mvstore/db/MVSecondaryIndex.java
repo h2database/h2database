@@ -79,7 +79,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     public void addRowsToBuffer(List<Row> rows, String bufferName) {
         MVMap<Value, Value> map = openMap(bufferName);
         for (Row row : rows) {
-            ValueArray key = getKey(row);
+            ValueArray key = convertToKey(row);
             map.put(key, ValueNull.INSTANCE);
         }
     }
@@ -129,8 +129,8 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                     ValueArray unique = ValueArray.get(array);
                     ValueArray key = (ValueArray) dataMap.getLatestCeilingKey(unique);
                     if (key != null) {
-                        SearchRow r2 = getRow(key.getList());
-                        SearchRow row = getRow(((ValueArray) v).getList());
+                        SearchRow r2 = convertToSearchRow(key);
+                        SearchRow row = convertToSearchRow((ValueArray) v);
                         if (compareRows(row, r2) == 0) {
                             if (!containsNullAndAllowMultipleNull(r2)) {
                                 throw getDuplicateKeyException(key.toString());
@@ -189,15 +189,15 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     @Override
     public void add(Session session, Row row) {
         TransactionMap<Value, Value> map = getMap(session);
-        ValueArray array = getKey(row);
+        ValueArray array = convertToKey(row);
         ValueArray unique = null;
         if (indexType.isUnique()) {
             // this will detect committed entries only
-            unique = getKey(row);
+            unique = convertToKey(row);
             unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
             ValueArray key = (ValueArray) map.getLatestCeilingKey(unique);
             if (key != null) {
-                SearchRow r2 = getRow(key.getList());
+                SearchRow r2 = convertToSearchRow(key);
                 if (compareRows(row, r2) == 0) {
                     if (!containsNullAndAllowMultipleNull(r2)) {
                         throw getDuplicateKeyException(key.toString());
@@ -214,7 +214,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
             Iterator<Value> it = map.keyIterator(unique, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
-                SearchRow r2 = getRow(k.getList());
+                SearchRow r2 = convertToSearchRow(k);
                 if (compareRows(row, r2) != 0) {
                     break;
                 }
@@ -236,7 +236,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void remove(Session session, Row row) {
-        ValueArray array = getKey(row);
+        ValueArray array = convertToKey(row);
         TransactionMap<Value, Value> map = getMap(session);
         try {
             Value old = map.remove(array);
@@ -255,7 +255,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
-        ValueArray min = getKey(first);
+        ValueArray min = convertToKey(first);
         if (min != null) {
             min.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
         }
@@ -309,7 +309,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         return new MVStoreCursor(session, map.keyIterator(min), last);
     }
 
-    private ValueArray getKey(SearchRow r) {
+    private ValueArray convertToKey(SearchRow r) {
         if (r == null) {
             return null;
         }
@@ -327,12 +327,13 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     /**
-     * Get the row with the given index key.
+     * Convert array of values to a SearchRow.
      *
      * @param array the index key
      * @return the row
      */
-    SearchRow getRow(Value[] array) {
+    SearchRow convertToSearchRow(ValueArray key) {
+    	Value[] array = key.getList();
         SearchRow searchRow = mvTable.getTemplateRow();
         searchRow.setKey((array[array.length - 1]).getLong());
         Column[] cols = getColumns();
@@ -494,7 +495,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         public SearchRow getSearchRow() {
             if (searchRow == null) {
                 if (current != null) {
-                    searchRow = getRow(((ValueArray) current).getList());
+                    searchRow = convertToSearchRow((ValueArray) current);
                 }
             }
             return searchRow;

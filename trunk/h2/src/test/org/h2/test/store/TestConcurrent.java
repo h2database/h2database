@@ -336,6 +336,7 @@ public class TestConcurrent extends TestMVStore {
             s.setReuseSpace(true);
             FileOutputStream out = new FileOutputStream(fileNameRestore);
             out.write(buff);
+            out.close();
             MVStore s2 = openStore(fileNameRestore);
             MVMap<Integer, byte[]> test = s2.openMap("test");
             for (Integer k : test.keySet()) {

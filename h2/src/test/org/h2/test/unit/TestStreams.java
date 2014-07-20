@@ -113,6 +113,7 @@ public class TestStreams extends TestBase {
                     j += l;
                 }
             }
+            decompress.close();
             assertEquals(buffer, test);
         }
     }

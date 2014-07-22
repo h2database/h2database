@@ -42,6 +42,7 @@ TransactionStore:
     if there is only one connection
 
 MVStore:
+- FileStore: don't open and close when set using MVStore.Builder.fileStore
 - test and possibly improve compact operation (for large dbs)
 - is data kept in the stream store if the transaction is not committed?
 - automated 'kill process' and 'power failure' test
@@ -136,6 +137,7 @@ public class MVStore {
     private boolean closed;
 
     private FileStore fileStore;
+    private boolean fileStoreIsProvided;
 
     private final int pageSplitSize;
 
@@ -273,7 +275,10 @@ public class MVStore {
             return;
         }
         if (fileStore == null) {
+            fileStoreIsProvided = false;
             fileStore = new FileStore();
+        } else {
+            fileStoreIsProvided = true;
         }
         retentionTime = fileStore.getDefaultRetentionTime();
         boolean readOnly = config.containsKey("readOnly");
@@ -297,7 +302,9 @@ public class MVStore {
         
         char[] encryptionKey = (char[]) config.get("encryptionKey");
         try {
-            fileStore.open(fileName, readOnly, encryptionKey);
+            if (!fileStoreIsProvided) {
+                fileStore.open(fileName, readOnly, encryptionKey);
+            }
             if (fileStore.size() == 0) {
                 creationTime = getTime();
                 lastCommitTime = creationTime;
@@ -789,7 +796,9 @@ public class MVStore {
             chunks.clear();
             maps.clear();
             try {
-                fileStore.close();
+                if (!fileStoreIsProvided) {
+                    fileStore.close();
+                }
             } finally {
                 fileStore = null;
             }
@@ -2656,11 +2665,15 @@ public class MVStore {
         }
 
         /**
-         * Use the provided file store instead of the default one. Please note
-         * that any kind of store (including an off-heap store) is considered a
-         * "persistence", while an "in-memory store" means objects are not
-         * persisted and fully kept in the JVM heap.
-         *
+         * Use the provided file store instead of the default one.
+         * <p>
+         * File stores passed in this way need to be open. They are not closed
+         * when closing the store.
+         * <p>
+         * Please note that any kind of store (including an off-heap store) is
+         * considered a "persistence", while an "in-memory store" means objects
+         * are not persisted and fully kept in the JVM heap.
+         * 
          * @param store the file store
          * @return this
          */

@@ -1335,14 +1335,13 @@ public class Database implements DataHandler {
         }
         reconnectModified(false);
         if (mvStore != null) {
-            if (!readOnly) {
-                if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
-                    mvStore.compactFile(dbSettings.maxCompactTime);
-                } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
-                    mvStore.compactFile(Long.MAX_VALUE);
-                }
+            long maxCompactTime = dbSettings.maxCompactTime;
+            if (compactMode == CommandInterface.SHUTDOWN_COMPACT) {
+                mvStore.compactFile(dbSettings.maxCompactTime);
+            } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
+                maxCompactTime = Long.MAX_VALUE;
             }
-            mvStore.close(dbSettings.maxCompactTime);
+            mvStore.close(maxCompactTime);
         }
         closeFiles();
         if (persistent && lock == null &&

@@ -25,6 +25,7 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.FileStore;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreTool;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.store.InDoubtTransaction;
@@ -57,6 +58,7 @@ public class MVTableEngine implements TableEngine {
             store = new Store(db, builder.open());
         } else {
             String fileName = dbPath + Constants.SUFFIX_MV_FILE;
+            MVStoreTool.compactCleanUp(fileName);
             builder.fileName(fileName);
             if (db.isReadOnly()) {
                 builder.readOnly();
@@ -310,20 +312,13 @@ public class MVTableEngine implements TableEngine {
          */
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
-            if (maxCompactTime == Long.MAX_VALUE) {
-                store.setReuseSpace(false);
-                store.compactRewriteFully();
-                store.setReuseSpace(true);
-                store.compactMoveChunks();
-            } else {
-                long start = System.currentTimeMillis();
-                while (store.compact(95, 16 * 1024 * 1024)) {
-                    store.sync();
-                    store.compactMoveChunks(95, 16 * 1024 * 1024);
-                    long time = System.currentTimeMillis() - start;
-                    if (time > maxCompactTime) {
-                        break;
-                    }
+            long start = System.currentTimeMillis();
+            while (store.compact(95, 16 * 1024 * 1024)) {
+                store.sync();
+                store.compactMoveChunks(95, 16 * 1024 * 1024);
+                long time = System.currentTimeMillis() - start;
+                if (time > maxCompactTime) {
+                    break;
                 }
             }
         }
@@ -338,14 +333,18 @@ public class MVTableEngine implements TableEngine {
         public void close(long maxCompactTime) {
             try {
                 if (!store.isClosed() && store.getFileStore() != null) {
+                    boolean compactFully = false;
                     if (!store.getFileStore().isReadOnly()) {
                         transactionStore.close();
-                        if (maxCompactTime > 0) {
-                            store.compact(95, 1024 * 1024);
-                            store.compactMoveChunks(95, 1024 * 1024);
+                        if (maxCompactTime == Long.MAX_VALUE) {
+                            compactFully = true;
                         }
                     }
+                    String fileName = store.getFileStore().getFileName();
                     store.close();
+                    if (compactFully) {
+                        MVStoreTool.compact(fileName, true);
+                    }
                 }
             } catch (IllegalStateException e) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");

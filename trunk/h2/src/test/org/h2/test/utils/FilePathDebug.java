@@ -185,9 +185,9 @@ public class FilePathDebug extends FilePathWrapper {
     }
 
     @Override
-    public void moveTo(FilePath newName) {
+    public void moveTo(FilePath newName, boolean atomicReplace) {
         trace(name, "moveTo", unwrap(((FilePathDebug) newName).name));
-        super.moveTo(newName);
+        super.moveTo(newName, atomicReplace);
     }
 
     @Override

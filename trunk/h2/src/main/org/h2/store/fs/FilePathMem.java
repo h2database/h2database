@@ -47,8 +47,13 @@ public class FilePathMem extends FilePath {
     }
 
     @Override
-    public void moveTo(FilePath newName) {
+    public void moveTo(FilePath newName, boolean atomicReplace) {
         synchronized (MEMORY_FILES) {
+            if (!atomicReplace && !newName.name.equals(name) && 
+                    MEMORY_FILES.containsKey(newName.name)) {
+                throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
+                        new String[] { name, newName + " (exists)" });
+            }
             FileMemData f = getMemoryFile();
             f.setName(newName.name);
             MEMORY_FILES.remove(name);

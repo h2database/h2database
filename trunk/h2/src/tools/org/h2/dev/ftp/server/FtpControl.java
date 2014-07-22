@@ -255,7 +255,7 @@ public class FtpControl extends Thread {
                     boolean ok = false;
                     if (!readonly) {
                         try {
-                            FileUtils.moveTo(fileOld, fileNew);
+                            FileUtils.move(fileOld, fileNew);
                             reply(250, "Ok");
                             ok = true;
                         } catch (Exception e) {

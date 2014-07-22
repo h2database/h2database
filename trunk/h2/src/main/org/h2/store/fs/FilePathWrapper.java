@@ -128,8 +128,8 @@ public abstract class FilePathWrapper extends FilePath {
     }
 
     @Override
-    public void moveTo(FilePath newName) {
-        base.moveTo(((FilePathWrapper) newName).base);
+    public void moveTo(FilePath newName, boolean atomicReplace) {
+        base.moveTo(((FilePathWrapper) newName).base, atomicReplace);
     }
 
     @Override

@@ -193,8 +193,8 @@ public class FilePathUnstable extends FilePathWrapper {
     }
 
     @Override
-    public void moveTo(FilePath newName) {
-        super.moveTo(newName);
+    public void moveTo(FilePath newName, boolean atomicReplace) {
+        super.moveTo(newName, atomicReplace);
     }
 
     @Override

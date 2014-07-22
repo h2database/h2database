@@ -102,14 +102,26 @@ public class FileUtils {
     }
 
     /**
-     * Rename a file if this is allowed.
-     * This method is similar to Java 7 <code>java.nio.file.Path.moveTo</code>.
-     *
-     * @param oldName the old fully qualified file name
-     * @param newName the new fully qualified file name
+     * Rename a file if this is allowed. This method is similar to Java 7
+     * <code>java.nio.file.Files.move</code>.
+     * 
+     * @param source the old fully qualified file name
+     * @param target the new fully qualified file name
      */
-    public static void moveTo(String oldName, String newName) {
-        FilePath.get(oldName).moveTo(FilePath.get(newName));
+    public static void move(String source, String target) {
+        FilePath.get(source).moveTo(FilePath.get(target), false);
+    }
+    
+    /**
+     * Rename a file if this is allowed, and try to atomically replace an
+     * existing file. This method is similar to Java 7
+     * <code>java.nio.file.Files.move</code>.
+     * 
+     * @param source the old fully qualified file name
+     * @param target the new fully qualified file name
+     */
+    public static void moveAtomicReplace(String source, String target) {
+        FilePath.get(source).moveTo(FilePath.get(target), true);
     }
 
     /**

@@ -79,7 +79,7 @@ public class FilePathDisk extends FilePath {
     }
 
     @Override
-    public void moveTo(FilePath newName) {
+    public void moveTo(FilePath newName, boolean atomicReplace) {
         File oldFile = new File(name);
         File newFile = new File(newName.name);
         if (oldFile.getAbsolutePath().equals(newFile.getAbsolutePath())) {
@@ -90,9 +90,19 @@ public class FilePathDisk extends FilePath {
                     name + " (not found)",
                     newName.name);
         }
+        // Java 7: use java.nio.file.Files.move(Path source, Path target, CopyOption... options) 
+        // with CopyOptions "REPLACE_EXISTING" and "ATOMIC_MOVE".
+        if (atomicReplace) {
+            boolean ok = oldFile.renameTo(newFile);
+            if (ok) {
+                return;
+            }
+            throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
+                    new String[]{name, newName.name});
+        }
         if (newFile.exists()) {
             throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
-                    new String[] { name, newName + " (exists)" });
+                new String[] { name, newName + " (exists)" });
         }
         for (int i = 0; i < SysProperties.MAX_FILE_RETRY; i++) {
             IOUtils.trace("rename", name + " >" + newName, null);

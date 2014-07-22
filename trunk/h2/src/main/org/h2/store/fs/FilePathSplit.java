@@ -183,12 +183,12 @@ public class FilePathSplit extends FilePathWrapper {
     }
 
     @Override
-    public void moveTo(FilePath path) {
+    public void moveTo(FilePath path, boolean atomicReplace) {
         FilePathSplit newName = (FilePathSplit) path;
         for (int i = 0;; i++) {
             FilePath o = getBase(i);
             if (o.exists()) {
-                o.moveTo(newName.getBase(i));
+                o.moveTo(newName.getBase(i), atomicReplace);
             } else {
                 break;
             }

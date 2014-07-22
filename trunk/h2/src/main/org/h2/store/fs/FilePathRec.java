@@ -70,9 +70,9 @@ public class FilePathRec extends FilePathWrapper {
     }
 
     @Override
-    public void moveTo(FilePath newPath) {
+    public void moveTo(FilePath newPath, boolean atomicReplace) {
         log(Recorder.RENAME, unwrap(name) + ":" + unwrap(newPath.name));
-        super.moveTo(newPath);
+        super.moveTo(newPath, atomicReplace);
     }
 
     public boolean isTrace() {

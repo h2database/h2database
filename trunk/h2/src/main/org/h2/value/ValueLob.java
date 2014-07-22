@@ -778,7 +778,7 @@ public class ValueLob extends Value {
     private static synchronized void renameFile(DataHandler handler,
             String oldName, String newName) {
         synchronized (handler.getLobSyncObject()) {
-            FileUtils.moveTo(oldName, newName);
+            FileUtils.move(oldName, newName);
         }
     }
 

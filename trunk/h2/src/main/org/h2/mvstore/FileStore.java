@@ -125,6 +125,9 @@ public class FileStore {
      *            used
      */
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+        if (file != null) {
+            return;
+        }
         if (fileName != null) {
             if (FilePath.get(fileName) instanceof FilePathDisk) {
                 // NIO is used, unless a different file system is specified the
@@ -354,6 +357,15 @@ public class FileStore {
      */
     public void clear() {
         freeSpace.clear();
+    }
+
+    /**
+     * Get the file name.
+     * 
+     * @return the file name
+     */
+    public String getFileName() {
+        return fileName;
     }
 
 }

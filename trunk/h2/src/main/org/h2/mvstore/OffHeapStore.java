@@ -21,7 +21,7 @@ public class OffHeapStore extends FileStore {
 
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
-        // nothing to do
+        memory.clear();
     }
 
     @Override
@@ -132,7 +132,7 @@ public class OffHeapStore extends FileStore {
 
     @Override
     public void close() {
-        // do nothing (keep the data until it is garbage collected)
+        memory.clear();
     }
 
     @Override

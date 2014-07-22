@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.h2.mvstore.Chunk;
@@ -51,6 +52,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testProvidedFileStoreNotOpenedAndClosed();
         testVolatileMap();
         testEntrySet();
         testCompressEmptyPage();
@@ -108,6 +110,29 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+    
+    private void testProvidedFileStoreNotOpenedAndClosed() {
+        final AtomicInteger openClose = new AtomicInteger();
+        FileStore fileStore = new OffHeapStore() {
+            
+            @Override
+            public void open(String fileName, boolean readOnly, char[] encryptionKey) {
+                openClose.incrementAndGet();
+                super.open(fileName, readOnly, encryptionKey);
+            }
+            
+            @Override
+            public void close() {
+                openClose.incrementAndGet();
+                super.close();
+            }
+        };
+        MVStore store = new MVStore.Builder().
+                fileStore(fileStore).
+                open();
+        store.close();
+        assertEquals(0, openClose.get());
     }
 
     private void testVolatileMap() {

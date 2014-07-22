@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.store.fs.FilePath;
@@ -310,16 +311,51 @@ public class MVStoreTool {
 
     /**
      * Compress the store by creating a new file and copying the live pages
-     * there.
-     *
+     * there. Temporarily, a file with the suffix ".tempFile" is created. This
+     * file is then renamed, replacing the original file, if possible. If not,
+     * the new file is renamed to ".newFile", then the old file is removed, and
+     * the new file is renamed. This might be interrupted, so it's better to
+     * compactCleanUp before opening a store, in case this method was used.
+     * 
      * @param fileName the file name
      * @param compress whether to compress the data
      */
     public static void compact(String fileName, boolean compress) {
-        compact(fileName, fileName + ".new", compress);
-        FileUtils.moveTo(fileName, fileName + ".old");
-        FileUtils.moveTo(fileName, fileName);
-        FileUtils.delete(fileName + ".old");
+        String tempName = fileName + ".tempFile";
+        FileUtils.delete(tempName);
+        compact(fileName, tempName, compress);
+        try {
+            FileUtils.moveAtomicReplace(tempName, fileName);
+        } catch (DbException e) {
+            String newName = fileName + ".newFile";
+            FileUtils.delete(newName);
+            FileUtils.move(tempName, newName);
+            FileUtils.delete(fileName);
+            FileUtils.move(newName, fileName);
+        }
+    }
+    
+    /**
+     * Clean up if needed, in a case a compact operation was interrupted due to
+     * killing the process or a power failure. This will delete temporary files
+     * (if any), and in case atomic file replacements were not used, rename the
+     * new file.
+     * 
+     * @param fileName the file name
+     */
+    public static void compactCleanUp(String fileName) {
+        String tempName = fileName + ".tempFile";
+        if (FileUtils.exists(tempName)) {
+            FileUtils.delete(tempName);
+        }
+        String newName = fileName + ".newFile";
+        if (FileUtils.exists(newName)) {
+            if (FileUtils.exists(fileName)) {
+                FileUtils.delete(newName);
+            } else {
+                FileUtils.move(newName, fileName);
+            }
+        }
     }
 
     /**
@@ -340,6 +376,18 @@ public class MVStoreTool {
             b.compress();
         }
         MVStore target = b.open();
+        compact(source, target);
+        target.close();
+        source.close();
+    }
+    
+    /**
+     * Copy all live pages from the source store to the target store.
+     *
+     * @param source the source store
+     * @param target the target store
+     */
+    public static void compact(MVStore source, MVStore target) {
         MVMap<String, String> sourceMeta = source.getMetaMap();
         MVMap<String, String> targetMeta = target.getMetaMap();
         for (Entry<String, String> m : sourceMeta.entrySet()) {
@@ -365,8 +413,6 @@ public class MVStoreTool {
             MVMap<Object, Object> targetMap = target.openMap(mapName, mp);
             targetMap.copyFrom(sourceMap);
         }
-        target.close();
-        source.close();
     }
 
     /**

@@ -86,10 +86,17 @@ public class TestMVStoreTool extends TestBase {
                 fileName(fileName + ".new.compress").readOnly().open();
         assertEquals(s1, s2);
         assertEquals(s1, s3);
+        s1.close();
+        s2.close();
+        s3.close();
         long size1 = FileUtils.size(fileName);
         long size2 = FileUtils.size(fileName + ".new");
         long size3 = FileUtils.size(fileName + ".new.compress");
         assertTrue("size1: " + size1 + " size2: " + size2 + " size3: " + size3, size2 < size1 && size3 < size2);
+        MVStoreTool.compact(fileName, false);
+        assertEquals(size2, FileUtils.size(fileName));
+        MVStoreTool.compact(fileName, true);
+        assertEquals(size3, FileUtils.size(fileName));
     }
 
     private void assertEquals(MVStore a, MVStore b) {

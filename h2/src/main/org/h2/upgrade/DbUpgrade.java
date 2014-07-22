@@ -141,10 +141,10 @@ public class DbUpgrade {
                 stat.execute("script to '" + script + "'");
             }
             conn.close();
-            FileUtils.moveTo(data, backupData);
-            FileUtils.moveTo(index, backupIndex);
+            FileUtils.move(data, backupData);
+            FileUtils.move(index, backupIndex);
             if (FileUtils.exists(lobs)) {
-                FileUtils.moveTo(lobs, backupLobs);
+                FileUtils.move(lobs, backupLobs);
             }
             ci.removeProperty("IFEXISTS", false);
             conn = new JdbcConnection(ci, true);
@@ -166,13 +166,13 @@ public class DbUpgrade {
             }
         } catch (Exception e)  {
             if (FileUtils.exists(backupData)) {
-                FileUtils.moveTo(backupData, data);
+                FileUtils.move(backupData, data);
             }
             if (FileUtils.exists(backupIndex)) {
-                FileUtils.moveTo(backupIndex, index);
+                FileUtils.move(backupIndex, index);
             }
             if (FileUtils.exists(backupLobs)) {
-                FileUtils.moveTo(backupLobs, lobs);
+                FileUtils.move(backupLobs, lobs);
             }
             FileUtils.delete(name + ".h2.db");
             throw DbException.toSQLException(e);

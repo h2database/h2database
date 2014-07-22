@@ -627,7 +627,7 @@ public class TestTools extends TestBase {
         String newTrace = getBaseDir() + "/test.trace.db";
         FileUtils.delete(newTrace);
         assertFalse(FileUtils.exists(newTrace));
-        FileUtils.moveTo(trace, newTrace);
+        FileUtils.move(trace, newTrace);
         deleteDb("toolsConvertTraceFile");
         Player.main(getBaseDir() + "/test.trace.db");
         testTraceFile(url);

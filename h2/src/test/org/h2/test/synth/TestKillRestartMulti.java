@@ -115,7 +115,7 @@ public class TestKillRestartMulti extends TestBase {
                 conn.close();
                 FileUtils.delete(backup);
             } catch (SQLException e) {
-                FileUtils.moveTo(backup, backup + ".error");
+                FileUtils.move(backup, backup + ".error");
                 throw e;
             }
         }

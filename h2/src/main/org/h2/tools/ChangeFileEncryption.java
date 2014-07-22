@@ -177,8 +177,8 @@ public class ChangeFileEncryption extends Tool {
         for (String fileName : files) {
             String temp = dir + "/temp.db";
             FileUtils.delete(temp);
-            FileUtils.moveTo(fileName, temp);
-            FileUtils.moveTo(temp, fileName);
+            FileUtils.move(fileName, temp);
+            FileUtils.move(temp, fileName);
         }
         // if this worked, the operation will (hopefully) be successful
         // TODO changeFileEncryption: this is a workaround!
@@ -256,7 +256,7 @@ public class ChangeFileEncryption extends Tool {
             }
         }
         FileUtils.delete(fileName);
-        FileUtils.moveTo(temp, fileName);
+        FileUtils.move(temp, fileName);
     }
 
     private void copy(String fileName, FileStore in, byte[] key) {
@@ -291,7 +291,7 @@ public class ChangeFileEncryption extends Tool {
         in.close();
         fileOut.close();
         FileUtils.delete(fileName);
-        FileUtils.moveTo(temp, fileName);
+        FileUtils.move(temp, fileName);
     }
 
 }

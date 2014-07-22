@@ -124,8 +124,10 @@ public abstract class FilePath {
      * Rename a file if this is allowed.
      *
      * @param newName the new fully qualified file name
+     * @param atomicReplace whether the move should be atomic, and the target file
+     *            should be replaced if it exists and replacing is possible
      */
-    public abstract void moveTo(FilePath newName);
+    public abstract void moveTo(FilePath newName, boolean atomicReplace);
 
     /**
      * Create a new file.

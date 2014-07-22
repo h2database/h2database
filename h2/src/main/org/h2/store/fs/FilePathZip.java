@@ -206,7 +206,7 @@ public class FilePathZip extends FilePath {
     }
 
     @Override
-    public void moveTo(FilePath newName) {
+    public void moveTo(FilePath newName, boolean atomicReplace) {
         throw DbException.getUnsupportedException("write");
     }
 

@@ -233,7 +233,7 @@ public class FileShell extends Tool {
             String source = getFile(list[i++]);
             String target = getFile(list[i++]);
             end(list, i);
-            FileUtils.moveTo(source, target);
+            FileUtils.move(source, target);
         } else if ("pwd".equals(c)) {
             end(list, i);
             println(FileUtils.toRealPath(currentWorkingDirectory));

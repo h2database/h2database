@@ -255,7 +255,7 @@ public class TestFileSystem extends TestBase {
         stat.execute(
                 "create table test(id int primary key, name varchar) " +
                 "as select x, space(10000) from system_range(1, 100)");
-        stat.execute("shutdown defrag");
+        // stat.execute("shutdown defrag");
         conn.close();
         Backup.execute(dir + "/test.zip", dir, "", true);
         DeleteDbFiles.execute("split:" + dir, "test", true);
@@ -350,30 +350,36 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testReadOnly(final String f) throws IOException {
-        new AssertThrows(IOException.class) { @Override
-        public void test() throws IOException {
-            FileUtils.newOutputStream(f, false);
+        new AssertThrows(IOException.class) { 
+            @Override
+            public void test() throws IOException {
+                FileUtils.newOutputStream(f, false);
         }};
-        new AssertThrows(DbException.class) { @Override
-        public void test() {
-            FileUtils.moveTo(f, f);
+        new AssertThrows(DbException.class) { 
+            @Override
+            public void test() {
+                FileUtils.move(f, f);
         }};
-        new AssertThrows(DbException.class) { @Override
-        public void test() {
-            FileUtils.moveTo(f, f);
+        new AssertThrows(DbException.class) { 
+            @Override
+            public void test() {
+                FileUtils.move(f, f);
         }};
-        new AssertThrows(IOException.class) { @Override
-        public void test() throws IOException {
-            FileUtils.createTempFile(f, ".tmp", false, false);
+        new AssertThrows(IOException.class) { 
+            @Override
+            public void test() throws IOException {
+                FileUtils.createTempFile(f, ".tmp", false, false);
         }};
         final FileChannel channel = FileUtils.open(f, "r");
-        new AssertThrows(IOException.class) { @Override
-        public void test() throws IOException {
-            channel.write(ByteBuffer.allocate(1));
+        new AssertThrows(IOException.class) { 
+            @Override
+            public void test() throws IOException {
+                channel.write(ByteBuffer.allocate(1));
         }};
-        new AssertThrows(IOException.class) { @Override
-        public void test() throws IOException {
-            channel.truncate(0);
+        new AssertThrows(IOException.class) { 
+            @Override
+            public void test() throws IOException {
+                channel.truncate(0);
         }};
         assertTrue(null == channel.tryLock());
         channel.force(false);
@@ -413,13 +419,15 @@ public class TestFileSystem extends TestBase {
             FileUtils.delete(fileName);
         }
         if (FileUtils.createFile(fileName)) {
-            new AssertThrows(DbException.class) { @Override
-            public void test() {
-                FileUtils.createDirectory(fileName);
+            new AssertThrows(DbException.class) { 
+                @Override
+                public void test() {
+                    FileUtils.createDirectory(fileName);
             }};
-            new AssertThrows(DbException.class) { @Override
-            public void test() {
-                FileUtils.createDirectories(fileName + "/test");
+            new AssertThrows(DbException.class) { 
+                @Override
+                public void test() {
+                    FileUtils.createDirectories(fileName + "/test");
             }};
             FileUtils.delete(fileName);
         }
@@ -432,17 +440,19 @@ public class TestFileSystem extends TestBase {
             FileUtils.delete(fileName);
         }
         if (FileUtils.createFile(fileName)) {
-            FileUtils.moveTo(fileName, fileName2);
+            FileUtils.move(fileName, fileName2);
             FileUtils.createFile(fileName);
-            new AssertThrows(DbException.class) { @Override
-            public void test() {
-                FileUtils.moveTo(fileName2, fileName);
+            new AssertThrows(DbException.class) { 
+                @Override
+                public void test() {
+                    FileUtils.move(fileName2, fileName);
             }};
             FileUtils.delete(fileName);
             FileUtils.delete(fileName2);
-            new AssertThrows(DbException.class) { @Override
-            public void test() {
-                FileUtils.moveTo(fileName, fileName2);
+            new AssertThrows(DbException.class) { 
+                @Override
+                public void test() {
+                    FileUtils.move(fileName, fileName2);
             }};
         }
     }
@@ -454,29 +464,35 @@ public class TestFileSystem extends TestBase {
         }
         if (FileUtils.createFile(fileName)) {
             final FileChannel channel = FileUtils.open(fileName, "rw");
-            new AssertThrows(UnsupportedOperationException.class) { @Override
-            public void test() throws IOException {
-                channel.map(MapMode.PRIVATE, 0, channel.size());
+            new AssertThrows(UnsupportedOperationException.class) { 
+                @Override
+                public void test() throws IOException {
+                    channel.map(MapMode.PRIVATE, 0, channel.size());
             }};
-            new AssertThrows(UnsupportedOperationException.class) { @Override
-            public void test() throws IOException {
-                channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
+            new AssertThrows(UnsupportedOperationException.class) { 
+                @Override
+                public void test() throws IOException {
+                    channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { @Override
-            public void test() throws IOException {
-                channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
+            new AssertThrows(UnsupportedOperationException.class) { 
+                @Override
+                public void test() throws IOException {
+                    channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { @Override
-            public void test() throws IOException {
-                channel.transferFrom(channel, 0, 0);
+            new AssertThrows(UnsupportedOperationException.class) { 
+                @Override
+                public void test() throws IOException {
+                    channel.transferFrom(channel, 0, 0);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { @Override
-            public void test() throws IOException {
-                channel.transferTo(0, 0, channel);
+            new AssertThrows(UnsupportedOperationException.class) { 
+                @Override
+                public void test() throws IOException {
+                    channel.transferTo(0, 0, channel);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { @Override
-            public void test() throws IOException {
-                channel.lock();
+            new AssertThrows(UnsupportedOperationException.class) { 
+                @Override
+                public void test() throws IOException {
+                    channel.lock();
             }};
             channel.close();
             FileUtils.delete(fileName);
@@ -566,8 +582,8 @@ public class TestFileSystem extends TestBase {
         assertEquals(1, list.size());
         assertTrue(list.get(0).endsWith("test"));
         IOUtils.copyFiles(fsBase + "/test", fsBase + "/test3");
-        FileUtils.moveTo(fsBase + "/test3", fsBase + "/test2");
-        FileUtils.moveTo(fsBase + "/test2", fsBase + "/test2");
+        FileUtils.move(fsBase + "/test3", fsBase + "/test2");
+        FileUtils.move(fsBase + "/test2", fsBase + "/test2");
         assertTrue(!FileUtils.exists(fsBase + "/test3"));
         assertTrue(FileUtils.exists(fsBase + "/test2"));
         assertEquals(10000, FileUtils.size(fsBase + "/test2"));

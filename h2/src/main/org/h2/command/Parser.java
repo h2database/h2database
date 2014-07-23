@@ -2727,15 +2727,18 @@ public class Parser {
                     r = new SequenceValue(sequence);
                 } else if (currentTokenType == VALUE &&
                         currentValue.getType() == Value.STRING) {
-                    if (equalsToken("DATE", name)) {
+                    if (equalsToken("DATE", name) ||
+                            equalsToken("D", name)) {
                         String date = currentValue.getString();
                         read();
                         r = ValueExpression.get(ValueDate.parse(date));
-                    } else if (equalsToken("TIME", name)) {
+                    } else if (equalsToken("TIME", name) ||
+                            equalsToken("T", name)) {
                         String time = currentValue.getString();
                         read();
                         r = ValueExpression.get(ValueTime.parse(time));
-                    } else if (equalsToken("TIMESTAMP", name)) {
+                    } else if (equalsToken("TIMESTAMP", name) ||
+                            equalsToken("TS", name)) {
                         String timestamp = currentValue.getString();
                         read();
                         r = ValueExpression

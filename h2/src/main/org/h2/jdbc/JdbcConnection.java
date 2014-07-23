@@ -1359,11 +1359,11 @@ public class JdbcConnection extends TraceObject implements Connection {
                 } else if (found(sql, start, "oj")) {
                     remove = 2;
                 } else if (found(sql, start, "ts")) {
-                    remove = 2;
+                    break;
                 } else if (found(sql, start, "t")) {
-                    remove = 1;
+                    break;
                 } else if (found(sql, start, "d")) {
-                    remove = 1;
+                    break;
                 } else if (found(sql, start, "params")) {
                     remove = "params".length();
                 }

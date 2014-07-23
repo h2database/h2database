@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.h2.mvstore.ConcurrentLinkedList;
+import org.h2.mvstore.ConcurrentArrayList;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -48,8 +48,10 @@ public class TestConcurrentLinkedList extends TestBase {
     private void testPerformance(final boolean stock) {
         System.out.print(stock ? "stock " : "custom ");
         long start = System.currentTimeMillis();
-        final ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
-        // final ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
+        // final ConcurrentLinkedList<Integer> test =
+        //     new ConcurrentLinkedList<Integer>();
+        final ConcurrentArrayList<Integer> test =
+                new ConcurrentArrayList<Integer>();
         final LinkedList<Integer> x = new LinkedList<Integer>();
         final AtomicInteger counter = new AtomicInteger();
         Task task = new Task() {
@@ -107,7 +109,7 @@ public class TestConcurrentLinkedList extends TestBase {
     }
 
     private void testConcurrent() {
-        final ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
+        final ConcurrentArrayList<Integer> test = new ConcurrentArrayList<Integer>();
         // final ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
         final AtomicInteger counter = new AtomicInteger();
         final AtomicInteger size = new AtomicInteger();
@@ -140,7 +142,7 @@ public class TestConcurrentLinkedList extends TestBase {
     private void testRandomized() {
         Random r = new Random(0);
         for (int i = 0; i < 100; i++) {
-            ConcurrentLinkedList<Integer> test = new ConcurrentLinkedList<Integer>();
+            ConcurrentArrayList<Integer> test = new ConcurrentArrayList<Integer>();
             // ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
             LinkedList<Integer> x = new LinkedList<Integer>();
             StringBuilder buff = new StringBuilder();

@@ -3,9 +3,11 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.mvstore;
+package org.h2.dev.util;
 
 import java.util.Iterator;
+
+import org.h2.mvstore.DataUtils;
 
 
 /**

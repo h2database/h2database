@@ -53,8 +53,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType keyType;
     private final DataType valueType;
 
-    private ConcurrentLinkedList<Page> oldRoots =
-            new ConcurrentLinkedList<Page>();
+    private ConcurrentArrayList<Page> oldRoots =
+            new ConcurrentArrayList<Page>();
 
     private boolean closed;
     private boolean readOnly;

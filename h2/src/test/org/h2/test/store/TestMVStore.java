@@ -111,17 +111,17 @@ public class TestMVStore extends TestBase {
         // longer running tests
         testLargerThan2G();
     }
-    
+
     private void testProvidedFileStoreNotOpenedAndClosed() {
         final AtomicInteger openClose = new AtomicInteger();
         FileStore fileStore = new OffHeapStore() {
-            
+
             @Override
             public void open(String fileName, boolean readOnly, char[] encryptionKey) {
                 openClose.incrementAndGet();
                 super.open(fileName, readOnly, encryptionKey);
             }
-            
+
             @Override
             public void close() {
                 openClose.incrementAndGet();

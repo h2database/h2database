@@ -736,11 +736,12 @@ public class Utils {
         }
         return defaultValue;
     }
-    
+
     /**
      * Scale the value with the available memory. If 1 GB of RAM is available,
-     * the value is returned, if 2 GB are available, then twice the value, and so on.
-     * 
+     * the value is returned, if 2 GB are available, then twice the value, and
+     * so on.
+     *
      * @param value the value to scale
      * @return the scaled value
      */
@@ -753,12 +754,14 @@ public class Utils {
         try {
             OperatingSystemMXBean mxBean = ManagementFactory
                     .getOperatingSystemMXBean();
-            // this method is only available on the class com.sun.management.OperatingSystemMXBean, which mxBean
-            // is an instance of under the Oracle JDK, but it is not present on Android and other JDK's
+            // this method is only available on the class
+            // com.sun.management.OperatingSystemMXBean, which mxBean
+            // is an instance of under the Oracle JDK, but it is not present on
+            // Android and other JDK's
             Method method = Class.forName(
                     "com.sun.management.OperatingSystemMXBean").
                     getMethod("getTotalPhysicalMemorySize");
-            long physicalMemorySize = ((Number) method.invoke(mxBean)).longValue();            
+            long physicalMemorySize = ((Number) method.invoke(mxBean)).longValue();
             return (int) (value * physicalMemorySize / (1024 * 1024 * 1024));
         } catch (Exception e) {
             // ignore

@@ -299,7 +299,7 @@ public class MVStore {
 
         o = config.get("autoCompactFillRate");
         autoCompactFillRate = o == null ? 80 : (Integer) o;
-        
+
         char[] encryptionKey = (char[]) config.get("encryptionKey");
         try {
             if (!fileStoreIsProvided) {
@@ -1371,7 +1371,8 @@ public class MVStore {
      * Chunks are overwritten irrespective of the current retention time. Before
      * overwriting chunks and before resizing the file, syncFile() is called.
      *
-     * @param targetFillRate do nothing if the file store fill rate is higher than this
+     * @param targetFillRate do nothing if the file store fill rate is higher
+     *            than this
      * @param moveSize the number of bytes to move
      * @return if anything was written
      */
@@ -2537,7 +2538,7 @@ public class MVStore {
         public Builder autoCommitBufferSize(int kb) {
             return set("autoCommitBufferSize", kb);
         }
-        
+
         /**
          * Set the auto-compact target fill rate. If the average fill rate (the
          * percentage of the storage space that contains active data) of the
@@ -2548,7 +2549,7 @@ public class MVStore {
          * <p>
          * The default value is 80 (80%). The value 0 disables auto-compacting.
          * <p>
-         * 
+         *
          * @param percent the target fill rate
          * @return this
          */
@@ -2673,7 +2674,7 @@ public class MVStore {
          * Please note that any kind of store (including an off-heap store) is
          * considered a "persistence", while an "in-memory store" means objects
          * are not persisted and fully kept in the JVM heap.
-         * 
+         *
          * @param store the file store
          * @return this
          */

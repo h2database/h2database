@@ -333,7 +333,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
      * @return the row
      */
     SearchRow convertToSearchRow(ValueArray key) {
-    	Value[] array = key.getList();
+        Value[] array = key.getList();
         SearchRow searchRow = mvTable.getTemplateRow();
         searchRow.setKey((array[array.length - 1]).getLong());
         Column[] cols = getColumns();

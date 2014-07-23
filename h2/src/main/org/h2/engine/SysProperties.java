@@ -250,7 +250,8 @@ public class SysProperties {
             Utils.getProperty("h2.maxReconnect", 3);
 
     /**
-     * System property <code>h2.maxMemoryRows</code> (default: 40000 per GB of available RAM).<br />
+     * System property <code>h2.maxMemoryRows</code>
+     * (default: 40000 per GB of available RAM).<br />
      * The default maximum number of rows to be kept in memory in a result set.
      */
     public static final int MAX_MEMORY_ROWS =
@@ -534,10 +535,12 @@ public class SysProperties {
     public static String getScriptDirectory() {
         return Utils.getProperty(H2_SCRIPT_DIRECTORY, "");
     }
-    
+
     /**
-     * This method attempts to auto-scale some of our properties to take advantage of more powerful machines out of the box.
-     * We assume that our default properties are set correctly for approx. 1G of memory, and scale them up if we have more.
+     * This method attempts to auto-scale some of our properties to take
+     * advantage of more powerful machines out of the box. We assume that our
+     * default properties are set correctly for approx. 1G of memory, and scale
+     * them up if we have more.
      */
     private static int getAutoScaledForMemoryProperty(String key, int defaultValue) {
         String s = Utils.getProperty(key, null);
@@ -550,5 +553,5 @@ public class SysProperties {
         }
         return Utils.scaleForAvailableMemory(defaultValue);
     }
-    
+
 }

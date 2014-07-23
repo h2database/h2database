@@ -75,7 +75,7 @@ public class TestMVStoreTool extends TestBase {
             }
         }
         s.close();
-        
+
         MVStoreTool.compact(fileName, fileName + ".new", false);
         MVStoreTool.compact(fileName, fileName + ".new.compress", true);
         MVStore s1 = new MVStore.Builder().
@@ -92,7 +92,8 @@ public class TestMVStoreTool extends TestBase {
         long size1 = FileUtils.size(fileName);
         long size2 = FileUtils.size(fileName + ".new");
         long size3 = FileUtils.size(fileName + ".new.compress");
-        assertTrue("size1: " + size1 + " size2: " + size2 + " size3: " + size3, size2 < size1 && size3 < size2);
+        assertTrue("size1: " + size1 + " size2: " + size2 + " size3: " + size3,
+                size2 < size1 && size3 < size2);
         MVStoreTool.compact(fileName, false);
         assertEquals(size2, FileUtils.size(fileName));
         MVStoreTool.compact(fileName, true);
@@ -112,7 +113,7 @@ public class TestMVStoreTool extends TestBase {
                     Object x = mb.get(e.getKey());
                     assertEquals(e.getValue().toString(), x.toString());
                 }
-                
+
             } else {
                 MVMap<?, ?> ma = a.openMap(mapName);
                 MVMap<?, ?> mb = a.openMap(mapName);

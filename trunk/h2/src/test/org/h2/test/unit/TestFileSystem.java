@@ -350,33 +350,33 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testReadOnly(final String f) throws IOException {
-        new AssertThrows(IOException.class) { 
+        new AssertThrows(IOException.class) {
             @Override
             public void test() throws IOException {
                 FileUtils.newOutputStream(f, false);
         }};
-        new AssertThrows(DbException.class) { 
+        new AssertThrows(DbException.class) {
             @Override
             public void test() {
                 FileUtils.move(f, f);
         }};
-        new AssertThrows(DbException.class) { 
+        new AssertThrows(DbException.class) {
             @Override
             public void test() {
                 FileUtils.move(f, f);
         }};
-        new AssertThrows(IOException.class) { 
+        new AssertThrows(IOException.class) {
             @Override
             public void test() throws IOException {
                 FileUtils.createTempFile(f, ".tmp", false, false);
         }};
         final FileChannel channel = FileUtils.open(f, "r");
-        new AssertThrows(IOException.class) { 
+        new AssertThrows(IOException.class) {
             @Override
             public void test() throws IOException {
                 channel.write(ByteBuffer.allocate(1));
         }};
-        new AssertThrows(IOException.class) { 
+        new AssertThrows(IOException.class) {
             @Override
             public void test() throws IOException {
                 channel.truncate(0);
@@ -419,12 +419,12 @@ public class TestFileSystem extends TestBase {
             FileUtils.delete(fileName);
         }
         if (FileUtils.createFile(fileName)) {
-            new AssertThrows(DbException.class) { 
+            new AssertThrows(DbException.class) {
                 @Override
                 public void test() {
                     FileUtils.createDirectory(fileName);
             }};
-            new AssertThrows(DbException.class) { 
+            new AssertThrows(DbException.class) {
                 @Override
                 public void test() {
                     FileUtils.createDirectories(fileName + "/test");
@@ -442,14 +442,14 @@ public class TestFileSystem extends TestBase {
         if (FileUtils.createFile(fileName)) {
             FileUtils.move(fileName, fileName2);
             FileUtils.createFile(fileName);
-            new AssertThrows(DbException.class) { 
+            new AssertThrows(DbException.class) {
                 @Override
                 public void test() {
                     FileUtils.move(fileName2, fileName);
             }};
             FileUtils.delete(fileName);
             FileUtils.delete(fileName2);
-            new AssertThrows(DbException.class) { 
+            new AssertThrows(DbException.class) {
                 @Override
                 public void test() {
                     FileUtils.move(fileName, fileName2);
@@ -464,32 +464,32 @@ public class TestFileSystem extends TestBase {
         }
         if (FileUtils.createFile(fileName)) {
             final FileChannel channel = FileUtils.open(fileName, "rw");
-            new AssertThrows(UnsupportedOperationException.class) { 
+            new AssertThrows(UnsupportedOperationException.class) {
                 @Override
                 public void test() throws IOException {
                     channel.map(MapMode.PRIVATE, 0, channel.size());
             }};
-            new AssertThrows(UnsupportedOperationException.class) { 
+            new AssertThrows(UnsupportedOperationException.class) {
                 @Override
                 public void test() throws IOException {
                     channel.read(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { 
+            new AssertThrows(UnsupportedOperationException.class) {
                 @Override
                 public void test() throws IOException {
                     channel.write(new ByteBuffer[]{ByteBuffer.allocate(10)}, 0, 0);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { 
+            new AssertThrows(UnsupportedOperationException.class) {
                 @Override
                 public void test() throws IOException {
                     channel.transferFrom(channel, 0, 0);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { 
+            new AssertThrows(UnsupportedOperationException.class) {
                 @Override
                 public void test() throws IOException {
                     channel.transferTo(0, 0, channel);
             }};
-            new AssertThrows(UnsupportedOperationException.class) { 
+            new AssertThrows(UnsupportedOperationException.class) {
                 @Override
                 public void test() throws IOException {
                     channel.lock();

@@ -90,7 +90,8 @@ public class FilePathDisk extends FilePath {
                     name + " (not found)",
                     newName.name);
         }
-        // Java 7: use java.nio.file.Files.move(Path source, Path target, CopyOption... options) 
+        // Java 7: use java.nio.file.Files.move(Path source, Path target,
+        //     CopyOption... options)
         // with CopyOptions "REPLACE_EXISTING" and "ATOMIC_MOVE".
         if (atomicReplace) {
             boolean ok = oldFile.renameTo(newFile);

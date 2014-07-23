@@ -210,7 +210,7 @@ public class Database implements DataHandler {
                 Constants.CACHE_SIZE_DEFAULT);
         this.cacheSize =
                 ci.getProperty("CACHE_SIZE", defaultCacheSize);
-        this.pageSize = ci.getProperty("PAGE_SIZE", 
+        this.pageSize = ci.getProperty("PAGE_SIZE",
                 Constants.DEFAULT_PAGE_SIZE);
         if ("r".equals(accessModeData)) {
             readOnly = true;

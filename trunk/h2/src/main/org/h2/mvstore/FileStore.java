@@ -361,7 +361,7 @@ public class FileStore {
 
     /**
      * Get the file name.
-     * 
+     *
      * @return the file name
      */
     public String getFileName() {

@@ -283,7 +283,7 @@ public class MVStoreTool {
             pw.printf("Chunk length: %d\n", chunkLength);
             pw.printf("Chunk count: %d\n", chunks.size());
             pw.printf("Used space: %d%%\n", 100 * chunkLength / fileLength);
-            pw.printf("Chunk fill rate: %d%%\n", maxLength == 0 ? 100 : 
+            pw.printf("Chunk fill rate: %d%%\n", maxLength == 0 ? 100 :
                 100 * maxLengthLive / maxLength);
             for (Entry<Integer, Chunk> e : chunks.entrySet()) {
                 Chunk c = e.getValue();
@@ -316,7 +316,7 @@ public class MVStoreTool {
      * the new file is renamed to ".newFile", then the old file is removed, and
      * the new file is renamed. This might be interrupted, so it's better to
      * compactCleanUp before opening a store, in case this method was used.
-     * 
+     *
      * @param fileName the file name
      * @param compress whether to compress the data
      */
@@ -334,13 +334,13 @@ public class MVStoreTool {
             FileUtils.move(newName, fileName);
         }
     }
-    
+
     /**
      * Clean up if needed, in a case a compact operation was interrupted due to
      * killing the process or a power failure. This will delete temporary files
      * (if any), and in case atomic file replacements were not used, rename the
      * new file.
-     * 
+     *
      * @param fileName the file name
      */
     public static void compactCleanUp(String fileName) {
@@ -363,6 +363,7 @@ public class MVStoreTool {
      *
      * @param sourceFileName the name of the source store
      * @param targetFileName the name of the target store
+     * @param compress whether to compress the data
      */
     public static void compact(String sourceFileName, String targetFileName, boolean compress) {
         MVStore source = new MVStore.Builder().
@@ -380,7 +381,7 @@ public class MVStoreTool {
         target.close();
         source.close();
     }
-    
+
     /**
      * Copy all live pages from the source store to the target store.
      *

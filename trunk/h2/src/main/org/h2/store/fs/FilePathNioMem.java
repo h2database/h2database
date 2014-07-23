@@ -48,7 +48,7 @@ public class FilePathNioMem extends FilePath {
     @Override
     public void moveTo(FilePath newName, boolean atomicReplace) {
         synchronized (MEMORY_FILES) {
-            if (!atomicReplace && !name.equals(newName.name) && 
+            if (!atomicReplace && !name.equals(newName.name) &&
                     MEMORY_FILES.containsKey(newName.name)) {
                 throw DbException.get(ErrorCode.FILE_RENAME_FAILED_2,
                         new String[] { name, newName + " (exists)" });

@@ -1340,6 +1340,8 @@ public class Database implements DataHandler {
                 mvStore.compactFile(dbSettings.maxCompactTime);
             } else if (compactMode == CommandInterface.SHUTDOWN_DEFRAG) {
                 maxCompactTime = Long.MAX_VALUE;
+            } else if (getSettings().defragAlways) {
+                maxCompactTime = Long.MAX_VALUE;
             }
             mvStore.close(maxCompactTime);
         }

@@ -33,13 +33,13 @@ public class TestNativeSQL extends TestBase {
             "SELECT '{fn ABS(1)}' FROM TEST",
 
             "SELECT {d '2001-01-01'} FROM TEST",
-            "SELECT    '2001-01-01'  FROM TEST",
+            "SELECT  d '2001-01-01'  FROM TEST",
 
             "SELECT {t '20:00:00'} FROM TEST",
-            "SELECT    '20:00:00'  FROM TEST",
+            "SELECT  t '20:00:00'  FROM TEST",
 
             "SELECT {ts '2001-01-01 20:00:00'} FROM TEST",
-            "SELECT     '2001-01-01 20:00:00'  FROM TEST",
+            "SELECT  ts '2001-01-01 20:00:00'  FROM TEST",
 
             "SELECT {fn CONCAT('{fn x}','{oj}')} FROM TEST",
             "SELECT     CONCAT('{fn x}','{oj}')  FROM TEST",

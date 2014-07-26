@@ -139,10 +139,12 @@ public class TestPreparedStatement extends TestBase {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).
                 unwrap(Object.class);
 
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
-                isWrapperFor(Object.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
-                unwrap(Object.class);
+        assertTrue(conn.isWrapperFor(Object.class));
+        assertTrue(conn.isWrapperFor(Connection.class));
+        assertFalse(conn.isWrapperFor(String.class));
+        assertTrue(conn == conn.unwrap(Object.class));
+        assertTrue(conn == conn.unwrap(Connection.class));
+        assertThrows(ErrorCode.INVALID_VALUE_2, conn).unwrap(String.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
                 createSQLXML();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).

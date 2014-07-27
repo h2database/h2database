@@ -123,7 +123,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     @Override
     @SuppressWarnings("unchecked")
-    public V put(K key, V value) {
+    public synchronized V put(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         beforeWrite();
         try {
@@ -534,7 +534,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Remove all entries.
      */
     @Override
-    public void clear() {
+    public synchronized void clear() {
         beforeWrite();
         try {
             root.removeAllRecursive();
@@ -563,7 +563,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the old value if the key existed, or null otherwise
      */
     @Override
-    public V remove(Object key) {
+    public synchronized V remove(Object key) {
         beforeWrite();
         try {
             long v = writeVersion;
@@ -809,9 +809,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
             @SuppressWarnings("unchecked")
             K key = (K) p.getKey(0);
-            @SuppressWarnings("unchecked")
-            V value = (V) p.getValue(0);
-            put(key, value);
+            V value = get(key);
+            if (value != null) {
+                replace(key, value, value);
+            }
             return 1;
         }
         int writtenPageCount = 0;
@@ -842,9 +843,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     }
                     @SuppressWarnings("unchecked")
                     K key = (K) p2.getKey(0);
-                    @SuppressWarnings("unchecked")
-                    V value = (V) p2.getValue(0);
-                    put(key, value);
+                    V value = get(key);
+                    if (value != null) {
+                        replace(key, value, value);
+                    }
                     writtenPageCount++;
                 }
             }

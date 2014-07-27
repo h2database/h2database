@@ -47,6 +47,8 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
 
+        testConcurrentReplaceAndRead();
+        testConcurrentChangeAndCompact();
         testConcurrentChangeAndGetVersion();
         testConcurrentFree();
         testConcurrentStoreAndRemoveMap();
@@ -56,6 +58,61 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+    
+    private void testConcurrentReplaceAndRead() throws InterruptedException {
+        final MVStore s = new MVStore.Builder().open();
+        final MVMap<Integer, Integer> map = s.openMap("data");
+        for (int i = 0; i < 100; i++) {
+            map.put(i, i % 100);
+        }
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                int i = 0;
+                while (!stop) {
+                    map.put(i % 100, i % 100);
+                    i++;
+                    if (i % 1000 == 0) {
+                        s.commit();
+                    }
+                }
+            }
+        };
+        task.execute();
+        Thread.sleep(1);
+        for (int i = 0; !task.isFinished() && i < 1000000; i++) {
+            assertEquals(i % 100, map.get(i % 100).intValue());
+        }
+        task.get();
+        s.close();
+    }
+    
+    private void testConcurrentChangeAndCompact() throws InterruptedException {
+        final MVStore s = new MVStore.Builder().fileName(
+                "memFS:testConcurrentChangeAndBackgroundCompact").autoCommitDisabled().open();
+        s.setRetentionTime(0);
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                while (!stop) {
+                    s.compact(100, 1024 * 1024);
+//                    s.compactMoveChunks(100, 1024 * 1024);
+                    // s.compact(100, 1024 * 1024);
+                }
+            }
+        };
+        task.execute();
+        Thread.sleep(1);
+        for (int i = 0; !task.isFinished() && i < 1000; i++) {
+            MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
+            // MVMap<Integer, Integer> map = s.openMap("d" + (i % 3), 
+            //         new MVMapConcurrent.Builder<Integer, Integer>());
+            map.put(0, i);
+            s.commit();
+        }
+        task.get();
+        s.close();
     }
 
     private void testConcurrentChangeAndGetVersion() throws InterruptedException {

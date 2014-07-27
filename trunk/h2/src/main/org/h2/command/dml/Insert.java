@@ -48,7 +48,7 @@ public class Insert extends Prepared implements ResultTarget {
     private boolean insertFromSelect;
 
     /**
-     * for MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
+     * For MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
      */
     private HashMap<Column, Expression> duplicateKeyAssignmentMap;
 

@@ -1707,9 +1707,9 @@ public class MVStore {
             page.setPos(pos);
             Object k = map.getLiveKey(page);
             if (k != null) {
-                Object value = map.remove(k);
+                Object value = map.get(k);
                 if (value != null) {
-                    map.put(k, value);
+                    map.replace(k, value, value);
                     changeCount++;
                 }
             }
@@ -2293,13 +2293,14 @@ public class MVStore {
                     fileOps = false;
                 }
                 // use a lower fill rate if there were any file operations
-                int fillRate = fileOps ? autoCompactFillRate / 4 : autoCompactFillRate;
+                int fillRate = fileOps ? autoCompactFillRate / 3 : autoCompactFillRate;
                 compact(fillRate, autoCommitMemory);
-                if (!fileOps) {
-                    // if there were no file operations at all,
-                    // compact the file by moving chunks
-                    compactMoveChunks(autoCompactFillRate, autoCommitMemory);
-                }
+; // TODO find out why this doesn't work                
+//                if (!fileOps) {
+//                    // if there were no file operations at all,
+//                    // compact the file by moving chunks
+//                    compactMoveChunks(autoCompactFillRate, autoCommitMemory);
+//                }
                 autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
             } catch (Exception e) {
                 if (backgroundExceptionHandler != null) {

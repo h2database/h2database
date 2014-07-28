@@ -997,9 +997,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return;
         }
         Page last = oldRoots.peekLast();
-        // TODO why is this? (maybe not needed)
-        ;
-        oldest--;
         while (true) {
             Page p = oldRoots.peekFirst();
             if (p == null || p.getVersion() >= oldest || p == last) {

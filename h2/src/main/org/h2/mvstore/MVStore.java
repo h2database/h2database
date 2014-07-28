@@ -1550,11 +1550,23 @@ public class MVStore {
      * @param write the minimum number of bytes to write
      * @return if a chunk was re-written
      */
-    public synchronized boolean compact(int targetFillRate, int write) {
+    public boolean compact(int targetFillRate, int write) {
         checkOpen();
+        ArrayList<Chunk> old;
+        synchronized (this) {
+            old = compactGetOldChunks(targetFillRate, write);
+        }
+        if (old == null || old.size() == 0) {
+            return false;
+        }
+        compactRewrite(old);
+        return true;
+    }
+    
+    private ArrayList<Chunk> compactGetOldChunks(int targetFillRate, int write) {
         if (lastChunk == null) {
             // nothing to do
-            return false;
+            return null;
         }
 
         // calculate the fill rate
@@ -1571,7 +1583,7 @@ public class MVStore {
         }
         int fillRate = (int) (100 * maxLengthLiveSum / maxLengthSum);
         if (fillRate >= targetFillRate) {
-            return false;
+            return null;
         }
 
         long time = getTime();
@@ -1587,7 +1599,7 @@ public class MVStore {
             }
         }
         if (old.size() == 0) {
-            return false;
+            return null;
         }
 
         // sort the list, so the first entry should be collected first
@@ -1618,7 +1630,7 @@ public class MVStore {
             move = c;
         }
         if (chunkCount < 1) {
-            return false;
+            return null;
         }
         // remove the chunks we want to keep from this list
         boolean remove = false;
@@ -1630,6 +1642,10 @@ public class MVStore {
                 it.remove();
             }
         }
+        return old;
+    }
+    
+    private void compactRewrite(ArrayList<Chunk> old) {
         HashSet<Integer> set = New.hashSet();
         for (Chunk c : old) {
             set.add(c.id);
@@ -1652,15 +1668,9 @@ public class MVStore {
         if (again) {
             commitAndSave();
         }
-        return true;
     }
 
     private void copyLive(Chunk chunk) {
-        if (chunk.pageCountLive == 0) {
-            // remove this chunk in the next save operation
-            registerFreePage(currentVersion, chunk.id, 0, 0);
-            return;
-        }
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(start, length);
@@ -1721,10 +1731,12 @@ public class MVStore {
             // (but we first need to check that there are no
             // pending changes)
             for (HashMap<Integer, Chunk> e : freedPageSpace.values()) {
-                for (int x : e.keySet()) {
-                    if (x == chunk.id) {
-                        changeCount++;
-                        break;
+                synchronized (e) {
+                    for (int x : e.keySet()) {
+                        if (x == chunk.id) {
+                            changeCount++;
+                            break;
+                        }
                     }
                 }
             }
@@ -1932,7 +1944,7 @@ public class MVStore {
     long getOldestVersionToKeep() {
         long v = currentVersion;
         if (fileStore == null) {
-            return v - versionsToKeep + 1;
+            return v - versionsToKeep;
         }
         long storeVersion = currentStoreVersion;
         if (storeVersion > -1) {

@@ -76,7 +76,7 @@ public class TraceSystem implements TraceWriter {
      */
     private static final int DEFAULT_MAX_FILE_SIZE = 64 * 1024 * 1024;
 
-    private static final int CHECK_SIZE_EACH_WRITES = 128;
+    private static final int CHECK_SIZE_EACH_WRITES = 4096;
 
     private int levelSystemOut = DEFAULT_TRACE_LEVEL_SYSTEM_OUT;
     private int levelFile = DEFAULT_TRACE_LEVEL_FILE;

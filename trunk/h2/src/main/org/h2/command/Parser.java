@@ -453,6 +453,8 @@ public class Parser {
             case 'U':
                 if (readIf("UPDATE")) {
                     c = parseUpdate();
+                } else if (readIf("USE")) {
+                    c = parseUse();
                 }
                 break;
             case 'v':
@@ -5063,6 +5065,16 @@ public class Parser {
             command.setExpression(readExpression());
             return command;
         }
+    }
+
+    private Prepared parseUse() {
+        if (readIf("SCHEMA")) {
+            readIfEqualOrTo();
+            Set command = new Set(session, SetTypes.SCHEMA);
+            command.setString(readAliasIdentifier());
+            return command;
+        }
+        throw getSyntaxError();
     }
 
     private Set parseSetCollation() {

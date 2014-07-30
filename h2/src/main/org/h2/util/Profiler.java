@@ -67,6 +67,7 @@ public class Profiler implements Runnable {
             "java.net.SocketOutputStream.socketWrite," +
             "sun.awt.windows.WToolkit.eventLoop," +
             "sun.misc.Unsafe.park," +
+            "sun.nio.ch.EPollArrayWrapper.epollWait," +
             "sun.nio.ch.KQueueArrayWrapper.kevent0," +
             "sun.nio.ch.ServerSocketChannelImpl.accept," +
             "dalvik.system.VMStack.getThreadStackTrace," +

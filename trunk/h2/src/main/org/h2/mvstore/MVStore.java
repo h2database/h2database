@@ -242,6 +242,8 @@ public class MVStore {
 
     private int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
+    
+    private Object compactSync = new Object();
 
     /**
      * Create and open the store.
@@ -833,15 +835,23 @@ public class MVStore {
         }
         return c;
     }
+    
+    boolean isChunkKnown(long pos) {
+        int chunkId = DataUtils.getPageChunkId(pos);
+        return chunks.containsKey(chunkId);
+    }
 
     private Chunk getChunkIfFound(long pos) {
         int chunkId = DataUtils.getPageChunkId(pos);
         Chunk c = chunks.get(chunkId);
         if (c == null) {
             if (!Thread.holdsLock(this)) {
+                // it could also be unsynchronized metadata
+                // access (if synchronization on this was forgotten)
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_INTERNAL,
-                        "Unsynchronized metadata read");
+                        "Chunk {0} no longer exists", 
+                        chunkId);
             }
             String s = meta.get(Chunk.getMetaKey(chunkId));
             if (s == null) {
@@ -1551,16 +1561,18 @@ public class MVStore {
      * @return if a chunk was re-written
      */
     public boolean compact(int targetFillRate, int write) {
-        checkOpen();
-        ArrayList<Chunk> old;
-        synchronized (this) {
-            old = compactGetOldChunks(targetFillRate, write);
+        synchronized (compactSync) {
+            checkOpen();
+            ArrayList<Chunk> old;
+            synchronized (this) {
+                old = compactGetOldChunks(targetFillRate, write);
+            }
+            if (old == null || old.size() == 0) {
+                return false;
+            }
+            compactRewrite(old);
+            return true;
         }
-        if (old == null || old.size() == 0) {
-            return false;
-        }
-        compactRewrite(old);
-        return true;
     }
     
     private ArrayList<Chunk> compactGetOldChunks(int targetFillRate, int write) {
@@ -1655,22 +1667,26 @@ public class MVStore {
             MVMap<Object, Object> map = (MVMap<Object, Object>) m;
             map.rewrite(set);
         }
+        meta.rewrite(set);
         commitAndSave();
-        boolean again = false;
+        boolean commitAgain = false;
         for (Chunk c : old) {
-            if (c.maxLenLive > 0) {
-                // not cleared - that means bookkeeping of live pages
-                // is broken; copyLive will fix this
-                again = true;
-                copyLive(c);
+            // a concurrent commit could free up the chunk
+            // so we wait for any commits to finish
+            if (c.maxLenLive == 0) {
+                continue;
             }
+            // not cleared - that means bookkeeping of live pages
+            // may be broken; copyLive will fix this
+            compactFixLive(c);
+            commitAgain = true;
         }
-        if (again) {
+        if (commitAgain) {
             commitAndSave();
         }
     }
-
-    private void copyLive(Chunk chunk) {
+    
+    private void compactFixLive(Chunk chunk) {
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(start, length);
@@ -1683,7 +1699,6 @@ public class MVStore {
         int pagesRemaining = chunk.pageCount;
         markMetaChanged();
         boolean mapNotOpen = false;
-        int changeCount = 0;
         while (pagesRemaining-- > 0) {
             int offset = buff.position();
             int pageLength = buff.getInt();
@@ -1704,43 +1719,27 @@ public class MVStore {
                     // chunk is not removed
                     mapNotOpen = true;
                 }
-                buff.position(offset + pageLength);
-                continue;
             }
-            buff.position(offset);
-            Page page = new Page(map, 0);
-            int limit = buff.limit();
-            page.read(buff, chunk.id, buff.position(), length);
-            buff.limit(limit);
-            int type = page.isLeaf() ? 0 : 1;
-            long pos = DataUtils.getPagePos(chunk.id, offset, pageLength, type);
-            page.setPos(pos);
-            Object k = map.getLiveKey(page);
-            if (k != null) {
-                Object value = map.get(k);
-                if (value != null) {
-                    map.replace(k, value, value);
-                    changeCount++;
-                }
-            }
+            buff.position(offset + pageLength);
         }
-        if (!mapNotOpen && changeCount == 0) {
-            // if all maps are open, but no changes were made,
+        if (!mapNotOpen) {
+            // if all maps are open
             // then live bookkeeping is wrong, and we anyway
             // remove the chunk
             // (but we first need to check that there are no
             // pending changes)
+            boolean pendingChanges = false;
             for (HashMap<Integer, Chunk> e : freedPageSpace.values()) {
                 synchronized (e) {
                     for (int x : e.keySet()) {
                         if (x == chunk.id) {
-                            changeCount++;
+                            pendingChanges = true;
                             break;
                         }
                     }
                 }
             }
-            if (changeCount == 0) {
+            if (!pendingChanges) {
                 // bookkeeping is broken for this chunk:
                 // fix it
                 registerFreePage(currentVersion, chunk.id,
@@ -1797,7 +1796,7 @@ public class MVStore {
         if (pos == 0) {
             // the value could be smaller than 0 because
             // in some cases a page is allocated,
-            // but never stored
+            // but never stored, so we need to use max
             unsavedMemory = Math.max(0, unsavedMemory - memory);
             return;
         }
@@ -1907,8 +1906,11 @@ public class MVStore {
      * according to various tests this does not always work as expected
      * depending on the operating system and hardware.
      * <p>
+     * The retention time needs to be long enough to allow reading old chunks
+     * while traversing over the entries of a map.
+     * <p>
      * This setting is not persisted.
-     *
+     * 
      * @param ms how many milliseconds to retain old chunks (0 to overwrite them
      *            as early as possible)
      */
@@ -2307,12 +2309,6 @@ public class MVStore {
                 // use a lower fill rate if there were any file operations
                 int fillRate = fileOps ? autoCompactFillRate / 3 : autoCompactFillRate;
                 compact(fillRate, autoCommitMemory);
-; // TODO find out why this doesn't work                
-//                if (!fileOps) {
-//                    // if there were no file operations at all,
-//                    // compact the file by moving chunks
-//                    compactMoveChunks(autoCompactFillRate, autoCommitMemory);
-//                }
                 autoCompactLastFileOpCount = fileStore.getWriteCount() + fileStore.getReadCount();
             } catch (Exception e) {
                 if (backgroundExceptionHandler != null) {

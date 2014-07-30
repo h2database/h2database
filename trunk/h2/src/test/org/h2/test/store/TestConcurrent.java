@@ -62,9 +62,12 @@ public class TestConcurrent extends TestMVStore {
     }
     
     private void testConcurrentAutoCommitAndChange() throws InterruptedException {
+        String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
+        FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().fileName(
-                "memFS:testConcurrentChangeAndBackgroundCompact").open();
-        s.setRetentionTime(0);
+                fileName).open();
+        s.setRetentionTime(10000);
+        s.setAutoCommitDelay(1);
         Task task = new Task() {
             @Override
             public void call() throws Exception {
@@ -125,9 +128,13 @@ public class TestConcurrent extends TestMVStore {
     }
     
     private void testConcurrentChangeAndCompact() throws InterruptedException {
+        String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
+        FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().fileName(
-                "memFS:testConcurrentChangeAndBackgroundCompact").autoCommitDisabled().open();
-        s.setRetentionTime(0);
+                fileName).
+                pageSplitSize(10).
+                autoCommitDisabled().open();
+        s.setRetentionTime(10000);
         Task task = new Task() {
             @Override
             public void call() throws Exception {
@@ -137,15 +144,26 @@ public class TestConcurrent extends TestMVStore {
             }
         };
         task.execute();
+        Task task2 = new Task() {
+            @Override
+            public void call() throws Exception {
+                while (!stop) {
+                    s.compact(100, 1024 * 1024);
+                }
+            }
+        };
+        task2.execute();
         Thread.sleep(1);
-        for (int i = 0; !task.isFinished() && i < 1000; i++) {
+        for (int i = 0; !task.isFinished() && !task2.isFinished() && i < 1000; i++) {
             MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
             // MVMap<Integer, Integer> map = s.openMap("d" + (i % 3), 
             //         new MVMapConcurrent.Builder<Integer, Integer>());
             map.put(0, i);
+            map.get(0);
             s.commit();
         }
         task.get();
+        task2.get();
         s.close();
     }
 

@@ -72,7 +72,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param mapId the map id
      * @return the metadata key
      */
-    public static String getMapRootKey(int mapId) {
+    static String getMapRootKey(int mapId) {
         return "root." + Integer.toHexString(mapId);
     }
 
@@ -82,7 +82,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @param mapId the map id
      * @return the metadata key
      */
-    public static String getMapKey(int mapId) {
+    static String getMapKey(int mapId) {
         return "map." + Integer.toHexString(mapId);
     }
 
@@ -837,6 +837,9 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     // an inner node page that is in one of the chunks,
                     // but only points to chunks that are not in the set:
                     // if no child was changed, we need to do that now
+                    // (this is not needed if anyway one of the children
+                    // was changed, as this would have updated this
+                    // page as well)
                     Page p2 = p;
                     while (!p2.isLeaf()) {
                         p2 = p2.getChildPage(0);
@@ -955,6 +958,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         return store;
     }
 
+    /**
+     * Get the map id. Please note the map id may be different after compacting
+     * a store.
+     * 
+     * @return the map id
+     */
     public int getId() {
         return id;
     }

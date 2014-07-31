@@ -1383,9 +1383,67 @@ public class TransactionStore {
          *            included
          * @return the iterator
          */
-        public Iterator<K> keyIterator(K from, boolean includeUncommitted) {
-            Iterator<K> it = map.keyIterator(from);
-            return wrapIterator(it, includeUncommitted);
+        public Iterator<K> keyIterator(final K from, final boolean includeUncommitted) {
+            return new Iterator<K>() {
+                private K currentKey = from;
+                private Cursor<K, VersionedValue> cursor = map.cursor(currentKey);
+
+                {
+                    fetchNext();
+                }
+
+                private void fetchNext() {
+                    while (cursor.hasNext()) {
+                        K k;
+                        try {
+                            k = cursor.next();
+                        } catch (IllegalStateException e) {
+                            // TODO this is a bit ugly
+                            if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
+                                cursor = map.cursor(currentKey);
+                                // we (should) get the current key again,
+                                // we need to ignore that one
+                                if (!cursor.hasNext()) {
+                                    break;
+                                }
+                                cursor.next();
+                                if (!cursor.hasNext()) {
+                                    break;
+                                }
+                                k = cursor.next();
+                            } else {
+                                throw e;
+                            }
+                        }
+                        currentKey = k;
+                        if (includeUncommitted) {
+                            return;
+                        }
+                        if (containsKey(k)) {
+                            return;
+                        }
+                    }
+                    currentKey = null;
+                }
+
+                @Override
+                public boolean hasNext() {
+                    return currentKey != null;
+                }
+
+                @Override
+                public K next() {
+                    K result = currentKey;
+                    fetchNext();
+                    return result;
+                }
+
+                @Override
+                public void remove() {
+                    throw DataUtils.newUnsupportedOperationException(
+                            "Removing is not supported");
+                }
+            };            
         }
 
         /**
@@ -1394,10 +1452,11 @@ public class TransactionStore {
          * @param from the first key to return
          * @return the iterator
          */
-        public Iterator<Entry<K, V>> entryIterator(K from) {
-            final Cursor<K, VersionedValue> cursor = map.cursor(from);
+        public Iterator<Entry<K, V>> entryIterator(final K from) {
             return new Iterator<Entry<K, V>>() {
                 private Entry<K, V> current;
+                private K currentKey = from;
+                private Cursor<K, VersionedValue> cursor = map.cursor(currentKey);
 
                 {
                     fetchNext();
@@ -1405,17 +1464,40 @@ public class TransactionStore {
 
                 private void fetchNext() {
                     while (cursor.hasNext()) {
-                        final K key = cursor.next();
+                        K k;
+                        try {
+                            k = cursor.next();
+                        } catch (IllegalStateException e) {
+                            // TODO this is a bit ugly
+                            if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
+                                cursor = map.cursor(currentKey);
+                                // we (should) get the current key again,
+                                // we need to ignore that one
+                                if (!cursor.hasNext()) {
+                                    break;
+                                }
+                                cursor.next();
+                                if (!cursor.hasNext()) {
+                                    break;
+                                }
+                                k = cursor.next();
+                            } else {
+                                throw e;
+                            }
+                        }
+                        final K key = k;
                         VersionedValue data = cursor.getValue();
                         data = getValue(key, readLogId, data);
                         if (data != null && data.value != null) {
                             @SuppressWarnings("unchecked")
                             final V value = (V) data.value;
                             current = new DataUtils.MapEntry<K, V>(key, value);
+                            currentKey = key;
                             return;
                         }
                     }
                     current = null;
+                    currentKey = null;
                 }
 
                 @Override

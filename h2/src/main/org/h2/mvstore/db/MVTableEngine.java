@@ -55,7 +55,7 @@ public class MVTableEngine implements TableEngine {
         String dbPath = db.getDatabasePath();
         MVStore.Builder builder = new MVStore.Builder();
         if (dbPath == null) {
-            store = new Store(db, builder.open());
+            store = new Store(db, builder);
         } else {
             String fileName = dbPath + Constants.SUFFIX_MV_FILE;
             MVStoreTool.compactCleanUp(fileName);
@@ -94,7 +94,7 @@ public class MVTableEngine implements TableEngine {
 
             });
             try {
-                store = new Store(db, builder.open());
+                store = new Store(db, builder);
             } catch (IllegalStateException e) {
                 int errorCode = DataUtils.getErrorCode(e.getMessage());
                 if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
@@ -157,8 +157,8 @@ public class MVTableEngine implements TableEngine {
 
         private int temporaryMapId;
 
-        public Store(Database db, MVStore store) {
-            this.store = store;
+        public Store(Database db, MVStore.Builder builder) {
+            this.store = builder.open();
             this.transactionStore = new TransactionStore(
                     store,
                     new ValueDataType(null, db, null),

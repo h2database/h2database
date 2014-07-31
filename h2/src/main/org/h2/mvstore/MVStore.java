@@ -105,6 +105,13 @@ MVStore:
 - compact: copy whole pages (without having to open all maps)
 - maybe change the length code to have lower gaps
 - test with very low limits (such as: short chunks, small pages)
+- maybe allow to read beyond the retention time: 
+    when compacting, move live pages in old chunks
+    to a map (possibly the metadata map) -
+    this requires a change in the compaction code, plus
+    a map lookup when reading old data; also, this
+    old data map needs to be cleaned up somehow; 
+    maybe using an additional timeout
 
 */
 
@@ -849,7 +856,7 @@ public class MVStore {
                 // it could also be unsynchronized metadata
                 // access (if synchronization on this was forgotten)
                 throw DataUtils.newIllegalStateException(
-                        DataUtils.ERROR_INTERNAL,
+                        DataUtils.ERROR_CHUNK_NOT_FOUND,
                         "Chunk {0} no longer exists", 
                         chunkId);
             }

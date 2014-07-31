@@ -168,7 +168,7 @@ public class TestRandomMapOps extends TestBase {
     private static MVStore openStore(String fileName) {
         MVStore s = new MVStore.Builder().fileName(fileName).
                 pageSplitSize(50).autoCommitDisabled().open();
-        s.setRetentionTime(0);
+        s.setRetentionTime(1000);
         return s;
     }
 

@@ -625,7 +625,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestCompatibility().runTest(this);
         new TestCompatibilityOracle().runTest(this);
         new TestCsv().runTest(this);
-        new TestDateStorage().runTest(this); // TODO test
+        new TestDateStorage().runTest(this);
         new TestDeadlock().runTest(this);
         new TestDrop().runTest(this);
         new TestDuplicateKeyUpdate().runTest(this);
@@ -721,7 +721,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // synth
         new TestBtreeIndex().runTest(this);
         new TestConcurrentUpdate().runTest(this);
-        new TestDiskFull().runTest(this); // TODO test
+        new TestDiskFull().runTest(this);
         new TestCrashAPI().runTest(this);
         new TestFuzzOptimizations().runTest(this);
         new TestLimit().runTest(this);

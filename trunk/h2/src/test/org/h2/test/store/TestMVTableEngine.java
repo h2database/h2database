@@ -81,10 +81,10 @@ public class TestMVTableEngine extends TestBase {
     }
     
     private void testLowRetentionTime() throws SQLException {
-        deleteDb("mvstore");
-        Connection conn = getConnection("mvstore;RETENTION_TIME=10;WRITE_DELAY=10");
+        deleteDb("testLowRetentionTime");
+        Connection conn = getConnection("testLowRetentionTime;RETENTION_TIME=10;WRITE_DELAY=10");
         Statement stat = conn.createStatement();
-        Connection conn2 = getConnection("mvstore");
+        Connection conn2 = getConnection("testLowRetentionTime");
         Statement stat2 = conn2.createStatement();
         stat.execute("create alias sleep as $$void sleep(int ms) throws Exception { Thread.sleep(ms); }$$");
         stat.execute("create table test(id identity, name varchar) as select x, 'Init' from system_range(0, 1999)");
@@ -102,6 +102,7 @@ public class TestMVTableEngine extends TestBase {
             assertEquals(i, rs.getInt(1));
         }
         assertFalse(rs.next());
+        conn2.close();
         conn.close();
     }
 

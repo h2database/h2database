@@ -259,6 +259,11 @@ public abstract class TestBase {
             }
             return name;
         }
+        if (admin) {
+            ; // TODO testing
+            // name = addOption(name, "RETENTION_TIME", "10");
+            // name = addOption(name, "WRITE_DELAY", "10");
+        }
         if (config.memory) {
             name = "mem:" + name;
         } else {

@@ -68,6 +68,12 @@ public class DataUtils {
     public static final int ERROR_SERIALIZATION = 8;
 
     /**
+     * The application was trying to read data from a chunk that is no longer
+     * available.
+     */
+    public static final int ERROR_CHUNK_NOT_FOUND = 9;
+
+    /**
      * The transaction store is corrupt.
      */
     public static final int ERROR_TRANSACTION_CORRUPT = 100;

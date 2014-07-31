@@ -48,6 +48,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testLowRetentionTime();
         testOldAndNew();
         testTemporaryTables();
         testUniqueIndex();
@@ -77,6 +78,31 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testLowRetentionTime() throws SQLException {
+        deleteDb("mvstore");
+        Connection conn = getConnection("mvstore;RETENTION_TIME=10;WRITE_DELAY=10");
+        Statement stat = conn.createStatement();
+        Connection conn2 = getConnection("mvstore");
+        Statement stat2 = conn2.createStatement();
+        stat.execute("create alias sleep as $$void sleep(int ms) throws Exception { Thread.sleep(ms); }$$");
+        stat.execute("create table test(id identity, name varchar) as select x, 'Init' from system_range(0, 1999)");
+        for (int i = 0; i < 10; i++) {
+            stat.execute("insert into test values(null, 'Hello')");
+            // create and delete a large table: this will force compaction
+            stat.execute("create table temp(id identity, name varchar) as " + 
+                    "select x, space(1000000) from system_range(0, 10)");
+            stat.execute("drop table temp");
+        }
+        ResultSet rs = stat2
+                .executeQuery("select *, sleep(1) from test order by id");
+        for (int i = 0; i < 2000 + 10; i++) {
+            assertTrue(rs.next());
+            assertEquals(i, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testOldAndNew() throws SQLException {

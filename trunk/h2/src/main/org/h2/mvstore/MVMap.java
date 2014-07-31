@@ -793,8 +793,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      *
      * @param set the set of chunk ids
      */
-    public void rewrite(Set<Integer> set) {
-        rewrite(root, set);
+    void rewrite(Set<Integer> set) {
+        try {
+            rewrite(root, set);
+        } catch (IllegalStateException e) {
+            if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
+                // ignore
+            } else {
+                throw e;
+            }
+        }
     }
 
     private int rewrite(Page p, Set<Integer> set) {

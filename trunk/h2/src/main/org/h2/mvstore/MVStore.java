@@ -955,9 +955,9 @@ public class MVStore {
         lastCommitTime = time;
         retainChunk = null;
 
-        // the last chunk was not stored before and needs to be set now (it's
-        // better not to update right after storing, because that would modify
-        // the meta map again)
+        // the metadata of the last chunk was not stored so far, and needs to be
+        // set now (it's better not to update right after storing, because that
+        // would modify the meta map again)
         int lastChunkId;
         if (lastChunk == null) {
             lastChunkId = 0;
@@ -1194,6 +1194,9 @@ public class MVStore {
         if (c.time + retentionTime > time) {
             return false;
         }
+        if (c.unused != 0 && c.unused + retentionTime / 2 > time) {
+            return false;
+        }
         Chunk r = retainChunk;
         if (r != null && c.version > r.version) {
             return false;
@@ -1256,13 +1259,16 @@ public class MVStore {
             }
             for (Chunk c : modified) {
                 if (c.maxLenLive == 0) {
+                    if (c.unused == 0) {
+                        c.unused = getTime();
+                    }
                     if (canOverwriteChunk(c, time)) {
                         removedChunks.add(c);
                         chunks.remove(c.id);
                         meta.remove(Chunk.getMetaKey(c.id));
                     } else {
                         meta.put(Chunk.getMetaKey(c.id), c.asString());
-                        // remove this chunk in the next save operation
+                        // possibly remove this chunk in the next save operation
                         registerFreePage(storeVersion + 1, c.id, 0, 0);
                     }
                 } else {
@@ -1611,6 +1617,9 @@ public class MVStore {
         ArrayList<Chunk> old = New.arrayList();
         Chunk last = chunks.get(lastChunk.id);
         for (Chunk c : chunks.values()) {
+            // only look at chunk older than the retention time
+            // (it's possible to compact chunks earlier, but right
+            // now we don't do that)
             if (canOverwriteChunk(c, time)) {
                 long age = last.version - c.version + 1;
                 c.collectPriority = (int) (c.getFillRate() * 1000 / age);

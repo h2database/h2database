@@ -89,6 +89,13 @@ public class Chunk {
      * When this chunk was created, in milliseconds after the store was created.
      */
     public long time;
+    
+    /**
+     * When this chunk was no longer needed, in milliseconds after the store was
+     * created. After this, the chunk is kept alive for at least half the
+     * retention time (in case it is referenced in older versions).
+     */
+    public long unused;
 
     /**
      * The last used map id.
@@ -179,6 +186,7 @@ public class Chunk {
         c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLen);
         c.metaRootPos = DataUtils.readHexLong(map, "root", 0);
         c.time = DataUtils.readHexLong(map, "time", 0);
+        c.unused = DataUtils.readHexLong(map, "unused", 0);
         c.version = DataUtils.readHexLong(map, "version", id);
         c.next = DataUtils.readHexLong(map, "next", 0);
         return c;
@@ -232,6 +240,9 @@ public class Chunk {
         DataUtils.appendMap(buff, "pages", pageCount);
         DataUtils.appendMap(buff, "root", metaRootPos);
         DataUtils.appendMap(buff, "time", time);
+        if (unused != 0) {
+            DataUtils.appendMap(buff, "unused", unused);
+        }
         DataUtils.appendMap(buff, "version", version);
         return buff.toString();
     }

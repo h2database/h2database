@@ -1238,12 +1238,12 @@ public class MVStore {
                     // are not concurrently modified
                     c.maxLenLive += f.maxLenLive;
                     c.pageCountLive += f.pageCountLive;
-                    if (c.pageCountLive < 0) {
+                    if (c.pageCountLive < 0 && c.pageCountLive > -Integer.MAX_VALUE / 2) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
                                 "Corrupt page count {0}", c.pageCountLive);
                     }
-                    if (c.maxLenLive < 0) {
+                    if (c.maxLenLive < 0 && c.maxLenLive > -Long.MAX_VALUE / 2) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
                                 "Corrupt max length {0}", c.maxLenLive);
@@ -1258,9 +1258,9 @@ public class MVStore {
                 it.remove();
             }
             for (Chunk c : modified) {
-                if (c.maxLenLive == 0) {
+                if (c.maxLenLive <= 0) {
                     if (c.unused == 0) {
-                        c.unused = getTime();
+                        c.unused = time;
                     }
                     if (canOverwriteChunk(c, time)) {
                         removedChunks.add(c);
@@ -1461,7 +1461,7 @@ public class MVStore {
         long time = getTime();
         ArrayList<Chunk> free = New.arrayList();
         for (Chunk c : chunks.values()) {
-            if (c.maxLenLive == 0) {
+            if (c.maxLenLive <= 0) {
                 if (canOverwriteChunk(c, time)) {
                     free.add(c);
                 }
@@ -1689,7 +1689,7 @@ public class MVStore {
         for (Chunk c : old) {
             // a concurrent commit could free up the chunk
             // so we wait for any commits to finish
-            if (c.maxLenLive == 0) {
+            if (c.maxLenLive <= 0) {
                 continue;
             }
             // not cleared - that means bookkeeping of live pages
@@ -1702,7 +1702,7 @@ public class MVStore {
         }
     }
     
-    private void compactFixLive(Chunk chunk) {
+    private synchronized void compactFixLive(Chunk chunk) {
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(start, length);
@@ -1747,11 +1747,9 @@ public class MVStore {
             boolean pendingChanges = false;
             for (HashMap<Integer, Chunk> e : freedPageSpace.values()) {
                 synchronized (e) {
-                    for (int x : e.keySet()) {
-                        if (x == chunk.id) {
-                            pendingChanges = true;
-                            break;
-                        }
+                    if (e.containsKey(chunk.id)) {
+                        pendingChanges = true;
+                        break;
                     }
                 }
             }
@@ -1759,7 +1757,8 @@ public class MVStore {
                 // bookkeeping is broken for this chunk:
                 // fix it
                 registerFreePage(currentVersion, chunk.id,
-                        chunk.maxLenLive, chunk.pageCountLive);
+                        c.maxLenLive + Long.MAX_VALUE / 2, 
+                        c.pageCountLive + Integer.MAX_VALUE / 2);
             }
         }
     }

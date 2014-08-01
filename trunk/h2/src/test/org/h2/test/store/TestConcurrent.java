@@ -66,37 +66,40 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().fileName(
                 fileName).open();
-        s.setRetentionTime(10000);
-        s.setAutoCommitDelay(1);
-        Task task = new Task() {
-            @Override
-            public void call() throws Exception {
-                while (!stop) {
-                    s.compact(100, 1024 * 1024);
+        try {
+            s.setRetentionTime(1000);
+            s.setAutoCommitDelay(1);
+            Task task = new Task() {
+                @Override
+                public void call() throws Exception {
+                    while (!stop) {
+                        s.compact(100, 1024 * 1024);
+                    }
                 }
-            }
-        };
-        final MVMap<Integer, Integer> dataMap = s.openMap("data");
-        Task task2 = new Task() {
-            @Override
-            public void call() throws Exception {
-                int i = 0;
-                while (!stop) {
-                    dataMap.put(i++, i);
+            };
+            final MVMap<Integer, Integer> dataMap = s.openMap("data");
+            Task task2 = new Task() {
+                @Override
+                public void call() throws Exception {
+                    int i = 0;
+                    while (!stop) {
+                        dataMap.put(i++, i);
+                    }
                 }
+            };
+            task.execute();
+            task2.execute();
+            Thread.sleep(1);
+            for (int i = 0; !task.isFinished() && !task2.isFinished() && i < 1000; i++) {
+                MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
+                map.put(0, i);
+                s.commit();
             }
-        };
-        task.execute();
-        task2.execute();
-        Thread.sleep(1);
-        for (int i = 0; !task.isFinished() && !task2.isFinished() && i < 1000; i++) {
-            MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
-            map.put(0, i);
-            s.commit();
+            task.get();
+            task2.get();
+        } finally {
+            s.close();        
         }
-        task.get();
-        task2.get();
-        s.close();        
     }
     
     private void testConcurrentReplaceAndRead() throws InterruptedException {

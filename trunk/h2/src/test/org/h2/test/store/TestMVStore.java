@@ -444,6 +444,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
                 fileName(fileName).
+                autoCommitDisabled().
                 open();
         MVMap<Integer, String> m;
         for (int i = 0; i < 10; i++) {

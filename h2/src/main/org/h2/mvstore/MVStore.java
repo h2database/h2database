@@ -133,6 +133,12 @@ public class MVStore {
 
     private static final int FORMAT_WRITE = 1;
     private static final int FORMAT_READ = 1;
+    
+    /**
+     * Used to mark a chunk as free, when it was detected that live bookkeeping
+     * is incorrect.
+     */
+    private static final int MARKED_FREE = 10000000;
 
     /**
      * The background thread, if any.
@@ -1238,17 +1244,18 @@ public class MVStore {
                     // are not concurrently modified
                     c.maxLenLive += f.maxLenLive;
                     c.pageCountLive += f.pageCountLive;
-                    if (c.pageCountLive < 0 && c.pageCountLive > -Integer.MAX_VALUE / 2) {
+                    if (c.pageCountLive < 0 && c.pageCountLive > -MARKED_FREE) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
                                 "Corrupt page count {0}", c.pageCountLive);
                     }
-                    if (c.maxLenLive < 0 && c.maxLenLive > -Long.MAX_VALUE / 2) {
+                    if (c.maxLenLive < 0 && c.maxLenLive > -MARKED_FREE) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
                                 "Corrupt max length {0}", c.maxLenLive);
                     }
-                    if (c.pageCount == 0 && c.maxLenLive > 0) {
+                    if (c.pageCountLive <= 0 && c.maxLenLive > 0 ||
+                            c.maxLenLive <= 0 && c.pageCountLive > 0) {
                         throw DataUtils.newIllegalStateException(
                                 DataUtils.ERROR_INTERNAL,
                                 "Corrupt max length {0}", c.maxLenLive);
@@ -1706,11 +1713,11 @@ public class MVStore {
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
         ByteBuffer buff = fileStore.readFully(start, length);
-        Chunk c = Chunk.readChunkHeader(buff, start);
-        if (c.id != chunk.id) {
+        Chunk verify = Chunk.readChunkHeader(buff, start);
+        if (verify.id != chunk.id) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "Expected chunk {0}, got {1}", chunk.id, c.id);
+                    "Expected chunk {0}, got {1}", chunk.id, verify.id);
         }
         int pagesRemaining = chunk.pageCount;
         markMetaChanged();
@@ -1754,11 +1761,14 @@ public class MVStore {
                 }
             }
             if (!pendingChanges) {
+ ;                
+new Exception(fileStore.getFileName() + " chunk " + chunk.id + " fix live! " + chunk).printStackTrace(System.out);
+
                 // bookkeeping is broken for this chunk:
                 // fix it
                 registerFreePage(currentVersion, chunk.id,
-                        c.maxLenLive + Long.MAX_VALUE / 2, 
-                        c.pageCountLive + Integer.MAX_VALUE / 2);
+                        chunk.maxLenLive + MARKED_FREE, 
+                        chunk.pageCountLive + MARKED_FREE);
             }
         }
     }
@@ -1809,9 +1819,10 @@ public class MVStore {
         // we need to keep temporary pages,
         // to support reading old versions and rollback
         if (pos == 0) {
-            // the value could be smaller than 0 because
-            // in some cases a page is allocated,
-            // but never stored, so we need to use max
+            // the page was not yet stored:
+            // just using "unsavedMemory -= memory" could result in negative
+            // values, because in some cases a page is allocated, but never
+            // stored, so we need to use max
             unsavedMemory = Math.max(0, unsavedMemory - memory);
             return;
         }

@@ -826,10 +826,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         int writtenPageCount = 0;
         for (int i = 0; i < p.getChildPageCount(); i++) {
             long pos = p.getChildPagePos(i);
-            if (pos == 0) {
-                continue;
-            }
-            if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
+            if (pos != 0 && DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
+                // we would need to load the page, and it's a leaf:
+                // only do that if it's within the set of chunks we are
+                // interested in
                 int chunkId = DataUtils.getPageChunkId(pos);
                 if (!set.contains(chunkId)) {
                     continue;

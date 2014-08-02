@@ -105,12 +105,12 @@ MVStore:
 - compact: copy whole pages (without having to open all maps)
 - maybe change the length code to have lower gaps
 - test with very low limits (such as: short chunks, small pages)
-- maybe allow to read beyond the retention time: 
+- maybe allow to read beyond the retention time:
     when compacting, move live pages in old chunks
     to a map (possibly the metadata map) -
     this requires a change in the compaction code, plus
     a map lookup when reading old data; also, this
-    old data map needs to be cleaned up somehow; 
+    old data map needs to be cleaned up somehow;
     maybe using an additional timeout
 
 */
@@ -133,7 +133,7 @@ public class MVStore {
 
     private static final int FORMAT_WRITE = 1;
     private static final int FORMAT_READ = 1;
-    
+
     /**
      * Used to mark a chunk as free, when it was detected that live bookkeeping
      * is incorrect.
@@ -255,7 +255,7 @@ public class MVStore {
 
     private int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
-    
+
     private Object compactSync = new Object();
 
     /**
@@ -848,11 +848,6 @@ public class MVStore {
         }
         return c;
     }
-    
-    boolean isChunkKnown(long pos) {
-        int chunkId = DataUtils.getPageChunkId(pos);
-        return chunks.containsKey(chunkId);
-    }
 
     private Chunk getChunkIfFound(long pos) {
         int chunkId = DataUtils.getPageChunkId(pos);
@@ -863,7 +858,7 @@ public class MVStore {
                 // access (if synchronization on this was forgotten)
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_CHUNK_NOT_FOUND,
-                        "Chunk {0} no longer exists", 
+                        "Chunk {0} no longer exists",
                         chunkId);
             }
             String s = meta.get(Chunk.getMetaKey(chunkId));
@@ -1594,7 +1589,7 @@ public class MVStore {
             return true;
         }
     }
-    
+
     private ArrayList<Chunk> compactGetOldChunks(int targetFillRate, int write) {
         if (lastChunk == null) {
             // nothing to do
@@ -1679,7 +1674,7 @@ public class MVStore {
         }
         return old;
     }
-    
+
     private void compactRewrite(ArrayList<Chunk> old) {
         HashSet<Integer> set = New.hashSet();
         for (Chunk c : old) {
@@ -1708,7 +1703,7 @@ public class MVStore {
             commitAndSave();
         }
     }
-    
+
     private synchronized void compactFixLive(Chunk chunk) {
         long start = chunk.block * BLOCK_SIZE;
         int length = chunk.len * BLOCK_SIZE;
@@ -1761,13 +1756,10 @@ public class MVStore {
                 }
             }
             if (!pendingChanges) {
- ;                
-new Exception(fileStore.getFileName() + " chunk " + chunk.id + " fix live! " + chunk).printStackTrace(System.out);
-
                 // bookkeeping is broken for this chunk:
                 // fix it
                 registerFreePage(currentVersion, chunk.id,
-                        chunk.maxLenLive + MARKED_FREE, 
+                        chunk.maxLenLive + MARKED_FREE,
                         chunk.pageCountLive + MARKED_FREE);
             }
         }
@@ -1936,7 +1928,7 @@ new Exception(fileStore.getFileName() + " chunk " + chunk.id + " fix live! " + c
      * while traversing over the entries of a map.
      * <p>
      * This setting is not persisted.
-     * 
+     *
      * @param ms how many milliseconds to retain old chunks (0 to overwrite them
      *            as early as possible)
      */

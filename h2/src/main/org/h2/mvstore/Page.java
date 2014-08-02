@@ -102,7 +102,7 @@ public class Page {
      * The array might be larger than needed, to avoid frequent re-sizing.
      */
     private Page[] childrenPages;
-    
+
     /**
      * Whether the page is an in-memory (not stored, or not yet stored) page,
      * and it is removed. This is to keep track of pages that concurrently

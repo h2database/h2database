@@ -24,32 +24,32 @@ public class ThreadDumpCleaner {
 
     private static final String[] PATTERN = {
         "\\$\\$YJP\\$\\$",
-        
+
         "\"(Attach|Service|VM|GC|DestroyJavaVM|Signal|AWT|AppKit|C2 |Low Mem|" +
                 "process reaper|YJPAgent-).*?\"(?s).*?\n\n",
-                
+
         "   Locked ownable synchronizers:(?s).*?\n\n",
-        
+
         "\".*?\".*?\n   java.lang.Thread.State: (TIMED_)?WAITING(?s).*?\n\n",
-        
+
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.KQueueArrayWrapper.kevent0(?s).*?\n\n",
-                
+
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.io.FileInputStream.readBytes(?s).*?\n\n",
-                
+
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.ServerSocketChannelImpl.accept(?s).*?\n\n",
-                
+
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.EPollArrayWrapper.epollWait(?s).*?\n\n",
-                
+
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.lang.Object.wait(?s).*?\n\n",
 
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.net.PlainSocketImpl.socketAccept(?s).*?\n\n",
-                
+
         "JNI global references:.*\n\n",
     };
 

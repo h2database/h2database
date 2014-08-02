@@ -89,7 +89,7 @@ public class Chunk {
      * When this chunk was created, in milliseconds after the store was created.
      */
     public long time;
-    
+
     /**
      * When this chunk was no longer needed, in milliseconds after the store was
      * created. After this, the chunk is kept alive for at least half the

@@ -79,19 +79,22 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
     private void testLowRetentionTime() throws SQLException {
         deleteDb("testLowRetentionTime");
-        Connection conn = getConnection("testLowRetentionTime;RETENTION_TIME=10;WRITE_DELAY=10");
+        Connection conn = getConnection(
+                "testLowRetentionTime;RETENTION_TIME=10;WRITE_DELAY=10");
         Statement stat = conn.createStatement();
         Connection conn2 = getConnection("testLowRetentionTime");
         Statement stat2 = conn2.createStatement();
-        stat.execute("create alias sleep as $$void sleep(int ms) throws Exception { Thread.sleep(ms); }$$");
-        stat.execute("create table test(id identity, name varchar) as select x, 'Init' from system_range(0, 1999)");
+        stat.execute("create alias sleep as " +
+                "$$void sleep(int ms) throws Exception { Thread.sleep(ms); }$$");
+        stat.execute("create table test(id identity, name varchar) " +
+                "as select x, 'Init' from system_range(0, 1999)");
         for (int i = 0; i < 10; i++) {
             stat.execute("insert into test values(null, 'Hello')");
             // create and delete a large table: this will force compaction
-            stat.execute("create table temp(id identity, name varchar) as " + 
+            stat.execute("create table temp(id identity, name varchar) as " +
                     "select x, space(1000000) from system_range(0, 10)");
             stat.execute("drop table temp");
         }

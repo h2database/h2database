@@ -1399,7 +1399,8 @@ public class TransactionStore {
                             k = cursor.next();
                         } catch (IllegalStateException e) {
                             // TODO this is a bit ugly
-                            if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
+                            if (DataUtils.getErrorCode(e.getMessage()) ==
+                                    DataUtils.ERROR_CHUNK_NOT_FOUND) {
                                 cursor = map.cursor(currentKey);
                                 // we (should) get the current key again,
                                 // we need to ignore that one
@@ -1443,7 +1444,7 @@ public class TransactionStore {
                     throw DataUtils.newUnsupportedOperationException(
                             "Removing is not supported");
                 }
-            };            
+            };
         }
 
         /**
@@ -1469,7 +1470,8 @@ public class TransactionStore {
                             k = cursor.next();
                         } catch (IllegalStateException e) {
                             // TODO this is a bit ugly
-                            if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
+                            if (DataUtils.getErrorCode(e.getMessage()) ==
+                                    DataUtils.ERROR_CHUNK_NOT_FOUND) {
                                 cursor = map.cursor(currentKey);
                                 // we (should) get the current key again,
                                 // we need to ignore that one

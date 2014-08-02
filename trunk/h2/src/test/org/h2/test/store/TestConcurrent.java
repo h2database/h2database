@@ -60,7 +60,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentAutoCommitAndChange() throws InterruptedException {
         String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
         FileUtils.delete(fileName);
@@ -102,10 +102,10 @@ public class TestConcurrent extends TestMVStore {
                 assertEquals(10 * i, dataMap.get(i).intValue());
             }
         } finally {
-            s.close();        
+            s.close();
         }
     }
-    
+
     private void testConcurrentReplaceAndRead() throws InterruptedException {
         final MVStore s = new MVStore.Builder().open();
         final MVMap<Integer, Integer> map = s.openMap("data");
@@ -133,7 +133,7 @@ public class TestConcurrent extends TestMVStore {
         task.get();
         s.close();
     }
-    
+
     private void testConcurrentChangeAndCompact() throws InterruptedException {
         String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
         FileUtils.delete(fileName);
@@ -163,7 +163,7 @@ public class TestConcurrent extends TestMVStore {
         Thread.sleep(1);
         for (int i = 0; !task.isFinished() && !task2.isFinished() && i < 1000; i++) {
             MVMap<Integer, Integer> map = s.openMap("d" + (i % 3));
-            // MVMap<Integer, Integer> map = s.openMap("d" + (i % 3), 
+            // MVMap<Integer, Integer> map = s.openMap("d" + (i % 3),
             //         new MVMapConcurrent.Builder<Integer, Integer>());
             map.put(0, i);
             map.get(0);

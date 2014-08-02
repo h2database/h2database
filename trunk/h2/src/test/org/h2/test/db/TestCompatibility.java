@@ -237,7 +237,7 @@ public class TestCompatibility extends TestBase {
         stat.execute("use schema public");
         assertResult("PUBLIC", stat,
                 "select schema()");
-        
+
         stat.execute("SELECT 1");
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");

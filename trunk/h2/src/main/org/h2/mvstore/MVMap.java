@@ -969,7 +969,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     /**
      * Get the map id. Please note the map id may be different after compacting
      * a store.
-     * 
+     *
      * @return the map id
      */
     public int getId() {

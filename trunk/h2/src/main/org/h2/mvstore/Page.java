@@ -102,6 +102,14 @@ public class Page {
      * The array might be larger than needed, to avoid frequent re-sizing.
      */
     private Page[] childrenPages;
+    
+    /**
+     * Whether the page is an in-memory (not stored, or not yet stored) page,
+     * and it is removed. This is to keep track of pages that concurrently
+     * changed while they are being stored, in which case the live bookkeeping
+     * needs to be aware of such cases.
+     */
+    private volatile boolean removedInMemory;
 
     Page(MVMap<?, ?> map, long version) {
         this.map = map;
@@ -940,9 +948,13 @@ public class Page {
         store.cachePage(pos, this, getMemory());
         long max = DataUtils.getPageMaxLength(pos);
         chunk.maxLen += max;
-        chunk.maxLenLive += max;
         chunk.pageCount++;
-        chunk.pageCountLive++;
+        if (!removedInMemory) {
+            // if the page was removed _before_ the position was assigned, we
+            // must not increase the live fields.
+            chunk.maxLenLive += max;
+            chunk.pageCountLive++;
+        }
         return typePos + 1;
     }
 
@@ -1070,11 +1082,11 @@ public class Page {
      * Remove the page.
      */
     public void removePage() {
-        map.removePage(pos, memory);
-    }
-
-    public void setPos(long pos) {
-        this.pos = pos;
+        long p = pos;
+        if (p == 0) {
+            removedInMemory = true;
+        }
+        map.removePage(p, memory);
     }
 
 }

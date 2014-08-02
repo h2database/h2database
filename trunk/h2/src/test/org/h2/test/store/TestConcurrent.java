@@ -78,12 +78,13 @@ public class TestConcurrent extends TestMVStore {
                 }
             };
             final MVMap<Integer, Integer> dataMap = s.openMap("data");
+            final AtomicInteger counter = new AtomicInteger();
             Task task2 = new Task() {
                 @Override
                 public void call() throws Exception {
-                    int i = 0;
                     while (!stop) {
-                        dataMap.put(i++, i);
+                        int i = counter.getAndIncrement();
+                        dataMap.put(i, i * 10);
                     }
                 }
             };
@@ -97,6 +98,9 @@ public class TestConcurrent extends TestMVStore {
             }
             task.get();
             task2.get();
+            for (int i = 0; i < counter.get(); i++) {
+                assertEquals(10 * i, dataMap.get(i).intValue());
+            }
         } finally {
             s.close();        
         }

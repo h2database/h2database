@@ -65,7 +65,7 @@ public class TestConcurrent extends TestMVStore {
         String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
-                fileName(fileName).pageSplitSize(100).
+                fileName(fileName).pageSplitSize(1000).
                 open();
         try {
             s.setRetentionTime(1000);

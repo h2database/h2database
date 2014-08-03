@@ -871,7 +871,8 @@ public class TestMVStore extends TestBase {
 
     private void testFileHeaderCorruption() throws Exception {
         String fileName = getBaseDir() + "/testFileHeader.h3";
-        MVStore s = openStore(fileName);
+        MVStore s = new MVStore.Builder().
+                fileName(fileName).pageSplitSize(1000).autoCommitDisabled().open();
         s.setRetentionTime(0);
         MVMap<Integer, byte[]> map;
         map = s.openMap("test");

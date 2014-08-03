@@ -795,16 +795,25 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return whether rewriting was successful
      */
     boolean rewrite(Set<Integer> set) {
-        if (root.getVersion() < createVersion) {
+        // read from old version, to avoid concurrent reads
+        long previousVersion = store.getCurrentVersion() - 1;
+        if (previousVersion < createVersion) {
             // a new map
             return true;
         }
-        // read from old version, to avoid concurrent reads
-        MVMap<K, V> readMap = openVersion(root.getVersion() - 1);
+        MVMap<K, V> readMap;
+        try {
+            readMap = openVersion(previousVersion);
+        } catch (IllegalArgumentException e) {
+            // unknown version: ok
+            // TODO should not rely on exception handling
+            return true;
+        }
         try {
             rewrite(readMap.root, set);
             return true;
         } catch (IllegalStateException e) {
+            // TODO should not rely on exception handling
             if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
                 // ignore
                 return false;

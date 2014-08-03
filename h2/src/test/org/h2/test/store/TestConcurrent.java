@@ -64,8 +64,9 @@ public class TestConcurrent extends TestMVStore {
     private void testConcurrentAutoCommitAndChange() throws InterruptedException {
         String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
         FileUtils.delete(fileName);
-        final MVStore s = new MVStore.Builder().fileName(
-                fileName).open();
+        final MVStore s = new MVStore.Builder().
+                fileName(fileName).pageSplitSize(100).
+                open();
         try {
             s.setRetentionTime(1000);
             s.setAutoCommitDelay(1);
@@ -78,6 +79,8 @@ public class TestConcurrent extends TestMVStore {
                 }
             };
             final MVMap<Integer, Integer> dataMap = s.openMap("data");
+            final MVMap<Integer, Integer> dataSmallMap = s.openMap("dataSmall");
+            s.openMap("emptyMap");
             final AtomicInteger counter = new AtomicInteger();
             Task task2 = new Task() {
                 @Override
@@ -85,6 +88,10 @@ public class TestConcurrent extends TestMVStore {
                     while (!stop) {
                         int i = counter.getAndIncrement();
                         dataMap.put(i, i * 10);
+                        dataSmallMap.put(i % 100, i * 10);
+                        if (i % 100 == 0) {
+                            dataSmallMap.clear();
+                        }
                     }
                 }
             };

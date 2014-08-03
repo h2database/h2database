@@ -792,45 +792,56 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * Re-write any pages that belong to one of the chunks in the given set.
      *
      * @param set the set of chunk ids
+     * @return whether rewriting was successful
      */
-    void rewrite(Set<Integer> set) {
+    boolean rewrite(Set<Integer> set) {
+        if (root.getVersion() < createVersion) {
+            // a new map
+            return true;
+        }
+        // read from old version, to avoid concurrent reads
+        MVMap<K, V> readMap = openVersion(root.getVersion() - 1);
         try {
-            rewrite(root, set);
+            rewrite(readMap.root, set);
+            return true;
         } catch (IllegalStateException e) {
             if (DataUtils.getErrorCode(e.getMessage()) == DataUtils.ERROR_CHUNK_NOT_FOUND) {
                 // ignore
-            } else {
-                throw e;
+                return false;
             }
+            throw e;
         }
     }
 
     private int rewrite(Page p, Set<Integer> set) {
         if (p.isLeaf()) {
             long pos = p.getPos();
-            if (pos == 0) {
-                return 0;
-            }
             int chunkId = DataUtils.getPageChunkId(pos);
             if (!set.contains(chunkId)) {
                 return 0;
             }
-            @SuppressWarnings("unchecked")
-            K key = (K) p.getKey(0);
-            V value = get(key);
-            if (value != null) {
-                replace(key, value, value);
+            if (p.getKeyCount() > 0) {
+                @SuppressWarnings("unchecked")
+                K key = (K) p.getKey(0);
+                V value = get(key);
+                if (value != null) {
+                    // this is to avoid storing while replacing, to avoid a
+                    // deadlock when rewriting the meta map
+                    // TODO there should be no deadlocks possible
+                    store.beforeWrite();
+                    replace(key, value, value);
+                }
             }
             return 1;
         }
         int writtenPageCount = 0;
         for (int i = 0; i < p.getChildPageCount(); i++) {
-            long pos = p.getChildPagePos(i);
-            if (pos != 0 && DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
+            long childPos = p.getChildPagePos(i);
+            if (childPos != 0 && DataUtils.getPageType(childPos) == DataUtils.PAGE_TYPE_LEAF) {
                 // we would need to load the page, and it's a leaf:
                 // only do that if it's within the set of chunks we are
                 // interested in
-                int chunkId = DataUtils.getPageChunkId(pos);
+                int chunkId = DataUtils.getPageChunkId(childPos);
                 if (!set.contains(chunkId)) {
                     continue;
                 }
@@ -839,27 +850,25 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         }
         if (writtenPageCount == 0) {
             long pos = p.getPos();
-            if (pos != 0) {
-                int chunkId = DataUtils.getPageChunkId(pos);
-                if (set.contains(chunkId)) {
-                    // an inner node page that is in one of the chunks,
-                    // but only points to chunks that are not in the set:
-                    // if no child was changed, we need to do that now
-                    // (this is not needed if anyway one of the children
-                    // was changed, as this would have updated this
-                    // page as well)
-                    Page p2 = p;
-                    while (!p2.isLeaf()) {
-                        p2 = p2.getChildPage(0);
-                    }
-                    @SuppressWarnings("unchecked")
-                    K key = (K) p2.getKey(0);
-                    V value = get(key);
-                    if (value != null) {
-                        replace(key, value, value);
-                    }
-                    writtenPageCount++;
+            int chunkId = DataUtils.getPageChunkId(pos);
+            if (set.contains(chunkId)) {
+                // an inner node page that is in one of the chunks,
+                // but only points to chunks that are not in the set:
+                // if no child was changed, we need to do that now
+                // (this is not needed if anyway one of the children
+                // was changed, as this would have updated this
+                // page as well)
+                Page p2 = p;
+                while (!p2.isLeaf()) {
+                    p2 = p2.getChildPage(0);
                 }
+                @SuppressWarnings("unchecked")
+                K key = (K) p2.getKey(0);
+                V value = get(key);
+                if (value != null) {
+                    replace(key, value, value);
+                }
+                writtenPageCount++;
             }
         }
         return writtenPageCount;

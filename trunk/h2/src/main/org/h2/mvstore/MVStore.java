@@ -1683,9 +1683,13 @@ public class MVStore {
         for (MVMap<?, ?> m : maps.values()) {
             @SuppressWarnings("unchecked")
             MVMap<Object, Object> map = (MVMap<Object, Object>) m;
-            map.rewrite(set);
+            if (!map.rewrite(set)) {
+                return;
+            }
         }
-        meta.rewrite(set);
+        if (!meta.rewrite(set)) {
+            return;
+        }
         commitAndSave();
         boolean commitAgain = false;
         for (Chunk c : old) {

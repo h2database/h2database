@@ -162,8 +162,10 @@ You can then access the table in the usual way.
 Whenever the linked table is accessed, the database issues specific queries over JDBC.
 Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>,
 then the following query is run against the PostgreSQL database: <code>SELECT * FROM TEST WHERE ID=?</code>.
-The same happens for insert and update statements. Only simple statements are executed against the
-target database, that means no joins. Prepared statements are used where possible.
+The same happens for insert and update statements.
+Only simple statements are executed against the target database, that means no joins
+(queries that contain joins are converted to simple queries).
+Prepared statements are used where possible.
 </p>
 <p>
 To view the statements that are executed against the target table, set the trace level to 3.

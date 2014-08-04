@@ -347,6 +347,15 @@ public class MVTableEngine implements TableEngine {
                     }
                 }
             } catch (IllegalStateException e) {
+                if (DataUtils.getErrorCode(e.getMessage()) ==
+                        DataUtils.ERROR_WRITING_FAILED) {
+                    // disk full - ok
+                } else {
+  // TODO                    
+  ;
+  e.printStackTrace(System.out);
+                }
+                store.closeImmediately();
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");
             }
         }

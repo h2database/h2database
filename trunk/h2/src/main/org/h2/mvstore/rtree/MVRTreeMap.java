@@ -248,13 +248,16 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                     Object k1 = getBounds(p);
                     Object k2 = getBounds(split);
                     Object[] keys = { k1, k2 };
-                    long[] children = { p.getPos(), split.getPos(), 0 };
-                    Page[] childrenPages = { p, split, null };
+                    Page.PageReference[] children = {
+                            new Page.PageReference(p, p.getPos()),
+                            new Page.PageReference(split, split.getPos()),
+                            new Page.PageReference(null, 0)
+                    };
                     long[] counts = { p.getTotalCount(),
                             split.getTotalCount(), 0 };
                     p = Page.create(this, v,
                             2, keys, null,
-                            3, children, childrenPages, counts,
+                            3, children, counts,
                             totalCount, 0, 0);
                     // now p is a node; continues
                 }
@@ -449,12 +452,22 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     private Page newPage(boolean leaf, long writeVersion) {
-        Object[] values = leaf ? new Object[4] : null;
-        long[] c = leaf ? null : new long[1];
-        Page[] cp = leaf ? null : new Page[1];
+        Object[] values;
+        Page.PageReference[] refs;
+        long[] c;
+        if (leaf) {
+            values = new Object[4];
+            refs = null;
+            c = null;
+        } else {
+            values = null;
+            refs = new Page.PageReference[] {
+                    new Page.PageReference(null, 0)};
+            c = new long[1];
+        }
         return Page.create(this, writeVersion,
                 0, new Object[4], values,
-                leaf ? 0 : 1, c, cp, c, 0, 0, 0);
+                leaf ? 0 : 1, refs, c, 0, 0, 0);
     }
 
     private static void move(Page source, Page target, int sourceIndex) {

@@ -112,6 +112,9 @@ MVStore:
     a map lookup when reading old data; also, this
     old data map needs to be cleaned up somehow;
     maybe using an additional timeout
+- rollback of removeMap should restore the data -
+    which has big consequences, as the metadata map
+    would probably need references to the root nodes of all maps
 
 */
 
@@ -823,11 +826,10 @@ public class MVStore {
     /**
      * Whether the chunk at the given position is live.
      *
-     * @param pos the position of the page
+     * @param the chunk id
      * @return true if it is live
      */
-    boolean isChunkLive(long pos) {
-        int chunkId = DataUtils.getPageChunkId(pos);
+    boolean isChunkLive(int chunkId) {
         String s = meta.get(Chunk.getMetaKey(chunkId));
         return s != null;
     }
@@ -2262,9 +2264,10 @@ public class MVStore {
     }
 
     /**
-     * Remove a map.
-     *
-     * @param map the map
+     * Remove a map. Please note rolling back this operation does not restore
+     * the data; if you need this ability, use Map.clear().
+     * 
+     * @param map the map to remove
      */
     public synchronized void removeMap(MVMap<?, ?> map) {
         checkOpen();
@@ -2397,7 +2400,7 @@ public class MVStore {
             return;
         }
         autoCommitDelay = millis;
-        if (fileStore == null) {
+        if (fileStore == null || fileStore.isReadOnly()) {
             return;
         }
         stopBackgroundThread();

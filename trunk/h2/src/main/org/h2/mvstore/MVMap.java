@@ -154,12 +154,14 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Object k = p.getKey(at);
         Page split = p.split(at);
         Object[] keys = { k };
-        long[] children = { p.getPos(), split.getPos() };
-        Page[] childrenPages = { p, split };
+        Page.PageReference[] children = {
+                new Page.PageReference(p, p.getPos()),
+                new Page.PageReference(split, split.getPos()),
+        };
         long[] counts = { p.getTotalCount(), split.getTotalCount() };
         p = Page.create(this, writeVersion,
                 1, keys, null,
-                2, children, childrenPages, counts,
+                2, children, counts,
                 totalCount, 0, 0);
         return p;
     }

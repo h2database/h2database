@@ -152,7 +152,7 @@ Linked Tables
  This database supports linked tables, which means tables that don't exist in the current database but are just links to another database. To create such a link, use the <code>CREATE LINKED TABLE</code> statement: 
 
 @advanced_1051_p
- You can then access the table in the usual way. Whenever the linked table is accessed, the database issues specific queries over JDBC. Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>, then the following query is run against the PostgreSQL database: <code>SELECT * FROM TEST WHERE ID=?</code>. The same happens for insert and update statements. Only simple statements are executed against the target database, that means no joins. Prepared statements are used where possible. 
+ You can then access the table in the usual way. Whenever the linked table is accessed, the database issues specific queries over JDBC. Using the example above, if you issue the query <code>SELECT * FROM LINK WHERE ID=1</code>, then the following query is run against the PostgreSQL database: <code>SELECT * FROM TEST WHERE ID=?</code>. The same happens for insert and update statements. Only simple statements are executed against the target database, that means no joins (queries that contain joins are converted to simple queries). Prepared statements are used where possible. 
 
 @advanced_1052_p
  To view the statements that are executed against the target table, set the trace level to 3. 
@@ -7439,7 +7439,7 @@ Transactions
 In-Memory Performance and Usage
 
 @mvstore_1065_p
- Performance of in-memory operations is comparable with <code>java.util.TreeMap</code>, but usually slower than <code>java.util.HashMap</code>. 
+ Performance of in-memory operations is a bit slower than <code>java.util.TreeMap</code>, and slower than <code>java.util.HashMap</code>. 
 
 @mvstore_1066_p
  The memory overhead for large maps is slightly better than for the regular map implementations, but there is a higher overhead per map. For maps with less than about 25 entries, the regular map implementations need less memory. 

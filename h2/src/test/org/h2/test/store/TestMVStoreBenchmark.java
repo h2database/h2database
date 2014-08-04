@@ -164,7 +164,7 @@ public class TestMVStoreBenchmark extends TestBase {
         String msg = "mv " + mv + " tree " + tree + " hash " + hash;
         assertTrue(msg, hash < tree);
         // assertTrue(msg, hash < mv);
-        assertTrue(msg, mv < tree);
+        assertTrue(msg, mv < tree * 2);
     }
 
     private long testPerformance(Map<Integer, String> map, int size) {

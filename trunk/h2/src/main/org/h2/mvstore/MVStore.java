@@ -1844,7 +1844,8 @@ public class MVStore {
                 version = currentStoreVersion;
             }
         }
-        registerFreePage(version, c.id, DataUtils.getPageMaxLength(pos), 1);
+        registerFreePage(version, c.id,
+                DataUtils.getPageMaxLength(pos), 1);
     }
 
     private void registerFreePage(long version, int chunkId,

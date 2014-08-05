@@ -52,6 +52,7 @@ public class TestMVStore extends TestBase {
     public void test() throws Exception {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testRemoveMapRollback();
         testProvidedFileStoreNotOpenedAndClosed();
         testVolatileMap();
         testEntrySet();
@@ -110,6 +111,37 @@ public class TestMVStore extends TestBase {
 
         // longer running tests
         testLargerThan2G();
+    }
+
+    private void testRemoveMapRollback() {
+        MVStore store = new MVStore.Builder().
+                open();
+        MVMap<String, String> map = store.openMap("test");
+        map.put("1", "Hello");
+        store.commit();
+        store.removeMap(map);
+        store.rollback();
+        assertTrue(store.hasMap("test"));
+        map = store.openMap("test");
+        // TODO the data should get back alive
+        assertNull(map.get("1"));
+        store.close();
+
+        String fileName = getBaseDir() + "/testRemoveMapRollback.h3";
+        store = new MVStore.Builder().
+                autoCommitDisabled().
+                fileName(fileName).
+                open();
+        map = store.openMap("test");
+        map.put("1", "Hello");
+        store.commit();
+        store.removeMap(map);
+        store.rollback();
+        assertTrue(store.hasMap("test"));
+        map = store.openMap("test");
+        // TODO the data should get back alive
+        assertNull(map.get("1"));
+        store.close();
     }
 
     private void testProvidedFileStoreNotOpenedAndClosed() {

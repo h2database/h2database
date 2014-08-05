@@ -85,9 +85,8 @@ public class TestBackup extends TestBase {
             updateEnd.set(System.currentTimeMillis() + 2000);
             stat2.execute("backup to '"+getBaseDir()+"/backup.zip'");
             stat2.execute("checkpoint");
-            Restore.execute(getBaseDir() + "/backup.zip", getBaseDir() + "/t2", "backup");
-            Connection conn3;
-            conn3 = getConnection("t2/backup");
+            Restore.execute(getBaseDir() + "/backup.zip", getBaseDir() + "/t" + i, "backup");
+            Connection conn3 = getConnection("t" + i + "/backup");
             Statement stat3 = conn3.createStatement();
             stat3.execute("script");
             ResultSet rs = stat3.executeQuery(
@@ -98,9 +97,9 @@ public class TestBackup extends TestBase {
             conn3.close();
         }
         task.get();
+        conn2.close();
         conn.close();
         conn1.close();
-        conn2.close();
     }
 
     /**

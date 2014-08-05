@@ -342,14 +342,18 @@ public class MVTableEngine implements TableEngine {
                     }
                     String fileName = store.getFileStore().getFileName();
                     store.close();
-                    if (compactFully) {
+                    if (compactFully && FileUtils.exists(fileName)) {
+                        // the file could have been deleted concurrently,
+                        // so only compact if the file still exists
                         MVStoreTool.compact(fileName, true);
                     }
                 }
             } catch (IllegalStateException e) {
-                if (DataUtils.getErrorCode(e.getMessage()) ==
-                        DataUtils.ERROR_WRITING_FAILED) {
+                int errorCode = DataUtils.getErrorCode(e.getMessage());
+                if (errorCode == DataUtils.ERROR_WRITING_FAILED) {
                     // disk full - ok
+                } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
+                    // wrong encryption key - ok
                 } else {
   // TODO                    
   ;

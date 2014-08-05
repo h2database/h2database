@@ -918,12 +918,14 @@ public class Page {
         store.cachePage(pos, this, getMemory());
         long max = DataUtils.getPageMaxLength(pos);
         chunk.maxLen += max;
+        chunk.maxLenLive += max;
         chunk.pageCount++;
-        if (!removedInMemory) {
+        chunk.pageCountLive++;
+        if (removedInMemory) {
             // if the page was removed _before_ the position was assigned, we
-            // must not increase the live fields.
-            chunk.maxLenLive += max;
-            chunk.pageCountLive++;
+            // need to mark it removed here, so the fields are updated
+            // when the next chunk is stored
+            map.removePage(pos, memory);
         }
         return typePos + 1;
     }

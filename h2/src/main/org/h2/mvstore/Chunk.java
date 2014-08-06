@@ -156,7 +156,7 @@ public class Chunk {
         }
         if (minLength != 0 && buff.position() > minLength) {
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_INTERNAL, 
+                    DataUtils.ERROR_INTERNAL,
                     "Chunk metadata too long");
         }
         buff.put((byte) '\n');

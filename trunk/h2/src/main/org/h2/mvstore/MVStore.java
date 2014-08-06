@@ -2267,7 +2267,7 @@ public class MVStore {
     /**
      * Remove a map. Please note rolling back this operation does not restore
      * the data; if you need this ability, use Map.clear().
-     * 
+     *
      * @param map the map to remove
      */
     public synchronized void removeMap(MVMap<?, ?> map) {

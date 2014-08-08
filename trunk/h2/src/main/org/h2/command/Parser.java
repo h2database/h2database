@@ -751,6 +751,12 @@ public class Parser {
             Expression limit = readTerm().optimize(session);
             command.setLimit(limit);
         }
+        if (readIf("ORDER")) {
+            // for MySQL compatibility
+            // (this syntax is supported, but ignored)
+            read("BY");
+            parseSimpleOrderList();
+        }
         setSQL(command, "UPDATE", start);
         return command;
     }

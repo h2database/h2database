@@ -789,3 +789,21 @@ insert into test1 values ('abcaaaa');
 delete from test1;
 drop table test1;
 @reconnect;
+
+drop table if exists test;
+create table if not exists test(col1 int primary key);
+insert into test values(1);
+insert into test values(2);
+insert into test values(3);
+select count(*) from test;
+> 3;
+select max(col1) from test;
+> 3;
+update test set col1 = col1 + 1
+order by col1 asc;
+select count(*) from test;
+> 3;
+select max(col1) from test;
+> 4;
+drop table if exists test;
+

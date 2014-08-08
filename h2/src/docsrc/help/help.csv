@@ -59,9 +59,10 @@ INSERT INTO TEST VALUES(1, 'Hello')
 UPDATE tableName [ [ AS ] newTableAlias ] SET
 { { columnName = { DEFAULT | expression } } [,...] } |
     { ( columnName [,...] ) = ( select ) }
-[ WHERE expression ] [ LIMIT expression ]
+[ WHERE expression ] [ ORDER BY order [,...] ] [ LIMIT expression ]
 ","
 Updates data in a table.
+ORDER BY is supported for MySQL compatibility, but it is ignored.
 ","
 UPDATE TEST SET NAME='Hi' WHERE ID=1;
 UPDATE PERSON P SET NAME=(SELECT A.NAME FROM ADDRESS A WHERE A.ID=P.ID);

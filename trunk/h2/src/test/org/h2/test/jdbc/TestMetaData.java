@@ -39,6 +39,7 @@ public class TestMetaData extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("metaData");
+        testUnwrap();
         testUnsupportedOperations();
         testTempTable();
         testColumnResultSetMeta();
@@ -56,16 +57,29 @@ public class TestMetaData extends TestBase {
         testSessionsUncommitted();
         testQueryStatistics();
     }
+    
+    private void testUnwrap() throws SQLException {
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select 1 as x from dual");
+        ResultSetMetaData meta = rs.getMetaData();
+        assertTrue(meta.isWrapperFor(Object.class));
+        assertTrue(meta.isWrapperFor(ResultSetMetaData.class));
+        assertTrue(meta.isWrapperFor(meta.getClass()));
+        assertTrue(meta == meta.unwrap(Object.class));
+        assertTrue(meta == meta.unwrap(ResultSetMetaData.class));
+        assertTrue(meta == meta.unwrap(meta.getClass()));
+        assertFalse(meta.isWrapperFor(Integer.class));
+        assertThrows(ErrorCode.INVALID_VALUE_2, meta).
+                unwrap(Integer.class);
+        conn.close();
+    }
 
     private void testUnsupportedOperations() throws SQLException {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select 1 as x from dual");
         ResultSetMetaData meta = rs.getMetaData();
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).
-                isWrapperFor(Object.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).
-                unwrap(Object.class);
         assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnLabel(0);
         assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnName(0);
         assertThrows(ErrorCode.INVALID_VALUE_2, meta).getColumnType(0);
@@ -971,6 +985,7 @@ public class TestMetaData extends TestBase {
     private void testGeneral() throws SQLException {
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
+        
         Statement stat = conn.createStatement();
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");

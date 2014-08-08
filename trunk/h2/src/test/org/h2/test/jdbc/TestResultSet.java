@@ -63,6 +63,7 @@ public class TestResultSet extends TestBase {
 
         stat = conn.createStatement();
 
+        testUnwrap();
         testReuseSimpleResult();
         testUnsupportedOperations();
         testAmbiguousColumnNames();
@@ -100,6 +101,19 @@ public class TestResultSet extends TestBase {
         conn.close();
         deleteDb("resultSet");
 
+    }
+    
+    private void testUnwrap() throws SQLException {
+        ResultSet rs = stat.executeQuery("select 1");
+        assertTrue(rs.isWrapperFor(Object.class));
+        assertTrue(rs.isWrapperFor(ResultSet.class));
+        assertTrue(rs.isWrapperFor(rs.getClass()));
+        assertFalse(rs.isWrapperFor(Integer.class));
+        assertTrue(rs == rs.unwrap(Object.class));
+        assertTrue(rs == rs.unwrap(ResultSet.class));
+        assertTrue(rs == rs.unwrap(rs.getClass()));
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+                unwrap(Object.class);
     }
 
     private void testReuseSimpleResult() throws SQLException {
@@ -166,10 +180,6 @@ public class TestResultSet extends TestBase {
                 getCursorName();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 setFetchDirection(ResultSet.FETCH_FORWARD);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                unwrap(Object.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                isWrapperFor(Object.class);
     }
 
     private void testAmbiguousColumnNames() throws SQLException {

@@ -6,6 +6,7 @@
 package org.h2.test.jdbc;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
@@ -41,6 +42,7 @@ public class TestStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("statement");
         conn = getConnection("statement");
+        testUnwrap();
         testUnsupportedOperations();
         testTraceError();
         testSavepoint();
@@ -51,14 +53,22 @@ public class TestStatement extends TestBase {
         conn.close();
         deleteDb("statement");
     }
-
-    private void testUnsupportedOperations() throws Exception {
+    
+    private void testUnwrap() throws SQLException {
         Statement stat = conn.createStatement();
+        assertTrue(stat.isWrapperFor(Object.class));
+        assertTrue(stat.isWrapperFor(DatabaseMetaData.class));
+        assertTrue(stat.isWrapperFor(stat.getClass()));
+        assertTrue(stat == stat.unwrap(Object.class));
+        assertTrue(stat == stat.unwrap(DatabaseMetaData.class));
+        assertTrue(stat == stat.unwrap(stat.getClass()));
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
             isWrapperFor(Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
             unwrap(Object.class);
+    }
 
+    private void testUnsupportedOperations() throws Exception {
         conn.setTypeMap(null);
         HashMap<String, Class<?>> map = New.hashMap();
         conn.setTypeMap(map);

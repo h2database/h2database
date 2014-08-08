@@ -56,6 +56,7 @@ public class TestPreparedStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("preparedStatement");
         Connection conn = getConnection("preparedStatement");
+        testUnwrap(conn);
         testUnsupportedOperations(conn);
         testChangeType(conn);
         testDateTimeTimestampWithCalendar(conn);
@@ -94,6 +95,17 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
         testPreparedStatementWithLiteralsNone();
         deleteDb("preparedStatement");
+    }
+    
+    private void testUnwrap(Connection conn) throws SQLException {
+        assertTrue(conn.isWrapperFor(Object.class));
+        assertTrue(conn.isWrapperFor(Connection.class));
+        assertTrue(conn.isWrapperFor(conn.getClass()));
+        assertFalse(conn.isWrapperFor(String.class));
+        assertTrue(conn == conn.unwrap(Object.class));
+        assertTrue(conn == conn.unwrap(Connection.class));
+        assertThrows(ErrorCode.INVALID_VALUE_2, conn).
+                unwrap(String.class);
     }
 
     @SuppressWarnings("deprecation")
@@ -134,17 +146,6 @@ public class TestPreparedStatement extends TestBase {
 
         ParameterMetaData meta = prep.getParameterMetaData();
         assertTrue(meta.toString(), meta.toString().endsWith("parameterCount=1"));
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).
-                isWrapperFor(Object.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, meta).
-                unwrap(Object.class);
-
-        assertTrue(conn.isWrapperFor(Object.class));
-        assertTrue(conn.isWrapperFor(Connection.class));
-        assertFalse(conn.isWrapperFor(String.class));
-        assertTrue(conn == conn.unwrap(Object.class));
-        assertTrue(conn == conn.unwrap(Connection.class));
-        assertThrows(ErrorCode.INVALID_VALUE_2, conn).unwrap(String.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
                 createSQLXML();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).

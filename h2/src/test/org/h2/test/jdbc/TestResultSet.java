@@ -112,8 +112,8 @@ public class TestResultSet extends TestBase {
         assertTrue(rs == rs.unwrap(Object.class));
         assertTrue(rs == rs.unwrap(ResultSet.class));
         assertTrue(rs == rs.unwrap(rs.getClass()));
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                unwrap(Object.class);
+        assertThrows(ErrorCode.INVALID_VALUE_2, rs).
+                unwrap(Integer.class);
     }
 
     private void testReuseSimpleResult() throws SQLException {

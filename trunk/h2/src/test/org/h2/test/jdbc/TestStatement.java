@@ -6,7 +6,6 @@
 package org.h2.test.jdbc;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
@@ -57,15 +56,14 @@ public class TestStatement extends TestBase {
     private void testUnwrap() throws SQLException {
         Statement stat = conn.createStatement();
         assertTrue(stat.isWrapperFor(Object.class));
-        assertTrue(stat.isWrapperFor(DatabaseMetaData.class));
+        assertTrue(stat.isWrapperFor(Statement.class));
         assertTrue(stat.isWrapperFor(stat.getClass()));
+        assertFalse(stat.isWrapperFor(Integer.class));
         assertTrue(stat == stat.unwrap(Object.class));
-        assertTrue(stat == stat.unwrap(DatabaseMetaData.class));
+        assertTrue(stat == stat.unwrap(Statement.class));
         assertTrue(stat == stat.unwrap(stat.getClass()));
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-            isWrapperFor(Object.class);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).
-            unwrap(Object.class);
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).
+        unwrap(Integer.class);
     }
 
     private void testUnsupportedOperations() throws Exception {

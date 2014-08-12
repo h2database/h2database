@@ -180,9 +180,14 @@ public class Driver implements java.sql.Driver {
 
     /**
      * INTERNAL
+     * Sets, on a per-thread basis, the default-connection for user-defined functions. 
      */
     public static void setDefaultConnection(Connection c) {
-        DEFAULT_CONNECTION.set(c);
+        if (c == null) {
+            DEFAULT_CONNECTION.remove();
+        } else {
+            DEFAULT_CONNECTION.set(c);
+        }
     }
 
     /**

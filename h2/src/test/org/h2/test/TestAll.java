@@ -176,6 +176,7 @@ import org.h2.test.unit.TestOverflow;
 import org.h2.test.unit.TestPageStore;
 import org.h2.test.unit.TestPageStoreCoverage;
 import org.h2.test.unit.TestPattern;
+import org.h2.test.unit.TestPerfectHash;
 import org.h2.test.unit.TestPgServer;
 import org.h2.test.unit.TestReader;
 import org.h2.test.unit.TestRecovery;
@@ -788,6 +789,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestPageStore().runTest(this);
         new TestPageStoreCoverage().runTest(this);
         new TestPattern().runTest(this);
+        new TestPerfectHash().runTest(this);
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
         new TestRecovery().runTest(this);

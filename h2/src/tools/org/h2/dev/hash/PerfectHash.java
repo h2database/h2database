@@ -36,15 +36,37 @@ import java.util.zip.Inflater;
  */
 public class PerfectHash {
 
+    /**
+     * The maximum size of a bucket.
+     */
     private static final int MAX_SIZE = 16;
+    
+    /**
+     * The maximum number of hash functions to test.
+     */
     private static final int OFFSETS = 16;
+    
+    /**
+     * The maximum number of buckets to split the set into.
+     */
     private static final int MAX_SPLIT = 32;
 
     /**
-     * The description of the hash function.
+     * The description of the hash function. Used for calculating the hash of a
+     * key.
      */
     private final byte[] data;
+    
+    /**
+     * The offset of the result of the hash function at the given offset within
+     * the data array. Used for calculating the hash of a key.
+     */
     private final int[] plus;
+    
+    /**
+     * The position of the next bucket in the data array (in case this bucket
+     * needs to be skipped). Used for calculating the hash of a key.
+     */
     private final int[] next;
 
     /**
@@ -127,6 +149,11 @@ public class PerfectHash {
         if (size < MAX_SIZE) {
             int max = minimal ? size : Math.min(MAX_SIZE - 1, size * 2);
             for (int s = size; s <= max; s++) {
+                // Try a few hash functions ("offset" is basically the hash
+                // function index). We could try less hash functions, and
+                // instead use a larger size and remember the position of the
+                // hole (specially for the minimal perfect case), but that's
+                // more complicated.
                 nextOffset:
                 for (int offset = 0; offset < OFFSETS; offset++) {
                     int bits = 0;
@@ -142,6 +169,9 @@ public class PerfectHash {
                 }
             }
         }
+        // Split the set into multiple smaller sets. We could try to split more
+        // evenly by trying out multiple hash functions, but that's more
+        // complicated.
         int split;
         if (minimal) {
             split = size > 150 ? size / 83 : (size + 3) / 4;
@@ -162,6 +192,16 @@ public class PerfectHash {
         }
     }
 
+    /**
+     * Calculate the hash of a key. The result depends on the key, the recursion
+     * level, and the offset.
+     * 
+     * @param x the key
+     * @param level the recursion level
+     * @param offset the index of the hash function
+     * @param size the size of the bucket
+     * @return the hash (a value between 0, including, and the size, excluding)
+     */
     private static int hash(int x, int level, int offset, int size) {
         x += level * OFFSETS + offset;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
@@ -170,6 +210,12 @@ public class PerfectHash {
         return Math.abs(x % size);
     }
     
+    /**
+     * Compress the hash description using a Huffman coding.
+     * 
+     * @param d the data
+     * @return the compressed data
+     */
     private static byte[] compress(byte[] d) {
         Deflater deflater = new Deflater();
         deflater.setStrategy(Deflater.HUFFMAN_ONLY);
@@ -185,6 +231,12 @@ public class PerfectHash {
         return out2.toByteArray();
     }
     
+    /**
+     * Decompress the hash description using a Huffman coding.
+     * 
+     * @param d the data
+     * @return the decompressed data
+     */
     private static byte[] expand(byte[] d) {
         Inflater inflater = new Inflater();  
         inflater.setInput(d); 

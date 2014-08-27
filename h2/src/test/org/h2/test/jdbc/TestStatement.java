@@ -52,7 +52,7 @@ public class TestStatement extends TestBase {
         conn.close();
         deleteDb("statement");
     }
-    
+
     private void testUnwrap() throws SQLException {
         Statement stat = conn.createStatement();
         assertTrue(stat.isWrapperFor(Object.class));

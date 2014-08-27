@@ -57,7 +57,7 @@ public class TestMetaData extends TestBase {
         testSessionsUncommitted();
         testQueryStatistics();
     }
-    
+
     private void testUnwrap() throws SQLException {
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
@@ -985,7 +985,7 @@ public class TestMetaData extends TestBase {
     private void testGeneral() throws SQLException {
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
-        
+
         Statement stat = conn.createStatement();
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))");

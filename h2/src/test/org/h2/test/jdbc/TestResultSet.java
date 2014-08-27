@@ -102,7 +102,7 @@ public class TestResultSet extends TestBase {
         deleteDb("resultSet");
 
     }
-    
+
     private void testUnwrap() throws SQLException {
         ResultSet rs = stat.executeQuery("select 1");
         assertTrue(rs.isWrapperFor(Object.class));

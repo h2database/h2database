@@ -799,8 +799,7 @@ select count(*) from test;
 > 3;
 select max(col1) from test;
 > 3;
-update test set col1 = col1 + 1
-order by col1 asc;
+update test set col1 = col1 + 1 limit 1 order by col1 asc;
 select count(*) from test;
 > 3;
 select max(col1) from test;

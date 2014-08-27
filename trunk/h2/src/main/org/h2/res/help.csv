@@ -22,7 +22,7 @@ Inserts a new row / new rows into a table."
 UPDATE tableName [ [ AS ] newTableAlias ] SET
 { { columnName = { DEFAULT | expression } } [,...] } |
     { ( columnName [,...] ) = ( select ) }
-[ WHERE expression ] [ LIMIT expression ]
+[ WHERE expression ] [ LIMIT expression ] [ ORDER BY order [,...] ]
 ","
 Updates data in a table."
 "Commands (DML)","DELETE","

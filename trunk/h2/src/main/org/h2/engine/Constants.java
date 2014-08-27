@@ -442,6 +442,17 @@ public class Constants {
     public static final String SUFFIX_MV_FILE = ".mv.db";
 
     /**
+     * The file name suffix of a new MVStore file, used when compacting a store.
+     */
+    public static final String SUFFIX_MV_STORE_NEW_FILE = ".newFile";
+
+    /**
+     * The file name suffix of a temporary MVStore file, used when compacting a
+     * store.
+     */
+    public static final String SUFFIX_MV_STORE_TEMP_FILE = ".tempFile";
+
+    /**
      * The file name suffix of temporary files.
      */
     public static final String SUFFIX_TEMP_FILE = ".temp.db";

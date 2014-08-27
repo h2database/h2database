@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.StringDataType;
@@ -321,13 +322,13 @@ public class MVStoreTool {
      * @param compress whether to compress the data
      */
     public static void compact(String fileName, boolean compress) {
-        String tempName = fileName + ".tempFile";
+        String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
         FileUtils.delete(tempName);
         compact(fileName, tempName, compress);
         try {
             FileUtils.moveAtomicReplace(tempName, fileName);
         } catch (DbException e) {
-            String newName = fileName + ".newFile";
+            String newName = fileName + Constants.SUFFIX_MV_STORE_NEW_FILE;
             FileUtils.delete(newName);
             FileUtils.move(tempName, newName);
             FileUtils.delete(fileName);
@@ -344,11 +345,11 @@ public class MVStoreTool {
      * @param fileName the file name
      */
     public static void compactCleanUp(String fileName) {
-        String tempName = fileName + ".tempFile";
+        String tempName = fileName + Constants.SUFFIX_MV_STORE_TEMP_FILE;
         if (FileUtils.exists(tempName)) {
             FileUtils.delete(tempName);
         }
-        String newName = fileName + ".newFile";
+        String newName = fileName + Constants.SUFFIX_MV_STORE_NEW_FILE;
         if (FileUtils.exists(newName)) {
             if (FileUtils.exists(fileName)) {
                 FileUtils.delete(newName);

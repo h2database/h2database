@@ -96,7 +96,7 @@ public class TestPreparedStatement extends TestBase {
         testPreparedStatementWithLiteralsNone();
         deleteDb("preparedStatement");
     }
-    
+
     private void testUnwrap(Connection conn) throws SQLException {
         assertTrue(conn.isWrapperFor(Object.class));
         assertTrue(conn.isWrapperFor(Connection.class));

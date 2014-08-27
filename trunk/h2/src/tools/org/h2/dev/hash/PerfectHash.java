@@ -18,12 +18,12 @@ import java.util.zip.Inflater;
  * resulting hash table is about 79% full. The minimal perfect hash function
  * needs about 2.3 bits per key.
  * <p>
- * Generating the hash function takes about 1 second per million keys (linear)
+ * Generating the hash function takes about 1 second per million keys
  * for both perfect hash and minimal perfect hash.
  * <p>
  * The algorithm is recursive: sets that contain no or only one entry are not
  * processed as no conflicts are possible. Sets that contain between 2 and 16
- * buckets, up to 16 hash functions are tested to check if they can store the
+ * entries, up to 16 hash functions are tested to check if they can store the
  * data without conflict. If no function was found, the same is tested on a
  * larger bucket (except for the minimal perfect hash). If no hash function was
  * found, and for larger buckets, the bucket is split into a number of smaller
@@ -32,7 +32,8 @@ import java.util.zip.Inflater;
  * At the end of the generation process, the data is compressed using a general
  * purpose compression tool (Deflate / Huffman coding). The uncompressed data is
  * around 1.52 bits per key (perfect hash) and 3.72 (minimal perfect hash).
- * 
+ * <p>
+ * Please also note the MinimalPerfectHash class, which uses less space per key.
  */
 public class PerfectHash {
 
@@ -40,12 +41,12 @@ public class PerfectHash {
      * The maximum size of a bucket.
      */
     private static final int MAX_SIZE = 16;
-    
+
     /**
      * The maximum number of hash functions to test.
      */
     private static final int OFFSETS = 16;
-    
+
     /**
      * The maximum number of buckets to split the set into.
      */
@@ -56,13 +57,13 @@ public class PerfectHash {
      * key.
      */
     private final byte[] data;
-    
+
     /**
      * The offset of the result of the hash function at the given offset within
      * the data array. Used for calculating the hash of a key.
      */
     private final int[] plus;
-    
+
     /**
      * The position of the next bucket in the data array (in case this bucket
      * needs to be skipped). Used for calculating the hash of a key.
@@ -71,7 +72,7 @@ public class PerfectHash {
 
     /**
      * Create a hash object to convert keys to hashes.
-     * 
+     *
      * @param data the data returned by the generate method
      */
     public PerfectHash(byte[] data) {
@@ -87,7 +88,7 @@ public class PerfectHash {
 
     /**
      * Calculate the hash from the key.
-     * 
+     *
      * @param x the key
      * @return the hash
      */
@@ -128,7 +129,7 @@ public class PerfectHash {
 
     /**
      * Generate the perfect hash function data from the given set of integers.
-     * 
+     *
      * @param list the set
      * @param minimal whether the perfect hash function needs to be minimal
      * @return the data
@@ -139,7 +140,7 @@ public class PerfectHash {
         return compress(out.toByteArray());
     }
 
-    private static void generate(Collection<Integer> set, int level, 
+    private static void generate(Collection<Integer> set, int level,
             boolean minimal, ByteArrayOutputStream out) {
         int size = set.size();
         if (size <= 1) {
@@ -195,7 +196,7 @@ public class PerfectHash {
     /**
      * Calculate the hash of a key. The result depends on the key, the recursion
      * level, and the offset.
-     * 
+     *
      * @param x the key
      * @param level the recursion level
      * @param offset the index of the hash function
@@ -209,10 +210,10 @@ public class PerfectHash {
         x = (x >>> 16) ^ x;
         return Math.abs(x % size);
     }
-    
+
     /**
      * Compress the hash description using a Huffman coding.
-     * 
+     *
      * @param d the data
      * @return the compressed data
      */
@@ -230,28 +231,28 @@ public class PerfectHash {
         deflater.end();
         return out2.toByteArray();
     }
-    
+
     /**
      * Decompress the hash description using a Huffman coding.
-     * 
+     *
      * @param d the data
      * @return the decompressed data
      */
     private static byte[] expand(byte[] d) {
-        Inflater inflater = new Inflater();  
-        inflater.setInput(d); 
-        ByteArrayOutputStream out = new ByteArrayOutputStream(d.length); 
-        byte[] buffer = new byte[1024]; 
+        Inflater inflater = new Inflater();
+        inflater.setInput(d);
+        ByteArrayOutputStream out = new ByteArrayOutputStream(d.length);
+        byte[] buffer = new byte[1024];
         try {
-            while (!inflater.finished()) { 
+            while (!inflater.finished()) {
                 int count = inflater.inflate(buffer);
-                out.write(buffer, 0, count); 
+                out.write(buffer, 0, count);
             }
             inflater.end();
         } catch (Exception e) {
             throw new IllegalArgumentException(e);
-        } 
-        return out.toByteArray();        
+        }
+        return out.toByteArray();
     }
 
 }

@@ -15,30 +15,30 @@ import java.util.zip.Inflater;
 /**
  * A minimal perfect hash function tool. It needs about 2.0 bits per key.
  * <p>
- * Generating the hash function takes about 2.5 second per million keys with 8
- * cores (multithreaded).
- * <p>
  * The algorithm is recursive: sets that contain no or only one entry are not
- * processed as no conflicts are possible. Sets that contain between 2 and 12
- * entries, a number of hash functions are tested to check if they can store the
- * data without conflict. If no function was found, and for larger sets, the set
- * is split into a (possibly high) number of smaller set, which are processed
- * recursively.
+ * processed as no conflicts are possible. For sets that contain between 2 and
+ * 12 entries, a number of hash functions are tested to check if they can store
+ * the data without conflict. If no function was found, and for larger sets, the
+ * set is split into a (possibly high) number of smaller set, which are
+ * processed recursively. The average size of a top-level bucket is about 216
+ * entries, and the maximum recursion level is typically 5.
  * <p>
  * At the end of the generation process, the data is compressed using a general
- * purpose compression tool (Deflate / Huffman coding). The uncompressed data is
- * around 2.2 bits per key. With arithmetic coding, about 1.9 bits per key are
- * needed.
+ * purpose compression tool (Deflate / Huffman coding) down to 2.0 bits per key.
+ * The uncompressed data is around 2.2 bits per key. With arithmetic coding,
+ * about 1.9 bits per key are needed. Generating the hash function takes about
+ * 2.5 second per million keys with 8 cores (multithreaded). At the expense of
+ * processing time, a lower number of bits per key would be possible (for
+ * example 1.85 bits per key with 33000 keys, using 10 seconds generation time,
+ * with Huffman coding). The algorithm automatically scales with the number of
+ * available CPUs (using as many threads as there are processors).
  * <p>
- * The algorithm automatically scales with the number of available CPUs (using
- * as many threads as there are processors).
+ * The memory usage to efficiently calculate hash values is around 2.5 bits per
+ * key (the space needed for the uncompressed description, plus 8 bytes for
+ * every top-level bucket).
  * <p>
- * At the expense of processing time, a lower number of bits per key would be
- * possible (for example 1.85 bits per key with 33000 keys, using 10 seconds
- * generation time, with Huffman coding).
- * <p>
- * In-place updating of the hash table is possible in theory, by patching the
- * hash function description. This is not implemented.
+ * In-place updating of the hash table is not implemented but possible in
+ * theory, by patching the hash function description.
  */
 public class MinimalPerfectHash {
 
@@ -87,14 +87,14 @@ public class MinimalPerfectHash {
     private final byte[] data;
 
     /**
-     * The offset of the result of the hash function at the given offset within
-     * the data array. Used for calculating the hash of a key.
+     * The size up to the given top-level bucket in the data array. Used to
+     * speed up calculating the hash of a key.
      */
-    private final int[] plus;
+    private final int[] topSize;
 
     /**
-     * The position of the given top-level bucket in the data array (in case
-     * this bucket needs to be skipped). Used for calculating the hash of a key.
+     * The position of the given top-level bucket in the data array. Used to
+     * speed up calculating the hash of a key.
      */
     private final int[] topPos;
 
@@ -105,51 +105,51 @@ public class MinimalPerfectHash {
      */
     public MinimalPerfectHash(byte[] desc) {
         byte[] b = data = expand(desc);
-        plus = new int[data.length];
-        for (int pos = 0, p = 0; pos < data.length;) {
-            plus[pos] = p;
-            int n = readVarInt(b, pos);
-            pos += getVarIntLength(b, pos);
-            if (n < 2) {
-                p += n;
-            } else if (n > SPLIT_MANY) {
-                int size = getSize(n);
-                p += size;
-            } else if (n == SPLIT_MANY) {
-                pos += getVarIntLength(b, pos);
-            }
-        }
         if (b[0] == SPLIT_MANY) {
             int split = readVarInt(b, 1);
+            topSize = new int[split];
             topPos = new int[split];
             int pos = 1 + getVarIntLength(b, 1);
+            int sizeSum = 0;
             for (int i = 0; i < split; i++) {
+                topSize[i] = sizeSum;
                 topPos[i] = pos;
-                pos = read(pos);
+                int start = pos;
+                pos = getNextPos(pos);
+                sizeSum += getSizeSum(start, pos);
             }
         } else {
+            topSize = null;
             topPos = null;
         }
     }
-
+    
     /**
-     * Calculate the hash from the key.
+     * Calculate the hash value for the given key.
      *
      * @param x the key
-     * @return the hash
+     * @return the hash value
      */
     public int get(int x) {
         return get(0, x, 0);
     }
 
+    /**
+     * Get the hash value for the given key, starting at a certain position and level.
+     * 
+     * @param pos the start position
+     * @param x the key
+     * @param level the level
+     * @return the hash value
+     */
     private int get(int pos, int x, int level) {
         int n = readVarInt(data, pos);
         if (n < 2) {
-            return plus[pos];
+            return 0;
         } else if (n > SPLIT_MANY) {
             int size = getSize(n);
             int offset = getOffset(n, size);
-            return plus[pos] + hash(x, level, offset, size);
+            return hash(x, level, offset, size);
         }
         pos++;
         int split;
@@ -160,14 +160,66 @@ public class MinimalPerfectHash {
             split = n;
         }
         int h = hash(x, level, 0, split);
+        int s;
         if (level == 0 && topPos != null) {
+            s = topSize[h];
             pos = topPos[h];
         } else {
+            int start = pos;
             for (int i = 0; i < h; i++) {
-                pos = read(pos);
+                pos = getNextPos(pos);
+            }
+            s = getSizeSum(start, pos);
+        }
+        return s + get(pos, x, level + 1);
+    }
+    
+    /**
+     * Get the position of the next sibling.
+     * 
+     * @param pos the position of this branch
+     * @return the position of the next sibling
+     */
+    private int getNextPos(int pos) {
+        int n = readVarInt(data, pos);
+        pos += getVarIntLength(data, pos);
+        if (n < 2 || n > SPLIT_MANY) {
+            return pos;
+        }
+        int split;
+        if (n == SPLIT_MANY) {
+            split = readVarInt(data, pos);
+            pos += getVarIntLength(data, pos);
+        } else {
+            split = n;
+        }
+        for (int i = 0; i < split; i++) {
+            pos = getNextPos(pos);
+        }
+        return pos;
+    }
+    
+    /**
+     * The sum of the sizes between the start and end position.
+     * 
+     * @param start the start position
+     * @param end the end position (excluding)
+     * @return the sizes
+     */
+    private int getSizeSum(int start, int end) {
+        int s = 0;
+        for (int pos = start; pos < end;) {
+            int n = readVarInt(data, pos);
+            pos += getVarIntLength(data, pos);
+            if (n < 2) {
+                s += n;
+            } else if (n > SPLIT_MANY) {
+                s += getSize(n);
+            } else if (n == SPLIT_MANY) {
+                pos += getVarIntLength(data, pos);
             }
         }
-        return get(pos, x, level + 1);
+        return s;
     }
 
     private static void writeSizeOffset(ByteArrayOutputStream out, int size,
@@ -186,25 +238,6 @@ public class MinimalPerfectHash {
             }
         }
         return 0;
-    }
-
-    private int read(int pos) {
-        int n = readVarInt(data, pos);
-        pos += getVarIntLength(data, pos);
-        if (n < 2 || n > SPLIT_MANY) {
-            return pos;
-        }
-        int split;
-        if (n == SPLIT_MANY) {
-            split = readVarInt(data, pos);
-            pos += getVarIntLength(data, pos);
-        } else {
-            split = n;
-        }
-        for (int i = 0; i < split; i++) {
-            pos = read(pos);
-        }
-        return pos;
     }
 
     /**
@@ -340,7 +373,7 @@ public class MinimalPerfectHash {
      * @return the hash (a value between 0, including, and the size, excluding)
      */
     private static int hash(int x, int level, int offset, int size) {
-        x += level * 16 + offset;
+        x += level + offset * 16;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = (x >>> 16) ^ x;

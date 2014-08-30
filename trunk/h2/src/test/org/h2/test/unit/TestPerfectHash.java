@@ -5,11 +5,15 @@
  */
 package org.h2.test.unit;
 
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
 import org.h2.dev.hash.MinimalPerfectHash;
+import org.h2.dev.hash.MinimalPerfectHash.LongHash;
+import org.h2.dev.hash.MinimalPerfectHash.StringHash;
+import org.h2.dev.hash.MinimalPerfectHash.UniversalHash;
 import org.h2.dev.hash.PerfectHash;
 import org.h2.test.TestBase;
 
@@ -25,8 +29,8 @@ public class TestPerfectHash extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestPerfectHash test = (TestPerfectHash) TestBase.createCaller().init();
-        test.test();
         test.measure();
+        test.test();
     }
 
     /**
@@ -34,9 +38,16 @@ public class TestPerfectHash extends TestBase {
      */
     public void measure() {
         int size = 1000000;
-
-        int s = testMinimal(size);
-        System.out.println((double) s / size + " bits/key (minimal)");
+        int s;
+        long time = System.currentTimeMillis();
+        s = testMinimal(size);
+        time = System.currentTimeMillis() - time;
+        System.out.println((double) s / size + " bits/key (minimal) in " + time + " ms");
+       
+       time = System.currentTimeMillis();
+       s = testMinimalWithString(size);
+       time = System.currentTimeMillis() - time;
+       System.out.println((double) s / size + " bits/key (minimal; String keys) in " + time + " ms");
 
         s = test(size, true);
         System.out.println((double) s / size + " bits/key (minimal old)");
@@ -97,27 +108,41 @@ public class TestPerfectHash extends TestBase {
 
     private int testMinimal(int size) {
         Random r = new Random(size);
-        HashSet<Integer> set = new HashSet<Integer>();
+        HashSet<Long> set = new HashSet<Long>();
         while (set.size() < size) {
-            set.add(r.nextInt());
+            set.add((long) r.nextInt());
         }
-        byte[] desc = MinimalPerfectHash.generate(set);
-        int max = testMinimal(desc, set);
+        LongHash hf = new LongHash();
+        byte[] desc = MinimalPerfectHash.generate(set, hf);
+        int max = testMinimal(desc, set, hf);
+        assertEquals(size - 1, max);
+        return desc.length * 8;
+    }
+    
+    private int testMinimalWithString(int size) {
+        Random r = new Random(size);
+        HashSet<String> set = new HashSet<String>();
+        while (set.size() < size) {
+            set.add("x " + r.nextDouble());
+        }
+        StringHash hf = new StringHash();
+        byte[] desc = MinimalPerfectHash.generate(set, hf);
+        int max = testMinimal(desc, set, hf);
         assertEquals(size - 1, max);
         return desc.length * 8;
     }
 
-    private int testMinimal(byte[] desc, Set<Integer> set) {
+    private <K> int testMinimal(byte[] desc, Set<K> set, UniversalHash<K> hf) {
         int max = -1;
-        HashSet<Integer> test = new HashSet<Integer>();
-        MinimalPerfectHash hash = new MinimalPerfectHash(desc);
-        for (int x : set) {
+        BitSet test = new BitSet();
+        MinimalPerfectHash<K> hash = new MinimalPerfectHash<K>(desc, hf);
+        for (K x : set) {
             int h = hash.get(x);
             assertTrue(h >= 0);
             assertTrue(h <= set.size() * 3);
             max = Math.max(max, h);
-            assertFalse(test.contains(h));
-            test.add(h);
+            assertFalse(test.get(h));
+            test.set(h);
         }
         return max;
     }

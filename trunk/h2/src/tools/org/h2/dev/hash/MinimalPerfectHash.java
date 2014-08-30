@@ -7,6 +7,7 @@ package org.h2.dev.hash;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.zip.Deflater;
@@ -26,8 +27,8 @@ import java.util.zip.Inflater;
  * At the end of the generation process, the data is compressed using a general
  * purpose compression tool (Deflate / Huffman coding) down to 2.0 bits per key.
  * The uncompressed data is around 2.2 bits per key. With arithmetic coding,
- * about 1.9 bits per key are needed. Generating the hash function takes about
- * 2.5 second per million keys with 8 cores (multithreaded). At the expense of
+ * about 1.9 bits per key are needed. Generating the hash function takes about 4
+ * second per million keys with 8 cores (multithreaded). At the expense of
  * processing time, a lower number of bits per key would be possible (for
  * example 1.85 bits per key with 33000 keys, using 10 seconds generation time,
  * with Huffman coding). The algorithm automatically scales with the number of
@@ -37,10 +38,18 @@ import java.util.zip.Inflater;
  * key (the space needed for the uncompressed description, plus 8 bytes for
  * every top-level bucket).
  * <p>
+ * To protect against hash flooding and similar attacks, cryptographically
+ * secure functions such as SipHash or SHA-256 can be used. However, such slower
+ * functions only need to be used in higher recursions levels, so that in the
+ * normal case (where no attack is happening), only fast, but less secure, hash
+ * functions are needed.
+ * <p>
  * In-place updating of the hash table is not implemented but possible in
  * theory, by patching the hash function description.
+ * 
+ * @param <K> the key type
  */
-public class MinimalPerfectHash {
+public class MinimalPerfectHash<K> {
 
     /**
      * Large buckets are typically divided into buckets of this size.
@@ -79,6 +88,11 @@ public class MinimalPerfectHash {
         }
         SIZE_OFFSETS[SIZE_OFFSETS.length - 1] = last;
     }
+    
+    /**
+     * The universal hash function.
+     */
+    private final UniversalHash<K> hash;
 
     /**
      * The description of the hash function. Used for calculating the hash of a
@@ -103,7 +117,8 @@ public class MinimalPerfectHash {
      *
      * @param desc the data returned by the generate method
      */
-    public MinimalPerfectHash(byte[] desc) {
+    public MinimalPerfectHash(byte[] desc, UniversalHash<K> hash) {
+        this.hash = hash;
         byte[] b = data = expand(desc);
         if (b[0] == SPLIT_MANY) {
             int split = readVarInt(b, 1);
@@ -130,7 +145,7 @@ public class MinimalPerfectHash {
      * @param x the key
      * @return the hash value
      */
-    public int get(int x) {
+    public int get(K x) {
         return get(0, x, 0);
     }
 
@@ -142,14 +157,14 @@ public class MinimalPerfectHash {
      * @param level the level
      * @return the hash value
      */
-    private int get(int pos, int x, int level) {
+    private int get(int pos, K x, int level) {
         int n = readVarInt(data, pos);
         if (n < 2) {
             return 0;
         } else if (n > SPLIT_MANY) {
             int size = getSize(n);
             int offset = getOffset(n, size);
-            return hash(x, level, offset, size);
+            return hash(x, hash, level, offset, size);
         }
         pos++;
         int split;
@@ -159,7 +174,7 @@ public class MinimalPerfectHash {
         } else {
             split = n;
         }
-        int h = hash(x, level, 0, split);
+        int h = hash(x, hash, level, 0, split);
         int s;
         if (level == 0 && topPos != null) {
             s = topSize[h];
@@ -247,11 +262,11 @@ public class MinimalPerfectHash {
      * @param set the data
      * @return the hash function description
      */
-    public static byte[] generate(Set<Integer> set) {
-        ArrayList<Integer> list = new ArrayList<Integer>();
+    public static <K> byte[] generate(Set<K> set, UniversalHash<K> hash) {
+        ArrayList<K> list = new ArrayList<K>();
         list.addAll(set);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        generate(list, 0, out);
+        generate(list, hash, 0, out);
         return compress(out.toByteArray());
     }
 
@@ -262,8 +277,8 @@ public class MinimalPerfectHash {
      * @param level the recursion level
      * @param out the output stream
      */
-    static void generate(ArrayList<Integer> list, int level,
-            ByteArrayOutputStream out) {
+    static <K> void generate(ArrayList<K> list, UniversalHash<K> hash, 
+            int level, ByteArrayOutputStream out) {
         int size = list.size();
         if (size <= 1) {
             writeVarInt(out, size);
@@ -271,11 +286,15 @@ public class MinimalPerfectHash {
         }
         if (size <= MAX_SIZE) {
             int maxOffset = MAX_OFFSETS[size];
+            int[] hashes = new int[size];
+            for (int i = 0; i < size; i++) {
+                hashes[i] = hash.hashCode(list.get(i), level);
+            }
             nextOffset:
             for (int offset = 0; offset < maxOffset; offset++) {
                 int bits = 0;
                 for (int i = 0; i < size; i++) {
-                    int x = list.get(i);
+                    int x = hashes[i];
                     int h = hash(x, level, offset, size);
                     if ((bits & (1 << h)) != 0) {
                         continue nextOffset;
@@ -297,29 +316,30 @@ public class MinimalPerfectHash {
             writeVarInt(out, SPLIT_MANY);
         }
         writeVarInt(out, split);
-        ArrayList<ArrayList<Integer>> lists =
-                new ArrayList<ArrayList<Integer>>(split);
+        ArrayList<ArrayList<K>> lists =
+                new ArrayList<ArrayList<K>>(split);
         for (int i = 0; i < split; i++) {
-            lists.add(new ArrayList<Integer>(size / split));
+            lists.add(new ArrayList<K>(size / split));
         }
         for (int i = 0; i < size; i++) {
-            int x = list.get(i);
-            lists.get(hash(x, level, 0, split)).add(x);
+            K x = list.get(i);
+            lists.get(hash(x, hash, level, 0, split)).add(x);
         }
         boolean multiThreaded = level == 0 && list.size() > 1000;
         list.clear();
         list.trimToSize();
         if (multiThreaded) {
-            generateMultiThreaded(lists, out);
+            generateMultiThreaded(lists, hash, out);
         } else {
-            for (ArrayList<Integer> s2 : lists) {
-                generate(s2, level + 1, out);
+            for (ArrayList<K> s2 : lists) {
+                generate(s2, hash, level + 1, out);
             }
         }
     }
 
-    private static void generateMultiThreaded(
-            final ArrayList<ArrayList<Integer>> lists,
+    private static <K> void generateMultiThreaded(
+            final ArrayList<ArrayList<K>> lists,
+            final UniversalHash<K> hash,
             ByteArrayOutputStream out) {
         final ArrayList<ByteArrayOutputStream> outList =
                 new ArrayList<ByteArrayOutputStream>();
@@ -330,7 +350,7 @@ public class MinimalPerfectHash {
                 @Override
                 public void run() {
                     while (true) {
-                        ArrayList<Integer> list;
+                        ArrayList<K> list;
                         ByteArrayOutputStream temp =
                                 new ByteArrayOutputStream();
                         synchronized (lists) {
@@ -340,7 +360,7 @@ public class MinimalPerfectHash {
                             list = lists.remove(0);
                             outList.add(temp);
                         }
-                        generate(list, 1, temp);
+                        generate(list, hash, 1, temp);
                     }
                 }
             };
@@ -366,13 +386,22 @@ public class MinimalPerfectHash {
      * Calculate the hash of a key. The result depends on the key, the recursion
      * level, and the offset.
      *
-     * @param x the key
+     * @param o the key
      * @param level the recursion level
      * @param offset the index of the hash function
      * @param size the size of the bucket
      * @return the hash (a value between 0, including, and the size, excluding)
      */
-    private static int hash(int x, int level, int offset, int size) {
+    private static <K> int hash(K o, UniversalHash<K> hash, int level, int offset, int size) {
+        int x = hash.hashCode(o, level);
+        x += level + offset * 16;
+        x = ((x >>> 16) ^ x) * 0x45d9f3b;
+        x = ((x >>> 16) ^ x) * 0x45d9f3b;
+        x = (x >>> 16) ^ x;
+        return Math.abs(x % size);
+    }
+    
+    private static <K> int hash(int x, int level, int offset, int size) {
         x += level + offset * 16;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
@@ -465,6 +494,143 @@ public class MinimalPerfectHash {
             throw new IllegalArgumentException(e);
         }
         return out.toByteArray();
+    }
+    
+    /**
+     * An interface that can calculate multiple hash values for an object. The
+     * returned hash value of two distinct objects may be the same for a given
+     * hash function index, but as more hash functions indexes are called for
+     * those objects, the returned value must eventually be different.
+     * <p>
+     * The returned value does not need to be uniformly distributed.
+     * 
+     * @param <T> the type
+     */
+    public interface UniversalHash<T> {
+        
+        /**
+         * Calculate the hash of the given object.
+         * 
+         * @param o the object
+         * @param index the hash function index (index 0 is used first, so the
+         *            method should be very fast with index 0; index 1 and so on
+         *            are only called when really needed)
+         * @return the hash value
+         */
+        int hashCode(T o, int index);
+        
+    }
+    
+    /**
+     * A sample hash implementation for long keys.
+     */
+    public static class LongHash implements UniversalHash<Long> {
+
+        @Override
+        public int hashCode(Long o, int index) {
+            if (index == 0) {
+                return o.hashCode();
+            } else if (index < 8) {
+                long x = o.longValue();
+                x += index;
+                x = ((x >>> 32) ^ x) * 0x45d9f3b;
+                x = ((x >>> 32) ^ x) * 0x45d9f3b;
+                return (int) (x ^ (x >>> 32));
+            }
+            // get the lower or higher 32 bit depending on the index
+            int shift = (index & 1) * 32;
+            return (int) (o.longValue() >>> shift);
+        }
+        
+    }
+
+    /**
+     * A sample hash implementation for integer keys.
+     */
+    public static class StringHash implements UniversalHash<String> {
+
+        private static final Charset UTF8 = Charset.forName("UTF-8");
+
+        @Override
+        public int hashCode(String o, int index) {
+            if (index == 0) {
+                // use the default hash of a string, which might already be
+                // available
+                return o.hashCode();
+            } else if (index < 8) {
+                // use a different hash function, which is fast but not
+                // cryptographically secure
+                return getFastHash(o, index);
+            }
+            // this method is supposed to be cryptographically secure;
+            // we could use SHA-256 for higher indexes
+            return getSipHash24(o, index, 0);
+        }
+
+        public static int getFastHash(String o, int x) {
+            int result = o.length();
+            for (int i = 0; i < o.length(); i++) {
+                x = 31 + ((x >>> 16) ^ x) * 0x45d9f3b;
+                result += x * (1 + o.charAt(i));
+            }
+            return result;
+        }
+      
+        /**
+         * A cryptographically relatively secure hash function. It is supposed
+         * to protected against hash-flooding denial-of-service attacks.
+         * 
+         * @param o the object
+         * @param k0 key 0
+         * @param k1 key 1
+         * @return the hash value
+         */
+        private static int getSipHash24(String o, long k0, long k1) {
+            long v0 = k0 ^ 0x736f6d6570736575L;
+            long v1 = k1 ^ 0x646f72616e646f6dL;
+            long v2 = k0 ^ 0x6c7967656e657261L;
+            long v3 = k1 ^ 0x7465646279746573L;
+            byte[] b = o.getBytes(UTF8);
+            int len = b.length, repeat;
+            for (int off = 0; off <= len + 8; off += 8) {
+                long m;
+                if (off <= len) {
+                    m = 0;
+                    int i = 0;
+                    for (; i < 8 && off + i < len; i++) {
+                        m |= ((long) b[off + i] & 255) << (8 * i);
+                    }
+                    if (i < 8) {
+                        m |= ((long) b.length) << 56;
+                    }
+                    v3 ^= m;
+                    repeat = 2;
+                } else {
+                    m = 0;
+                    v2 ^= 0xff;
+                    repeat = 4;
+                }
+                for (int i = 0; i < repeat; i++) {
+                    v0 += v1;
+                    v2 += v3;
+                    v1 = Long.rotateLeft(v1, 13);
+                    v3 = Long.rotateLeft(v3, 16);
+                    v1 ^= v0;
+                    v3 ^= v2;
+                    v0 = Long.rotateLeft(v0, 32);
+                    v2 += v1;
+                    v0 += v3;
+                    v1 = Long.rotateLeft(v1, 17);
+                    v3 = Long.rotateLeft(v3, 21);
+                    v1 ^= v2;
+                    v3 ^= v0;
+                    v2 = Long.rotateLeft(v2, 32);
+                }
+                v0 ^= m;
+            }
+            return (int) (v0 ^ v1 ^ v2 ^ v3);
+        }
+        
     }
 
 }

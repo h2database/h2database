@@ -570,7 +570,7 @@ public class MinimalPerfectHash<K> {
         public static int getFastHash(String o, int x) {
             int result = o.length();
             for (int i = 0; i < o.length(); i++) {
-                x = 31 + ((x >>> 16) ^ x) * 0x45d9f3b;
+                x = 31 + x * 0x9f3b;
                 result += x * (1 + o.charAt(i));
             }
             return result;

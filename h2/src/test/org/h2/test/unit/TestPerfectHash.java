@@ -29,8 +29,8 @@ public class TestPerfectHash extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestPerfectHash test = (TestPerfectHash) TestBase.createCaller().init();
-        test.measure();
         test.test();
+        test.measure();
     }
 
     /**
@@ -38,25 +38,36 @@ public class TestPerfectHash extends TestBase {
      */
     public void measure() {
         int size = 1000000;
+        testMinimal(size / 10);
         int s;
         long time = System.currentTimeMillis();
         s = testMinimal(size);
         time = System.currentTimeMillis() - time;
-        System.out.println((double) s / size + " bits/key (minimal) in " + time + " ms");
-       
-       time = System.currentTimeMillis();
-       s = testMinimalWithString(size);
-       time = System.currentTimeMillis() - time;
-       System.out.println((double) s / size + " bits/key (minimal; String keys) in " + time + " ms");
+        System.out.println((double) s / size + " bits/key (minimal) in " +
+                time + " ms");
 
+        time = System.currentTimeMillis();
+        s = testMinimalWithString(size);
+        time = System.currentTimeMillis() - time;
+        System.out.println((double) s / size +
+                " bits/key (minimal; String keys) in " + 
+                time + " ms");
+
+        time = System.currentTimeMillis();
         s = test(size, true);
-        System.out.println((double) s / size + " bits/key (minimal old)");
+        time = System.currentTimeMillis() - time;
+        System.out.println((double) s / size + " bits/key (minimal old) in " + 
+                time + " ms");
+        time = System.currentTimeMillis();
         s = test(size, false);
-        System.out.println((double) s / size + " bits/key (not minimal)");
+        time = System.currentTimeMillis() - time;
+        System.out.println((double) s / size + " bits/key (not minimal) in " + 
+                time + " ms");
     }
 
     @Override
     public void test() {
+        testBrokenHashFunction();
         for (int i = 0; i < 100; i++) {
             testMinimal(i);
         }
@@ -70,6 +81,31 @@ public class TestPerfectHash extends TestBase {
         for (int i = 100; i <= 100000; i *= 10) {
             test(i, true);
             test(i, false);
+        }
+    }
+    
+    private void testBrokenHashFunction() {
+        int size = 10000;
+        Random r = new Random(10000);
+        HashSet<String> set = new HashSet<String>(size);
+        while (set.size() < size) {
+            set.add("x " + r.nextDouble());
+        }
+        for (int test = 1; test < 10; test++) {
+            final int badUntilLevel = test;
+            UniversalHash<String> badHash = new UniversalHash<String>() {
+
+                @Override
+                public int hashCode(String o, int index) {
+                    if (index < badUntilLevel) {
+                        return 0;
+                    }
+                    return StringHash.getFastHash(o, index);
+                }
+                
+            };
+            byte[] desc = MinimalPerfectHash.generate(set, badHash);
+            testMinimal(desc, set, badHash);
         }
     }
 
@@ -108,7 +144,7 @@ public class TestPerfectHash extends TestBase {
 
     private int testMinimal(int size) {
         Random r = new Random(size);
-        HashSet<Long> set = new HashSet<Long>();
+        HashSet<Long> set = new HashSet<Long>(size);
         while (set.size() < size) {
             set.add((long) r.nextInt());
         }
@@ -121,7 +157,7 @@ public class TestPerfectHash extends TestBase {
     
     private int testMinimalWithString(int size) {
         Random r = new Random(size);
-        HashSet<String> set = new HashSet<String>();
+        HashSet<String> set = new HashSet<String>(size);
         while (set.size() < size) {
             set.add("x " + r.nextDouble());
         }

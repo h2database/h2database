@@ -136,7 +136,7 @@ public class TestPerfectHash extends TestBase {
                     if (index < badUntilLevel) {
                         return 0;
                     }
-                    return StringHash.getFastHash(o, index);
+                    return StringHash.getFastHash(o, index, seed);
                 }
                 
             };
@@ -233,14 +233,17 @@ public class TestPerfectHash extends TestBase {
         }
         
         public int hashCode(int index, int seed) {
-            if (index < 4) {
-                int result = 0;
-                int x = seed + index;
-                int end = start;
-                while (data[end] != '\n') {
+            if (index < 8) {
+                int x = (index * 0x9f3b) ^ seed;
+                int result = seed;
+                int p = start;
+                while (true) {
+                    int c = data[p++] & 255;
+                    if (c == '\n') {
+                        break;
+                    }
                     x = 31 + x * 0x9f3b;
-                    result += x * (1 + (data[end] & 255));
-                    end++;
+                    result ^= x * (1 + c); 
                 }
                 return result;
             }

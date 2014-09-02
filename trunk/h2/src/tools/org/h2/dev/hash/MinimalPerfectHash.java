@@ -645,8 +645,8 @@ public class MinimalPerfectHash<K> {
                 return o.hashCode();
             } else if (index < 8) {
                 // use a different hash function, which is fast but not
-                // cryptographically secure
-                return getFastHash(o, index ^ seed);
+                // necessarily universal, and not cryptographically secure
+                return getFastHash(o, index, seed);
             }
             // this method is supposed to be cryptographically secure;
             // we could use SHA-256 for higher indexes
@@ -657,15 +657,17 @@ public class MinimalPerfectHash<K> {
          * A cryptographically weak hash function. It is supposed to be fast.
          * 
          * @param o the string
-         * @param x the seed
+         * @param index the hash function index
+         * @param seed the seed
          * @return the hash value
          */
-        public static int getFastHash(String o, int x) {
-            int result = o.length();
+        public static int getFastHash(String o, int index, int seed) {
+            int x = (index * 0x9f3b) ^ seed;
+            int result = seed + o.length();
             for (int i = 0; i < o.length(); i++) {
                 x = 31 + x * 0x9f3b;
-                result += x * (1 + o.charAt(i));
-            }
+                result ^= x * (1 + o.charAt(i)); 
+            }            
             return result;
         }
       

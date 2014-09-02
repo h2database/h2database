@@ -8,6 +8,7 @@ package org.h2.dev.hash;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.zip.Deflater;
@@ -45,15 +46,18 @@ import java.util.zip.Inflater;
  * good avalanche effect, or generate random looking data; it just should
  * produce few conflicts if possible).
  * <p>
- * To protect against hash flooding and similar attacks, cryptographically
- * secure functions such as SipHash or SHA-256 can be used. However, such
- * (slower) functions only need to be used if regular hash functions produce too
- * many conflicts. This case is detected when generating the perfect hash
- * function, by checking if there are too many conflicts (more than 2160 entries
- * in one top-level bucket). In this case, the next hash function is used. That
- * way, in the normal case, where no attack is happening, only fast, but less
- * secure, hash functions are called. It is fine to use the regular hashCode
- * method as the level 0 hash function.
+ * To protect against hash flooding and similar attacks, a secure random seed
+ * per hash table is used. For further protection, cryptographically secure
+ * functions such as SipHash or SHA-256 can be used. However, such (slower)
+ * functions only need to be used if regular hash functions produce too many
+ * conflicts. This case is detected when generating the perfect hash function,
+ * by checking if there are too many conflicts (more than 2160 entries in one
+ * top-level bucket). In this case, the next hash function is used. That way, in
+ * the normal case, where no attack is happening, only fast, but less secure,
+ * hash functions are called. It is fine to use the regular hashCode method as
+ * the level 0 hash function. However, just relying on the regular hashCode
+ * method does not work if the key has more than 32 bits, because the risk of
+ * collisions is too high.
  * <p>
  * In-place updating of the hash table is not implemented but possible in
  * theory, by patching the hash function description. With a small change,
@@ -92,6 +96,11 @@ public class MinimalPerfectHash<K> {
      * The minimum output value for a small bucket of a given size.
      */
     private static final int[] SIZE_OFFSETS = new int[MAX_OFFSETS.length + 1];
+    
+    /**
+     * A secure random generator.
+     */
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     static {
         int last = SPLIT_MANY + 1;
@@ -112,6 +121,11 @@ public class MinimalPerfectHash<K> {
      * key.
      */
     private final byte[] data;
+    
+    /**
+     * The random seed.
+     */
+    private final int seed;
 
     /**
      * The size up to the given root-level bucket in the data array. Used to
@@ -140,12 +154,16 @@ public class MinimalPerfectHash<K> {
     public MinimalPerfectHash(byte[] desc, UniversalHash<K> hash) {
         this.hash = hash;
         byte[] b = data = expand(desc);
-        if (b[0] == SPLIT_MANY) {
+        seed = ((b[0] & 255) << 24) | 
+                ((b[1] & 255) << 16) | 
+                ((b[2] & 255) << 8) | 
+                (b[3] & 255);
+        if (b[4] == SPLIT_MANY) {
             rootLevel = b[b.length - 1] & 255;
-            int split = readVarInt(b, 1);
+            int split = readVarInt(b, 5);
             rootSize = new int[split];
             rootPos = new int[split];
-            int pos = 1 + getVarIntLength(b, 1);
+            int pos = 5 + getVarIntLength(b, 5);
             int sizeSum = 0;
             for (int i = 0; i < split; i++) {
                 rootSize[i] = sizeSum;
@@ -168,7 +186,7 @@ public class MinimalPerfectHash<K> {
      * @return the hash value
      */
     public int get(K x) {
-        return get(0, x, true, rootLevel);
+        return get(4, x, true, rootLevel);
     }
 
     /**
@@ -187,7 +205,7 @@ public class MinimalPerfectHash<K> {
         } else if (n > SPLIT_MANY) {
             int size = getSize(n);
             int offset = getOffset(n, size);
-            return hash(x, hash, level, offset, size);
+            return hash(x, hash, level, seed, offset, size);
         }
         pos++;
         int split;
@@ -197,7 +215,7 @@ public class MinimalPerfectHash<K> {
         } else {
             split = n;
         }
-        int h = hash(x, hash, level, 0, split);
+        int h = hash(x, hash, level, seed, 0, split);
         int s;
         if (isRoot && rootPos != null) {
             s = rootSize[h];
@@ -289,7 +307,12 @@ public class MinimalPerfectHash<K> {
         ArrayList<K> list = new ArrayList<K>();
         list.addAll(set);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        generate(list, hash, 0, out);
+        int seed = RANDOM.nextInt();
+        out.write(seed >>> 24);
+        out.write(seed >>> 16);
+        out.write(seed >>> 8);
+        out.write(seed);
+        generate(list, hash, 0, seed, out);
         return compress(out.toByteArray());
     }
 
@@ -301,7 +324,7 @@ public class MinimalPerfectHash<K> {
      * @param out the output stream
      */
     static <K> void generate(ArrayList<K> list, UniversalHash<K> hash, 
-            int level, ByteArrayOutputStream out) {
+            int level, int seed, ByteArrayOutputStream out) {
         int size = list.size();
         if (size <= 1) {
             out.write(size);
@@ -311,7 +334,7 @@ public class MinimalPerfectHash<K> {
             int maxOffset = MAX_OFFSETS[size];
             int[] hashes = new int[size];
             for (int i = 0; i < size; i++) {
-                hashes[i] = hash.hashCode(list.get(i), level);
+                hashes[i] = hash.hashCode(list.get(i), level, seed);
             }
             nextOffset:
             for (int offset = 0; offset < maxOffset; offset++) {
@@ -344,7 +367,7 @@ public class MinimalPerfectHash<K> {
             }
             for (int i = 0; i < size; i++) {
                 K x = list.get(i);
-                ArrayList<K> l = lists.get(hash(x, hash, level, 0, split));
+                ArrayList<K> l = lists.get(hash(x, hash, level, seed, 0, split));
                 l.add(x);
                 if (isRoot && split >= SPLIT_MANY && 
                         l.size() > 36 * DIVIDE * 10) {
@@ -363,10 +386,10 @@ public class MinimalPerfectHash<K> {
         list.clear();
         list.trimToSize();
         if (multiThreaded) {
-            generateMultiThreaded(lists, hash, level, out);
+            generateMultiThreaded(lists, hash, level, seed, out);
         } else {
             for (ArrayList<K> s2 : lists) {
-                generate(s2, hash, level + 1, out);
+                generate(s2, hash, level + 1, seed, out);
             }
         }
         if (isRoot && split >= SPLIT_MANY) {
@@ -378,6 +401,7 @@ public class MinimalPerfectHash<K> {
             final ArrayList<ArrayList<K>> lists,
             final UniversalHash<K> hash,
             final int level,
+            final int seed,
             ByteArrayOutputStream out) {
         final ArrayList<ByteArrayOutputStream> outList =
                 new ArrayList<ByteArrayOutputStream>();
@@ -398,7 +422,7 @@ public class MinimalPerfectHash<K> {
                             list = lists.remove(0);
                             outList.add(temp);
                         }
-                        generate(list, hash, level + 1, temp);
+                        generate(list, hash, level + 1, seed, temp);
                     }
                 }
             };
@@ -426,12 +450,13 @@ public class MinimalPerfectHash<K> {
      *
      * @param o the key
      * @param level the recursion level
+     * @param seed the random seed
      * @param offset the index of the hash function
      * @param size the size of the bucket
      * @return the hash (a value between 0, including, and the size, excluding)
      */
-    private static <K> int hash(K o, UniversalHash<K> hash, int level, int offset, int size) {
-        int x = hash.hashCode(o, level);
+    private static <K> int hash(K o, UniversalHash<K> hash, int level, int seed, int offset, int size) {
+        int x = hash.hashCode(o, level, seed);
         x += level + offset * 16;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
@@ -553,9 +578,10 @@ public class MinimalPerfectHash<K> {
          * @param index the hash function index (index 0 is used first, so the
          *            method should be very fast with index 0; index 1 and so on
          *            are only called when really needed)
+         * @param seed the random seed (always the same for a hash table)
          * @return the hash value
          */
-        int hashCode(T o, int index);
+        int hashCode(T o, int index, int seed);
         
     }
     
@@ -565,7 +591,7 @@ public class MinimalPerfectHash<K> {
     public static class LongHash implements UniversalHash<Long> {
 
         @Override
-        public int hashCode(Long o, int index) {
+        public int hashCode(Long o, int index, int seed) {
             if (index == 0) {
                 return o.hashCode();
             } else if (index < 8) {
@@ -590,7 +616,7 @@ public class MinimalPerfectHash<K> {
         private static final Charset UTF8 = Charset.forName("UTF-8");
 
         @Override
-        public int hashCode(String o, int index) {
+        public int hashCode(String o, int index, int seed) {
             if (index == 0) {
                 // use the default hash of a string, which might already be
                 // available
@@ -598,11 +624,11 @@ public class MinimalPerfectHash<K> {
             } else if (index < 8) {
                 // use a different hash function, which is fast but not
                 // cryptographically secure
-                return getFastHash(o, index);
+                return getFastHash(o, index ^ seed);
             }
             // this method is supposed to be cryptographically secure;
             // we could use SHA-256 for higher indexes
-            return getSipHash24(o, index, 0);
+            return getSipHash24(o, index, seed);
         }
 
         /**

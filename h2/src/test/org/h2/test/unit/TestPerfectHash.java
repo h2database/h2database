@@ -5,6 +5,8 @@
  */
 package org.h2.test.unit;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
@@ -29,8 +31,42 @@ public class TestPerfectHash extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestPerfectHash test = (TestPerfectHash) TestBase.createCaller().init();
+        largeFile();
         test.test();
         test.measure();
+    }
+    
+    private static void largeFile() throws IOException {
+        String fileName = System.getProperty("user.home") + "/temp/enwiki-20140811-all-titles.txt";
+        RandomAccessFile f = new RandomAccessFile(fileName, "r");
+        byte[] data = new byte[(int) f.length()];
+        f.readFully(data);
+        UniversalHash<Text> hf = new UniversalHash<Text>() {
+
+            @Override
+            public int hashCode(Text o, int index, int seed) {
+                return o.hashCode(index, seed);
+            }
+            
+        };
+        HashSet<Text> set = new HashSet<Text>();
+        Text t = new Text(data, 0);
+        while (true) {
+            set.add(t);
+            int end = t.getEnd();
+            if (end >= data.length - 1) {
+                break;
+            }
+            t = new Text(data, end + 1);
+            if (set.size() % 1000000 == 0) {
+                System.out.println("size: " + set.size());
+            }
+        }
+        System.out.println("size: " + set.size());
+        byte[] desc = MinimalPerfectHash.generate(set, hf);
+        System.out.println("len: " + desc.length);
+        int bits = desc.length * 8;
+        System.out.println(((double) bits / set.size()) + " bits/key");
     }
 
     /**
@@ -181,6 +217,76 @@ public class TestPerfectHash extends TestBase {
             test.set(h);
         }
         return max;
+    }
+    
+    /**
+     * A text.
+     */
+    static class Text {
+        
+        final byte[] data;
+        final int start;
+        
+        Text(byte[] data, int start) {
+            this.data = data;
+            this.start = start;
+        }
+        
+        public int hashCode(int index, int seed) {
+            if (index < 4) {
+                int result = 0;
+                int x = seed + index;
+                int end = start;
+                while (data[end] != '\n') {
+                    x = 31 + x * 0x9f3b;
+                    result += x * (1 + (data[end] & 255));
+                    end++;
+                }
+                return result;
+            }
+            int end = getEnd();
+            return StringHash.getSipHash24(data, start, end, index, seed);
+        }
+
+        int getEnd() {
+            int end = start;
+            while (data[end] != '\n') {
+                end++;
+            }
+            return end;
+        }
+        
+        @Override
+        public int hashCode() {
+            return hashCode(0, 0);
+        }
+        
+        @Override
+        public boolean equals(Object other) {
+            if (other == this) {
+                return true;
+            } else if (!(other instanceof Text)) {
+                return false;
+            }
+            Text o = (Text) other;
+            int end = getEnd();
+            int s2 = o.start;
+            int e2 = o.getEnd();
+            if (e2 - s2 != end - start) {
+                return false;
+            }
+            for (int s1 = start; s1 < end; s1++, s2++) {
+                if (data[s1] != o.data[s2]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        @Override
+        public String toString() {
+            return new String(data, start, getEnd() - start);
+        }
     }
 
 }

@@ -11,11 +11,13 @@ import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
 /**
- * A minimal perfect hash function tool. It needs about 2.0 bits per key.
+ * A minimal perfect hash function tool. It needs about 1.98 bits per key.
  * <p>
  * The algorithm is recursive: sets that contain no or only one entry are not
  * processed as no conflicts are possible. For sets that contain between 2 and
@@ -57,7 +59,8 @@ import java.util.zip.Inflater;
  * hash functions are called. It is fine to use the regular hashCode method as
  * the level 0 hash function. However, just relying on the regular hashCode
  * method does not work if the key has more than 32 bits, because the risk of
- * collisions is too high.
+ * collisions is too high. Incorrect universal hash functions are detected (an
+ * exception is thrown if there are more than 32 recursion levels).
  * <p>
  * In-place updating of the hash table is not implemented but possible in
  * theory, by patching the hash function description. With a small change,
@@ -330,6 +333,10 @@ public class MinimalPerfectHash<K> {
             out.write(size);
             return;
         }
+        if (level > 32) {
+            throw new IllegalStateException("Too many recursions; " + 
+                    " incorrect universal hash function?");
+        }
         if (size <= MAX_SIZE) {
             int maxOffset = MAX_OFFSETS[size];
             int[] hashes = new int[size];
@@ -407,23 +414,31 @@ public class MinimalPerfectHash<K> {
                 new ArrayList<ByteArrayOutputStream>();
         int processors = Runtime.getRuntime().availableProcessors();
         Thread[] threads = new Thread[processors];
+        final AtomicInteger success = new AtomicInteger();
+        final AtomicReference<Exception> failure = new AtomicReference<Exception>();
         for (int i = 0; i < processors; i++) {
             threads[i] = new Thread() {
                 @Override
                 public void run() {
-                    while (true) {
-                        ArrayList<K> list;
-                        ByteArrayOutputStream temp =
-                                new ByteArrayOutputStream();
-                        synchronized (lists) {
-                            if (lists.isEmpty()) {
-                                break;
+                    try {
+                        while (true) {
+                            ArrayList<K> list;
+                            ByteArrayOutputStream temp =
+                                    new ByteArrayOutputStream();
+                            synchronized (lists) {
+                                if (lists.isEmpty()) {
+                                    break;
+                                }
+                                list = lists.remove(0);
+                                outList.add(temp);
                             }
-                            list = lists.remove(0);
-                            outList.add(temp);
+                            generate(list, hash, level + 1, seed, temp);
                         }
-                        generate(list, hash, level + 1, seed, temp);
+                    } catch (Exception e) {
+                        failure.set(e);
+                        return;
                     }
+                    success.incrementAndGet();
                 }
             };
         }
@@ -433,6 +448,13 @@ public class MinimalPerfectHash<K> {
         try {
             for (Thread t : threads) {
                 t.join();
+            }
+            if (success.get() != threads.length) {
+                Exception e = failure.get();
+                if (e != null) {
+                    throw new RuntimeException(e);
+                }
+                throw new RuntimeException("Unknown failure in one thread");
             }
             for (ByteArrayOutputStream temp : outList) {
                 out.write(temp.toByteArray());
@@ -657,18 +679,33 @@ public class MinimalPerfectHash<K> {
          * @return the hash value
          */
         public static int getSipHash24(String o, long k0, long k1) {
+            byte[] b = o.getBytes(UTF8);
+            return getSipHash24(b, 0, b.length, k0, k1);
+        }
+        
+        /**
+         * A cryptographically relatively secure hash function. It is supposed
+         * to protected against hash-flooding denial-of-service attacks.
+         * 
+         * @param b the data
+         * @param start the start position
+         * @param end the end position plus one
+         * @param k0 key 0
+         * @param k1 key 1
+         * @return the hash value
+         */
+        public static int getSipHash24(byte[] b, int start, int end, long k0, long k1) {
             long v0 = k0 ^ 0x736f6d6570736575L;
             long v1 = k1 ^ 0x646f72616e646f6dL;
             long v2 = k0 ^ 0x6c7967656e657261L;
             long v3 = k1 ^ 0x7465646279746573L;
-            byte[] b = o.getBytes(UTF8);
-            int len = b.length, repeat;
-            for (int off = 0; off <= len + 8; off += 8) {
+            int repeat;
+            for (int off = start; off <= end + 8; off += 8) {
                 long m;
-                if (off <= len) {
+                if (off <= end) {
                     m = 0;
                     int i = 0;
-                    for (; i < 8 && off + i < len; i++) {
+                    for (; i < 8 && off + i < end; i++) {
                         m |= ((long) b[off + i] & 255) << (8 * i);
                     }
                     if (i < 8) {

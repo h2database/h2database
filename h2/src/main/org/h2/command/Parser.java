@@ -536,7 +536,7 @@ public class Parser {
     private Prepared parseAnalyze() {
         Analyze command = new Analyze(session);
         if (readIf("SAMPLE_SIZE")) {
-            command.setTop(getPositiveInt());
+            command.setTop(readPositiveInt());
         }
         return command;
     }
@@ -2966,15 +2966,15 @@ public class Parser {
         return function;
     }
 
-    private int getPositiveInt() {
-        int v = getInt();
+    private int readPositiveInt() {
+        int v = readInt();
         if (v < 0) {
             throw DbException.getInvalidValueException("positive integer", v);
         }
         return v;
     }
 
-    private int getInt() {
+    private int readInt() {
         boolean minus = false;
         if (currentTokenType == MINUS) {
             minus = true;
@@ -2982,12 +2982,16 @@ public class Parser {
         } else if (currentTokenType == PLUS) {
             read();
         }
-        if (currentTokenType != VALUE || currentValue.getType() != Value.INT) {
+        if (currentTokenType != VALUE) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "integer");
+        }
+        if (minus) {
+            // must do that now, otherwise Integer.MIN_VALUE wouldn't work
+            currentValue = currentValue.negate();
         }
         int i = currentValue.getInt();
         read();
-        return minus ? -i : i;
+        return i;
     }
 
     private long readLong() {
@@ -2995,14 +2999,19 @@ public class Parser {
         if (currentTokenType == MINUS) {
             minus = true;
             read();
+        } else if (currentTokenType == PLUS) {
+            read();
         }
-        if (currentTokenType != VALUE ||
-                (currentValue.getType() != Value.INT && currentValue.getType() != Value.LONG)) {
+        if (currentTokenType != VALUE) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
+        }
+        if (minus) {
+            // must do that now, otherwise Long.MIN_VALUE wouldn't work
+            currentValue = currentValue.negate();
         }
         long i = currentValue.getLong();
         read();
-        return minus ? -i : i;
+        return i;
     }
 
     private boolean readBooleanSetting() {
@@ -3901,7 +3910,7 @@ public class Parser {
             column.setSequence(sequence);
         }
         if (readIf("SELECTIVITY")) {
-            int value = getPositiveInt();
+            int value = readPositiveInt();
             column.setSelectivity(value);
         }
         String comment = readCommentIf();
@@ -4005,7 +4014,7 @@ public class Parser {
                     readIf("CHAR");
                     if (dataType.supportsScale) {
                         if (readIf(",")) {
-                            scale = getInt();
+                            scale = readInt();
                             original += ", " + scale;
                         } else {
                             // special case: TIMESTAMP(5) actually means
@@ -4027,7 +4036,7 @@ public class Parser {
         } else if (readIf("(")) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
             // Just ignore the precision.
-            getPositiveInt();
+            readPositiveInt();
             read(")");
         }
         if (readIf("FOR")) {
@@ -4532,7 +4541,7 @@ public class Parser {
             command.setRowBased(false);
         }
         if (readIf("QUEUE")) {
-            command.setQueueSize(getPositiveInt());
+            command.setQueueSize(readPositiveInt());
         }
         command.setNoWait(readIf("NOWAIT"));
         read("CALL");
@@ -4940,7 +4949,7 @@ public class Parser {
             } else if (readIf("NUMBERS")) {
                 command.setInt(Constants.ALLOW_LITERALS_NUMBERS);
             } else {
-                command.setInt(getPositiveInt());
+                command.setInt(readPositiveInt());
             }
             return command;
         } else if (readIf("DEFAULT_TABLE_TYPE")) {
@@ -4951,7 +4960,7 @@ public class Parser {
             } else if (readIf("CACHED")) {
                 command.setInt(Table.TYPE_CACHED);
             } else {
-                command.setInt(getPositiveInt());
+                command.setInt(readPositiveInt());
             }
             return command;
         } else if (readIf("CREATE")) {

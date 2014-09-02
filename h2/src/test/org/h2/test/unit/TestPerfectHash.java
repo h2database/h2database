@@ -96,7 +96,7 @@ public class TestPerfectHash extends TestBase {
             UniversalHash<String> badHash = new UniversalHash<String>() {
 
                 @Override
-                public int hashCode(String o, int index) {
+                public int hashCode(String o, int index, int seed) {
                     if (index < badUntilLevel) {
                         return 0;
                     }

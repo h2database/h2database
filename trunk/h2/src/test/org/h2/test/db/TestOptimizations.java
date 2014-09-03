@@ -41,6 +41,7 @@ public class TestOptimizations extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("optimizations");
+        testFastRowIdCondition();
         testExplainRoundTrip();
         testOrderByExpression();
         testGroupSubquery();
@@ -77,6 +78,18 @@ public class TestOptimizations extends TestBase {
         testOrderedIndexes();
         testConvertOrToIn();
         deleteDb("optimizations");
+    }
+    
+    private void testFastRowIdCondition() throws Exception {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.executeUpdate("create table many(id int) " + 
+                "as select x from system_range(1, 10000)");
+        ResultSet rs = stat.executeQuery("explain analyze select * from many " + 
+                "where _rowid_ = 400");
+        rs.next();
+        assertContains(rs.getString(1), "/* scanCount: 2 */");
+        conn.close();
     }
 
     private void testExplainRoundTrip() throws Exception {

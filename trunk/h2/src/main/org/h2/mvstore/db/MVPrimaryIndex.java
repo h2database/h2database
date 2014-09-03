@@ -174,22 +174,26 @@ public class MVPrimaryIndex extends BaseIndex {
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         ValueLong min, max;
-        if (first == null || mainIndexColumn < 0) {
+        if (first == null) {
             min = MIN;
+        } else if (mainIndexColumn < 0) {
+            min = ValueLong.get(first.getKey());
         } else {
             ValueLong v = (ValueLong) first.getValue(mainIndexColumn);
             if (v == null) {
-                min = ZERO;
+                min = ValueLong.get(first.getKey());
             } else {
                 min = v;
             }
         }
-        if (last == null || mainIndexColumn < 0) {
+        if (last == null) {
             max = MAX;
+        } else if (mainIndexColumn < 0) {
+            max = ValueLong.get(last.getKey());
         } else {
             ValueLong v = (ValueLong) last.getValue(mainIndexColumn);
             if (v == null) {
-                max = MAX;
+                max = ValueLong.get(last.getKey());
             } else {
                 max = v;
             }

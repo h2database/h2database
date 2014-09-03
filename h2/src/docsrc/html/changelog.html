@@ -17,7 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The Long.MIN_VALUE could not be parsed for auto-increment (identity) columns.
+<ul><li>Conditions on the "_rowid_" pseudo-column didn't use an index
+    when using the MVStore.
+</li><li>Fixed documentation that "offset" and "fetch" are also keywords since version 1.4.x.
+</li><li>The Long.MIN_VALUE could not be parsed for auto-increment (identity) columns.
 </li><li>Issue 573: Add implementation for Methods "isWrapperFor()" and "unwrap()" in
     other JDBC classes.
 </li><li>Issue 572: MySQL compatibility for "order by" in update statements.
@@ -159,7 +162,7 @@ Change Log
 </li><li>Implicit relative paths are disabled (system property "h2.implicitRelativePath"),
     so that the database URL jdbc:h2:test now needs to be written as jdbc:h2:./test.
 </li><li>"select ... fetch first 1 row only" is supported with the regular mode.
-    This was disabled so far because "fetch" is now a keyword.
+    This was disabled so far because "fetch" and "offset" are now keywords.
     See also Mode.supportOffsetFetch.
 </li><li>Byte arrays are now sorted in unsigned mode
     (x'99' is larger than x'09').

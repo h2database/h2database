@@ -2986,7 +2986,7 @@ public class Parser {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "integer");
         }
         if (minus) {
-            // must do that now, otherwise Integer.MIN_VALUE wouldn't work
+            // must do that now, otherwise Integer.MIN_VALUE would not work
             currentValue = currentValue.negate();
         }
         int i = currentValue.getInt();
@@ -3006,7 +3006,7 @@ public class Parser {
             throw DbException.getSyntaxError(sqlCommand, parseIndex, "long");
         }
         if (minus) {
-            // must do that now, otherwise Long.MIN_VALUE wouldn't work
+            // must do that now, otherwise Long.MIN_VALUE would not work
             currentValue = currentValue.negate();
         }
         long i = currentValue.getLong();

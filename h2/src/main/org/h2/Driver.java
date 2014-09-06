@@ -179,8 +179,9 @@ public class Driver implements java.sql.Driver {
     }
 
     /**
-     * INTERNAL
-     * Sets, on a per-thread basis, the default-connection for user-defined functions. 
+     * INTERNAL 
+     * Sets, on a per-thread basis, the default-connection for
+     * user-defined functions.
      */
     public static void setDefaultConnection(Connection c) {
         if (c == null) {

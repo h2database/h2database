@@ -153,6 +153,7 @@ public class MinimalPerfectHash<K> {
      * Create a hash object to convert keys to hashes.
      *
      * @param desc the data returned by the generate method
+     * @param hash the universal hash function
      */
     public MinimalPerfectHash(byte[] desc, UniversalHash<K> hash) {
         this.hash = hash;
@@ -193,7 +194,8 @@ public class MinimalPerfectHash<K> {
     }
 
     /**
-     * Get the hash value for the given key, starting at a certain position and level.
+     * Get the hash value for the given key, starting at a certain position and
+     * level.
      * 
      * @param pos the start position
      * @param x the key
@@ -304,6 +306,7 @@ public class MinimalPerfectHash<K> {
      * integers.
      *
      * @param set the data
+     * @param hash the universal hash function
      * @return the hash function description
      */
     public static <K> byte[] generate(Set<K> set, UniversalHash<K> hash) {
@@ -323,7 +326,9 @@ public class MinimalPerfectHash<K> {
      * Generate the perfect hash function data from the given set of integers.
      *
      * @param list the data, in the form of a list
+     * @param hash the universal hash function
      * @param level the recursion level
+     * @param seed the random seed
      * @param out the output stream
      */
     static <K> void generate(ArrayList<K> list, UniversalHash<K> hash, 
@@ -477,7 +482,8 @@ public class MinimalPerfectHash<K> {
      * @param size the size of the bucket
      * @return the hash (a value between 0, including, and the size, excluding)
      */
-    private static <K> int hash(K o, UniversalHash<K> hash, int level, int seed, int offset, int size) {
+    private static <K> int hash(K o, UniversalHash<K> hash, int level,
+            int seed, int offset, int size) {
         int x = hash.hashCode(o, level, seed);
         x += level + offset * 16;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;

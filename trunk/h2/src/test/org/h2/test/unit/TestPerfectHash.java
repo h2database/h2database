@@ -224,7 +224,14 @@ public class TestPerfectHash extends TestBase {
      */
     static class Text {
         
+        /**
+         * The byte data (may be shared, so must not be modified).
+         */
         final byte[] data;
+        
+        /**
+         * The start location.
+         */
         final int start;
         
         Text(byte[] data, int start) {
@@ -232,6 +239,13 @@ public class TestPerfectHash extends TestBase {
             this.start = start;
         }
         
+        /**
+         * The hash code (using a universal hash function).
+         * 
+         * @param index the hash function index
+         * @param seed the random seed
+         * @return the hash code
+         */
         public int hashCode(int index, int seed) {
             if (index < 8) {
                 int x = (index * 0x9f3b) ^ seed;

@@ -35,7 +35,7 @@ public class TestPerfectHash extends TestBase {
         test.test();
         test.measure();
     }
-    
+
     private static void largeFile() throws IOException {
         String fileName = System.getProperty("user.home") + "/temp/enwiki-20140811-all-titles.txt";
         RandomAccessFile f = new RandomAccessFile(fileName, "r");
@@ -47,7 +47,7 @@ public class TestPerfectHash extends TestBase {
             public int hashCode(Text o, int index, int seed) {
                 return o.hashCode(index, seed);
             }
-            
+
         };
         HashSet<Text> set = new HashSet<Text>();
         Text t = new Text(data, 0);
@@ -86,18 +86,18 @@ public class TestPerfectHash extends TestBase {
         s = testMinimalWithString(size);
         time = System.currentTimeMillis() - time;
         System.out.println((double) s / size +
-                " bits/key (minimal; String keys) in " + 
+                " bits/key (minimal; String keys) in " +
                 time + " ms");
 
         time = System.currentTimeMillis();
         s = test(size, true);
         time = System.currentTimeMillis() - time;
-        System.out.println((double) s / size + " bits/key (minimal old) in " + 
+        System.out.println((double) s / size + " bits/key (minimal old) in " +
                 time + " ms");
         time = System.currentTimeMillis();
         s = test(size, false);
         time = System.currentTimeMillis() - time;
-        System.out.println((double) s / size + " bits/key (not minimal) in " + 
+        System.out.println((double) s / size + " bits/key (not minimal) in " +
                 time + " ms");
     }
 
@@ -119,7 +119,7 @@ public class TestPerfectHash extends TestBase {
             test(i, false);
         }
     }
-    
+
     private void testBrokenHashFunction() {
         int size = 10000;
         Random r = new Random(10000);
@@ -138,7 +138,7 @@ public class TestPerfectHash extends TestBase {
                     }
                     return StringHash.getFastHash(o, index, seed);
                 }
-                
+
             };
             byte[] desc = MinimalPerfectHash.generate(set, badHash);
             testMinimal(desc, set, badHash);
@@ -190,7 +190,7 @@ public class TestPerfectHash extends TestBase {
         assertEquals(size - 1, max);
         return desc.length * 8;
     }
-    
+
     private int testMinimalWithString(int size) {
         Random r = new Random(size);
         HashSet<String> set = new HashSet<String>(size);
@@ -218,30 +218,30 @@ public class TestPerfectHash extends TestBase {
         }
         return max;
     }
-    
+
     /**
      * A text.
      */
     static class Text {
-        
+
         /**
          * The byte data (may be shared, so must not be modified).
          */
         final byte[] data;
-        
+
         /**
          * The start location.
          */
         final int start;
-        
+
         Text(byte[] data, int start) {
             this.data = data;
             this.start = start;
         }
-        
+
         /**
          * The hash code (using a universal hash function).
-         * 
+         *
          * @param index the hash function index
          * @param seed the random seed
          * @return the hash code
@@ -257,7 +257,7 @@ public class TestPerfectHash extends TestBase {
                         break;
                     }
                     x = 31 + x * 0x9f3b;
-                    result ^= x * (1 + c); 
+                    result ^= x * (1 + c);
                 }
                 return result;
             }
@@ -272,12 +272,12 @@ public class TestPerfectHash extends TestBase {
             }
             return end;
         }
-        
+
         @Override
         public int hashCode() {
             return hashCode(0, 0);
         }
-        
+
         @Override
         public boolean equals(Object other) {
             if (other == this) {
@@ -299,7 +299,7 @@ public class TestPerfectHash extends TestBase {
             }
             return true;
         }
-        
+
         @Override
         public String toString() {
             return new String(data, start, getEnd() - start);

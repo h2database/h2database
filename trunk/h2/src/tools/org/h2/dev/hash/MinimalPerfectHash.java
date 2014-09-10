@@ -66,7 +66,7 @@ import java.util.zip.Inflater;
  * theory, by patching the hash function description. With a small change,
  * non-minimal perfect hash functions can be calculated (for example 1.22 bits
  * per key at a fill rate of 81%).
- * 
+ *
  * @param <K> the key type
  */
 public class MinimalPerfectHash<K> {
@@ -99,7 +99,7 @@ public class MinimalPerfectHash<K> {
      * The minimum output value for a small bucket of a given size.
      */
     private static final int[] SIZE_OFFSETS = new int[MAX_OFFSETS.length + 1];
-    
+
     /**
      * A secure random generator.
      */
@@ -113,7 +113,7 @@ public class MinimalPerfectHash<K> {
         }
         SIZE_OFFSETS[SIZE_OFFSETS.length - 1] = last;
     }
-    
+
     /**
      * The universal hash function.
      */
@@ -124,7 +124,7 @@ public class MinimalPerfectHash<K> {
      * key.
      */
     private final byte[] data;
-    
+
     /**
      * The random seed.
      */
@@ -141,7 +141,7 @@ public class MinimalPerfectHash<K> {
      * speed up calculating the hash of a key.
      */
     private final int[] rootPos;
-    
+
     /**
      * The hash function level at the root of the tree. Typically 0, except if
      * the hash function at that level didn't split the entries as expected
@@ -158,9 +158,9 @@ public class MinimalPerfectHash<K> {
     public MinimalPerfectHash(byte[] desc, UniversalHash<K> hash) {
         this.hash = hash;
         byte[] b = data = expand(desc);
-        seed = ((b[0] & 255) << 24) | 
-                ((b[1] & 255) << 16) | 
-                ((b[2] & 255) << 8) | 
+        seed = ((b[0] & 255) << 24) |
+                ((b[1] & 255) << 16) |
+                ((b[2] & 255) << 8) |
                 (b[3] & 255);
         if (b[4] == SPLIT_MANY) {
             rootLevel = b[b.length - 1] & 255;
@@ -182,7 +182,7 @@ public class MinimalPerfectHash<K> {
             rootPos = null;
         }
     }
-    
+
     /**
      * Calculate the hash value for the given key.
      *
@@ -196,7 +196,7 @@ public class MinimalPerfectHash<K> {
     /**
      * Get the hash value for the given key, starting at a certain position and
      * level.
-     * 
+     *
      * @param pos the start position
      * @param x the key
      * @param isRoot whether this is the root of the tree
@@ -234,10 +234,10 @@ public class MinimalPerfectHash<K> {
         }
         return s + get(pos, x, false, level + 1);
     }
-    
+
     /**
      * Get the position of the next sibling.
-     * 
+     *
      * @param pos the position of this branch
      * @return the position of the next sibling
      */
@@ -259,10 +259,10 @@ public class MinimalPerfectHash<K> {
         }
         return pos;
     }
-    
+
     /**
      * The sum of the sizes between the start and end position.
-     * 
+     *
      * @param start the start position
      * @param end the end position (excluding)
      * @return the sizes
@@ -331,7 +331,7 @@ public class MinimalPerfectHash<K> {
      * @param seed the random seed
      * @param out the output stream
      */
-    static <K> void generate(ArrayList<K> list, UniversalHash<K> hash, 
+    static <K> void generate(ArrayList<K> list, UniversalHash<K> hash,
             int level, int seed, ByteArrayOutputStream out) {
         int size = list.size();
         if (size <= 1) {
@@ -339,7 +339,7 @@ public class MinimalPerfectHash<K> {
             return;
         }
         if (level > 32) {
-            throw new IllegalStateException("Too many recursions; " + 
+            throw new IllegalStateException("Too many recursions; " +
                     " incorrect universal hash function?");
         }
         if (size <= MAX_SIZE) {
@@ -381,7 +381,7 @@ public class MinimalPerfectHash<K> {
                 K x = list.get(i);
                 ArrayList<K> l = lists.get(hash(x, hash, level, seed, 0, split));
                 l.add(x);
-                if (isRoot && split >= SPLIT_MANY && 
+                if (isRoot && split >= SPLIT_MANY &&
                         l.size() > 36 * DIVIDE * 10) {
                     // a bad hash function or attack was detected
                     level++;
@@ -491,7 +491,7 @@ public class MinimalPerfectHash<K> {
         x = (x >>> 16) ^ x;
         return Math.abs(x % size);
     }
-    
+
     private static <K> int hash(int x, int level, int offset, int size) {
         x += level + offset * 16;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
@@ -586,7 +586,7 @@ public class MinimalPerfectHash<K> {
         }
         return out.toByteArray();
     }
-    
+
     /**
      * An interface that can calculate multiple hash values for an object. The
      * returned hash value of two distinct objects may be the same for a given
@@ -594,14 +594,14 @@ public class MinimalPerfectHash<K> {
      * those objects, the returned value must eventually be different.
      * <p>
      * The returned value does not need to be uniformly distributed.
-     * 
+     *
      * @param <T> the type
      */
     public interface UniversalHash<T> {
-        
+
         /**
          * Calculate the hash of the given object.
-         * 
+         *
          * @param o the object
          * @param index the hash function index (index 0 is used first, so the
          *            method should be very fast with index 0; index 1 and so on
@@ -610,9 +610,9 @@ public class MinimalPerfectHash<K> {
          * @return the hash value
          */
         int hashCode(T o, int index, int seed);
-        
+
     }
-    
+
     /**
      * A sample hash implementation for long keys.
      */
@@ -633,7 +633,7 @@ public class MinimalPerfectHash<K> {
             int shift = (index & 1) * 32;
             return (int) (o.longValue() >>> shift);
         }
-        
+
     }
 
     /**
@@ -661,7 +661,7 @@ public class MinimalPerfectHash<K> {
 
         /**
          * A cryptographically weak hash function. It is supposed to be fast.
-         * 
+         *
          * @param o the string
          * @param index the hash function index
          * @param seed the seed
@@ -672,15 +672,15 @@ public class MinimalPerfectHash<K> {
             int result = seed + o.length();
             for (int i = 0; i < o.length(); i++) {
                 x = 31 + x * 0x9f3b;
-                result ^= x * (1 + o.charAt(i)); 
-            }            
+                result ^= x * (1 + o.charAt(i));
+            }
             return result;
         }
-      
+
         /**
          * A cryptographically relatively secure hash function. It is supposed
          * to protected against hash-flooding denial-of-service attacks.
-         * 
+         *
          * @param o the string
          * @param k0 key 0
          * @param k1 key 1
@@ -690,11 +690,11 @@ public class MinimalPerfectHash<K> {
             byte[] b = o.getBytes(UTF8);
             return getSipHash24(b, 0, b.length, k0, k1);
         }
-        
+
         /**
          * A cryptographically relatively secure hash function. It is supposed
          * to protected against hash-flooding denial-of-service attacks.
-         * 
+         *
          * @param b the data
          * @param start the start position
          * @param end the end position plus one
@@ -746,7 +746,7 @@ public class MinimalPerfectHash<K> {
             }
             return (int) (v0 ^ v1 ^ v2 ^ v3);
         }
-        
+
     }
 
 }

@@ -774,7 +774,7 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Set the line separator.
+     * Set the line separator used for writing.
      *
      * @param lineSeparator the line separator
      */
@@ -783,7 +783,7 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Get the current line separator.
+     * Get the line separator used for writing.
      *
      * @return the line separator
      */

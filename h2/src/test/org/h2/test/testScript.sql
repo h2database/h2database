@@ -3,6 +3,24 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(a int, b int);
+> ok
+
+insert into test values(1, 1);
+> update count: 1
+
+create index on test(a, b desc);
+> ok
+
+select * from test where a = 1;
+> A B
+> - -
+> 1 1
+> rows: 1
+
+drop table test;
+> ok
+
 create table test(id int, name varchar) as select 1, 'a';
 > ok
 

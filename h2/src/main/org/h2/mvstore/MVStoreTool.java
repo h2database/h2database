@@ -268,6 +268,7 @@ public class MVStoreTool {
             long chunkLength = 0;
             long maxLength = 0;
             long maxLengthLive = 0;
+            long maxLengthNotEmpty = 0;
             for (Entry<String, String> e : meta.entrySet()) {
                 String k = e.getKey();
                 if (k.startsWith("chunk.")) {
@@ -276,24 +277,37 @@ public class MVStoreTool {
                     chunkLength += c.len * MVStore.BLOCK_SIZE;
                     maxLength += c.maxLen;
                     maxLengthLive += c.maxLenLive;
+                    if (c.maxLenLive > 0) {
+                        maxLengthNotEmpty += c.maxLen;
+                    }
                 }
             }
-            pw.printf("Created: %s\n", formatTimestamp(fileCreated));
+            pw.printf("Created: %s\n", formatTimestamp(fileCreated, fileCreated));
+            pw.printf("Last modified: %s\n",
+                    formatTimestamp(FileUtils.lastModified(fileName), fileCreated));
             pw.printf("File length: %d\n", fileLength);
-            pw.printf("Excluding the last chunk\n");
+            pw.printf("The last chunk is not listed\n");
             pw.printf("Chunk length: %d\n", chunkLength);
             pw.printf("Chunk count: %d\n", chunks.size());
-            pw.printf("Used space: %d%%\n", 100 * chunkLength / fileLength);
+            pw.printf("Used space: %d%%\n", getPercent(chunkLength, fileLength));
             pw.printf("Chunk fill rate: %d%%\n", maxLength == 0 ? 100 :
-                100 * maxLengthLive / maxLength);
+                getPercent(maxLengthLive, maxLength));
+            pw.printf("Chunk fill rate excluding empty chunks: %d%%\n",
+                maxLengthNotEmpty == 0 ? 100 :
+                getPercent(maxLengthLive, maxLengthNotEmpty));
             for (Entry<Integer, Chunk> e : chunks.entrySet()) {
                 Chunk c = e.getValue();
                 long created = fileCreated + c.time;
-                pw.printf("  Chunk %d: %s, %d%% used, %d blocks\n",
-                        c.id, formatTimestamp(created),
-                        100 * c.maxLenLive / c.maxLen,
+                pw.printf("  Chunk %d: %s, %d%% used, %d blocks",
+                        c.id, formatTimestamp(created, fileCreated),
+                        getPercent(c.maxLenLive, c.maxLen),
                         c.len
                         );
+                if (c.maxLenLive == 0) {
+                    pw.printf(", unused: %s",
+                            formatTimestamp(fileCreated + c.unused, fileCreated));
+                }
+                pw.printf("\n");
             }
             pw.printf("\n");
         } catch (Exception e) {
@@ -305,9 +319,20 @@ public class MVStoreTool {
         pw.flush();
     }
 
-    private static String formatTimestamp(long t) {
+    private static String formatTimestamp(long t, long start) {
         String x = new Timestamp(t).toString();
-        return x.substring(0, 19);
+        String s = x.substring(0, 19);
+        s += " (+" + ((t - start) / 1000) + " s)";
+        return s;
+    }
+
+    private static int getPercent(long value, long max) {
+        if (value == 0) {
+            return 0;
+        } else if (value == max) {
+            return 100;
+        }
+        return (int) (1 + 98 * value / max);
     }
 
     /**

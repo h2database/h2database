@@ -20,9 +20,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
@@ -67,27 +68,48 @@ public class ArchiveTool {
     }
 
     private static void compress(String fromDir, String toFile) throws IOException {
-        long start = System.currentTimeMillis();
-        long size = getSize(new File(fromDir));
+        final long start = System.currentTimeMillis();
+        final AtomicBoolean title = new AtomicBoolean();
+        long size = getSize(new File(fromDir), new Runnable() {
+            int count;
+            long lastTime = start;
+            @Override
+            public void run() {
+                count++;
+                if (count % 1000 == 0) {
+                    long now = System.currentTimeMillis();
+                    if (now - lastTime > 3000) {
+                        if (!title.getAndSet(true)) {
+                            System.out.println("Counting files");
+                        }
+                        System.out.print(count + " ");
+                        lastTime = now;
+                    }
+                }
+            }
+        });
+        if (title.get()) {
+            System.out.println();
+        }
         System.out.println("Compressing " + size / MB + " MB");
-            InputStream in = getDirectoryInputStream(fromDir);
-            String temp = toFile + ".temp";
-            OutputStream out =
-                    new BufferedOutputStream(
-                                    new FileOutputStream(toFile), 32 * 1024);
-            Deflater def = new Deflater();
-            // def.setLevel(Deflater.BEST_SPEED);
-            out = new BufferedOutputStream(
-                    new DeflaterOutputStream(out, def));
-            sort(in, out, temp, size);
-            in.close();
-            out.close();
-            System.out.println();
-            System.out.println("Compressed to " +
-                    new File(toFile).length() / MB + " MB in " +
-                    (System.currentTimeMillis() - start) / 1000 +
-                    " seconds");
-            System.out.println();
+        InputStream in = getDirectoryInputStream(fromDir);
+        String temp = toFile + ".temp";
+        OutputStream out =
+                new BufferedOutputStream(
+                                new FileOutputStream(toFile), 32 * 1024);
+        Deflater def = new Deflater();
+        // def.setLevel(Deflater.BEST_SPEED);
+        out = new BufferedOutputStream(
+                new DeflaterOutputStream(out, def));
+        sort(in, out, temp, size);
+        in.close();
+        out.close();
+        System.out.println();
+        System.out.println("Compressed to " +
+                new File(toFile).length() / MB + " MB in " +
+                (System.currentTimeMillis() - start) / 1000 +
+                " seconds");
+        System.out.println();
     }
 
     private static void extract(String fromFile, String toDir) throws IOException {
@@ -109,19 +131,20 @@ public class ArchiveTool {
                 " seconds");
     }
 
-    private static long getSize(File f) {
+    private static long getSize(File f, Runnable r) {
         // assume a metadata entry is 40 bytes
         long size = 40;
         if (f.isDirectory()) {
             File[] list = f.listFiles();
             if (list != null) {
                 for (File c : list) {
-                    size += getSize(c);
+                    size += getSize(c, r);
                 }
             }
         } else {
             size += f.length();
         }
+        r.run();
         return size;
     }
 
@@ -391,11 +414,11 @@ public class ArchiveTool {
         tempOut.close();
         size = outPos;
         inPos = 0;
-        ArrayList<ChunkStream> segmentIn = new ArrayList<ChunkStream>();
+        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
         for (int i = 0; i < segmentStart.size(); i++) {
             in = new FileInputStream(tempFileName);
             in.skip(segmentStart.get(i));
-            ChunkStream s = new ChunkStream();
+            ChunkStream s = new ChunkStream(i);
             s.readKey = true;
             s.in = new DataInputStream(new BufferedInputStream(in));
             inPos += s.readNext();
@@ -413,8 +436,8 @@ public class ArchiveTool {
         // chunk: pos* 0 data
 
         while (segmentIn.size() > 0) {
-            Collections.sort(segmentIn);
-            ChunkStream s = segmentIn.get(0);
+            ChunkStream s = segmentIn.first();
+            segmentIn.remove(s);
             Chunk c = s.current;
             if (last == null) {
                 last = c;
@@ -428,8 +451,8 @@ public class ArchiveTool {
             }
             inPos += s.readNext();
             lastTime = printProgress(lastTime, 50, 100, inPos, size);
-            if (s.current == null) {
-                segmentIn.remove(0);
+            if (s.current != null) {
+                segmentIn.add(s);
             }
         }
         if (last != null) {
@@ -585,11 +608,11 @@ public class ArchiveTool {
         tempOut.close();
         size = outPos;
         inPos = 0;
-        ArrayList<ChunkStream> segmentIn = new ArrayList<ChunkStream>();
+        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
         for (int i = 0; i < segmentStart.size(); i++) {
             FileInputStream f = new FileInputStream(tempFileName);
             f.skip(segmentStart.get(i));
-            ChunkStream s = new ChunkStream();
+            ChunkStream s = new ChunkStream(i);
             s.in = new DataInputStream(new BufferedInputStream(f));
             inPos += s.readNext();
             if (s.current != null) {
@@ -598,14 +621,14 @@ public class ArchiveTool {
         }
         DataOutputStream dataOut = new DataOutputStream(out);
         while (segmentIn.size() > 0) {
-            Collections.sort(segmentIn);
-            ChunkStream s = segmentIn.get(0);
+            ChunkStream s = segmentIn.first();
+            segmentIn.remove(s);
             Chunk c = s.current;
             dataOut.write(c.value);
             inPos += s.readNext();
             lastTime = printProgress(lastTime, 50, 100, inPos, size);
-            if (s.current == null) {
-                segmentIn.remove(0);
+            if (s.current != null) {
+                segmentIn.add(s);
             }
         }
         new File(tempFileName).delete();
@@ -616,9 +639,14 @@ public class ArchiveTool {
      * A stream of chunks.
      */
     static class ChunkStream implements Comparable<ChunkStream> {
+        final int id;
         Chunk current;
         DataInputStream in;
         boolean readKey;
+
+        ChunkStream(int id) {
+            this.id = id;
+        }
 
         /**
          * Read the next chunk.
@@ -635,7 +663,11 @@ public class ArchiveTool {
 
         @Override
         public int compareTo(ChunkStream o) {
-            return current.compareTo(o.current);
+            int comp = current.compareTo(o.current);
+            if (comp != 0) {
+                return comp;
+            }
+            return Integer.signum(id - o.id);
         }
     }
 
@@ -700,7 +732,7 @@ public class ArchiveTool {
             }
             len += writeVarLong(out, 0);
             if (writeKey) {
-                for (int i = 0; i < 4; i++) {
+                for (int i = 0; i < sortKey.length; i++) {
                     out.writeInt(sortKey[i]);
                     len += 4;
                 }
@@ -722,6 +754,7 @@ public class ArchiveTool {
                 } else if (a > b) {
                     return 1;
                 }
+                return 0;
             }
             for (int i = 0; i < sortKey.length; i++) {
                 if (sortKey[i] < o.sortKey[i]) {

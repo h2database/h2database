@@ -31,6 +31,10 @@ import java.util.zip.InflaterInputStream;
 /**
  * A standalone archive tool to compress directories. It does not have any
  * dependencies except for the Java libraries.
+ * <p>
+ * Unlike other compression tools, it splits the data into chunks and sorts the
+ * chunks, so that large directories or files that contain duplicate data are
+ * compressed much better.
  */
 public class ArchiveTool {
 
@@ -98,7 +102,7 @@ public class ArchiveTool {
                 new BufferedOutputStream(
                                 new FileOutputStream(toFile), 32 * 1024);
         Deflater def = new Deflater();
-        // def.setLevel(Deflater.BEST_SPEED);
+        def.setLevel(Deflater.BEST_SPEED);
         out = new BufferedOutputStream(
                 new DeflaterOutputStream(out, def));
         sort(in, out, temp, size);

@@ -119,8 +119,17 @@ public class ValueDataType implements DataType {
         if (a == b) {
             return 0;
         }
-        boolean aNull = a == null || a == ValueNull.INSTANCE;
-        boolean bNull = b == null || b == ValueNull.INSTANCE;
+        // null is never stored;
+        // comparison with null is used to retrieve all entries
+        // in which case null is always lower than all entries
+        // (even for descending ordered indexes)
+        if (a == null) {
+            return -1;
+        } else if (b == null) {
+            return 1;
+        }
+        boolean aNull = a == ValueNull.INSTANCE;
+        boolean bNull = b == ValueNull.INSTANCE;
         if (aNull || bNull) {
             return SortOrder.compareNull(aNull, sortType);
         }

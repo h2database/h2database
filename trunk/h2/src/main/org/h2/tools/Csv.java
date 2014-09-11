@@ -57,7 +57,6 @@ public class Csv implements SimpleRowSource {
     private String lineSeparator = SysProperties.LINE_SEPARATOR;
     private String nullString = "";
 
-    private String rowSeparatorWrite;
     private String fileName;
     private Reader input;
     private char[] inputBuffer;
@@ -289,9 +288,6 @@ public class Csv implements SimpleRowSource {
             } else if (nullString != null && nullString.length() > 0) {
                 output.write(nullString);
             }
-        }
-        if (rowSeparatorWrite != null) {
-            output.write(rowSeparatorWrite);
         }
         output.write(lineSeparator);
     }
@@ -677,26 +673,6 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Get the current row separator for writing.
-     *
-     * @return the row separator
-     */
-    public String getRowSeparatorWrite() {
-        return rowSeparatorWrite;
-    }
-
-    /**
-     * Override the end-of-row marker for writing. The default is null. After
-     * writing the end-of-row marker, a line feed is written (\n or \r\n
-     * depending on the system settings).
-     *
-     * @param rowSeparatorWrite the row separator
-     */
-    public void setRowSeparatorWrite(String rowSeparatorWrite) {
-        this.rowSeparatorWrite = rowSeparatorWrite;
-    }
-
-    /**
      * Set the line comment character. The default is character code 0 (line
      * comments are disabled).
      *
@@ -774,7 +750,10 @@ public class Csv implements SimpleRowSource {
     }
 
     /**
-     * Set the line separator used for writing.
+     * Set the line separator used for writing. This is usually a line feed (\n
+     * or \r\n depending on the system settings). The line separator is written
+     * after each row (including the last row), so this option can include an
+     * end-of-row marker if needed.
      *
      * @param lineSeparator the line separator
      */
@@ -877,8 +856,6 @@ public class Csv implements SimpleRowSource {
                 setLineSeparator(value);
             } else if (isParam(key, "null", "nullString")) {
                 setNullString(value);
-            } else if (isParam(key, "rowSeparator", "rowSep")) {
-                setRowSeparatorWrite(value);
             } else if (isParam(key, "charset", "characterSet")) {
                 charset = value;
             } else if (isParam(key, "preserveWhitespace")) {

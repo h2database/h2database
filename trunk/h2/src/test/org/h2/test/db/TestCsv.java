@@ -184,7 +184,6 @@ public class TestCsv extends TestBase {
         assertEquals(",", csv.getFieldSeparatorWrite());
         assertEquals(SysProperties.LINE_SEPARATOR, csv.getLineSeparator());
         assertEquals("", csv.getNullString());
-        assertEquals(null, csv.getRowSeparatorWrite());
         assertEquals('\"', csv.getEscapeCharacter());
         assertEquals('"', csv.getFieldDelimiter());
         assertEquals(',', csv.getFieldSeparatorRead());
@@ -207,7 +206,7 @@ public class TestCsv extends TestBase {
 
         charset = csv.setOptions("escape=1x fieldDelimiter=2x " +
                 "fieldSeparator=3x " + "lineComment=4x lineSeparator=5x " +
-                "null=6x rowSeparator=7x charset=8x " +
+                "null=6x charset=7x " +
                 "preserveWhitespace=true caseSensitiveColumnNames=true");
         assertEquals('1', csv.getEscapeCharacter());
         assertEquals('2', csv.getFieldDelimiter());
@@ -216,14 +215,13 @@ public class TestCsv extends TestBase {
         assertEquals('4', csv.getLineCommentCharacter());
         assertEquals("5x", csv.getLineSeparator());
         assertEquals("6x", csv.getNullString());
-        assertEquals("7x", csv.getRowSeparatorWrite());
-        assertEquals("8x", charset);
+        assertEquals("7x", charset);
         assertTrue(csv.getPreserveWhitespace());
         assertTrue(csv.getCaseSensitiveColumnNames());
 
         charset = csv.setOptions("escape= fieldDelimiter= " +
                 "fieldSeparator= " + "lineComment= lineSeparator=\r\n " +
-                "null=\0 rowSeparator= charset=");
+                "null=\0 charset=");
         assertEquals(0, csv.getEscapeCharacter());
         assertEquals(0, csv.getFieldDelimiter());
         assertEquals(0, csv.getFieldSeparatorRead());
@@ -231,7 +229,6 @@ public class TestCsv extends TestBase {
         assertEquals(0, csv.getLineCommentCharacter());
         assertEquals("\r\n", csv.getLineSeparator());
         assertEquals("\0", csv.getNullString());
-        assertEquals("", csv.getRowSeparatorWrite());
         assertEquals("", charset);
 
         createClassProxy(Csv.class);

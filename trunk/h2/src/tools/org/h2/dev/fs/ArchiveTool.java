@@ -54,6 +54,24 @@ public class ArchiveTool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws Exception {
+        if (args.length == 1) {
+            File f = new File(args[0]);
+            if (f.exists()) {
+                if (f.isDirectory()) {
+                    String fromDir = f.getAbsolutePath();
+                    String toFile = fromDir + ".at";
+                    compress(fromDir, toFile);
+                    return;
+                }
+                String fromFile = f.getAbsolutePath();
+                int dot = fromFile.lastIndexOf('.');
+                if (dot > 0 && dot > fromFile.replace('\\', '/').lastIndexOf('/')) {
+                    String toDir = fromFile.substring(0, dot);
+                    extract(fromFile, toDir);
+                    return;
+                }
+            }
+        }
         String arg = args.length != 3 ? null : args[0];
         if ("-compress".equals(arg)) {
             String toFile = args[1];
@@ -66,8 +84,10 @@ public class ArchiveTool {
         } else {
             System.out.println("An archive tool to efficiently compress large directories");
             System.out.println("Command line options:");
-            System.out.println("-compress <file> <sourceDir>");
-            System.out.println("-extract <file> <targetDir>");
+            System.out.println("<sourceDir>");
+            System.out.println("<compressedFile>");
+            System.out.println("-compress <compressedFile> <sourceDir>");
+            System.out.println("-extract <compressedFile> <targetDir>");
         }
     }
 

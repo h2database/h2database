@@ -20,12 +20,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
+import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 /**
@@ -120,11 +120,11 @@ public class ArchiveTool {
         String temp = toFile + ".temp";
         OutputStream out =
                 new BufferedOutputStream(
-                                new FileOutputStream(toFile), 32 * 1024);
+                                new FileOutputStream(toFile), 1024 * 1024);
         Deflater def = new Deflater();
         def.setLevel(Deflater.BEST_SPEED);
         out = new BufferedOutputStream(
-                new DeflaterOutputStream(out, def));
+                new DeflaterOutputStream(out, def), 1024 * 1024);
         sort(in, out, temp, size);
         in.close();
         out.close();
@@ -142,11 +142,13 @@ public class ArchiveTool {
         System.out.println("Extracting " + size / MB + " MB");
         InputStream in =
                 new BufferedInputStream(
-                        new FileInputStream(fromFile));
+                        new FileInputStream(fromFile), 1024 * 1024);
         String temp = fromFile + ".temp";
-        in = new InflaterInputStream(in);
+        Inflater inflater = new Inflater();
+        in = new InflaterInputStream(in, inflater, 1024 * 1024);
         OutputStream out = getDirectoryOutputStream(toDir);
         combine(in, out, temp);
+        inflater.end();
         in.close();
         out.close();
         System.out.println();
@@ -182,7 +184,7 @@ public class ArchiveTool {
         return new InputStream() {
 
             private final String baseDir;
-            private final LinkedList<String> files = new LinkedList<String>();
+            private final ArrayList<String> files = new ArrayList<String>();
             private String current;
             private ByteArrayInputStream meta;
             private DataInputStream fileIn;
@@ -196,16 +198,15 @@ public class ArchiveTool {
 
             private void addDirectory(File f) {
                 File[] list = f.listFiles();
-                // breadth-first traversal
-                // first all files, then all directories
                 if (list != null) {
+                    // first all directories, then all files
                     for (File c : list) {
-                        if (c.isFile()) {
+                        if (c.isDirectory()) {
                             files.add(c.getAbsolutePath());
                         }
                     }
                     for (File c : list) {
-                        if (c.isDirectory()) {
+                        if (c.isFile()) {
                             files.add(c.getAbsolutePath());
                         }
                     }
@@ -246,8 +247,9 @@ public class ArchiveTool {
                     // EOF
                     return -1;
                 }
-                // fetch the next file or directory
-                current = files.remove();
+                // breadth-first traversal
+                // first all files, then all directories
+                current = files.remove(files.size() - 1);
                 File f = new File(current);
                 if (f.isDirectory()) {
                     addDirectory(f);
@@ -263,7 +265,7 @@ public class ArchiveTool {
                     remaining = f.length();
                     writeVarLong(out, remaining);
                     fileIn = new DataInputStream(new BufferedInputStream(
-                            new FileInputStream(current)));
+                            new FileInputStream(current), 1024 * 1024));
                 }
                 if (!current.startsWith(baseDir)) {
                     throw new IOException("File " + current + " does not start with " + baseDir);
@@ -372,7 +374,7 @@ public class ArchiveTool {
                         new File(name).createNewFile();
                         remaining = 4;
                     } else {
-                        fileOut = new BufferedOutputStream(new FileOutputStream(name));
+                        fileOut = new BufferedOutputStream(new FileOutputStream(name), 1024 * 1024);
                     }
                 } else {
                     file.mkdirs();
@@ -391,7 +393,7 @@ public class ArchiveTool {
         long lastTime = System.currentTimeMillis();
         int bufferSize = 16 * 1024 * 1024;
         DataOutputStream tempOut = new DataOutputStream(new BufferedOutputStream(
-                new FileOutputStream(tempFileName)));
+                new FileOutputStream(tempFileName), 1024 * 1024));
         byte[] bytes = new byte[bufferSize];
         ArrayList<Long> segmentStart = new ArrayList<Long>();
         long inPos = 0;
@@ -439,12 +441,14 @@ public class ArchiveTool {
         size = outPos;
         inPos = 0;
         TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+        int bufferTotal = 64 * 1024 * 1024;
+        int bufferPerStream = bufferTotal / segmentStart.size();
         for (int i = 0; i < segmentStart.size(); i++) {
             in = new FileInputStream(tempFileName);
             in.skip(segmentStart.get(i));
             ChunkStream s = new ChunkStream(i);
             s.readKey = true;
-            s.in = new DataInputStream(new BufferedInputStream(in));
+            s.in = new DataInputStream(new BufferedInputStream(in, bufferPerStream));
             inPos += s.readNext();
             if (s.current != null) {
                 segmentIn.add(s);
@@ -577,7 +581,7 @@ public class ArchiveTool {
         DataOutputStream tempOut =
                 new DataOutputStream(
                         new BufferedOutputStream(
-                                new FileOutputStream(tempFileName)));
+                                new FileOutputStream(tempFileName), 1024 * 1024));
 
         // File: header length chunk* 0
         // chunk: pos* 0 data
@@ -633,11 +637,13 @@ public class ArchiveTool {
         size = outPos;
         inPos = 0;
         TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+        int bufferTotal = 64 * 1024 * 1024;
+        int bufferPerStream = bufferTotal / segmentStart.size();
         for (int i = 0; i < segmentStart.size(); i++) {
             FileInputStream f = new FileInputStream(tempFileName);
             f.skip(segmentStart.get(i));
             ChunkStream s = new ChunkStream(i);
-            s.in = new DataInputStream(new BufferedInputStream(f));
+            s.in = new DataInputStream(new BufferedInputStream(f, bufferPerStream));
             inPos += s.readNext();
             if (s.current != null) {
                 segmentIn.add(s);

@@ -359,7 +359,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     /**
      * A test trigger implementation.
      */
-    public static class Test implements Trigger {
+    public static class TestTriggerAlterTable implements Trigger {
 
         @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
@@ -394,7 +394,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         assertSingleValue(stat, "call seq.nextval", 1);
         conn.setAutoCommit(false);
         stat.execute("create trigger test_upd before insert on test call \"" +
-                Test.class.getName() + "\"");
+                TestTriggerAlterTable.class.getName() + "\"");
         stat.execute("insert into test values(1)");
         assertSingleValue(stat, "call seq.nextval", 3);
         stat.execute("alter table test add column name varchar");

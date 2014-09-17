@@ -117,10 +117,10 @@ public class Sequence extends SchemaObjectBase {
         }
         if (!isValid(startValue, minValue, maxValue, increment)) {
             throw DbException.get(ErrorCode.SEQUENCE_ATTRIBUTES_INVALID,
-                    getName(), String.valueOf(this.value),
-                    String.valueOf(this.minValue),
-                    String.valueOf(this.maxValue),
-                    String.valueOf(this.increment));
+                    getName(), String.valueOf(startValue),
+                    String.valueOf(minValue),
+                    String.valueOf(maxValue),
+                    String.valueOf(increment));
         }
         this.value = startValue;
         this.valueWithMargin = startValue;

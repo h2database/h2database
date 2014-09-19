@@ -208,7 +208,8 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         try {
             map.put(array, ValueNull.INSTANCE);
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, 
+                    e, table.getName());
         }
         if (indexType.isUnique()) {
             Iterator<Value> it = map.keyIterator(unique, true);
@@ -245,7 +246,8 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                         getSQL() + ": " + row.getKey());
             }
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, table.getName());
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, 
+                    e, table.getName());
         }
     }
 
@@ -358,7 +360,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
             return 10 * getCostRangeIndex(masks,
                     dataMap.sizeAsLongMax(), filter, sortOrder);
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
 
@@ -408,7 +410,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         try {
             return dataMap.sizeAsLongMax() == 0;
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
 
@@ -423,7 +425,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         try {
             return dataMap.sizeAsLongMax();
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
 

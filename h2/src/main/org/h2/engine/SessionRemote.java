@@ -764,6 +764,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public synchronized int readLob(long lobId, byte[] hmac, long offset,
             byte[] buff, int off, int length) {
+        checkClosed();
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             Transfer transfer = transferList.get(i);
             try {

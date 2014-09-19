@@ -354,9 +354,6 @@ public class MVTableEngine implements TableEngine {
                     // disk full - ok
                 } else if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
                     // wrong encryption key - ok
-                } else {
-                    // something else
-                    // TODO log those issues when running unit tests
                 }
                 store.closeImmediately();
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, e, "Closing");

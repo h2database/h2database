@@ -143,7 +143,7 @@ public class MVPrimaryIndex extends BaseIndex {
             map.put(key, ValueArray.get(row.getValueList()));
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
-                    table.getName());
+                    e, table.getName());
         }
         lastKey = Math.max(lastKey, row.getKey());
     }
@@ -167,7 +167,7 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
-                    table.getName());
+                    e, table.getName());
         }
     }
 
@@ -224,7 +224,7 @@ public class MVPrimaryIndex extends BaseIndex {
             long cost = 10 * (dataMap.sizeAsLongMax() + Constants.COST_ROW_OFFSET);
             return cost;
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
 
@@ -294,7 +294,7 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             return dataMap.sizeAsLongMax();
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }
     }
 

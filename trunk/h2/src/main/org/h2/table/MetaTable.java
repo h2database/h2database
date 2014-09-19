@@ -26,6 +26,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.FunctionAlias.JavaMethod;
 import org.h2.engine.QueryStatisticsData;
 import org.h2.engine.Right;
 import org.h2.engine.Role;
@@ -1172,7 +1173,13 @@ public class MetaTable extends Table {
             for (SchemaObject aliasAsSchemaObject :
                     database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
-                for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
+                JavaMethod[] methods;
+                try {
+                    methods = alias.getJavaMethods();
+                } catch (DbException e) {
+                    methods = new JavaMethod[0];
+                }
+                for (FunctionAlias.JavaMethod method : methods) {
                     int returnsResult = method.getDataType() == Value.NULL ?
                             DatabaseMetaData.procedureNoResult :
                             DatabaseMetaData.procedureReturnsResult;
@@ -1241,7 +1248,13 @@ public class MetaTable extends Table {
             for (SchemaObject aliasAsSchemaObject :
                     database.getAllSchemaObjects(DbObject.FUNCTION_ALIAS)) {
                 FunctionAlias alias = (FunctionAlias) aliasAsSchemaObject;
-                for (FunctionAlias.JavaMethod method : alias.getJavaMethods()) {
+                JavaMethod[] methods;
+                try {
+                    methods = alias.getJavaMethods();
+                } catch (DbException e) {
+                    methods = new JavaMethod[0];
+                }
+                for (FunctionAlias.JavaMethod method : methods) {
                     // Add return column index 0
                     if (method.getDataType() != Value.NULL) {
                         DataType dt = DataType.getDataType(method.getDataType());

@@ -674,7 +674,8 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Changes the current transaction isolation level. Calling this method will
      * commit an open transaction, even if the new level is the same as the old
      * one, except if the level is not supported. Internally, this method calls
-     * SET LOCK_MODE. The following isolation levels are supported:
+     * SET LOCK_MODE, which affects all connections.
+     * The following isolation levels are supported:
      * <ul>
      * <li> Connection.TRANSACTION_READ_UNCOMMITTED = SET LOCK_MODE 0: no
      * locking (should only be used for testing). </li>

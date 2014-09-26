@@ -344,10 +344,16 @@ public class MinimalPerfectHash<K> {
         }
         if (size <= MAX_SIZE) {
             int maxOffset = MAX_OFFSETS[size];
+            // get the hash codes - we could stop early 
+            // if we detect that two keys have the same hash
             int[] hashes = new int[size];
             for (int i = 0; i < size; i++) {
                 hashes[i] = hash.hashCode(list.get(i), level, seed);
             }
+            // use the supplemental hash function to find a way
+            // to make the hash code unique within this group -
+            // there might be a much faster way than that, by
+            // checking which bits of the hash code matter most
             nextOffset:
             for (int offset = 0; offset < maxOffset; offset++) {
                 int bits = 0;

@@ -37,7 +37,15 @@ public class TestPerfectHash extends TestBase {
     }
 
     private static void largeFile() throws IOException {
-        String fileName = System.getProperty("user.home") + "/temp/enwiki-20140811-all-titles.txt";
+        largeFile("sequence.txt");
+        for (int i = 1; i <= 4; i++) {
+            largeFile("uniq" + i + ".txt");
+        }
+        largeFile("enwiki-20140811-all-titles.txt");
+    }
+    
+    private static void largeFile(String s) throws IOException {
+        String fileName = System.getProperty("user.home") + "/temp/" + s;
         RandomAccessFile f = new RandomAccessFile(fileName, "r");
         byte[] data = new byte[(int) f.length()];
         f.readFully(data);
@@ -62,8 +70,12 @@ public class TestPerfectHash extends TestBase {
                 System.out.println("size: " + set.size());
             }
         }
+        System.out.println("file: " + s);
         System.out.println("size: " + set.size());
+        long time = System.currentTimeMillis();
         byte[] desc = MinimalPerfectHash.generate(set, hf);
+        time = System.currentTimeMillis() - time;
+        System.out.println("millis: " + time);
         System.out.println("len: " + desc.length);
         int bits = desc.length * 8;
         System.out.println(((double) bits / set.size()) + " bits/key");

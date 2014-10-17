@@ -26,6 +26,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Remove "set binary collation" feature.
 </li><li>Remove the encryption algorithm XTEA.
 </li><li>Disallow referencing other tables in a table (via constraints for example).
+</li><li>Remove PageStore features like compress_lob.
 </li></ul>
 
 <h2>Version 1.4.x: Planned Changes</h2>
@@ -196,7 +197,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>MySQL compatibility: update test1 t1, test2 t2 set t1.id = t2.id where t1.id = t2.id;
 </li><li>Ability to resize the cache array when resizing the cache
 </li><li>Time based cache writing (one second after writing the log)
-</li><li>Check state of H2 driver for DDLUtils: https://issues.apache.org/jira/browse/DDLUTILS-185
+</li><li>Check state of H2 driver for DDLUtils: http://issues.apache.org/jira/browse/DDLUTILS-185
 </li><li>Index usage for REGEXP LIKE.
 </li><li>Compatibility: add a role DBA (like ADMIN).
 </li><li>Better support multiple processors for in-memory databases.
@@ -396,7 +397,7 @@ See also <a href="build.html#providing_patches">Providing Patches</a>.
 </li><li>Pluggable access control mechanism.
 </li><li>Fulltext search (Lucene): support streaming CLOB data.
 </li><li>Document/example how to create and read an encrypted script file.
-</li><li>Check state of https://issues.apache.org/jira/browse/OPENJPA-1367 (H2 does support cross joins).
+</li><li>Check state of http://issues.apache.org/jira/browse/OPENJPA-1367 (H2 does support cross joins).
 </li><li>Fulltext search (Lucene): only prefix column names with _ if they already start with _. Instead of DATA / QUERY / modified use _DATA, _QUERY, _MODIFIED if possible.
 </li><li>Support a way to create or read compressed encrypted script files using an API.
 </li><li>Scripting language support (Javascript).

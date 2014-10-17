@@ -483,7 +483,7 @@ The file contains two file headers (for safety), and a number of chunks.
 The file headers are one block each; a block is 4096 bytes.
 Each chunk is at least one block, but typically 200 blocks or more.
 Data is stored in the chunks in the form of a
-<a href="https://en.wikipedia.org/wiki/Log-structured_file_system">log structured storage</a>.
+<a href="http://en.wikipedia.org/wiki/Log-structured_file_system">log structured storage</a>.
 There is one chunk for every version.
 </p>
 <pre>
@@ -545,14 +545,14 @@ Each value is stored as a hexadecimal number. The entries are:
 </li><li>block: The block number where one of the newest chunks starts
     (but not necessarily the newest).
 </li><li>blockSize: The block size of the file; currently always hex 1000, which is decimal 4096,
-    to match the <a href="https://en.wikipedia.org/wiki/Disk_sector">disk sector</a>
+    to match the <a href="http://en.wikipedia.org/wiki/Disk_sector">disk sector</a>
     length of modern hard disks.
 </li><li>chunk: The chunk id, which is normally the same value as the version;
     however, the chunk id might roll over to 0, while the version doesn't.
 </li><li>created: The number of milliseconds since 1970 when the file was created.
 </li><li>format: The file format number. Currently 1.
 </li><li>version: The version number of the chunk.
-</li><li>fletcher: The <a href="https://en.wikipedia.org/wiki/Fletcher's_checksum">
+</li><li>fletcher: The <a href="http://en.wikipedia.org/wiki/Fletcher's_checksum">
     Fletcher-32 checksum</a> of the header.
 </li></ul>
 <p>
@@ -609,7 +609,7 @@ plus all the parent nodes of those pages, recursively, up to the root page.
 If an entry in a map is changed, removed, or added, then the respective page is copied,
 modified, and stored in the next chunk, and the number of live pages in the old chunk is decremented.
 This mechanism is called copy-on-write, and is similar to how the
-<a href="https://en.wikipedia.org/wiki/Btrfs">Btrfs</a> file system works.
+<a href="http://en.wikipedia.org/wiki/Btrfs">Btrfs</a> file system works.
 Chunks without live pages are marked as free, so the space can be re-used by more recent chunks.
 Because not all chunks are of the same size, there can be a number of free blocks in front of a chunk
 for some time (until a small chunk is written or the chunks are compacted).
@@ -635,14 +635,14 @@ In any case, the file header is updated if the next chain gets longer than 20 ho
 
 <h3>Page Format</h3>
 <p>
-Each map is a <a href="https://en.wikipedia.org/wiki/B-tree">B-tree</a>,
+Each map is a <a href="http://en.wikipedia.org/wiki/B-tree">B-tree</a>,
 and the map data is stored in (B-tree-) pages.
 There are leaf pages that contain the key-value pairs of the map,
 and internal nodes, which only contain keys and pointers to leaf pages.
 The root of a tree is either a leaf or an internal node.
 Unlike file header and chunk header and footer, the page data is not human readable.
 Instead, it is stored as byte arrays, with long (8 bytes), int (4 bytes), short (2 bytes),
-and <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">variable size int and long</a>
+and <a href="http://en.wikipedia.org/wiki/Variable-length_quantity">variable size int and long</a>
 (1 to 5 / 10 bytes). The page format is:
 </p>
 <ul><li>length (int): Length of the page in bytes.

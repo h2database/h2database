@@ -1131,6 +1131,10 @@ SET COLLATION ENGLISH
 "Commands (Other)","SET COMPRESS_LOB","
 SET COMPRESS_LOB { NO | LZF | DEFLATE }
 ","
+This feature is only available for the PageStore storage engine.
+For the MVStore engine (the default for H2 version 1.4.x),
+append "";COMPRESS=TRUE"" to the database URL instead.
+
 Sets the compression algorithm for BLOB and CLOB data. Compression is usually
 slower, but needs less disk space. LZF is faster but uses more space.
 

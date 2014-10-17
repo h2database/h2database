@@ -17,7 +17,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 584: the error message for a wrong sequence definition was wrong.
+<ul><li>OSGi: the MVStore packages are now exported.
+</li><li>With the MVStore option, when using multiple threads
+    that concurrently create indexes or tables,
+    it was relatively easy to get a lock timeout on the "SYS" table.
+</li><li>When using the multi-threaded option, the exception
+    "Unexpected code path" could be thrown, specially if the option
+    "analyze_auto" was set to a low value.
+</li><li>In the server mode, when reading from a CLOB or BLOB, if the connection
+    was closed, a NullPointerException could be thrown instead of an exception saying
+    the connection is closed.
+</li><li>DatabaseMetaData.getProcedures and getProcedureColumns
+    could throw an exception if a user defined class is not available.
+</li><li>Issue 584: the error message for a wrong sequence definition was wrong.
 </li><li>CSV tool: the rowSeparator option is no longer supported,
     as the same can be achieved with the lineSeparator.
 </li><li>Descending indexes on MVStore tables did not work properly.

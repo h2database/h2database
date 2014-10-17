@@ -69,7 +69,7 @@ Here is the list of known and confirmed issues:
     timezone. This problem does not occur when using the system property "h2.storeLocalTime"
     (however such database files are not compatible with older versions of H2).
 </li><li>Apache Harmony: there seems to be a bug in Harmony that affects H2.
-    See <a href="https://issues.apache.org/jira/browse/HARMONY-6505">HARMONY-6505</a>.
+    See <a href="http://issues.apache.org/jira/browse/HARMONY-6505">HARMONY-6505</a>.
 </li><li>Tomcat and Glassfish 3 set most static fields (final or non-final) to <code>null</code> when
     unloading a web application. This can cause a <code>NullPointerException</code> in H2 versions
     1.1.107 and older, and may still not work in newer versions. Please report it if you

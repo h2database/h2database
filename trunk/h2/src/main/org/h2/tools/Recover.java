@@ -325,6 +325,7 @@ public class Recover extends Tool implements DataHandler {
                 PrintWriter writer;
                 writer = getWriter(fileName, ".txt");
                 MVStoreTool.dump(fileName, writer);
+                MVStoreTool.info(fileName, writer);
                 writer.close();
                 writer = getWriter(f + ".h2.db", ".sql");
                 dumpMVStoreFile(writer, fileName);

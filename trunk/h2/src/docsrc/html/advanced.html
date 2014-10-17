@@ -141,6 +141,9 @@ that don't involve this column.
 
 <h3>Large Object Compression</h3>
 <p>
+The following feature is only available for the PageStore storage engine.
+For the MVStore engine (the default for H2 version 1.4.x),
+append <code>;COMPRESS=TRUE</code> to the database URL instead.
 CLOB and BLOB values can be compressed by using
 <a href="grammar.html#set_compress_lob" class="notranslate" >SET COMPRESS_LOB</a>.
 The LZF algorithm is faster but needs more disk space. By default compression is disabled, which usually speeds up write
@@ -1193,11 +1196,23 @@ SELECT * FROM USERS WHERE LENGTH(PASSWORD)=ZERO();
 By default this database does not allow connections from other machines when starting the H2 Console,
 the TCP server, or the PG server. Remote access can be enabled using the command line
 options <code>-webAllowOthers, -tcpAllowOthers, -pgAllowOthers</code>.
-If you enable remote access, please also consider using the options
-<code>-baseDir, -ifExists</code>, so that remote
-users can not create new databases or access existing databases with weak passwords.
+</p>
+<p>
+If you enable remote access using
+<code>-tcpAllowOthers</code> or <code>-pgAllowOthers</code>,
+please also consider using the options <code>-baseDir, -ifExists</code>,
+so that remote users can not create new databases
+or access existing databases with weak passwords.
 When using the option <code>-baseDir</code>, only databases within that directory may be accessed.
 Ensure the existing accessible databases are protected using strong passwords.
+</p>
+<p>
+If you enable remote access using <code>-webAllowOthers</code>,
+please ensure the web server can only be accessed from thrusted networks.
+The options <code>-baseDir, -ifExists</code> don't protect
+access to the tools section, prevent remote shutdown of the web server,
+changes to the preferences, the saved connection settings,
+or access to other databases accessible from the system.
 </p>
 
 <h2 id="restricting_classes">Restricting Class Loading and Usage</h2>

@@ -137,7 +137,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         try {
             map.put(key, ValueLong.get(0));
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, 
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
                     e, table.getName());
         }
         if (indexType.isUnique()) {
@@ -184,7 +184,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                         getSQL() + ": " + row.getKey());
             }
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, 
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
                     e, table.getName());
         }
     }

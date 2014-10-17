@@ -208,7 +208,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         try {
             map.put(array, ValueNull.INSTANCE);
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, 
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
                     e, table.getName());
         }
         if (indexType.isUnique()) {
@@ -246,7 +246,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                         getSQL() + ": " + row.getKey());
             }
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, 
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
                     e, table.getName());
         }
     }

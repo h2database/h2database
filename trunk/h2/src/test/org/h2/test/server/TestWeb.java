@@ -156,7 +156,7 @@ public class TestWeb extends TestBase {
     }
 
     private void testTools() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.cipher != null) {
             return;
         }
         deleteDb("web");

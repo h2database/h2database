@@ -31,6 +31,7 @@ public class TestPerfectHash extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestPerfectHash test = (TestPerfectHash) TestBase.createCaller().init();
+        test.measure();
         largeFile();
         test.test();
         test.measure();
@@ -39,11 +40,11 @@ public class TestPerfectHash extends TestBase {
     private static void largeFile() throws IOException {
         largeFile("sequence.txt");
         for (int i = 1; i <= 4; i++) {
-            largeFile("uniq" + i + ".txt");
+            largeFile("unique" + i + ".txt");
         }
         largeFile("enwiki-20140811-all-titles.txt");
     }
-    
+
     private static void largeFile(String s) throws IOException {
         String fileName = System.getProperty("user.home") + "/temp/" + s;
         RandomAccessFile f = new RandomAccessFile(fileName, "r");

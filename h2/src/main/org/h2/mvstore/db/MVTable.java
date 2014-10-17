@@ -80,7 +80,7 @@ public class MVTable extends TableBase {
 
     /**
      * Initialize the table.
-     * 
+     *
      * @param session the session
      */
     void init(Session session) {
@@ -127,13 +127,13 @@ public class MVTable extends TableBase {
             }
         }
     }
-    
+
     /**
      * The the object on which to synchronize and wait on. For the
      * multi-threaded mode, this is this object, but for non-multi-threaded, it
      * is the database, as in this case all operations are synchronized on the
      * database object.
-     * 
+     *
      * @return the lock sync object
      */
     private Object getLockSyncObject() {
@@ -768,7 +768,7 @@ public class MVTable extends TableBase {
 
     /**
      * Get the transaction to use for this session.
-     * 
+     *
      * @param session the session
      * @return the transaction
      */

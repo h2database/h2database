@@ -351,7 +351,7 @@ public class MVStore {
         int delay = o == null ? 1000 : (Integer) o;
         setAutoCommitDelay(delay);
     }
-    
+
     private void panic(IllegalStateException e) {
         try {
             closeStore(false);

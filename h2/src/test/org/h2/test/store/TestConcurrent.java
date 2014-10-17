@@ -60,7 +60,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentAutoCommitAndChange() throws InterruptedException {
         String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
         FileUtils.delete(fileName);

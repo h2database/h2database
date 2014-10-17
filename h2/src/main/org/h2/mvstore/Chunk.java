@@ -92,8 +92,8 @@ public class Chunk {
 
     /**
      * When this chunk was no longer needed, in milliseconds after the store was
-     * created. After this, the chunk is kept alive for at least half the
-     * retention time (in case it is referenced in older versions).
+     * created. After this, the chunk is kept alive a bit longer (in case it is
+     * referenced in older versions).
      */
     public long unused;
 

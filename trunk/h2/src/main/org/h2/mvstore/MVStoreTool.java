@@ -133,6 +133,8 @@ public class MVStoreTool {
                 int p = block.position();
                 pos += length;
                 int remaining = c.pageCount;
+                TreeMap<Integer, Integer> mapSizes = new TreeMap<Integer, Integer>();
+                int totalSize = 0;
                 while (remaining > 0) {
                     chunk.position(p);
                     int pageSize = chunk.getInt();
@@ -153,6 +155,12 @@ public class MVStoreTool {
                             node ? entries + 1 : entries,
                             pageSize);
                     p += pageSize;
+                    Integer mapSize = mapSizes.get(mapId);
+                    if (mapSize == null) {
+                        mapSize = 0;
+                    }
+                    mapSizes.put(mapId, mapSize + pageSize);
+                    totalSize += pageSize;
                     remaining--;
                     long[] children = null;
                     long[] counts = null;
@@ -218,6 +226,10 @@ public class MVStoreTool {
                             }
                         }
                     }
+                }
+                for (Integer mapId : mapSizes.keySet()) {
+                    int percent = 100 * mapSizes.get(mapId) / totalSize;
+                    pw.printf("map %x: %d%%%n", mapId, percent);
                 }
                 int footerPos = chunk.limit() - Chunk.FOOTER_LENGTH;
                 chunk.position(footerPos);

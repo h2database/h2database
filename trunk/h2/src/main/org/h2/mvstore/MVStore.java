@@ -42,6 +42,7 @@ TransactionStore:
     if there is only one connection
 
 MVStore:
+- make sure serialization / deserialization errors don't corrupt the file
 - FileStore: don't open and close when set using MVStore.Builder.fileStore
 - test and possibly improve compact operation (for large dbs)
 - is data kept in the stream store if the transaction is not committed?
@@ -115,6 +116,7 @@ MVStore:
 - rollback of removeMap should restore the data -
     which has big consequences, as the metadata map
     would probably need references to the root nodes of all maps
+- combine MVMap and MVMapConcurrent
 
 */
 
@@ -335,12 +337,7 @@ public class MVStore {
                 readFileHeader();
             }
         } catch (IllegalStateException e) {
-            try {
-                closeStore(false);
-            } catch (Exception e2) {
-                // ignore
-            }
-            throw e;
+            panic(e);
         } finally {
             if (encryptionKey != null) {
                 Arrays.fill(encryptionKey, (char) 0);
@@ -353,6 +350,15 @@ public class MVStore {
         o = config.get("autoCommitDelay");
         int delay = o == null ? 1000 : (Integer) o;
         setAutoCommitDelay(delay);
+    }
+    
+    private void panic(IllegalStateException e) {
+        try {
+            closeStore(false);
+        } catch (Exception e2) {
+            // ignore
+        }
+        throw e;
     }
 
     /**
@@ -1145,13 +1151,17 @@ public class MVStore {
             shrinkFileIfPossible(1);
         }
 
-        for (MVMap<?, ?> m : changed) {
-            Page p = m.getRoot();
-            if (p.getTotalCount() > 0) {
-                p.writeEnd();
+        try {
+            for (MVMap<?, ?> m : changed) {
+                Page p = m.getRoot();
+                if (p.getTotalCount() > 0) {
+                    p.writeEnd();
+                }
             }
+            metaRoot.writeEnd();
+        } catch (IllegalStateException e) {
+            panic(e);
         }
-        metaRoot.writeEnd();
 
         // some pages might have been changed in the meantime (in the newest
         // version)

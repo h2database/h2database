@@ -91,7 +91,7 @@ public class StreamStore {
     }
 
     /**
-     * Store the stream, and return the id.
+     * Store the stream, and return the id. The stream is not closed.
      *
      * @param in the stream
      * @return the id (potentially an empty array)

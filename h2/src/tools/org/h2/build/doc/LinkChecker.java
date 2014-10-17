@@ -7,6 +7,9 @@ package org.h2.build.doc;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,6 +24,7 @@ import org.h2.util.StringUtils;
  */
 public class LinkChecker {
 
+    private static final boolean TEST_EXTERNAL_LINKS = false;
     private static final boolean OPEN_EXTERNAL_LINKS = false;
     private static final String[] IGNORE_MISSING_LINKS_TO = {
         "SysProperties", "ErrorCode"
@@ -56,6 +60,45 @@ public class LinkChecker {
             if (link.startsWith("http")) {
                 if (link.indexOf("//localhost") > 0) {
                     continue;
+                }
+                if (TEST_EXTERNAL_LINKS) {
+                    try {
+                        URL url = new URL(link);
+                        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                        conn.setConnectTimeout(2000);
+                        conn.setRequestMethod("GET");
+                        HttpURLConnection.setFollowRedirects(false);
+                        conn.connect();
+                        int code = conn.getResponseCode();
+                        String msg;
+                        switch (code) {
+                        case 200:
+                            msg = "OK";
+                            break;
+                        case 301:
+                            msg = "Moved Permanently";
+                            break;
+                        case 302:
+                            msg = "Found";
+                            break;
+                        case 403:
+                            msg = "Forbidden";
+                            break;
+                        case 404:
+                            msg = "Not Found";
+                            break;
+                        case 500:
+                            msg = "Internal Server Error";
+                            break;
+                        default:
+                            msg = "?";
+                        }
+                        System.out.println(code + " " + msg + " " + link);
+                        conn.getInputStream().close();
+                    } catch (IOException e) {
+                        System.out.println("link checker error " + e.toString() + " " + link);
+                        // ignore
+                    }
                 }
                 if (OPEN_EXTERNAL_LINKS) {
                     System.out.println(link);

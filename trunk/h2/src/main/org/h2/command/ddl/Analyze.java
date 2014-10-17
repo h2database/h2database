@@ -122,8 +122,10 @@ public class Analyze extends DefineCommand {
                 // (which is the case if we are within a trigger)
                 // then we can't update the statistics because
                 // that would unlock all locked objects
-                db.updateMeta(sysSession, table);
-                sysSession.commit(true);
+                synchronized (db) {
+                    db.updateMeta(sysSession, table);
+                    sysSession.commit(true);
+                }
             }
         }
     }

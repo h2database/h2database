@@ -107,8 +107,10 @@ public class Set extends Prepared {
             database.setCluster(value);
             // use the system session so that the current transaction
             // (if any) is not committed
-            addOrUpdateSetting(database.getSystemSession(), name, value, 0);
-            database.getSystemSession().commit(true);
+            synchronized (database) {
+                addOrUpdateSetting(database.getSystemSession(), name, value, 0);
+                database.getSystemSession().commit(true);
+            }
             break;
         }
         case SetTypes.COLLATION: {

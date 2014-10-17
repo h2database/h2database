@@ -76,18 +76,20 @@ public class MinimalPerfectHash<K> {
      */
     private static final int DIVIDE = 6;
 
+    private static final int SPEEDUP = 11;
+
     /**
      * The maximum size of a small bucket (one that is not further split if
      * possible).
      */
-    private static final int MAX_SIZE = 12;
+    private static final int MAX_SIZE = 14;
 
     /**
      * The maximum offset for hash functions of small buckets. At most that many
      * hash functions are tried for the given size.
      */
     private static final int[] MAX_OFFSETS = { 0, 0, 8, 18, 47, 123, 319, 831, 2162,
-            5622, 14617, 38006, 38006 };
+            5622, 14617, 38006, 98815, 256920, 667993 };
 
     /**
      * The output value to split the bucket into many (more than 2) smaller
@@ -106,6 +108,9 @@ public class MinimalPerfectHash<K> {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     static {
+        for (int i = SPEEDUP; i < MAX_OFFSETS.length; i++) {
+            MAX_OFFSETS[i] = (int) (MAX_OFFSETS[i] * 2.5);
+        }
         int last = SPLIT_MANY + 1;
         for (int i = 0; i < MAX_OFFSETS.length; i++) {
             SIZE_OFFSETS[i] = last;
@@ -210,6 +215,15 @@ public class MinimalPerfectHash<K> {
         } else if (n > SPLIT_MANY) {
             int size = getSize(n);
             int offset = getOffset(n, size);
+            if (size >= SPEEDUP) {
+                int p = offset % (size + 1);
+                offset = offset / (size + 1);
+                int result = hash(x, hash, level, seed, offset, size + 1);
+                if (result >= p) {
+                    result--;
+                }
+                return result;
+            }
             return hash(x, hash, level, seed, offset, size);
         }
         pos++;
@@ -344,7 +358,7 @@ public class MinimalPerfectHash<K> {
         }
         if (size <= MAX_SIZE) {
             int maxOffset = MAX_OFFSETS[size];
-            // get the hash codes - we could stop early 
+            // get the hash codes - we could stop early
             // if we detect that two keys have the same hash
             int[] hashes = new int[size];
             for (int i = 0; i < size; i++) {
@@ -354,18 +368,28 @@ public class MinimalPerfectHash<K> {
             // to make the hash code unique within this group -
             // there might be a much faster way than that, by
             // checking which bits of the hash code matter most
+            int testSize = size;
+            if (size >= SPEEDUP) {
+                testSize++;
+                maxOffset /= testSize;
+            }
             nextOffset:
             for (int offset = 0; offset < maxOffset; offset++) {
                 int bits = 0;
                 for (int i = 0; i < size; i++) {
                     int x = hashes[i];
-                    int h = hash(x, level, offset, size);
+                    int h = hash(x, level, offset, testSize);
                     if ((bits & (1 << h)) != 0) {
                         continue nextOffset;
                     }
                     bits |= 1 << h;
                 }
-                writeSizeOffset(out, size, offset);
+                if (size >= SPEEDUP) {
+                    int pos = Integer.numberOfTrailingZeros(~bits);
+                    writeSizeOffset(out, size, offset * (size + 1) + pos);
+                } else {
+                    writeSizeOffset(out, size, offset);
+                }
                 return;
             }
         }
@@ -491,7 +515,7 @@ public class MinimalPerfectHash<K> {
     private static <K> int hash(K o, UniversalHash<K> hash, int level,
             int seed, int offset, int size) {
         int x = hash.hashCode(o, level, seed);
-        x += level + offset * 16;
+        x += level + offset * 32;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = (x >>> 16) ^ x;
@@ -499,7 +523,7 @@ public class MinimalPerfectHash<K> {
     }
 
     private static <K> int hash(int x, int level, int offset, int size) {
-        x += level + offset * 16;
+        x += level + offset * 32;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = (x >>> 16) ^ x;

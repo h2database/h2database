@@ -374,7 +374,7 @@ Sets the collation used for comparing strings."
 "Commands (Other)","SET COMPRESS_LOB","
 SET COMPRESS_LOB { NO | LZF | DEFLATE }
 ","
-Sets the compression algorithm for BLOB and CLOB data."
+This feature is only available for the PageStore storage engine."
 "Commands (Other)","SET DATABASE_EVENT_LISTENER","
 SET DATABASE_EVENT_LISTENER classNameString
 ","

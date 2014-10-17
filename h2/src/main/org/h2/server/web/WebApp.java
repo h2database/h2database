@@ -613,7 +613,7 @@ public class WebApp {
             return treeIndex;
         }
         boolean isOracle = schema.getContents().isOracle();
-        boolean notManyTables = tables.length < DbSchema.MAX_TABLES_LIST_INDEXES;
+        boolean notManyTables = tables.length < SysProperties.CONSOLE_MAX_TABLES_LIST_INDEXES;
         for (DbTableOrView table : tables) {
             if (table.isView()) {
                 continue;

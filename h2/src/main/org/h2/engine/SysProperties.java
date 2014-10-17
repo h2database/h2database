@@ -151,6 +151,30 @@ public class SysProperties {
             Utils.getProperty("h2.collatorCacheSize", 32000);
 
     /**
+     * System property <code>h2.consoleTableIndexes</code>
+     * (default: 100).<br />
+     * Up to this many tables, the column type and indexes are listed.
+     */
+    public static final int CONSOLE_MAX_TABLES_LIST_INDEXES =
+            Utils.getProperty("h2.consoleTableIndexes", 100);
+
+    /**
+     * System property <code>h2.consoleTableColumns</code>
+     * (default: 500).<br />
+     * Up to this many tables, the column names are listed.
+     */
+    public static final int CONSOLE_MAX_TABLES_LIST_COLUMNS =
+            Utils.getProperty("h2.consoleTableColumns", 300);
+
+    /**
+     * System property <code>h2.consoleProcedureColumns</code>
+     * (default: 500).<br />
+     * Up to this many procedures, the column names are listed.
+     */
+    public static final int CONSOLE_MAX_PROCEDURES_LIST_COLUMNS =
+            Utils.getProperty("h2.consoleProcedureColumns", 300);
+
+    /**
      * System property <code>h2.consoleStream</code> (default: true).<br />
      * H2 Console: stream query results.
      */

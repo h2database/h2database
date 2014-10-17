@@ -761,7 +761,7 @@ public class Transfer {
     public void verifyLobMac(byte[] hmac, long lobId) {
         byte[] result = calculateLobMac(lobId);
         if (!Utils.compareSecure(hmac,  result)) {
-            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, 
+            throw DbException.get(ErrorCode.CONNECTION_BROKEN_1,
                     "Invalid lob hmac; possibly the connection was re-opened internally");
         }
     }

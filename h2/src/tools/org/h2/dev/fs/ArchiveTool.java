@@ -374,7 +374,8 @@ public class ArchiveTool {
                         new File(name).createNewFile();
                         remaining = 4;
                     } else {
-                        fileOut = new BufferedOutputStream(new FileOutputStream(name), 1024 * 1024);
+                        fileOut = new BufferedOutputStream(
+                                new FileOutputStream(name), 1024 * 1024);
                     }
                 } else {
                     file.mkdirs();

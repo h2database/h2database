@@ -9,6 +9,8 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import org.h2.engine.SysProperties;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -17,21 +19,6 @@ import org.h2.util.StringUtils;
  * This class is used by the H2 Console.
  */
 public class DbSchema {
-
-    /**
-     * Up to this many tables, the column type and indexes are listed.
-     */
-    public static final int MAX_TABLES_LIST_INDEXES = 100;
-
-    /**
-     * Up to this many tables, the column names are listed.
-     */
-    public static final int MAX_TABLES_LIST_COLUMNS = 500;
-
-    /**
-     * Up to this many tables, the column names are listed.
-     */
-    public static final int MAX_PROCEDURES_LIST_COLUMNS = 500;
 
     /**
      * The schema name.
@@ -132,7 +119,7 @@ public class DbSchema {
         rs.close();
         tables = new DbTableOrView[list.size()];
         list.toArray(tables);
-        if (tables.length < MAX_TABLES_LIST_COLUMNS) {
+        if (tables.length < SysProperties.CONSOLE_MAX_TABLES_LIST_COLUMNS) {
             for (DbTableOrView tab : tables) {
                 try {
                     tab.readColumns(meta);
@@ -161,7 +148,7 @@ public class DbSchema {
         rs.close();
         procedures = new DbProcedure[list.size()];
         list.toArray(procedures);
-        if (procedures.length < MAX_PROCEDURES_LIST_COLUMNS) {
+        if (procedures.length < SysProperties.CONSOLE_MAX_PROCEDURES_LIST_COLUMNS) {
             for (DbProcedure procedure : procedures) {
                 procedure.readParameters(meta);
             }

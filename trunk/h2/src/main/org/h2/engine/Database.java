@@ -876,7 +876,11 @@ public class Database implements DataHandler {
      * @param session the session
      * @return whether it was already locked before by this session
      */
-    public synchronized boolean lockMeta(Session session) {
+    public boolean lockMeta(Session session) {
+        // this method can not be synchronized on the database object,
+        // as unlocking is also synchronized on the database object -
+        // so if locking starts just before unlocking, locking could
+        // never be successful
         if (meta == null) {
             return true;
         }

@@ -89,8 +89,9 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>DEFRAG_ALWAYS</code> (default: false).<br />
-     * Each time the database is closed, it is fully defragmented (SHUTDOWN
-     * DEFRAG).
+     * Each time the database is closed normally, it is fully defragmented (the
+     * same as SHUTDOWN DEFRAG). If you execute SHUTDOWN COMPACT, then this
+     * setting is ignored.
      */
     public final boolean defragAlways = get("DEFRAG_ALWAYS", false);
 
@@ -314,7 +315,7 @@ public class DbSettings extends SettingsBase {
 
     /**
      * Database setting <code>MV_STORE</code>
-     * (default: false).<br />
+     * (default: false for version 1.3, true for version 1.4).<br />
      * Use the MVStore storage engine.
      */
     public boolean mvStore = get("MV_STORE", Constants.VERSION_MINOR >= 4);

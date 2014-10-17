@@ -4,6 +4,8 @@
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
 
+-- TODO
+
 create table results(eventId int, points int, studentId int);
 > ok
 
@@ -16,26 +18,26 @@ insert into results values(1, 10, 2), (2, 20, 2), (3, 5, 2);
 insert into results values(1, 10, 3), (2, 20, 3), (3, 5, 3);
 > update count: 3
 
-SELECT SUM(points) FROM RESULTS 
+SELECT SUM(points) FROM RESULTS
     WHERE eventID IN
-        (SELECT eventID FROM RESULTS 
-            WHERE studentID = 2 
-            ORDER BY points DESC
-            LIMIT 2 ) 
-        AND studentID = 2;
+    (SELECT eventID FROM RESULTS
+    WHERE studentID = 2
+    ORDER BY points DESC
+    LIMIT 2 )
+    AND studentID = 2;
 
-SELECT eventID FROM RESULTS 
-            WHERE studentID = 2 
-            ORDER BY points DESC
-            LIMIT 2;
+SELECT eventID FROM RESULTS
+    WHERE studentID = 2
+    ORDER BY points DESC
+    LIMIT 2;
 
 SELECT SUM(r.points) FROM RESULTS r,
-(SELECT eventID FROM RESULTS 
-  WHERE studentID = 2 
-  ORDER BY points DESC
-  LIMIT 2 ) r2
-WHERE r2.eventID = r.eventId
-AND studentID = 2;
+    (SELECT eventID FROM RESULTS
+    WHERE studentID = 2
+    ORDER BY points DESC
+    LIMIT 2 ) r2
+    WHERE r2.eventID = r.eventId
+    AND studentID = 2;
 
 drop table results;
 > ok

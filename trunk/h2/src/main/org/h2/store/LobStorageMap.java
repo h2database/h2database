@@ -125,7 +125,7 @@ public class LobStorageMap implements LobStorageInterface {
             }
             return createLob(in, type);
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }
@@ -163,7 +163,7 @@ public class LobStorageMap implements LobStorageInterface {
                     lob.getTableId(), lob.getLobId(), null, in.getLength());
             return lob;
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.OBJECT_CLOSED);
+            throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
         }

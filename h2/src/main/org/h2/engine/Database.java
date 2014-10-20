@@ -2091,7 +2091,8 @@ public class Database implements DataHandler {
         case Constants.LOCK_MODE_OFF:
             if (multiThreaded) {
                 // currently the combination of LOCK_MODE=0 and MULTI_THREADED
-                // is not supported
+                // is not supported. also see code in
+                // JdbcDatabaseMetaData#supportsTransactionIsolationLevel(int)
                 throw DbException.get(
                         ErrorCode.UNSUPPORTED_SETTING_COMBINATION,
                         "LOCK_MODE=0 & MULTI_THREADED");

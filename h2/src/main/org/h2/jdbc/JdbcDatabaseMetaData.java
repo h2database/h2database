@@ -2200,8 +2200,19 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @return true
      */
     @Override
-    public boolean supportsTransactionIsolationLevel(int level) {
+    public boolean supportsTransactionIsolationLevel(int level) throws SQLException {
         debugCodeCall("supportsTransactionIsolationLevel");
+        if (level == Connection.TRANSACTION_READ_UNCOMMITTED) {
+            // currently the combination of LOCK_MODE=0 and MULTI_THREADED
+            // is not supported, also see code in Database#setLockMode(int)
+            PreparedStatement prep = conn.prepareAutoCloseStatement(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
+            prep.setString(1, "MULTI_THREADED");
+            ResultSet rs = prep.executeQuery();
+            if (rs.next() && rs.getString(1).equals("1")) {
+                return false;
+            }
+        }
         return true;
     }
 

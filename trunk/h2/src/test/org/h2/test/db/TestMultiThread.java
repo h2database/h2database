@@ -7,6 +7,7 @@ package org.h2.test.db;
 
 import java.io.StringReader;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -58,6 +59,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
+        testMetadataWith();
     }
 
     private void testConcurrentLobAdd() throws Exception {
@@ -244,4 +246,15 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
     }
 
+    private void testMetadataWith() throws Exception {
+        // currently the combination of LOCK_MODE=0 and MULTI_THREADED
+        // is not supported. also see code in
+        deleteDb("concurrentAnalyze");
+        final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
+        Connection conn = getConnection(url);
+        DatabaseMetaData dmd = conn.getMetaData();
+        assertFalse(dmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED));
+        conn.close();
+        deleteDb("concurrentAnalyze");
+    }
 }

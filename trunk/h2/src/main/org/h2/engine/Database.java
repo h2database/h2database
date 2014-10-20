@@ -884,8 +884,7 @@ public class Database implements DataHandler {
         if (meta == null) {
             return true;
         }
-        boolean wasLocked = meta.isLockedExclusivelyBy(session);
-        meta.lock(session, true, true);
+        boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
     }
 

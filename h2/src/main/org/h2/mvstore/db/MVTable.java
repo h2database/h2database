@@ -94,11 +94,11 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public void lock(Session session, boolean exclusive,
+    public boolean lock(Session session, boolean exclusive,
             boolean forceLockEvenInMvcc) {
         int lockMode = database.getLockMode();
         if (lockMode == Constants.LOCK_MODE_OFF) {
-            return;
+            return false;
         }
         if (!forceLockEvenInMvcc && database.isMultiVersion()) {
             // MVCC: update, delete, and insert use a shared lock.
@@ -109,12 +109,12 @@ public class MVTable extends TableBase {
                 exclusive = false;
             } else {
                 if (lockExclusiveSession == null) {
-                    return;
+                    return false;
                 }
             }
         }
         if (lockExclusiveSession == session) {
-            return;
+            return true;
         }
         synchronized (getLockSyncObject()) {
             session.setWaitForLock(this, Thread.currentThread());
@@ -126,6 +126,7 @@ public class MVTable extends TableBase {
                 waitingSessions.remove(session);
             }
         }
+        return false;
     }
 
     /**

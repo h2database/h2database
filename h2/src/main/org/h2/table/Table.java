@@ -134,9 +134,10 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param exclusive true for write locks, false for read locks
      * @param forceLockEvenInMvcc lock even in the MVCC mode
+     * @return true if the table was already exclusively locked by this session.
      * @throws DbException if a lock timeout occurred
      */
-    public abstract void lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc);
+    public abstract boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc);
 
     /**
      * Close the table object and flush changes.

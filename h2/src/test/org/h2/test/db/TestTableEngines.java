@@ -341,8 +341,9 @@ public class TestTableEngines extends TestBase {
             }
 
             @Override
-            public void lock(Session session, boolean exclusive, boolean force) {
+            public boolean lock(Session session, boolean exclusive, boolean force) {
                 // do nothing
+                return false;
             }
 
             @Override

@@ -617,7 +617,7 @@ public class Page {
      */
     void removeAllRecursive() {
         if (children != null) {
-            for (int i = 0, size = childCount; i < size; i++) {
+            for (int i = 0, size = map.getChildPageCount(this); i < size; i++) {
                 PageReference ref = children[i];
                 if (ref.page != null) {
                     ref.page.removeAllRecursive();
@@ -990,7 +990,7 @@ public class Page {
         return version;
     }
 
-    public int getChildPageCount() {
+    public int getRawChildPageCount() {
         return childCount;
     }
 
@@ -1041,7 +1041,7 @@ public class Page {
                 mem += valueType.getMemory(values[i]);
             }
         } else {
-            mem += this.getChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
+            mem += this.getRawChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
         }
         addMemory(mem - memory);
     }

@@ -121,48 +121,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     @Override
-    protected SpatialKey getLiveKey(Page p) {
-        while (!p.isLeaf()) {
-            p = p.getLiveChildPage(0);
-            if (p == null) {
-                return null;
-            }
-        }
-        SpatialKey key = (SpatialKey) p.getKey(0);
-        Page p2 = getPage(root, key);
-        if (p2 == null) {
-            return null;
-        }
-        if (p2.getPos() == 0) {
-            return p2 == p ? key : null;
-        }
-        if (p2.getPos() == p.getPos()) {
-            return key;
-        }
-        return null;
-    }
-
-    private Page getPage(Page p, Object key) {
-        if (!p.isLeaf()) {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (contains(p, i, key)) {
-                    Page x = getPage(p.getChildPage(i), key);
-                    if (x != null) {
-                        return x;
-                    }
-                }
-            }
-        } else {
-            for (int i = 0; i < p.getKeyCount(); i++) {
-                if (keyType.equals(p.getKey(i), key)) {
-                    return p;
-                }
-            }
-        }
-        return null;
-    }
-
-    @Override
     protected Object remove(Page p, long writeVersion, Object key) {
         Object result = null;
         if (p.isLeaf()) {
@@ -508,7 +466,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
 
     @Override
     protected int getChildPageCount(Page p) {
-        return p.getChildPageCount() - 1;
+        return p.getRawChildPageCount() - 1;
     }
 
     /**

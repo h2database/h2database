@@ -249,7 +249,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
                 return (K) p.getKey((int) (index - offset));
             }
-            int i = 0, size = p.getChildPageCount();
+            int i = 0, size = getChildPageCount(p);
             for (; i < size; i++) {
                 long c = p.getCounts(i);
                 if (index < c + offset) {
@@ -348,7 +348,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (p.isLeaf()) {
                 return (K) p.getKey(first ? 0 : p.getKeyCount() - 1);
             }
-            p = p.getChildPage(first ? 0 : p.getChildPageCount() - 1);
+            p = p.getChildPage(first ? 0 : getChildPageCount(p) - 1);
         }
     }
 
@@ -427,7 +427,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             x++;
         }
         while (true) {
-            if (x < 0 || x >= p.getChildPageCount()) {
+            if (x < 0 || x >= getChildPageCount(p)) {
                 return null;
             }
             K k = getMinMax(p.getChildPage(x), key, min, excluding);
@@ -478,34 +478,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @Override
     public boolean containsKey(Object key) {
         return get(key) != null;
-    }
-
-    /**
-     * Get a key that is referenced in the given page or a child page.
-     *
-     * @param p the page
-     * @return the key, or null if not found
-     */
-    protected K getLiveKey(Page p) {
-        while (!p.isLeaf()) {
-            p = p.getLiveChildPage(0);
-            if (p == null) {
-                return null;
-            }
-        }
-        @SuppressWarnings("unchecked")
-        K key = (K) p.getKey(0);
-        Page p2 = binarySearchPage(root, key);
-        if (p2 == null) {
-            return null;
-        }
-        if (p2.getPos() == 0) {
-            return p2 == p ? key : null;
-        }
-        if (p2.getPos() == p.getPos()) {
-            return key;
-        }
-        return null;
     }
 
     /**
@@ -846,7 +818,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             return 1;
         }
         int writtenPageCount = 0;
-        for (int i = 0; i < p.getChildPageCount(); i++) {
+        for (int i = 0; i < getChildPageCount(p); i++) {
             long childPos = p.getChildPagePos(i);
             if (childPos != 0 && DataUtils.getPageType(childPos) == DataUtils.PAGE_TYPE_LEAF) {
                 // we would need to load the page, and it's a leaf:
@@ -1250,7 +1222,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the number of direct children
      */
     protected int getChildPageCount(Page p) {
-        return p.getChildPageCount();
+        return p.getRawChildPageCount();
     }
 
     /**
@@ -1314,12 +1286,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             }
         } else {
             CursorPos pos = new CursorPos(target, 0, parent);
-            for (int i = 0; i < target.getChildPageCount(); i++) {
+            for (int i = 0; i < getChildPageCount(target); i++) {
                 pos.index = i;
                 long p = source.getChildPagePos(i);
                 if (p != 0) {
                     // p == 0 means no child
                     // (for example the last entry of an r-tree node)
+                    // (the MVMap is also used for r-trees for compacting)
                     copy(source.getChildPage(i), pos);
                 }
             }

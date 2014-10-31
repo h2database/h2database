@@ -87,6 +87,7 @@ public class TestSpatial extends TestBase {
         testValueGeometryScript();
         testInPlaceUpdate();
         testScanIndexOnNonSpatialQuery();
+        testStoreCorruption();
     }
 
     private void testHashCode() {
@@ -845,6 +846,33 @@ public class TestSpatial extends TestBase {
             ResultSet rs = stat.executeQuery("explain select * from test where _ROWID_ = 5");
             assertTrue(rs.next());
             assertContains(rs.getString(1), "tableScan");
+        } finally {
+            // Close the database
+            conn.close();
+        }
+        deleteDb("spatial");
+    }
+
+    private void testStoreCorruption() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("drop table if exists pt_cloud;\n" +
+                    "CREATE TABLE PT_CLOUD AS SELECT CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom from" +
+                    " system_range(1e6,1e6+10) A,system_range(6e6,6e6+10) B;\n" +
+                    "create spatial index ptindex on pt_cloud(the_geom);");
+            // Wait some time
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                throw new SQLException(ex);
+            }
+            stat.execute("drop table if exists pt_cloud;\n" +
+                    "CREATE TABLE PT_CLOUD AS SELECT CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom from" +
+                    " system_range(1e6,1e6+50) A,system_range(6e6,6e6+50) B;\n" +
+                    "create spatial index ptindex on pt_cloud(the_geom);\n" +
+                    "shutdown compact;");
         } finally {
             // Close the database
             conn.close();

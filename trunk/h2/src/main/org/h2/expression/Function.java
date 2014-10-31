@@ -2544,6 +2544,7 @@ public class Function extends Expression implements FunctionCall {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             } finally {
+                csv.close();
                 JdbcUtils.closeSilently(rs);
             }
             return x;

@@ -47,6 +47,7 @@ public class TestMVRTree extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
 
+        testRemoveAll();
         testRandomInsert();
         testSpatialKey();
         testExample();
@@ -54,6 +55,25 @@ public class TestMVRTree extends TestMVStore {
         testSimple();
         testRandom();
         testRandomFind();
+    }
+    
+    private void testRemoveAll() {
+        String fileName = getBaseDir() + "/testRemoveAll.h3";
+        FileUtils.delete(fileName);
+        MVStore s;
+        s = new MVStore.Builder().fileName(fileName).
+                pageSplitSize(100).open();
+        MVRTreeMap<String> map = s.openMap("data",
+                new MVRTreeMap.Builder<String>());
+        Random r = new Random(1);
+        for (int i = 0; i < 1000; i++) {
+            float x = r.nextFloat() * 50, y = r.nextFloat() * 50;
+            SpatialKey k = new SpatialKey(i % 100, x, x + 2, y, y + 1);
+            map.put(k, "i:" + i);
+        }
+        s.commit();
+        map.clear();
+        s.close();        
     }
 
     private void testRandomInsert() {

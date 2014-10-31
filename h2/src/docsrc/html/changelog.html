@@ -17,6 +17,14 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>H2 Console and server mode: SSL is now disabled and TLS is used
+    to protect against the POODLE SSLv3 vulnerability.
+    The system property to disable secure anonymous connections is now
+    "h2.enableAnonymousTLS".
+    The default certificate is still self-signed, so you need to manually install 
+    another one if you want to avoid man in the middle attacks.
+</li><li>MVStore: the R-tree did not correctly measure the memory usage.
+</li><li>MVStore: compacting a store with an R-tree did not always work.
 <ul><li>Issue 581: When running in LOCK_MODE=0,
         JdbcDatabaseMetaData#supportsTransactionIsolationLevel(TRANSACTION_READ_UNCOMMITTED)
     should return false

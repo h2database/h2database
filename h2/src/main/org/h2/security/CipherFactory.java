@@ -21,6 +21,8 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Properties;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -52,8 +54,6 @@ public class CipherFactory {
             "javax.net.ssl.keyStore";
     private static final String KEYSTORE_PASSWORD_KEY =
             "javax.net.ssl.keyStorePassword";
-    private static final String ANONYMOUS_CIPHER_SUITE =
-            "SSL_DH_anon_WITH_RC4_128_MD5";
 
     private CipherFactory() {
         // utility class
@@ -92,9 +92,12 @@ public class CipherFactory {
         SSLSocket secureSocket = (SSLSocket) f.createSocket();
         secureSocket.connect(new InetSocketAddress(address, port),
                 SysProperties.SOCKET_CONNECT_TIMEOUT);
-        if (SysProperties.ENABLE_ANONYMOUS_SSL) {
-            String[] list = secureSocket.getEnabledCipherSuites();
-            list = addAnonymous(list);
+        secureSocket.setEnabledCipherSuites(
+                disableSSL(secureSocket.getEnabledCipherSuites()));
+        if (SysProperties.ENABLE_ANONYMOUS_TLS) {
+            String[] list = enableAnonymous(
+                    secureSocket.getEnabledCipherSuites(),
+                    secureSocket.getSupportedCipherSuites());
             secureSocket.setEnabledCipherSuites(list);
         }
         socket = secureSocket;
@@ -121,11 +124,15 @@ public class CipherFactory {
         } else {
             secureSocket = (SSLServerSocket) f.createServerSocket(port, 0, bindAddress);
         }
-        if (SysProperties.ENABLE_ANONYMOUS_SSL) {
-            String[] list = secureSocket.getEnabledCipherSuites();
-            list = addAnonymous(list);
+        secureSocket.setEnabledCipherSuites(
+                disableSSL(secureSocket.getEnabledCipherSuites()));
+        if (SysProperties.ENABLE_ANONYMOUS_TLS) {
+            String[] list = enableAnonymous(
+                    secureSocket.getEnabledCipherSuites(),
+                    secureSocket.getSupportedCipherSuites());
             secureSocket.setEnabledCipherSuites(list);
         }
+        
         socket = secureSocket;
         return socket;
     }
@@ -262,11 +269,28 @@ public class CipherFactory {
         }
     }
 
-    private static String[] addAnonymous(String[] list) {
-        String[] newList = new String[list.length + 1];
-        System.arraycopy(list, 0, newList, 1, list.length);
-        newList[0] = ANONYMOUS_CIPHER_SUITE;
-        return newList;
+    private static String[] enableAnonymous(String[] enabled, String[] supported) {
+        HashSet<String> set = new HashSet<String>(); 
+        Collections.addAll(set, enabled);
+        for (String x : supported) {
+            if (x.startsWith("SSL") && 
+                    x.indexOf("_anon_") >= 0 && 
+                    x.indexOf("_AES_") >= 0 &&
+                    x.indexOf("_SHA") >= 0) {
+                set.add(x);
+            }
+        }
+        return set.toArray(new String[0]);
+    }
+
+    private static String[] disableSSL(String[] enabled) {
+        HashSet<String> set = new HashSet<String>();
+        for (String x : enabled) {
+            if (!x.startsWith("SSL")) {
+         set.add(x);
+            }
+        }
+        return set.toArray(new String[0]);
     }
 
 }

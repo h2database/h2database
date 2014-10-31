@@ -63,8 +63,8 @@ Advanced
     Restricting Class Loading and Usage</a><br />
 <a href="#security_protocols">
     Security Protocols</a><br />
-<a href="#ssl_tls_connections">
-    SSL/TLS Connections</a><br />
+<a href="#tls_connections">
+    TLS Connections</a><br />
 <a href="#uuid">
     Universally Unique Identifiers (UUID)</a><br />
 <a href="#system_properties">
@@ -1349,11 +1349,10 @@ There is a default self-certified certificate to support an easy starting point,
 custom certificates are supported as well.
 </p>
 
-<h2 id="ssl_tls_connections">SSL/TLS Connections</h2>
+<h2 id="tls_connections">TLS Connections</h2>
 <p>
-Remote SSL/TLS connections are supported using the Java Secure Socket Extension
-(<code>SSLServerSocket, SSLSocket</code>). By default, anonymous SSL is enabled.
-The default cipher suite is <code>SSL_DH_anon_WITH_RC4_128_MD5</code>.
+Remote TLS connections are supported using the Java Secure Socket Extension
+(<code>SSLServerSocket, SSLSocket</code>). By default, anonymous TLS is enabled.
 </p>
 <p>
 To use your own keystore, set the system properties <code>javax.net.ssl.keyStore</code> and
@@ -1363,7 +1362,7 @@ Customizing the Default Key and Trust Stores, Store Types, and Store Passwords</
 for more information.
 </p>
 <p>
-To disable anonymous SSL, set the system property <code>h2.enableAnonymousSSL</code> to false.
+To disable anonymous TLS, set the system property <code>h2.enableAnonymousTLS</code> to false.
 </p>
 
 <h2 id="uuid">Universally Unique Identifiers (UUID)</h2>
@@ -1495,7 +1494,7 @@ For a complete list of settings, see
 Usually server sockets accept connections on any/all local addresses.
 This may be a problem on multi-homed hosts.
 To bind only to one address, use the system property <code>h2.bindAddress</code>.
-This setting is used for both regular server sockets and for SSL server sockets.
+This setting is used for both regular server sockets and for TLS server sockets.
 IPv4 and IPv6 address formats are supported.
 </p>
 

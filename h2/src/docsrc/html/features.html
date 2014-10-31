@@ -130,8 +130,8 @@ Features
     it also doesn't apply if you set the password in the database URL)
 </li><li>All database files (including script files that can be used to backup data) can be
 encrypted using the AES-128 encryption algorithm
-</li><li>The remote JDBC driver supports TCP/IP connections over SSL/TLS
-</li><li>The built-in web server supports connections over SSL/TLS
+</li><li>The remote JDBC driver supports TCP/IP connections over TLS
+</li><li>The built-in web server supports connections over TLS
 </li><li>Passwords can be sent to the database using char arrays instead of Strings
 </li></ul>
 
@@ -487,7 +487,7 @@ This is achieved using different database URLs. Settings in the URLs are not cas
     </td>
 </tr>
 <tr>
-    <td><a href="advanced.html#ssl_tls_connections">Server mode (remote connections)<br /> using SSL/TLS</a></td>
+    <td><a href="advanced.html#tls_connections">Server mode (remote connections)<br /> using TLS</a></td>
     <td class="notranslate">
         jdbc:h2:ssl://&lt;server&gt;[:&lt;port&gt;]/&lt;databaseName&gt;<br />
         jdbc:h2:ssl://localhost:8085/~/sample;
@@ -628,7 +628,7 @@ class loader environment.
 </p><p>
 To access an in-memory database from another process or from another computer,
 you need to start a TCP server in the same process as the in-memory database was created.
-The other processes then need to access the database over TCP/IP or SSL/TLS,
+The other processes then need to access the database over TCP/IP or TLS,
 using a database URL such as: <code>jdbc:h2:tcp://localhost/mem:db1</code>.
 </p><p>
 By default, closing the last connection to a database closes the database.
@@ -845,7 +845,7 @@ connections to the same database. The number of open database is only limited by
 If you want to access the same database at the same time from different processes or computers,
 you need to use the client / server mode. In this case, one process acts as the server, and the
 other processes (that could reside on other computers as well) connect to the server via TCP/IP
-(or SSL/TLS over TCP/IP for improved security).
+(or TLS over TCP/IP for improved security).
 </p>
 
 <h3>Multithreading Support</h3>

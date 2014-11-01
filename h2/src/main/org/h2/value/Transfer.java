@@ -42,7 +42,7 @@ import org.h2.util.Utils;
  */
 public class Transfer {
 
-    private static final int BUFFER_SIZE = 16 * 1024;
+    private static final int BUFFER_SIZE = 64 * 1024;
     private static final int LOB_MAGIC = 0x1234;
     private static final int LOB_MAC_SALT_LENGTH = 16;
 

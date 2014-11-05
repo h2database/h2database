@@ -148,8 +148,9 @@ class WebThread extends WebApp implements Runnable {
             } else {
                 bytes = server.getFile(file);
                 if (bytes == null) {
-                    message = "HTTP/1.0 404 Not Found\r\n";
+                    message = "HTTP/1.1 404 Not Found\r\n";
                     bytes = ("File not found: " + file).getBytes(Constants.UTF8);
+                    message += "Content-Length: " + bytes.length + "\r\n";
                 } else {
                     if (session != null && file.endsWith(".jsp")) {
                         String page = new String(bytes, Constants.UTF8);

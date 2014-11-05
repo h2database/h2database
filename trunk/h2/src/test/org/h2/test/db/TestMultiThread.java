@@ -59,7 +59,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
-        testMetadataWith();
+        testLockModeWithMultiThreaded();
     }
 
     private void testConcurrentLobAdd() throws Exception {
@@ -246,15 +246,17 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
     }
 
-    private void testMetadataWith() throws Exception {
+    private void testLockModeWithMultiThreaded() throws Exception {
         // currently the combination of LOCK_MODE=0 and MULTI_THREADED
-        // is not supported. also see code in
-        deleteDb("concurrentAnalyze");
-        final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
+        // is not supported
+        deleteDb("lockMode");
+        final String url = getURL("lockMode;MULTI_THREADED=1", true);
         Connection conn = getConnection(url);
-        DatabaseMetaData dmd = conn.getMetaData();
-        assertFalse(dmd.supportsTransactionIsolationLevel(Connection.TRANSACTION_READ_UNCOMMITTED));
+        DatabaseMetaData meta = conn.getMetaData();
+        assertFalse(meta.supportsTransactionIsolationLevel(
+                Connection.TRANSACTION_READ_UNCOMMITTED));
         conn.close();
-        deleteDb("concurrentAnalyze");
+        deleteDb("lockMode");
     }
+
 }

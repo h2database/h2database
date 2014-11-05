@@ -11,7 +11,6 @@ import java.util.Random;
 import java.util.TreeMap;
 
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -22,7 +21,6 @@ import org.h2.test.TestBase;
 public class TestRandomMapOps extends TestBase {
 
     private String fileName;
-    private boolean concurrent;
     private int seed;
     private int op;
 
@@ -39,9 +37,6 @@ public class TestRandomMapOps extends TestBase {
 
     @Override
     public void test() throws Exception {
-        concurrent = false;
-        testMap("memFS:randomOps.h3");
-        concurrent = true;
         testMap("memFS:randomOps.h3");
     }
 
@@ -82,11 +77,7 @@ public class TestRandomMapOps extends TestBase {
         MVStore s;
         s = openStore(fileName);
         MVMap<Integer, byte[]> m;
-        if (concurrent) {
-            m = s.openMap("data", new MVMapConcurrent.Builder<Integer, byte[]>());
-        } else {
-            m = s.openMap("data");
-        }
+        m = s.openMap("data");
         Random r = new Random(seed);
         op = 0;
         TreeMap<Integer, byte[]> map = new TreeMap<Integer, byte[]>();

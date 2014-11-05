@@ -165,7 +165,6 @@ public class Build extends BuildBase {
         switchSource(debugInfo);
         clean();
         mkdir("temp");
-        download();
         String classpath = "temp";
         FileList files;
         files = files("src/main/org/h2/mvstore").
@@ -465,7 +464,7 @@ public class Build extends BuildBase {
             exclude("*.bat").
             exclude("*.sh").
             exclude("*.txt");
-        long kb = jar("bin/h2client" + getJarSuffix(), files, "temp");
+        long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
         if (kb < 350 || kb > 450) {
             throw new RuntimeException("Expected file size 350 - 450 KB, got: " + kb);
         }
@@ -476,8 +475,9 @@ public class Build extends BuildBase {
      */
     public void jarMVStore() {
         compileMVStore(true);
+        manifestMVStore();
         FileList files = files("temp");
-        jar("bin/h2mvstore" + getJarSuffix(), files, "temp");
+        jar("bin/h2-mvstore" + getJarSuffix(), files, "temp");
     }
 
     /**
@@ -599,8 +599,20 @@ public class Build extends BuildBase {
         writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
     }
 
+    private static void manifestMVStore() {
+        String manifest = new String(readFile(new File(
+                "src/installer/mvstore/MANIFEST.MF")));
+        manifest = replaceAll(manifest, "${version}", getVersion());
+        manifest = replaceAll(manifest, "${buildJdk}", getJavaSpecVersion());
+        String createdBy = System.getProperty("java.runtime.version") +
+            " (" + System.getProperty("java.vm.vendor") + ")";
+        manifest = replaceAll(manifest, "${createdBy}", createdBy);
+        mkdir("temp/META-INF");
+        writeFile(new File("temp/META-INF/MANIFEST.MF"), manifest.getBytes());
+    }
+
     /**
-     * This will build a release of the H2 .jar file and upload it to
+     * This will build a release of the H2 .jar files and upload it to
      * file:///data/h2database/m2-repo. This is only required when
      * a new H2 version is made.
      */
@@ -663,6 +675,21 @@ public class Build extends BuildBase {
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
                 "-DgroupId=com.h2database"));
+
+        // generate and deploy the h2-mvstore-*.jar file
+        jarMVStore();
+        pom = new String(readFile(new File("src/installer/pom-mvstore-template.xml")));
+        pom = replaceAll(pom, "@version@", getVersion());
+        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        execScript("mvn", args(
+                "deploy:deploy-file",
+                "-Dfile=bin/h2-mvstore" + getJarSuffix(),
+                "-Durl=file:///data/h2database/m2-repo",
+                "-Dpackaging=jar",
+                "-Dversion=" + getVersion(),
+                "-DpomFile=bin/pom.xml",
+                "-DartifactId=h2-mvstore",
+                "-DgroupId=com.h2database"));
     }
 
     /**
@@ -670,8 +697,22 @@ public class Build extends BuildBase {
      * Maven 2 repository.
      */
     public void mavenInstallLocal() {
+        // MVStore
+        jarMVStore();
+        String pom = new String(readFile(new File("src/installer/pom-mvstore-template.xml")));
+        pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
+        writeFile(new File("bin/pom.xml"), pom.getBytes());
+        execScript("mvn", args(
+                "install:install-file",
+                "-Dversion=1.0-SNAPSHOT",
+                "-Dfile=bin/h2-mvstore" + getJarSuffix(),
+                "-Dpackaging=jar",
+                "-DpomFile=bin/pom.xml",
+                "-DartifactId=h2-mvstore",
+                "-DgroupId=com.h2database"));
+        // database
         jar();
-        String pom = new String(readFile(new File("src/installer/pom-template.xml")));
+        pom = new String(readFile(new File("src/installer/pom-template.xml")));
         pom = replaceAll(pom, "@version@", "1.0-SNAPSHOT");
         writeFile(new File("bin/pom.xml"), pom.getBytes());
         execScript("mvn", args(

@@ -161,9 +161,7 @@ public class MVTableEngine implements TableEngine {
             this.store = builder.open();
             this.transactionStore = new TransactionStore(
                     store,
-                    new ValueDataType(null, db, null),
-                    db.isMultiThreaded()
-                    );
+                    new ValueDataType(null, db, null));
         }
 
         public MVStore getStore() {

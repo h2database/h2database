@@ -8,7 +8,6 @@ package org.h2.mvstore;
 import java.util.Arrays;
 import java.util.Iterator;
 
-
 /**
  * A very simple array list that supports concurrent access.
  * Internally, it uses immutable objects.

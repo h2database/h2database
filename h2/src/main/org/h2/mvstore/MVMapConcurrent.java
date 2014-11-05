@@ -9,83 +9,15 @@ import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
 
 /**
- * A stored map. Read operations can happen concurrently with all other
- * operations, without risk of corruption.
- * <p>
- * Write operations first read the relevant area from disk to memory
- * concurrently, and only then modify the data. The in-memory part of write
- * operations is synchronized. For scalable concurrent in-memory write
- * operations, the map should be split into multiple smaller sub-maps that are
- * then synchronized independently.
+ * A class used for backward compatibility.
  *
- * @param <K> the key class
- * @param <V> the value class
+ * @param <K> the key type
+ * @param <V> the value type
  */
 public class MVMapConcurrent<K, V> extends MVMap<K, V> {
 
     public MVMapConcurrent(DataType keyType, DataType valueType) {
         super(keyType, valueType);
-    }
-
-    @Override
-    protected Page copyOnWrite(Page p, long writeVersion) {
-        return p.copy(writeVersion);
-    }
-
-    @Override
-    protected void checkConcurrentWrite() {
-        // ignore (writes are synchronized)
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public V put(K key, V value) {
-        beforeWrite();
-        try {
-            // even if the result is the same, we still update the value
-            // (otherwise compact doesn't work)
-            get(key);
-            long v = writeVersion;
-            synchronized (this) {
-                Page p = copyOnWrite(root, v);
-                p = splitRootIfNeeded(p, v);
-                V result = (V) put(p, v, key, value);
-                newRoot(p);
-                return result;
-            }
-        } finally {
-            afterWrite();
-        }
-    }
-
-    @Override
-    protected void waitUntilWritten(long version) {
-        // no need to wait
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public V remove(Object key) {
-        beforeWrite();
-        try {
-            V result = get(key);
-            if (result == null) {
-                return null;
-            }
-            long v = writeVersion;
-            synchronized (this) {
-                Page p = copyOnWrite(root, v);
-                result = (V) remove(p, v, key);
-                if (!p.isLeaf() && p.getTotalCount() == 0) {
-                    p.removePage();
-                    p = Page.createEmpty(this,  p.getVersion());
-                }
-                newRoot(p);
-            }
-            return result;
-        } finally {
-            afterWrite();
-        }
     }
 
     /**

@@ -21,6 +21,15 @@ import org.h2.util.New;
 
 /**
  * A stored map.
+ * <p>
+ * Read operations can happen concurrently with all other
+ * operations, without risk of corruption.
+ * <p>
+ * Write operations first read the relevant area from disk to memory
+ * concurrently, and only then modify the data. The in-memory part of write
+ * operations is synchronized. For scalable concurrent in-memory write
+ * operations, the map should be split into multiple smaller sub-maps that are
+ * then synchronized independently.
  *
  * @param <K> the key class
  * @param <V> the value class
@@ -42,11 +51,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * The version used for writing.
      */
     protected volatile long writeVersion;
-
-    /**
-     * This version is set during a write operation.
-     */
-    protected volatile long currentWriteVersion = -1;
 
     private int id;
     private long createVersion;
@@ -100,21 +104,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
-     * Create a copy of a page, if the write version is higher than the current
-     * version. If a copy is created, the old page is marked as deleted.
-     *
-     * @param p the page
-     * @param writeVersion the write version
-     * @return a page with the given write version
-     */
-    protected Page copyOnWrite(Page p, long writeVersion) {
-        if (p.getVersion() == writeVersion) {
-            return p;
-        }
-        return p.copy(writeVersion);
-    }
-
-    /**
      * Add or replace a key-value pair.
      *
      * @param key the key (may not be null)
@@ -126,16 +115,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     public synchronized V put(K key, V value) {
         DataUtils.checkArgument(value != null, "The value may not be null");
         beforeWrite();
-        try {
-            long v = writeVersion;
-            Page p = copyOnWrite(root, v);
-            p = splitRootIfNeeded(p, v);
-            Object result = put(p, v, key, value);
-            newRoot(p);
-            return (V) result;
-        } finally {
-            afterWrite();
-        }
+        long v = writeVersion;
+        Page p = root.copy(v);
+        p = splitRootIfNeeded(p, v);
+        Object result = put(p, v, key, value);
+        newRoot(p);
+        return (V) result;
     }
 
     /**
@@ -155,14 +140,13 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         Page split = p.split(at);
         Object[] keys = { k };
         Page.PageReference[] children = {
-                new Page.PageReference(p, p.getPos()),
-                new Page.PageReference(split, split.getPos()),
+                new Page.PageReference(p, p.getPos(), p.getTotalCount()),
+                new Page.PageReference(split, split.getPos(), split.getTotalCount()),
         };
-        long[] counts = { p.getTotalCount(), split.getTotalCount() };
         p = Page.create(this, writeVersion,
-                1, keys, null,
-                2, children, counts,
-                totalCount, 0, 0);
+                keys, null,
+                children,
+                totalCount, 0);
         return p;
     }
 
@@ -191,21 +175,19 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         } else {
             index++;
         }
-        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
+        Page c = p.getChildPage(index).copy(writeVersion);
         if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
             // split on the way down
             int at = c.getKeyCount() / 2;
             Object k = c.getKey(at);
             Page split = c.split(at);
             p.setChild(index, split);
-            p.setCounts(index, split);
             p.insertNode(index, k, c);
             // now we are not sure where to add
             return put(p, writeVersion, key, value);
         }
-        p.setChild(index, c);
         Object result = put(c, writeVersion, key, value);
-        p.setCounts(index, c);
+        p.setChild(index, c);
         return result;
     }
 
@@ -510,12 +492,8 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     @Override
     public synchronized void clear() {
         beforeWrite();
-        try {
-            root.removeAllRecursive();
-            newRoot(Page.createEmpty(this, writeVersion));
-        } finally {
-            afterWrite();
-        }
+        root.removeAllRecursive();
+        newRoot(Page.createEmpty(this, writeVersion));
     }
 
     /**
@@ -537,22 +515,24 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the old value if the key existed, or null otherwise
      */
     @Override
-    public synchronized V remove(Object key) {
+    @SuppressWarnings("unchecked")
+    public V remove(Object key) {
         beforeWrite();
-        try {
-            long v = writeVersion;
-            Page p = copyOnWrite(root, v);
-            @SuppressWarnings("unchecked")
-            V result = (V) remove(p, v, key);
+        V result = get(key);
+        if (result == null) {
+            return null;
+        }
+        long v = writeVersion;
+        synchronized (this) {
+            Page p = root.copy(v);
+            result = (V) remove(p, v, key);
             if (!p.isLeaf() && p.getTotalCount() == 0) {
                 p.removePage();
                 p = Page.createEmpty(this,  p.getVersion());
             }
             newRoot(p);
-            return result;
-        } finally {
-            afterWrite();
         }
+        return result;
     }
 
     /**
@@ -664,18 +644,16 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             index++;
         }
         Page cOld = p.getChildPage(index);
-        Page c = copyOnWrite(cOld, writeVersion);
+        Page c = cOld.copy(writeVersion);
         result = remove(c, writeVersion, key);
         if (result == null || c.getTotalCount() != 0) {
             // no change, or
             // there are more nodes
             p.setChild(index, c);
-            p.setCounts(index, c);
         } else {
             // this child was deleted
             if (p.getKeyCount() == 0) {
                 p.setChild(index, c);
-                p.setCounts(index, c);
                 c.removePage();
             } else {
                 p.remove(index);
@@ -975,25 +953,21 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      */
     void rollbackTo(long version) {
         beforeWrite();
-        try {
-            if (version <= createVersion) {
-                // the map is removed later
-            } else if (root.getVersion() >= version) {
-                while (true) {
-                    Page last = oldRoots.peekLast();
-                    if (last == null) {
-                        break;
-                    }
-                    // slow, but rollback is not a common operation
-                    oldRoots.removeLast(last);
-                    root = last;
-                    if (root.getVersion() < version) {
-                        break;
-                    }
+        if (version <= createVersion) {
+            // the map is removed later
+        } else if (root.getVersion() >= version) {
+            while (true) {
+                Page last = oldRoots.peekLast();
+                if (last == null) {
+                    break;
+                }
+                // slow, but rollback is not a common operation
+                oldRoots.removeLast(last);
+                root = last;
+                if (root.getVersion() < version) {
+                    break;
                 }
             }
-        } finally {
-            afterWrite();
         }
     }
 
@@ -1056,45 +1030,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only");
         }
-        checkConcurrentWrite();
         store.beforeWrite();
-        currentWriteVersion = writeVersion;
-    }
-
-    /**
-     * Check that no write operation is in progress.
-     */
-    protected void checkConcurrentWrite() {
-        if (currentWriteVersion != -1) {
-            // try to detect concurrent modification
-            // on a best-effort basis
-            throw DataUtils.newConcurrentModificationException(getName());
-        }
-    }
-
-    /**
-     * This method is called after writing to the map (whether or not the write
-     * operation was successful).
-     */
-    protected void afterWrite() {
-        currentWriteVersion = -1;
-    }
-
-    /**
-     * If there is a concurrent update to the given version, wait until it is
-     * finished.
-     *
-     * @param version the read version
-     */
-    protected void waitUntilWritten(long version) {
-        if (readOnly) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_INTERNAL,
-                    "Waiting for writes to a read-only map");
-        }
-        while (currentWriteVersion == version) {
-            Thread.yield();
-        }
     }
 
     @Override
@@ -1267,7 +1203,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     void copyFrom(MVMap<K, V> sourceMap) {
         beforeWrite();
         newRoot(copy(sourceMap.root, null));
-        afterWrite();
     }
 
     private Page copy(Page source, CursorPos parent) {
@@ -1276,11 +1211,10 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             Page child = target;
             for (CursorPos p = parent; p != null; p = p.parent) {
                 p.page.setChild(p.index, child);
-                p.page = copyOnWrite(p.page, writeVersion);
+                p.page = p.page.copy(writeVersion);
                 child = p.page;
                 if (p.parent == null) {
                     newRoot(p.page);
-                    afterWrite();
                     beforeWrite();
                 }
             }

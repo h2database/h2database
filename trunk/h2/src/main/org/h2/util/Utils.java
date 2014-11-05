@@ -462,9 +462,11 @@ public class Utils {
         byte[] data = RESOURCES.get(name);
         if (data == null) {
             data = loadResource(name);
-            RESOURCES.put(name, data);
+            if (data != null) {
+                RESOURCES.put(name, data);
+            }
         }
-        return data == null ? EMPTY_BYTES : data;
+        return data;
     }
 
     private static byte[] loadResource(String name) throws IOException {

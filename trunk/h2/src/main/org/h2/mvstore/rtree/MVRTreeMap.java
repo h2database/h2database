@@ -121,7 +121,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     }
 
     @Override
-    protected Object remove(Page p, long writeVersion, Object key) {
+    protected synchronized Object remove(Page p, long writeVersion, Object key) {
         Object result = null;
         if (p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
@@ -139,11 +139,10 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 // this will mark the old page as deleted
                 // so we need to update the parent in any case
                 // (otherwise the old page might be deleted again)
-                Page c = copyOnWrite(cOld, writeVersion);
+                Page c = cOld.copy(writeVersion);
                 long oldSize = c.getTotalCount();
                 result = remove(c, writeVersion, key);
                 p.setChild(i, c);
-                p.setCounts(i, c);
                 if (oldSize == c.getTotalCount()) {
                     continue;
                 }
@@ -190,45 +189,39 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         putOrAdd(key, value, true);
     }
 
-    private Object putOrAdd(SpatialKey key, V value, boolean alwaysAdd) {
+    private synchronized Object putOrAdd(SpatialKey key, V value, boolean alwaysAdd) {
         beforeWrite();
-        try {
-            long v = writeVersion;
-            Page p = copyOnWrite(root, v);
-            Object result;
-            if (alwaysAdd || get(key) == null) {
-                if (p.getMemory() > store.getPageSplitSize() &&
-                        p.getKeyCount() > 1) {
-                    // only possible if this is the root, else we would have
-                    // split earlier (this requires pageSplitSize is fixed)
-                    long totalCount = p.getTotalCount();
-                    Page split = split(p, v);
-                    Object k1 = getBounds(p);
-                    Object k2 = getBounds(split);
-                    Object[] keys = { k1, k2 };
-                    Page.PageReference[] children = {
-                            new Page.PageReference(p, p.getPos()),
-                            new Page.PageReference(split, split.getPos()),
-                            new Page.PageReference(null, 0)
-                    };
-                    long[] counts = { p.getTotalCount(),
-                            split.getTotalCount(), 0 };
-                    p = Page.create(this, v,
-                            2, keys, null,
-                            3, children, counts,
-                            totalCount, 0, 0);
-                    // now p is a node; continues
-                }
-                add(p, v, key, value);
-                result = null;
-            } else {
-                result = set(p, v, key, value);
+        long v = writeVersion;
+        Page p = root.copy(v);
+        Object result;
+        if (alwaysAdd || get(key) == null) {
+            if (p.getMemory() > store.getPageSplitSize() &&
+                    p.getKeyCount() > 3) {
+                // only possible if this is the root, else we would have
+                // split earlier (this requires pageSplitSize is fixed)
+                long totalCount = p.getTotalCount();
+                Page split = split(p, v);
+                Object k1 = getBounds(p);
+                Object k2 = getBounds(split);
+                Object[] keys = { k1, k2 };
+                Page.PageReference[] children = {
+                        new Page.PageReference(p, p.getPos(), p.getTotalCount()),
+                        new Page.PageReference(split, split.getPos(), split.getTotalCount()),
+                        new Page.PageReference(null, 0, 0)
+                };
+                p = Page.create(this, v,
+                        keys, null,
+                        children,
+                        totalCount, 0);
+                // now p is a node; continues
             }
-            newRoot(p);
-            return result;
-        } finally {
-            afterWrite();
+            add(p, v, key, value);
+            result = null;
+        } else {
+            result = set(p, v, key, value);
         }
+        newRoot(p);
+        return result;
     }
 
     /**
@@ -252,10 +245,9 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 if (contains(p, i, key)) {
                     Page c = p.getChildPage(i);
                     if (get(c, key) != null) {
-                        c = copyOnWrite(c, writeVersion);
+                        c = c.copy(writeVersion);
                         Object result = set(c, writeVersion, key, value);
                         p.setChild(i, c);
-                        p.setCounts(i, c);
                         return result;
                     }
                 }
@@ -290,14 +282,12 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
                 }
             }
         }
-        Page c = copyOnWrite(p.getChildPage(index), writeVersion);
-        if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 1) {
+        Page c = p.getChildPage(index).copy(writeVersion);
+        if (c.getMemory() > store.getPageSplitSize() && c.getKeyCount() > 4) {
             // split on the way down
             Page split = split(c, writeVersion);
-            p = copyOnWrite(p, writeVersion);
             p.setKey(index, getBounds(c));
             p.setChild(index, c);
-            p.setCounts(index, c);
             p.insertNode(index, getBounds(split), split);
             // now we are not sure where to add
             add(p, writeVersion, key, value);
@@ -308,7 +298,6 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         keyType.increaseBounds(bounds, key);
         p.setKey(index, bounds);
         p.setChild(index, c);
-        p.setCounts(index, c);
     }
 
     private Page split(Page p, long writeVersion) {
@@ -412,20 +401,17 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
     private Page newPage(boolean leaf, long writeVersion) {
         Object[] values;
         Page.PageReference[] refs;
-        long[] c;
         if (leaf) {
-            values = new Object[4];
+            values = Page.EMPTY_OBJECT_ARRAY;
             refs = null;
-            c = null;
         } else {
             values = null;
             refs = new Page.PageReference[] {
-                    new Page.PageReference(null, 0)};
-            c = new long[1];
+                    new Page.PageReference(null, 0, 0)};
         }
         return Page.create(this, writeVersion,
-                0, new Object[4], values,
-                leaf ? 0 : 1, refs, c, 0, 0, 0);
+                Page.EMPTY_OBJECT_ARRAY, values,
+                refs, 0, 0);
     }
 
     private static void move(Page source, Page target, int sourceIndex) {

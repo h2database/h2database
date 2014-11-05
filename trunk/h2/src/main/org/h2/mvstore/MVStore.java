@@ -190,7 +190,7 @@ public class MVStore {
      * The metadata map. Write access to this map needs to be synchronized on
      * the store.
      */
-    private MVMapConcurrent<String, String> meta;
+    private MVMap<String, String> meta;
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
             new ConcurrentHashMap<Integer, MVMap<?, ?>>();
@@ -283,7 +283,7 @@ public class MVStore {
         }
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
-        meta = new MVMapConcurrent<String, String>(StringDataType.INSTANCE,
+        meta = new MVMap<String, String>(StringDataType.INSTANCE,
                 StringDataType.INSTANCE);
         HashMap<String, Object> c = New.hashMap();
         c.put("id", 0);
@@ -1010,7 +1010,6 @@ public class MVStore {
                 continue;
             }
             if (v >= 0 && v >= lastStoredVersion) {
-                m.waitUntilWritten(storeVersion);
                 MVMap<?, ?> r = m.openVersion(storeVersion);
                 if (r.getRoot().getPos() == 0) {
                     changed.add(r);

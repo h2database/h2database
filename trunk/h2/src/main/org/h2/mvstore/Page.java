@@ -29,10 +29,10 @@ import org.h2.mvstore.type.DataType;
  */
 public class Page {
 
-    private static final int SHARED_KEYS = 1, SHARED_VALUES = 2,
-            SHARED_CHILDREN = 4, SHARED_COUNTS = 8;
-
-    private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    /**
+     * An empty object array.
+     */
+    public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
     private final MVMap<?, ?> map;
     private long version;
@@ -44,24 +44,9 @@ public class Page {
     private long totalCount;
 
     /**
-     * The number of keys.
-     */
-    private int keyCount;
-
-    /**
-     * The number of children.
-     */
-    private int childCount;
-
-    /**
      * The last result of a find operation is cached.
      */
     private int cachedCompare;
-
-    /**
-     * Which arrays are shared with another version of this page.
-     */
-    private int sharedFlags;
 
     /**
      * The estimated memory used.
@@ -90,13 +75,6 @@ public class Page {
     private PageReference[] children;
 
     /**
-     * The descendant count for each child page.
-     * <p>
-     * The array might be larger than needed, to avoid frequent re-sizing.
-     */
-    private long[] counts;
-
-    /**
      * Whether the page is an in-memory (not stored, or not yet stored) page,
      * and it is removed. This is to keep track of pages that concurrently
      * changed while they are being stored, in which case the live bookkeeping
@@ -118,9 +96,9 @@ public class Page {
      */
     static Page createEmpty(MVMap<?, ?> map, long version) {
         return create(map, version,
-                0, EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
-                0, null, null,
-                0, 0, DataUtils.PAGE_MEMORY);
+                EMPTY_OBJECT_ARRAY, EMPTY_OBJECT_ARRAY,
+                null,
+                0, DataUtils.PAGE_MEMORY);
     }
 
     /**
@@ -128,31 +106,22 @@ public class Page {
      *
      * @param map the map
      * @param version the version
-     * @param keyCount the number of keys
      * @param keys the keys
      * @param values the values
-     * @param childCount the number of children
      * @param children the child page positions
-     * @param counts the children counts
      * @param totalCount the total number of keys
-     * @param sharedFlags which arrays are shared
      * @param memory the memory used in bytes
      * @return the page
      */
-    public static Page create(MVMap<?, ?> map, long version, int keyCount,
-            Object[] keys, Object[] values, int childCount, PageReference[] children,
-            long[] counts, long totalCount,
-            int sharedFlags, int memory) {
+    public static Page create(MVMap<?, ?> map, long version,
+            Object[] keys, Object[] values, PageReference[] children,
+            long totalCount, int memory) {
         Page p = new Page(map, version);
         // the position is 0
-        p.keyCount = keyCount;
         p.keys = keys;
         p.values = values;
-        p.childCount = childCount;
         p.children = children;
-        p.counts = counts;
         p.totalCount = totalCount;
-        p.sharedFlags = sharedFlags;
         if (memory == 0) {
             p.recalculateMemory();
         } else {
@@ -176,17 +145,10 @@ public class Page {
     public static Page create(MVMap<?, ?> map, long version, Page source) {
         Page p = new Page(map, version);
         // the position is 0
-        p.keyCount = source.keyCount;
         p.keys = source.keys;
-        if (source.isLeaf()) {
-            p.values = source.values;
-        } else {
-            p.childCount = source.childCount;
-            p.children = source.children;
-            p.counts = source.counts;
-        }
+        p.values = source.values;
+        p.children = source.children;
         p.totalCount = source.totalCount;
-        p.sharedFlags = source.sharedFlags;
         p.memory = source.memory;
         MVStore store = map.store;
         if (store != null) {
@@ -296,7 +258,7 @@ public class Page {
      * @return the number of keys
      */
     public int getKeyCount() {
-        return keyCount;
+        return keys.length;
     }
 
     /**
@@ -327,14 +289,14 @@ public class Page {
             int chunkId = DataUtils.getPageChunkId(pos);
             buff.append("chunk: ").append(Long.toHexString(chunkId)).append("\n");
         }
-        for (int i = 0; i <= keyCount; i++) {
+        for (int i = 0; i <= keys.length; i++) {
             if (i > 0) {
                 buff.append(" ");
             }
             if (children != null) {
                 buff.append("[" + Long.toHexString(children[i].pos) + "] ");
             }
-            if (i < keyCount) {
+            if (i < keys.length) {
                 buff.append(keys[i]);
                 if (values != null) {
                     buff.append(':');
@@ -353,9 +315,8 @@ public class Page {
      */
     public Page copy(long version) {
         Page newPage = create(map, version,
-                keyCount, keys, values,
-                childCount, children, counts, totalCount,
-                SHARED_KEYS | SHARED_VALUES | SHARED_CHILDREN | SHARED_COUNTS,
+                keys, values,
+                children, totalCount,
                 getMemory());
         // mark the old as deleted
         removePage();
@@ -375,7 +336,7 @@ public class Page {
      * @return the value or null
      */
     public int binarySearch(Object key) {
-        int low = 0, high = keyCount - 1;
+        int low = 0, high = keys.length - 1;
         // the cached index minus one, so that
         // for the first time (when cachedCompare is 0),
         // the default value is used
@@ -400,7 +361,7 @@ public class Page {
         return -(low + 1);
 
         // regular binary search (without caching)
-        // int low = 0, high = keyCount - 1;
+        // int low = 0, high = keys.length - 1;
         // while (low <= high) {
         //     int x = (low + high) >>> 1;
         //     int compare = map.compare(key, keys[x]);
@@ -426,39 +387,36 @@ public class Page {
     }
 
     private Page splitLeaf(int at) {
-        int a = at, b = keyCount - a;
+        int a = at, b = keys.length - a;
         Object[] aKeys = new Object[a];
         Object[] bKeys = new Object[b];
         System.arraycopy(keys, 0, aKeys, 0, a);
         System.arraycopy(keys, a, bKeys, 0, b);
         keys = aKeys;
-        keyCount = a;
         Object[] aValues = new Object[a];
         Object[] bValues = new Object[b];
         bValues = new Object[b];
         System.arraycopy(values, 0, aValues, 0, a);
         System.arraycopy(values, a, bValues, 0, b);
         values = aValues;
-        sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount = a;
         Page newPage = create(map, version,
-                b, bKeys, bValues,
-                0, null, null,
-                bKeys.length, 0, 0);
+                bKeys, bValues,
+                null,
+                bKeys.length, 0);
         recalculateMemory();
         newPage.recalculateMemory();
         return newPage;
     }
 
     private Page splitNode(int at) {
-        int a = at, b = keyCount - a;
+        int a = at, b = keys.length - a;
 
         Object[] aKeys = new Object[a];
         Object[] bKeys = new Object[b - 1];
         System.arraycopy(keys, 0, aKeys, 0, a);
         System.arraycopy(keys, a + 1, bKeys, 0, b - 1);
         keys = aKeys;
-        keyCount = a;
 
         PageReference[] aChildren = new PageReference[a + 1];
         PageReference[] bChildren = new PageReference[b];
@@ -466,27 +424,19 @@ public class Page {
         System.arraycopy(children, a + 1, bChildren, 0, b);
         children = aChildren;
 
-        long[] aCounts = new long[a + 1];
-        long[] bCounts = new long[b];
-        System.arraycopy(counts, 0, aCounts, 0, a + 1);
-        System.arraycopy(counts, a + 1, bCounts, 0, b);
-        counts = aCounts;
-        childCount = a + 1;
-
-        sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         long t = 0;
-        for (long x : aCounts) {
-            t += x;
+        for (PageReference x : aChildren) {
+            t += x.count;
         }
         totalCount = t;
         t = 0;
-        for (long x : bCounts) {
-            t += x;
+        for (PageReference x : bChildren) {
+            t += x.count;
         }
         Page newPage = create(map, version,
-                b - 1, bKeys, null,
-                b, bChildren, bCounts,
-                t, 0, 0);
+                bKeys, null,
+                bChildren,
+                t, 0);
         recalculateMemory();
         newPage.recalculateMemory();
         return newPage;
@@ -501,10 +451,10 @@ public class Page {
         if (MVStore.ASSERT) {
             long check = 0;
             if (isLeaf()) {
-                check = keyCount;
+                check = keys.length;
             } else {
-                for (long x : counts) {
-                    check += x;
+                for (PageReference x : children) {
+                    check += x.count;
                 }
             }
             if (check != totalCount) {
@@ -523,7 +473,7 @@ public class Page {
      * @return the descendant count
      */
     long getCounts(int index) {
-        return counts[index];
+        return children[index].count;
     }
 
     /**
@@ -534,40 +484,11 @@ public class Page {
      */
     public void setChild(int index, Page c) {
         if (c != children[index].page || c.getPos() != children[index].pos) {
-            if ((sharedFlags & SHARED_CHILDREN) != 0) {
-                children = Arrays.copyOf(children, children.length);
-                sharedFlags &= ~SHARED_CHILDREN;
-            }
-            PageReference ref = new PageReference(c, c.pos);
+            long oldCount = children[index].count;
+            children = Arrays.copyOf(children, children.length);
+            PageReference ref = new PageReference(c, c.pos, c.totalCount);
             children[index] = ref;
-        }
-    }
-
-    /**
-     * Update the (descendant) count for the given child, if there was a change.
-     *
-     * @param index the index
-     * @param c the new child page
-     */
-    public void setCounts(int index, Page c) {
-        setCounts(index, c.totalCount);
-    }
-
-    /**
-     * Update the (descendant) count for the given child, if there was a change.
-     *
-     * @param index the index
-     * @param total the new value
-     */
-    private void setCounts(int index, long total) {
-        if (total != counts[index]) {
-            if ((sharedFlags & SHARED_COUNTS) != 0) {
-                counts = Arrays.copyOf(counts, counts.length);
-                sharedFlags &= ~SHARED_COUNTS;
-            }
-            long oldCount = counts[index];
-            counts[index] = total;
-            totalCount += counts[index] - oldCount;
+            totalCount += c.totalCount - oldCount;
         }
     }
 
@@ -578,10 +499,7 @@ public class Page {
      * @param key the new key
      */
     public void setKey(int index, Object key) {
-        if ((sharedFlags & SHARED_KEYS) != 0) {
-            keys = Arrays.copyOf(keys, keys.length);
-            sharedFlags &= ~SHARED_KEYS;
-        }
+        keys = Arrays.copyOf(keys, keys.length);
         Object old = keys[index];
         DataType keyType = map.getKeyType();
         int mem = keyType.getMemory(key);
@@ -601,10 +519,7 @@ public class Page {
      */
     public Object setValue(int index, Object value) {
         Object old = values[index];
-        if ((sharedFlags & SHARED_VALUES) != 0) {
-            values = Arrays.copyOf(values, values.length);
-            sharedFlags &= ~SHARED_VALUES;
-        }
+        values = Arrays.copyOf(values, values.length);
         DataType valueType = map.getValueType();
         addMemory(valueType.getMemory(value) -
                 valueType.getMemory(old));
@@ -644,26 +559,15 @@ public class Page {
      * @param value the value
      */
     public void insertLeaf(int index, Object key, Object value) {
-        if (((sharedFlags & SHARED_KEYS) == 0) && keys.length > keyCount + 1) {
-            if (index < keyCount) {
-                System.arraycopy(keys, index, keys, index + 1,
-                        keyCount - index);
-                System.arraycopy(values, index, values, index + 1,
-                        keyCount - index);
-            }
-        } else {
-            int len = keyCount + 6;
-            Object[] newKeys = new Object[len];
-            DataUtils.copyWithGap(keys, newKeys, keyCount, index);
-            keys = newKeys;
-            Object[] newValues = new Object[len];
-            DataUtils.copyWithGap(values, newValues, keyCount, index);
-            values = newValues;
-        }
+        int len = keys.length + 1;
+        Object[] newKeys = new Object[len];
+        DataUtils.copyWithGap(keys, newKeys, len - 1, index);
+        keys = newKeys;
+        Object[] newValues = new Object[len];
+        DataUtils.copyWithGap(values, newValues, len - 1, index);
+        values = newValues;
         keys[index] = key;
         values[index] = value;
-        keyCount++;
-        sharedFlags &= ~(SHARED_KEYS | SHARED_VALUES);
         totalCount++;
         addMemory(map.getKeyType().getMemory(key) +
                 map.getValueType().getMemory(value));
@@ -678,26 +582,18 @@ public class Page {
      */
     public void insertNode(int index, Object key, Page childPage) {
 
-        Object[] newKeys = new Object[keyCount + 1];
-        DataUtils.copyWithGap(keys, newKeys, keyCount, index);
+        Object[] newKeys = new Object[keys.length + 1];
+        DataUtils.copyWithGap(keys, newKeys, keys.length, index);
         newKeys[index] = key;
         keys = newKeys;
 
-        keyCount++;
-
+        int childCount = children.length;
         PageReference[] newChildren = new PageReference[childCount + 1];
         DataUtils.copyWithGap(children, newChildren, childCount, index);
-        newChildren[index] = new PageReference(childPage, childPage.getPos());
+        newChildren[index] = new PageReference(
+                childPage, childPage.getPos(), childPage.totalCount);
         children = newChildren;
 
-        long[] newCounts = new long[childCount + 1];
-        DataUtils.copyWithGap(counts, newCounts, childCount, index);
-        newCounts[index] = childPage.totalCount;
-        counts = newCounts;
-
-        childCount++;
-
-        sharedFlags &= ~(SHARED_KEYS | SHARED_CHILDREN | SHARED_COUNTS);
         totalCount += childPage.totalCount;
         addMemory(map.getKeyType().getMemory(key) +
                 DataUtils.PAGE_MEMORY_CHILD);
@@ -709,58 +605,32 @@ public class Page {
      * @param index the index
      */
     public void remove(int index) {
-        int keyIndex = index >= keyCount ? index - 1 : index;
+        int keyLength = keys.length;
+        int keyIndex = index >= keyLength ? index - 1 : index;
         Object old = keys[keyIndex];
         addMemory(-map.getKeyType().getMemory(old));
-        if ((sharedFlags & SHARED_KEYS) == 0 &&
-                keys.length > keyCount - 4) {
-            if (keyIndex < keyCount - 1) {
-                System.arraycopy(keys, keyIndex + 1, keys, keyIndex, keyCount -
-                        keyIndex - 1);
-            }
-            keys[keyCount - 1] = null;
-        } else {
-            Object[] newKeys = new Object[keyCount - 1];
-            DataUtils.copyExcept(keys, newKeys, keyCount, keyIndex);
-            keys = newKeys;
-            sharedFlags &= ~SHARED_KEYS;
-        }
+        Object[] newKeys = new Object[keyLength - 1];
+        DataUtils.copyExcept(keys, newKeys, keyLength, keyIndex);
+        keys = newKeys;
 
         if (values != null) {
             old = values[index];
             addMemory(-map.getValueType().getMemory(old));
-            if ((sharedFlags & SHARED_VALUES) == 0 &&
-                    values.length > keyCount - 4) {
-                if (index < keyCount - 1) {
-                    System.arraycopy(values, index + 1, values, index,
-                            keyCount - index - 1);
-                }
-                values[keyCount - 1] = null;
-            } else {
-                Object[] newValues = new Object[keyCount - 1];
-                DataUtils.copyExcept(values, newValues, keyCount, index);
-                values = newValues;
-                sharedFlags &= ~SHARED_VALUES;
-            }
+            Object[] newValues = new Object[keyLength - 1];
+            DataUtils.copyExcept(values, newValues, keyLength, index);
+            values = newValues;
             totalCount--;
         }
-        keyCount--;
         if (children != null) {
             addMemory(-DataUtils.PAGE_MEMORY_CHILD);
-            long countOffset = counts[index];
+            long countOffset = children[index].count;
 
+            int childCount = children.length;
             PageReference[] newChildren = new PageReference[childCount - 1];
             DataUtils.copyExcept(children, newChildren, childCount, index);
             children = newChildren;
 
-            long[] newCounts = new long[childCount - 1];
-            DataUtils.copyExcept(counts, newCounts, childCount, index);
-            counts = newCounts;
-
-            sharedFlags &= ~(SHARED_CHILDREN | SHARED_COUNTS);
             totalCount -= countOffset;
-
-            childCount--;
         }
     }
 
@@ -801,21 +671,19 @@ public class Page {
         }
         int len = DataUtils.readVarInt(buff);
         keys = new Object[len];
-        keyCount = len;
         int type = buff.get();
         boolean node = (type & 1) == DataUtils.PAGE_TYPE_NODE;
         if (node) {
-            childCount = len + 1;
             children = new PageReference[len + 1];
+            long[] p = new long[len + 1];
             for (int i = 0; i <= len; i++) {
-                children[i] = new PageReference(null, buff.getLong());
+                p[i] = buff.getLong();
             }
-            counts = new long[len + 1];
             long total = 0;
             for (int i = 0; i <= len; i++) {
                 long s = DataUtils.readVarLong(buff);
                 total += s;
-                counts[i] = s;
+                children[i] = new PageReference(null, p[i], s);
             }
             totalCount = total;
         }
@@ -855,7 +723,7 @@ public class Page {
      */
     private int write(Chunk chunk, WriteBuffer buff) {
         int start = buff.position();
-        int len = keyCount;
+        int len = keys.length;
         int type = children != null ? DataUtils.PAGE_TYPE_NODE
                 : DataUtils.PAGE_TYPE_LEAF;
         buff.putInt(0).
@@ -867,7 +735,7 @@ public class Page {
         if (type == DataUtils.PAGE_TYPE_NODE) {
             writeChildren(buff);
             for (int i = 0; i <= len; i++) {
-                buff.putVarLong(counts[i]);
+                buff.putVarLong(children[i].count);
             }
         }
         int compressStart = buff.position();
@@ -931,7 +799,7 @@ public class Page {
     }
 
     private void writeChildren(WriteBuffer buff) {
-        int len = keyCount;
+        int len = keys.length;
         for (int i = 0; i <= len; i++) {
             buff.putLong(children[i].pos);
         }
@@ -951,12 +819,12 @@ public class Page {
         }
         int patch = write(chunk, buff);
         if (!isLeaf()) {
-            int len = childCount;
+            int len = children.length;
             for (int i = 0; i < len; i++) {
                 Page p = children[i].page;
                 if (p != null) {
                     p.writeUnsavedRecursive(chunk, buff);
-                    children[i] = new PageReference(p, p.getPos());
+                    children[i] = new PageReference(p, p.getPos(), p.totalCount);
                 }
             }
             int old = buff.position();
@@ -971,7 +839,7 @@ public class Page {
      */
     void writeEnd() {
         if (!isLeaf()) {
-            int len = childCount;
+            int len = children.length;
             for (int i = 0; i < len; i++) {
                 PageReference ref = children[i];
                 if (ref.page != null) {
@@ -980,7 +848,7 @@ public class Page {
                                 DataUtils.ERROR_INTERNAL, "Page not written");
                     }
                     ref.page.writeEnd();
-                    children[i] = new PageReference(null, ref.pos);
+                    children[i] = new PageReference(null, ref.pos, ref.count);
                 }
             }
         }
@@ -991,7 +859,7 @@ public class Page {
     }
 
     public int getRawChildPageCount() {
-        return childCount;
+        return children.length;
     }
 
     @Override
@@ -1032,12 +900,12 @@ public class Page {
     private void recalculateMemory() {
         int mem = DataUtils.PAGE_MEMORY;
         DataType keyType = map.getKeyType();
-        for (int i = 0; i < keyCount; i++) {
+        for (int i = 0; i < keys.length; i++) {
             mem += keyType.getMemory(keys[i]);
         }
         if (this.isLeaf()) {
             DataType valueType = map.getValueType();
-            for (int i = 0; i < keyCount; i++) {
+            for (int i = 0; i < keys.length; i++) {
                 mem += valueType.getMemory(values[i]);
             }
         } else {
@@ -1076,9 +944,15 @@ public class Page {
          */
         final Page page;
 
-        public PageReference(Page page, long pos) {
+        /**
+         * The descendant count for this child page.
+         */
+        final long count;
+
+        public PageReference(Page page, long pos, long count) {
             this.page = page;
             this.pos = pos;
+            this.count = count;
         }
 
     }

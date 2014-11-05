@@ -54,14 +54,15 @@ MVStore
 
 <h2 id="overview">Overview</h2>
 <p>
-The MVStore is work in progress, and is planned to be the next storage subsystem of H2.
-But it can also be used directly within an application, without using JDBC or SQL.
+The MVStore is a persistent, log structured key-value store.
+It is planned to be the next storage subsystem of H2,
+but it can also be used directly within an application, without using JDBC or SQL.
 </p>
 <ul><li>MVStore stands for "multi-version store".
 </li><li>Each store contains a number of maps that can be accessed using the <code>java.util.Map</code> interface.
 </li><li>Both file-based persistence and in-memory operation are supported.
 </li><li>It is intended to be fast, simple to use, and small.
-</li><li>Old versions of the data can be read concurrently with all other operations.
+</li><li>Concurrent read and write operations are supported.
 </li><li>Transactions are supported (including concurrent transactions and 2-phase commit).
 </li><li>The tool is very modular.
     It supports pluggable data types and serialization,
@@ -185,8 +186,8 @@ the key of the map must also contain the primary key).
 A version is a snapshot of all the data of all maps at a given point in time.
 Creating a snapshot is fast: only those pages that are changed after a snapshot are copied.
 This behavior is also called COW (copy on write).
+Old versions are readable.
 Rollback to an old version is supported.
-Old versions are readable until old data is purged.
 </p><p>
 The following sample code show how to create a store, open a map, add some data,
 and access the current and an old version:
@@ -241,8 +242,8 @@ For common use cases, the storage overhead of this utility is very small compare
 
 <h3 id="inMemory">In-Memory Performance and Usage</h3>
 <p>
-Performance of in-memory operations is a bit slower than
-<code>java.util.TreeMap</code>, and slower than <code>java.util.HashMap</code>.
+Performance of in-memory operations is about 50% slower than
+<code>java.util.TreeMap</code>.
 </p><p>
 The memory overhead for large maps is slightly better than for the regular
 map implementations, but there is a higher overhead per map.
@@ -296,27 +297,17 @@ and a multi-version R-tree map implementation for spatial operations.
 
 <h3 id="caching">Concurrent Operations and Caching</h3>
 <p>
-The default map implementation supports concurrent reads on old versions of the data.
+Concurrent reads and writes are supported.
 All such read operations can occur in parallel. Concurrent reads from the page cache,
 as well as concurrent reads from the file system are supported.
+Write operations first read the relevant pages from disk to memory
+(this can happen concurrently), and only then modify the data.
+The in-memory parts of write operations are synchronized.
 Writing changes to the file can occur concurrently to modifying the data,
 as writing operates on a snapshot.
 </p><p>
 Caching is done on the page level.
 The page cache is a concurrent LIRS cache, which should be resistant against scan operations.
-</p><p>
-The default map implementation does not support concurrent modification
-operations on a map (the same as <code>HashMap</code> and <code>TreeMap</code>).
-Similar to those classes, the map tries to detect concurrent modifications.
-</p><p>
-With the <code>MVMapConcurrent</code> implementation,
-read operations even on the newest version can happen concurrently with all other
-operations, without risk of corruption.
-This comes with slightly reduced speed in single threaded mode,
-the same as with other <code>ConcurrentHashMap</code> implementations.
-Write operations first read the relevant pages from disk to memory
-(this can happen concurrently), and only then modify the data.
-The in-memory parts of write operations are synchronized.
 </p><p>
 For fully scalable concurrent write operations to a map (in-memory and to disk),
 the map could be split into multiple maps in different stores ('sharding').

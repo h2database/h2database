@@ -17,15 +17,22 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console and server mode: SSL is now disabled and TLS is used
-    to protect against the POODLE SSLv3 vulnerability.
+<ul><li>H2 Console: the built-in web server did not work properly
+    if an unknown file was requested.
+</li><li>MVStore: the jar file is renamed to "h2-mvstore-*.jar" and is
+    deployed to Maven separately.
+</li><li>MVStore: support for concurrent reads and writes is now enabled by default.
+</li><li>Server mode: the transfer buffer size has been changed from 16 KB to 64 KB,
+    after it was found that this improves performance on Linux quite a lot.
+</li><li>H2 Console and server mode: SSL is now disabled and TLS is used
+    to protect against the Poodle SSLv3 vulnerability.
     The system property to disable secure anonymous connections is now
     "h2.enableAnonymousTLS".
-    The default certificate is still self-signed, so you need to manually install 
+    The default certificate is still self-signed, so you need to manually install
     another one if you want to avoid man in the middle attacks.
 </li><li>MVStore: the R-tree did not correctly measure the memory usage.
 </li><li>MVStore: compacting a store with an R-tree did not always work.
-<ul><li>Issue 581: When running in LOCK_MODE=0,
+</li><li>Issue 581: When running in LOCK_MODE=0,
         JdbcDatabaseMetaData#supportsTransactionIsolationLevel(TRANSACTION_READ_UNCOMMITTED)
     should return false
 </li></ul>

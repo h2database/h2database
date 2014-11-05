@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.WriteBuffer;
 import org.h2.mvstore.type.DataType;
@@ -51,11 +50,6 @@ public class TransactionStore {
     final MVMap<Long, Object[]> undoLog;
 
     /**
-     * Whether concurrent maps should be used.
-     */
-    private final boolean concurrent;
-
-    /**
      * The map of maps.
      */
     private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
@@ -78,7 +72,7 @@ public class TransactionStore {
      * @param store the store
      */
     public TransactionStore(MVStore store) {
-        this(store, new ObjectDataType(), false);
+        this(store, new ObjectDataType());
     }
 
     /**
@@ -86,12 +80,10 @@ public class TransactionStore {
      *
      * @param store the store
      * @param dataType the data type for map keys and values
-     * @param concurrent whether concurrent maps should be used
      */
-    public TransactionStore(MVStore store, DataType dataType, boolean concurrent) {
+    public TransactionStore(MVStore store, DataType dataType) {
         this.store = store;
         this.dataType = dataType;
-        this.concurrent = concurrent;
         preparedTransactions = store.openMap("openTransactions",
                 new MVMap.Builder<Integer, Object[]>());
         VersionedValueType oldValueType = new VersionedValueType(dataType);
@@ -363,17 +355,10 @@ public class TransactionStore {
         }
         VersionedValueType vt = new VersionedValueType(valueType);
         MVMap<K, VersionedValue> map;
-        if (concurrent) {
-            MVMapConcurrent.Builder<K, VersionedValue> builder =
-                    new MVMapConcurrent.Builder<K, VersionedValue>().
-                    keyType(keyType).valueType(vt);
-            map = store.openMap(name, builder);
-        } else {
-            MVMap.Builder<K, VersionedValue> builder =
-                    new MVMap.Builder<K, VersionedValue>().
-                    keyType(keyType).valueType(vt);
-            map = store.openMap(name, builder);
-        }
+        MVMap.Builder<K, VersionedValue> builder =
+                new MVMap.Builder<K, VersionedValue>().
+                keyType(keyType).valueType(vt);
+        map = store.openMap(name, builder);
         @SuppressWarnings("unchecked")
         MVMap<Object, VersionedValue> m = (MVMap<Object, VersionedValue>) map;
         maps.put(map.getId(), m);

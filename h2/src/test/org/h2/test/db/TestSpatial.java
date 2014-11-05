@@ -859,9 +859,10 @@ public class TestSpatial extends TestBase {
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;\n" +
-                    "CREATE TABLE PT_CLOUD AS SELECT CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom from" +
+                    "CREATE TABLE PT_CLOUD AS " +
+                    " SELECT CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom from" +
                     " system_range(1e6,1e6+10) A,system_range(6e6,6e6+10) B;\n" +
-                    "create spatial index ptindex on pt_cloud(the_geom);");
+                    "create spatial index pt_index on pt_cloud(the_geom);");
             // Wait some time
             try {
                 Thread.sleep(1000);
@@ -869,9 +870,10 @@ public class TestSpatial extends TestBase {
                 throw new SQLException(ex);
             }
             stat.execute("drop table if exists pt_cloud;\n" +
-                    "CREATE TABLE PT_CLOUD AS SELECT CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom from" +
+                    "CREATE TABLE PT_CLOUD AS " +
+                    " SELECT CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom from" +
                     " system_range(1e6,1e6+50) A,system_range(6e6,6e6+50) B;\n" +
-                    "create spatial index ptindex on pt_cloud(the_geom);\n" +
+                    "create spatial index pt_index on pt_cloud(the_geom);\n" +
                     "shutdown compact;");
         } finally {
             // Close the database

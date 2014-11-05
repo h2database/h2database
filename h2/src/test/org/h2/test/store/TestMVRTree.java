@@ -56,7 +56,7 @@ public class TestMVRTree extends TestMVStore {
         testRandom();
         testRandomFind();
     }
-    
+
     private void testRemoveAll() {
         String fileName = getBaseDir() + "/testRemoveAll.h3";
         FileUtils.delete(fileName);
@@ -73,7 +73,7 @@ public class TestMVRTree extends TestMVStore {
         }
         s.commit();
         map.clear();
-        s.close();        
+        s.close();
     }
 
     private void testRandomInsert() {

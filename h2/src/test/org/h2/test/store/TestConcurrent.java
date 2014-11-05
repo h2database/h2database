@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
-import org.h2.mvstore.MVMapConcurrent;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
@@ -186,8 +185,7 @@ public class TestConcurrent extends TestMVStore {
             final MVStore s = new MVStore.Builder().
                     autoCommitDisabled().open();
             s.setVersionsToKeep(10);
-            final MVMapConcurrent<Integer, Integer> m = s.openMap("data",
-                    new MVMapConcurrent.Builder<Integer, Integer>());
+            final MVMap<Integer, Integer> m = s.openMap("data");
             m.put(1, 1);
             Task task = new Task() {
                 @Override
@@ -374,8 +372,7 @@ public class TestConcurrent extends TestMVStore {
      */
     private void testConcurrentMap() throws InterruptedException {
         final MVStore s = openStore(null);
-        final MVMap<Integer, Integer> m = s.openMap("data",
-                new MVMapConcurrent.Builder<Integer, Integer>());
+        final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 20;
         final Random rand = new Random(1);
         Task task = new Task() {

@@ -146,18 +146,22 @@ public class TestMVStoreBenchmark extends TestBase {
         if (!config.big) {
             return;
         }
+        // -mx12g -agentlib:hprof=heap=sites,depth=8
+        // int size = 1000;
         int size = 1000000;
         long hash = 0, tree = 0, mv = 0;
         for (int i = 0; i < 5; i++) {
             Map<Integer, String> map;
-            map = new HashMap<Integer, String>(size);
-            hash = testPerformance(map, size);
-            map = new TreeMap<Integer, String>();
-            tree = testPerformance(map, size);
             MVStore store = MVStore.open(null);
             map = store.openMap("test");
             mv = testPerformance(map, size);
-            if (hash < tree && mv < tree) {
+            map = new HashMap<Integer, String>(size);
+            // map = new ConcurrentHashMap<Integer, String>(size);
+            hash = testPerformance(map, size);
+            map = new TreeMap<Integer, String>();
+            // map = new ConcurrentSkipListMap<Integer, String>();
+            tree = testPerformance(map, size);
+            if (hash < tree && mv < tree * 1.5) {
                 break;
             }
         }

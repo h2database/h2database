@@ -1278,10 +1278,13 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
+        s.setVersionsToKeep(100);
+        s.setAutoCommitDelay(0);
         s.setRetentionTime(Integer.MAX_VALUE);
-        MVMap<String, String> m;
-        m = s.openMap("data");
+        MVMap<String, String> m = s.openMap("data");
+        s.commit();
         long first = s.getCurrentVersion();
+        m.put("0", "test");
         s.commit();
         m.put("1", "Hello");
         m.put("2", "World");
@@ -1351,10 +1354,12 @@ public class TestMVStore extends TestBase {
         long len = FileUtils.size(fileName);
         s = openStore(fileName);
         s.setRetentionTime(0);
-        // remove 50%
+        // remove 75%
         m = s.openMap("data");
-        for (int i = 0; i < 10; i += 2) {
-            m.remove(i);
+        for (int i = 0; i < 10; i++) {
+            if (i % 4 != 0) {
+                m.remove(i);
+            }
         }
         s.commit();
         assertTrue(s.compact(100, 50 * 1024));

@@ -92,8 +92,8 @@ public class CipherFactory {
         SSLSocket secureSocket = (SSLSocket) f.createSocket();
         secureSocket.connect(new InetSocketAddress(address, port),
                 SysProperties.SOCKET_CONNECT_TIMEOUT);
-        secureSocket.setEnabledCipherSuites(
-                disableSSL(secureSocket.getEnabledCipherSuites()));
+        secureSocket.setEnabledProtocols(
+                disableSSL(secureSocket.getEnabledProtocols()));
         if (SysProperties.ENABLE_ANONYMOUS_TLS) {
             String[] list = enableAnonymous(
                     secureSocket.getEnabledCipherSuites(),
@@ -124,15 +124,15 @@ public class CipherFactory {
         } else {
             secureSocket = (SSLServerSocket) f.createServerSocket(port, 0, bindAddress);
         }
-        secureSocket.setEnabledCipherSuites(
-                disableSSL(secureSocket.getEnabledCipherSuites()));
+        secureSocket.setEnabledProtocols(
+                disableSSL(secureSocket.getEnabledProtocols()));
         if (SysProperties.ENABLE_ANONYMOUS_TLS) {
             String[] list = enableAnonymous(
                     secureSocket.getEnabledCipherSuites(),
                     secureSocket.getSupportedCipherSuites());
             secureSocket.setEnabledCipherSuites(list);
         }
-        
+
         socket = secureSocket;
         return socket;
     }
@@ -270,11 +270,11 @@ public class CipherFactory {
     }
 
     private static String[] enableAnonymous(String[] enabled, String[] supported) {
-        HashSet<String> set = new HashSet<String>(); 
+        HashSet<String> set = new HashSet<String>();
         Collections.addAll(set, enabled);
         for (String x : supported) {
-            if (x.startsWith("SSL") && 
-                    x.indexOf("_anon_") >= 0 && 
+            if (!x.startsWith("SSL") &&
+                    x.indexOf("_anon_") >= 0 &&
                     x.indexOf("_AES_") >= 0 &&
                     x.indexOf("_SHA") >= 0) {
                 set.add(x);
@@ -287,7 +287,7 @@ public class CipherFactory {
         HashSet<String> set = new HashSet<String>();
         for (String x : enabled) {
             if (!x.startsWith("SSL")) {
-         set.add(x);
+                set.add(x);
             }
         }
         return set.toArray(new String[0]);

@@ -2849,7 +2849,7 @@ PI()
 POWER(numeric, numeric)
 ","
 See also Java ""Math.pow"".
-This method returns a double.
+This method returns the same datatype as it's first parameter.
 ","
 POWER(A, B)
 "

@@ -103,6 +103,11 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
         return array;
     }
 
+    /**
+     * Get the level of "abstraction".
+     * 
+     * @return the level
+     */
     abstract int level();
 
     @Override
@@ -166,7 +171,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
         /**
          * The array.
          */
-        final K[] array;
+        private final K[] array;
 
         public Plain(K[] array) {
             this.array = array;
@@ -197,6 +202,15 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
             return new Remove<K>(this, index);
         }
 
+        /**
+         * Get a plain array with the given entry updated.
+         * 
+         * @param <K> the type
+         * @param base the base type
+         * @param index the index
+         * @param obj the object
+         * @return the immutable array
+         */
         static <K> ImmutableArray3<K> set(ImmutableArray3<K> base, int index, K obj) {
             int len = base.length();
             @SuppressWarnings("unchecked")
@@ -207,6 +221,15 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
             return new Plain<K>(array);
         }
 
+        /**
+         * Get a plain array with the given entry inserted.
+         * 
+         * @param <K> the type
+         * @param base the base type
+         * @param index the index
+         * @param obj the object
+         * @return the immutable array
+         */
         static <K> ImmutableArray3<K> insert(ImmutableArray3<K> base, int index, K obj) {
             int len = base.length() + 1;
             @SuppressWarnings("unchecked")
@@ -217,6 +240,14 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
             return new Plain<K>(array);
         }
 
+        /**
+         * Get a plain array with the given entry removed.
+         * 
+         * @param <K> the type
+         * @param base the base type
+         * @param index the index
+         * @return the immutable array
+         */
         static <K> ImmutableArray3<K> remove(ImmutableArray3<K> base, int index) {
             int len = base.length() - 1;
             @SuppressWarnings("unchecked")
@@ -242,9 +273,9 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
      */
     static class Set<K> extends ImmutableArray3<K> {
 
-        final int index;
-        final ImmutableArray3<K> base;
-        final K obj;
+        private final int index;
+        private final ImmutableArray3<K> base;
+        private final K obj;
 
         Set(ImmutableArray3<K> base, int index, K obj) {
             this.base = base;
@@ -303,9 +334,9 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
      */
     static class Insert<K> extends ImmutableArray3<K> {
 
-        final int index;
-        final ImmutableArray3<K> base;
-        final K obj;
+        private final int index;
+        private final ImmutableArray3<K> base;
+        private final K obj;
 
         Insert(ImmutableArray3<K> base, int index, K obj) {
             this.base = base;
@@ -369,8 +400,8 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
      */
     static class Remove<K> extends ImmutableArray3<K> {
 
-        final int index;
-        final ImmutableArray3<K> base;
+        private final int index;
+        private final ImmutableArray3<K> base;
 
         Remove(ImmutableArray3<K> base, int index) {
             this.base = base;

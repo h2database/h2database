@@ -89,11 +89,11 @@ public final class ImmutableArray2<K> implements Iterable<K> {
         boolean extendable;
         if (index == len - 1) {
             AtomicBoolean x = canExtend;
-            // can set it to null early - we anyway
-            // reset the flag, so it is no longer useful
-            canExtend = null;
-            if (array.length > index && x != null) {
-                if (x.getAndSet(false)) {
+            if (x != null) {
+                // can set it to null early - we anyway
+                // reset the flag, so it is no longer useful
+                canExtend = null;
+                if (array.length > index && x.getAndSet(false)) {
                     array[index] = obj;
                     return new ImmutableArray2<K>(array, len, true);
                 }

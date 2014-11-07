@@ -153,7 +153,8 @@ public class ValueTimestamp extends Value {
                     String tzName = "GMT" + s.substring(timeZoneStart);
                     tz = TimeZone.getTimeZone(tzName);
                     if (!tz.getID().startsWith(tzName)) {
-                        throw new IllegalArgumentException(tzName);
+                        throw new IllegalArgumentException(
+                                tzName + " (" + tz.getID() + "?)");
                     }
                     timeEnd = timeZoneStart;
                 } else {

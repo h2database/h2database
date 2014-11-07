@@ -327,7 +327,7 @@ public class DateTimeUtils {
      * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
      * time (in the specified timezone).
      *
-     * @param tz the timezone of the parameters
+     * @param tz the timezone of the parameters, or null for the default timezone
      * @param year the absolute year (positive or negative)
      * @param month the month (1-12)
      * @param day the day (1-31)
@@ -378,7 +378,7 @@ public class DateTimeUtils {
             int year, int month, int day, int hour, int minute, int second,
             int millis) {
         Calendar c;
-        if (tz == TimeZone.getDefault()) {
+        if (tz == null) {
             c = CACHED_CALENDAR.get();
         } else {
             c = Calendar.getInstance(tz);
@@ -626,7 +626,7 @@ public class DateTimeUtils {
      * @return the date
      */
     public static Date convertDateValueToDate(long dateValue) {
-        long millis = getMillis(TimeZone.getDefault(),
+        long millis = getMillis(null,
                 yearFromDateValue(dateValue),
                 monthFromDateValue(dateValue),
                 dayFromDateValue(dateValue), 0, 0, 0, 0);
@@ -651,7 +651,7 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        long ms = getMillis(TimeZone.getDefault(),
+        long ms = getMillis(null,
                 yearFromDateValue(dateValue),
                 monthFromDateValue(dateValue),
                 dayFromDateValue(dateValue),
@@ -676,7 +676,7 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        long ms = getMillis(TimeZone.getDefault(),
+        long ms = getMillis(null,
                 1970, 1, 1, (int) (h % 24), (int) m, (int) s, (int) millis);
         return new Time(ms);
     }

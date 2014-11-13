@@ -35,6 +35,7 @@ Change Log
 </li><li>Issue 581: When running in LOCK_MODE=0,
         JdbcDatabaseMetaData#supportsTransactionIsolationLevel(TRANSACTION_READ_UNCOMMITTED)
     should return false
+</li><li>Fix bug which could generate deadlocks when multiple connections accessed the same table.    
 </li></ul>
 
 <h2>Version 1.4.182 Beta (2014-10-17)</h2>

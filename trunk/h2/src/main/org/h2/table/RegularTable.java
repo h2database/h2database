@@ -463,6 +463,9 @@ public class RegularTable extends TableBase {
             if (lockExclusiveSession == session) {
                 return true;
             }
+            if (!exclusive && lockSharedSessions.contains(session)) {
+                return true;
+            }
             session.setWaitForLock(this, Thread.currentThread());
             waitingSessions.addLast(session);
             try {

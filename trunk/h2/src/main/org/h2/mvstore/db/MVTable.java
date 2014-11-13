@@ -9,8 +9,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.Analyze;
@@ -50,7 +50,8 @@ public class MVTable extends TableBase {
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private volatile Session lockExclusiveSession;
-    private final HashSet<Session> lockSharedSessions = New.hashSet();
+    /** using a ConcurrentHashMap as a Set */
+    private final ConcurrentHashMap<Session, Session> lockSharedSessions = new ConcurrentHashMap<Session, Session>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
@@ -114,6 +115,9 @@ public class MVTable extends TableBase {
             }
         }
         if (lockExclusiveSession == session) {
+            return true;
+        }
+        if (!exclusive && lockSharedSessions.contains(session)) {
             return true;
         }
         synchronized (getLockSyncObject()) {
@@ -234,7 +238,7 @@ public class MVTable extends TableBase {
                 if (!lockSharedSessions.contains(session)) {
                     traceLock(session, exclusive, "ok");
                     session.addLock(this);
-                    lockSharedSessions.add(session);
+                    lockSharedSessions.put(session, session);
                 }
                 return true;
             }
@@ -293,7 +297,7 @@ public class MVTable extends TableBase {
             }
             visited.add(session);
             ArrayList<Session> error = null;
-            for (Session s : lockSharedSessions) {
+            for (Session s : lockSharedSessions.keySet()) {
                 if (s == session) {
                     // it doesn't matter if we have locked the object already
                     continue;

@@ -160,7 +160,7 @@ public class MVTable extends TableBase {
                 ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
                     throw DbException.get(ErrorCode.DEADLOCK_1,
-                            getDeadlockDetails(sessions));
+                            getDeadlockDetails(sessions, exclusive));
                 }
             } else {
                 // check for deadlocks from now on
@@ -239,7 +239,7 @@ public class MVTable extends TableBase {
         return false;
     }
 
-    private static String getDeadlockDetails(ArrayList<Session> sessions) {
+    private static String getDeadlockDetails(ArrayList<Session> sessions, boolean exclusive) {
         // We add the thread details here to make it easier for customers to
         // match up these error messages with their own logs.
         StringBuilder buff = new StringBuilder();
@@ -249,6 +249,7 @@ public class MVTable extends TableBase {
             buff.append("\nSession ").append(s.toString())
                     .append(" on thread ").append(thread.getName())
                     .append(" is waiting to lock ").append(lock.toString())
+                    .append(exclusive ? " (exclusive)" : " (shared)")
                     .append(" while locking ");
             int i = 0;
             for (Table t : s.getLocks()) {

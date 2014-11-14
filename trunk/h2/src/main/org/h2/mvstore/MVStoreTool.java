@@ -136,7 +136,13 @@ public class MVStoreTool {
                 TreeMap<Integer, Integer> mapSizes = new TreeMap<Integer, Integer>();
                 int totalSize = 0;
                 while (remaining > 0) {
-                    chunk.position(p);
+                    try {
+                        chunk.position(p);
+                    } catch (IllegalArgumentException e) {
+                        // too far
+                        pw.printf("ERROR illegal position %d%n", p);
+                        break;
+                    }
                     int pageSize = chunk.getInt();
                     // check value (ignored)
                     chunk.getShort();
@@ -232,12 +238,17 @@ public class MVStoreTool {
                     pw.printf("map %x: %d%%%n", mapId, percent);
                 }
                 int footerPos = chunk.limit() - Chunk.FOOTER_LENGTH;
-                chunk.position(footerPos);
-                pw.printf(
-                        "+%0" + len + "x chunkFooter %s%n",
-                        footerPos,
-                        new String(chunk.array(), chunk.position(),
-                                Chunk.FOOTER_LENGTH, DataUtils.LATIN).trim());
+                try {
+                    chunk.position(footerPos);
+                    pw.printf(
+                            "+%0" + len + "x chunkFooter %s%n",
+                            footerPos,
+                            new String(chunk.array(), chunk.position(),
+                                    Chunk.FOOTER_LENGTH, DataUtils.LATIN).trim());
+                } catch (IllegalArgumentException e) {
+                    // too far
+                    pw.printf("ERROR illegal footer position %d%n", footerPos);
+                }
             }
             pw.printf("%n%0" + len + "x eof%n", fileSize);
             pw.printf("\n");

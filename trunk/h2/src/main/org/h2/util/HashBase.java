@@ -96,6 +96,10 @@ public abstract class HashBase {
      * @param newLevel the new level
      */
     protected void reset(int newLevel) {
+        // can't exceed 30 or we will generate a negative value for the "len" field
+        if (newLevel > 30) {
+            newLevel = 30;
+        }
         minSize = size * 3 / 4;
         size = 0;
         level = newLevel;

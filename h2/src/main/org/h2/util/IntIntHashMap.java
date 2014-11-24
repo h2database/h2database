@@ -45,6 +45,10 @@ public class IntIntHashMap extends HashBase {
             return;
         }
         checkSizePut();
+        internalPut(key, value);
+    }
+    
+    private void internalPut(int key, int value) {
         int index = getIndex(key);
         int plus = 1;
         int deleted = -1;
@@ -116,7 +120,8 @@ public class IntIntHashMap extends HashBase {
         for (int i = 0; i < oldKeys.length; i++) {
             int k = oldKeys[i];
             if (k != 0) {
-                put(k, oldValues[i]);
+                // skip the checkSizePut so we don't end up accidentally recursing
+                internalPut(k, oldValues[i]);
             }
         }
     }

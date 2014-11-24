@@ -11,7 +11,8 @@ package org.h2.util;
  */
 public abstract class HashBase {
 
-    private static final int MAX_LOAD = 90;
+    /** declared as long so we do long arithmetic so we don't overflow */
+    private static final long MAX_LOAD = 90;
 
     /**
      * The bit mask to get the index from the hash code.
@@ -98,14 +99,14 @@ public abstract class HashBase {
     protected void reset(int newLevel) {
         // can't exceed 30 or we will generate a negative value for the "len" field
         if (newLevel > 30) {
-            newLevel = 30;
+            throw new IllegalStateException("exceeded max size of hash table");
         }
         minSize = size * 3 / 4;
         size = 0;
         level = newLevel;
         len = 2 << level;
         mask = len - 1;
-        maxSize = (int) (len * MAX_LOAD / 100L);
+        maxSize = (int) (len * MAX_LOAD / 100);
         deletedCount = 0;
         maxDeleted = 20 + len / 2;
     }

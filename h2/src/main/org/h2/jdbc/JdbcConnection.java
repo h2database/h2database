@@ -744,9 +744,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * INTERNAL
      */
-    public int getQueryTimeout() throws SQLException {
+    int getQueryTimeout() throws SQLException {
         try {
-            debugCodeCall("getQueryTimeout");
             if (queryTimeoutCache == -1) {
                 checkClosed();
                 getQueryTimeout = prepareCommand(

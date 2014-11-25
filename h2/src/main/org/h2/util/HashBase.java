@@ -104,11 +104,11 @@ public abstract class HashBase {
         if (newLevel > 30) {
             throw new IllegalStateException("exceeded max size of hash table");
         }
-        minSize = size * 3 / 4;
         size = 0;
         level = newLevel;
         len = 2 << level;
         mask = len - 1;
+        minSize = (int) ((1 << level) * MAX_LOAD / 100);
         maxSize = (int) (len * MAX_LOAD / 100);
         deletedCount = 0;
         maxDeleted = 20 + len / 2;

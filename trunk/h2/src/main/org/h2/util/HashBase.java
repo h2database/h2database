@@ -11,7 +11,10 @@ package org.h2.util;
  */
 public abstract class HashBase {
 
-    /** declared as long so we do long arithmetic so we don't overflow */
+    /**
+     * The maximum load, in percent. 
+     * declared as long so we do long arithmetic so we don't overflow.
+     */
     private static final long MAX_LOAD = 90;
 
     /**

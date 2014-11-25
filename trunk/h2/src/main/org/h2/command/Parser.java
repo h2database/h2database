@@ -5083,13 +5083,10 @@ public class Parser {
     }
 
     private Prepared parseUse() {
-        if (readIf("SCHEMA")) {
-            readIfEqualOrTo();
-            Set command = new Set(session, SetTypes.SCHEMA);
-            command.setString(readAliasIdentifier());
-            return command;
-        }
-        throw getSyntaxError();
+        readIfEqualOrTo();
+        Set command = new Set(session, SetTypes.SCHEMA);
+        command.setString(readAliasIdentifier());
+        return command;
     }
 
     private Set parseSetCollation() {

@@ -231,12 +231,10 @@ public class TestCompatibility extends TestBase {
     private void testMySQL() throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("create schema test_schema");
-        stat.execute("use schema test_schema");
-        assertResult("TEST_SCHEMA", stat,
-                "select schema()");
-        stat.execute("use schema public");
-        assertResult("PUBLIC", stat,
-                "select schema()");
+        stat.execute("use test_schema");
+        assertResult("TEST_SCHEMA", stat, "select schema()");
+        stat.execute("use public");
+        assertResult("PUBLIC", stat, "select schema()");
 
         stat.execute("SELECT 1");
         stat.execute("DROP TABLE IF EXISTS TEST");

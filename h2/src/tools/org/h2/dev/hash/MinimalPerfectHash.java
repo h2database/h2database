@@ -76,6 +76,12 @@ public class MinimalPerfectHash<K> {
      */
     private static final int DIVIDE = 6;
 
+    /**
+     * For sets larger than this, instead of trying to map then uniquely to a
+     * set of the same size, the size of the set is incremented by one. This
+     * reduces the time to find a mapping, but the index of the hole also needs
+     * to be stored, which increases the space usage.
+     */
     private static final int SPEEDUP = 11;
 
     /**

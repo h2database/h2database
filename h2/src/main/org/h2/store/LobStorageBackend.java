@@ -206,6 +206,7 @@ public class LobStorageBackend implements LobStorageInterface {
         }
         if (tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
             removeAllForTable(LobStorageFrontend.TABLE_TEMP);
+            removeAllForTable(LobStorageFrontend.TABLE_RESULT);
         }
     }
 
@@ -438,6 +439,11 @@ public class LobStorageBackend implements LobStorageInterface {
                 return v;
             }
         }
+    }
+    
+    @Override
+    public boolean isReadOnly() {
+        return database.isReadOnly();
     }
 
     @Override

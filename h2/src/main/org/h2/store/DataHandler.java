@@ -11,8 +11,8 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 
 /**
- * A data handler contains a number of callback methods.
- * The most important implementing class is a database.
+ * A data handler contains a number of callback methods, mostly related to CLOB
+ * and BLOB handling. The most important implementing class is a database.
  */
 public interface DataHandler {
 

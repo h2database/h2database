@@ -82,4 +82,11 @@ public interface LobStorageInterface {
      */
     void init();
 
+    /**
+     * Whether the storage is read-only
+     * 
+     * @return true if yes
+     */
+    boolean isReadOnly();
+
 }

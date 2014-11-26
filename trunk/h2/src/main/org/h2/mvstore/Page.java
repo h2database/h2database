@@ -225,24 +225,6 @@ public class Page {
     }
 
     /**
-     * Get the child page at the given index, if it is live.
-     *
-     * @param index the child index
-     * @return the page, or null if the chunk is not live
-     */
-    public Page getLiveChildPage(int index) {
-        PageReference ref = children[index];
-        if (ref.page != null) {
-            return ref.page;
-        }
-        int chunkId =  DataUtils.getPageChunkId(ref.pos);
-        if (!map.store.isChunkLive(chunkId)) {
-            return null;
-        }
-        return getChildPage(index);
-    }
-
-    /**
      * Get the value at the given index.
      *
      * @param index the index

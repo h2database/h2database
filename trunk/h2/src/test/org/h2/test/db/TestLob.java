@@ -59,6 +59,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testConcurrentRemoveRead();
         testCloseLobTwice();
         testCleaningUpLobsOnRollback();
         testClobWithRandomUnicodeChars();
@@ -109,6 +110,25 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
+    }
+    
+    private void testConcurrentRemoveRead() throws Exception {
+        deleteDb("lob");
+        final String url = getURL("lob", true);
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("set max_length_inplace_lob 5");
+        stat.execute("create table lob(data clob)");
+        stat.execute("insert into lob values(space(100))");
+        Connection conn2 = getConnection(url);
+        Statement stat2 = conn2.createStatement();
+        ResultSet rs = stat2.executeQuery("select data from lob");
+        rs.next();
+        stat.execute("delete lob");
+        InputStream in = rs.getBinaryStream(1);
+        in.read();
+        conn2.close();
+        conn.close();
     }
 
     private void testCloseLobTwice() throws SQLException {

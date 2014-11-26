@@ -50,7 +50,8 @@ public class MVTable extends TableBase {
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private volatile Session lockExclusiveSession;
-    /** using a ConcurrentHashMap as a Set */
+    
+    // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions = new ConcurrentHashMap<Session, Session>();
 
     /**
@@ -750,7 +751,6 @@ public class MVTable extends TableBase {
         }
         primaryIndex.remove(session);
         database.removeMeta(session, getId());
-        primaryIndex = null;
         close(session);
         invalidate();
     }

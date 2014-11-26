@@ -8,6 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.List;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.engine.Database;
 import org.h2.engine.DbSettings;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.util.StatementBuilder;
@@ -51,6 +52,11 @@ public abstract class TableBase extends Table {
 
     @Override
     public String getCreateSQL() {
+        Database db = getDatabase();
+        if (db == null) {
+            // closed
+            return null;
+        }
         StatementBuilder buff = new StatementBuilder("CREATE ");
         if (isTemporary()) {
             if (isGlobalTemporary()) {
@@ -79,7 +85,7 @@ public abstract class TableBase extends Table {
         }
         buff.append("\n)");
         if (tableEngine != null) {
-            DbSettings s = getDatabase().getSettings();
+            DbSettings s = db.getSettings();
             String d = s.defaultTableEngine;
             if (d == null && s.mvStore) {
                 d = MVTableEngine.class.getName();

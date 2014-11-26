@@ -228,8 +228,8 @@ public class ResultTempTable implements ResultExternal {
                 // the transaction must be committed immediately
                 // TODO this synchronization cascade is very ugly
                 synchronized (session) {
-                    synchronized (database) {
-                        synchronized (sysSession) {
+                    synchronized (sysSession) {
+                        synchronized (database) {
                             sysSession.commit(false);
                         }
                     }

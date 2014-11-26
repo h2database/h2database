@@ -254,6 +254,17 @@ public class LocalResult implements ResultInterface, ResultTarget {
     public int getRowId() {
         return rowId;
     }
+    
+    private void cloneLobs(Value[] values) {
+        for (int i = 0; i < values.length; i++) {
+            Value v = values[i];
+            Value v2 = v.copyToResult();
+            if (v2 != v) {
+                session.addTemporaryLob(v2);
+                values[i] = v2;
+            }
+        }
+    }
 
     /**
      * Add a row to this object.
@@ -262,6 +273,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
      */
     @Override
     public void addRow(Value[] values) {
+        cloneLobs(values);
         if (distinct) {
             if (distinctRows != null) {
                 ValueArray array = ValueArray.get(values);

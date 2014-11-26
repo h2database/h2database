@@ -167,6 +167,7 @@ import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestJmx;
+import org.h2.test.unit.TestIntPerfectHash;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestNetUtils;
@@ -778,6 +779,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestFileSystem().runTest(this);
         new TestIntArray().runTest(this);
         new TestIntIntHashMap().runTest(this);
+        new TestIntPerfectHash().runTest(this);
         new TestJmx().runTest(this);
         new TestMathUtils().runTest(this);
         new TestModifyOnWrite().runTest(this);
@@ -793,7 +795,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestPgServer().runTest(this);
         new TestReader().runTest(this);
         new TestRecovery().runTest(this);
-        new TestWeb().runTest(this);
+        new TestSampleApps().runTest(this);
         new TestScriptReader().runTest(this);
         runTest("org.h2.test.unit.TestServlet");
         new TestSecurity().runTest(this);
@@ -809,6 +811,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         new TestValue().runTest(this);
         new TestValueHashMap().runTest(this);
         new TestValueMemory().runTest(this);
+        new TestWeb().runTest(this);
     }
 
     private void runTest(String className) {

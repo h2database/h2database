@@ -5891,6 +5891,12 @@ public class Parser {
             }
             command.setQuery(parseSelect());
         }
+        // for MySQL compatibility
+        if (readIf("ROW_FORMAT")) {
+            if (readIf("=")) {
+                readColumnIdentifier();
+            }
+        }
         return command;
     }
 

@@ -54,12 +54,47 @@ public class TestMultiThread extends TestBase implements Runnable {
 
     @Override
     public void test() throws Exception {
+        testConcurrentSchemaChange();
         testConcurrentLobAdd();
         testConcurrentView();
         testConcurrentAlter();
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
         testLockModeWithMultiThreaded();
+    }
+    
+    private void testConcurrentSchemaChange() throws Exception {
+        String db = "testConcurrentSchemaChange";
+        deleteDb(db);
+        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        Connection conn = getConnection(url);
+        Task[] tasks = new Task[2];
+        for (int i = 0; i < tasks.length; i++) {
+            final int x = i;
+            Task t = new Task() {
+                @Override
+                public void call() throws Exception {
+                    Connection c2 = getConnection(url);
+                    Statement stat = c2.createStatement();
+                    try {
+                        for (int i = 0; !stop; i++) {
+                            stat.execute("create table test" + x + "_" + i);
+                            c2.getMetaData().getTables(null, null, null, null);
+                            stat.execute("drop table test" + x + "_" + i);
+                        }
+                    } finally {
+                        c2.close();
+                    }
+                }
+            };
+            tasks[i] = t;
+            t.execute();
+        }
+        Thread.sleep(1000);
+        for (Task t : tasks) {
+            t.get();
+        }
+        conn.close();    
     }
 
     private void testConcurrentLobAdd() throws Exception {

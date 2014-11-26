@@ -1374,14 +1374,14 @@ public class Session extends SessionWithState {
     }
 
     public Value getTransactionId() {
-        if (!database.isPersistent()) {
-            return ValueNull.INSTANCE;
-        }
         if (database.getMvStore() != null) {
             if (transaction == null) {
                 return ValueNull.INSTANCE;
             }
             return ValueString.get(Long.toString(getTransaction().getId()));
+        }
+        if (!database.isPersistent()) {
+            return ValueNull.INSTANCE;
         }
         if (undoLog.size() == 0) {
             return ValueNull.INSTANCE;

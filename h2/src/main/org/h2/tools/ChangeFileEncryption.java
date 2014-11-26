@@ -184,7 +184,7 @@ public class ChangeFileEncryption extends Tool {
         // TODO changeFileEncryption: this is a workaround!
         // make the operation atomic (all files or none)
         for (String fileName : files) {
-            // Don't process a lob directory, just the files in the directory.
+            // don't process a lob directory, just the files in the directory.
             if (!FileUtils.isDirectory(fileName)) {
                 change.process(fileName);
             }

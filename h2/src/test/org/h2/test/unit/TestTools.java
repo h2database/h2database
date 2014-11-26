@@ -942,10 +942,15 @@ public class TestTools extends TestBase {
     }
 
     private void testChangeFileEncryptionWithWrongPassword() throws SQLException {
+        if (config.mvStore) {
+            // the file system encryption abstraction used by the MVStore
+            // doesn't detect wrong passwords
+            return;
+        }
         org.h2.Driver.load();
         final String dir = getBaseDir();
         // TODO: this doesn't seem to work in MVSTORE mode yet
-        String url = "jdbc:h2:" + dir + "/testChangeFileEncryption;CIPHER=AES;MV_STORE=false";
+        String url = "jdbc:h2:" + dir + "/testChangeFileEncryption;CIPHER=AES";
         DeleteDbFiles.execute(dir, "testChangeFileEncryption", true);
         Connection conn = getConnection(url, "sa", "abc 123");
         Statement stat = conn.createStatement();

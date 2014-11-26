@@ -17,7 +17,18 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>H2 Console: the built-in web server did not work properly
+<ul><li>In the multi-threaded mode, updating the column selectivity ("analyze") 
+    in the background sometimes did not work.
+</li><li>In the multi-threaded mode, database metadata operations 
+    did sometimes not work if the schema was changed at the same time
+    (for example, if tables were dropped).
+</li><li>Some CLOB and BLOB values could no longer be read when
+    the original row was removed (even when using the MVCC mode).
+</li><li>The MVStoreTool could throw an IllegalArgumentException.
+</li><li>Improved performance for some
+    date / time / timestamp conversion operations.
+    Thanks to Sergey Evdokimov for reporting the problem.
+</li><li>H2 Console: the built-in web server did not work properly
     if an unknown file was requested.
 </li><li>MVStore: the jar file is renamed to "h2-mvstore-*.jar" and is
     deployed to Maven separately.

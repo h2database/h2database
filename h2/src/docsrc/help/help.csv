@@ -1335,8 +1335,6 @@ Sets the maximum size of an in-place LOB object.
 This is the maximum length of an LOB that is stored with the record itself,
 and the default value is 128.
 
-This setting has no effect for in-memory databases.
-
 Admin rights are required to execute this command, as it affects all connections.
 This command commits an open transaction.
 This setting is persistent.

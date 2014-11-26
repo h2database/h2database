@@ -196,6 +196,11 @@ public class LobStorageMap implements LobStorageInterface {
             return nextLobId++;
         }
     }
+    
+    @Override
+    public boolean isReadOnly() {
+        return database.isReadOnly();
+    }
 
     @Override
     public ValueLobDb copyLob(ValueLobDb old, int tableId, long length) {

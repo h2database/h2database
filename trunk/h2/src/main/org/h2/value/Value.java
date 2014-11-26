@@ -1126,6 +1126,16 @@ public abstract class Value {
         return this;
     }
 
+    /**
+     * Create an independent copy of this value if needed, that will be bound to
+     * a result. If the original row is removed, this copy is still readable.
+     * 
+     * @return the value (this for small objects)
+     */
+    public Value copyToResult() {
+        return this;
+    }
+
     public ResultSet getResultSet() {
         SimpleResultSet rs = new SimpleResultSet();
         rs.setAutoClose(false);

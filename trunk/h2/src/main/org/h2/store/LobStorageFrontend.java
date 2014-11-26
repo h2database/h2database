@@ -28,6 +28,11 @@ public class LobStorageFrontend implements LobStorageInterface {
      */
     public static final int TABLE_TEMP = -2;
 
+    /**
+     * The table id for result sets.
+     */
+    public static final int TABLE_RESULT = -3;
+
     private final DataHandler handler;
 
     public LobStorageFrontend(DataHandler handler) {
@@ -55,6 +60,11 @@ public class LobStorageFrontend implements LobStorageInterface {
         }
         return new BufferedInputStream(new LobStorageRemoteInputStream(
                 handler, lob, hmac, byteCount));
+    }
+    
+    @Override
+    public boolean isReadOnly() {
+        return false;
     }
 
     @Override

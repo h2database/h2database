@@ -476,6 +476,25 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         return this;
     }
 
+    /**
+     * Create an independent copy of this value,
+     * that will be bound to a result.
+     *
+     * @return the value (this for small objects)
+     */
+    @Override
+    public ValueLobDb copyToResult() {
+        if (handler == null) {
+            return this;
+        }
+        LobStorageInterface s = handler.getLobStorage();
+        if (s.isReadOnly()) {
+            return this;
+        }
+        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, 
+                getPrecision());
+    }
+
     public long getLobId() {
         return lobId;
     }

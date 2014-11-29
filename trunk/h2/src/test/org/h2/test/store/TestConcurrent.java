@@ -285,6 +285,8 @@ public class TestConcurrent extends TestMVStore {
             MVMap<Integer, Integer> m = s.openMap("dummy");
             m.put(1, 1);
             s.commit();
+            m.put(2, 2);
+            s.commit();
             
             MVMap<String, String> meta = s.getMetaMap();
             int chunkCount = 0;

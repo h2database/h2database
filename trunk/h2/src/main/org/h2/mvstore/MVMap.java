@@ -124,6 +124,23 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     }
 
     /**
+     * Add or replace a key-value pair in a branch.
+     * 
+     * @param root the root page
+     * @param key the key (may not be null)
+     * @param value the value (may not be null)
+     * @return the new root page
+     */
+    synchronized Page putBranch(Page root, K key, V value) {
+        DataUtils.checkArgument(value != null, "The value may not be null");
+        long v = writeVersion;
+        Page p = root.copy(v);
+        p = splitRootIfNeeded(p, v);
+        put(p, v, key, value);
+        return p;
+    }
+
+    /**
      * Split the root page if necessary.
      *
      * @param p the page

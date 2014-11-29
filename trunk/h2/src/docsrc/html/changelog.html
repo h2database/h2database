@@ -17,7 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>In the multi-threaded mode, updating the column selectivity ("analyze") 
+<ul><li>MVStore: use a mark & sweep GC algorithm instead of reference counting, 
+    to ensure used chunks are never overwrite, even if the reference counting
+    algorithm does not work properly.
+</li><li>In the multi-threaded mode, updating the column selectivity ("analyze") 
     in the background sometimes did not work.
 </li><li>In the multi-threaded mode, database metadata operations 
     did sometimes not work if the schema was changed at the same time

@@ -153,13 +153,15 @@ public class MVStoreTool {
                     boolean node = (type & 1) != 0;
                     pw.printf(
                             "+%0" + len +
-                            "x %s, map %x, %d entries, %d bytes%n",
+                            "x %s, map %x, %d entries, %d bytes, maxLen %x%n",
                             p,
                             (node ? "node" : "leaf") +
                             (compressed ? " compressed" : ""),
                             mapId,
                             node ? entries + 1 : entries,
-                            pageSize);
+                            pageSize,
+                            DataUtils.getPageMaxLength(DataUtils.getPagePos(0, 0, pageSize, 0))
+                            );
                     p += pageSize;
                     Integer mapSize = mapSizes.get(mapId);
                     if (mapSize == null) {

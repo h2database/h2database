@@ -221,6 +221,7 @@ public class TestConcurrent extends TestMVStore {
         }
         FileUtils.deleteRecursive("memFS:", false);
     }
+
     private void testConcurrentFree() throws InterruptedException {
         String fileName = "memFS:testConcurrentFree.h3";
         for (int test = 0; test < 10; test++) {
@@ -276,8 +277,15 @@ public class TestConcurrent extends TestMVStore {
                 }
             }
             task.get();
+            // this will mark old chunks as unused, 
+            // but not remove (and overwrite) them yet
             s.commit();
-
+            // this will remove them, so we end up with
+            // one unused one, and one active one
+            MVMap<Integer, Integer> m = s.openMap("dummy");
+            m.put(1, 1);
+            s.commit();
+            
             MVMap<String, String> meta = s.getMetaMap();
             int chunkCount = 0;
             for (String k : meta.keyList()) {
@@ -285,8 +293,7 @@ public class TestConcurrent extends TestMVStore {
                     chunkCount++;
                 }
             }
-            // the chunk metadata is not yet written
-            assertEquals(0, chunkCount);
+            assertTrue("" + chunkCount, chunkCount < 3);
             s.close();
         }
         FileUtils.deleteRecursive("memFS:", false);

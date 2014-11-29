@@ -398,19 +398,20 @@ public class TestMVStore extends TestBase {
         MVStore s = new MVStore.Builder().
                 fileStore(offHeap).
                 open();
+        int count = 1000;
         Map<Integer, String> map = s.openMap("data");
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < count; i++) {
             map.put(i, "Hello " + i);
             s.commit();
         }
-        assertTrue(offHeap.getWriteCount() > 1000);
+        assertTrue(offHeap.getWriteCount() > count);
         s.close();
 
         s = new MVStore.Builder().
                 fileStore(offHeap).
                 open();
         map = s.openMap("data");
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < count; i++) {
             assertEquals("Hello " + i, map.get(i));
         }
         s.close();
@@ -1734,8 +1735,13 @@ public class TestMVStore extends TestBase {
         assertTrue(chunkCount2 >= chunkCount1);
 
         m = s.openMap("data");
-        assertTrue(s.compact(80, 50 * 1024));
-        assertFalse(s.compact(80, 1024));
+        for (int i = 0; i < 10; i++) {
+            boolean result = s.compact(50, 50 * 1024);
+            if (!result) {
+                break;
+            }
+        }
+        assertFalse(s.compact(50, 1024));
 
         int chunkCount3 = 0;
         for (String k : meta.keySet()) {
@@ -1744,7 +1750,8 @@ public class TestMVStore extends TestBase {
             }
         }
 
-        assertTrue(chunkCount3 < chunkCount1);
+        assertTrue(chunkCount1 + ">" + chunkCount2 + ">" + chunkCount3, 
+                chunkCount3 < chunkCount1);
 
         for (int i = 0; i < 10 * factor; i++) {
             assertEquals("x" + i, "Hello" + (i / factor), m.get(i));

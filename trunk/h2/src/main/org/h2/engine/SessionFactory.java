@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 /**
  * A class that implements this interface can create new database sessions.
+ * This exists so that the JDBC layer can be compiled without the engine stuff.
  */
 interface SessionFactory {
 

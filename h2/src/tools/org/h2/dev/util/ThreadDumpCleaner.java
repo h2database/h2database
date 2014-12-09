@@ -75,11 +75,14 @@ public class ThreadDumpCleaner {
                 outFile = args[++i];
             }
         }
+        if (outFile == null) {
+            outFile = inFile + ".clean.txt";
+        }
         PrintWriter writer;
-        if (outFile != null) {
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
-        } else {
+        if ("-".equals(outFile)) {
             writer = new PrintWriter(System.out);
+        } else {
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
         }
         Reader r;
         if (inFile != null) {
@@ -90,6 +93,8 @@ public class ThreadDumpCleaner {
         new ThreadDumpCleaner().run(
                 new LineNumberReader(new BufferedReader(r)),
                 writer);
+        writer.close();
+        r.close();
     }
 
     private void run(LineNumberReader reader, PrintWriter writer) throws IOException {
@@ -100,7 +105,7 @@ public class ThreadDumpCleaner {
                 break;
             }
             buff.append(line).append('\n');
-            if (line.length() == 0) {
+            if (line.trim().length() == 0) {
                 writer.print(filter(buff.toString()));
                 buff = new StringBuilder();
             }

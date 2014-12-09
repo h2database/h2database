@@ -410,7 +410,8 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/test/*").
             exclude("*.bat").
             exclude("*.sh").
-            exclude("*.txt");
+            exclude("*.txt").
+            exclude("*.DS_Store");
         jar("bin/h2" + getJarSuffix(), files, "temp");
         filter("src/installer/h2.sh", "bin/h2.sh", "h2.jar", "h2" + getJarSuffix());
         filter("src/installer/h2.bat", "bin/h2.bat", "h2.jar", "h2" + getJarSuffix());
@@ -440,7 +441,8 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/tools/*").
             exclude("*.bat").
             exclude("*.sh").
-            exclude("*.txt");
+            exclude("*.txt").
+            exclude("*.DS_Store");
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2android" + getJarSuffix(), files, "temp");
@@ -463,7 +465,8 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/test/*").
             exclude("*.bat").
             exclude("*.sh").
-            exclude("*.txt");
+            exclude("*.txt").
+            exclude("*.DS_Store");
         long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
         if (kb < 350 || kb > 450) {
             throw new RuntimeException("Expected file size 350 - 450 KB, got: " + kb);
@@ -477,6 +480,7 @@ public class Build extends BuildBase {
         compileMVStore(true);
         manifestMVStore();
         FileList files = files("temp");
+        files.exclude("*.DS_Store");
         jar("bin/h2-mvstore" + getJarSuffix(), files, "temp");
     }
 
@@ -507,7 +511,8 @@ public class Build extends BuildBase {
             exclude("temp/org/h2/tools/*").
             exclude("*.bat").
             exclude("*.sh").
-            exclude("*.txt");
+            exclude("*.txt").
+            exclude("*.DS_Store");
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
@@ -522,6 +527,7 @@ public class Build extends BuildBase {
         manifest("H2 JaQu", "");
         FileList files = files("temp/org/h2/jaqu");
         files.addAll(files("temp/META-INF/MANIFEST.MF"));
+        files.exclude("*.DS_Store");
         jar("bin/h2jaqu" + getJarSuffix(), files, "temp");
     }
 
@@ -754,7 +760,8 @@ public class Build extends BuildBase {
             exclude("*.MF").
             exclude("*.java").
             exclude("*/package.html").
-            exclude("*/java.sql.Driver");
+            exclude("*/java.sql.Driver").
+            exclude("*.DS_Store");
         if (basicOnly) {
             files = files.keep("src/main/org/h2/res/_messages_en.*");
         }
@@ -928,6 +935,7 @@ public class Build extends BuildBase {
         copy("temp", files("src/tools/WEB-INF/console.html"), "src/tools/WEB-INF");
         copy("temp/WEB-INF/lib", files("bin/h2" + getJarSuffix()), "bin");
         FileList files = files("temp").exclude("temp/org*").exclude("temp/META-INF*");
+        files.exclude("*.DS_Store");
         jar("bin/h2console.war", files, "temp");
     }
 

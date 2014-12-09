@@ -1676,9 +1676,20 @@ public class MVStore {
         // calculate the fill rate
         long maxLengthSum = 0;
         long maxLengthLiveSum = 0;
+        
+        long time = getTime();
+
         for (Chunk c : chunks.values()) {
+            // ignore young chunks, because we don't optimize those
+            if (c.time + retentionTime > time) {
+                continue;
+            }
             maxLengthSum += c.maxLen;
             maxLengthLiveSum += c.maxLenLive;
+        }
+        if (maxLengthLiveSum < 0) {
+            // no old data
+            return null;
         }
         // the fill rate of all chunks combined
         if (maxLengthSum <= 0) {
@@ -1690,8 +1701,6 @@ public class MVStore {
             return null;
         }
 
-        long time = getTime();
-
         // the 'old' list contains the chunks we want to free up
         ArrayList<Chunk> old = New.arrayList();
         Chunk last = chunks.get(lastChunk.id);
@@ -1699,11 +1708,12 @@ public class MVStore {
             // only look at chunk older than the retention time
             // (it's possible to compact chunks earlier, but right
             // now we don't do that)
-            if (c.time + retentionTime <= time) {
-                long age = last.version - c.version + 1;
-                c.collectPriority = (int) (c.getFillRate() * 1000 / age);
-                old.add(c);
+            if (c.time + retentionTime > time) {
+                continue;
             }
+            long age = last.version - c.version + 1;
+            c.collectPriority = (int) (c.getFillRate() * 1000 / age);
+            old.add(c);
         }
         if (old.size() == 0) {
             return null;

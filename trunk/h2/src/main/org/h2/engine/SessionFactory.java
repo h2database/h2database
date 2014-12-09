@@ -8,8 +8,9 @@ package org.h2.engine;
 import java.sql.SQLException;
 
 /**
- * A class that implements this interface can create new database sessions.
- * This exists so that the JDBC layer can be compiled without the engine stuff.
+ * A class that implements this interface can create new database sessions. This
+ * exists so that the JDBC layer (the client) can be compiled without dependency
+ * to the core database engine.
  */
 interface SessionFactory {
 

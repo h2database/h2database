@@ -467,7 +467,14 @@ public class Page {
      * @param c the new child page
      */
     public void setChild(int index, Page c) {
-        if (c != children[index].page || c.getPos() != children[index].pos) {
+        if (c == null) {
+            long oldCount = children[index].count;
+            children = Arrays.copyOf(children, children.length);
+            PageReference ref = new PageReference(null, 0, 0);
+            children[index] = ref;
+            totalCount -= oldCount;
+        } else if (c != children[index].page ||
+                c.getPos() != children[index].pos) {
             long oldCount = children[index].count;
             children = Arrays.copyOf(children, children.length);
             PageReference ref = new PageReference(c, c.pos, c.totalCount);

@@ -1224,7 +1224,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
     private Page copy(Page source, CursorPos parent) {
         Page target = Page.create(this, writeVersion, source);
-        if (target.isLeaf()) {
+        if (source.isLeaf()) {
             Page child = target;
             for (CursorPos p = parent; p != null; p = p.parent) {
                 p.page.setChild(p.index, child);
@@ -1236,6 +1236,11 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 }
             }
         } else {
+            // temporarily, replace child pages with empty pages,
+            // to ensure there are no links to the old store
+            for (int i = 0; i < getChildPageCount(target); i++) {
+                target.setChild(i, null);
+            }
             CursorPos pos = new CursorPos(target, 0, parent);
             for (int i = 0; i < getChildPageCount(target); i++) {
                 pos.index = i;

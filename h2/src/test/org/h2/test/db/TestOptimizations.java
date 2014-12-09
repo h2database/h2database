@@ -167,10 +167,10 @@ public class TestOptimizations extends TestBase {
         assertEquals(1, rs.getInt(2));
         rs.next();
         assertEquals("CL", rs.getString(1));
-        assertEquals(100, rs.getInt(2));
+        assertEquals(50, rs.getInt(2));
         rs.next();
         assertEquals("BL", rs.getString(1));
-        assertEquals(100, rs.getInt(2));
+        assertEquals(50, rs.getInt(2));
         stat.execute("drop table test");
         conn.close();
     }

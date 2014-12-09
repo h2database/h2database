@@ -60,6 +60,7 @@ public class MVTableEngine implements TableEngine {
             String fileName = dbPath + Constants.SUFFIX_MV_FILE;
             MVStoreTool.compactCleanUp(fileName);
             builder.fileName(fileName);
+            builder.pageSplitSize(db.getPageSize());
             if (db.isReadOnly()) {
                 builder.readOnly();
             } else {

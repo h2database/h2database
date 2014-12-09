@@ -18,6 +18,7 @@ import org.h2.table.Table;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
+import org.h2.value.ValueNull;
 
 /**
  * This class represents the statement
@@ -91,7 +92,7 @@ public class Analyze extends DefineCommand {
             if (type == Value.BLOB || type == Value.CLOB) {
                 // can not index LOB columns, so calculating
                 // the selectivity is not required
-                buff.append("MAX(100)");
+                buff.append("MAX(NULL)");
             } else {
                 buff.append("SELECTIVITY(").append(col.getSQL()).append(')');
             }
@@ -110,8 +111,11 @@ public class Analyze extends DefineCommand {
         ResultInterface result = command.query(0);
         result.next();
         for (int j = 0; j < columns.length; j++) {
-            int selectivity = result.currentRow()[j].getInt();
-            columns[j].setSelectivity(selectivity);
+            Value v = result.currentRow()[j];
+            if (v != ValueNull.INSTANCE) {
+                int selectivity = v.getInt();
+                columns[j].setSelectivity(selectivity);
+            }
         }
         if (manual) {
             db.updateMeta(session, table);

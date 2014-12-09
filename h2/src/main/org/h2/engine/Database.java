@@ -2713,6 +2713,10 @@ public class Database implements DataHandler {
     public byte[] getFileEncryptionKey() {
         return fileEncryptionKey;
     }
+    
+    public int getPageSize() {
+        return pageSize;
+    }
 
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {

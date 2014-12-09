@@ -47,7 +47,7 @@ public class MVStoreTool {
         for (int i = 0; i < args.length; i++) {
             if ("-dump".equals(args[i])) {
                 String fileName = args[++i];
-                dump(fileName, new PrintWriter(System.out));
+                dump(fileName, new PrintWriter(System.out), true);
             } else if ("-info".equals(args[i])) {
                 String fileName = args[++i];
                 info(fileName, new PrintWriter(System.out));
@@ -65,9 +65,10 @@ public class MVStoreTool {
      * Read the contents of the file and write them to system out.
      *
      * @param fileName the name of the file
+     * @param details whether to print details
      */
-    public static void dump(String fileName) {
-        dump(fileName, new PrintWriter(System.out));
+    public static void dump(String fileName, boolean details) {
+        dump(fileName, new PrintWriter(System.out), details);
     }
 
     /**
@@ -86,7 +87,7 @@ public class MVStoreTool {
      * @param fileName the name of the file
      * @param writer the print writer
      */
-    public static void dump(String fileName, Writer writer) {
+    public static void dump(String fileName, Writer writer, boolean details) {
         PrintWriter pw = new PrintWriter(writer, true);
         if (!FilePath.get(fileName).exists()) {
             pw.println("File not found: " + fileName);
@@ -96,11 +97,15 @@ public class MVStoreTool {
         pw.printf("File %s, %d bytes, %d MB\n", fileName, size, size / 1024 / 1024);
         FileChannel file = null;
         int blockSize = MVStore.BLOCK_SIZE;
+        TreeMap<Integer, Long> mapSizesTotal = 
+                new TreeMap<Integer, Long>();
+        long pageSizeTotal = 0;
         try {
             file = FilePath.get(fileName).open("r");
             long fileSize = file.size();
             int len = Long.toHexString(fileSize).length();
             ByteBuffer block = ByteBuffer.allocate(4096);
+            long pageCount = 0;
             for (long pos = 0; pos < fileSize;) {
                 block.rewind();
                 DataUtils.readFully(file, pos, block);
@@ -133,8 +138,10 @@ public class MVStoreTool {
                 int p = block.position();
                 pos += length;
                 int remaining = c.pageCount;
-                TreeMap<Integer, Integer> mapSizes = new TreeMap<Integer, Integer>();
-                int totalSize = 0;
+                pageCount += c.pageCount;
+                TreeMap<Integer, Integer> mapSizes = 
+                        new TreeMap<Integer, Integer>();
+                int pageSizeSum = 0;
                 while (remaining > 0) {
                     try {
                         chunk.position(p);
@@ -151,24 +158,32 @@ public class MVStoreTool {
                     int type = chunk.get();
                     boolean compressed = (type & 2) != 0;
                     boolean node = (type & 1) != 0;
-                    pw.printf(
-                            "+%0" + len +
-                            "x %s, map %x, %d entries, %d bytes, maxLen %x%n",
-                            p,
-                            (node ? "node" : "leaf") +
-                            (compressed ? " compressed" : ""),
-                            mapId,
-                            node ? entries + 1 : entries,
-                            pageSize,
-                            DataUtils.getPageMaxLength(DataUtils.getPagePos(0, 0, pageSize, 0))
-                            );
+                    if (details) {
+                        pw.printf(
+                                "+%0" + len +
+                                "x %s, map %x, %d entries, %d bytes, maxLen %x%n",
+                                p,
+                                (node ? "node" : "leaf") +
+                                (compressed ? " compressed" : ""),
+                                mapId,
+                                node ? entries + 1 : entries,
+                                pageSize,
+                                DataUtils.getPageMaxLength(DataUtils.getPagePos(0, 0, pageSize, 0))
+                                );
+                    }
                     p += pageSize;
                     Integer mapSize = mapSizes.get(mapId);
                     if (mapSize == null) {
                         mapSize = 0;
                     }
                     mapSizes.put(mapId, mapSize + pageSize);
-                    totalSize += pageSize;
+                    Long total = mapSizesTotal.get(mapId);
+                    if (total == null) {
+                        total = 0L;
+                    }
+                    mapSizesTotal.put(mapId, total + pageSize);
+                    pageSizeSum += pageSize;
+                    pageSizeTotal += pageSize;
                     remaining--;
                     long[] children = null;
                     long[] counts = null;
@@ -184,7 +199,7 @@ public class MVStoreTool {
                         }
                     }
                     String[] keys = new String[entries];
-                    if (mapId == 0) {
+                    if (mapId == 0 && details) {
                         if (!compressed) {
                             for (int i = 0; i < entries; i++) {
                                 String k = StringDataType.INSTANCE.read(chunk);
@@ -223,7 +238,7 @@ public class MVStoreTool {
                             }
                         }
                     } else {
-                        if (node) {
+                        if (node && details) {
                             for (int i = 0; i <= entries; i++) {
                                 long cp = children[i];
                                 pw.printf("    %d children @ chunk %x +%0" +
@@ -236,8 +251,8 @@ public class MVStoreTool {
                     }
                 }
                 for (Integer mapId : mapSizes.keySet()) {
-                    int percent = 100 * mapSizes.get(mapId) / totalSize;
-                    pw.printf("map %x: %d%%%n", mapId, percent);
+                    int percent = 100 * mapSizes.get(mapId) / pageSizeSum;
+                    pw.printf("map %x: %d bytes, %d%%%n", mapId, mapSizes.get(mapId), percent);
                 }
                 int footerPos = chunk.limit() - Chunk.FOOTER_LENGTH;
                 try {
@@ -254,6 +269,12 @@ public class MVStoreTool {
             }
             pw.printf("%n%0" + len + "x eof%n", fileSize);
             pw.printf("\n");
+            pw.printf("page size total: %d bytes, page count: %d, average page size: %d bytes\n", 
+                    pageSizeTotal, pageCount, pageSizeTotal / pageCount);
+            for (Integer mapId : mapSizesTotal.keySet()) {
+                int percent = (int) (100 * mapSizesTotal.get(mapId) / pageSizeTotal);
+                pw.printf("map %x: %d bytes, %d%%%n", mapId, mapSizesTotal.get(mapId), percent);
+            }
         } catch (IOException e) {
             pw.println("ERROR: " + e);
             e.printStackTrace(pw);

@@ -89,6 +89,12 @@ public class DataUtils {
     public static final int ERROR_TRANSACTION_STILL_OPEN = 102;
 
     /**
+     * The transaction store is in an illegal state (for example, not yet
+     * initialized).
+     */
+    public static final int ERROR_TRANSACTION_ILLEGAL_STATE = 103;
+
+    /**
      * The type for leaf page.
      */
     public static final int PAGE_TYPE_LEAF = 0;

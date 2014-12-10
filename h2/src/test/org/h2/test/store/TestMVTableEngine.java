@@ -424,6 +424,7 @@ public class TestMVTableEngine extends TestBase {
 
         MVStore store = MVStore.open(file);
         TransactionStore t = new TransactionStore(store);
+        t.init();
         assertEquals(0, t.getOpenTransactions().size());
         store.close();
     }

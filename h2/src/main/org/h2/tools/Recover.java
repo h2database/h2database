@@ -592,6 +592,11 @@ public class Recover extends Tool implements DataHandler {
         writer.println("-- Tables");
         TransactionStore store = new TransactionStore(mv);
         try {
+            store.init();
+        } catch (Throwable e) {
+            writeError(writer, e);
+        }
+        try {
             for (String mapName : mv.getMapNames()) {
                 if (!mapName.startsWith("table.")) {
                     continue;

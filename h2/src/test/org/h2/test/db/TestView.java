@@ -32,6 +32,7 @@ public class TestView extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testInnerSelectWithRange();
         testEmptyColumn();
         testChangeSchemaSearchPath();
         testParameterizedView();
@@ -45,6 +46,24 @@ public class TestView extends TestBase {
         testViewAlterAndCommandCache();
         testViewConstraintFromColumnExpression();
         deleteDb("view");
+    }
+
+    private void testInnerSelectWithRange() throws SQLException {
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery(
+                "select x from (select x from (" +
+                "select x from system_range(1, 5)) " +
+                "where x > 2 and x < 4) where x = 3");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        rs = stat.executeQuery(
+                "select x from (select x from (" +
+                "select x from system_range(1, 5)) " +
+                "where x = 3) where x > 2 and x < 4");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testEmptyColumn() throws SQLException {

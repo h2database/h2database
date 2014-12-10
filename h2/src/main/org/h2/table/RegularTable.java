@@ -493,7 +493,8 @@ public class RegularTable extends TableBase {
             if (checkDeadlock) {
                 ArrayList<Session> sessions = checkDeadlock(session, null, null);
                 if (sessions != null) {
-                    throw DbException.get(ErrorCode.DEADLOCK_1, getDeadlockDetails(sessions, exclusive));
+                    throw DbException.get(ErrorCode.DEADLOCK_1,
+                            getDeadlockDetails(sessions, exclusive));
                 }
             } else {
                 // check for deadlocks from now on

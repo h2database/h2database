@@ -491,7 +491,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         if (s.isReadOnly()) {
             return this;
         }
-        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT, 
+        return s.copyLob(this, LobStorageFrontend.TABLE_RESULT,
                 getPrecision());
     }
 

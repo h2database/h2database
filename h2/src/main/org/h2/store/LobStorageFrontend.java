@@ -61,7 +61,7 @@ public class LobStorageFrontend implements LobStorageInterface {
         return new BufferedInputStream(new LobStorageRemoteInputStream(
                 handler, lob, hmac, byteCount));
     }
-    
+
     @Override
     public boolean isReadOnly() {
         return false;

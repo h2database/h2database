@@ -327,7 +327,8 @@ public class DateTimeUtils {
      * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
      * time (in the specified timezone).
      *
-     * @param tz the timezone of the parameters, or null for the default timezone
+     * @param tz the timezone of the parameters,
+ *              or null for the default timezone
      * @param year the absolute year (positive or negative)
      * @param month the month (1-12)
      * @param day the day (1-31)

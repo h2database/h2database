@@ -440,7 +440,7 @@ public class LobStorageBackend implements LobStorageInterface {
             }
         }
     }
-    
+
     @Override
     public boolean isReadOnly() {
         return database.isReadOnly();

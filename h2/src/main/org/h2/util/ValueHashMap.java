@@ -46,7 +46,8 @@ public class ValueHashMap<V> extends HashBase {
         for (int i = 0; i < len; i++) {
             Value k = oldKeys[i];
             if (k != null && k != ValueNull.DELETED) {
-                // skip the checkSizePut so we don't end up accidentally recursing
+                // skip the checkSizePut so we don't end up
+                // accidentally recursing
                 internalPut(k, oldValues[i]);
             }
         }
@@ -65,8 +66,8 @@ public class ValueHashMap<V> extends HashBase {
     public void put(Value key, V value) {
         checkSizePut();
         internalPut(key, value);
-    }   
-    
+    }
+
     private void internalPut(Value key, V value) {
         int index = getIndex(key);
         int plus = 1;

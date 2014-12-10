@@ -255,30 +255,18 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         int idx = originalParameters == null ? 0 : originalParameters.size();
         idx += view.getParameterOffset();
         for (int i = 0; i < len; i++) {
-            if (first != null) {
-                Value v = first.getValue(i);
-                if (v != null) {
-                    int x = idx++;
-                    setParameter(paramList, x, v);
-                }
+            int mask = indexMasks[i];
+            if ((mask & IndexCondition.EQUALITY) != 0) {
+                setParameter(paramList, idx++, first.getValue(i));
             }
-            if (last != null) {
-                int mask = indexMasks[i];
-                // for equality, only one parameter is used (first == last)
-                if (mask != IndexCondition.EQUALITY) {
-                    Value v = last.getValue(i);
-                    if (v != null) {
-                        int x = idx++;
-                        setParameter(paramList, x, v);
-                    }
-                }
+            if ((mask & IndexCondition.START) != 0) {
+                setParameter(paramList, idx++, first.getValue(i));
             }
-            if (intersection != null) {
-                Value v = intersection.getValue(i);
-                if (v != null) {
-                    int x = idx++;
-                    setParameter(paramList, x, v);
-                }
+            if ((mask & IndexCondition.END) != 0) {
+                setParameter(paramList, idx++, last.getValue(i));
+            }
+            if ((mask & IndexCondition.SPATIAL_INTERSECTS) != 0) {
+                setParameter(paramList, idx++, intersection.getValue(i));
             }
         }
         LocalResult result = query.query(0);

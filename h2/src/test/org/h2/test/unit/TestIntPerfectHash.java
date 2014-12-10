@@ -57,7 +57,7 @@ public class TestIntPerfectHash extends TestBase {
             test(i);
         }
     }
-    
+
     private void testBitArray() {
         byte[] data = new byte[0];
         BitSet set = new BitSet();
@@ -76,7 +76,7 @@ public class TestIntPerfectHash extends TestBase {
         }
         assertTrue(BitArray.countBits(data) == set.cardinality());
     }
-    
+
     private int test(int size) {
         Random r = new Random(size);
         HashSet<Integer> set = new HashSet<Integer>();

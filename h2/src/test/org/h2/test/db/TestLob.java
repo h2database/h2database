@@ -111,7 +111,7 @@ public class TestLob extends TestBase {
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
-    
+
     private void testConcurrentRemoveRead() throws Exception {
         deleteDb("lob");
         final String url = getURL("lob", true);

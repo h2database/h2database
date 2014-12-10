@@ -277,7 +277,7 @@ public class TestConcurrent extends TestMVStore {
                 }
             }
             task.get();
-            // this will mark old chunks as unused, 
+            // this will mark old chunks as unused,
             // but not remove (and overwrite) them yet
             s.commit();
             // this will remove them, so we end up with
@@ -287,7 +287,7 @@ public class TestConcurrent extends TestMVStore {
             s.commit();
             m.put(2, 2);
             s.commit();
-            
+
             MVMap<String, String> meta = s.getMetaMap();
             int chunkCount = 0;
             for (String k : meta.keyList()) {

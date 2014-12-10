@@ -65,10 +65,10 @@ public class IntPerfectHash {
     public IntPerfectHash(byte[] data) {
         this.data = data;
     }
-    
+
     /**
      * Get the hash function description.
-     * 
+     *
      * @return the data
      */
     public byte[] getData() {
@@ -307,12 +307,12 @@ public class IntPerfectHash {
         }
         return len;
     }
-    
+
     /**
      * A stream of bytes.
      */
     static class ByteStream {
-        
+
         private byte[] data;
         private int pos;
 
@@ -323,19 +323,19 @@ public class IntPerfectHash {
         ByteStream(byte[] data) {
             this.data = data;
         }
-        
+
         /**
          * Read a byte.
-         * 
+         *
          * @return the byte, or -1.
          */
         int read() {
             return pos < data.length ? (data[pos++] & 255) : -1;
         }
-        
+
         /**
          * Write a byte.
-         * 
+         *
          * @param value the byte
          */
         void write(byte value) {
@@ -344,26 +344,26 @@ public class IntPerfectHash {
             }
             data[pos++] = value;
         }
-        
+
         /**
          * Get the byte array.
-         * 
+         *
          * @return the byte array
          */
         byte[] toByteArray() {
             return Arrays.copyOf(data, pos);
         }
-        
+
     }
-    
+
     /**
      * A helper class for bit arrays.
      */
     public static class BitArray {
-        
+
         /**
          * Set a bit in the array.
-         * 
+         *
          * @param data the array
          * @param x the bit index
          * @param value the new value
@@ -381,10 +381,10 @@ public class IntPerfectHash {
             }
             return data;
         }
-        
+
         /**
          * Get a bit in a bit array.
-         * 
+         *
          * @param data the array
          * @param x the bit index
          * @return the value
@@ -392,10 +392,10 @@ public class IntPerfectHash {
         public static boolean getBit(byte[] data, int x) {
             return (data[x / 8] & (1 << (x & 7))) != 0;
         }
-        
+
         /**
          * Count the number of set bits.
-         * 
+         *
          * @param data the array
          * @return the number of set bits
          */
@@ -406,8 +406,8 @@ public class IntPerfectHash {
             }
             return count;
         }
-        
-        
+
+
     }
 
 }

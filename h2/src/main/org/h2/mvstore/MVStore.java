@@ -168,9 +168,9 @@ public class MVStore {
     private CacheLongKeyLIRS<Page> cache;
 
     /**
-     * The page chunk references cache. The default size is 4 MB, and the average size is 2 KB.
-     * It is split in 16 segments. The stack move distance is 2% of the expected
-     * number of entries.
+     * The page chunk references cache. The default size is 4 MB, and the
+     * average size is 2 KB. It is split in 16 segments. The stack move distance
+     * is 2% of the expected number of entries.
      */
     private CacheLongKeyLIRS<PageChildren> cacheChunkRef;
 
@@ -1201,7 +1201,7 @@ public class MVStore {
             }
         }
     }
-    
+
     private Set<Integer> collectReferencedChunks() {
         long testVersion = lastChunk.version;
         DataUtils.checkArgument(testVersion > 0, "Collect references on version 0");
@@ -1224,7 +1224,7 @@ public class MVStore {
         readCount = fileStore.readCount - readCount;
         return referenced;
     }
-    
+
     private int collectReferencedChunks(Set<Integer> targetChunkSet, int mapId, long pos) {
         targetChunkSet.add(DataUtils.getPageChunkId(pos));
         if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
@@ -1240,7 +1240,7 @@ public class MVStore {
         return count;
     }
 
-    PageChildren readPageChunkReferences(int mapId, long pos, int parentChunk) {
+    private PageChildren readPageChunkReferences(int mapId, long pos, int parentChunk) {
         if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
             return null;
         }
@@ -1323,7 +1323,7 @@ public class MVStore {
      * Apply the freed space to the chunk metadata. The metadata is updated, but
      * completely free chunks are not removed from the set of chunks, and the
      * disk space is not yet marked as free.
-     * 
+     *
      * @param storeVersion apply up to the given version
      */
     private Set<Chunk> applyFreedSpace(long storeVersion) {
@@ -1676,7 +1676,7 @@ public class MVStore {
         // calculate the fill rate
         long maxLengthSum = 0;
         long maxLengthLiveSum = 0;
-        
+
         long time = getTime();
 
         for (Chunk c : chunks.values()) {

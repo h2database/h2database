@@ -327,7 +327,7 @@ public class TestCompatibility extends TestBase {
                 "comment='Comment Again' ENGINE=InnoDB");
 
         stat.execute("CREATE TABLE TEST2(ID INT) ROW_FORMAT=DYNAMIC");
-        
+
         conn.close();
         conn = getConnection("compatibility");
     }

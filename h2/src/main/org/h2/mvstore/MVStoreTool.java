@@ -86,6 +86,7 @@ public class MVStoreTool {
      *
      * @param fileName the name of the file
      * @param writer the print writer
+     * @param details print the page details
      */
     public static void dump(String fileName, Writer writer, boolean details) {
         PrintWriter pw = new PrintWriter(writer, true);
@@ -97,7 +98,7 @@ public class MVStoreTool {
         pw.printf("File %s, %d bytes, %d MB\n", fileName, size, size / 1024 / 1024);
         FileChannel file = null;
         int blockSize = MVStore.BLOCK_SIZE;
-        TreeMap<Integer, Long> mapSizesTotal = 
+        TreeMap<Integer, Long> mapSizesTotal =
                 new TreeMap<Integer, Long>();
         long pageSizeTotal = 0;
         try {
@@ -139,7 +140,7 @@ public class MVStoreTool {
                 pos += length;
                 int remaining = c.pageCount;
                 pageCount += c.pageCount;
-                TreeMap<Integer, Integer> mapSizes = 
+                TreeMap<Integer, Integer> mapSizes =
                         new TreeMap<Integer, Integer>();
                 int pageSizeSum = 0;
                 while (remaining > 0) {
@@ -269,7 +270,7 @@ public class MVStoreTool {
             }
             pw.printf("%n%0" + len + "x eof%n", fileSize);
             pw.printf("\n");
-            pw.printf("page size total: %d bytes, page count: %d, average page size: %d bytes\n", 
+            pw.printf("page size total: %d bytes, page count: %d, average page size: %d bytes\n",
                     pageSizeTotal, pageCount, pageSizeTotal / pageCount);
             for (Integer mapId : mapSizesTotal.keySet()) {
                 int percent = (int) (100 * mapSizesTotal.get(mapId) / pageSizeTotal);

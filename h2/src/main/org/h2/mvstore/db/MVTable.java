@@ -50,9 +50,10 @@ public class MVTable extends TableBase {
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
     private volatile Session lockExclusiveSession;
-    
+
     // using a ConcurrentHashMap as a set
-    private final ConcurrentHashMap<Session, Session> lockSharedSessions = new ConcurrentHashMap<Session, Session>();
+    private final ConcurrentHashMap<Session, Session> lockSharedSessions =
+            new ConcurrentHashMap<Session, Session>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to

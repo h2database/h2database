@@ -984,7 +984,7 @@ public class Page {
             this.pos = pos;
             this.children = children;
         }
-        
+
         PageChildren(Page p) {
             this.pos = p.getPos();
             int count = p.getRawChildPageCount();
@@ -997,16 +997,16 @@ public class Page {
         int getMemory() {
             return 64 + 8 * children.length;
         }
-        
+
         /**
-         * Read the page from the buffer.
+         * Read an inner node page from the buffer, but ignore the keys and
+         * values.
          *
-         * @param pos the position
-         * @param buff the buffer
-         * @param chunkId the chunk id
+         * @param fileStore the file store
+         * @param filePos the position in the file
          * @param mapId the map id
-         * @param offset the offset within the chunk
-         * @param maxLength the maximum length
+         * @param pos the position
+         * @return the page children object
          */
         static PageChildren read(FileStore fileStore, long filePos, int mapId, long pos) {
             ByteBuffer buff;
@@ -1066,11 +1066,20 @@ public class Page {
             }
             return new PageChildren(pos, children);
         }
-        
+
+        /**
+         * Only keep one reference to the same chunk. Only leaf references are
+         * removed (references to inner nodes are not removed, as they could
+         * indirectly point to other chunks).
+         */
         void removeDuplicateChunkReferences() {
             HashSet<Integer> chunks = New.hashSet();
             // we don't need references to leaves in the same chunk
             chunks.add(DataUtils.getPageChunkId(pos));
+            // possible space optimization:
+            // we could remove more children, for example
+            // we could remove all leaf references to the same chunk
+            // if there is also a inner node reference to that chunk
             for (int i = 0; i < children.length; i++) {
                 long p = children[i];
                 if (DataUtils.getPageType(p) == DataUtils.PAGE_TYPE_NODE) {

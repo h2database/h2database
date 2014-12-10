@@ -17,7 +17,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Views and derived tables with equality and range conditions on the same columns
+<ul><li>MVStore: the Recover tool can now deal with more types of corruption in the file.
+</li><li>MVStore: the TransactionStore now first needs to be initialized before it can be used.
+</li><li>Views and derived tables with equality and range conditions on the same columns
     did not work properly. example: select x from (select x from (select 1 as x)
     where x &gt; 0 and x &lt; 2) where x = 1
 </li><li>The database URL setting PAGE_SIZE setting is now also used for the MVStore.

@@ -65,6 +65,7 @@ public class TestTransactionStore extends TestBase {
         TransactionStore ts;
         s = MVStore.open(null);
         ts = new TransactionStore(s);
+        ts.init();
 
         Transaction tx1 = ts.begin();
         TransactionMap<Integer, Integer> map1 = tx1.openMap("data");
@@ -98,6 +99,7 @@ public class TestTransactionStore extends TestBase {
         TransactionStore ts;
         s = MVStore.open(null);
         ts = new TransactionStore(s);
+        ts.init();
 
         Transaction tx1 = ts.begin();
         TransactionMap<Integer, Integer> map1 = tx1.openMap("data");
@@ -125,6 +127,7 @@ public class TestTransactionStore extends TestBase {
         TransactionStore ts;
         s = MVStore.open(null);
         ts = new TransactionStore(s);
+        ts.init();
 
         Transaction tx0 = ts.begin();
         TransactionMap<Integer, Integer> map0 = tx0.openMap("data");
@@ -149,6 +152,7 @@ public class TestTransactionStore extends TestBase {
         TransactionStore ts;
         s = MVStore.open(null);
         ts = new TransactionStore(s);
+        ts.init();
         ts.setMaxTransactionId(16);
         for (int i = 0, j = 1; i < 64; i++) {
             Transaction t = ts.begin();
@@ -161,6 +165,7 @@ public class TestTransactionStore extends TestBase {
         }
         s = MVStore.open(null);
         ts = new TransactionStore(s);
+        ts.init();
         ts.setMaxTransactionId(16);
         ArrayList<Transaction> fifo = New.arrayList();
         int open = 0;
@@ -197,6 +202,7 @@ public class TestTransactionStore extends TestBase {
 
             s = MVStore.open(fileName);
             ts = new TransactionStore(s);
+            ts.init();
             tx = ts.begin();
             s.setReuseSpace(false);
             m = tx.openMap("test");
@@ -260,6 +266,7 @@ public class TestTransactionStore extends TestBase {
     private void testGetModifiedMaps() {
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
         Transaction tx;
         TransactionMap<String, String> m1, m2, m3;
         long sp;
@@ -329,6 +336,7 @@ public class TestTransactionStore extends TestBase {
     private void testKeyIterator() {
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
         Transaction tx, tx2;
         TransactionMap<String, String> m, m2;
         Iterator<String> it, it2;
@@ -382,6 +390,8 @@ public class TestTransactionStore extends TestBase {
     private void testMultiStatement() {
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
+
         Transaction tx;
         TransactionMap<String, String> m;
         long startUpdate;
@@ -470,6 +480,7 @@ public class TestTransactionStore extends TestBase {
 
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
+        ts.init();
         tx = ts.begin();
         assertEquals(null, tx.getName());
         tx.setName("first transaction");
@@ -489,6 +500,7 @@ public class TestTransactionStore extends TestBase {
 
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
+        ts.init();
         tx = ts.begin();
         assertEquals(2, tx.getId());
         m = tx.openMap("test");
@@ -507,6 +519,7 @@ public class TestTransactionStore extends TestBase {
 
         s = MVStore.open(fileName);
         ts = new TransactionStore(s);
+        ts.init();
         tx = ts.begin();
         m = tx.openMap("test");
         assertEquals(2, tx.getId());
@@ -531,6 +544,7 @@ public class TestTransactionStore extends TestBase {
     private void testSavepoint() {
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
         Transaction tx;
         TransactionMap<String, String> m;
 
@@ -584,6 +598,7 @@ public class TestTransactionStore extends TestBase {
 
         MVStore s = MVStore.open(null);
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
         for (int i = 0; i < connectionCount; i++) {
             Statement stat = statements.get(i);
             // 100 ms to avoid blocking (the test is single threaded)
@@ -717,6 +732,7 @@ public class TestTransactionStore extends TestBase {
         MVStore s = MVStore.open(null);
 
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
 
         Transaction tx1, tx2;
         TransactionMap<String, String> m1, m2;
@@ -789,6 +805,7 @@ public class TestTransactionStore extends TestBase {
         MVStore s = MVStore.open(null);
 
         TransactionStore ts = new TransactionStore(s);
+        ts.init();
 
         Transaction tx;
         TransactionMap<String, String> m;

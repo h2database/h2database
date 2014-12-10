@@ -163,6 +163,7 @@ public class MVTableEngine implements TableEngine {
             this.transactionStore = new TransactionStore(
                     store,
                     new ValueDataType(null, db, null));
+            transactionStore.init();
         }
 
         public MVStore getStore() {

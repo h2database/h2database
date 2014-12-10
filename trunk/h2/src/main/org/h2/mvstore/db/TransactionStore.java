@@ -54,8 +54,10 @@ public class TransactionStore {
      */
     private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
             New.hashMap();
-
+    
     private final DataType dataType;
+
+    private boolean init;
 
     private int lastTransactionId;
 
@@ -94,19 +96,33 @@ public class TransactionStore {
                 new MVMap.Builder<Long, Object[]>().
                 valueType(undoLogValueType);
         undoLog = store.openMap("undoLog", builder);
-        // remove all temporary maps
         if (undoLog.getValueType() != undoLogValueType) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TRANSACTION_CORRUPT,
                     "Undo map open with a different value type");
         }
+    }
+    
+    /**
+     * Initialize the store. This is needed before a transaction can be opened.
+     * If the transaction store is corrupt, this method can throw an exception,
+     * in which case the store can only be used for reading.
+     */
+    public synchronized void init() {
+        init = true;
+        // remove all temporary maps
         for (String mapName : store.getMapNames()) {
             if (mapName.startsWith("temp.")) {
                 MVMap<Object, Integer> temp = openTempMap(mapName);
                 store.removeMap(temp);
             }
         }
-        init();
+        synchronized (undoLog) {
+            if (undoLog.size() > 0) {
+                Long key = undoLog.firstKey();
+                lastTransactionId = getTransactionId(key);
+            }
+        }
     }
 
     /**
@@ -153,15 +169,6 @@ public class TransactionStore {
      */
     static long getLogId(long operationId) {
         return operationId & ((1L << 40) - 1);
-    }
-
-    private synchronized void init() {
-        synchronized (undoLog) {
-            if (undoLog.size() > 0) {
-                Long key = undoLog.firstKey();
-                lastTransactionId = getTransactionId(key);
-            }
-        }
     }
 
     /**
@@ -213,6 +220,11 @@ public class TransactionStore {
      * @return the transaction
      */
     public synchronized Transaction begin() {
+        if (!init) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE, 
+                    "Not initialized");
+        }
         int transactionId = ++lastTransactionId;
         if (lastTransactionId >= maxTransactionId) {
             lastTransactionId = 0;

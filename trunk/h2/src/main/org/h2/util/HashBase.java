@@ -12,7 +12,7 @@ package org.h2.util;
 public abstract class HashBase {
 
     /**
-     * The maximum load, in percent. 
+     * The maximum load, in percent.
      * declared as long so we do long arithmetic so we don't overflow.
      */
     private static final long MAX_LOAD = 90;
@@ -100,7 +100,8 @@ public abstract class HashBase {
      * @param newLevel the new level
      */
     protected void reset(int newLevel) {
-        // can't exceed 30 or we will generate a negative value for the "len" field
+        // can't exceed 30 or we will generate a negative value
+        // for the "len" field
         if (newLevel > 30) {
             throw new IllegalStateException("exceeded max size of hash table");
         }

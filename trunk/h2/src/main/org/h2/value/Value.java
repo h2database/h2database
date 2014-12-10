@@ -1129,7 +1129,7 @@ public abstract class Value {
     /**
      * Create an independent copy of this value if needed, that will be bound to
      * a result. If the original row is removed, this copy is still readable.
-     * 
+     *
      * @return the value (this for small objects)
      */
     public Value copyToResult() {

@@ -1750,7 +1750,7 @@ public class TestMVStore extends TestBase {
             }
         }
 
-        assertTrue(chunkCount1 + ">" + chunkCount2 + ">" + chunkCount3, 
+        assertTrue(chunkCount1 + ">" + chunkCount2 + ">" + chunkCount3,
                 chunkCount3 < chunkCount1);
 
         for (int i = 0; i < 10 * factor; i++) {

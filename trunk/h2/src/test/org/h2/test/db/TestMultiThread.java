@@ -62,7 +62,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentInsertUpdateSelect();
         testLockModeWithMultiThreaded();
     }
-    
+
     private void testConcurrentSchemaChange() throws Exception {
         String db = "testConcurrentSchemaChange";
         deleteDb(db);
@@ -94,7 +94,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         for (Task t : tasks) {
             t.get();
         }
-        conn.close();    
+        conn.close();
     }
 
     private void testConcurrentLobAdd() throws Exception {

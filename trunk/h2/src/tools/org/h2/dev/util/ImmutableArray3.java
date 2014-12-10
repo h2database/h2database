@@ -105,7 +105,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
 
     /**
      * Get the level of "abstraction".
-     * 
+     *
      * @return the level
      */
     abstract int level();
@@ -204,7 +204,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
 
         /**
          * Get a plain array with the given entry updated.
-         * 
+         *
          * @param <K> the type
          * @param base the base type
          * @param index the index
@@ -223,7 +223,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
 
         /**
          * Get a plain array with the given entry inserted.
-         * 
+         *
          * @param <K> the type
          * @param base the base type
          * @param index the index
@@ -242,7 +242,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
 
         /**
          * Get a plain array with the given entry removed.
-         * 
+         *
          * @param <K> the type
          * @param base the base type
          * @param index the index

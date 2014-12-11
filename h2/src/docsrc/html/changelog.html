@@ -17,7 +17,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: the Recover tool can now deal with more types of corruption in the file.
+<ul><li>Using "row_number" or "rownum" in views or derived tables had unexpected results
+    if the outer query contained constraints for the given view. Example:
+    select b.nr, b.id from (select row_number() over() as nr, a.id as id 
+    from (select id from test order by name) as a) as b where b.id = 1
+</li><li>MVStore: the Recover tool can now deal with more types of corruption in the file.
 </li><li>MVStore: the TransactionStore now first needs to be initialized before it can be used.
 </li><li>Views and derived tables with equality and range conditions on the same columns
     did not work properly. example: select x from (select x from (select 1 as x)

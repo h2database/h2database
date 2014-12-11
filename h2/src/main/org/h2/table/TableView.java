@@ -254,6 +254,23 @@ public class TableView extends Table {
         }
         return item;
     }
+    
+    @Override 
+    public boolean isQueryComparable() {
+        if (!super.isQueryComparable()) {
+            return false;
+        }
+        for (Table t : tables) {
+            if (!t.isQueryComparable()) {
+                return false;
+            }
+        }
+        if (topQuery != null && 
+                !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
+            return false;
+        }
+        return true;
+    }
 
     @Override
     public String getDropSQL() {

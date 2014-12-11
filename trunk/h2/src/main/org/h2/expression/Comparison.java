@@ -363,6 +363,9 @@ public class Comparison extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
+        if (!filter.getTable().isQueryComparable()) {
+            return;
+        }
         ExpressionColumn l = null;
         if (left instanceof ExpressionColumn) {
             l = (ExpressionColumn) left;

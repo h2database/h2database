@@ -32,6 +32,9 @@ public class TestView extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        deleteDb("view");
+
+        testInnerSelectWithRownum();
         testInnerSelectWithRange();
         testEmptyColumn();
         testChangeSchemaSearchPath();
@@ -46,6 +49,23 @@ public class TestView extends TestBase {
         testViewAlterAndCommandCache();
         testViewConstraintFromColumnExpression();
         deleteDb("view");
+    }
+    
+    private void testInnerSelectWithRownum() throws SQLException {
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(id int primary key, name varchar(1))");
+        stat.execute("insert into test(id, name) values(1, 'b'), (3, 'a')");
+        ResultSet rs = stat.executeQuery(
+                "select nr from (select row_number() over() as nr, " + 
+                "a.id as id from (select id from test order by name) as a) as b " + 
+                "where b.id = 1;");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testInnerSelectWithRange() throws SQLException {

@@ -254,8 +254,8 @@ public class TableView extends Table {
         }
         return item;
     }
-    
-    @Override 
+
+    @Override
     public boolean isQueryComparable() {
         if (!super.isQueryComparable()) {
             return false;
@@ -265,7 +265,7 @@ public class TableView extends Table {
                 return false;
             }
         }
-        if (topQuery != null && 
+        if (topQuery != null &&
                 !topQuery.isEverything(ExpressionVisitor.QUERY_COMPARABLE_VISITOR)) {
             return false;
         }

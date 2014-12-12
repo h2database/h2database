@@ -294,10 +294,10 @@ public class TestMVStore extends TestBase {
         for (int i = 0; i < 30; i++) {
             map.put(i, data);
             s.commit();
-            if (i < 10) {
+            if (i < 5) {
                 assertEquals(0, s.getCacheSizeUsed());
             } else if (i > 20) {
-                assertEquals(1, s.getCacheSizeUsed());
+                assertTrue(s.getCacheSizeUsed() >= 1);
             }
         }
         s.close();

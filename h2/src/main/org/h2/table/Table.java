@@ -324,12 +324,12 @@ public abstract class Table extends SchemaObjectBase {
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError();
     }
-    
+
     /**
      * Check whether the table (or view) contains no columns that prevent index
      * conditions to be used. For example, a view that contains the ROWNUM()
      * pseudo-column prevents this.
-     * 
+     *
      * @return true if the table contains no query-comparable column
      */
     public boolean isQueryComparable() {

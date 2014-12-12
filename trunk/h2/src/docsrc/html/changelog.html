@@ -17,9 +17,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Using "row_number" or "rownum" in views or derived tables had unexpected results
+<ul><li>MVStore: the default auto-commit buffer size is now about twice as big.
+    This should reduce the database file size after inserting a lot of data.
+</li><li>The built-in functions "power" and "radians" now always return a double.
+</li><li>Using "row_number" or "rownum" in views or derived tables had unexpected results
     if the outer query contained constraints for the given view. Example:
-    select b.nr, b.id from (select row_number() over() as nr, a.id as id 
+    select b.nr, b.id from (select row_number() over() as nr, a.id as id
     from (select id from test order by name) as a) as b where b.id = 1
 </li><li>MVStore: the Recover tool can now deal with more types of corruption in the file.
 </li><li>MVStore: the TransactionStore now first needs to be initialized before it can be used.

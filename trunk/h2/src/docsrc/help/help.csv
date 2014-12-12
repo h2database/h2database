@@ -2879,7 +2879,7 @@ RANDOM_UUID()
 ROUND(numeric [, digitsInt])
 ","
 Rounds to a number of digits, or to the nearest long if the number of digits if not set.
-This method returns a double.
+This method returns a numeric (the same type as the input).
 ","
 ROUND(VALUE, 2)
 "

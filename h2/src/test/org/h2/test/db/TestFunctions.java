@@ -63,6 +63,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testDataType();
         testVersion();
         testFunctionTable();
         testFunctionTableVarArgs();
@@ -98,6 +99,19 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         deleteDb("functions");
         FileUtils.deleteRecursive(TEMP_DIR, true);
+    }
+    
+    private void testDataType() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        assertEquals(Types.DOUBLE, stat.executeQuery(
+                "select radians(x) from dual").
+                getMetaData().getColumnType(1));
+        assertEquals(Types.DOUBLE, stat.executeQuery(
+                "select power(10, 2*x) from dual").
+                getMetaData().getColumnType(1));
+        stat.close();
+        conn.close();
     }
 
     private void testVersion() throws SQLException {

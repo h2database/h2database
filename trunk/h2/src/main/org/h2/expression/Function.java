@@ -2269,9 +2269,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case ABS:
         case FLOOR:
-        case RADIANS:
         case ROUND:
-        case POWER:
             t = p0.getType();
             s = p0.getScale();
             p = p0.getPrecision();

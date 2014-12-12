@@ -43,6 +43,9 @@ TransactionStore:
     if there is only one connection
 
 MVStore:
+- better and clearer memory usage accounting rules
+    (heap memory versus disk memory), so that even there is never an out of memory
+    even for a small heap, and so that chunks are still relatively big on average
 - make sure serialization / deserialization errors don't corrupt the file
 - FileStore: don't open and close when set using MVStore.Builder.fileStore
 - test and possibly improve compact operation (for large dbs)
@@ -270,6 +273,8 @@ public class MVStore {
     private long autoCompactLastFileOpCount;
 
     private Object compactSync = new Object();
+    
+    private IllegalStateException panicException;
 
     /**
      * Create and open the store.
@@ -326,7 +331,7 @@ public class MVStore {
                     segmentCount, stackMoveDistance);
         }
         o = config.get("autoCommitBufferSize");
-        int kb = o == null ? 512 : (Integer) o;
+        int kb = o == null ? 1024 : (Integer) o;
         // 19 KB memory is about 1 KB storage
         autoCommitMemory = kb * 1024 * 19;
 
@@ -366,11 +371,11 @@ public class MVStore {
     }
 
     private void panic(IllegalStateException e) {
-        try {
-            closeStore(false);
-        } catch (Exception e2) {
-            // ignore
+        if (backgroundExceptionHandler != null) {
+            backgroundExceptionHandler.uncaughtException(null, e);
         }
+        panicException = e;
+        closeImmediately();
         throw e;
     }
 
@@ -772,7 +777,7 @@ public class MVStore {
         try {
             fileStore.writeFully(pos, buffer);
         } catch (IllegalStateException e) {
-            closeImmediately();
+            panic(e);
             throw e;
         }
     }
@@ -792,7 +797,7 @@ public class MVStore {
         }
         closeStore(true);
     }
-
+    
     /**
      * Close the file and the store, without writing anything. This will stop
      * the background thread. This method ignores all errors.
@@ -1256,7 +1261,8 @@ public class MVStore {
                             DataUtils.ERROR_FILE_CORRUPT,
                             "Negative position {0}", filePos);
                 }
-                r = PageChildren.read(fileStore, filePos, mapId, pos);
+                long maxPos = (c.block + c.len) * BLOCK_SIZE;
+                r = PageChildren.read(fileStore, pos, mapId, filePos, maxPos);
             } else {
                 r = new PageChildren(p);
             }
@@ -1803,7 +1809,8 @@ public class MVStore {
                         DataUtils.ERROR_FILE_CORRUPT,
                         "Negative position {0}", filePos);
             }
-            p = Page.read(fileStore, map, pos, filePos, fileStore.size());
+            long maxPos = (c.block + c.len) * BLOCK_SIZE;
+            p = Page.read(fileStore, pos, map, filePos, maxPos);
             cachePage(pos, p, p.getMemory());
         }
         return p;
@@ -2042,9 +2049,18 @@ public class MVStore {
 
     /**
      * This method is called before writing to a map.
+     *
+     * @param map the map
      */
-    void beforeWrite() {
+    void beforeWrite(MVMap<?, ?> map) {
         if (saveNeeded) {
+            if (map == meta) {
+                // to, don't save while the metadata map is locked
+                // this is to avoid deadlocks that could occur when we
+                // synchronize on the store and then on the metadata map
+                // TODO there should be no deadlocks possible
+                return;
+            }
             saveNeeded = false;
             // check again, because it could have been written by now
             if (unsavedMemory > autoCommitMemory && autoCommitMemory > 0) {
@@ -2242,7 +2258,7 @@ public class MVStore {
     private void checkOpen() {
         if (closed) {
             throw DataUtils.newIllegalStateException(DataUtils.ERROR_CLOSED,
-                    "This store is closed");
+                    "This store is closed", panicException);
         }
     }
 
@@ -2298,6 +2314,7 @@ public class MVStore {
      * @return the name, or null if not found
      */
     public synchronized String getMapName(int id) {
+        checkOpen();
         String m = meta.get(MVMap.getMapKey(id));
         return m == null ? null : DataUtils.parseMap(m).get("name");
     }
@@ -2571,7 +2588,7 @@ public class MVStore {
          * stores). Unless auto-commit is disabled, changes are automatically
          * saved if there are more than this amount of changes.
          * <p>
-         * The default is 512 KB.
+         * The default is 1024 KB.
          * <p>
          * When the value is set to 0 or lower, data is not automatically
          * stored.

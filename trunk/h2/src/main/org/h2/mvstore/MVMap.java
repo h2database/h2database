@@ -803,10 +803,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                 K key = (K) p.getKey(0);
                 V value = get(key);
                 if (value != null) {
-                    // this is to avoid storing while replacing, to avoid a
-                    // deadlock when rewriting the meta map
-                    // TODO there should be no deadlocks possible
-                    store.beforeWrite();
                     replace(key, value, value);
                 }
             }
@@ -1047,7 +1043,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             throw DataUtils.newUnsupportedOperationException(
                     "This map is read-only");
         }
-        store.beforeWrite();
+        store.beforeWrite(this);
     }
 
     @Override

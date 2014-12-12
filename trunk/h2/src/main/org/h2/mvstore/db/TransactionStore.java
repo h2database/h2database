@@ -54,7 +54,7 @@ public class TransactionStore {
      */
     private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
             New.hashMap();
-    
+
     private final DataType dataType;
 
     private boolean init;
@@ -102,7 +102,7 @@ public class TransactionStore {
                     "Undo map open with a different value type");
         }
     }
-    
+
     /**
      * Initialize the store. This is needed before a transaction can be opened.
      * If the transaction store is corrupt, this method can throw an exception,
@@ -222,7 +222,7 @@ public class TransactionStore {
     public synchronized Transaction begin() {
         if (!init) {
             throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE, 
+                    DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
                     "Not initialized");
         }
         int transactionId = ++lastTransactionId;

@@ -163,14 +163,14 @@ public class Page {
      * Read a page.
      *
      * @param fileStore the file store
+     * @param pos the position
      * @param map the map
-     * @param pos the page position
      * @param filePos the position in the file
-     * @param fileSize the file size (to avoid reading past EOF)
+     * @param maxPos the maximum position (the end of the chunk)
      * @return the page
      */
-    static Page read(FileStore fileStore, MVMap<?, ?> map,
-            long pos, long filePos, long fileSize) {
+    static Page read(FileStore fileStore, long pos, MVMap<?, ?> map,
+            long filePos, long maxPos) {
         ByteBuffer buff;
         int maxLength = DataUtils.getPageMaxLength(pos);
         if (maxLength == DataUtils.PAGE_LARGE) {
@@ -178,13 +178,13 @@ public class Page {
             maxLength = buff.getInt();
             // read the first bytes again
         }
-        maxLength = (int) Math.min(fileSize - filePos, maxLength);
+        maxLength = (int) Math.min(maxPos - filePos, maxLength);
         int length = maxLength;
         if (length < 0) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "Illegal page length {0} reading at {1}; file size {2} ",
-                    length, filePos, fileSize);
+                    "Illegal page length {0} reading at {1}; max pos {2} ",
+                    length, filePos, maxPos);
         }
         buff = fileStore.readFully(filePos, length);
         Page p = new Page(map, 0);
@@ -1003,12 +1003,14 @@ public class Page {
          * values.
          *
          * @param fileStore the file store
-         * @param filePos the position in the file
-         * @param mapId the map id
          * @param pos the position
+         * @param mapId the map id
+         * @param filePos the position in the file
+         * @param maxPos the maximum position (the end of the chunk)
          * @return the page children object
          */
-        static PageChildren read(FileStore fileStore, long filePos, int mapId, long pos) {
+        static PageChildren read(FileStore fileStore, long pos, int mapId,
+                long filePos, long maxPos) {
             ByteBuffer buff;
             int maxLength = DataUtils.getPageMaxLength(pos);
             if (maxLength == DataUtils.PAGE_LARGE) {
@@ -1016,14 +1018,13 @@ public class Page {
                 maxLength = buff.getInt();
                 // read the first bytes again
             }
-            long fileSize = fileStore.fileSize;
-            maxLength = (int) Math.min(fileSize - filePos, maxLength);
+            maxLength = (int) Math.min(maxPos - filePos, maxLength);
             int length = maxLength;
             if (length < 0) {
                 throw DataUtils.newIllegalStateException(
                         DataUtils.ERROR_FILE_CORRUPT,
-                        "Illegal page length {0} reading at {1}; file size {2} ",
-                        length, filePos, fileSize);
+                        "Illegal page length {0} reading at {1}; max pos {2} ",
+                        length, filePos, maxPos);
             }
             buff = fileStore.readFully(filePos, length);
             int chunkId = DataUtils.getPageChunkId(pos);

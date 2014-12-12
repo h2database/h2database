@@ -28,12 +28,12 @@ AND studentID = 2;
 > null
 > rows (ordered): 1
 
-SELECT eventID FROM RESULTS
+SELECT eventID X FROM RESULTS
 WHERE studentID = 2
 ORDER BY points DESC
 LIMIT 2;
-> EVENTID
-> -------
+> X
+> -
 > 2
 > 1
 > rows (ordered): 2

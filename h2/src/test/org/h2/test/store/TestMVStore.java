@@ -889,7 +889,7 @@ public class TestMVStore extends TestBase {
         MVMap<Integer, Integer> map = s.openMap("test");
         map.put(10, 100);
         // ensure the file header is overwritten
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 30; i++) {
             if (i > 5) {
                 s.setRetentionTime(0);
             }
@@ -898,7 +898,9 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         s = openStore(fileName);
-        assertEquals("123", s.getStoreHeader().get("test").toString());
+        Object test = s.getStoreHeader().get("test");
+        assertFalse(test == null);
+        assertEquals("123", test.toString());
         s.close();
     }
 

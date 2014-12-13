@@ -100,7 +100,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         FileUtils.deleteRecursive(TEMP_DIR, true);
     }
-    
+
     private void testDataType() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();

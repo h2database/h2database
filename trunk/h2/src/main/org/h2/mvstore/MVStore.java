@@ -44,8 +44,10 @@ TransactionStore:
 
 MVStore:
 - better and clearer memory usage accounting rules
-    (heap memory versus disk memory), so that even there is never an out of memory
-    even for a small heap, and so that chunks are still relatively big on average
+    (heap memory versus disk memory), so that even there is
+    never an out of memory
+    even for a small heap, and so that chunks
+    are still relatively big on average
 - make sure serialization / deserialization errors don't corrupt the file
 - FileStore: don't open and close when set using MVStore.Builder.fileStore
 - test and possibly improve compact operation (for large dbs)
@@ -273,7 +275,7 @@ public class MVStore {
     private long autoCompactLastFileOpCount;
 
     private Object compactSync = new Object();
-    
+
     private IllegalStateException panicException;
 
     /**
@@ -797,7 +799,7 @@ public class MVStore {
         }
         closeStore(true);
     }
-    
+
     /**
      * Close the file and the store, without writing anything. This will stop
      * the background thread. This method ignores all errors.

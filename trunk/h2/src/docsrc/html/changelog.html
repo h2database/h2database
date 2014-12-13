@@ -17,6 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.4.183 Beta (2014-12-13)</h2>
 <ul><li>MVStore: the default auto-commit buffer size is now about twice as big.
     This should reduce the database file size after inserting a lot of data.
 </li><li>The built-in functions "power" and "radians" now always return a double.
@@ -480,35 +484,6 @@ Change Log
 </li><li>Issue 499: support MySQL "UNIQUE KEY (ID) USING BTREE" constraint syntax
 </li><li>Issue 501: "CREATE TABLE .. WITH" not serialized, patch from nico.devel
 </li><li>Avoid problems with runtime-compiled ALIAS methods when people have set the JAVA_TOOL_OPTIONS environment variable.
-</li></ul>
-
-<h2>Version 1.3.172 (2013-05-25)</h2>
-<ul><li>Referential integrity: when adding a referential integrity constraint failed,
-    and if creating the constraint automatically created an index, this index was not removed.
-</li><li>The auto-analyze feature now only reads 1000 rows per table instead of 10000.
-</li><li>The optimization for IN(...) queries combined with OR could result
-    in a strange exception of the type "column x must be included in the group by list".
-</li><li>Issue 454: Use Charset for type-safety.
-</li><li>Queries with both LIMIT and OFFSET could throw an IllegalArgumentException.
-</li><li>MVStore: multiple issues were fixed: 460, 461, 462, 464, 466.
-</li><li>MVStore: larger stores (multiple GB) are now much faster.
-</li><li>When using local temporary tables and not dropping them manually before closing the session,
-    and then killing the process could result in a database that couldn't be opened (except when using
-    the recover tool).
-</li><li>Support TRUNC(timestamp) for improved Oracle compatibility.
-</li><li>Add support for CREATE TABLE TEST (ID BIGSERIAL) for PostgreSQL compatibility. Patch from Jesse Long.
-</li><li>Add new collation command SET BINARY_COLLATION UNSIGNED, helps with people testing BINARY columns in MySQL mode.
-</li><li>Issue 453: ABBA race conditions in TABLE LINK connection sharing.
-</li><li>Issue 449: Postgres Serial data type should not automatically be marked as primary key
-</li><li>Issue 406: Support "select h2version()"
-</li><li>Issue 389: When there is a multi-column primary key, H2 does not seem to always pick the right index
-</li><li>Issue 305: Implement SELECT ... FOR FETCH ONLY
-</li><li>Issue 274: Sybase/MSSQLServer compatibility - Add GETDATE and CHARINDEX system functions
-</li><li>Issue 274: Sybase/MSSQLServer compatibility - swap parameters of CONVERT function.
-</li><li>Issue 274: Sybase/MSSQLServer compatibility - support index clause e.g. "select * from test (index table1_index)"
-</li><li>Fix bug in Optimizing SELECT * FROM A WHERE X=1 OR X=2 OR X=3 into SELECT * FROM A WHERE X IN (1,2,3)
-</li><li>Issue 442: Groovy patch for SourceCompiler (function ALIAS)
-</li><li>Issue 459: Improve LOB documentation
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

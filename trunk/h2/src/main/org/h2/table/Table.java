@@ -333,12 +333,6 @@ public abstract class Table extends SchemaObjectBase {
      * @return true if the table contains no query-comparable column
      */
     public boolean isQueryComparable() {
-        ExpressionVisitor visitor = ExpressionVisitor.QUERY_COMPARABLE_VISITOR;
-        for (Column col : columns) {
-            if (!col.isEverything(visitor)) {
-                return false;
-            }
-        }
         return true;
     }
 

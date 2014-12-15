@@ -41,6 +41,7 @@ public class TestOptimizations extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("optimizations");
+        testIdentityIndexUsage();
         testFastRowIdCondition();
         testExplainRoundTrip();
         testOrderByExpression();
@@ -78,6 +79,18 @@ public class TestOptimizations extends TestBase {
         testOrderedIndexes();
         testConvertOrToIn();
         deleteDb("optimizations");
+    }
+    
+    private void testIdentityIndexUsage() throws Exception {
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(a identity)");
+        stat.execute("insert into test values()");
+        ResultSet rs = stat.executeQuery("explain select * from test where a = 1");
+        rs.next();
+        assertContains(rs.getString(1), "PRIMARY_KEY");
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testFastRowIdCondition() throws Exception {

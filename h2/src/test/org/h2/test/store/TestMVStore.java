@@ -431,7 +431,7 @@ public class TestMVStore extends TestBase {
         header.put("format", "2");
         MVMap<Integer, String> m = s.openMap("data");
         // this is to ensure the file header is overwritten
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             m.put(0, "Hello World " + i);
             s.commit();
             if (i > 5) {
@@ -445,7 +445,8 @@ public class TestMVStore extends TestBase {
                     encryptionKey("007".toCharArray()).
                     fileName(fileName).
                     open();
-            fail();
+            header = s.getStoreHeader();
+            fail(header.toString());
         } catch (IllegalStateException e) {
             assertEquals(DataUtils.ERROR_UNSUPPORTED_FORMAT,
                     DataUtils.getErrorCode(e.getMessage()));
@@ -480,12 +481,12 @@ public class TestMVStore extends TestBase {
                 autoCommitDisabled().
                 open();
         MVMap<Integer, String> m;
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             m = s.openMap("data" + i);
             m.put(0, "Hello World");
             s.commit();
         }
-        for (int i = 0; i < 10; i += 2) {
+        for (int i = 0; i < 100; i += 2) {
             m = s.openMap("data" + i);
             s.removeMap(m);
             s.commit();

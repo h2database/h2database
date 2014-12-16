@@ -977,6 +977,15 @@ public class MVStore {
     }
 
     private long storeNow() {
+        try {
+            return storeNowTry();
+        } catch (IllegalStateException e) {
+            panic(e);
+            return -1;
+        }
+    }
+
+    private long storeNowTry() {
         freeUnusedChunks();
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
@@ -1156,17 +1165,13 @@ public class MVStore {
             shrinkFileIfPossible(1);
         }
 
-        try {
-            for (MVMap<?, ?> m : changed) {
-                Page p = m.getRoot();
-                if (p.getTotalCount() > 0) {
-                    p.writeEnd();
-                }
+        for (MVMap<?, ?> m : changed) {
+            Page p = m.getRoot();
+            if (p.getTotalCount() > 0) {
+                p.writeEnd();
             }
-            metaRoot.writeEnd();
-        } catch (IllegalStateException e) {
-            panic(e);
         }
+        metaRoot.writeEnd();
 
         // some pages might have been changed in the meantime (in the newest
         // version)

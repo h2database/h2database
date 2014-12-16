@@ -88,6 +88,7 @@ public class TestSpatial extends TestBase {
         testInPlaceUpdate();
         testScanIndexOnNonSpatialQuery();
         testStoreCorruption();
+        testExplainSpatialIndexWithPk();
     }
 
     private void testHashCode() {
@@ -881,4 +882,32 @@ public class TestSpatial extends TestBase {
         }
         deleteDb("spatial");
     }
+
+    private void testExplainSpatialIndexWithPk() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("drop table if exists pt_cloud;");
+            stat.execute("CREATE TABLE PT_CLOUD(id serial, the_geom geometry) AS"
+                    + "  SELECT null, CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom "
+                    + "from system_range(0,120) A,system_range(0,10) B;");
+            stat.execute("create spatial index on pt_cloud(the_geom);");
+            ResultSet rs = stat.executeQuery(
+                    "explain select * from  PT_CLOUD " +
+                    "where the_geom && 'POINT(1 1)'");
+            try {
+                assertTrue(rs.next());
+                assertFalse("H2 should use spatial index got this explain:\n" +
+                        rs.getString(1), rs.getString(1).contains("tableScan"));
+            } finally {
+                rs.close();
+            }
+        } finally {
+            // Close the database
+            conn.close();
+        }
+        deleteDb("spatial");
+    }
+
 }

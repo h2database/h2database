@@ -42,12 +42,14 @@ public class TestMemoryUsage extends TestBase {
         testCreateIndex();
         testClob();
         testReconnectOften();
+
         deleteDb("memoryUsage");
         reconnect();
         insertUpdateSelectDelete();
         reconnect();
         insertUpdateSelectDelete();
         conn.close();
+
         deleteDb("memoryUsage");
     }
 
@@ -68,21 +70,36 @@ public class TestMemoryUsage extends TestBase {
     }
 
     private void testCreateDropLoop() throws SQLException {
-        deleteDb("memoryUsage");
-        conn = getConnection("memoryUsage");
+        deleteDb("memoryUsageCreateDropLoop");
+        conn = getConnection("memoryUsageCreateDropLoop");
         Statement stat = conn.createStatement();
         for (int i = 0; i < 100; i++) {
             stat.execute("CREATE TABLE TEST(ID INT)");
             stat.execute("DROP TABLE TEST");
         }
+        stat.execute("checkpoint");
         int used = Utils.getMemoryUsed();
         for (int i = 0; i < 1000; i++) {
             stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
             stat.execute("DROP TABLE TEST");
         }
+        stat.execute("checkpoint");
         int usedNow = Utils.getMemoryUsed();
         if (usedNow > used * 1.3) {
-            assertEquals(used, usedNow);
+            // try to lower memory usage (because it might be wrong)
+            // by forcing OOME
+            for (int i = 1024;; i *= 2) {
+                try {
+                    byte[] oome = new byte[1024 * 1024 * 256];
+                    oome[0] = (byte) i;
+                } catch (OutOfMemoryError e) {
+                    break;
+                }
+            }
+            usedNow = Utils.getMemoryUsed();
+            if (usedNow > used * 1.3) {
+                assertEquals(used, usedNow);
+            }
         }
         conn.close();
     }
@@ -101,8 +118,8 @@ public class TestMemoryUsage extends TestBase {
         if (config.memory || !config.big) {
             return;
         }
-        deleteDb("memoryUsage");
-        conn = getConnection("memoryUsage");
+        deleteDb("memoryUsageClob");
+        conn = getConnection("memoryUsageClob");
         Statement stat = conn.createStatement();
         stat.execute("SET MAX_LENGTH_INPLACE_LOB 8192");
         stat.execute("SET CACHE_SIZE 8000");

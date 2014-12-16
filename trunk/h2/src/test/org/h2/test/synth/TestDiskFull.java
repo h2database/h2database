@@ -93,7 +93,8 @@ public class TestDiskFull extends TestBase {
                 } catch (SQLException e2) {
                     if (e2.getErrorCode() != ErrorCode.IO_EXCEPTION_1
                             && e2.getErrorCode() != ErrorCode.IO_EXCEPTION_2
-                            && e2.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED) {
+                            && e2.getErrorCode() != ErrorCode.DATABASE_IS_CLOSED
+                            && e2.getErrorCode() != ErrorCode.OBJECT_CLOSED) {
                         throw e2;
                     }
                 }

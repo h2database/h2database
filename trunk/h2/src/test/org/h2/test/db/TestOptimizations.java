@@ -80,7 +80,7 @@ public class TestOptimizations extends TestBase {
         testConvertOrToIn();
         deleteDb("optimizations");
     }
-    
+
     private void testIdentityIndexUsage() throws Exception {
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();

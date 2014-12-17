@@ -249,7 +249,7 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public String getAlias() {
-        return column == null ? null : column.getName();
+        return column == null ? columnName : column.getName();
     }
 
     @Override

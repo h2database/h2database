@@ -3,6 +3,11 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select 1 "a", count(*) from dual group by "a" order by "a";
+> a COUNT(*)
+> - --------
+> 1 1
+> rows (ordered): 1
 
 create table results(eventId int, points int, studentId int);
 > ok
@@ -6413,8 +6418,8 @@ EXPLAIN SELECT * FROM TEST WHERE (ID>=1 AND ID<=2)  OR (ID>0 AND ID<3) AND (ID<>
 
 EXPLAIN SELECT * FROM TEST WHERE ID=1 GROUP BY NAME, ID;
 > PLAN
-> ------------------------------------------------------------------------------------------------------------
-> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1 GROUP BY NAME, ID
+> ----------------------------------------------------------------------------------------------------------------------
+> SELECT TEST.ID, TEST.NAME FROM PUBLIC.TEST /* PUBLIC.PRIMARY_KEY_2: ID = 1 */ WHERE ID = 1 GROUP BY TEST.NAME, TEST.ID
 > rows: 1
 
 EXPLAIN PLAN FOR UPDATE TEST SET NAME='Hello', ID=1 WHERE NAME LIKE 'T%' ESCAPE 'x';
@@ -10125,3 +10130,4 @@ create table test(id int, name varchar);
 
 insert into test values(5, 'b'), (5, 'b'), (20, 'a');
 > update count: 3
+

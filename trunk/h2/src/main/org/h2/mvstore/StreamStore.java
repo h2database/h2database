@@ -344,7 +344,13 @@ public class StreamStore {
      * @return the block
      */
     byte[] getBlock(long key) {
-        return map.get(key);
+        byte[] data = map.get(key);
+        if (data == null) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_BLOCK_NOT_FOUND, 
+                    "Block {0} not found",  key);
+        }
+        return data;
     }
 
     /**
@@ -367,7 +373,7 @@ public class StreamStore {
         }
 
         @Override
-        public int read() {
+        public int read() throws IOException {
             byte[] buffer = oneByteBuffer;
             if (buffer == null) {
                 buffer = oneByteBuffer = new byte[1];
@@ -405,13 +411,21 @@ public class StreamStore {
         }
 
         @Override
-        public int read(byte[] b, int off, int len) {
+        public int read(byte[] b, int off, int len) throws IOException {
             if (len <= 0) {
                 return 0;
             }
             while (true) {
                 if (buffer == null) {
-                    buffer = nextBuffer();
+                    try {
+                        buffer = nextBuffer();
+                    } catch (IllegalStateException e) {
+                        String msg = DataUtils.formatMessage(
+                                DataUtils.ERROR_BLOCK_NOT_FOUND, 
+                                "Block not found in id {0}", 
+                                Arrays.toString(idBuffer.array()));
+                        throw new IOException(msg, e);
+                    }
                     if (buffer == null) {
                         return -1;
                     }

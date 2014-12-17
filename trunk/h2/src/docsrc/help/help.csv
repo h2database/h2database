@@ -195,7 +195,7 @@ SHOW TABLES
 ALTER INDEX indexName RENAME TO newIndexName
 ","
 Renames an index.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
@@ -204,7 +204,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 ALTER SCHEMA schema RENAME TO newSchemaName
 ","
 Renames a schema.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
@@ -229,7 +229,7 @@ ALTER TABLE tableName ADD [ COLUMN ]
     | ( { columnDefinition } [,...] ) }
 ","
 Adds a new column to a table.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
@@ -241,7 +241,7 @@ Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
 The required indexes are automatically created if they don't exist yet.
 It is not possible to disable checking for unique constraints.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
@@ -277,7 +277,7 @@ Single column indexes on this column are dropped.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME CLOB;
 ALTER TABLE TEST ALTER COLUMN NAME RENAME TO TEXT;
@@ -292,7 +292,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
 ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
 ","
 Removes a column from a table.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
 "
@@ -301,7 +301,7 @@ ALTER TABLE TEST DROP COLUMN NAME
 ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 "
@@ -316,7 +316,7 @@ existing data, except if CHECK is specified. Use SET REFERENTIAL_INTEGRITY to
 disable it for all tables; the global flag and the flag for each table are
 independent.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "
@@ -325,7 +325,7 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 ALTER TABLE tableName RENAME TO newName
 ","
 Renames a table.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST RENAME TO MY_DATA
 "
@@ -337,7 +337,7 @@ Switches the admin flag of a user on or off.
 
 Only unquoted or uppercase user names are allowed.
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER USER TOM ADMIN TRUE
 "
@@ -350,7 +350,7 @@ After renaming a user, the password becomes invalid and needs to be changed as w
 
 Only unquoted or uppercase user names are allowed.
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER USER TOM RENAME TO THOMAS
 "
@@ -364,7 +364,7 @@ The password must be enclosed in single quotes. It is case sensitive
 and can contain spaces. The salt and hash values are hex strings.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
@@ -374,7 +374,7 @@ ALTER VIEW viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
 This command is used for views created using CREATE FORCE VIEW.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
@@ -389,7 +389,7 @@ read. The selectivity can be set manually using ALTER TABLE ALTER COLUMN
 SELECTIVITY. Manual values are overwritten by this statement. The selectivity is
 available in the INFORMATION_SCHEMA.COLUMNS table.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 ANALYZE SAMPLE_SIZE 1000
 "
@@ -404,7 +404,7 @@ IS expression
 Sets the comment of a database object. Use NULL to remove the comment.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 COMMENT ON TABLE TEST IS 'Table used for testing'
 "
@@ -417,7 +417,7 @@ qualified class name. The class must implement the interface
 ""org.h2.api.AggregateFunction"".
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE AGGREGATE MEDIAN FOR ""com.acme.db.Median""
 "
@@ -456,7 +456,7 @@ If the class contains multiple methods with the given name but different
 parameter count, all methods are mapped.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 
 If you have the Groovy jar in your classpath, it is also possible to write methods using Groovy.
 ","
@@ -477,7 +477,7 @@ $$
 CREATE CONSTANT [ IF NOT EXISTS ] newConstantName VALUE expression
 ","
 Creates a new constant.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE CONSTANT ONE VALUE 1
 "
@@ -493,7 +493,7 @@ to the value being tested.
 
 Domains are usable within the whole database. They can not be created in a specific schema.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE DOMAIN EMAIL AS VARCHAR(255) CHECK (POSITION('@', VALUE) > 1)
 "
@@ -505,7 +505,7 @@ CREATE
 ON tableName ( indexColumn [,...] )
 ","
 Creates a new index.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 
 Hash indexes are meant for in-memory databases and memory tables (CREATE MEMORY TABLE).
 For other tables, or if the index contains multiple columns, the HASH keyword is ignored.
@@ -546,7 +546,7 @@ javax.naming.Context (for example ""javax.naming.InitialContext""), and the URL 
 be the resource name (for example ""java:comp/env/jdbc/Test"").
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE LINKED TABLE LINK('org.h2.Driver', 'jdbc:h2:test2', 'sa', 'sa', 'TEST');
 CREATE LINKED TABLE LINK('', 'jdbc:h2:test2', 'sa', 'sa',
@@ -559,7 +559,7 @@ CREATE LINKED TABLE LINK('javax.naming.InitialContext',
 CREATE ROLE [ IF NOT EXISTS ] newRoleName
 ","
 Creates a new role.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE ROLE READONLY
 "
@@ -571,7 +571,7 @@ Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
 Specifying the owner currently has no effect.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE SCHEMA TEST_SCHEMA AUTHORIZATION SA
 "
@@ -593,7 +593,7 @@ If the system crashes without closing the database, at most this many numbers ar
 The default cache size is 32.
 To disable caching, use the cache size 1 or lower.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE SEQUENCE SEQ_ID
 "
@@ -680,7 +680,7 @@ QUEUE is implemented for syntax compatibility with HSQL and has no effect.
 The trigger need to be created in the same schema as the table.
 The schema name does not need to be specified when creating the trigger.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger""
 "
@@ -693,7 +693,7 @@ The password must be in single quotes. It is case sensitive and can contain spac
 The salt and hash values are hex strings.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE USER GUEST PASSWORD 'abc'
 "
@@ -713,7 +713,7 @@ can be ignored if the FORCE clause is also used.
 Views are not updatable except when using 'instead of' triggers.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 CREATE VIEW TEST_VIEW AS SELECT * FROM TEST WHERE ID < 100
 "
@@ -724,7 +724,7 @@ DROP AGGREGATE [ IF EXISTS ] aggregateName
 Drops an existing user-defined aggregate function.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP AGGREGATE MEDIAN
 "
@@ -735,7 +735,7 @@ DROP ALIAS [ IF EXISTS ] existingFunctionAliasName
 Drops an existing function alias.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP ALIAS MY_SQRT
 "
@@ -758,7 +758,7 @@ DROP ALL OBJECTS
 DROP CONSTANT [ IF EXISTS ] constantName
 ","
 Drops a constant.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP CONSTANT ONE
 "
@@ -767,7 +767,7 @@ DROP CONSTANT ONE
 DROP DOMAIN [ IF EXISTS ] domainName
 ","
 Drops a data type (domain).
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP DOMAIN EMAIL
 "
@@ -776,7 +776,7 @@ DROP DOMAIN EMAIL
 DROP INDEX [ IF EXISTS ] indexName
 ","
 Drops an index.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP INDEX IF EXISTS IDXNAME
 "
@@ -785,7 +785,7 @@ DROP INDEX IF EXISTS IDXNAME
 DROP ROLE [ IF EXISTS ] roleName
 ","
 Drops a role.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP ROLE READONLY
 "
@@ -794,7 +794,7 @@ DROP ROLE READONLY
 DROP SCHEMA [ IF EXISTS ] schemaName
 ","
 Drops a schema.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP SCHEMA TEST_SCHEMA
 "
@@ -803,7 +803,7 @@ DROP SCHEMA TEST_SCHEMA
 DROP SEQUENCE [ IF EXISTS ] sequenceName
 ","
 Drops a sequence.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP SEQUENCE SEQ_ID
 "
@@ -814,7 +814,7 @@ DROP TABLE [ IF EXISTS ] tableName [,...] [ RESTRICT | CASCADE ]
 Drops an existing table, or a list of tables.
 The command will fail if dependent views exist and the RESTRICT clause is used (the default).
 All dependent views are dropped as well if the CASCADE clause is used.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP TABLE TEST
 "
@@ -823,7 +823,7 @@ DROP TABLE TEST
 DROP TRIGGER [ IF EXISTS ] triggerName
 ","
 Drops an existing trigger.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP TRIGGER TRIG_INS
 "
@@ -835,7 +835,7 @@ Drops a user. The current user cannot be dropped.
 For compatibility, only unquoted or uppercase user names are allowed.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP USER TOM
 "
@@ -846,7 +846,7 @@ DROP VIEW [ IF EXISTS ] viewName [ RESTRICT | CASCADE ]
 Drops an existing view.
 All dependent views are dropped as well if the CASCADE clause is used (the default).
 The command will fail if dependent views exist and the RESTRICT clause is used.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 DROP VIEW TEST_VIEW
 "
@@ -861,7 +861,7 @@ Only regular data tables without foreign key constraints can be truncated
 (except if referential integrity is disabled for this database or for this table).
 Linked tables can't be truncated.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 TRUNCATE TABLE TEST
 "
@@ -913,7 +913,7 @@ tableName [,...] TO { PUBLIC | userName | roleName }
 Grants rights for a table to a user or role.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 GRANT SELECT ON TEST TO READONLY
 "
@@ -924,7 +924,7 @@ GRANT ALTER ANY SCHEMA TO userName
 Grant schema altering rights to a user.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 GRANT ALTER ANY SCHEMA TO Bob
 "
@@ -935,7 +935,7 @@ GRANT roleName TO { PUBLIC | userName | roleName }
 Grants a role to a user or role.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 GRANT READONLY TO PUBLIC
 "
@@ -964,7 +964,7 @@ tableName [,...] FROM { PUBLIC | userName | roleName }
 Removes rights for a table from a user or role.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 REVOKE SELECT ON TEST FROM READONLY
 "
@@ -975,7 +975,7 @@ REVOKE roleName FROM { PUBLIC | userName | roleName }
 Removes a role from a user or role.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 REVOKE READONLY FROM TOM
 "
@@ -1034,7 +1034,7 @@ means all literals are allowed (default).
 See also CREATE CONSTANT.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;ALLOW_LITERALS=NONE""
 ","
@@ -1068,7 +1068,7 @@ This setting only affects the database engine (the server in a client/server env
 It has no effect for in-memory databases.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;CACHE_SIZE=8192""
 ","
@@ -1099,7 +1099,7 @@ for version 1.3 and older, and UNSIGNED for version 1.4 and newer.
 This command can only be executed if there are no tables defined.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 ","
 SET BINARY_COLLATION SIGNED
@@ -1122,7 +1122,7 @@ The default collator is used if the collation name starts with DEFAULT_
 (even if ICU4J is in the classpath).
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 ","
 SET COLLATION ENGLISH
@@ -1139,7 +1139,7 @@ Sets the compression algorithm for BLOB and CLOB data. Compression is usually
 slower, but needs less disk space. LZF is faster but uses more space.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 ","
 SET COMPRESS_LOB LZF
@@ -1169,7 +1169,7 @@ Values 1 and larger mean the number of seconds the database is left open after c
 If the application exits normally or System.exit is called, the database is closed immediately, even if a delay is set.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;DB_CLOSE_DELAY=-1""
 ","
@@ -1183,7 +1183,7 @@ Sets the default lock timeout (in milliseconds) in this database that is used
 for the new sessions. The default value for this setting is 1000 (one second).
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 ","
 SET DEFAULT_LOCK_TIMEOUT 5000
@@ -1198,7 +1198,7 @@ the data is still stored in the database file. The size of memory tables is
 limited by the memory. The default is CACHED.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 It has no effect for in-memory databases.
 ","
@@ -1220,7 +1220,7 @@ Only the connection that set the exclusive mode can disable it.
 When the connection is closed, it is automatically disabled.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 SET EXCLUSIVE 1
 "
@@ -1235,7 +1235,7 @@ Case-insensitive columns are compared faster than when using a collation.
 String literals and parameters are however still considered case sensitive even if this option is set.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;IGNORECASE=TRUE""
 ","
@@ -1254,7 +1254,7 @@ The class must be available in the classpath of the database engine
 This command can only be executed if there are no tables defined.
 
 Admin rights are required to execute this command.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;JAVA_OBJECT_SERIALIZER='com.acme.SerializerClassName'""
 ","
@@ -1282,7 +1282,7 @@ for each checkpoint. This setting is about half as fast as LOG 1. Depending on t
 file system, this will also protect against power failure in the majority if cases.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is not persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;LOG=0""
 ","
@@ -1308,7 +1308,7 @@ The value 3 means table level locking, but read locks are released immediately
 (default; also known as READ_COMMITTED).
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;LOCK_MODE=3""
 ","
@@ -1336,7 +1336,7 @@ This is the maximum length of an LOB that is stored with the record itself,
 and the default value is 128.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 ","
 SET MAX_LENGTH_INPLACE_LOB 128
@@ -1352,7 +1352,7 @@ The default max size is 16 MB.
 This setting has no effect for in-memory databases.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 ","
 SET MAX_LOG_SIZE 2
@@ -1366,7 +1366,7 @@ are read, then the rows are buffered to disk.
 The default is 40000 per GB of available RAM.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 It has no effect for in-memory databases.
 ","
@@ -1383,7 +1383,7 @@ Changes to tables without a primary key can not be buffered to disk.
 This setting is not supported when using multi-version concurrency.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 It has no effect for in-memory databases.
 ","
@@ -1413,7 +1413,7 @@ Modes in the feature section.
 
 This setting is not persistent.
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting can be appended to the database URL: ""jdbc:h2:test;MODE=MYSQL""
 ","
 SET MODE HSQLDB
@@ -1430,7 +1430,7 @@ This is a global setting, which means it is not possible to open multiple databa
 This setting is not persistent, however the value is kept until the virtual machine exits or it is changed.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting can be appended to the database URL: ""jdbc:h2:test;MULTI_THREADED=1""
 ","
 SET MULTI_THREADED 1
@@ -1444,7 +1444,7 @@ subqueries and views used as subqueries are only re-run if the data in one of
 the tables was changed. This option is enabled by default.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting can be appended to the database URL: ""jdbc:h2:test;OPTIMIZE_REUSE_RESULTS=0""
 ","
 SET OPTIMIZE_REUSE_RESULTS 0
@@ -1456,7 +1456,7 @@ SET PASSWORD string
 Changes the password of the current user. The password must be in single quotes.
 It is case sensitive and can contain spaces.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 SET PASSWORD 'abcstzri!.5'
 "
@@ -1468,7 +1468,7 @@ Disabled or enables query statistics gathering for the whole database.
 The statistics are reflected in the INFORMATION_SCHEMA.QUERY_STATISTICS meta-table.
 
 This setting is not persistent.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 Admin rights are required to execute this command, as it affects all connections.
 ","
 SET QUERY_STATISTICS FALSE
@@ -1494,7 +1494,7 @@ Enabling it does not check existing data. Use ALTER TABLE SET to disable it only
 for one table.
 
 This setting is not persistent.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 Admin rights are required to execute this command, as it affects all connections.
 ","
 SET REFERENTIAL_INTEGRITY FALSE
@@ -1513,7 +1513,7 @@ however please note that according to various tests this does not always work as
 depending on the operating system and hardware.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting is persistent.
 This setting can be appended to the database URL: ""jdbc:h2:test;RETENTION_TIME=0""
 ","
@@ -1526,7 +1526,7 @@ SET SALT bytes HASH bytes
 Sets the password salt and hash for the current user. The password must be in
 single quotes. It is case sensitive and can contain spaces.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 SET SALT '00' HASH '1122'
 "
@@ -1594,7 +1594,7 @@ deleted. The default max size is 16 MB.
 
 This setting is persistent.
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting can be appended to the database URL: ""jdbc:h2:test;TRACE_MAX_FILE_SIZE=3""
 ","
 SET TRACE_MAX_FILE_SIZE 10
@@ -1607,7 +1607,7 @@ Enables (1) or disables (0) the per session undo log. The undo log is enabled by
 default. When disabled, transactions can not be rolled back. This setting should
 only be used for bulk operations that don't need to be atomic.
 
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 ","
 SET UNDO_LOG 0
 "
@@ -1619,7 +1619,7 @@ Set the maximum delay between a commit and flushing the log, in milliseconds.
 This setting is persistent. The default is 500 ms.
 
 Admin rights are required to execute this command, as it affects all connections.
-This command commits an open transaction.
+This command commits an open transaction in this connection.
 This setting can be appended to the database URL: ""jdbc:h2:test;WRITE_DELAY=0""
 ","
 SET WRITE_DELAY 2000

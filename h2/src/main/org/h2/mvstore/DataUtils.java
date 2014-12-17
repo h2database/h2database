@@ -72,7 +72,12 @@ public class DataUtils {
      * available.
      */
     public static final int ERROR_CHUNK_NOT_FOUND = 9;
-
+    
+    /**
+     * The block in the stream store was not found.
+     */
+    public static final int ERROR_BLOCK_NOT_FOUND = 50;
+    
     /**
      * The transaction store is corrupt.
      */
@@ -781,7 +786,15 @@ public class DataUtils {
         return e;
     }
 
-    private static String formatMessage(int errorCode, String message,
+    /**
+     * Format an error message.
+     * 
+     * @param errorCode the error code
+     * @param message the message
+     * @param arguments the arguments
+     * @return the formatted message
+     */
+    public static String formatMessage(int errorCode, String message,
             Object... arguments) {
         // convert arguments to strings, to avoid locale specific formatting
         for (int i = 0; i < arguments.length; i++) {

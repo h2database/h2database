@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.StreamStore;
@@ -41,6 +43,7 @@ public class TestStreamStore extends TestBase {
     public void test() throws IOException {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
+        testIOException();
         testSaveCount();
         testExceptionDuringStore();
         testReadCount();
@@ -51,6 +54,25 @@ public class TestStreamStore extends TestBase {
         testWithExistingData();
         testWithFullMap();
         testLoop();
+    }
+    
+    private void testIOException() throws IOException {
+        HashMap<Long, byte[]> map = New.hashMap();
+        StreamStore s = new StreamStore(map);
+        byte[] id = s.put(new ByteArrayInputStream(new byte[1024 * 1024]));
+        InputStream in = s.get(id);
+        map.clear();
+        try {
+            while (true) {
+                if (in.read() < 0) {
+                    break;
+                }
+            }
+            fail();
+        } catch (IOException e) {
+            assertEquals(DataUtils.ERROR_BLOCK_NOT_FOUND, 
+                    DataUtils.getErrorCode(e.getMessage()));
+        }
     }
 
     private void testSaveCount() throws IOException {

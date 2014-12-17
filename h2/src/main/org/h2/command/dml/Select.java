@@ -783,6 +783,11 @@ public class Select extends Query {
                             found = j;
                             break;
                         }
+                        sql = expr.getAlias();
+                        if (db.equalsIdentifiers(sql, e.getAlias())) {
+                            found = j;
+                            break;
+                        }
                     }
                 }
                 if (found < 0) {

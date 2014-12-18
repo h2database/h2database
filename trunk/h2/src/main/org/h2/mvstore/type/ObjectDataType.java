@@ -423,10 +423,10 @@ public class ObjectDataType implements DataType {
         public int compare(Object aObj, Object bObj) {
             AutoDetectDataType aType = getType(aObj);
             AutoDetectDataType bType = getType(bObj);
-            if (aType == bType) {
+            int typeDiff = aType.typeId - bType.typeId;
+            if (typeDiff == 0) {
                 return aType.compare(aObj, bObj);
             }
-            int typeDiff = aType.typeId - bType.typeId;
             return Integer.signum(typeDiff);
         }
 

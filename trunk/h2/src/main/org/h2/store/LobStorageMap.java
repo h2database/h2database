@@ -292,7 +292,7 @@ public class LobStorageMap implements LobStorageInterface {
         Object[] key = new Object[] {streamStoreId, lobId };
         refMap.remove(key);
         // check if there are more entries for this streamStoreId
-        key = new Object[] {streamStoreId, 0 };
+        key = new Object[] {streamStoreId, 0L };
         value = refMap.ceilingKey(key);
         boolean hasMoreEntries = false;
         if (value != null) {

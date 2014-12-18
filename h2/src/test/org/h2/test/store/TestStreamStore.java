@@ -55,7 +55,7 @@ public class TestStreamStore extends TestBase {
         testWithFullMap();
         testLoop();
     }
-    
+
     private void testIOException() throws IOException {
         HashMap<Long, byte[]> map = New.hashMap();
         StreamStore s = new StreamStore(map);
@@ -70,7 +70,7 @@ public class TestStreamStore extends TestBase {
             }
             fail();
         } catch (IOException e) {
-            assertEquals(DataUtils.ERROR_BLOCK_NOT_FOUND, 
+            assertEquals(DataUtils.ERROR_BLOCK_NOT_FOUND,
                     DataUtils.getErrorCode(e.getMessage()));
         }
     }

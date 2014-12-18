@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.WriteBuffer;
+import org.h2.mvstore.type.ObjectDataType;
 import org.h2.store.fs.FileChannelInputStream;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -46,6 +50,7 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
 
+        testConcurrentDataType();
         testConcurrentAutoCommitAndChange();
         testConcurrentReplaceAndRead();
         testConcurrentChangeAndCompact();
@@ -58,6 +63,61 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+
+    private void testConcurrentDataType() throws InterruptedException {
+        final ObjectDataType type = new ObjectDataType();
+        final Object[] data = new Object[]{
+                null,
+                -1,
+                1,
+                10,
+                "Hello",
+                new Object[]{ new byte[]{(byte) -1, (byte) 1}, null},
+                new Object[]{ new byte[]{(byte) 1, (byte) -1}, 10},
+                new Object[]{ new byte[]{(byte) -1, (byte) 1}, 20L},
+                new Object[]{ new byte[]{(byte) 1, (byte) -1}, 5},
+        };
+        Arrays.sort(data, new Comparator<Object>() {
+            @Override
+            public int compare(Object o1, Object o2) {
+                return type.compare(o1, o2);
+            }
+        });
+        Task[] tasks = new Task[2];
+        for (int i = 0; i < tasks.length; i++) {
+            tasks[i] = new Task() {
+                @Override
+                public void call() throws Exception {
+                    Random r = new Random();
+                    WriteBuffer buff = new WriteBuffer();
+                    while (!stop) {
+                        int a = r.nextInt(data.length);
+                        int b = r.nextInt(data.length);
+                        int comp;
+                        if (r.nextBoolean()) {
+                            comp = type.compare(a, b);
+                        } else {
+                            comp = -type.compare(b, a);
+                        }
+                        buff.clear();
+                        type.write(buff, a);
+                        buff.clear();
+                        type.write(buff, b);
+                        if (a == b) {
+                            assertEquals(0, comp);
+                        } else {
+                            assertEquals(a > b ? 1 : -1, comp);
+                        }
+                    }
+                }
+            };
+            tasks[i].execute();
+        }
+        Thread.sleep(100);
+        for (Task t : tasks) {
+            t.get();
+        }
     }
 
     private void testConcurrentAutoCommitAndChange() throws InterruptedException {

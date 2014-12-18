@@ -277,4 +277,19 @@ public class NetUtils {
         return address;
     }
 
+    /**
+     * Get the host name of a local address, if available.
+     * 
+     * @param localAddress the local address
+     * @return the host name, or another text if not available
+     */
+    public static String getHostName(String localAddress) {
+        try {
+            InetAddress addr = InetAddress.getByName(localAddress);
+            return addr.getHostName();
+        } catch (Exception e) {
+            return "unknown";
+        }
+    }
+
 }

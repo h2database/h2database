@@ -778,8 +778,11 @@ public class Database implements DataHandler {
         } catch (SQLException e) {
             throw DbException.convert(e);
         }
-        String address = NetUtils.getLocalAddress() + ":" + server.getPort();
+        String localAddress = NetUtils.getLocalAddress();
+        String address = localAddress + ":" + server.getPort();
         lock.setProperty("server", address);
+        String hostName = NetUtils.getHostName(localAddress);
+        lock.setProperty("hostName", hostName);
         lock.save();
     }
 

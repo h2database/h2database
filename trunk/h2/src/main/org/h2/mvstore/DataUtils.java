@@ -72,12 +72,12 @@ public class DataUtils {
      * available.
      */
     public static final int ERROR_CHUNK_NOT_FOUND = 9;
-    
+
     /**
      * The block in the stream store was not found.
      */
     public static final int ERROR_BLOCK_NOT_FOUND = 50;
-    
+
     /**
      * The transaction store is corrupt.
      */
@@ -788,7 +788,7 @@ public class DataUtils {
 
     /**
      * Format an error message.
-     * 
+     *
      * @param errorCode the error code
      * @param message the message
      * @param arguments the arguments

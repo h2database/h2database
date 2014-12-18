@@ -177,7 +177,6 @@ public class Build extends BuildBase {
             args = args.plus("-Xlint:unchecked", "-g:none", "-d", "temp",
                     "-sourcepath", "src/main", "-classpath", classpath);
         }
-        System.out.println(files);
         javac(args, files);
     }
 

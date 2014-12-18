@@ -64,6 +64,9 @@ public interface Trigger {
      * The row arrays contain all columns of the table, in the same order
      * as defined in the table.
      * </p>
+     * <p>
+     * The trigger itself may change the data in the newRow array.
+     * </p>
      *
      * @param conn a connection to the database
      * @param oldRow the old row, or null if no old row is available (for

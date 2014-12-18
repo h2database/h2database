@@ -131,6 +131,11 @@ public class MVStoreTool {
                     pos += blockSize;
                     continue;
                 }
+                if (c.len <= 0) {
+                    // not a chunk
+                    pos += blockSize;
+                    continue;
+                }
                 int length = c.len * MVStore.BLOCK_SIZE;
                 pw.printf("%n%0" + len + "x chunkHeader %s%n",
                         pos, c.toString());

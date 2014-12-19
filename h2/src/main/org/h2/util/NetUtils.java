@@ -279,7 +279,7 @@ public class NetUtils {
 
     /**
      * Get the host name of a local address, if available.
-     * 
+     *
      * @param localAddress the local address
      * @return the host name, or another text if not available
      */

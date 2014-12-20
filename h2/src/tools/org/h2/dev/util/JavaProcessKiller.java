@@ -103,7 +103,7 @@ public class JavaProcessKiller {
     }
 
     private static void copyInThread(final InputStream in, final OutputStream out) {
-        new Thread("Profiler stream copy") {
+        new Thread("Stream copy") {
             @Override
             public void run() {
                 byte[] buffer = new byte[4096];
@@ -119,7 +119,7 @@ public class JavaProcessKiller {
                     throw new RuntimeException(e);
                 }
             }
-        }.run();
+        }.start();
     }
 
 }

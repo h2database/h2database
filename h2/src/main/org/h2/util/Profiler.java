@@ -282,7 +282,7 @@ public class Profiler implements Runnable {
                     throw new RuntimeException(e);
                 }
             }
-        }.run();
+        }.start();
     }
 
     /**

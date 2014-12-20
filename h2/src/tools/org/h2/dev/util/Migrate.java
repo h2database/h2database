@@ -240,7 +240,7 @@ public class Migrate {
                     throw new RuntimeException(e);
                 }
             }
-        } .start();
+        }.start();
     }
 
 }

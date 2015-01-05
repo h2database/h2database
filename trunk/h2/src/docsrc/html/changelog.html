@@ -20,6 +20,9 @@ Change Log
 <ul><li>MVStore: concurrent compaction and store operations could result in an IllegalStateException.
 </li><li>Issue 594: Profiler.copyInThread does not work properly.
 </li><li>Script tool: Fix parsing of BLOCKSIZE parameter, original patch by Ken Jorissen
+</li><li>Fix bug in PageStore#commit method - when the ignoreBigLog flag was set,
+    the logic that cleared the flag could never be reached, resulting in performance degradation.
+    Reported by Alexander Nesterov.
 </li></ul>
 
 <h2>Version 1.4.184 Beta (2014-12-19)</h2>

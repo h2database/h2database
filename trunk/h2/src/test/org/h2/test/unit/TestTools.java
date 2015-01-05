@@ -869,6 +869,18 @@ public class TestTools extends TestBase {
         tool.runTool("-url", url, "-user", user, "-password", password,
                 "-script", fileName + ".txt", "-showResults");
         assertTrue(buff.toString().contains("Hello"));
+        
+
+        // test parsing of BLOCKSIZE option
+        DeleteDbFiles.main("-dir", getBaseDir(), "-db", "testScriptRunscript",
+                "-quiet");
+        conn = getConnection(url, user, password);
+        conn.createStatement().execute(
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR)");
+        conn.close();
+        Script.main("-url", url, "-user", user, "-password", password,
+                "-script", fileName, "-options", "simple", "blocksize",
+                "8192");
     }
 
     private void testBackupRestore() throws SQLException {

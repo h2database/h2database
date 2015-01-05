@@ -79,6 +79,12 @@ public class Script extends Tool {
                     if ("SIMPLE".equals(upper) || upper.startsWith("NO") || "DROP".equals(upper)) {
                         buff1.append(' ');
                         buff1.append(args[i]);
+                    } else if ("BLOCKSIZE".equals(upper)) {
+                        buff1.append(' ');
+                        buff1.append(args[i]);
+                        i++;
+                        buff1.append(' ');
+                        buff1.append(args[i]);
                     } else {
                         buff2.append(' ');
                         buff2.append(args[i]);

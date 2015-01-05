@@ -49,7 +49,8 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
-
+        
+        testConcurrentSaveCompact();
         testConcurrentDataType();
         testConcurrentAutoCommitAndChange();
         testConcurrentReplaceAndRead();
@@ -63,6 +64,40 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+    
+    private void testConcurrentSaveCompact() throws Exception {
+        String fileName = "memFS:testConcurrentSaveCompact";
+        FileUtils.delete(fileName);
+        final MVStore s = new MVStore.Builder().
+                fileName(fileName).
+                cacheSize(0).
+                open();
+        try {
+            s.setRetentionTime(0);
+            final MVMap<Integer, Integer> dataMap = s.openMap("data");
+            Task task = new Task() {
+                @Override
+                public void call() throws Exception {
+                    int i = 0;
+                    while (!stop) {
+                        s.compact(100, 1024 * 1024);
+                        dataMap.put(i % 1000, i * 10);
+                        s.commit();
+                        i++;
+                    }
+                }
+            };
+            task.execute();
+            for (int i = 0; i < 1000 && !task.isFinished(); i++) {
+                s.compact(100, 1024 * 1024);
+                dataMap.put(i % 1000, i * 10);
+                s.commit();
+            }
+            task.get();
+        } finally {
+            s.close();
+        }
     }
 
     private void testConcurrentDataType() throws InterruptedException {

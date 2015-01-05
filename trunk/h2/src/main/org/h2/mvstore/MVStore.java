@@ -1184,7 +1184,7 @@ public class MVStore {
         return version;
     }
 
-    private void freeUnusedChunks() {
+    private synchronized void freeUnusedChunks() {
         if (lastChunk == null) {
             return;
         }
@@ -1256,25 +1256,35 @@ public class MVStore {
         if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
             return null;
         }
-        PageChildren r = cacheChunkRef.get(pos);
+        PageChildren r;
+        if (cacheChunkRef != null) {
+            r = cacheChunkRef.get(pos);
+        } else {
+            r = null;
+        }
         if (r == null) {
-            Page p = cache.get(pos);
-            if (p == null) {
+            if (cache != null) {
+                Page p = cache.get(pos);
+                if (p != null) {
+                    r = new PageChildren(p);
+                }
+            }
+            if (r == null) {
                 Chunk c = getChunk(pos);
                 long filePos = c.block * BLOCK_SIZE;
                 filePos += DataUtils.getPageOffset(pos);
                 if (filePos < 0) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_FILE_CORRUPT,
-                            "Negative position {0}", filePos);
+                            "Negative position {0}; p={1}, c={2}", filePos, pos, c.toString());
                 }
                 long maxPos = (c.block + c.len) * BLOCK_SIZE;
                 r = PageChildren.read(fileStore, pos, mapId, filePos, maxPos);
-            } else {
-                r = new PageChildren(p);
             }
             r.removeDuplicateChunkReferences();
-            cacheChunkRef.put(pos, r);
+            if (cacheChunkRef != null) {
+                cacheChunkRef.put(pos, r);
+            }
         }
         if (r.children.length == 0) {
             int chunk = DataUtils.getPageChunkId(pos);

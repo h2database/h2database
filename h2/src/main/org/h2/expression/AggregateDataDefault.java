@@ -108,6 +108,20 @@ class AggregateDataDefault extends AggregateData {
                         v.getBoolean().booleanValue());
             }
             break;
+        case Aggregate.BIT_AND:
+            if (value == null) {
+                value = v.convertTo(dataType);
+            } else {
+                value = ValueLong.get(value.getLong() & v.getLong()).convertTo(dataType);
+            }
+            break;
+        case Aggregate.BIT_OR:
+            if (value == null) {
+                value = v.convertTo(dataType);
+            } else {
+                value = ValueLong.get(value.getLong() | v.getLong()).convertTo(dataType);
+            }
+            break;
         default:
             DbException.throwInternalError("type=" + aggregateType);
         }
@@ -124,6 +138,8 @@ class AggregateDataDefault extends AggregateData {
         case Aggregate.SUM:
         case Aggregate.MIN:
         case Aggregate.MAX:
+        case Aggregate.BIT_OR:
+        case Aggregate.BIT_AND:
         case Aggregate.BOOL_OR:
         case Aggregate.BOOL_AND:
             v = value;

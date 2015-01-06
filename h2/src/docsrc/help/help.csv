@@ -2466,6 +2466,26 @@ The returned value is of the same data type as the parameter.
 AVG(X)
 "
 
+"Functions (Aggregate)","BIT_AND","
+BIT_AND(expression)
+","
+The bitwise AND of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_AND(ID)
+"
+
+"Functions (Aggregate)","BIT_OR","
+BIT_OR(expression)
+","
+The bitwise OR of all non-null values.
+If no rows are selected, the result is NULL.
+Aggregates are only allowed in select statements.
+","
+BIT_OR(ID)
+"
+
 "Functions (Aggregate)","BOOL_AND","
 BOOL_AND(boolean)
 ","

@@ -107,14 +107,24 @@ public class Aggregate extends Expression {
     static final int BOOL_AND = 12;
 
     /**
+     * The aggregate type for BOOL_OR(expression).
+     */
+    static final int BIT_OR = 13;
+
+    /**
+     * The aggregate type for BOOL_AND(expression).
+     */
+    static final int BIT_AND = 14;
+
+    /**
      * The aggregate type for SELECTIVITY(expression).
      */
-    static final int SELECTIVITY = 13;
+    static final int SELECTIVITY = 15;
 
     /**
      * The aggregate type for HISTOGRAM(expression).
      */
-    static final int HISTOGRAM = 14;
+    static final int HISTOGRAM = 16;
 
     private static final HashMap<String, Integer> AGGREGATES = New.hashMap();
 
@@ -170,6 +180,8 @@ public class Aggregate extends Expression {
         addAggregate("EVERY", BOOL_AND);
         addAggregate("SELECTIVITY", SELECTIVITY);
         addAggregate("HISTOGRAM", HISTOGRAM);
+        addAggregate("BIT_OR", BIT_OR);
+        addAggregate("BIT_AND", BIT_AND);
     }
 
     private static void addAggregate(String name, int type) {
@@ -435,6 +447,12 @@ public class Aggregate extends Expression {
             displaySize = ValueBoolean.DISPLAY_SIZE;
             scale = 0;
             break;
+        case BIT_AND:
+        case BIT_OR:
+            if (!DataType.supportsAdd(dataType)) {
+                throw DbException.get(ErrorCode.SUM_OR_AVG_ON_WRONG_DATATYPE_1, getSQL());
+            }
+            break;
         default:
             DbException.throwInternalError("type=" + type);
         }
@@ -539,6 +557,12 @@ public class Aggregate extends Expression {
             break;
         case BOOL_OR:
             text = "BOOL_OR";
+            break;
+        case BIT_AND:
+            text = "BIT_AND";
+            break;
+        case BIT_OR:
+            text = "BIT_OR";
             break;
         default:
             throw DbException.throwInternalError("type=" + type);

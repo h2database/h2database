@@ -615,16 +615,16 @@ public class Select extends Query {
         if (isForUpdateMvcc) {
             if (isGroupQuery) {
                 throw DbException.getUnsupportedException(
-                        "FOR UPDATE && GROUP");
+                        "MVCC=TRUE && FOR UPDATE && GROUP");
             } else if (distinct) {
                 throw DbException.getUnsupportedException(
-                        "FOR UPDATE && DISTINCT");
+                        "MVCC=TRUE && FOR UPDATE && DISTINCT");
             } else if (isQuickAggregateQuery) {
                 throw DbException.getUnsupportedException(
-                        "FOR UPDATE && AGGREGATE");
+                        "MVCC=TRUE && FOR UPDATE && AGGREGATE");
             } else if (topTableFilter.getJoin() != null) {
                 throw DbException.getUnsupportedException(
-                        "FOR UPDATE && JOIN");
+                        "MVCC=TRUE && FOR UPDATE && JOIN");
             }
         }
         topTableFilter.lock(session, exclusive, exclusive);

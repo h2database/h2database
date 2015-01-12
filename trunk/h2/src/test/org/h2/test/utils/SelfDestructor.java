@@ -15,7 +15,7 @@ import java.util.Map;
  * system property 'h2.selfDestruct' and starts a countdown thread to kill the
  * virtual machine if it still runs then.
  */
-public class SelfDestructor extends Thread {
+public class SelfDestructor {
     private static final String PROPERTY_NAME = "h2.selfDestruct";
 
     /**

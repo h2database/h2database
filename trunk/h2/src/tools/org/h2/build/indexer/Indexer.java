@@ -242,7 +242,7 @@ public class Indexer {
                 } else {
                     ws = "r";
                 }
-                if (ws != weightString) {
+                if (!ws.equals(weightString)) {
                     weightString = ws;
                     buff.append(ws);
                 }

@@ -364,7 +364,7 @@ public class Insert extends Prepared implements ResultTarget {
             if (index.getIndexType().isPrimaryKey() || index.getIndexType().isUnique()) {
                 for (Column indexColumn : index.getColumns()) {
                     for (Column insertColumn : columns) {
-                        if (indexColumn.getName() == insertColumn.getName()) {
+                        if (indexColumn.getName().equals(insertColumn.getName())) {
                             foundIndex = index;
                             break;
                         }

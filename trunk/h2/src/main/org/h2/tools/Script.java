@@ -5,17 +5,11 @@
  */
 package org.h2.tools;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.message.DbException;
-import org.h2.store.fs.FileUtils;
-import org.h2.util.IOUtils;
+
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -58,7 +52,8 @@ public class Script extends Tool {
         String user = "";
         String password = "";
         String file = "backup.sql";
-        String options1 = null, options2 = null;
+        String options1 = "";
+        String options2 = "";
         for (int i = 0; args != null && i < args.length; i++) {
             String arg = args[i];
             if (arg.equals("-url")) {
@@ -103,90 +98,47 @@ public class Script extends Tool {
             showUsage();
             throw new SQLException("URL not set");
         }
-        if (options1 != null) {
-            processScript(url, user, password, file, options1, options2);
-        } else {
-            execute(url, user, password, file);
-        }
+        process(url, user, password, file, options1, options2);
     }
 
-    private static void processScript(String url, String user, String password,
+    /**
+     * Backs up a database to a stream.
+     *
+     * @param url the database URL
+     * @param user the user name
+     * @param password the password
+     * @param fileName the target file name
+     * @param options1 the options before the file name (may be an empty string)
+     * @param options2 the options after the file name (may be an empty string)
+     */
+    public static void process(String url, String user, String password,
             String fileName, String options1, String options2) throws SQLException {
         Connection conn = null;
-        Statement stat = null;
         try {
             org.h2.Driver.load();
             conn = DriverManager.getConnection(url, user, password);
-            stat = conn.createStatement();
-            String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
-            stat.execute(sql);
-        } finally {
-            JdbcUtils.closeSilently(stat);
-            JdbcUtils.closeSilently(conn);
-        }
-    }
-
-    /**
-     * Backs up a database to a SQL script file.
-     *
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @param fileName the script file
-     */
-    public static void execute(String url, String user, String password,
-            String fileName) throws SQLException {
-        OutputStream o = null;
-        try {
-            o = FileUtils.newOutputStream(fileName, false);
-            execute(url, user, password, o);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, null);
-        } finally {
-            IOUtils.closeSilently(o);
-        }
-    }
-
-
-    /**
-     * Backs up a database to a stream. The stream is not closed.
-     *
-     * @param url the database URL
-     * @param user the user name
-     * @param password the password
-     * @param out the output stream
-     */
-    public static void execute(String url, String user, String password,
-            OutputStream out) throws SQLException {
-        Connection conn = null;
-        try {
-            org.h2.Driver.load();
-            conn = DriverManager.getConnection(url, user, password);
-            process(conn, out);
+            process(conn, fileName, options1, options2);
         } finally {
             JdbcUtils.closeSilently(conn);
         }
     }
-
 
     /**
      * Backs up a database to a stream. The stream is not closed.
      * The connection is not closed.
      *
      * @param conn the connection
-     * @param out the output stream
+     * @param fileName the target file name
+     * @param options1 the options before the file name
+     * @param options2 the options after the file name
      */
-    static void process(Connection conn, OutputStream out) throws SQLException {
+    public static void process(Connection conn,
+            String fileName, String options1, String options2) throws SQLException {
         Statement stat = null;
         try {
             stat = conn.createStatement();
-            PrintWriter writer = new PrintWriter(IOUtils.getBufferedWriter(out));
-            ResultSet rs = stat.executeQuery("SCRIPT");
-            while (rs.next()) {
-                String s = rs.getString(1);
-                writer.println(s);
-            }
-            writer.flush();
+            String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
+            stat.execute(sql);
         } finally {
             JdbcUtils.closeSilently(stat);
         }

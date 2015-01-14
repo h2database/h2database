@@ -54,7 +54,7 @@ public class Compact {
             String user, String password) throws SQLException {
         String url = "jdbc:h2:" + dir + "/" + dbName;
         String file = "data/test.sql";
-        Script.execute(url, user, password, file);
+        Script.process(url, user, password, file, "", "");
         DeleteDbFiles.execute(dir, dbName, true);
         RunScript.execute(url, user, password, file, null, false);
         FileUtils.delete(file);

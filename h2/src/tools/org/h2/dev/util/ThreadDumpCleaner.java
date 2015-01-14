@@ -50,6 +50,9 @@ public class ThreadDumpCleaner {
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.net.PlainSocketImpl.socketAccept(?s).*?\n\n",
 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
+                "at java.net.SocketInputStream.socketRead0(?s).*?\n\n",
+
         "JNI global references:.*\n\n",
     };
 

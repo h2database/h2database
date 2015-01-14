@@ -49,7 +49,7 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
-        
+
         testConcurrentSaveCompact();
         testConcurrentDataType();
         testConcurrentAutoCommitAndChange();
@@ -65,7 +65,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testConcurrentSaveCompact() throws Exception {
         String fileName = "memFS:testConcurrentSaveCompact";
         FileUtils.delete(fileName);

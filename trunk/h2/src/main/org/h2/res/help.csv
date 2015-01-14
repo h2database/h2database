@@ -822,6 +822,14 @@ A spatial geometry type, based on the ""com."
 AVG ( [ DISTINCT ] { numeric } )
 ","
 The average (mean) value."
+"Functions (Aggregate)","BIT_AND","
+BIT_AND(expression)
+","
+The bitwise AND of all non-null values."
+"Functions (Aggregate)","BIT_OR","
+BIT_OR(expression)
+","
+The bitwise OR of all non-null values."
 "Functions (Aggregate)","BOOL_AND","
 BOOL_AND(boolean)
 ","

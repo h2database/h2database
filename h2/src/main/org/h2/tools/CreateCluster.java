@@ -5,8 +5,6 @@
  */
 package org.h2.tools;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -14,9 +12,7 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 
@@ -148,15 +144,7 @@ public class CreateCluster extends Tool {
                 // backup
                 Script script = new Script();
                 script.setOut(out);
-                OutputStream scriptOut = null;
-                try {
-                    scriptOut = FileUtils.newOutputStream(scriptFile, false);
-                    Script.process(connSource, scriptOut);
-                } catch (IOException e) {
-                    throw DbException.convertIOException(e, null);
-                } finally {
-                    IOUtils.closeSilently(scriptOut);
-                }
+                Script.process(connSource, scriptFile, "", "");
 
                 // delete the target database and then restore
                 connTarget = DriverManager.getConnection(

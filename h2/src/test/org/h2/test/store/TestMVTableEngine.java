@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.channels.FileChannel;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -48,6 +49,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testAppendOnly();
         testLowRetentionTime();
         testOldAndNew();
         testTemporaryTables();
@@ -78,6 +80,48 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testAppendOnly() throws Exception {
+        deleteDb("testAppendOnly");
+        Connection conn = getConnection(
+                "testAppendOnly");
+        Statement stat = conn.createStatement();
+        stat.execute("set retention_time 0");
+        for (int i = 0; i < 10; i++) {
+            stat.execute("create table dummy" + i +
+                    " as select x, space(100) from system_range(1, 1000)");
+            stat.execute("checkpoint");
+        }
+        stat.execute("create table test as select x from system_range(1, 1000)");
+        conn.close();
+        String fileName = getBaseDir() + "/testAppendOnly" + Constants.SUFFIX_MV_FILE;
+        long fileSize = FileUtils.size(fileName);
+        
+        conn = getConnection(
+                "testAppendOnly;reuse_space=false");
+        stat = conn.createStatement();
+        stat.execute("set retention_time 0");
+        for (int i = 0; i < 10; i++) {
+            stat.execute("drop table dummy" + i);
+            stat.execute("checkpoint");
+        }
+        stat.execute("alter table test alter column x rename to y");
+        stat.execute("select y from test where 1 = 0");
+        stat.execute("create table test2 as select x from system_range(1, 1000)");
+        conn.close();
+        
+        FileChannel fc = FileUtils.open(fileName, "rw");
+        // undo all changes
+        fc.truncate(fileSize);
+        
+        conn = getConnection(
+                "testAppendOnly");
+        stat = conn.createStatement();
+        stat.execute("select * from dummy0 where 1 = 0");
+        stat.execute("select * from dummy9 where 1 = 0");
+        stat.execute("select x from test where 1 = 0");
+        conn.close();
     }
 
     private void testLowRetentionTime() throws SQLException {

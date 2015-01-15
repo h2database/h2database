@@ -5,11 +5,12 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.h2.engine.Constants;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 
 /**
@@ -32,24 +33,32 @@ public class TestSpaceReuse extends TestBase {
             return;
         }
         deleteDb("spaceReuse");
-        long first = 0, now = 0;
-        for (int i = 0; i < 10; i++) {
+        long max = 0, now = 0, min = Long.MAX_VALUE;
+        for (int i = 0; i < 20; i++) {
             Connection conn = getConnection("spaceReuse");
             Statement stat = conn.createStatement();
+            stat.execute("set retention_time 0");
             stat.execute("create table if not exists t(i int)");
             stat.execute("insert into t select x from system_range(1, 500)");
             conn.close();
             conn = getConnection("spaceReuse");
             conn.createStatement().execute("delete from t");
             conn.close();
-            now = new File(getBaseDir() + "/spaceReuse.data.db").length();
-            if (first == 0) {
-                first = now;
+            String fileName = getBaseDir() + "/spaceReuse";
+            if (Constants.VERSION_MINOR >= 4) {
+                fileName += Constants.SUFFIX_MV_FILE;
+            } else {
+                fileName += Constants.SUFFIX_PAGE_FILE;
+            }
+            now = FileUtils.size(fileName);
+            assertTrue(now > 0);
+            if (i < 10) {
+                max = Math.max(max, now);
+            } else {
+                min = Math.min(min, now);
             }
         }
-        if (now > first) {
-            fail("first: " + first + " now: " + now);
-        }
+        assertTrue("min: " + min + " max: " + max, min <= max);
         deleteDb("spaceReuse");
     }
 

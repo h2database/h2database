@@ -568,7 +568,7 @@ public class Database implements DataHandler {
 
     private synchronized void open(int traceLevelFile, int traceLevelSystemOut) {
         if (persistent) {
-            String dataFileName = databaseName + ".data.db";
+            String dataFileName = databaseName + Constants.SUFFIX_OLD_DATABASE_FILE;
             boolean existsData = FileUtils.exists(dataFileName);
             String pageFileName = databaseName + Constants.SUFFIX_PAGE_FILE;
             String mvFileName = databaseName + Constants.SUFFIX_MV_FILE;

@@ -432,10 +432,14 @@ public class Constants {
     public static final String SUFFIX_LOCK_FILE = ".lock.db";
 
     /**
+     * The file name suffix of a H2 version 1.1 database file.
+     */
+    public static final String SUFFIX_OLD_DATABASE_FILE = ".data.db";
+
+    /**
      * The file name suffix of page files.
      */
     public static final String SUFFIX_PAGE_FILE = ".h2.db";
-
     /**
      * The file name suffix of a MVStore file.
      */

@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.Properties;
 import java.util.UUID;
 import org.h2.engine.ConnectionInfo;
+import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
@@ -62,10 +63,10 @@ public class DbUpgrade {
             return null;
         }
         String name = ci.getName();
-        if (FileUtils.exists(name + ".h2.db")) {
+        if (FileUtils.exists(name + Constants.SUFFIX_PAGE_FILE)) {
             return null;
         }
-        if (!FileUtils.exists(name + ".data.db")) {
+        if (!FileUtils.exists(name + Constants.SUFFIX_OLD_DATABASE_FILE)) {
             return null;
         }
         if (ci.removeProperty("NO_UPGRADE", false)) {
@@ -110,7 +111,7 @@ public class DbUpgrade {
     private static void upgrade(ConnectionInfo ci, Properties info)
             throws SQLException {
         String name = ci.getName();
-        String data = name + ".data.db";
+        String data = name + Constants.SUFFIX_OLD_DATABASE_FILE;
         String index = name + ".index.db";
         String lobs = name + ".lobs.db";
         String backupData = data + ".backup";

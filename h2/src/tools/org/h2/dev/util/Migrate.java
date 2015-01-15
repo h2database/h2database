@@ -73,7 +73,7 @@ public class Migrate {
             }
             return;
         }
-        if (!file.getName().endsWith(".data.db")) {
+        if (!file.getName().endsWith(Constants.SUFFIX_OLD_DATABASE_FILE)) {
             return;
         }
         println("Migrating " + file.getName());
@@ -81,7 +81,7 @@ public class Migrate {
             download(OLD_H2_FILE.getAbsolutePath(), DOWNLOAD_URL, CHECKSUM);
         }
         String url = "jdbc:h2:" + file.getAbsolutePath();
-        url = url.substring(0, url.length() - ".data.db".length());
+        url = url.substring(0, url.length() - Constants.SUFFIX_OLD_DATABASE_FILE.length());
         exec(new String[] {
                 pathToJavaExe,
                 "-Xmx128m",

@@ -17,7 +17,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 587: MVStore: concurrent compaction and store operations could result in an IllegalStateException.
+<ul><li>New connection setting "REUSE_SPACE" (default: true). If disabled,
+    all changes are appended to the database file, and existing content is never overwritten.
+    This allows to rollback to a previous state of the database by truncating
+    the database file.
+</li><li>Issue 587: MVStore: concurrent compaction and store operations could result in an IllegalStateException.
 </li><li>Issue 594: Profiler.copyInThread does not work properly.
 </li><li>Script tool: Now, SCRIPT ... TO is always used (for higher speed and lower disk space usage).
 </li><li>Script tool: Fix parsing of BLOCKSIZE parameter, original patch by Ken Jorissen.

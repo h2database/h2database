@@ -160,6 +160,9 @@ public class MVTableEngine implements TableEngine {
 
         public Store(Database db, MVStore.Builder builder) {
             this.store = builder.open();
+            if (!db.getSettings().reuseSpace) {
+                store.setReuseSpace(false);
+            }
             this.transactionStore = new TransactionStore(
                     store,
                     new ValueDataType(null, db, null));

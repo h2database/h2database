@@ -81,7 +81,7 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
     private void testAppendOnly() throws Exception {
         deleteDb("testAppendOnly");
         Connection conn = getConnection(
@@ -97,7 +97,7 @@ public class TestMVTableEngine extends TestBase {
         conn.close();
         String fileName = getBaseDir() + "/testAppendOnly" + Constants.SUFFIX_MV_FILE;
         long fileSize = FileUtils.size(fileName);
-        
+
         conn = getConnection(
                 "testAppendOnly;reuse_space=false");
         stat = conn.createStatement();
@@ -110,11 +110,11 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("select y from test where 1 = 0");
         stat.execute("create table test2 as select x from system_range(1, 1000)");
         conn.close();
-        
+
         FileChannel fc = FileUtils.open(fileName, "rw");
         // undo all changes
         fc.truncate(fileSize);
-        
+
         conn = getConnection(
                 "testAppendOnly");
         stat = conn.createStatement();

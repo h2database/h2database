@@ -281,11 +281,12 @@ public class DbSettings extends SettingsBase {
      * milliseconds before updating the database.
      */
     public final int reconnectCheckDelay = get("RECONNECT_CHECK_DELAY", 200);
-    
+
     /**
      * Database setting <code>REUSE_SPACE</code> (default: true).<br />
      * If disabled, all changes are appended to the database file, and existing
-     * content is never overwritten. This setting has no effect if the database is already open.
+     * content is never overwritten. This setting has no effect if the database
+     * is already open.
      */
     public final boolean reuseSpace = get("REUSE_SPACE", true);
 

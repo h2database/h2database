@@ -17,6 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.4.185 Beta (2015-01-16)</h2>
 <ul><li>In version 1.4.184, "group by" ignored the table name,
     and could pick a select column by mistake.
     Example: select 0 as x from system_range(1, 2) d group by d.x;
@@ -383,85 +387,6 @@ Change Log
 </li><li>H2 console: add SHIFT+ENTER "run selected" functionality
 </li><li>Fix bug in DB2 syntax "select * from test with ur", patch from litailang
 </li><li>Fix bug in DROP ALL OBJECTS when dealing with inter-schema dependencies.
-</li></ul>
-
-<h2>Version 1.3.174 (2013-10-19)</h2>
-<ul><li>LIRS cache: bugfix for caches that only contain non-resident entries.
-</li><li>For in-memory databases, queries with a "group by" column that
-    is also a hash index threw a RuntimeException.
-</li><li>Improved error message for some syntax errors.
-</li><li>File system abstraction: if used directly, some file systems did not work correctly
-    with spliced byte buffers (the database engine doesn't use those).
-</li><li>To use the MVStore storage engine (which is still work in progress), append
-    ";mv_store=true" to the database URL. Using the MVTableEngine when creating the table
-    is no longer recommended.
-</li><li>To compile user defined functions, the javax.tools.JavaCompiler is now used if available,
-    and no temporary files are created. This should solve problems when
-    multiple H2 database concurrently compile the same user defined functions.
-    To disable, system the system property "h2.javaSystemCompiler" to false.
-</li><li>Concurrently creating function aliases in different databases
-    could result in the exception "javac: file not found".
-</li><li>The function "regexp_replace" threw the wrong kind of exception if the
-    replacement string was invalid.
-</li><li>A checkpoint is now done every MAX_LOG_SIZE / 2 instead of every
-    MAX_LOG_SIZE, so that the transaction log doesn't grow as large.
-</li><li>MVStore table engine: new setting "retention_time" to configure the
-    time to retain old data. The default is 45 seconds.
-</li><li>The method TableEngine.createTable() now returns a Table object.
-</li><li>For read-only databases, for the trace level "debug",
-    the trace info is written to the temp directory.
-</li><li>Closing the file lock will now wait until the background thread is stopped.
-</li><li>In version 1.3.172, a performance regression was introduced when
-    fixing the issue 389 (when there is a multi-column primary key,
-    H2 does not seem to always pick the right index). This was related to
-    boosting an index that matches the "order by" column list
-    (the wrong index was used in some cases).
-</li><li>Improved spatial index and data type.
-</li><li>Issue 467: OSGi Class Loader (ability to create reference to class
-    in other ClassLoader, for example in another OSGi bundle).
-</li><li>Queries "group by" that contain a subquery with an aggregate function
-    returned the wrong result in some cases.
-</li><li>Fix bug in unique and non-unique hash indexes which manifested as incorrect results
-    when the search key was a different cardinal type from the table index key.
-    e.g. where the one was INT and the other was LONG
-</li><li>Bug: Changes to the database structure did not result
-    in the Session query cache being invalidated.
-</li><li>New feature from Davide Cavestro - allow using custom Java object serialization
-    engines on a per-DB basis.
-</li><li>When running the Recover tool on very large (&gt;6G) databases, some statistics were reported with
-    negative numbers.
-</li><li>Add a CONTAINS_UNCOMMITTED column to the SESSIONS metadata table, to allow detecting when rogue
-    sessions are creating large transactions.
-</li><li>Some small fixes to the GEOMETRY support, patches by Nicolas Fortin.
-</li><li>The BNF tool and the autocomplete feature are exported in OSGi,
-    which makes it possible for smart editors to do autocomplete. Patch from Nicolas Fortin.
-</li><li>Fix DROP ALL OBJECTS and DROP SCHEMA in the presence of tables with computed column dependencies.
-</li><li>Session-temporary LOB's could sometimes accumulate, increasing the size of the DB file until shutdown.
-    Now they are cleared out at every commit.
-</li><li>There was a bug where a hash index with more than one column would be silently converted to a regular index.
-    It will now throw an exception.
-</li><li>Query Statistics: new feature which stores the newest 100 SQL queries executed and their performance data.
-    Useful for tracking down badly performing queries.
-</li><li>Fix an LOB deadlock between reading and updating LOB columns.
-</li><li>Support the JDBC DatabaseMetaData#getClientInfoProperties() method, in the sense of returning an empty result,
-    in order to make WebSphere happy.
-</li><li>Make Server#openBrowser respect the $BROWSER environment variable. Add "chromium" to the list of browsers tried.
-    Patch from Felix Kaiser.
-</li><li>Fix to org.h2.util.ScriptReader when handling unclosed block comments.
-</li><li>Make org.h2.util.ScriptReader throw a better exception when handling broken scripts which generate
-    extremely large statements.
-</li><li>Fix bug with ALLOW_LITERALS=NONE,
-    where the periodic analyze table on insert would throw an exception.
-    A similar problem was fixed in the Console tool.
-</li><li>Issue 510: Make org.h2.bnf public for consumption by external projects, patch by Nicolas Fortin
-</li><li>Issue 509: Important fix on ValueGeometry, patch by Nicolas Fortin (with some tweaking)
-    Make ValueGeometry#getDimensionCount more reliable.
-    Add unit test to check for illegal ValueGeometry comparison
-    Add unit test for conversion of Geometry object into Object
-    Add optional export to MANIFEST.MF for JTS Geometry classes
-    Validate that geometry values can be represented in WKB.
-</li><li>Issue 506: RFE: Include Thread.getName() in case of a deadlock
-</li><li>Adding support for "GRANT ALTER ANY SCHEMA TO &lt;user&gt;", patch by John Yates
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

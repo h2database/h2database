@@ -3,6 +3,12 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select * from dual join(select x from dual) on 1=1;
+> X X
+> - -
+> 1 1
+> rows: 1
+
 select 0 as x from system_range(1, 2) d group by d.x;
 > X
 > -

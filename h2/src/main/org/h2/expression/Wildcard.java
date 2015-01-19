@@ -97,6 +97,9 @@ public class Wildcard extends Expression {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
+        if (visitor.getType() == ExpressionVisitor.QUERY_COMPARABLE) {
+            return true;
+        }
         throw DbException.throwInternalError();
     }
 

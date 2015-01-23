@@ -35,9 +35,10 @@ import java.util.Set;
  * an individual LIRS cache.
  * <p>
  * Accessed entries are only moved to the top of the stack if at least a number
- * of other entries have been moved to the front (1% by default). Write access
- * and moving entries to the top of the stack is synchronized per segment.
- *
+ * of other entries have been moved to the front (8 per segment by default).
+ * Write access and moving entries to the top of the stack is synchronized per
+ * segment.
+ * 
  * @author Thomas Mueller
  * @param <K> the key type
  * @param <V> the value type
@@ -49,11 +50,6 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      */
     private long maxMemory;
 
-    /**
-     * The average memory used by one entry.
-     */
-    private int averageMemory;
-
     private final Segment<K, V>[] segments;
 
     private final int segmentCount;
@@ -64,29 +60,26 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
 
     /**
      * Create a new cache with the given number of entries, and the default
-     * settings (an average size of 1 per entry, 16 segments, and stack move
-     * distance equals to the maximum number of entries divided by 100).
+     * settings (16 segments, and stack move distance of 8.
      *
-     * @param maxEntries the maximum number of entries
+     * @param maxMemory the maximum memory to use (1 or larger)
      */
-    public CacheLIRS(int maxEntries) {
-        this(maxEntries, 1, 16, maxEntries / 100);
+    public CacheLIRS(int maxMemory) {
+        this(maxMemory, 16, 8);
     }
 
     /**
      * Create a new cache with the given memory size.
      *
      * @param maxMemory the maximum memory to use (1 or larger)
-     * @param averageMemory the average memory (1 or larger)
      * @param segmentCount the number of cache segments (must be a power of 2)
      * @param stackMoveDistance how many other item are to be moved to the top
      *        of the stack before the current item is moved
      */
     @SuppressWarnings("unchecked")
-    public CacheLIRS(long maxMemory, int averageMemory, int segmentCount,
+    public CacheLIRS(long maxMemory, int segmentCount,
             int stackMoveDistance) {
         setMaxMemory(maxMemory);
-        setAverageMemory(averageMemory);
         if (Integer.bitCount(segmentCount) != 1) {
             throw new IllegalArgumentException(
                     "The segment count must be a power of 2, is "
@@ -97,7 +90,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         this.stackMoveDistance = stackMoveDistance;
         segments = new Segment[segmentCount];
         clear();
-        this.segmentShift = Integer.numberOfTrailingZeros(segments[0].entries.length);
+        // use the high bits for the segment
+        this.segmentShift = 32 - Integer.bitCount(segmentMask);
     }
 
     /**
@@ -108,7 +102,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         long max = Math.max(1, maxMemory / segmentCount);
         for (int i = 0; i < segmentCount; i++) {
             segments[i] = new Segment<K, V>(
-                    this, max, averageMemory, stackMoveDistance);
+                    this, max, stackMoveDistance, 8);
         }
     }
 
@@ -154,11 +148,35 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      */
     public V put(K key, V value, int memory) {
         int hash = getHash(key);
-        return getSegment(hash).put(key, hash, value, memory);
+        int segmentIndex = getSegmentIndex(hash);
+        Segment<K, V> s = segments[segmentIndex];
+        // check whether resize is required: synchronize on s, to avoid
+        // concurrent resizes (concurrent reads read
+        // from the old segment)
+        synchronized (s) {
+            s = resizeIfNeeded(s, segmentIndex);
+            return s.put(key, hash, value, memory);
+        }
+    }
+    
+    private Segment<K, V> resizeIfNeeded(Segment<K, V> s, int segmentIndex) {
+        int newLen = s.getNewMapLen();
+        if (newLen == 0) {
+            return s;
+        }
+        // another thread might have resized
+        // (as we retrieved the segment before synchronizing on it)
+        Segment<K, V> s2 = segments[segmentIndex];
+        if (s == s2) {
+            // no other thread resized, so we do
+            s = new Segment<K, V>(s, newLen);
+            segments[segmentIndex] = s;
+        }
+        return s;
     }
 
     /**
-     * Add an entry to the cache using the average memory size.
+     * Add an entry to the cache using a memory size of 1.
      *
      * @param key the key (may not be null)
      * @param value the value (may not be null)
@@ -170,15 +188,14 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
     }
 
     /**
-     * Get the size of the given value. The default implementation returns the
-     * average memory as configured for this cache.
+     * Get the size of the given value. The default implementation returns 1.
      *
      * @param key the key
      * @param value the value
      * @return the size
      */
     protected int sizeOf(K key, V value) {
-        return averageMemory;
+        return 1;
     }
 
     /**
@@ -199,9 +216,17 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @return the old value, or null if there was no resident entry
      */
     @Override
-    public synchronized V remove(Object key) {
+    public V remove(Object key) {
         int hash = getHash(key);
-        return getSegment(hash).remove(key, hash);
+        int segmentIndex = getSegmentIndex(hash);
+        Segment<K, V> s = segments[segmentIndex];
+        // check whether resize is required: synchronize on s, to avoid
+        // concurrent resizes (concurrent reads read
+        // from the old segment)
+        synchronized (s) {
+            s = resizeIfNeeded(s, segmentIndex);
+            return s.remove(key, hash);
+        }
     }
 
     /**
@@ -230,8 +255,11 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
     }
 
     private Segment<K, V> getSegment(int hash) {
-        int segmentIndex = (hash >>> segmentShift) & segmentMask;
-        return segments[segmentIndex];
+        return segments[getSegmentIndex(hash)];
+    }
+
+    private int getSegmentIndex(int hash) {
+        return (hash >>> segmentShift) & segmentMask;
     }
 
     /**
@@ -285,33 +313,6 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
     }
 
     /**
-     * Set the average memory used per entry. It is used to calculate the
-     * length of the internal array.
-     *
-     * @param averageMemory the average memory used (1 or larger)
-     */
-    public void setAverageMemory(int averageMemory) {
-        if (averageMemory <= 0) {
-            throw new IllegalArgumentException("Average memory must be larger than 0");
-        }
-        this.averageMemory = averageMemory;
-        if (segments != null) {
-            for (Segment<K, V> s : segments) {
-                s.setAverageMemory(averageMemory);
-            }
-        }
-    }
-
-    /**
-     * Get the average memory used per entry.
-     *
-     * @return the average memory
-     */
-    public int getAverageMemory() {
-        return averageMemory;
-    }
-
-    /**
      * Get the maximum memory to use.
      *
      * @return the maximum memory
@@ -326,7 +327,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @return the entry set
      */
     @Override
-    public synchronized Set<Map.Entry<K, V>> entrySet() {
+    public Set<Map.Entry<K, V>> entrySet() {
         HashMap<K, V> map = new HashMap<K, V>();
         for (K k : keySet()) {
             map.put(k,  find(k).value);
@@ -340,7 +341,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @return the set of keys
      */
     @Override
-    public synchronized Set<K> keySet() {
+    public Set<K> keySet() {
         HashSet<K> set = new HashSet<K>();
         for (Segment<K, V> s : segments) {
             set.addAll(s.keySet());
@@ -409,7 +410,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param nonResident true for non-resident entries
      * @return the key list
      */
-    public synchronized List<K> keys(boolean cold, boolean nonResident) {
+    public List<K> keys(boolean cold, boolean nonResident) {
         ArrayList<K> keys = new ArrayList<K>();
         for (Segment<K, V> s : segments) {
             keys.addAll(s.keys(cold, nonResident));
@@ -423,8 +424,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param <K> the key type
      * @param <V> the value type
      */
-    static class Segment<K, V> {
-
+    private static class Segment<K, V> {
+        
         /**
          * The number of (hot, cold, and non-resident) entries in the map.
          */
@@ -443,7 +444,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         /**
          * The map array. The size is always a power of 2.
          */
-        Entry<K, V>[] entries;
+        final Entry<K, V>[] entries;
 
         /**
          * The currently used memory.
@@ -464,15 +465,10 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         private long maxMemory;
 
         /**
-         * The average memory used by one entry.
-         */
-        private int averageMemory;
-
-        /**
          * The bit mask that is applied to the key hash code to get the index in
          * the map array. The mask is the length of the array minus one.
          */
-        private int mask;
+        private final int mask;
 
         /**
          * The LIRS stack size.
@@ -481,26 +477,27 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
 
         /**
          * The stack of recently referenced elements. This includes all hot
-         * entries, the recently referenced cold entries, and all non-resident
-         * cold entries.
+         * entries, and the recently referenced cold entries. Resident cold
+         * entries that were not recently referenced, as well as non-resident
+         * cold entries, are not in the stack.
          * <p>
          * There is always at least one entry: the head entry.
          */
-        private Entry<K, V> stack;
+        private final Entry<K, V> stack;
 
         /**
          * The queue of resident cold entries.
          * <p>
          * There is always at least one entry: the head entry.
          */
-        private Entry<K, V> queue;
+        private final Entry<K, V> queue;
 
         /**
          * The queue of non-resident cold entries.
          * <p>
          * There is always at least one entry: the head entry.
          */
-        private Entry<K, V> queue2;
+        private final Entry<K, V> queue2;
 
         /**
          * The number of times any item was moved to the top of the stack.
@@ -508,35 +505,20 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         private int stackMoveCounter;
 
         /**
-         * Create a new cache.
+         * Create a new cache segment.
          *
          * @param cache the cache
          * @param maxMemory the maximum memory to use
-         * @param averageMemory the average memory usage of an object
          * @param stackMoveDistance the number of other entries to be moved to
          *        the top of the stack before moving an entry to the top
+         * @param len the number of hash table buckets (must be a power of 2)
          */
-        Segment(CacheLIRS<K, V> cache, long maxMemory, int averageMemory,
-                int stackMoveDistance) {
+        Segment(CacheLIRS<K, V> cache, long maxMemory,
+                int stackMoveDistance, int len) {
             this.cache = cache;
             setMaxMemory(maxMemory);
-            setAverageMemory(averageMemory);
             this.stackMoveDistance = stackMoveDistance;
-            clear();
-        }
 
-        private void clear() {
-
-            // calculate the size of the map array
-            // assume a fill factor of at most 80%
-            long maxLen = (long) (maxMemory / averageMemory / 0.75);
-            // the size needs to be a power of 2
-            long l = 8;
-            while (l < maxLen) {
-                l += l;
-            }
-            // the array size is at most 2^31 elements
-            int len = (int) Math.min(1L << 31, l);
             // the bit mask has all bits set
             mask = len - 1;
 
@@ -548,15 +530,83 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             queue2 = new Entry<K, V>();
             queue2.queuePrev = queue2.queueNext = queue2;
 
-            // first set to null - avoiding out of memory
-            entries = null;
             @SuppressWarnings("unchecked")
             Entry<K, V>[] e = new Entry[len];
             entries = e;
+        }
 
-            mapSize = 0;
-            usedMemory = 0;
-            stackSize = queueSize = queue2Size = 0;
+        /**
+         * Create a new cache segment from an existing one.
+         * The caller must synchronize on the old segment, to avoid
+         * concurrent modifications.
+         *
+         * @param old the old segment
+         * @param len the number of hash table buckets (must be a power of 2)
+         */
+        Segment(Segment<K, V> old, int len) {
+            this(old.cache, old.maxMemory, old.stackMoveDistance, len);
+            Entry<K, V> s = old.stack.stackPrev;
+            while (s != old.stack) {
+                Entry<K, V> e = copy(s);
+                addToMap(e);
+                addToStack(e);
+                s = s.stackPrev;
+            }
+            s = old.queue.queuePrev;
+            while (s != old.queue) {
+                Entry<K, V> e = find(s.key, getHash(s.key));
+                if (e == null) {
+                    e = copy(s);
+                    addToMap(e);
+                }
+                addToQueue(queue, e);
+                s = s.queuePrev;
+            }
+            s = old.queue2.queuePrev;
+            while (s != old.queue2) {
+                Entry<K, V> e = find(s.key, getHash(s.key));
+                if (e == null) {
+                    e = copy(s);
+                    addToMap(e);
+                }
+                addToQueue(queue2, e);
+                s = s.queuePrev;
+            }
+        }
+        
+        /**
+         * Calculate the new number of hash table buckets if the internal map
+         * should be re-sized.
+         * 
+         * @return 0 if no resizing is needed, or the new length
+         */
+        int getNewMapLen() {
+            int len = mask + 1;
+            if (len * 3 < mapSize * 4 && len < (1 << 28)) {
+                // more than 75% usage
+                return len * 2;
+            } else if (len > 32 && len / 8 > mapSize) {
+                // less than 12% usage
+                return len / 2;
+            }
+            return 0;
+        }
+
+        private void addToMap(Entry<K, V> e) {
+            int index = getHash(e.key) & mask;
+            e.mapNext = entries[index];
+            entries[index] = e;
+            usedMemory += e.memory;
+            mapSize++;
+        }
+
+        private static <K, V> Entry<K, V> copy(Entry<K, V> old) {
+            Entry<K, V> e = new Entry<K, V>();
+            e.key = old.key;
+            e.value = old.value;
+            e.memory = old.memory;
+            e.topMove = old.topMove;
+            return e;
         }
 
         /**
@@ -593,8 +643,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             }
             if (e.isHot()) {
                 if (e != stack.stackNext) {
-                    if (stackMoveDistance == 0
-                            || stackMoveCounter - e.topMove > stackMoveDistance) {
+                    if (stackMoveDistance == 0 ||
+                            stackMoveCounter - e.topMove > stackMoveDistance) {
                         access(key, hash);
                     }
                 }
@@ -617,8 +667,8 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             }
             if (e.isHot()) {
                 if (e != stack.stackNext) {
-                    if (stackMoveDistance == 0
-                            || stackMoveCounter - e.topMove > stackMoveDistance) {
+                    if (stackMoveDistance == 0 ||
+                            stackMoveCounter - e.topMove > stackMoveDistance) {
                         // move a hot entry to the top of the stack
                         // unless it is already there
                         boolean wasEnd = e == stack.stackPrev;
@@ -894,11 +944,13 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             ArrayList<K> keys = new ArrayList<K>();
             if (cold) {
                 Entry<K, V> start = nonResident ? queue2 : queue;
-                for (Entry<K, V> e = start.queueNext; e != start; e = e.queueNext) {
+                for (Entry<K, V> e = start.queueNext; e != start;
+                        e = e.queueNext) {
                     keys.add(e.key);
                 }
             } else {
-                for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
+                for (Entry<K, V> e = stack.stackNext; e != stack;
+                        e = e.stackNext) {
                     keys.add(e.key);
                 }
             }
@@ -942,25 +994,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          * @param maxMemory the maximum size (1 or larger)
          */
         void setMaxMemory(long maxMemory) {
-            if (maxMemory <= 0) {
-                throw new IllegalArgumentException(
-                        "Max memory must be larger than 0");
-            }
             this.maxMemory = maxMemory;
-        }
-
-        /**
-         * Set the average memory used per entry. It is used to calculate the
-         * length of the internal array.
-         *
-         * @param averageMemory the average memory used (1 or larger)
-         */
-        void setAverageMemory(int averageMemory) {
-            if (averageMemory <= 0) {
-                throw new IllegalArgumentException(
-                        "Average memory must be larger than 0");
-            }
-            this.averageMemory = averageMemory;
         }
 
     }
@@ -1019,7 +1053,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         Entry<K, V> queuePrev;
 
         /**
-         * The next entry in the map
+         * The next entry in the map (the chained entry).
          */
         Entry<K, V> mapNext;
 

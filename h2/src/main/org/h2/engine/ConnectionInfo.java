@@ -248,7 +248,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     private void readSettingsFromURL() {
-        DbSettings dbSettings = DbSettings.getInstance(null);
+        DbSettings defaultSettings = DbSettings.getDefaultSettings();
         int idx = url.indexOf(';');
         if (idx >= 0) {
             String settings = url.substring(idx + 1);
@@ -265,7 +265,7 @@ public class ConnectionInfo implements Cloneable {
                 String value = setting.substring(equal + 1);
                 String key = setting.substring(0, equal);
                 key = StringUtils.toUpperEnglish(key);
-                if (!isKnownSetting(key) && !dbSettings.containsKey(key)) {
+                if (!isKnownSetting(key) && !defaultSettings.containsKey(key)) {
                     throw DbException.get(ErrorCode.UNSUPPORTED_SETTING_1, key);
                 }
                 String old = prop.getProperty(key);
@@ -639,14 +639,11 @@ public class ConnectionInfo implements Cloneable {
     }
 
     public DbSettings getDbSettings() {
-        DbSettings defaultSettings = DbSettings.getInstance(null);
-        HashMap<String, String> s = null;
+        DbSettings defaultSettings = DbSettings.getDefaultSettings();
+        HashMap<String, String> s = New.hashMap();
         for (Object k : prop.keySet()) {
             String key = k.toString();
             if (!isKnownSetting(key) && defaultSettings.containsKey(key)) {
-                if (s == null) {
-                    s = New.hashMap();
-                }
                 s.put(key, prop.getProperty(key));
             }
         }

@@ -89,9 +89,9 @@ public class DataUtils {
     public static final int ERROR_TRANSACTION_LOCKED = 101;
 
     /**
-     * A very old transaction is still open.
+     * There are too many open transactions.
      */
-    public static final int ERROR_TRANSACTION_STILL_OPEN = 102;
+    public static final int ERROR_TOO_MANY_OPEN_TRANSACTIONS = 102;
 
     /**
      * The transaction store is in an illegal state (for example, not yet

@@ -7,6 +7,7 @@ package org.h2.mvstore.db;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -57,9 +58,9 @@ public class TransactionStore {
 
     private final DataType dataType;
 
+    private final BitSet openTransactions = new BitSet();
+    
     private boolean init;
-
-    private int lastTransactionId;
 
     private int maxTransactionId = 0xffff;
 
@@ -119,8 +120,10 @@ public class TransactionStore {
         }
         synchronized (undoLog) {
             if (undoLog.size() > 0) {
-                Long key = undoLog.firstKey();
-                lastTransactionId = getTransactionId(key);
+                for (Long key : undoLog.keySet()) {
+                    int transactionId = getTransactionId(key);
+                    openTransactions.set(transactionId);
+                }
             }
         }
     }
@@ -225,10 +228,14 @@ public class TransactionStore {
                     DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
                     "Not initialized");
         }
-        int transactionId = ++lastTransactionId;
-        if (lastTransactionId >= maxTransactionId) {
-            lastTransactionId = 0;
+        int transactionId = openTransactions.nextClearBit(1);
+        if (transactionId > maxTransactionId) {
+            throw DataUtils.newIllegalStateException(
+                    DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
+                    "There are {0} open transactions",
+                    transactionId - 1);
         }
+        openTransactions.set(transactionId);
         int status = Transaction.STATUS_OPEN;
         return new Transaction(this, transactionId, status, null, 0);
     }
@@ -263,7 +270,7 @@ public class TransactionStore {
             if (logId == 0) {
                 if (undoLog.containsKey(undoKey)) {
                     throw DataUtils.newIllegalStateException(
-                            DataUtils.ERROR_TRANSACTION_STILL_OPEN,
+                            DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
                             "An old transaction with the same id " +
                             "is still open: {0}",
                             t.getId());
@@ -435,6 +442,7 @@ public class TransactionStore {
             preparedTransactions.remove(t.getId());
         }
         t.setStatus(Transaction.STATUS_CLOSED);
+        openTransactions.clear(t.transactionId);
         if (store.getAutoCommitDelay() == 0) {
             store.commit();
             return;

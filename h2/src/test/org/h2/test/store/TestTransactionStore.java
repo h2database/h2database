@@ -154,15 +154,21 @@ public class TestTransactionStore extends TestBase {
         ts = new TransactionStore(s);
         ts.init();
         ts.setMaxTransactionId(16);
+        ArrayList<Transaction> openList = new ArrayList<Transaction>();
         for (int i = 0, j = 1; i < 64; i++) {
             Transaction t = ts.begin();
+            openList.add(t);
             assertEquals(j, t.getId());
-            t.commit();
             j++;
             if (j > 16) {
                 j = 1;
             }
+            if (openList.size() >= 16) {
+                t = openList.remove(0);
+                t.commit();
+            }
         }
+
         s = MVStore.open(null);
         ts = new TransactionStore(s);
         ts.init();
@@ -170,10 +176,10 @@ public class TestTransactionStore extends TestBase {
         ArrayList<Transaction> fifo = New.arrayList();
         int open = 0;
         for (int i = 0; i < 64; i++) {
-            Transaction t = ts.begin();
+            Transaction t = null;
             if (open >= 16) {
                 try {
-                    t.openMap("data").put(i, i);
+                    t = ts.begin();
                     fail();
                 } catch (IllegalStateException e) {
                     // expected - too many open
@@ -182,9 +188,10 @@ public class TestTransactionStore extends TestBase {
                 first.commit();
                 open--;
             }
+            t = ts.begin();
+            t.openMap("data").put(i, i);
             fifo.add(t);
             open++;
-            t.openMap("data").put(i, i);
         }
         s.close();
     }
@@ -514,6 +521,8 @@ public class TestTransactionStore extends TestBase {
         assertEquals("first transaction", txOld.getName());
         txOld.prepare();
         assertEquals(Transaction.STATUS_PREPARED, txOld.getStatus());
+        txOld = list.get(1);
+        txOld.commit();
         s.commit();
         s.close();
 
@@ -522,6 +531,7 @@ public class TestTransactionStore extends TestBase {
         ts.init();
         tx = ts.begin();
         m = tx.openMap("test");
+        m.put("3", "Test");
         assertEquals(2, tx.getId());
         list = ts.getOpenTransactions();
         assertEquals(2, list.size());

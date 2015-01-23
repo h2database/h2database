@@ -53,15 +53,14 @@ MVStore:
 - test and possibly improve compact operation (for large dbs)
 - is data kept in the stream store if the transaction is not committed?
 - automated 'kill process' and 'power failure' test
-- compact: avoid processing pages using a counting bloom filter
 - defragment (re-creating maps, specially those with small pages)
 - store number of write operations per page (maybe defragment
     if much different than count)
 - r-tree: nearest neighbor search
 - use a small object value cache (StringCache), test on Android
     for default serialization
-- MVStoreTool.dump: dump values (using a callback)
-- close the file on out of memory or disk write error (out of disk space or so)
+- MVStoreTool.dump should dump the data if possible;
+    possibly using a callback for serialization
 - implement a sharded map (in one store, multiple stores)
     to support concurrent updates and writes, and very large maps
 - to save space when persisting very small transactions,
@@ -72,8 +71,6 @@ MVStore:
 - remove features that are not really needed; simplify the code
     possibly using a separate layer or tools
     (retainVersion?)
-- MVStoreTool.dump should dump the data if possible;
-    possibly using a callback for serialization
 - optional pluggable checksum mechanism (per page), which
     requires that everything is a page (including headers)
 - rename "store" to "save", as "store" is used in "storeVersion"
@@ -98,7 +95,6 @@ MVStore:
 - write a LSM-tree (log structured merge tree) utility on top of the MVStore
     with blind writes and/or a bloom filter that
     internally uses regular maps and merge sort
-- LIRS cache: maybe remove 'mask' field, and dynamically grow the arrays
 - chunk metadata: maybe split into static and variable,
     or use a small page size for metadata
 - data type "string": maybe use prefix compression for keys
@@ -122,7 +118,6 @@ MVStore:
 - rollback of removeMap should restore the data -
     which has big consequences, as the metadata map
     would probably need references to the root nodes of all maps
-- combine MVMap and MVMapConcurrent
 
 */
 
@@ -322,14 +317,13 @@ public class MVStore {
         int mb = o == null ? 16 : (Integer) o;
         if (mb > 0) {
             int maxMemoryBytes = mb * 1024 * 1024;
-            int averageMemory = Math.max(10, pageSplitSize / 2);
             int segmentCount = 16;
-            int stackMoveDistance = maxMemoryBytes / averageMemory * 2 / 100;
+            int stackMoveDistance = 8;
             cache = new CacheLongKeyLIRS<Page>(
-                    maxMemoryBytes, averageMemory,
+                    maxMemoryBytes, 
                     segmentCount, stackMoveDistance);
             cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(
-                    maxMemoryBytes / 4, 20,
+                    maxMemoryBytes / 4,
                     segmentCount, stackMoveDistance);
         }
         o = config.get("autoCommitBufferSize");

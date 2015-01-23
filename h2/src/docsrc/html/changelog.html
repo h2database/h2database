@@ -17,7 +17,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>In version 1.4.184, a bug was introduced that broke queries 
+<ul><li>The default limit for in-place LOB objects was changed from 128 to 256 bytes.
+    This is because each read creates a reference to a LOB, and maintaining the references
+    is a big overhead. With the higher limit, less references are needed.
+</li><li>Tables without columns didn't work. 
+    (The use case for such tables is testing.)
+</li><li>The LIRS cache now resizes the table automatically in all cases 
+    and no longer needs the averageMemory configuration.
+</li><li>Creating a linked table from an MVStore database to a non-MVStore database
+    created a second (non-MVStore) database file.
+</li><li>In version 1.4.184, a bug was introduced that broke queries 
     that have both joins and wildcards, for example:
     select * from dual join(select x from dual) on 1=1
 </li></ul>

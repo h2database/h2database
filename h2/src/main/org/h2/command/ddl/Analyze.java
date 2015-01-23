@@ -83,9 +83,12 @@ public class Analyze extends DefineCommand {
             // if the connection is closed and there is something to undo
             return;
         }
+        Column[] columns = table.getColumns();
+        if (columns.length == 0) {
+            return;
+        }
         Database db = session.getDatabase();
         StatementBuilder buff = new StatementBuilder("SELECT ");
-        Column[] columns = table.getColumns();
         for (Column col : columns) {
             buff.appendExceptFirst(", ");
             int type = col.getType();

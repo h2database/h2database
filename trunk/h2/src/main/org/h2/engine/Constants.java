@@ -217,7 +217,7 @@ public class Constants {
      * The default maximum length of an LOB that is stored with the record
      * itself, and not in a separate place.
      */
-    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 128;
+    public static final int DEFAULT_MAX_LENGTH_INPLACE_LOB = 256;
 
     /**
      * The default value for the maximum transaction log size.

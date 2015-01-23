@@ -58,7 +58,8 @@ public class TestCacheLIRS extends TestBase {
                 switch (r.nextInt(3)) {
                 case 0:
                     int memory = r.nextInt(5) + 1;
-                    buff.append("add ").append(key).append(' ').append(memory).append('\n');
+                    buff.append("add ").append(key).append(' ').
+                            append(memory).append('\n');
                     test.put(key, j, memory);
                     break;
                 case 1:
@@ -78,25 +79,19 @@ public class TestCacheLIRS extends TestBase {
         test.put(1, 10, 100);
         assertEquals(10, test.get(1).intValue());
         try {
-            test.put(null,  10, 100);
+            test.put(null, 10, 100);
             fail();
         } catch (NullPointerException e) {
             // expected
         }
         try {
-            test.put(1,  null, 100);
+            test.put(1, null, 100);
             fail();
         } catch (NullPointerException e) {
             // expected
         }
         try {
             test.setMaxMemory(0);
-            fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        try {
-            test.setAverageMemory(0);
             fail();
         } catch (IllegalArgumentException e) {
             // expected
@@ -114,17 +109,6 @@ public class TestCacheLIRS extends TestBase {
         verifyMapSize(769, 2048);
 
         CacheLIRS<Integer, Integer> test;
-        test = createCache(3, 10);
-        test.put(0, 0, 9);
-        test.put(1, 10, 9);
-        test.put(2, 20, 9);
-        test.put(3, 30, 9);
-        test.put(4, 40, 9);
-
-        test = createCache(1, 1);
-        test.put(1, 10);
-        test.put(0, 0);
-        test.get(0);
 
         test = createCache(1000);
         for (int j = 0; j < 2000; j++) {
@@ -141,11 +125,22 @@ public class TestCacheLIRS extends TestBase {
     private void verifyMapSize(int elements, int expectedMapSize) {
         CacheLIRS<Integer, Integer> test;
         test = createCache(elements - 1);
-        assertTrue(test.sizeMapArray() < expectedMapSize);
+        for (int i = 0; i < elements - 1; i++) {
+            test.put(i, i * 10);
+        }
+        assertTrue(test.sizeMapArray() + "<" + expectedMapSize, 
+                test.sizeMapArray() < expectedMapSize);
         test = createCache(elements);
+        for (int i = 0; i < elements + 1; i++) {
+            test.put(i, i * 10);
+        }
         assertEquals(expectedMapSize, test.sizeMapArray());
-        test = createCache(elements * 100, 100);
-        assertEquals(expectedMapSize, test.sizeMapArray());
+        test = createCache(elements * 2);
+        for (int i = 0; i < elements * 2; i++) {
+            test.put(i, i * 10);
+        }
+        assertTrue(test.sizeMapArray() + ">" + expectedMapSize, 
+                test.sizeMapArray() > expectedMapSize);
     }
 
     private void testGetPutPeekRemove() {
@@ -285,7 +280,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private void testClear() {
-        CacheLIRS<Integer, Integer> test = createCache(40, 10);
+        CacheLIRS<Integer, Integer> test = createCache(40);
         for (int i = 0; i < 5; i++) {
             test.put(i, 10 * i, 9);
         }
@@ -301,7 +296,6 @@ public class TestCacheLIRS extends TestBase {
             assertTrue(x >= 1 && x <= 4);
         }
         assertEquals(40,  test.getMaxMemory());
-        assertEquals(10, test.getAverageMemory());
         assertEquals(36,  test.getUsedMemory());
         assertEquals(4, test.size());
         assertEquals(3,  test.sizeHot());
@@ -312,20 +306,15 @@ public class TestCacheLIRS extends TestBase {
         test.setMaxMemory(10);
         assertEquals(10, test.getMaxMemory());
         test.setMaxMemory(40);
-        test.setAverageMemory(1);
-        assertEquals(1, test.getAverageMemory());
-        test.setAverageMemory(10);
         verify(test, "mem: 36 stack: 4 3 2 1 cold: 4 non-resident: 0");
 
-        // putAll uses the average memory
         test.putAll(test);
-        verify(test, "mem: 40 stack: 4 3 2 1 cold: non-resident: 0");
+        verify(test, "mem: 4 stack: 4 3 2 1 cold: non-resident: 0");
 
         test.clear();
         verify(test, "mem: 0 stack: cold: non-resident:");
 
         assertEquals(40,  test.getMaxMemory());
-        assertEquals(10, test.getAverageMemory());
         assertEquals(0,  test.getUsedMemory());
         assertEquals(0, test.size());
         assertEquals(0,  test.sizeHot());
@@ -348,7 +337,8 @@ public class TestCacheLIRS extends TestBase {
         for (int i = 0; i < 20; i++) {
             test.put(i, 10 * i);
         }
-        verify(test, "mem: 4 stack: 19 18 17 16 3 2 1 cold: 19 non-resident: 18 17 16");
+        verify(test, "mem: 4 stack: 19 18 17 16 3 2 1 " +
+                "cold: 19 non-resident: 18 17 16");
     }
 
     private void testBadHashMethod() {
@@ -559,13 +549,8 @@ public class TestCacheLIRS extends TestBase {
         }
     }
 
-    private static <K, V> CacheLIRS<K, V> createCache(int maxElements) {
-        return createCache(maxElements, 1);
-    }
-
-    private static <K, V> CacheLIRS<K, V> createCache(int maxSize,
-            int averageSize) {
-        return new CacheLIRS<K, V>(maxSize, averageSize, 1, 0);
+    private static <K, V> CacheLIRS<K, V> createCache(int maxSize) {
+        return new CacheLIRS<K, V>(maxSize, 1, 0);
     }
 
 }

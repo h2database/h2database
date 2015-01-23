@@ -49,6 +49,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testManyTransactions();
         testAppendOnly();
         testLowRetentionTime();
         testOldAndNew();
@@ -80,6 +81,23 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testManyTransactions() throws Exception {
+        deleteDb("testManyTransactions");        
+        Connection conn = getConnection("testManyTransactions");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test()");
+        conn.setAutoCommit(false);
+        stat.execute("insert into test values()");
+
+        Connection conn2 = getConnection("testManyTransactions");
+        Statement stat2 = conn2.createStatement();          
+        for (long i = 0; i < 100000; i++) {
+            stat2.execute("insert into test values()");
+        }
+        conn2.close();
+        conn.close();
     }
 
     private void testAppendOnly() throws Exception {

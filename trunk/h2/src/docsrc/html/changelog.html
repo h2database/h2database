@@ -17,7 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The default limit for in-place LOB objects was changed from 128 to 256 bytes.
+<ul><li>MVStore: up to 65535 open transactions are now supported.
+    Previously, the limit was at most 65535 transactions between the oldest open and the
+    newest open transaction (which was quite a strange limit).
+</li><li>The default limit for in-place LOB objects was changed from 128 to 256 bytes.
     This is because each read creates a reference to a LOB, and maintaining the references
     is a big overhead. With the higher limit, less references are needed.
 </li><li>Tables without columns didn't work. 

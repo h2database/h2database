@@ -4544,8 +4544,12 @@ public class Parser {
             command.setQueueSize(readPositiveInt());
         }
         command.setNoWait(readIf("NOWAIT"));
-        read("CALL");
-        command.setTriggerClassName(readUniqueIdentifier());
+        if (readIf("AS")) {
+            command.setTriggerSource(readString());
+        } else {
+            read("CALL");
+            command.setTriggerClassName(readUniqueIdentifier());
+        }
         return command;
     }
 

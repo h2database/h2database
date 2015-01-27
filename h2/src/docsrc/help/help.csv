@@ -639,13 +639,16 @@ CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255))
 "Commands (DDL)","CREATE TRIGGER","
 CREATE TRIGGER [ IF NOT EXISTS ] newTriggerName { BEFORE | AFTER | INSTEAD OF }
 { INSERT | UPDATE | DELETE | SELECT | ROLLBACK } [,...] ON tableName [ FOR EACH ROW ]
-[ QUEUE int ] [ NOWAIT ] CALL triggeredClassName
+[ QUEUE int ] [ NOWAIT ] { CALL triggeredClassName | AS sourceCodeString }
 ","
 Creates a new trigger.
 The trigger class must be public and implement ""org.h2.api.Trigger"".
 Inner classes are not supported.
 The class must be available in the classpath of the database engine
 (when using the server mode, it must be in the classpath of the server).
+
+The sourceCodeString must define a single method with no parameters that returns ""org.h2.api.Trigger"".
+See CREATE ALIAS for requirements regarding the compilation.
 
 BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
@@ -682,7 +685,8 @@ The schema name does not need to be specified when creating the trigger.
 
 This command commits an open transaction in this connection.
 ","
-CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger""
+CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
+CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create(){ return new MyTrigger(""constructorParam""); } $$;
 "
 "Commands (DDL)","CREATE USER","
 CREATE USER [ IF NOT EXISTS ] newUserName

@@ -32,6 +32,7 @@ Change Log
 </li><li>In version 1.4.184, a bug was introduced that broke queries 
     that have both joins and wildcards, for example:
     select * from dual join(select x from dual) on 1=1
+ </li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
 </li></ul>
 
 <h2>Version 1.4.185 Beta (2015-01-16)</h2>

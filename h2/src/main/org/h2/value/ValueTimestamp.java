@@ -50,6 +50,9 @@ public class ValueTimestamp extends Value {
 
     private ValueTimestamp(long dateValue, long timeNanos) {
         this.dateValue = dateValue;
+        if (timeNanos < 0 || timeNanos >= 24L * 60 * 60 * 1000 * 1000) {
+            throw new IllegalArgumentException("timeNanos out of range " + timeNanos);
+        }
         this.timeNanos = timeNanos;
     }
 

@@ -5,12 +5,14 @@
  */
 package org.h2.schema;
 
+import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
+import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -18,7 +20,9 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
+import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -43,6 +47,7 @@ public class TriggerObject extends SchemaObjectBase {
     private boolean noWait;
     private Table table;
     private String triggerClassName;
+    private String triggerSource;
     private Trigger triggerCallback;
 
     public TriggerObject(Schema schema, int id, String name, Table table) {
@@ -66,7 +71,12 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             Session sysSession = database.getSystemSession();
             Connection c2 = sysSession.createConnection(false);
-            Object obj = JdbcUtils.loadUserClass(triggerClassName).newInstance();
+            final Object obj;
+            if (triggerClassName != null) {
+                obj = JdbcUtils.loadUserClass(triggerClassName).newInstance();
+            } else {
+                obj = loadFromSource();
+            }
             triggerCallback = (Trigger) obj;
             triggerCallback.init(c2, getSchema().getName(), getName(),
                     table.getName(), before, typeMask);
@@ -74,7 +84,25 @@ public class TriggerObject extends SchemaObjectBase {
             // try again later
             triggerCallback = null;
             throw DbException.get(ErrorCode.ERROR_CREATING_TRIGGER_OBJECT_3, e, getName(),
-                            triggerClassName, e.toString());
+                triggerClassName != null ? triggerClassName : "..source..", e.toString());
+        }
+    }
+
+    private Trigger loadFromSource() {
+        final SourceCompiler compiler = database.getCompiler();
+        synchronized (compiler) {
+            final String fullClassName = Constants.USER_PACKAGE + ".trigger." + getName();
+            compiler.setSource(fullClassName, triggerSource);
+            try {
+                final Method m = compiler.getMethod(fullClassName);
+                if (m.getParameterTypes().length > 0)
+                    throw new IllegalStateException("No parameters are allowed for a trigger");
+                return (Trigger) m.invoke(null);
+            } catch (DbException e) {
+                throw e;
+            } catch (Exception e) {
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1, e, triggerSource);
+            }
         }
     }
 
@@ -86,7 +114,23 @@ public class TriggerObject extends SchemaObjectBase {
      *            should be ignored
      */
     public void setTriggerClassName(String triggerClassName, boolean force) {
+        this.setTriggerAction(triggerClassName, null, force);
+    }
+
+    /**
+     * Set the trigger source code and compile it if possible.
+     *
+     * @param source the source code of a method returning a {@link Trigger}
+     * @param force whether exceptions (due to syntax error)
+     *            should be ignored
+     */
+    public void setTriggerSource(String source, boolean force) {
+        this.setTriggerAction(null, source, force);
+    }
+
+    private void setTriggerAction(String triggerClassName, String source, boolean force) {
         this.triggerClassName = triggerClassName;
+        this.triggerSource = source;
         try {
             load();
         } catch (DbException e) {
@@ -118,9 +162,9 @@ public class TriggerObject extends SchemaObjectBase {
         Value identity = session.getLastScopeIdentity();
         try {
             triggerCallback.fire(c2, null, null);
-        } catch (Throwable e) {
+        } catch (Throwable e) {        	  
             throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
-                            triggerClassName, e.toString());
+              triggerClassName != null ? triggerClassName : "..source..", e.toString());
         } finally {
             session.setLastScopeIdentity(identity);
             if (type != Trigger.SELECT) {
@@ -283,7 +327,10 @@ public class TriggerObject extends SchemaObjectBase {
         } else {
             buff.append(" QUEUE ").append(queueSize);
         }
-        buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
+        if (triggerClassName != null)
+            buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
+        else
+            buff.append(" AS ").append(StringUtils.quoteStringSQL(triggerSource));
         return buff.toString();
     }
 
@@ -335,6 +382,7 @@ public class TriggerObject extends SchemaObjectBase {
         }
         table = null;
         triggerClassName = null;
+        triggerSource = null;
         triggerCallback = null;
         invalidate();
     }
@@ -369,6 +417,10 @@ public class TriggerObject extends SchemaObjectBase {
      */
     public String getTriggerClassName() {
         return triggerClassName;
+    }
+
+    public String getTriggerSource() {
+        return triggerSource;
     }
 
     /**

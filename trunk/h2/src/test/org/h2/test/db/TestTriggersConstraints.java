@@ -46,6 +46,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testViewTrigger();
         testTriggerBeforeSelect();
         testTriggerAlterTable();
+        testTriggerAsSource();
         testTriggers();
         testConstraints();
         testCheckConstraintErrorMessage();
@@ -386,19 +387,39 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void testTriggerAlterTable() throws SQLException {
+        deleteDb("trigger");
+        testTrigger(false);
+    }
+
+    private void testTriggerAsSource() throws SQLException {
+        deleteDb("trigger");
+        testTrigger(true);
+    }
+
+    private void testTrigger(final boolean asSource) throws SQLException {
+        final String callSeq = "call seq.nextval";
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("create sequence seq");
         stat.execute("create table test(id int primary key)");
-        assertSingleValue(stat, "call seq.nextval", 1);
+        assertSingleValue(stat, callSeq, 1);
         conn.setAutoCommit(false);
-        stat.execute("create trigger test_upd before insert on test call \"" +
+        if (asSource) {
+        	  String triggerClassName = this.getClass().getName() + "." +
+                TestTriggerAlterTable.class.getSimpleName();
+            stat.execute(
+                    "create trigger test_upd before insert on test " +
+                    "as $$org.h2.api.Trigger create() " +
+                    "{ return new " + triggerClassName + "(\"seq\"); } $$");
+        } else {
+            stat.execute("create trigger test_upd before insert on test call \"" +
                 TestTriggerAlterTable.class.getName() + "\"");
+        }
         stat.execute("insert into test values(1)");
-        assertSingleValue(stat, "call seq.nextval", 3);
+        assertSingleValue(stat, callSeq, 3);
         stat.execute("alter table test add column name varchar");
-        assertSingleValue(stat, "call seq.nextval", 4);
+        assertSingleValue(stat, callSeq, 4);
         stat.execute("drop sequence seq");
         stat.execute("drop table test");
         conn.close();

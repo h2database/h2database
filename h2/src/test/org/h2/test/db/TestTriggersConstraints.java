@@ -406,15 +406,14 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         assertSingleValue(stat, callSeq, 1);
         conn.setAutoCommit(false);
         if (asSource) {
-        	  String triggerClassName = this.getClass().getName() + "." +
-                TestTriggerAlterTable.class.getSimpleName();
-            stat.execute(
-                    "create trigger test_upd before insert on test " +
-                    "as $$org.h2.api.Trigger create() " +
-                    "{ return new " + triggerClassName + "(\"seq\"); } $$");
+            String triggerClassName = this.getClass().getName() + "."
+                    + TestTriggerAlterTable.class.getSimpleName();
+            stat.execute("create trigger test_upd before insert on test "
+                    + "as $$org.h2.api.Trigger create() " + "{ return new "
+                    + triggerClassName + "(); } $$");
         } else {
-            stat.execute("create trigger test_upd before insert on test call \"" +
-                TestTriggerAlterTable.class.getName() + "\"");
+            stat.execute("create trigger test_upd before insert on test call \""
+                    + TestTriggerAlterTable.class.getName() + "\"");
         }
         stat.execute("insert into test values(1)");
         assertSingleValue(stat, callSeq, 3);

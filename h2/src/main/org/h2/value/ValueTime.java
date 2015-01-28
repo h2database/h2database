@@ -33,7 +33,7 @@ public class ValueTime extends Value {
     private final long nanos;
 
     private ValueTime(long nanos) {
-        if (nanos < 0 || nanos >= 24L * 60 * 60 * 1000 * 1000) {
+        if (nanos < 0 || nanos >= 24L * 60 * 60 * 1000 * 1000 * 1000) {
             throw new IllegalArgumentException("timeNanos out of range " + nanos);
         }
         this.nanos = nanos;

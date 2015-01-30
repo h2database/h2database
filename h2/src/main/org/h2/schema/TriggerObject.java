@@ -71,7 +71,7 @@ public class TriggerObject extends SchemaObjectBase {
         try {
             Session sysSession = database.getSystemSession();
             Connection c2 = sysSession.createConnection(false);
-            final Object obj;
+            Object obj;
             if (triggerClassName != null) {
                 obj = JdbcUtils.loadUserClass(triggerClassName).newInstance();
             } else {
@@ -89,14 +89,15 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     private Trigger loadFromSource() {
-        final SourceCompiler compiler = database.getCompiler();
+        SourceCompiler compiler = database.getCompiler();
         synchronized (compiler) {
-            final String fullClassName = Constants.USER_PACKAGE + ".trigger." + getName();
+            String fullClassName = Constants.USER_PACKAGE + ".trigger." + getName();
             compiler.setSource(fullClassName, triggerSource);
             try {
-                final Method m = compiler.getMethod(fullClassName);
-                if (m.getParameterTypes().length > 0)
+                Method m = compiler.getMethod(fullClassName);
+                if (m.getParameterTypes().length > 0) {
                     throw new IllegalStateException("No parameters are allowed for a trigger");
+                }
                 return (Trigger) m.invoke(null);
             } catch (DbException e) {
                 throw e;
@@ -162,7 +163,7 @@ public class TriggerObject extends SchemaObjectBase {
         Value identity = session.getLastScopeIdentity();
         try {
             triggerCallback.fire(c2, null, null);
-        } catch (Throwable e) {        	  
+        } catch (Throwable e) {
             throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
               triggerClassName != null ? triggerClassName : "..source..", e.toString());
         } finally {
@@ -327,10 +328,11 @@ public class TriggerObject extends SchemaObjectBase {
         } else {
             buff.append(" QUEUE ").append(queueSize);
         }
-        if (triggerClassName != null)
+        if (triggerClassName != null) {
             buff.append(" CALL ").append(Parser.quoteIdentifier(triggerClassName));
-        else
+        } else {
             buff.append(" AS ").append(StringUtils.quoteStringSQL(triggerSource));
+        }
         return buff.toString();
     }
 

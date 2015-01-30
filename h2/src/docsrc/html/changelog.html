@@ -32,7 +32,8 @@ Change Log
 </li><li>In version 1.4.184, a bug was introduced that broke queries 
     that have both joins and wildcards, for example:
     select * from dual join(select x from dual) on 1=1
- </li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
+</li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
+</li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain CUAZ.
 </li></ul>
 
 <h2>Version 1.4.185 Beta (2015-01-16)</h2>
@@ -51,7 +52,6 @@ Change Log
     the logic that cleared the flag could never be reached, resulting in performance degradation.
     Reported by Alexander Nesterov.
 </li><li>Issue 552: Implement BIT_AND and BIT_OR aggregate functions.
-</li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain CUAZ.
 </li></ul>
 
 <h2>Version 1.4.184 Beta (2014-12-19)</h2>

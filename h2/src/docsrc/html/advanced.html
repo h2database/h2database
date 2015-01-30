@@ -21,6 +21,8 @@ Advanced
     Large Objects</a><br />
 <a href="#linked_tables">
     Linked Tables</a><br />
+<a href="#spatial_features">
+    Spatial Features</a><br />
 <a href="#recursive_queries">
     Recursive Queries</a><br />
 <a href="#updatable_views">
@@ -211,10 +213,18 @@ For details, see the sample application <code>org.h2.samples.UpdatableView</code
 
 <h2 id="transaction_isolation">Transaction Isolation</h2>
 <p>
-Transaction isolation is provided for all data manipulation language (DML) statements.
-Most data definition language (DDL) statements commit the current transaction.
+Please note that most data definition language (DDL) statements,
+such as "create table", commit the current transaction.
 See the <a href="grammar.html">Grammar</a> for details.
 </p>
+<p>
+Transaction isolation is provided for all data manipulation language (DML) statements.
+<p>
+</p>
+Please note MVCC is enabled in version 1.4.x by default, when using the MVStore.
+In this case, table level locking is not used.
+Instead, rows are locked for update, and read committed is used in all cases
+(changing the isolation level has no effect).
 <p>
 This database supports the following transaction isolation levels:
 </p>
@@ -1405,6 +1415,60 @@ Some values are:
 To help non-mathematicians understand what those numbers mean, here a comparison:
 one's annual risk of being hit by a meteorite is estimated to be one chance in 17 billion,
 that means the probability is about 0.000'000'000'06.
+</p>
+
+<h2 id="spatial_features">Spatial Features</h2>
+<p>
+H2 supports the geometry data type and spatial indexes if
+the <a href="http://tsusiatsoftware.net/jts/main.html">JTS Topology Suite</a>
+is in the classpath.
+To run the H2 Console tool with the JTS tool, you need to download the
+<a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts/1.13/jts-1.13.jar">JTS 1.13 jar file</a>
+and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows:
+</p>
+<pre>
+#!/bin/sh
+dir=$(dirname "$0")
+java -cp "$dir/h2.jar:jts-1.13.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
+</pre>
+<p>
+Here is an example SQL script to create a table with a spatial column and index:
+</p>
+<pre>
+CREATE TABLE GEOTABLE(GID SERIAL, THE_GEOM GEOMETRY);
+INSERT INTO GEOTABLE(THE_GEOM) VALUES
+    ('POINT(500 505)'), 
+    ('LINESTRING(550 551, 525 512, 565 566)'),
+    ('POLYGON ((550 521, 580 540, 570 564, 512 566, 550 521))');
+CREATE SPATIAL INDEX GEOTABLE_SPATIALINDEX ON GEOTABLE(THE_GEOM);
+</pre>
+<p>
+To query the table using geometry envelope intersection,
+use the operation <code>&&</code>, as in PostGIS: 
+</p>
+<pre>
+SELECT * FROM GEOTABLE 
+WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+</pre>
+<p>
+You can verify that the spatial index is used using the "explain plan" feature:
+</p>
+<pre>
+EXPLAIN SELECT * FROM GEOTABLE 
+WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
+-- Result
+SELECT
+    GEOTABLE.GID,
+    GEOTABLE.THE_GEOM
+FROM PUBLIC.GEOTABLE
+    /* PUBLIC.GEOTABLE_SPATIALINDEX: 
+    THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' */
+WHERE INTERSECTS(THE_GEOM, 
+    'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))')
+</pre>
+<p>
+For persistent databases, the spatial index is stored on disk;
+for in-memory databases, the index is kept in memory.
 </p>
 
 <h2 id="recursive_queries">Recursive Queries</h2>

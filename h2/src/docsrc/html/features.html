@@ -97,7 +97,7 @@ Features
 <h3>Additional Features</h3>
 <ul>
 <li>Disk based or in-memory databases and tables, read-only database support, temporary tables
-</li><li>Transaction support (read committed and serializable transaction isolation), 2-phase-commit
+</li><li>Transaction support (read committed), 2-phase-commit
 </li><li>Multiple connections, table level locking
 </li><li>Cost based optimizer, using a genetic algorithm for complex queries, zero-administration
 </li><li>Scrollable and updatable result set support, large result set, external result sorting,
@@ -863,7 +863,10 @@ access to the same connection, but other databases may not do this.
 
 <h3>Locking, Lock-Timeout, Deadlocks</h3>
 <p>
-Unless <a href="advanced.html#mvcc">multi-version concurrency</a> is used,
+Please note MVCC is enabled in version 1.4.x by default, when using the MVStore.
+In this case, table level locking is not used.
+
+If <a href="advanced.html#mvcc">multi-version concurrency</a> is not used,
 the database uses table level locks to give each connection a consistent state of the data.
 There are two kinds of locks: read locks (shared locks) and write locks (exclusive locks).
 All locks are released when the transaction commits or rolls back.

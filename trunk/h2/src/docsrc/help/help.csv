@@ -686,7 +686,7 @@ The schema name does not need to be specified when creating the trigger.
 This command commits an open transaction in this connection.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
-CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create(){ return new MyTrigger(""constructorParam""); } $$;
+CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); } $$;
 "
 "Commands (DDL)","CREATE USER","
 CREATE USER [ IF NOT EXISTS ] newUserName
@@ -1068,7 +1068,8 @@ Depending on the virtual machine, the actual memory required may be higher.
 
 This setting is persistent and affects all connections as there is only one cache per database.
 Using a very small value (specially 0) will reduce performance a lot.
-This setting only affects the database engine (the server in a client/server environment).
+This setting only affects the database engine (the server in a client/server environment;
+in embedded mode, the database engine is in the same process as the application).
 It has no effect for in-memory databases.
 
 Admin rights are required to execute this command, as it affects all connections.

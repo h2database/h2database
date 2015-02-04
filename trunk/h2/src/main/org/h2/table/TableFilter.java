@@ -487,6 +487,22 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
+     * Return a list of index condition filtered by a specific column.
+     * 
+     * @param column The column of the condition
+     * @return the filtered list
+     */
+    public ArrayList<IndexCondition> getIndexConditionsForColumn(Column column){
+        ArrayList<IndexCondition> conditions = New.arrayList(indexConditions.size());
+        for (IndexCondition condition: indexConditions){
+            if (column.equals(condition.getColumn())){
+                conditions.add(condition);
+            }
+        }
+        return conditions;
+    }
+
+    /**
      * Add a filter condition.
      *
      * @param condition the condition

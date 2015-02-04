@@ -26,6 +26,7 @@ import org.h2.expression.Parameter;
 import org.h2.expression.Wildcard;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
+import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
@@ -33,7 +34,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.result.SortOrder;
+import org.h2.result.SortOrder; 
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
@@ -445,11 +446,16 @@ public class Select extends Query {
                     // with the exact same columns
                     IndexColumn idxCol = indexCols[j];
                     Column sortCol = sortCols[j];
+                    boolean implicitSortColumn = false;
                     if (idxCol.column != sortCol) {
-                        ok = false;
-                        break;
+                        implicitSortColumn = isSortColumnImplicit(
+                                topTableFilter, idxCol.column);
+                        if (!implicitSortColumn) {
+                            ok = false;
+                            break;
+                        }
                     }
-                    if (idxCol.sortType != sortTypes[j]) {
+                    if (!implicitSortColumn && idxCol.sortType != sortTypes[j]) {
                         // NULL FIRST for ascending and NULLS LAST
                         // for descending would actually match the default
                         ok = false;
@@ -469,6 +475,43 @@ public class Select extends Query {
             }
         }
         return null;
+    }
+
+    /**
+     * Validates the cases where ORDER BY clause do not contains all indexed
+     * columns, but the related index path still would be valid for such search.
+     * Sometimes, the absence of a column in the ORDER BY clause does not alter the
+     * expected final result, and an index sorted scan could still be used.
+     * <pre>
+     * CREATE TABLE test(a, b);
+     * CREATE UNIQUE INDEX idx_test ON test(a, b);
+     * SELECT b FROM test WHERE a=22 AND b>10 order by b;
+     * </pre>
+     * More restrictive rule where one table query with indexed column
+     * not present in the ORDER BY clause is filtered with equality conditions
+     * (at least one) of type COLUMN = CONSTANT in a conjunctive fashion.
+     * 
+     * @param sortColumn Column to be validated
+     * @return true if the column can be used implicitly, or false
+     *         otherwise.
+     */
+    private boolean isSortColumnImplicit(TableFilter tableFilter,
+            Column sortColumn) {
+        if (filters.size() == 1 && condition != null
+                && !condition.isDisjunctive()) {
+            ArrayList<IndexCondition> conditions = tableFilter
+                    .getIndexConditionsForColumn(sortColumn);
+            if (conditions.isEmpty()) {
+                return false;
+            }
+            for (IndexCondition conditionExp : conditions) {
+                if (!conditionExp.isEquality(true)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
     private void queryDistinct(ResultTarget result, long limitRows) {

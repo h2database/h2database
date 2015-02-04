@@ -62,6 +62,7 @@ public class TestOptimizations extends TestBase {
         testNestedInSelect();
         testInSelectJoin();
         testMinMaxNullOptimization();
+        testUseIndexWhenAllColumnsNotInOrderBy();
         if (config.networked) {
             return;
         }
@@ -666,6 +667,22 @@ public class TestOptimizations extends TestBase {
         rs.next();
         String plan = rs.getString(1);
         assertTrue(plan.indexOf("TYPE_INDEX") > 0);
+        conn.close();
+    }
+    
+    private void testUseIndexWhenAllColumnsNotInOrderBy() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE test(id INT PRIMARY KEY, account INT, txid INT);"); 
+        stat.execute("INSERT INTO test SELECT x, x*100, x FROM SYSTEM_RANGE(1, 10000);");
+        stat.execute("ANALYZE SAMPLE_SIZE 5");
+        stat.execute("CREATE UNIQUE INDEX idx_test_account_txid ON test(account, txid DESC);");
+        ResultSet rs;
+        rs = stat.executeQuery("EXPLAIN ANALYZE SELECT txid FROM test WHERE account=22 AND txid<9999999 ORDER BY txid DESC LIMIT 25");
+        rs.next();
+        String plan = rs.getString(1);
+        assertContains(plan, "index sorted");
         conn.close();
     }
 

@@ -263,6 +263,15 @@ public abstract class Expression {
     }
 
     /**
+     * Allows to check if the related expression is under conjunctive format.
+     * 
+     * @return if the related expression has the logic operator OR.
+     */
+    public boolean isDisjunctive(){
+        return false;
+    }
+
+    /**
      * Add conditions to a table filter if they can be evaluated.
      *
      * @param filter the table filter

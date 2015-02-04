@@ -34,6 +34,8 @@ Change Log
     select * from dual join(select x from dual) on 1=1
 </li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
 </li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain CUAZ.
+</li><li>Make the planner use indexes for sorting when doing a GROUP BY where 
+    all of the GROUP BY columns are not mentioned in the select. Patch by Frederico (zepfred).
 </li></ul>
 
 <h2>Version 1.4.185 Beta (2015-01-16)</h2>

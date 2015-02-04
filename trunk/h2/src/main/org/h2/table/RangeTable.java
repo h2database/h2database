@@ -6,6 +6,8 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+
+import org.h2.api.ErrorCode;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.Index;
@@ -27,7 +29,12 @@ public class RangeTable extends Table {
      */
     public static final String NAME = "SYSTEM_RANGE";
 
-    private Expression min, max;
+    /**
+     * The PostgreSQL alias for the range table.
+     */
+    public static final String ALIAS = "GENERATE_SERIES";
+
+    private Expression min, max, step;
     private boolean optimized;
 
     /**
@@ -48,7 +55,13 @@ public class RangeTable extends Table {
         setColumns(cols);
     }
 
-    @Override
+    public RangeTable(Schema schema, Expression min, Expression max,
+    		Expression step, boolean noColumns) {
+        this(schema, min, max, noColumns);
+        this.step = step;
+	}
+
+	@Override
     public String getDropSQL() {
         return null;
     }
@@ -60,7 +73,11 @@ public class RangeTable extends Table {
 
     @Override
     public String getSQL() {
-        return NAME + "(" + min.getSQL() + ", " + max.getSQL() + ")";
+        String sql = NAME + "(" + min.getSQL() + ", " + max.getSQL();
+        if (step != null) {
+            sql += ", " + step.getSQL();
+        }
+        return sql + ")";
     }
 
     @Override
@@ -133,6 +150,9 @@ public class RangeTable extends Table {
 
     @Override
     public Index getScanIndex(Session session) {
+        if (getStep(session) == 0) {
+            throw DbException.get(ErrorCode.STEP_SIZE_SHOUD_NOT_BE_ZERO);
+        }
         return new RangeIndex(this, IndexColumn.wrap(columns));
     }
 
@@ -158,10 +178,21 @@ public class RangeTable extends Table {
         return max.getValue(session).getLong();
     }
 
+    public long getStep(Session session) {
+        optimize(session);
+        if (step == null) {
+            return 1;
+        }
+        return step.getValue(session).getLong();
+    }
+
     private void optimize(Session s) {
         if (!optimized) {
             min = min.optimize(s);
             max = max.optimize(s);
+            if (step != null) {
+                step = step.optimize(s);
+            }
             optimized = true;
         }
     }

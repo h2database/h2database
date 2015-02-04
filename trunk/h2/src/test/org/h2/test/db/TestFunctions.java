@@ -93,7 +93,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testToCharFromNumber();
         testToCharFromText();
         testTranslate();
-
+        testGenerateSeries();
         // TODO
         // testCachingOfDeterministicFunctionAlias();
 
@@ -1626,6 +1626,57 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         assertResult("abc", stat, "SELECT TO_CHAR('abc') FROM DUAL");
+        conn.close();
+    }
+    
+
+    private void testGenerateSeries() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        ResultSet rs = stat.executeQuery("select * from system_range(1,3)");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        rs.next();
+        assertEquals(3, rs.getInt(1));
+
+        rs = stat.executeQuery("select * from system_range(2,2)");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+
+        rs = stat.executeQuery("select * from system_range(2,1)");
+        assertFalse(rs.next());
+
+        rs = stat.executeQuery("select * from system_range(1,2,-1)");
+        assertFalse(rs.next());
+
+        assertThrows(ErrorCode.STEP_SIZE_SHOUD_NOT_BE_ZERO, stat).executeQuery(
+                "select * from system_range(1,2,0)");
+
+        rs = stat.executeQuery("select * from system_range(2,1,-1)");
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+
+        rs = stat.executeQuery("select * from system_range(1,5,2)");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(5, rs.getInt(1));
+
+        rs = stat.executeQuery("select * from system_range(1,6,2)");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(5, rs.getInt(1));
+
         conn.close();
     }
 

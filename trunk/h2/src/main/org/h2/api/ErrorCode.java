@@ -1900,8 +1900,14 @@ public class ErrorCode {
      */
     public static final int JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE = 90141;
 
+    /**
+     * The error with code <code>90142</code> is thrown when
+     * trying to set zero for step size.
+     */
+    public static final int STEP_SIZE_SHOUD_NOT_BE_ZERO = 90142;
 
-    // next are 90039, 90051, 90056, 90110, 90122, 90142
+
+    // next are 90039, 90051, 90056, 90110, 90122, 90143
 
     private ErrorCode() {
         // utility class

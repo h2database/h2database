@@ -1201,12 +1201,20 @@ public class Parser {
             }
             if (foundLeftBracket) {
                 Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
-                if (equalsToken(tableName, RangeTable.NAME)) {
+                if (equalsToken(tableName, RangeTable.NAME)
+                        || equalsToken(tableName, RangeTable.ALIAS)) {
                     Expression min = readExpression();
                     read(",");
                     Expression max = readExpression();
-                    read(")");
-                    table = new RangeTable(mainSchema, min, max, false);
+                    if (readIf(",")) {
+                        Expression step = readExpression();
+                        read(")");
+                        table = new RangeTable(mainSchema, min, max, step,
+                                false);
+                    } else {
+                        read(")");
+                        table = new RangeTable(mainSchema, min, max, false);
+                    }
                 } else {
                     Expression expr = readFunction(schema, tableName);
                     if (!(expr instanceof FunctionCall)) {

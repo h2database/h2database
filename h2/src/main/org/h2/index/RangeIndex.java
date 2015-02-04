@@ -47,6 +47,7 @@ public class RangeIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         long min = rangeTable.getMin(session), start = min;
         long max = rangeTable.getMax(session), end = max;
+        long step = rangeTable.getStep(session);
         try {
             start = Math.max(min, first == null ? min : first.getValue(0).getLong());
         } catch (Exception e) {
@@ -57,7 +58,7 @@ public class RangeIndex extends BaseIndex {
         } catch (Exception e) {
             // error when converting the value - ignore
         }
-        return new RangeCursor(start, end);
+        return new RangeCursor(start, end, step);
     }
 
     @Override

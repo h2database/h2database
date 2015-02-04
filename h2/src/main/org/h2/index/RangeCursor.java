@@ -19,11 +19,16 @@ class RangeCursor implements Cursor {
     private boolean beforeFirst;
     private long current;
     private Row currentRow;
-    private final long min, max;
+    private final long start, end, step;
 
-    RangeCursor(long min, long max) {
-        this.min = min;
-        this.max = max;
+    RangeCursor(long start, long end) {
+    	this(start, end, 1);
+    }
+    
+    RangeCursor(long start, long end, long step) {
+        this.start = start;
+        this.end = end;
+        this.step = step;
         beforeFirst = true;
     }
 
@@ -41,12 +46,12 @@ class RangeCursor implements Cursor {
     public boolean next() {
         if (beforeFirst) {
             beforeFirst = false;
-            current = min;
+            current = start;
         } else {
-            current++;
+            current += step;
         }
         currentRow = new Row(new Value[]{ValueLong.get(current)}, 1);
-        return current <= max;
+        return step > 0 ? current <= end : current >= end;
     }
 
     @Override

@@ -92,6 +92,8 @@ public class TestPreparedStatement extends TestBase {
         testBlob(conn);
         testClob(conn);
         testParameterMetaData(conn);
+        testColumnMetaDataWithEquals(conn);
+        testColumnMetaDataWithIn(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
         deleteDb("preparedStatement");
@@ -1023,6 +1025,7 @@ public class TestPreparedStatement extends TestBase {
         prep.executeUpdate();
         assertFalse(prep.getMoreResults());
         assertEquals(-1, prep.getUpdateCount());
+        stat.execute("DROP TABLE TEST");
     }
 
     private void testObject(Connection conn) throws SQLException {
@@ -1362,4 +1365,33 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(!rs.next());
     }
 
+    private void testColumnMetaDataWithEquals(Connection conn)
+            throws SQLException {
+        Statement stmt = conn.createStatement();
+        stmt.execute("CREATE TABLE TEST( id INT, someColumn INT )");
+        PreparedStatement ps = conn
+                .prepareStatement("INSERT INTO TEST VALUES(?,?)");
+        ps.setInt(1, 0);
+        ps.setInt(2, 999);
+        ps.execute();
+        ps = conn.prepareStatement("SELECT * FROM TEST WHERE someColumn = ?");
+        assertEquals(Types.INTEGER,
+                ps.getParameterMetaData().getParameterType(1));
+        stmt.execute("DROP TABLE TEST");
+    }
+
+    private void testColumnMetaDataWithIn(Connection conn) throws SQLException {
+        Statement stmt = conn.createStatement();
+        stmt.execute("CREATE TABLE TEST( id INT, someColumn INT )");
+        PreparedStatement ps = conn
+                .prepareStatement("INSERT INTO TEST VALUES( ? , ? )");
+        ps.setInt(1, 0);
+        ps.setInt(2, 999);
+        ps.execute();
+        ps = conn
+                .prepareStatement("SELECT * FROM TEST WHERE someColumn IN (?,?)");
+        assertEquals(Types.INTEGER,
+                ps.getParameterMetaData().getParameterType(1));
+        stmt.execute("DROP TABLE TEST");
+    }
 }

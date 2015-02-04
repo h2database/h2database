@@ -94,6 +94,10 @@ public class ConditionIn extends Condition {
             if (allValuesConstant && !e.isConstant()) {
                 allValuesConstant = false;
             }
+            if (left instanceof ExpressionColumn && e instanceof Parameter) {
+                ((Parameter) e)
+                        .setColumn(((ExpressionColumn) left).getColumn());
+            }
             valueList.set(i, e);
         }
         if (constant && allValuesConstant) {

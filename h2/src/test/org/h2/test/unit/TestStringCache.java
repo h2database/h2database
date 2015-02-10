@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.util.Locale;
 import java.util.Random;
 
 import org.h2.test.TestBase;
@@ -31,12 +32,14 @@ public class TestStringCache extends TestBase {
      *
      * @param args the command line parameters
      */
-    public static void main(String... args) {
+    public static void main(String... args) throws Exception {
+        TestBase.createCaller().init().test();
         new TestStringCache().runBenchmark();
     }
-
+    
     @Override
     public void test() throws InterruptedException {
+        testToUpperToLower();
         returnNew = true;
         StringUtils.clearCache();
         testSingleThread(getSize(5000, 20000));
@@ -46,8 +49,62 @@ public class TestStringCache extends TestBase {
         testSingleThread(getSize(5000, 20000));
         testMultiThreads();
     }
+    
+    private void testToUpperCache() {
+        Random r = new Random();
+        String[] test = new String[50];
+        for (int i = 0; i < test.length; i++) {
+            StringBuilder buff = new StringBuilder();
+            for (int a = 0; a < 50; a++) {
+                buff.append((char) r.nextInt());
+            }
+            String a = buff.toString();
+            test[i] = a;
+        }
+        int repeat = 100000;
+        int testLen = 0;
+        long time = System.currentTimeMillis();
+        for (int a = 0; a < repeat; a++) {
+            for (String x : test) {
+                String y = StringUtils.toUpperEnglish(x);
+                testLen += y.length();
+            }
+        }
+        time = System.currentTimeMillis() - time;
+        System.out.println("cache " + time);
+        time = System.currentTimeMillis();
+        for (int a = 0; a < repeat; a++) {
+            for (String x : test) {
+                String y = x.toUpperCase(Locale.ENGLISH);
+                testLen -= y.length();
+            }
+        }
+        time = System.currentTimeMillis() - time;
+        System.out.println("toUpperCase " + time);
+        assertEquals(0, testLen);
+    }
+    
+    private void testToUpperToLower() {
+        Random r = new Random();
+        for (int i = 0; i < 1000; i++) {
+            StringBuilder buff = new StringBuilder();
+            for (int a = 0; a < 100; a++) {
+                buff.append((char) r.nextInt());
+            }
+            String a = buff.toString();
+            String b = StringUtils.toUpperEnglish(a);
+            String c = a.toUpperCase(Locale.ENGLISH);
+            assertEquals(c, b);
+            String d = StringUtils.toLowerEnglish(a);
+            String e = a.toLowerCase(Locale.ENGLISH);
+            assertEquals(e, d);
+        }
+    }
 
     private void runBenchmark() {
+        testToUpperCache();
+        testToUpperCache();
+        testToUpperCache();
         returnNew = false;
         for (int i = 0; i < 6; i++) {
             useIntern = (i % 2) == 0;

@@ -338,7 +338,7 @@ public class IndexCondition {
      * @param constantExpression if the inner node is a constant expression      
      * @return true if this is a equality condition
      */
-    public boolean isEquality(boolean constantExpression){
+    public boolean isEquality(boolean constantExpression) {
         switch (compareType) {
         case Comparison.EQUAL:
         case Comparison.EQUAL_NULL_SAFE:            

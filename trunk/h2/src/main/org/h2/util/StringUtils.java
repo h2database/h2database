@@ -23,8 +23,15 @@ public class StringUtils {
     private static SoftReference<String[]> softCache =
             new SoftReference<String[]>(null);
     private static long softCacheCreated;
+    
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
+
+    // memory used by this cache: 
+    // 4 * 1024 * 2 (strings per pair) * 64 * 2 (bytes per char) = 0.5 MB
+    private static final int TO_UPPER_CACHE_LENGTH = 2 * 1024;
+    private static final int TO_UPPER_CACHE_MAX_ENTRY_LENGTH = 64;
+    private static final String[][] TO_UPPER_CACHE = new String[TO_UPPER_CACHE_LENGTH][];
 
     static {
         for (int i = 0; i < HEX_DECODE.length; i++) {
@@ -89,7 +96,20 @@ public class StringUtils {
      * @return the uppercase text
      */
     public static String toUpperEnglish(String s) {
-        return s.toUpperCase(Locale.ENGLISH);
+        if (s.length() > TO_UPPER_CACHE_MAX_ENTRY_LENGTH) {
+            return s.toUpperCase(Locale.ENGLISH);
+        }
+        int index = s.hashCode() & (TO_UPPER_CACHE_LENGTH - 1);
+        String[] e = TO_UPPER_CACHE[index];
+        if (e != null) {
+            if (e[0].equals(s)) {
+                return e[1];
+            }
+        }
+        String s2 = s.toUpperCase(Locale.ENGLISH);
+        e = new String[] { s, s2 };
+        TO_UPPER_CACHE[index] = e;
+        return s2;
     }
 
     /**

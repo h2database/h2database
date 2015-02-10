@@ -1652,7 +1652,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs = stat.executeQuery("select * from system_range(1,2,-1)");
         assertFalse(rs.next());
 
-        assertThrows(ErrorCode.STEP_SIZE_SHOUD_NOT_BE_ZERO, stat).executeQuery(
+        assertThrows(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO, stat).executeQuery(
                 "select * from system_range(1,2,0)");
 
         rs = stat.executeQuery("select * from system_range(2,1,-1)");

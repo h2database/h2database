@@ -267,7 +267,7 @@ public abstract class Expression {
      * 
      * @return if the related expression has the logic operator OR.
      */
-    public boolean isDisjunctive(){
+    public boolean isDisjunctive() {
         return false;
     }
 

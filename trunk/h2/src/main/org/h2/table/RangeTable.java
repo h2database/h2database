@@ -56,12 +56,12 @@ public class RangeTable extends Table {
     }
 
     public RangeTable(Schema schema, Expression min, Expression max,
-    		Expression step, boolean noColumns) {
+            Expression step, boolean noColumns) {
         this(schema, min, max, noColumns);
         this.step = step;
-	}
+    }
 
-	@Override
+    @Override
     public String getDropSQL() {
         return null;
     }
@@ -151,7 +151,7 @@ public class RangeTable extends Table {
     @Override
     public Index getScanIndex(Session session) {
         if (getStep(session) == 0) {
-            throw DbException.get(ErrorCode.STEP_SIZE_SHOUD_NOT_BE_ZERO);
+            throw DbException.get(ErrorCode.STEP_SIZE_MUST_NOT_BE_ZERO);
         }
         return new RangeIndex(this, IndexColumn.wrap(columns));
     }

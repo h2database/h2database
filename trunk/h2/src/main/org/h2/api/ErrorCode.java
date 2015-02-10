@@ -1904,7 +1904,7 @@ public class ErrorCode {
      * The error with code <code>90142</code> is thrown when
      * trying to set zero for step size.
      */
-    public static final int STEP_SIZE_SHOUD_NOT_BE_ZERO = 90142;
+    public static final int STEP_SIZE_MUST_NOT_BE_ZERO = 90142;
 
 
     // next are 90039, 90051, 90056, 90110, 90122, 90143

@@ -45,6 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testConcurrentAdd();
         testCountWithOpenTransactions();
         testConcurrentUpdate();
         testRepeatedChange();
@@ -58,6 +59,62 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+    
+    private void testConcurrentAdd() {
+        MVStore s;
+        s = MVStore.open(null);
+        final TransactionStore ts = new TransactionStore(s);
+        ts.init();
+
+        final Random r = new Random(1);
+
+        final AtomicInteger key = new AtomicInteger();
+        final AtomicInteger failCount = new AtomicInteger();
+
+        Task task = new Task() {
+
+            @Override
+            public void call() throws Exception {
+                Transaction tx = null;
+                TransactionMap<Integer, Integer> map = null;
+                while (!stop) {
+                    int k = key.get();
+                    tx = ts.begin();
+                    map = tx.openMap("data");
+                    try {
+                        map.put(k, r.nextInt());
+                    } catch (IllegalStateException e) {
+                        failCount.incrementAndGet();
+                        // ignore and retry
+                    }
+                    tx.commit();
+                }
+            }
+
+        };
+        task.execute();
+        Transaction tx = null;
+        int count = 10000;
+        TransactionMap<Integer, Integer> map = null;
+        for (int i = 0; i < count; i++) {
+            int k = i;
+            key.set(k);
+            tx = ts.begin();
+            map = tx.openMap("data");
+            try {
+                map.put(k, r.nextInt());
+            } catch (IllegalStateException e) {
+                failCount.incrementAndGet();
+                // ignore and retry
+            }
+            tx.commit();
+        }
+        // we expect at least half the operations were successful
+        assertTrue(failCount.toString(), failCount.get() < count / 2);
+        // we expect at least a few failures
+        assertTrue(failCount.toString(), failCount.get() > 0);
+        s.close();
     }
 
     private void testCountWithOpenTransactions() {

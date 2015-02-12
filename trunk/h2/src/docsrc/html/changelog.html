@@ -17,7 +17,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>StringUtils.toUpperEnglish now has a small cache.
+<ul><li>MVStore / TransactionStore: concurrent updates could result in a
+    "Too many open transactions" exception.
+</li><li>StringUtils.toUpperEnglish now has a small cache.
     This should speed up reading from a ResultSet when using the column name.
 </li><li>MVStore: up to 65535 open transactions are now supported.
     Previously, the limit was at most 65535 transactions between the oldest open and the

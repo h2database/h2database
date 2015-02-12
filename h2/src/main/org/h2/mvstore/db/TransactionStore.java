@@ -287,9 +287,15 @@ public class TransactionStore {
      * @param logId the log id
      */
     public void logUndo(Transaction t, long logId) {
-        long[] undoKey = { t.getId(), logId };
+        Long undoKey = getOperationId(t.getId(), logId);
         synchronized (undoLog) {
-            undoLog.remove(undoKey);
+            Object[] old = undoLog.remove(undoKey);
+            if (old == null) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
+                        "Transaction {0} was concurrently rolled back",
+                        t.getId());
+            }
         }
     }
 

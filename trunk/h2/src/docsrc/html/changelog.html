@@ -17,7 +17,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore / TransactionStore: concurrent updates could result in a
+<ul><li>MVStore: the maximum cache size was artificially limited to 2 GB 
+    (due to an integer overflow).
+</li><li>MVStore / TransactionStore: concurrent updates could result in a
     "Too many open transactions" exception.
 </li><li>StringUtils.toUpperEnglish now has a small cache.
     This should speed up reading from a ResultSet when using the column name.

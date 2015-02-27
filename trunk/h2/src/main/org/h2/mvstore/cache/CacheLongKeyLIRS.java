@@ -75,7 +75,7 @@ public class CacheLongKeyLIRS<V> {
      *        of the stack before the current item is moved
      */
     @SuppressWarnings("unchecked")
-    public CacheLongKeyLIRS(long maxMemory, 
+    public CacheLongKeyLIRS(long maxMemory,
             int segmentCount, int stackMoveDistance) {
         setMaxMemory(maxMemory);
         DataUtils.checkArgument(
@@ -163,7 +163,7 @@ public class CacheLongKeyLIRS<V> {
             return s.put(key, hash, value, memory);
         }
     }
-    
+
     private Segment<V> resizeIfNeeded(Segment<V> s, int segmentIndex) {
         int newLen = s.getNewMapLen();
         if (newLen == 0) {
@@ -367,6 +367,32 @@ public class CacheLongKeyLIRS<V> {
     }
 
     /**
+     * Get the number of cache hits.
+     *
+     * @return the cache hits
+     */
+    public long getHits() {
+        long x = 0;
+        for (Segment<V> s : segments) {
+            x += s.hits;
+        }
+        return x;
+    }
+
+    /**
+     * Get the number of cache misses.
+     *
+     * @return the cache misses
+     */
+    public long getMisses() {
+        int x = 0;
+        for (Segment<V> s : segments) {
+            x += s.misses;
+        }
+        return x;
+    }
+
+    /**
      * Get the number of resident entries.
      *
      * @return the number of entries
@@ -481,6 +507,16 @@ public class CacheLongKeyLIRS<V> {
         int queue2Size;
 
         /**
+         * The number of cache hits.
+         */
+        long hits;
+
+        /**
+         * The number of cache misses.
+         */
+        long misses;
+
+        /**
          * The map array. The size is always a power of 2.
          */
         final Entry<V>[] entries;
@@ -579,6 +615,8 @@ public class CacheLongKeyLIRS<V> {
          */
         Segment(Segment<V> old, int len) {
             this(old.maxMemory, old.stackMoveDistance, len);
+            hits = old.hits;
+            misses = old.misses;
             Entry<V> s = old.stack.stackPrev;
             while (s != old.stack) {
                 Entry<V> e = copy(s);
@@ -607,11 +645,11 @@ public class CacheLongKeyLIRS<V> {
                 s = s.queuePrev;
             }
         }
-        
+
         /**
          * Calculate the new number of hash table buckets if the internal map
          * should be re-sized.
-         * 
+         *
          * @return 0 if no resizing is needed, or the new length
          */
         int getNewMapLen() {
@@ -668,11 +706,13 @@ public class CacheLongKeyLIRS<V> {
             Entry<V> e = find(key, hash);
             if (e == null) {
                 // the entry was not found
+                misses++;
                 return null;
             }
             V value = e.value;
             if (value == null) {
                 // it was a non-resident entry
+                misses++;
                 return null;
             }
             if (e.isHot()) {
@@ -685,6 +725,7 @@ public class CacheLongKeyLIRS<V> {
             } else {
                 access(key, hash);
             }
+            hits++;
             return value;
         }
 

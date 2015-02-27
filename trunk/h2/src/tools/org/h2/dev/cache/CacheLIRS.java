@@ -38,7 +38,7 @@ import java.util.Set;
  * of other entries have been moved to the front (8 per segment by default).
  * Write access and moving entries to the top of the stack is synchronized per
  * segment.
- * 
+ *
  * @author Thomas Mueller
  * @param <K> the key type
  * @param <V> the value type
@@ -158,7 +158,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             return s.put(key, hash, value, memory);
         }
     }
-    
+
     private Segment<K, V> resizeIfNeeded(Segment<K, V> s, int segmentIndex) {
         int newLen = s.getNewMapLen();
         if (newLen == 0) {
@@ -425,7 +425,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param <V> the value type
      */
     private static class Segment<K, V> {
-        
+
         /**
          * The number of (hot, cold, and non-resident) entries in the map.
          */
@@ -573,11 +573,11 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
                 s = s.queuePrev;
             }
         }
-        
+
         /**
          * Calculate the new number of hash table buckets if the internal map
          * should be re-sized.
-         * 
+         *
          * @return 0 if no resizing is needed, or the new length
          */
         int getNewMapLen() {

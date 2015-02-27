@@ -60,7 +60,7 @@ public class TestTransactionStore extends TestBase {
         testSingleConnection();
         testCompareWithPostgreSQL();
     }
-    
+
     private void testConcurrentAdd() {
         MVStore s;
         s = MVStore.open(null);

@@ -165,7 +165,7 @@ public class TriggerObject extends SchemaObjectBase {
             triggerCallback.fire(c2, null, null);
         } catch (Throwable e) {
             throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
-              triggerClassName != null ? triggerClassName : "..source..", e.toString());
+                    triggerClassName != null ? triggerClassName : "..source..", e.toString());
         } finally {
             session.setLastScopeIdentity(identity);
             if (type != Trigger.SELECT) {

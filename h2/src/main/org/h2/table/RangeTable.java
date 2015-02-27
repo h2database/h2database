@@ -178,6 +178,12 @@ public class RangeTable extends Table {
         return max.getValue(session).getLong();
     }
 
+    /**
+     * Get the increment.
+     *
+     * @param session the session
+     * @return the increment (1 by default)
+     */
     public long getStep(Session session) {
         optimize(session);
         if (step == null) {

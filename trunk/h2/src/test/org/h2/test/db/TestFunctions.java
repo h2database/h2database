@@ -1628,7 +1628,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("abc", stat, "SELECT TO_CHAR('abc') FROM DUAL");
         conn.close();
     }
-    
+
 
     private void testGenerateSeries() throws SQLException {
         Connection conn = getConnection("functions");

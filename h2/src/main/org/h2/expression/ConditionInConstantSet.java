@@ -150,7 +150,7 @@ public class ConditionInConstantSet extends Condition {
     @Override
     public boolean isDisjunctive() {
         return true;
-    }        
+    }
 
     /**
      * Add an additional element if possible. Example: given two conditions

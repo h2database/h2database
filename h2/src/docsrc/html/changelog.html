@@ -17,7 +17,12 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: the maximum cache size was artificially limited to 2 GB 
+<ul><li>The Servlet API 3.0.1 is now used, instead of 2.4.
+</li><li>MVStore: old chunks no longer removed in append-only mode.
+</li><li>MVStore: the cache for page references could grow far too big, resulting in out of memory in some cases.
+</li><li>MVStore: orphaned lob objects were not correctly removed in some cases,
+    making the database grow unnecessarily.
+</li><li>MVStore: the maximum cache size was artificially limited to 2 GB
     (due to an integer overflow).
 </li><li>MVStore / TransactionStore: concurrent updates could result in a
     "Too many open transactions" exception.
@@ -29,18 +34,18 @@ Change Log
 </li><li>The default limit for in-place LOB objects was changed from 128 to 256 bytes.
     This is because each read creates a reference to a LOB, and maintaining the references
     is a big overhead. With the higher limit, less references are needed.
-</li><li>Tables without columns didn't work. 
+</li><li>Tables without columns didn't work.
     (The use case for such tables is testing.)
-</li><li>The LIRS cache now resizes the table automatically in all cases 
+</li><li>The LIRS cache now resizes the table automatically in all cases
     and no longer needs the averageMemory configuration.
 </li><li>Creating a linked table from an MVStore database to a non-MVStore database
     created a second (non-MVStore) database file.
-</li><li>In version 1.4.184, a bug was introduced that broke queries 
+</li><li>In version 1.4.184, a bug was introduced that broke queries
     that have both joins and wildcards, for example:
     select * from dual join(select x from dual) on 1=1
 </li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
 </li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain CUAZ.
-</li><li>Make the planner use indexes for sorting when doing a GROUP BY where 
+</li><li>Make the planner use indexes for sorting when doing a GROUP BY where
     all of the GROUP BY columns are not mentioned in the select. Patch by Frederico (zepfred).
 </li><li>PostgreSQL compatibility: generate_series (as an alias for system_range). Patch by litailang.
 </li><li>Fix missing "column" type in right-hand parameter in ConditionIn. Patch by Arnaud Thimel.

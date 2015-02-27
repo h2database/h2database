@@ -128,7 +128,7 @@ public class TestCacheLIRS extends TestBase {
         for (int i = 0; i < elements - 1; i++) {
             test.put(i, i * 10);
         }
-        assertTrue(test.sizeMapArray() + "<" + expectedMapSize, 
+        assertTrue(test.sizeMapArray() + "<" + expectedMapSize,
                 test.sizeMapArray() < expectedMapSize);
         test = createCache(elements);
         for (int i = 0; i < elements + 1; i++) {
@@ -139,7 +139,7 @@ public class TestCacheLIRS extends TestBase {
         for (int i = 0; i < elements * 2; i++) {
             test.put(i, i * 10);
         }
-        assertTrue(test.sizeMapArray() + ">" + expectedMapSize, 
+        assertTrue(test.sizeMapArray() + ">" + expectedMapSize,
                 test.sizeMapArray() > expectedMapSize);
     }
 

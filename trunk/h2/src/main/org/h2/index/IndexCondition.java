@@ -332,22 +332,23 @@ public class IndexCondition {
         }
     }
 
-    /**     
+    /**
      * Check if this index condition is of the type equality.
      *
-     * @param constantExpression if the inner node is a constant expression      
+     * @param constantExpression if the inner node
+     *      is a constant expression
      * @return true if this is a equality condition
      */
     public boolean isEquality(boolean constantExpression) {
         switch (compareType) {
         case Comparison.EQUAL:
-        case Comparison.EQUAL_NULL_SAFE:            
-            return !constantExpression || expression.isConstant();        
+        case Comparison.EQUAL_NULL_SAFE:
+            return !constantExpression || expression.isConstant();
         default:
             return false;
         }
     }
-    
+
     public int getCompareType() {
         return compareType;
     }

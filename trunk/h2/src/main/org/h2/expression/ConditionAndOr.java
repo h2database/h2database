@@ -288,7 +288,7 @@ public class ConditionAndOr extends Condition {
     public boolean isDisjunctive() {
         return andOrType == OR || left.isDisjunctive() || right.isDisjunctive();
     }
-        
+
     /**
      * Get the left or the right sub-expression of this condition.
      *

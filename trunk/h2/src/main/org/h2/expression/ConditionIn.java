@@ -199,7 +199,7 @@ public class ConditionIn extends Condition {
     public boolean isDisjunctive() {
         return true;
     }
-        
+
     /**
      * Add an additional element if possible. Example: given two conditions
      * A IN(1, 2) OR A=3, the constant 3 is added: A IN(1, 2, 3).

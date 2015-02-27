@@ -349,7 +349,7 @@ public class DbSettings extends SettingsBase {
     public static DbSettings getInstance(HashMap<String, String> s) {
         return new DbSettings(s);
     }
-    
+
     /**
      * INTERNAL.
      * Get the default settings. Those must not be modified.

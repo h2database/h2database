@@ -163,6 +163,7 @@
 90139=Verejná statická Java metóda nebola nájdená: {0}
 90140=Výsledok (result set) je iba na čítanie. Je potrebné použiť conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
+90142=#Step size must not be zero
 HY000=Všeobecná chyba: {0}
 HY004=Neznámy dátový typ: {0}
 HYC00=Vlastnosť nie je podporovaná: {0}

@@ -163,6 +163,7 @@
 90139=Publiczna, statyczna metoda Java nie znaleziona: {0}
 90140=Wyniki są tylko do odczytu. Być może potrzebujesz użyć conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=Serializator nie może być zmieniony ponieważ istnieje tabela z danymi: {0}
+90142=#Step size must not be zero
 HY000=Błąd ogólny: {0}
 HY004=Nieznany typ danych: {0}
 HYC00=Cecha nie jest wspierana: {0}

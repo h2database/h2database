@@ -163,6 +163,7 @@
 90139=#The public static Java method was not found: {0}
 90140=#The result set is readonly. You may need to use conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
+90142=#Step size must not be zero
 HY000=Erro geral: {0}
 HY004=Tipo de dados desconhecido: {0}
 HYC00=Recurso não suportado: {0}

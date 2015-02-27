@@ -163,6 +163,7 @@
 90139=public static Java метод не найден: {0}
 90140=Набор записей не является обновляемым. Возможно необходимо использовать conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
+90142=#Step size must not be zero
 HY000=Внутренняя ошибка: {0}
 HY004=Неизвестный тип данных: {0}
 HYC00=Данная функция не поддерживается: {0}

@@ -34,7 +34,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
-import org.h2.result.SortOrder; 
+import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
@@ -480,20 +480,19 @@ public class Select extends Query {
     /**
      * Validates the cases where ORDER BY clause do not contains all indexed
      * columns, but the related index path still would be valid for such search.
-     * Sometimes, the absence of a column in the ORDER BY clause does not alter the
-     * expected final result, and an index sorted scan could still be used.
+     * Sometimes, the absence of a column in the ORDER BY clause does not alter
+     * the expected final result, and an index sorted scan could still be used.
      * <pre>
      * CREATE TABLE test(a, b);
      * CREATE UNIQUE INDEX idx_test ON test(a, b);
      * SELECT b FROM test WHERE a=22 AND b>10 order by b;
      * </pre>
-     * More restrictive rule where one table query with indexed column
-     * not present in the ORDER BY clause is filtered with equality conditions
-     * (at least one) of type COLUMN = CONSTANT in a conjunctive fashion.
-     * 
+     * More restrictive rule where one table query with indexed column not
+     * present in the ORDER BY clause is filtered with equality conditions (at
+     * least one) of type COLUMN = CONSTANT in a conjunctive fashion.
+     *
      * @param sortColumn Column to be validated
-     * @return true if the column can be used implicitly, or false
-     *         otherwise.
+     * @return true if the column can be used implicitly, or false otherwise.
      */
     private boolean isSortColumnImplicit(TableFilter tableFilter,
             Column sortColumn) {

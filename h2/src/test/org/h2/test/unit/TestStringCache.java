@@ -36,7 +36,7 @@ public class TestStringCache extends TestBase {
         TestBase.createCaller().init().test();
         new TestStringCache().runBenchmark();
     }
-    
+
     @Override
     public void test() throws InterruptedException {
         testToUpperToLower();
@@ -49,7 +49,7 @@ public class TestStringCache extends TestBase {
         testSingleThread(getSize(5000, 20000));
         testMultiThreads();
     }
-    
+
     private void testToUpperCache() {
         Random r = new Random();
         String[] test = new String[50];
@@ -83,7 +83,7 @@ public class TestStringCache extends TestBase {
         System.out.println("toUpperCase " + time);
         assertEquals(0, testLen);
     }
-    
+
     private void testToUpperToLower() {
         Random r = new Random();
         for (int i = 0; i < 1000; i++) {

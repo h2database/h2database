@@ -59,7 +59,7 @@ public class TransactionStore {
     private final DataType dataType;
 
     private final BitSet openTransactions = new BitSet();
-    
+
     private boolean init;
 
     private int maxTransactionId = 0xffff;

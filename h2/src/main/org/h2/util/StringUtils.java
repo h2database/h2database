@@ -23,11 +23,11 @@ public class StringUtils {
     private static SoftReference<String[]> softCache =
             new SoftReference<String[]>(null);
     private static long softCacheCreated;
-    
+
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
 
-    // memory used by this cache: 
+    // memory used by this cache:
     // 4 * 1024 * 2 (strings per pair) * 64 * 2 (bytes per char) = 0.5 MB
     private static final int TO_UPPER_CACHE_LENGTH = 2 * 1024;
     private static final int TO_UPPER_CACHE_MAX_ENTRY_LENGTH = 64;

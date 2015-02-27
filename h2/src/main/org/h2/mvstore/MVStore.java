@@ -320,7 +320,7 @@ public class MVStore {
             int segmentCount = 16;
             int stackMoveDistance = 8;
             cache = new CacheLongKeyLIRS<Page>(
-                    maxMemoryBytes, 
+                    maxMemoryBytes,
                     segmentCount, stackMoveDistance);
             cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(
                     maxMemoryBytes / 4,
@@ -876,6 +876,7 @@ public class MVStore {
         int chunkId = DataUtils.getPageChunkId(pos);
         Chunk c = chunks.get(chunkId);
         if (c == null) {
+            checkOpen();
             if (!Thread.holdsLock(this)) {
                 // it could also be unsynchronized metadata
                 // access (if synchronization on this was forgotten)
@@ -1179,7 +1180,7 @@ public class MVStore {
     }
 
     private synchronized void freeUnusedChunks() {
-        if (lastChunk == null) {
+        if (lastChunk == null || !reuseSpace) {
             return;
         }
         Set<Integer> referenced = collectReferencedChunks();
@@ -1223,27 +1224,45 @@ public class MVStore {
                 continue;
             }
             int mapId = DataUtils.parseHexInt(key.substring("root.".length()));
-            collectReferencedChunks(referenced, mapId, pos);
+            collectReferencedChunks(referenced, mapId, pos, 0);
         }
         long pos = lastChunk.metaRootPos;
-        collectReferencedChunks(referenced, 0, pos);
+        collectReferencedChunks(referenced, 0, pos, 0);
         readCount = fileStore.readCount - readCount;
         return referenced;
     }
 
-    private int collectReferencedChunks(Set<Integer> targetChunkSet, int mapId, long pos) {
-        targetChunkSet.add(DataUtils.getPageChunkId(pos));
+    private void collectReferencedChunks(Set<Integer> targetChunkSet,
+            int mapId, long pos, int level) {
+        int c = DataUtils.getPageChunkId(pos);
+        targetChunkSet.add(c);
         if (DataUtils.getPageType(pos) == DataUtils.PAGE_TYPE_LEAF) {
-            return 1;
+            return;
         }
         PageChildren refs = readPageChunkReferences(mapId, pos, -1);
-        int count = 0;
-        if (refs != null) {
-            for (long p : refs.children) {
-                count += collectReferencedChunks(targetChunkSet, mapId, p);
+        if (!refs.chunkList) {
+            Set<Integer> target = New.hashSet();
+            for (int i = 0; i < refs.children.length; i++) {
+                long p = refs.children[i];
+                collectReferencedChunks(target, mapId, p, level + 1);
+            }
+            // we don't need a reference to this chunk
+            target.remove(c);
+            long[] children = new long[target.size()];
+            int i = 0;
+            for (Integer p : target) {
+                children[i++] = DataUtils.getPagePos(p, 0, 0,
+                        DataUtils.PAGE_TYPE_LEAF);
+            }
+            refs.children = children;
+            refs.chunkList = true;
+            if (cacheChunkRef != null) {
+                cacheChunkRef.put(refs.pos, refs, refs.getMemory());
             }
         }
-        return count;
+        for (long p : refs.children) {
+            targetChunkSet.add(DataUtils.getPageChunkId(p));
+        }
     }
 
     private PageChildren readPageChunkReferences(int mapId, long pos, int parentChunk) {
@@ -1257,6 +1276,7 @@ public class MVStore {
             r = null;
         }
         if (r == null) {
+            // if possible, create it from the cached page
             if (cache != null) {
                 Page p = cache.get(pos);
                 if (p != null) {
@@ -1264,6 +1284,7 @@ public class MVStore {
                 }
             }
             if (r == null) {
+                // page was not cached: read the data
                 Chunk c = getChunk(pos);
                 long filePos = c.block * BLOCK_SIZE;
                 filePos += DataUtils.getPageOffset(pos);
@@ -1277,7 +1298,7 @@ public class MVStore {
             }
             r.removeDuplicateChunkReferences();
             if (cacheChunkRef != null) {
-                cacheChunkRef.put(pos, r);
+                cacheChunkRef.put(pos, r, r.getMemory());
             }
         }
         if (r.children.length == 0) {
@@ -1343,8 +1364,7 @@ public class MVStore {
      *
      * @param storeVersion apply up to the given version
      */
-    private Set<Chunk> applyFreedSpace(long storeVersion) {
-        Set<Chunk> removedChunks = New.hashSet();
+    private void applyFreedSpace(long storeVersion) {
         while (true) {
             ArrayList<Chunk> modified = New.arrayList();
             Iterator<Entry<Long, HashMap<Integer, Chunk>>> it;
@@ -1393,7 +1413,6 @@ public class MVStore {
                 break;
             }
         }
-        return removedChunks;
     }
 
     /**
@@ -1515,7 +1534,7 @@ public class MVStore {
      */
     public synchronized boolean compactMoveChunks(int targetFillRate, long moveSize) {
         checkOpen();
-        if (lastChunk == null) {
+        if (lastChunk == null || !reuseSpace) {
             // nothing to do
             return false;
         }
@@ -1670,6 +1689,9 @@ public class MVStore {
      * @return if a chunk was re-written
      */
     public boolean compact(int targetFillRate, int write) {
+        if (!reuseSpace) {
+            return false;
+        }
         synchronized (compactSync) {
             checkOpen();
             ArrayList<Chunk> old;

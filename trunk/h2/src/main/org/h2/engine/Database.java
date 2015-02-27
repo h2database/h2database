@@ -1220,20 +1220,7 @@ public class Database implements DataHandler {
             }
             closing = true;
         }
-        // remove all session variables
-        if (persistent) {
-            boolean lobStorageIsUsed = infoSchema.findTableOrView(
-                    systemSession, LobStorageBackend.LOB_DATA_TABLE) != null;
-            if (lobStorageIsUsed) {
-                try {
-                    getLobStorage();
-                    lobStorage.removeAllForTable(
-                            LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
-                } catch (DbException e) {
-                    trace.error(e, "close");
-                }
-            }
-        }
+        removeOrphanedLobs();
         try {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
@@ -1296,6 +1283,26 @@ public class Database implements DataHandler {
             } catch (Exception e) {
                 // ignore (the trace is closed already)
             }
+        }
+    }
+
+    private void removeOrphanedLobs() {
+        // remove all session variables and temporary lobs
+        if (!persistent) {
+            return;
+        }
+        boolean lobStorageIsUsed = infoSchema.findTableOrView(
+                systemSession, LobStorageBackend.LOB_DATA_TABLE) != null;
+        lobStorageIsUsed |= mvStore != null;
+        if (!lobStorageIsUsed) {
+            return;
+        }
+        try {
+            getLobStorage();
+            lobStorage.removeAllForTable(
+                    LobStorageFrontend.TABLE_ID_SESSION_VARIABLE);
+        } catch (DbException e) {
+            trace.error(e, "close");
         }
     }
 

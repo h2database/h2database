@@ -163,6 +163,7 @@
 90139=El metodo Java (publico y estatico) : {0} no fue encontrado
 90140=El conjunto de resultados es de solo lectura. Puede ser necesario usar conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
+90142=#Step size must not be zero
 HY000=Error General : {0}
 HY004=Tipo de dato desconocido : {0}
 HYC00=Caracteristica no soportada: {0}

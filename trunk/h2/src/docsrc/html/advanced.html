@@ -219,12 +219,13 @@ See the <a href="grammar.html">Grammar</a> for details.
 </p>
 <p>
 Transaction isolation is provided for all data manipulation language (DML) statements.
-<p>
 </p>
+<p>
 Please note MVCC is enabled in version 1.4.x by default, when using the MVStore.
 In this case, table level locking is not used.
 Instead, rows are locked for update, and read committed is used in all cases
 (changing the isolation level has no effect).
+</p>
 <p>
 This database supports the following transaction isolation levels:
 </p>
@@ -1435,35 +1436,35 @@ java -cp "$dir/h2.jar:jts-1.13.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "
 Here is an example SQL script to create a table with a spatial column and index:
 </p>
 <pre>
-CREATE TABLE GEOTABLE(GID SERIAL, THE_GEOM GEOMETRY);
-INSERT INTO GEOTABLE(THE_GEOM) VALUES
-    ('POINT(500 505)'), 
+CREATE TABLE GEO_TABLE(GID SERIAL, THE_GEOM GEOMETRY);
+INSERT INTO GEO_TABLE(THE_GEOM) VALUES
+    ('POINT(500 505)'),
     ('LINESTRING(550 551, 525 512, 565 566)'),
     ('POLYGON ((550 521, 580 540, 570 564, 512 566, 550 521))');
-CREATE SPATIAL INDEX GEOTABLE_SPATIALINDEX ON GEOTABLE(THE_GEOM);
+CREATE SPATIAL INDEX GEO_TABLE_SPATIAL_INDEX ON GEO_TABLE(THE_GEOM);
 </pre>
 <p>
 To query the table using geometry envelope intersection,
-use the operation <code>&&</code>, as in PostGIS: 
+use the operation <code>&&</code>, as in PostGIS:
 </p>
 <pre>
-SELECT * FROM GEOTABLE 
+SELECT * FROM GEO_TABLE
 WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 </pre>
 <p>
 You can verify that the spatial index is used using the "explain plan" feature:
 </p>
 <pre>
-EXPLAIN SELECT * FROM GEOTABLE 
+EXPLAIN SELECT * FROM GEO_TABLE
 WHERE THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))';
 -- Result
 SELECT
-    GEOTABLE.GID,
-    GEOTABLE.THE_GEOM
-FROM PUBLIC.GEOTABLE
-    /* PUBLIC.GEOTABLE_SPATIALINDEX: 
+    GEO_TABLE.GID,
+    GEO_TABLE.THE_GEOM
+FROM PUBLIC.GEO_TABLE
+    /* PUBLIC.GEO_TABLE_SPATIAL_INDEX:
     THE_GEOM && 'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))' */
-WHERE INTERSECTS(THE_GEOM, 
+WHERE INTERSECTS(THE_GEOM,
     'POLYGON ((490 490, 536 490, 536 515, 490 515, 490 490))')
 </pre>
 <p>

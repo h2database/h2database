@@ -38,9 +38,9 @@ public class FilePathCache extends FilePathWrapper {
 
         private static final int CACHE_BLOCK_SIZE = 4 * 1024;
         private final FileChannel base;
-        // 1 MB (256 * 4 * 1024)
+        // 1 MB cache size
         private final CacheLongKeyLIRS<ByteBuffer> cache =
-                new CacheLongKeyLIRS<ByteBuffer>(256);
+                new CacheLongKeyLIRS<ByteBuffer>(1024 * 1024);
 
         FileCache(FileChannel base) {
             this.base = base;
@@ -89,7 +89,7 @@ public class FilePathCache extends FilePathWrapper {
                 }
                 int read = buff.position();
                 if (read == CACHE_BLOCK_SIZE) {
-                    cache.put(cachePos, buff);
+                    cache.put(cachePos, buff, CACHE_BLOCK_SIZE);
                 } else {
                     if (read <= 0) {
                         return -1;

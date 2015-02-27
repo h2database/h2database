@@ -18,7 +18,7 @@ public abstract class Task implements Runnable {
     /**
      * A flag indicating the get() method has been called.
      */
-    protected volatile boolean stop;
+    public volatile boolean stop;
 
     /**
      * The result, if any.

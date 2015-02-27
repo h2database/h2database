@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
 import java.sql.Connection;
@@ -17,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -49,6 +51,8 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testShutdownDuringLobCreation();
+        testLobCreationThenShutdown();
         testManyTransactions();
         testAppendOnly();
         testLowRetentionTime();
@@ -82,9 +86,117 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
+    private void testShutdownDuringLobCreation() throws Exception {
+        deleteDb("testShutdownDuringLobCreation");
+        Connection conn = getConnection("testShutdownDuringLobCreation");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(data clob) as select space(10000)");
+        final PreparedStatement prep = conn
+                .prepareStatement("set @lob = ?");
+        final AtomicBoolean end = new AtomicBoolean();
+        Task t = new Task() {
+
+            @Override
+            public void call() throws Exception {
+                prep.setBinaryStream(1, new InputStream() {
+
+                    int len;
+
+                    @Override
+                    public int read() throws IOException {
+                        if (len++ < 1024 * 1024 * 4) {
+                            return 0;
+                        }
+                        end.set(true);
+                        while (!stop) {
+                            try {
+                                Thread.sleep(1);
+                            } catch (InterruptedException e) {
+                                // ignore
+                            }
+                        }
+                        return -1;
+                    }
+                }    , -1);
+            }
+        };
+        t.execute();
+        while (!end.get()) {
+            Thread.sleep(1);
+        }
+        stat.execute("checkpoint");
+        stat.execute("shutdown immediately");
+        Exception ex = t.getException();
+        assertTrue(ex != null);
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        conn = getConnection("testShutdownDuringLobCreation");
+        stat = conn.createStatement();
+        stat.execute("shutdown defrag");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        conn = getConnection("testShutdownDuringLobCreation");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * " +
+                "from information_schema.settings " +
+                "where name = 'info.PAGE_COUNT'");
+        rs.next();
+        int pages = rs.getInt(2);
+        // only one lob should remain (but it is small and compressed)
+        assertTrue("p:" + pages, pages < 4);
+        conn.close();
+    }
+
+    private void testLobCreationThenShutdown() throws Exception {
+        deleteDb("testLobCreationThenShutdown");
+        Connection conn = getConnection("testLobCreationThenShutdown");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity, data clob)");
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(?, ?)");
+        for (int i = 0; i < 9; i++) {
+            prep.setInt(1, i);
+            int size = i * i * i * i * 1024;
+            prep.setCharacterStream(2, new StringReader(new String(
+                    new char[size])));
+            prep.execute();
+        }
+        stat.execute("shutdown immediately");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        conn = getConnection("testLobCreationThenShutdown");
+        stat = conn.createStatement();
+        stat.execute("drop all objects");
+        stat.execute("shutdown defrag");
+        try {
+            conn.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        conn = getConnection("testLobCreationThenShutdown");
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * " +
+                "from information_schema.settings " +
+                "where name = 'info.PAGE_COUNT'");
+        rs.next();
+        int pages = rs.getInt(2);
+        // no lobs should remain
+        assertTrue("p:" + pages, pages < 4);
+        conn.close();
+    }
+
     private void testManyTransactions() throws Exception {
-        deleteDb("testManyTransactions");        
+        deleteDb("testManyTransactions");
         Connection conn = getConnection("testManyTransactions");
         Statement stat = conn.createStatement();
         stat.execute("create table test()");
@@ -92,7 +204,7 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("insert into test values()");
 
         Connection conn2 = getConnection("testManyTransactions");
-        Statement stat2 = conn2.createStatement();          
+        Statement stat2 = conn2.createStatement();
         for (long i = 0; i < 100000; i++) {
             stat2.execute("insert into test values()");
         }

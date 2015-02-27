@@ -238,6 +238,45 @@ public class StreamStore {
     }
 
     /**
+     * Get the key of the biggest block, of -1 for inline data.
+     * This method is used to garbage collect orphaned blocks.
+     *
+     * @param id the id
+     * @return the key, or -1
+     */
+    public long getMaxBlockKey(byte[] id) {
+        long maxKey = -1;
+        ByteBuffer idBuffer = ByteBuffer.wrap(id);
+        while (idBuffer.hasRemaining()) {
+            switch (idBuffer.get()) {
+            case 0:
+                // in-place: 0, len (int), data
+                int len = DataUtils.readVarInt(idBuffer);
+                idBuffer.position(idBuffer.position() + len);
+                break;
+            case 1:
+                // block: 1, len (int), blockId (long)
+                DataUtils.readVarInt(idBuffer);
+                long k = DataUtils.readVarLong(idBuffer);
+                maxKey = Math.max(maxKey, k);
+                break;
+            case 2:
+                // indirect: 2, total len (long), blockId (long)
+                DataUtils.readVarLong(idBuffer);
+                long k2 = DataUtils.readVarLong(idBuffer);
+                // recurse
+                byte[] r = map.get(k2);
+                maxKey = Math.max(maxKey, getMaxBlockKey(r));
+                break;
+            default:
+                throw DataUtils.newIllegalArgumentException(
+                        "Unsupported id {0}", Arrays.toString(id));
+            }
+        }
+        return maxKey;
+    }
+
+    /**
      * Remove all stored blocks for the given id.
      *
      * @param id the id

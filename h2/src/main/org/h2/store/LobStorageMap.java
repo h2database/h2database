@@ -94,6 +94,35 @@ public class LobStorageMap implements LobStorageInterface {
         refMap = mvStore.openMap("lobRef");
         dataMap = mvStore.openMap("lobData");
         streamStore = new StreamStore(dataMap);
+        // garbage collection of the last blocks
+        if (database.isReadOnly()) {
+            return;
+        }
+        if (dataMap.isEmpty()) {
+            return;
+        }
+        // search the last referenced block
+        // (a lob may not have any referenced blocks if data is kept inline,
+        // so we need to loop)
+        long lastUsedKey = -1;
+        Long lobId = lobMap.lastKey();
+        while (lobId != null) {
+            Object[] v = lobMap.get(lobId);
+            byte[] id = (byte[]) v[0];
+            lastUsedKey = streamStore.getMaxBlockKey(id);
+            if (lastUsedKey >= 0) {
+                break;
+            }
+            lobId = lobMap.floorKey(lobId);
+        }
+        // delete all blocks that are newer
+        while (true) {
+            Long last = dataMap.lastKey();
+            if (last == null || last <= lastUsedKey) {
+                break;
+            }
+            dataMap.remove(last);
+        }
     }
 
     @Override
@@ -256,6 +285,9 @@ public class LobStorageMap implements LobStorageInterface {
     @Override
     public void removeAllForTable(int tableId) {
         init();
+        if (database.getMvStore().getStore().isClosed()) {
+            return;
+        }
         // this might not be very efficient -
         // to speed it up, we would need yet another map
         ArrayList<Long> list = New.arrayList();
@@ -268,6 +300,10 @@ public class LobStorageMap implements LobStorageInterface {
         }
         for (long lobId : list) {
             removeLob(tableId, lobId);
+        }
+        if (tableId == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
+            removeAllForTable(LobStorageFrontend.TABLE_TEMP);
+            removeAllForTable(LobStorageFrontend.TABLE_RESULT);
         }
     }
 

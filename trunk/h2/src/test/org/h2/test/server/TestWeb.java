@@ -24,14 +24,19 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
 
+import javax.servlet.AsyncContext;
+import javax.servlet.DispatcherType;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 import javax.servlet.ServletContext;
 
 import org.h2.api.ErrorCode;
@@ -691,7 +696,7 @@ public class TestWeb extends TestBase {
         }
 
         @Override
-        public Map<String, String> getParameterMap() {
+        public Map<String, String[]> getParameterMap() {
             return null;
         }
 
@@ -903,6 +908,68 @@ public class TestWeb extends TestBase {
             return false;
         }
 
+        @Override
+        public java.util.Collection<Part> getParts() {
+            return null;
+        }
+
+        @Override
+        public Part getPart(String name) {
+            return null;
+        }
+
+        @Override
+        public boolean authenticate(HttpServletResponse response) {
+            return false;
+        }
+
+        @Override
+        public void login(String username, String password) {
+            // ignore
+        }
+
+        @Override
+        public void logout() {
+            // ignore
+        }
+
+        @Override
+        public ServletContext getServletContext() {
+            return null;
+        }
+
+        @Override
+        public AsyncContext startAsync() {
+            return null;
+        }
+
+        @Override
+        public AsyncContext startAsync(
+                ServletRequest servletRequest,
+                ServletResponse servletResponse) {
+            return null;
+        }
+
+        @Override
+        public boolean isAsyncStarted() {
+            return false;
+        }
+
+        @Override
+        public boolean isAsyncSupported() {
+            return false;
+        }
+
+        @Override
+        public AsyncContext getAsyncContext() {
+            return null;
+        }
+
+        @Override
+        public DispatcherType getDispatcherType() {
+            return null;
+        }
+
     }
 
     /**
@@ -1077,6 +1144,26 @@ public class TestWeb extends TestBase {
         @Deprecated
         public void setStatus(int arg0, String arg1) {
             // ignore
+        }
+
+        @Override
+        public int getStatus() {
+            return 0;
+        }
+
+        @Override
+        public String getHeader(String name) {
+            return null;
+        }
+
+        @Override
+        public java.util.Collection<String> getHeaders(String name) {
+            return null;
+        }
+
+        @Override
+        public java.util.Collection<String> getHeaderNames() {
+            return null;
         }
 
     }

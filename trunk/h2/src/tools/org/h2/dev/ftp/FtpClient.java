@@ -306,10 +306,13 @@ public class FtpClient {
      */
     public void removeDirectoryRecursive(String dir) throws IOException {
         for (File f : listFiles(dir)) {
+            String name = f.getName();
             if (f.isDirectory()) {
-                removeDirectoryRecursive(dir + "/" + f.getName());
+                if (!name.equals(".") && !name.equals("..")) {
+                    removeDirectoryRecursive(dir + "/" + name);
+                }
             } else {
-                delete(dir + "/" + f.getName());
+                delete(dir + "/" + name);
             }
         }
         removeDirectory(dir);

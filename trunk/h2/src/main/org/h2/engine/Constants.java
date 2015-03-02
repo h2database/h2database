@@ -16,7 +16,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2015-01-16";
+    public static final String BUILD_DATE = "2015-03-02";
 
     /**
      * The build date of the last stable release.
@@ -26,7 +26,7 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 185;
+    public static final int BUILD_ID = 186;
 
     /**
      * The build id of the last stable release.

@@ -17,6 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.4.186 Beta (2015-03-02)</h2>
 <ul><li>The Servlet API 3.0.1 is now used, instead of 2.4.
 </li><li>MVStore: old chunks no longer removed in append-only mode.
 </li><li>MVStore: the cache for page references could grow far too big, resulting in out of memory in some cases.
@@ -44,7 +48,7 @@ Change Log
     that have both joins and wildcards, for example:
     select * from dual join(select x from dual) on 1=1
 </li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
-</li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain CUAZ.
+</li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain Cuaz.
 </li><li>Make the planner use indexes for sorting when doing a GROUP BY where
     all of the GROUP BY columns are not mentioned in the select. Patch by Frederico (zepfred).
 </li><li>PostgreSQL compatibility: generate_series (as an alias for system_range). Patch by litailang.
@@ -371,53 +375,6 @@ Change Log
 </li><li>Issue 548: TO_CHAR does not format MM and DD correctly when the month or day of
     the month is 1 digit, patch from "the.tucc"
 </li><li>Fix bug in varargs support in ALIAS's, patch from Nicolas Fortin
-</li></ul>
-
-<h2>Version 1.3.175 (2014-01-18)</h2>
-<ul><li>EXPLAIN was incorrect for queries with "ANY" or "SOME" conditions.
-</li><li>CallableStatement with "out" parameters: running the same statement twice
-    could result in an exception ("parameter not set").
-</li><li>Union queries: duplicate rows could be returned if the sub-queries contained "order by".
-</li><li>The GEOMETRY data type now works for user defined functions that return a result set.
-</li><li>PostgreSQL compatibility: the PgServer was not working properly when the setting
-    database_to_upper was set to false.
-</li><li>JdbcDataSource: the methods setUrl and getUrl where added as aliases for setURL and getURL.
-    This should solve problems with the HikariCP (Hikari connection pool).
-</li><li>Issue 537: H2 Console: when loading the schema, incorrect JDBC calls where issued, which caused
-    the exception "Column PRECISION not found".
-</li><li>Improved Geometry processing (issue 535).
-</li><li>The collation can now be set in the database URL, even if there are data tables,
-    if the collection is the same as the current collation.
-</li><li>Improved Oracle compatibility for CASE WHEN and DECODE.
-</li><li>The statement "drop all objects" did not work if a table depends on a view via a constraint.
-</li><li>Subqueries or views with "order by" an alias expression could not be executed
-    due to a regression introduced in version 1.3.174.
-</li><li>Issue 73: MySQL compatibility: support REPLACE, patch by Cemo Koc.
-</li><li>The spatial index now works in MVCC mode when using the MVStore storage.
-</li><li>MVStore: concurrency problems have been fixed.
-    The API has been simplified.
-</li><li>Improve error message when dropping an index that belongs to a constraint,
-    specify constraint in error message.
-</li><li>Issue 518: java.sql.Connection.commit() freezes after LOB modification with EXCLUSIVE connection
-</li><li>Issue 517: Create or replace view statement has no effect on the others already existing JDBC connection
-</li><li>Support 123L syntax as in Java; example: SELECT (2000000000L*2).
-</li><li>Issue 520: Add support for sequence max value, min value and cycle, patch by Daniel Gredler.
-</li><li>Issue 521: ScriptReader should implement Closeable
-</li><li>Issue 524: RunScript.execute does not close its Statement, patch from Gaul.
-</li><li>Add support for DB2 "WITH UR" clause, patch from litailang
-</li><li>Added support for ON DUPLICATE KEY UPDATE like MySQL with the values() function to update with the value that
-    was to be inserted. Patch from Jean-Francois Noel.
-</li><li>Issue 522: Treat empty strings like NULL in Oracle compatibility mode, patch by Daniel Gredler.
-</li><li>Issue 527: Oracle compatibility mode: incorrect scale behavior, patch by Daniel Gredler.
-</li><li>Slightly reduce the memory cost of View metadata.
-</li><li>Extend support of "GRANT ALTER ANY SCHEMA TO &lt;user&gt;" to allow grantee ability to manipulate tables
-</li><li>Issue 532: Javadoc for ErrorCode.ROLES_AND_RIGHT_CANNOT_BE_MIXED looks wrong
-</li><li>Issue 528: Add Oracle-compatible TO_CHAR function, patch by Daniel Gredler.
-</li><li>Issue 534: CREATE ALIAS NOCACHE, Patch by Nicolas Fortin
-</li><li>Fix an issue with storing Unicode surrogate pairs in CLOB columns.
-</li><li>H2 console: add SHIFT+ENTER "run selected" functionality
-</li><li>Fix bug in DB2 syntax "select * from test with ur", patch from litailang
-</li><li>Fix bug in DROP ALL OBJECTS when dealing with inter-schema dependencies.
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>

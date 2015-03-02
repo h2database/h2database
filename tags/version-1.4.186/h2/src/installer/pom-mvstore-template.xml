@@ -1,0 +1,30 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2-mvstore</artifactId>
+    <version>@version@</version>
+    <packaging>jar</packaging>
+    <name>H2 MVStore</name>
+    <url>http://www.h2database.com/html/mvstore.html</url>
+    <description>H2 MVStore</description>
+    <licenses>
+        <license>
+            <name>MPL 2.0, and EPL 1.0</name>
+            <url>http://h2database.com/html/license.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:svn:http://h2database.googlecode.com/svn/trunk</connection>
+        <url>http://h2database.googlecode.com/svn/trunk</url>
+    </scm>
+    <developers>
+        <developer>
+            <id>thomas.tom.mueller</id>
+            <name>Thomas Mueller</name>
+            <email>thomas.tom.mueller at gmail dot com</email>
+        </developer>
+    </developers>
+    <dependencies>
+    </dependencies>
+</project>

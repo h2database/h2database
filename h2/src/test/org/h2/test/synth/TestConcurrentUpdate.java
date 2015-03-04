@@ -37,6 +37,7 @@ public class TestConcurrentUpdate extends TestBase {
 
     @Override
     public void test() throws Exception {
+        deleteDb("concurrent");
         final String url = getURL("concurrent;MULTI_THREADED=TRUE", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();

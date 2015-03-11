@@ -17,7 +17,16 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>-
+<ul><li>The MySQL compatibility feature "insert ... on duplicate key update"
+    did not work with a non-default schema.
+</li><li>Issue 599: the condition "in(x, y)" could not be used in the select list
+    when using "group by".
+</li><li>The LIRS cache could grow larger than the allocated memory.
+</li><li>A new file system implementation that re-opens the file if it was closed due
+    to the application calling Thread.interrupt(). File name prefix "retry:".
+    Please note it is strongly recommended to avoid calling Thread.interrupt;
+    this is a problem for various libraries, including Apache Lucene.
+</li><li>MVStore: use RandomAccessFile file system if the file name starts with "file:".
 </li></ul>
 
 <h2>Version 1.4.186 Beta (2015-03-02)</h2>

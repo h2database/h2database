@@ -116,7 +116,7 @@ public class ConditionInConstantSet extends Condition {
 
     @Override
     public void updateAggregate(Session session) {
-        // nothing to do
+        left.updateAggregate(session);
     }
 
     @Override

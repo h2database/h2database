@@ -3115,6 +3115,7 @@ Returns the location of a search string in a string.
 If a start position is used, the characters before it are ignored.
 If position is negative, the rightmost location is returned.
 0 is returned if the search string is not found.
+Please note this function is case sensitive, even if the parameters are not.
 ","
 INSTR(EMAIL,'@')
 "

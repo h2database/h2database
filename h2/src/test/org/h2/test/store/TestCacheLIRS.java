@@ -43,6 +43,7 @@ public class TestCacheLIRS extends TestBase {
         testLimitHot();
         testLimitNonResident();
         testBadHashMethod();
+        testLimitMemory();
         testScanResistance();
         testRandomOperations();
     }
@@ -77,7 +78,7 @@ public class TestCacheLIRS extends TestBase {
     private void testEdgeCases() {
         CacheLIRS<Integer, Integer> test = createCache(1);
         test.put(1, 10, 100);
-        assertEquals(10, test.get(1).intValue());
+        assertEquals(0, test.size());
         try {
             test.put(null, 10, 100);
             fail();
@@ -405,6 +406,24 @@ public class TestCacheLIRS extends TestBase {
                 assertEquals(i, test.get(new BadHash(i)).intValue());
             }
         }
+    }
+
+    private void testLimitMemory() {
+        CacheLIRS<Integer, Integer> test = createCache(4);
+        for (int i = 0; i < 5; i++) {
+            test.put(i, 10 * i, 1);
+        }
+        verify(test, "mem: 4 stack: 4 3 2 1 cold: 4 non-resident: 0");
+        assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
+        test.put(6, 60, 3);
+        verify(test, "mem: 4 stack: 6 3 cold: 6 non-resident:");
+        assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
+        test.put(7, 70, 3);
+        verify(test, "mem: 4 stack: 7 6 3 cold: 7 non-resident: 6");
+        assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
+        test.put(8, 80, 4);
+        verify(test, "mem: 4 stack: 8 cold: non-resident:");
+        assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
     }
 
     private void testScanResistance() {

@@ -62,7 +62,7 @@ public class CacheLongKeyLIRS<V> {
      *
      * @param maxMemory the maximum memory to use (1 or larger)
      */
-    public CacheLongKeyLIRS(int maxMemory) {
+    public CacheLongKeyLIRS(long maxMemory) {
         this(maxMemory, 16, 8);
     }
 
@@ -544,11 +544,6 @@ public class CacheLongKeyLIRS<V> {
         private final int mask;
 
         /**
-         * The LIRS stack size.
-         */
-        private int stackSize;
-
-        /**
          * The stack of recently referenced elements. This includes all hot
          * entries, and the recently referenced cold entries. Resident cold
          * entries that were not recently referenced, as well as non-resident
@@ -557,6 +552,11 @@ public class CacheLongKeyLIRS<V> {
          * There is always at least one entry: the head entry.
          */
         private final Entry<V> stack;
+
+        /**
+         * The number of entries in the stack.
+         */
+        private int stackSize;
 
         /**
          * The queue of resident cold entries.
@@ -800,6 +800,10 @@ public class CacheLongKeyLIRS<V> {
                 old = e.value;
                 remove(key, hash);
             }
+            if (memory > maxMemory) {
+                // the new entry is too big to fit
+                return old;
+            }
             e = new Entry<V>();
             e.key = key;
             e.value = value;
@@ -808,9 +812,15 @@ public class CacheLongKeyLIRS<V> {
             e.mapNext = entries[index];
             entries[index] = e;
             usedMemory += memory;
-            if (usedMemory > maxMemory && mapSize > 0) {
-                // an old entry needs to be removed
-                evict(e);
+            if (usedMemory > maxMemory) {
+                // old entries needs to be removed
+                evict();
+                // if the cache is full, the new entry is
+                // cold if possible
+                if (stackSize > 0) {
+                    // the new cold entry is at the top of the queue
+                    addToQueue(queue, e);
+                }
             }
             mapSize++;
             // added entries are always added to the stack
@@ -874,23 +884,22 @@ public class CacheLongKeyLIRS<V> {
          * Evict cold entries (resident and non-resident) until the memory limit
          * is reached. The new entry is added as a cold entry, except if it is
          * the only entry.
-         *
-         * @param newCold a new cold entry
          */
-        private void evict(Entry<V> newCold) {
+        private void evict() {
+            do {
+                evictBlock();
+            } while (usedMemory > maxMemory);
+        }
+        
+        private void evictBlock() {
             // ensure there are not too many hot entries: right shift of 5 is
             // division by 32, that means if there are only 1/32 (3.125%) or
             // less cold entries, a hot entry needs to become cold
             while (queueSize <= (mapSize >>> 5) && stackSize > 0) {
                 convertOldestHotToCold();
             }
-            if (stackSize > 0) {
-                // the new cold entry is at the top of the queue
-                addToQueue(queue, newCold);
-            }
             // the oldest resident cold entries become non-resident
-            // but at least one cold entry (the new one) must stay
-            while (usedMemory > maxMemory && queueSize > 1) {
+            while (usedMemory > maxMemory && queueSize > 0) {
                 Entry<V> e = queue.queuePrev;
                 usedMemory -= e.memory;
                 removeFromQueue(e);

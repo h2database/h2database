@@ -77,7 +77,8 @@ public abstract class FilePath {
                     "org.h2.store.fs.FilePathSplit",
                     "org.h2.store.fs.FilePathNio",
                     "org.h2.store.fs.FilePathNioMapped",
-                    "org.h2.store.fs.FilePathZip"
+                    "org.h2.store.fs.FilePathZip",
+                    "org.h2.store.fs.FilePathRetryOnInterrupt"
             }) {
                 try {
                     FilePath p = (FilePath) Class.forName(c).newInstance();

@@ -325,7 +325,7 @@ public class Insert extends Prepared implements ResultTarget {
         ArrayList<String> variableNames = new ArrayList<String>(
                 duplicateKeyAssignmentMap.size());
         for (int i = 0; i < columns.length; i++) {
-            String key = session.getCurrentSchemaName() + "." +
+            String key = table.getSchema().getName() + "." +
                     table.getName() + "." + columns[i].getName();
             variableNames.add(key);
             session.setVariable(key,
@@ -386,7 +386,7 @@ public class Insert extends Prepared implements ResultTarget {
         Expression condition = null;
         for (Column column : foundIndex.getColumns()) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
-                    session.getCurrentSchemaName(), table.getName(), column.getName());
+                    table.getSchema().getName(), table.getName(), column.getName());
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName().equals(columns[i].getName())) {
                     if (condition == null) {

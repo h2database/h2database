@@ -50,6 +50,7 @@ public class TestConcurrent extends TestMVStore {
         FileUtils.createDirectories(getBaseDir());
         FileUtils.deleteRecursive("memFS:", false);
 
+        testInterruptReopen();
         testConcurrentSaveCompact();
         testConcurrentDataType();
         testConcurrentAutoCommitAndChange();
@@ -64,6 +65,37 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentIterate();
         testConcurrentWrite();
         testConcurrentRead();
+    }
+    
+    private void testInterruptReopen() throws Exception {
+        String fileName = "retry:nio:" + getBaseDir() + "/testInterruptReopen.h3";
+        FileUtils.delete(fileName);
+        final MVStore s = new MVStore.Builder().
+                fileName(fileName).
+                cacheSize(0).
+                open();
+        final Thread mainThread = Thread.currentThread();
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                while (!stop) {
+                    mainThread.interrupt();
+                    Thread.sleep(10);
+                }
+            }
+        };
+        try {
+            MVMap<Integer, byte[]> map = s.openMap("data");
+            task.execute();
+            for (int i = 0; i < 1000 && !task.isFinished(); i++) {
+                map.get(i % 1000);
+                map.put(i % 1000, new byte[1024]);
+                s.commit();
+            }
+        } finally {
+            task.get();
+            s.close();
+        }
     }
 
     private void testConcurrentSaveCompact() throws Exception {

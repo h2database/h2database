@@ -17,7 +17,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>The MySQL compatibility feature "insert ... on duplicate key update"
+<ul><li>Queries that use the same table alias multiple times now work.
+    Before, the select expression list was expanded incorrectly. 
+    Example: "select * from a as x, b as x".
+</li><li>The MySQL compatibility feature "insert ... on duplicate key update"
     did not work with a non-default schema.
 </li><li>Issue 599: the condition "in(x, y)" could not be used in the select list
     when using "group by".

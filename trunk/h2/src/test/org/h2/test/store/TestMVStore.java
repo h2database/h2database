@@ -290,13 +290,13 @@ public class TestMVStore extends TestBase {
         assertEquals(2, s.getCacheSize());
         MVMap<Integer, byte[]> map;
         map = s.openMap("data");
-        byte[] data = new byte[100 * 1024];
-        for (int i = 0; i < 30; i++) {
+        byte[] data = new byte[1024];
+        for (int i = 0; i < 1000; i++) {
             map.put(i, data);
             s.commit();
-            if (i < 5) {
+            if (i < 50) {
                 assertEquals(0, s.getCacheSizeUsed());
-            } else if (i > 20) {
+            } else if (i > 300) {
                 assertTrue(s.getCacheSizeUsed() >= 1);
             }
         }

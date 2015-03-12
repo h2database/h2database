@@ -23,7 +23,6 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
-import org.h2.expression.Wildcard;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
@@ -723,14 +722,11 @@ public class Select extends Query {
             String schemaName = expr.getSchemaName();
             String tableAlias = expr.getTableAlias();
             if (tableAlias == null) {
-                int temp = i;
                 expressions.remove(i);
                 for (TableFilter filter : filters) {
-                    Wildcard c2 = new Wildcard(filter.getTable().getSchema()
-                            .getName(), filter.getTableAlias());
-                    expressions.add(i++, c2);
+                    i = expandColumnList(filter, i);
                 }
-                i = temp - 1;
+                i--;
             } else {
                 TableFilter filter = null;
                 for (TableFilter f : filters) {
@@ -747,21 +743,26 @@ public class Select extends Query {
                     throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
                             tableAlias);
                 }
-                Table t = filter.getTable();
-                String alias = filter.getTableAlias();
                 expressions.remove(i);
-                Column[] columns = t.getColumns();
-                for (Column c : columns) {
-                    if (filter.isNaturalJoinColumn(c)) {
-                        continue;
-                    }
-                    ExpressionColumn ec = new ExpressionColumn(
-                            session.getDatabase(), null, alias, c.getName());
-                    expressions.add(i++, ec);
-                }
+                i = expandColumnList(filter, i);
                 i--;
             }
         }
+    }
+    
+    private int expandColumnList(TableFilter filter, int index) {
+        Table t = filter.getTable();
+        String alias = filter.getTableAlias();
+        Column[] columns = t.getColumns();
+        for (Column c : columns) {
+            if (filter.isNaturalJoinColumn(c)) {
+                continue;
+            }
+            ExpressionColumn ec = new ExpressionColumn(
+                    session.getDatabase(), null, alias, c.getName());
+            expressions.add(index++, ec);
+        }
+        return index;
     }
 
     @Override

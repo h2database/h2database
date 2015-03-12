@@ -49,9 +49,7 @@ MVStore:
     even for a small heap, and so that chunks
     are still relatively big on average
 - make sure serialization / deserialization errors don't corrupt the file
-- FileStore: don't open and close when set using MVStore.Builder.fileStore
 - test and possibly improve compact operation (for large dbs)
-- is data kept in the stream store if the transaction is not committed?
 - automated 'kill process' and 'power failure' test
 - defragment (re-creating maps, specially those with small pages)
 - store number of write operations per page (maybe defragment

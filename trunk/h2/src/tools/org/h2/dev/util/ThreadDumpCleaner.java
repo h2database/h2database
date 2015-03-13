@@ -23,6 +23,16 @@ import java.util.regex.Pattern;
 public class ThreadDumpCleaner {
 
     private static final String[] PATTERN = {
+        "\"Concurrent Mark-Sweep GC Thread\".*\n",
+
+        "\"Exception Catcher Thread\".*\n",
+
+        "JNI global references:.*\n\n",
+        
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\n",
+
+        "\".*?\".*\n\n",
+    
         "\\$\\$YJP\\$\\$",
 
         "\"(Attach|Service|VM|GC|DestroyJavaVM|Signal|AWT|AppKit|C2 |Low Mem|" +
@@ -52,8 +62,7 @@ public class ThreadDumpCleaner {
 
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.net.SocketInputStream.socketRead0(?s).*?\n\n",
-
-        "JNI global references:.*\n\n",
+                
     };
 
     private ArrayList<Pattern> patterns = new ArrayList<Pattern>();
@@ -77,6 +86,9 @@ public class ThreadDumpCleaner {
             } else if (args[i].equals("-out")) {
                 outFile = args[++i];
             }
+        }
+        if (args.length == 0) {
+            outFile = "-";
         }
         if (outFile == null) {
             outFile = inFile + ".clean.txt";

@@ -113,7 +113,7 @@ public class LobStorageMap implements LobStorageInterface {
             if (lastUsedKey >= 0) {
                 break;
             }
-            lobId = lobMap.floorKey(lobId);
+            lobId = lobMap.lowerKey(lobId);
         }
         // delete all blocks that are newer
         while (true) {

@@ -216,7 +216,7 @@ public class Database implements DataHandler {
             readOnly = true;
         }
         if (dbSettings.mvStore && lockMethodName == null) {
-            if (autoServerMode) {
+            if (autoServerMode) {       
                 fileLockMethod = FileLock.LOCK_FILE;
             } else {
                 fileLockMethod = FileLock.LOCK_FS;
@@ -615,7 +615,7 @@ public class Database implements DataHandler {
                         !persistent) {
                     throw DbException.getUnsupportedException(
                             "autoServerMode && (readOnly || fileLockMethod == NO" +
-                            " || fileLockMethod == SERIALIZED || inMemory)");
+                            " || fileLockMethod == SERIALIZED || fileLockMethod == FS || inMemory)");
                 }
             }
             String lockFileName = databaseName + Constants.SUFFIX_LOCK_FILE;

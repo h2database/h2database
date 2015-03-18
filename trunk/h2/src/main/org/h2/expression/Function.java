@@ -1413,7 +1413,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         case DATE_ADD:
             result = ValueTimestamp.get(dateadd(
-                    v0.getString(), v1.getInt(), v2.getTimestamp()));
+                    v0.getString(), v1.getLong(), v2.getTimestamp()));
             break;
         case DATE_DIFF:
             result = ValueLong.get(datediff(
@@ -1696,12 +1696,22 @@ public class Function extends Expression implements FunctionCall {
         return p.intValue();
     }
 
-    private static Timestamp dateadd(String part, int count, Timestamp d) {
+    private static Timestamp dateadd(String part, long count, Timestamp d) {
         int field = getDatePart(part);
+        if (field == Calendar.MILLISECOND) {
+            Timestamp ts = new Timestamp(d.getTime() + count);
+            ts.setNanos(ts.getNanos() + (d.getNanos() % 1000000));
+            return ts;
+        }
+        // We allow long for manipulating the millisecond component,
+        // for the rest we only allow int. 
+        if (count > Integer.MAX_VALUE) {
+            throw DbException.getInvalidValueException("DATEADD count", count);
+        }
         Calendar calendar = Calendar.getInstance();
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
-        calendar.add(field, count);
+        calendar.add(field, (int)count);
         long t = calendar.getTime().getTime();
         Timestamp ts = new Timestamp(t);
         ts.setNanos(ts.getNanos() + nanos);

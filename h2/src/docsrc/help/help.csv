@@ -3427,10 +3427,12 @@ CURRENT_TIMESTAMP()
 "
 
 "Functions (Time and Date)","DATEADD","
-{ DATEADD| TIMESTAMPADD } (unitString, addInt, timestamp)
+{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, timestamp)
 ","
 Adds units to a timestamp. The string indicates the unit.
 Use negative values to subtract units.
+addIntLong may be a long value when manipulating milliseconds,
+otherwise it's range is restricted to int.
 The same units as in the EXTRACT function are supported.
 This method returns a timestamp.
 ","

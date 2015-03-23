@@ -28,6 +28,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.CRC32;
+
+import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.compress.CompressLZF;
 import org.h2.engine.Constants;
@@ -53,6 +55,7 @@ import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.LobStorageBackend;
 import org.h2.store.LobStorageFrontend;
+import org.h2.store.LobStorageMap;
 import org.h2.store.Page;
 import org.h2.store.PageFreeList;
 import org.h2.store.PageLog;
@@ -213,8 +216,17 @@ public class Recover extends Tool implements DataHandler {
     public static Value.ValueBlob readBlobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
+        verifyPageStore(h);
         return ValueLobDb.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
+    }
+
+    private static void verifyPageStore(DataHandler h) {
+        if (h.getLobStorage() instanceof LobStorageMap) {
+            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, 
+                    "Restore page store recovery SQL script " + 
+                    "can only be restored to a PageStore file");
+        }
     }
 
     /**
@@ -223,6 +235,7 @@ public class Recover extends Tool implements DataHandler {
     public static Value.ValueClob readClobDb(Connection conn, long lobId,
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
+        verifyPageStore(h);
         return ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
     }

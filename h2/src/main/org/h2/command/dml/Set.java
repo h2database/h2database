@@ -98,20 +98,21 @@ public class Set extends Prepared {
                 break;
             }
             String value = StringUtils.quoteStringSQL(stringValue);
-            if (!value.equals(database.getCluster()) &&
-                    !value.equals(Constants.CLUSTERING_DISABLED)) {
-                // anybody can disable the cluster
-                // (if he can't access a cluster node)
-                session.getUser().checkAdmin();
-            }
-            database.setCluster(value);
-            // use the system session so that the current transaction
-            // (if any) is not committed
-            Session sysSession = database.getSystemSession();
-            synchronized (sysSession) {
-                synchronized (database) {
-                    addOrUpdateSetting(sysSession, name, value, 0);
-                    sysSession.commit(true);
+            if (!value.equals(database.getCluster())) {
+                if (!value.equals(Constants.CLUSTERING_DISABLED)) {
+                    // anybody can disable the cluster
+                    // (if he can't access a cluster node)
+                    session.getUser().checkAdmin();
+                }
+                database.setCluster(value);
+                // use the system session so that the current transaction
+                // (if any) is not committed
+                Session sysSession = database.getSystemSession();
+                synchronized (sysSession) {
+                    synchronized (database) {
+                        addOrUpdateSetting(sysSession, name, value, 0);
+                        sysSession.commit(true);
+                    }
                 }
             }
             break;

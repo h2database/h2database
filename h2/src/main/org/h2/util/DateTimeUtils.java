@@ -51,13 +51,15 @@ public class DateTimeUtils {
     private static final int[] DAYS_OFFSET = { 0, 31, 61, 92, 122, 153, 184,
             214, 245, 275, 306, 337, 366 };
 
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR =
-            new ThreadLocal<Calendar>() {
-        @Override
-        protected Calendar initialValue() {
-            return Calendar.getInstance();
-        }
-    };
+    /**
+     * The thread local. Can not override initialValue because this would result
+     * in an inner class, which would not be garbage collected in a web
+     * container, and prevent the class loader of H2 from being garbage
+     * collected. Using a ThreadLocal on a system class like Calendar does have
+     * that problem, and while it is still a small memory leak, it is not a
+     * class loader memory leak.
+     */
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<Calendar>();
 
     private DateTimeUtils() {
         // utility class
@@ -68,6 +70,15 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
+    }
+    
+    private static Calendar getCalendar() {
+        Calendar c = CACHED_CALENDAR.get();
+        if (c == null) {
+            c = Calendar.getInstance();
+            CACHED_CALENDAR.set(c);
+        }
+        return c;
     }
 
     /**
@@ -380,7 +391,7 @@ public class DateTimeUtils {
             int millis) {
         Calendar c;
         if (tz == null) {
-            c = CACHED_CALENDAR.get();
+            c = getCalendar();
         } else {
             c = Calendar.getInstance(tz);
         }
@@ -417,7 +428,7 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = CACHED_CALENDAR.get();
+        Calendar c = getCalendar();
         c.setTime(d);
         if (field == Calendar.YEAR) {
             return getYear(c);
@@ -451,7 +462,7 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + CACHED_CALENDAR.get().get(Calendar.ZONE_OFFSET);
+        return d.getTime() + getCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -462,7 +473,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds in UTC
      */
     public static long getTimeUTCWithoutDst(long millis) {
-        return millis - CACHED_CALENDAR.get().get(Calendar.ZONE_OFFSET);
+        return millis - getCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -732,7 +743,7 @@ public class DateTimeUtils {
      * @return the date value
      */
     public static long dateValueFromDate(long ms) {
-        Calendar cal = CACHED_CALENDAR.get();
+        Calendar cal = getCalendar();
         cal.clear();
         cal.setTimeInMillis(ms);
         return dateValueFromCalendar(cal);
@@ -760,7 +771,7 @@ public class DateTimeUtils {
      * @return the nanoseconds
      */
     public static long nanosFromDate(long ms) {
-        Calendar cal = CACHED_CALENDAR.get();
+        Calendar cal = getCalendar();
         cal.clear();
         cal.setTimeInMillis(ms);
         return nanosFromCalendar(cal);

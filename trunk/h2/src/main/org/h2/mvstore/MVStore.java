@@ -76,7 +76,6 @@ MVStore:
 - temporary file storage
 - simple rollback method (rollback to last committed version)
 - MVMap to implement SortedMap, then NavigableMap
-- Test with OSGi
 - storage that splits database into multiple files,
     to speed up compact and allow using trim
     (by truncating / deleting empty files)

@@ -414,8 +414,6 @@ public class MVTable extends TableBase {
             database.lockMeta(session);
         }
         MVIndex index;
-        // TODO support in-memory indexes
-        // if (isPersistIndexes() && indexType.isPersistent()) {
         int mainIndexColumn;
         mainIndexColumn = getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {

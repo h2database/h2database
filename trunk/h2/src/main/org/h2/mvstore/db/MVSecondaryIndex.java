@@ -127,16 +127,8 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                     array = Arrays.copyOf(array, array.length);
                     array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
                     ValueArray unique = ValueArray.get(array);
-                    ValueArray key = (ValueArray) dataMap.getLatestCeilingKey(unique);
-                    if (key != null) {
-                        SearchRow r2 = convertToSearchRow(key);
-                        SearchRow row = convertToSearchRow((ValueArray) v);
-                        if (compareRows(row, r2) == 0) {
-                            if (!containsNullAndAllowMultipleNull(r2)) {
-                                throw getDuplicateKeyException(key.toString());
-                            }
-                        }
-                    }
+                    SearchRow row = convertToSearchRow((ValueArray) v);
+                    checkUnique(row, dataMap, unique);
                 }
 
                 dataMap.putCommitted(v, ValueNull.INSTANCE);
@@ -195,15 +187,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
             // this will detect committed entries only
             unique = convertToKey(row);
             unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
-            ValueArray key = (ValueArray) map.getLatestCeilingKey(unique);
-            if (key != null) {
-                SearchRow r2 = convertToSearchRow(key);
-                if (compareRows(row, r2) == 0) {
-                    if (!containsNullAndAllowMultipleNull(r2)) {
-                        throw getDuplicateKeyException(key.toString());
-                    }
-                }
-            }
+            checkUnique(row, map, unique);
         }
         try {
             map.put(array, ValueNull.INSTANCE);
@@ -234,6 +218,23 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
         }
     }
+    
+    private void checkUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
+        Iterator<Value> it = map.keyIterator(unique, true);
+        while (it.hasNext()) {
+            ValueArray k = (ValueArray) it.next();
+            SearchRow r2 = convertToSearchRow(k);
+            if (compareRows(row, r2) != 0) {
+                break;
+            }
+            if (map.get(k) != null) {
+                if (!containsNullAndAllowMultipleNull(r2)) {
+                    throw getDuplicateKeyException(k.toString());
+                }
+            }            
+        }
+    }
+
 
     @Override
     public void remove(Session session, Row row) {

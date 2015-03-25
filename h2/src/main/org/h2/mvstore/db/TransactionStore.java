@@ -1309,23 +1309,6 @@ public class TransactionStore {
         }
 
         /**
-         * Get the most recent smallest key that is larger or equal to this key.
-         *
-         * @param key the key (may not be null)
-         * @return the result
-         */
-        public K getLatestCeilingKey(K key) {
-            Iterator<K> cursor = map.keyIterator(key);
-            while (cursor.hasNext()) {
-                key = cursor.next();
-                if (get(key, Long.MAX_VALUE) != null) {
-                    return key;
-                }
-            }
-            return null;
-        }
-
-        /**
          * Get the smallest key that is larger than the given key, or null if no
          * such key exists.
          *

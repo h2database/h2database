@@ -51,6 +51,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testLobReuse();
         testShutdownDuringLobCreation();
         testLobCreationThenShutdown();
         testManyTransactions();
@@ -85,6 +86,30 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+    
+    private void testLobReuse() throws Exception {
+        deleteDb("testLobReuse");
+        Connection conn = getConnection("testLobReuse");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id identity primary key, lob clob)");
+        conn.close();
+        byte[] buffer = new byte[8192];
+        for (int i = 0; i < 20; i++) {
+            conn = getConnection("testLobReuse");
+            stat = conn.createStatement();
+            stat.execute("insert into test(lob) select space(1025) from system_range(1, 10)");
+            stat.execute("delete from test where random() > 0.5");
+            ResultSet rs = conn.createStatement().executeQuery(
+                    "select lob from test");
+            while (rs.next()) {
+                InputStream is = rs.getBinaryStream(1);
+                while (is.read(buffer) != -1) {
+                    // ignore
+                }
+            }
+            conn.close();
+        }
     }
 
     private void testShutdownDuringLobCreation() throws Exception {

@@ -5,9 +5,12 @@ and under the Eclipse Public License, Version 1.0
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name=viewport content="width=device-width, initial-scale=1" />
+<title>
 Change Log
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <!-- [search] { -->
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
@@ -17,7 +20,19 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Issue 605: with version 1.4.186, opening a database could result in 
+<ul><li>MVStore: in some cases, CLOB/BLOB data blocks were removed 
+    incorrectly when opening a database.
+</li><li>MVStore: updates that affected many rows were were slow
+    in some cases if there was a secondary index.
+</li><li>Using "runscript" with autocommit disabled could result 
+    in a lock timeout on the internal table "SYS".
+</li><li>Issue 603: there was a memory leak when using H2 in a web application.
+    Apache Tomcat logged an error message: "The web application ... 
+    created a ThreadLocal with key of type [org.h2.util.DateTimeUtils$1]".
+</li><li>When using the MVStore,
+    running a SQL script generate by the Recover tool from a PageStore file
+    failed with a strange error message (NPE), now a clear error message is shown.
+<li><li>Issue 605: with version 1.4.186, opening a database could result in 
     an endless loop in LobStorageMap.init.
 </li><li>Queries that use the same table alias multiple times now work.
     Before, the select expression list was expanded incorrectly. 

@@ -1,13 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
- * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
- * Group
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
  */
 package org.h2.index;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -386,14 +385,13 @@ public class IndexCondition {
                 .isEverything(ExpressionVisitor.EVALUATABLE_VISITOR);
     }
 
-    /**
-     * for display in the debugger
-     */
+    @Override
     public String toString() {
-        return "column=" + column + ", compareType="
-                + compareTypeToString(compareType) + ", expression="
-                + expression + ", expressionList=" + expressionList.toString()
-                + ", expressionQuery=" + expressionQuery;
+        return "column=" + column + 
+                ", compareType=" + compareTypeToString(compareType) + 
+                ", expression=" + expression + 
+                ", expressionList=" + expressionList.toString() + 
+                ", expressionQuery=" + expressionQuery;
     }
 
     private static String compareTypeToString(int i) {

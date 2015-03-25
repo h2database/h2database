@@ -123,6 +123,11 @@ public class LobStorageMap implements LobStorageInterface {
             }
             dataMap.remove(last);
         }
+        // don't re-use block ids, except at the very end
+        Long last = dataMap.lastKey();
+        if (last != null) {
+            streamStore.setNextKey(last + 1);
+        }
     }
 
     @Override

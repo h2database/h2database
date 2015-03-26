@@ -297,13 +297,18 @@ public class WriteBuffer {
         return buff;
     }
 
-    private void grow(int len) {
+    private void grow(int additional) {
         ByteBuffer temp = buff;
-        int needed = len - temp.remaining();
-        int grow = Math.max(needed, MIN_GROW);
+        int needed = additional - temp.remaining();
+        // grow at least MIN_GROW
+        long grow = Math.max(needed, MIN_GROW);
         // grow at least 50% of the current size
         grow = Math.max(temp.capacity() / 2, grow);
-        int newCapacity = temp.capacity() + grow;
+        // the new capacity is at least Integer.MAX_VALUE
+        int newCapacity = (int) Math.min(Integer.MAX_VALUE, temp.capacity() + grow);
+        if (newCapacity < needed) {
+            throw new OutOfMemoryError("Capacity: " + newCapacity + " needed: " + needed);
+        }
         try {
             buff = ByteBuffer.allocate(newCapacity);
         } catch (OutOfMemoryError e) {

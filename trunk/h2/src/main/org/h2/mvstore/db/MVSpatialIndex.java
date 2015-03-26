@@ -32,6 +32,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueNull;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -161,18 +162,6 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         }
     }
 
-    private SpatialKey getKey(SearchRow r) {
-        if (r == null) {
-            return null;
-        }
-        Value v = r.getValue(columnIds[0]);
-        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
-        Envelope env = g.getEnvelopeInternal();
-        return new SpatialKey(r.getKey(),
-                (float) env.getMinX(), (float) env.getMaxX(),
-                (float) env.getMinY(), (float) env.getMaxY());
-    }
-
     @Override
     public void remove(Session session, Row row) {
         SpatialKey key = getKey(row);
@@ -213,21 +202,26 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             return find(session);
         }
         Iterator<SpatialKey> cursor =
-                spatialMap.findIntersectingKeys(getEnvelope(intersection));
+                spatialMap.findIntersectingKeys(getKey(intersection));
         TransactionMap<SpatialKey, Value> map = getMap(session);
         Iterator<SpatialKey> it = map.wrapIterator(cursor, false);
         return new MVStoreCursor(session, it);
     }
 
-    private SpatialKey getEnvelope(SearchRow row) {
+    private SpatialKey getKey(SearchRow row) {
+        if (row == null) {
+            return null;
+        }
         Value v = row.getValue(columnIds[0]);
+        if (v == ValueNull.INSTANCE) {
+            return null;
+        }
         Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
         Envelope env = g.getEnvelopeInternal();
         return new SpatialKey(row.getKey(),
                 (float) env.getMinX(), (float) env.getMaxX(),
                 (float) env.getMinY(), (float) env.getMaxY());
     }
-
 
     /**
      * Get the row with the given index key.

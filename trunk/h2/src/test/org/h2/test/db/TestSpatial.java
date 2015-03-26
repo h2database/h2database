@@ -89,6 +89,7 @@ public class TestSpatial extends TestBase {
         testScanIndexOnNonSpatialQuery();
         testStoreCorruption();
         testExplainSpatialIndexWithPk();
+        testNullableGeometry();
     }
 
     private void testHashCode() {
@@ -889,9 +890,9 @@ public class TestSpatial extends TestBase {
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;");
-            stat.execute("CREATE TABLE PT_CLOUD(id serial, the_geom geometry) AS"
-                    + "  SELECT null, CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom "
-                    + "from system_range(0,120) A,system_range(0,10) B;");
+            stat.execute("CREATE TABLE PT_CLOUD(id serial, the_geom geometry) AS" +
+                 "  SELECT null, CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom " +
+                 "from system_range(0,120) A,system_range(0,10) B;");
             stat.execute("create spatial index on pt_cloud(the_geom);");
             ResultSet rs = stat.executeQuery(
                     "explain select * from  PT_CLOUD " +
@@ -907,6 +908,24 @@ public class TestSpatial extends TestBase {
             // Close the database
             conn.close();
         }
+        deleteDb("spatial");
+    }
+    
+    private void testNullableGeometry() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+
+        stat.execute("create memory table test"
+                + "(id int primary key, the_geom geometry)");
+        stat.execute("create spatial index on test(the_geom)");
+        stat.execute("insert into test values(1, null)");
+        ResultSet rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertNull(rs.getObject(2));
+        stat.execute("drop table test");
+        conn.close();
         deleteDb("spatial");
     }
 

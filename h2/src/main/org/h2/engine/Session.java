@@ -544,9 +544,11 @@ public class Session extends SessionWithState {
 
     private void endTransaction() {
         if (unlinkLobMap != null && unlinkLobMap.size() > 0) {
-            // need to flush the transaction log, because we can't unlink lobs
-            // if the commit record is not written
-            database.flush();
+            if (database.getMvStore() == null) {
+                // need to flush the transaction log, because we can't unlink lobs
+                // if the commit record is not written
+                database.flush();
+            }
             for (Value v : unlinkLobMap.values()) {
                 v.unlink(database);
                 v.close();

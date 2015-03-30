@@ -5,9 +5,12 @@ and under the Eclipse Public License, Version 1.0
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name=viewport content="width=device-width, initial-scale=1" />
+<title>
 Features
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <!-- [search] { -->
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
@@ -775,7 +778,7 @@ the INIT property. Note that multiple commands may be passed to INIT, but the se
 must be escaped, as in the example below.
 </p>
 <pre>
-String url = "jdbc:h2:mem:test;INIT=runscript from '~/create.sql'\\;runscript from '~/populate.sql'";
+String url = "jdbc:h2:mem:test;INIT=runscript from '~/create.sql'\\;runscript from '~/init.sql'";
 </pre>
 <p>
 Please note the double backslash is only required in a Java or properties file.
@@ -783,7 +786,7 @@ In a GUI, or in an XML file, only one backslash is required:
 </p>
 <pre>
 &lt;property name="url" value=
-"jdbc:h2:mem:test;INIT=create schema if not exists test\;runscript from '~/sql/populate.sql';DB_CLOSE_DELAY=-1"
+"jdbc:h2:mem:test;INIT=create schema if not exists test\;runscript from '~/sql/init.sql'"
 /&gt;
 </pre>
 <p>
@@ -1659,7 +1662,8 @@ public static class MyTableEngine implements org.h2.api.TableEngine {
 </pre>
 and then create the table from SQL like this:
 <pre>
-CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine";
+CREATE TABLE TEST(ID INT, NAME VARCHAR) 
+    ENGINE "acme.MyTableEngine";
 </pre>
 </p>
 <p>

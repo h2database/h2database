@@ -19,6 +19,9 @@ import java.nio.channels.FileLock;
  */
 public class FilePathRetryOnInterrupt extends FilePathWrapper {
     
+    /**
+     * The prefix.
+     */
     static final String SCHEME = "retry";
 
     @Override
@@ -221,6 +224,9 @@ class FileRetryOnInterrupt extends FileBase {
      */
     static class FileLockRetry extends FileLock {
         
+        /**
+         * The base lock.
+         */
         FileLock base;
 
         protected FileLockRetry(FileLock base, FileChannel channel) {

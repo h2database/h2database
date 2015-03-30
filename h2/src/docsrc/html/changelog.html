@@ -20,7 +20,11 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: in some cases, CLOB/BLOB data blocks were removed 
+<ul><li>MVStore: when committing a session that removed LOB values,
+	changes were flushed unnecessarily.
+</li><li>Issue 610: possible integer overflow in WriteBuffer.grow().
+</li><li>Issue 609: the spatial index did not support NULL (ClassCastException).
+</li><li>MVStore: in some cases, CLOB/BLOB data blocks were removed 
     incorrectly when opening a database.
 </li><li>MVStore: updates that affected many rows were were slow
     in some cases if there was a secondary index.
@@ -31,7 +35,8 @@ Change Log
     created a ThreadLocal with key of type [org.h2.util.DateTimeUtils$1]".
 </li><li>When using the MVStore,
     running a SQL script generate by the Recover tool from a PageStore file
-    failed with a strange error message (NPE), now a clear error message is shown.
+    failed with a strange error message (NullPointerException), 
+    now a clear error message is shown.
 <li><li>Issue 605: with version 1.4.186, opening a database could result in 
     an endless loop in LobStorageMap.init.
 </li><li>Queries that use the same table alias multiple times now work.

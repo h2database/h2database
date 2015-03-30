@@ -53,6 +53,10 @@ Change Log
     this is a problem for various libraries, including Apache Lucene.
 </li><li>MVStore: use RandomAccessFile file system if the file name starts with "file:".
 </li><li>Allow DATEADD to take a long value for count when manipulating milliseconds.
+</li><li>When using MV_STORE=TRUE and the SET CACHE_SIZE setting, the cache size was incorrectly set,
+    so that it was effectly 1024 times smaller than it should be.
+</li><li>Concurrent CREATE TABLE... IF NOT EXISTS in the presence of MULTI_THREAD=TRUE could
+    throw an exception.
 </li></ul>
 
 <h2>Version 1.4.186 Beta (2015-03-02)</h2>

@@ -304,7 +304,7 @@ public class WriteBuffer {
         long grow = Math.max(needed, MIN_GROW);
         // grow at least 50% of the current size
         grow = Math.max(temp.capacity() / 2, grow);
-        // the new capacity is at least Integer.MAX_VALUE
+        // the new capacity is at most Integer.MAX_VALUE
         int newCapacity = (int) Math.min(Integer.MAX_VALUE, temp.capacity() + grow);
         if (newCapacity < needed) {
             throw new OutOfMemoryError("Capacity: " + newCapacity + " needed: " + needed);

@@ -104,6 +104,10 @@ public class CreateTable extends SchemaCommand {
         if (!db.isPersistent()) {
             data.persistIndexes = false;
         }
+        boolean isSessionTemporary = data.temporary && !data.globalTemporary;
+        if (!isSessionTemporary) {
+            db.lockMeta(session);
+        }
         if (getSchema().findTableOrView(session, data.tableName) != null) {
             if (ifNotExists) {
                 return 0;
@@ -130,10 +134,6 @@ public class CreateTable extends SchemaCommand {
         data.id = getObjectId();
         data.create = create;
         data.session = session;
-        boolean isSessionTemporary = data.temporary && !data.globalTemporary;
-        if (!isSessionTemporary) {
-            db.lockMeta(session);
-        }
         Table table = getSchema().createTable(data);
         ArrayList<Sequence> sequences = New.arrayList();
         for (Column c : data.columns) {

@@ -5,9 +5,13 @@ and under the Eclipse Public License, Version 1.0
 Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" /><title>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name=viewport content="width=device-width, initial-scale=1" />
+<title>
 Performance
-</title><link rel="stylesheet" type="text/css" href="stylesheet.css" />
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
 <!-- [search] { -->
 <script type="text/javascript" src="navigation.js"></script>
 </head><body onload="frameMe();">
@@ -608,7 +612,7 @@ following profiling data (results vary):
 -----------------------------------------
 -- self accu    time   count  result sql
 --  62%  62%     158    1000    1000 INSERT INTO TEST VALUES(?, ?);
---  37% 100%      93       1       0 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255));
+--  37% 100%      93       1       0 CREATE TABLE TEST(ID INT PRIMARY KEY...
 --   0% 100%       0       1       0 DROP TABLE IF EXISTS TEST;
 --   0% 100%       0       1       0 SET TRACE_LEVEL_FILE 3;
 </pre>
@@ -713,7 +717,8 @@ then the value of this column is the row id, otherwise the database generates th
 There is a (non-standard) way to access the row id: using the <code>_ROWID_</code> pseudo-column:
 </p>
 <pre>
-CREATE TABLE ADDRESS(FIRST_NAME VARCHAR, NAME VARCHAR, CITY VARCHAR, PHONE VARCHAR);
+CREATE TABLE ADDRESS(FIRST_NAME VARCHAR, 
+    NAME VARCHAR, CITY VARCHAR, PHONE VARCHAR);
 INSERT INTO ADDRESS VALUES('John', 'Miller', 'Berne', '123 456 789');
 INSERT INTO ADDRESS VALUES('Philip', 'Jones', 'Berne', '123 012 345');
 SELECT _ROWID_, * FROM ADDRESS;
@@ -769,7 +774,9 @@ This index is also used when reading all rows, sorted by the indexed columns.
 However, if only the first name is known, then this index is not used:
 </p>
 <pre>
-EXPLAIN SELECT PHONE FROM ADDRESS WHERE CITY = 'Berne' AND NAME = 'Miller' AND FIRST_NAME = 'John';
+EXPLAIN SELECT PHONE FROM ADDRESS 
+    WHERE CITY = 'Berne' AND NAME = 'Miller' 
+    AND FIRST_NAME = 'John';
 SELECT
     PHONE
 FROM PUBLIC.ADDRESS

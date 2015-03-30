@@ -277,7 +277,7 @@ public class CacheLongKeyLIRS<V> {
      * immediately cause entries to get removed however; it will only change
      * the limit. To resize the internal array, call the clear method.
      *
-     * @param maxMemory the maximum size (1 or larger)
+     * @param maxMemory the maximum size (1 or larger) in bytes
      */
     public void setMaxMemory(long maxMemory) {
         DataUtils.checkArgument(
@@ -533,7 +533,7 @@ public class CacheLongKeyLIRS<V> {
         private final int stackMoveDistance;
 
         /**
-         * The maximum memory this cache should use.
+         * The maximum memory this cache should use in bytes.
          */
         private long maxMemory;
 
@@ -1075,7 +1075,7 @@ public class CacheLongKeyLIRS<V> {
          * immediately cause entries to get removed however; it will only change
          * the limit. To resize the internal array, call the clear method.
          *
-         * @param maxMemory the maximum size (1 or larger)
+         * @param maxMemory the maximum size (1 or larger) in bytes
          */
         void setMaxMemory(long maxMemory) {
             this.maxMemory = maxMemory;

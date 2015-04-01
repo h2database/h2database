@@ -313,10 +313,13 @@ public class MVTable extends TableBase {
                     }
                 }
             }
-            if (error == null && lockExclusiveSession != null) {
-                Table t = lockExclusiveSession.getWaitForLock();
+            // take a local copy so we don't see inconsistent data, since we are not locked
+            // while checking the lockExclusiveSession value
+            Session copyOfLockExclusiveSession = lockExclusiveSession;
+            if (error == null && copyOfLockExclusiveSession != null) {
+                Table t = copyOfLockExclusiveSession.getWaitForLock();
                 if (t != null) {
-                    error = t.checkDeadlock(lockExclusiveSession, clash,
+                    error = t.checkDeadlock(copyOfLockExclusiveSession, clash,
                             visited);
                     if (error != null) {
                         error.add(session);

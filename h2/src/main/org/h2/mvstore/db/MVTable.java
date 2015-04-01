@@ -119,11 +119,11 @@ public class MVTable extends TableBase {
         if (lockExclusiveSession == session) {
             return true;
         }
-        if (!exclusive && lockSharedSessions.contains(session)) {
+        if (!exclusive && lockSharedSessions.containsKey(session)) {
             return true;
         }
         synchronized (getLockSyncObject()) {
-            if (!exclusive && lockSharedSessions.contains(session)) {
+            if (!exclusive && lockSharedSessions.containsKey(session)) {
                 return true;
             }
             session.setWaitForLock(this, Thread.currentThread());
@@ -217,7 +217,7 @@ public class MVTable extends TableBase {
                     lockExclusiveSession = session;
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
-                        lockSharedSessions.contains(session)) {
+                        lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "add (upgraded) for ");
                     lockExclusiveSession = session;
                     return true;
@@ -237,7 +237,7 @@ public class MVTable extends TableBase {
                         return true;
                     }
                 }
-                if (!lockSharedSessions.contains(session)) {
+                if (!lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "ok");
                     session.addLock(this);
                     lockSharedSessions.put(session, session);

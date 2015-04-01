@@ -57,6 +57,8 @@ Change Log
     so that it was effectly 1024 times smaller than it should be.
 </li><li>Concurrent CREATE TABLE... IF NOT EXISTS in the presence of MULTI_THREAD=TRUE could
     throw an exception.
+</li><li>Fix bug in MVStore when creating lots of temporary tables, where we could run out of
+    transaction IDs.    
 </li></ul>
 
 <h2>Version 1.4.186 Beta (2015-03-02)</h2>

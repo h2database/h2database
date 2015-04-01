@@ -45,6 +45,7 @@ public class TestTempTables extends TestBase {
         testIndexes(c1, c2);
         c1.close();
         c2.close();
+        testLotsOfTables();
         deleteDb("tempTables");
     }
 
@@ -293,4 +294,16 @@ public class TestTempTables extends TestBase {
                 executeQuery("select * from test_temp");
     }
 
+    /** There was a bug where creating lots of tables would overflow the transaction table in the MVStore
+     */
+    private void testLotsOfTables() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables");
+        Statement stat = conn.createStatement();
+        for (int i = 0; i < 100000; i++) {
+            stat.executeUpdate("create local temporary table t(id int)");
+            stat.executeUpdate("drop table t");
+        }
+        conn.close();
+    }
 }

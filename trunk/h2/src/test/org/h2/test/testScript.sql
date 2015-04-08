@@ -8188,6 +8188,12 @@ SELECT GROUP_CONCAT(ID ORDER BY ID) FROM TEST;
 > 1,2,3,4,5,6,7,8,9
 > rows (ordered): 1
 
+SELECT STRING_AGG(ID,';') FROM TEST;
+> GROUP_CONCAT(ID SEPARATOR ';')
+> ------------------------------
+> 1;2;3;4;5;6;7;8;9
+> rows: 1
+
 SELECT DISTINCT NAME FROM TEST;
 > NAME
 > --------

@@ -163,6 +163,8 @@ public class Aggregate extends Expression {
         addAggregate("MAX", MAX);
         addAggregate("AVG", AVG);
         addAggregate("GROUP_CONCAT", GROUP_CONCAT);
+        // PostgreSQL compatibility: string_agg(expression, delimiter)
+        addAggregate("STRING_AGG", GROUP_CONCAT);
         addAggregate("STDDEV_SAMP", STDDEV_SAMP);
         addAggregate("STDDEV", STDDEV_SAMP);
         addAggregate("STDDEV_POP", STDDEV_POP);

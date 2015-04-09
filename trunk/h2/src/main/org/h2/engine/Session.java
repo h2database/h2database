@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
 
 import org.h2.api.ErrorCode;
@@ -108,6 +109,20 @@ public class Session extends SessionWithState {
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
+
+    /**
+     * Temporary LOBs from result sets. Those are kept for some time. The
+     * problem is that transactions are committed before the result is returned,
+     * and in some cases the next transaction is already started before the
+     * result is read (for example when using the server mode, when accessing
+     * metadata methods). We can't simply free those values up when starting the
+     * next transaction, because they would be removed too early.
+     */
+    private LinkedList<TimeoutValue> temporaryResultLobs;
+
+    /**
+     * The temporary LOBs that need to be removed on commit.
+     */
     private ArrayList<Value> temporaryLobs;
 
     private Transaction transaction;
@@ -497,14 +512,7 @@ public class Session extends SessionWithState {
             // (create/drop table and so on)
             database.commit(this);
         }
-        if (temporaryLobs != null) {
-            for (Value v : temporaryLobs) {
-                if (!v.isLinked()) {
-                    v.close();
-                }
-            }
-            temporaryLobs.clear();
-        }
+        removeTemporaryLobs(true);
         if (undoLog.size() > 0) {
             // commit the rows when using MVCC
             if (database.isMultiVersion()) {
@@ -536,6 +544,31 @@ public class Session extends SessionWithState {
         endTransaction();
     }
 
+    private void removeTemporaryLobs(boolean onTimeout) {
+        if (temporaryLobs != null) {
+            for (Value v : temporaryLobs) {
+                if (!v.isLinked()) {
+                    v.close();
+                }
+            }
+            temporaryLobs.clear();
+        }
+        if (temporaryResultLobs != null && temporaryResultLobs.size() > 0) {
+            long keepYoungerThan = System.currentTimeMillis() -
+                    database.getSettings().lobTimeout;
+            while (temporaryResultLobs.size() > 0) {
+                TimeoutValue tv = temporaryResultLobs.getFirst();
+                if (onTimeout && tv.created >= keepYoungerThan) {
+                    break;
+                }
+                Value v = temporaryResultLobs.removeFirst().value;
+                if (!v.isLinked()) {
+                    v.close();
+                }
+            }
+        }
+    }
+
     private void checkCommitRollback() {
         if (commitOrRollbackDisabled && locks.size() > 0) {
             throw DbException.get(ErrorCode.COMMIT_ROLLBACK_NOT_ALLOWED);
@@ -545,8 +578,8 @@ public class Session extends SessionWithState {
     private void endTransaction() {
         if (unlinkLobMap != null && unlinkLobMap.size() > 0) {
             if (database.getMvStore() == null) {
-                // need to flush the transaction log, because we can't unlink lobs
-                // if the commit record is not written
+                // need to flush the transaction log, because we can't unlink
+                // lobs if the commit record is not written
                 database.flush();
             }
             for (Value v : unlinkLobMap.values()) {
@@ -673,6 +706,7 @@ public class Session extends SessionWithState {
         if (!closed) {
             try {
                 database.checkPowerOff();
+                removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();
                 database.removeSession(this);
@@ -1447,10 +1481,17 @@ public class Session extends SessionWithState {
 
     @Override
     public void addTemporaryLob(Value v) {
-        if (temporaryLobs == null) {
-            temporaryLobs = new ArrayList<Value>();
+        if (v.getTableId() == LobStorageFrontend.TABLE_RESULT) {
+            if (temporaryResultLobs == null) {
+                temporaryResultLobs = new LinkedList<TimeoutValue>();
+            }
+            temporaryResultLobs.add(new TimeoutValue(v));
+        } else {
+            if (temporaryLobs == null) {
+                temporaryLobs = new ArrayList<Value>();
+            }
+            temporaryLobs.add(v);
         }
-        temporaryLobs.add(v);
     }
 
     /**
@@ -1468,6 +1509,27 @@ public class Session extends SessionWithState {
          * The transaction savepoint id.
          */
         long transactionSavepoint;
+    }
+
+    /**
+     * An object with a timeout.
+     */
+    public static class TimeoutValue {
+
+        /**
+         * The time when this object was created.
+         */
+        final long created = System.currentTimeMillis();
+
+        /**
+         * The value.
+         */
+        final Value value;
+
+        TimeoutValue(Value v) {
+            this.value = v;
+        }
+
     }
 
 }

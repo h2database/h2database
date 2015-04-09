@@ -42,6 +42,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
     private boolean distinct;
     private boolean randomAccess;
     private boolean closed;
+    private boolean containsLobs;
 
     /**
      * Construct a local result object.
@@ -114,10 +115,13 @@ public class LocalResult implements ResultInterface, ResultTarget {
      * (if there is any) is not copied.
      *
      * @param targetSession the session of the copy
-     * @return the copy
+     * @return the copy if possible, or null if copying is not possible
      */
     public LocalResult createShallowCopy(Session targetSession) {
         if (external == null && (rows == null || rows.size() < rowCount)) {
+            return null;
+        }
+        if (containsLobs) {
             return null;
         }
         ResultExternal e2 = null;
@@ -260,6 +264,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             Value v = values[i];
             Value v2 = v.copyToResult();
             if (v2 != v) {
+                containsLobs = true;
                 session.addTemporaryLob(v2);
                 values[i] = v2;
             }

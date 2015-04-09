@@ -59,6 +59,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testRemovedAfterTimeout();
         testConcurrentRemoveRead();
         testCloseLobTwice();
         testCleaningUpLobsOnRollback();
@@ -110,6 +111,42 @@ public class TestLob extends TestBase {
         testJavaObject();
         deleteDb("lob");
         FileUtils.deleteRecursive(TEMP_DIR, true);
+    }
+
+    private void testRemovedAfterTimeout() throws Exception {
+        deleteDb("lob");
+        final String url = getURL("lob;lob_timeout=50", true);
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data clob)");
+        PreparedStatement prep = conn.prepareStatement("insert into test values(?, ?)");
+        prep.setInt(1, 1);
+        prep.setString(2, "aaa" + new String(new char[1024 * 16]).replace((char) 0, 'x'));
+        prep.execute();
+        prep.setInt(1, 2);
+        prep.setString(2, "bbb" + new String(new char[1024 * 16]).replace((char) 0, 'x'));
+        prep.execute();
+        ResultSet rs = stat.executeQuery("select * from test order by id");
+        rs.next();
+        Clob c1 = rs.getClob(2);
+        assertEquals("aaa", c1.getSubString(1, 3));
+        rs.next();
+        assertEquals("aaa", c1.getSubString(1, 3));
+        rs.close();
+        assertEquals("aaa", c1.getSubString(1, 3));
+        stat.execute("delete from test");
+        c1.getSubString(1, 3);
+        // wait until it times out
+        Thread.sleep(100);
+        // start a new transaction, to be sure
+        stat.execute("delete from test");
+        try {
+            c1.getSubString(1, 3);
+            fail();
+        } catch (SQLException e) {
+            // expected
+        }
+        conn.close();
     }
 
     private void testConcurrentRemoveRead() throws Exception {
@@ -1255,7 +1292,6 @@ public class TestLob extends TestBase {
                         "CREATE TABLE IF NOT EXISTS p( id int primary key, rawbyte BLOB ); ");
         prep.execute();
         prep.close();
-
         prep = conn.prepareStatement("INSERT INTO p(id) VALUES(?);");
         for (int i = 0; i < 10; i++) {
             prep.setInt(1, i);

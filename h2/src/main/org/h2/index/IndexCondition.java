@@ -387,10 +387,10 @@ public class IndexCondition {
 
     @Override
     public String toString() {
-        return "column=" + column + 
-                ", compareType=" + compareTypeToString(compareType) + 
-                ", expression=" + expression + 
-                ", expressionList=" + expressionList.toString() + 
+        return "column=" + column +
+                ", compareType=" + compareTypeToString(compareType) +
+                ", expression=" + expression +
+                ", expressionList=" + expressionList.toString() +
                 ", expressionQuery=" + expressionQuery;
     }
 

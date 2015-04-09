@@ -7,7 +7,7 @@ Initial Developer: H2 Group
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<meta name=viewport content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>
 Advanced
 </title>
@@ -316,17 +316,23 @@ To use the MVCC feature, append <code>;MVCC=TRUE</code> to the database URL:
 jdbc:h2:~/test;MVCC=TRUE
 </pre>
 <p>
-MVCC is disabled by default. The MVCC feature is not fully tested yet.
-The limitations of the MVCC mode are: it can not be used at the same time as
-<code>MULTI_THREADED=TRUE</code>;
-the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
-The setting <code>MAX_MEMORY_UNDO</code> has no effect.
-It is not possible to enable or disable this setting while the database is already open.
 The setting must be specified in the first connection (the one that opens the database).
+It is not possible to enable or disable this setting while the database is already open.
 </p>
 <p>
 If MVCC is enabled, changing the lock mode (<code>LOCK_MODE</code>) has no effect.
 </p>
+The MVCC mode is enabled by default in version 1.4.x,
+with the default MVStore storage engine.
+MVCC is disabled by default when using the PageStore storage engine
+(which is the default in version 1.3.x).
+The following applies when using the PageStore storage engine:
+The MVCC feature is not fully tested yet.
+The limitations of the MVCC mode are:
+with the PageStore storage engine, it can not be used at the same time as
+<code>MULTI_THREADED=TRUE</code>;
+the complete undo log (the list of uncommitted changes) must fit in memory when using multi-version concurrency.
+The setting <code>MAX_MEMORY_UNDO</code> has no effect.
 
 <h2 id="clustering">Clustering / High Availability</h2>
 <p>

@@ -6,7 +6,7 @@ Initial Developer: H2 Group
 -->
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<meta name=viewport content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>
 Change Log
 </title>
@@ -20,27 +20,35 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>MVStore: when committing a session that removed LOB values,
-	changes were flushed unnecessarily.
+<ul><li>MVStore: concurrent changes to the same row could result in
+    the exception "The transaction log might be corrupt for key ...".
+    This could only be reproduced with 3 or more threads.
+</li><li>Results with CLOB or BLOB data are no longer reused.
+</li><li>References to BLOB and CLOB objects now have a timeout.
+    The configuration setting is LOB_TIMEOUT (default 5 minutes).
+    This should avoid growing the database file if there are many queries that return BLOB or CLOB objects,
+    and the database is not closed for a longer time.
+</li><li>MVStore: when committing a session that removed LOB values,
+    changes were flushed unnecessarily.
 </li><li>Issue 610: possible integer overflow in WriteBuffer.grow().
 </li><li>Issue 609: the spatial index did not support NULL (ClassCastException).
-</li><li>MVStore: in some cases, CLOB/BLOB data blocks were removed 
+</li><li>MVStore: in some cases, CLOB/BLOB data blocks were removed
     incorrectly when opening a database.
 </li><li>MVStore: updates that affected many rows were were slow
     in some cases if there was a secondary index.
-</li><li>Using "runscript" with autocommit disabled could result 
+</li><li>Using "runscript" with autocommit disabled could result
     in a lock timeout on the internal table "SYS".
 </li><li>Issue 603: there was a memory leak when using H2 in a web application.
-    Apache Tomcat logged an error message: "The web application ... 
+    Apache Tomcat logged an error message: "The web application ...
     created a ThreadLocal with key of type [org.h2.util.DateTimeUtils$1]".
 </li><li>When using the MVStore,
     running a SQL script generate by the Recover tool from a PageStore file
-    failed with a strange error message (NullPointerException), 
+    failed with a strange error message (NullPointerException),
     now a clear error message is shown.
-<li><li>Issue 605: with version 1.4.186, opening a database could result in 
+</li><li>Issue 605: with version 1.4.186, opening a database could result in
     an endless loop in LobStorageMap.init.
 </li><li>Queries that use the same table alias multiple times now work.
-    Before, the select expression list was expanded incorrectly. 
+    Before, the select expression list was expanded incorrectly.
     Example: "select * from a as x, b as x".
 </li><li>The MySQL compatibility feature "insert ... on duplicate key update"
     did not work with a non-default schema.
@@ -54,13 +62,14 @@ Change Log
 </li><li>MVStore: use RandomAccessFile file system if the file name starts with "file:".
 </li><li>Allow DATEADD to take a long value for count when manipulating milliseconds.
 </li><li>When using MV_STORE=TRUE and the SET CACHE_SIZE setting, the cache size was incorrectly set,
-    so that it was effectly 1024 times smaller than it should be.
+    so that it was effectively 1024 times smaller than it should be.
 </li><li>Concurrent CREATE TABLE... IF NOT EXISTS in the presence of MULTI_THREAD=TRUE could
     throw an exception.
 </li><li>Fix bug in MVStore when creating lots of temporary tables, where we could run out of
     transaction IDs.
 </li><li>Add support for PostgreSQL STRING_AGG function. Patch by Fred Aquiles.
-</li><li>Fix bug in "jdbc:h2:nioMemFS" isRoot() function
+</li><li>Fix bug in "jdbc:h2:nioMemFS" isRoot() function.
+    Also, the page size was increased to 64 KB.
 </li></ul>
 
 <h2>Version 1.4.186 Beta (2015-03-02)</h2>

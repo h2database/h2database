@@ -134,6 +134,15 @@ public class DbSettings extends SettingsBase {
     public final boolean largeTransactions = get("LARGE_TRANSACTIONS", true);
 
     /**
+     * Database setting <code>LOB_TIMEOUT</code> (default: 300000,
+     * which means 5 minutes).<br />
+     * The number of milliseconds a temporary LOB reference is kept until it
+     * times out. After the timeout, the LOB is no longer accessible using this
+     * reference.
+     */
+    public final int lobTimeout = get("LOB_TIMEOUT", 300000);
+
+    /**
      * Database setting <code>MAX_COMPACT_COUNT</code>
      * (default: Integer.MAX_VALUE).<br />
      * The maximum number of pages to move when closing a database.

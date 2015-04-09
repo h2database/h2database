@@ -204,6 +204,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     @Override
     public boolean isLinked() {
         return tableId != LobStorageFrontend.TABLE_ID_SESSION_VARIABLE &&
+                tableId != LobStorageFrontend.TABLE_RESULT &&
                 small == null;
     }
 

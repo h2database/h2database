@@ -268,7 +268,14 @@ public class LobStorageMap implements LobStorageInterface {
         init();
         Object[] value = lobMap.get(lob.getLobId());
         if (value == null) {
-            throw DbException.throwInternalError("Lob not found: " + lob.getLobId());
+            if (lob.getTableId() == LobStorageFrontend.TABLE_RESULT ||
+                    lob.getTableId() == LobStorageFrontend.TABLE_ID_SESSION_VARIABLE) {
+                throw DbException.get(
+                        ErrorCode.LOB_CLOSED_ON_TIMEOUT_1, "" +
+                                lob.getLobId() + "/" + lob.getTableId());
+            }
+            throw DbException.throwInternalError("Lob not found: " +
+                    lob.getLobId() + "/" + lob.getTableId());
         }
         byte[] streamStoreId = (byte[]) value[0];
         return streamStore.get(streamStoreId);
@@ -348,7 +355,7 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     private static void trace(String op) {
-        System.out.println(Thread.currentThread().getName() + " LOB " + op);
+        System.out.println("[" + Thread.currentThread().getName() + "] LOB " + op);
     }
 
 }

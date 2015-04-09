@@ -45,6 +45,7 @@ public class TestTransactionStore extends TestBase {
     @Override
     public void test() throws Exception {
         FileUtils.createDirectories(getBaseDir());
+        testConcurrentAddRemove();
         testConcurrentAdd();
         testCountWithOpenTransactions();
         testConcurrentUpdate();
@@ -59,6 +60,47 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+    }
+
+    private void testConcurrentAddRemove() throws InterruptedException {
+        MVStore s = MVStore.open(null);
+        int threadCount = 3;
+        final int keyCount = 2;
+        final TransactionStore ts = new TransactionStore(s);
+        ts.init();
+
+        final Random r = new Random(1);
+
+        Task[] tasks = new Task[threadCount];
+        for (int i = 0; i < threadCount; i++) {
+            Task task = new Task() {
+
+                @Override
+                public void call() throws Exception {
+                    TransactionMap<Integer, Integer> map = null;
+                    while (!stop) {
+                        Transaction tx = ts.begin();
+                        map = tx.openMap("data");
+                        int k = r.nextInt(keyCount);
+                        try {
+                            map.remove(k);
+                            map.put(k, r.nextInt());
+                        } catch (IllegalStateException e) {
+                            // ignore and retry
+                        }
+                        tx.commit();
+                    }
+                }
+
+            };
+            task.execute();
+            tasks[i] = task;
+        }
+        Thread.sleep(1000);
+        for (Task t : tasks) {
+            t.get();
+        }
+        s.close();
     }
 
     private void testConcurrentAdd() {

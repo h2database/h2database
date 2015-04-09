@@ -2302,7 +2302,7 @@ public class Parser {
                     read("BY");
                     agg.setGroupConcatOrder(parseSimpleOrderList());
                 }
-                
+
                 if (readIf("SEPARATOR")) {
                     agg.setGroupConcatSeparator(readExpression());
                 }

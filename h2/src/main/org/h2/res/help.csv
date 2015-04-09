@@ -1213,7 +1213,7 @@ Returns the current time."
 ","
 Returns the current timestamp."
 "Functions (Time and Date)","DATEADD","
-{ DATEADD| TIMESTAMPADD } (unitString, addInt, timestamp)
+{ DATEADD| TIMESTAMPADD } (unitString, addIntLong, timestamp)
 ","
 Adds units to a timestamp."
 "Functions (Time and Date)","DATEDIFF","

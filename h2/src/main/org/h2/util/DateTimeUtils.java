@@ -71,7 +71,7 @@ public class DateTimeUtils {
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
     }
-    
+
     private static Calendar getCalendar() {
         Calendar c = CACHED_CALENDAR.get();
         if (c == null) {

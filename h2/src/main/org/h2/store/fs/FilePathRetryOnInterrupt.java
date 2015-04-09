@@ -18,7 +18,7 @@ import java.nio.channels.FileLock;
  * It is mainly useful for applications that call Thread.interrupt by mistake.
  */
 public class FilePathRetryOnInterrupt extends FilePathWrapper {
-    
+
     /**
      * The prefix.
      */
@@ -37,7 +37,8 @@ public class FilePathRetryOnInterrupt extends FilePathWrapper {
 }
 
 /**
- * A file object that re-opens and re-tries the operation if the file was closed.
+ * A file object that re-opens and re-tries the operation if the file was
+ * closed.
  */
 class FileRetryOnInterrupt extends FileBase {
 
@@ -51,11 +52,11 @@ class FileRetryOnInterrupt extends FileBase {
         this.mode = mode;
         open();
     }
-    
+
     private void open() throws IOException {
         channel = FileUtils.open(fileName, mode);
     }
-    
+
     private void reopen(int i, IOException e) throws IOException {
         if (i > 20) {
             throw e;
@@ -68,7 +69,7 @@ class FileRetryOnInterrupt extends FileBase {
         Thread.interrupted();
         FileChannel before = channel;
         // ensure we don't re-open concurrently;
-        // sometimes we don't re-open, which is fine, 
+        // sometimes we don't re-open, which is fine,
         // as this method is called in a loop
         synchronized (this) {
             if (before == channel) {
@@ -77,7 +78,7 @@ class FileRetryOnInterrupt extends FileBase {
             }
         }
     }
-    
+
     private void reLock() throws IOException {
         if (lock == null) {
             return;
@@ -93,7 +94,7 @@ class FileRetryOnInterrupt extends FileBase {
         }
         lock.base = l2;
     }
-    
+
     @Override
     public void implCloseChannel() throws IOException {
         try {
@@ -218,12 +219,12 @@ class FileRetryOnInterrupt extends FileBase {
         lock = new FileLockRetry(l, this);
         return lock;
     }
-    
+
     /**
      * A wrapped file lock.
      */
     static class FileLockRetry extends FileLock {
-        
+
         /**
          * The base lock.
          */
@@ -243,7 +244,7 @@ class FileRetryOnInterrupt extends FileBase {
         public void release() throws IOException {
             base.release();
         }
-        
+
     }
 
     @Override

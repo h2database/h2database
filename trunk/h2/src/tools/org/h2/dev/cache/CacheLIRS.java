@@ -814,7 +814,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
                 evictBlock();
             } while (usedMemory > maxMemory);
         }
-        
+
         private void evictBlock() {
             // ensure there are not too many hot entries: right shift of 5 is
             // division by 32, that means if there are only 1/32 (3.125%) or

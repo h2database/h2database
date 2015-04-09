@@ -1704,14 +1704,14 @@ public class Function extends Expression implements FunctionCall {
             return ts;
         }
         // We allow long for manipulating the millisecond component,
-        // for the rest we only allow int. 
+        // for the rest we only allow int.
         if (count > Integer.MAX_VALUE) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
         Calendar calendar = Calendar.getInstance();
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
-        calendar.add(field, (int)count);
+        calendar.add(field, (int) count);
         long t = calendar.getTime().getTime();
         Timestamp ts = new Timestamp(t);
         ts.setNanos(ts.getNanos() + nanos);

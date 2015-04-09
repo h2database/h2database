@@ -131,7 +131,7 @@ public class FileStore {
         if (fileName != null) {
             FilePath p = FilePath.get(fileName);
             // if no explicit scheme was specified, NIO is used
-            if (p instanceof FilePathDisk && 
+            if (p instanceof FilePathDisk &&
                     !fileName.startsWith(p.getScheme() + ":")) {
                 // ensure the NIO file system is registered
                 FilePathNio.class.getName();

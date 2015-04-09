@@ -259,12 +259,12 @@ public final class CompressLZF implements Compressor {
      * Compress a number of bytes.
      *
      * @param in the input data
+     * @param inPos the offset at the input buffer
      * @param out the output area
      * @param outPos the offset at the output array
      * @return the end position
      */
-    public int compress(ByteBuffer in, byte[] out, int outPos) {
-        int inPos = in.position();
+    public int compress(ByteBuffer in, int inPos, byte[] out, int outPos) {
         int inLen = in.capacity() - inPos;
         if (cachedHashTable == null) {
             cachedHashTable = new int[HASH_SIZE];

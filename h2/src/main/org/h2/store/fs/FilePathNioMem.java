@@ -191,7 +191,7 @@ public class FilePathNioMem extends FilePath {
     }
 
     private boolean isRoot() {
-        return name.equals(getScheme());
+        return name.equals(getScheme() + ":");
     }
 
     private static String getCanonicalPath(String fileName) {

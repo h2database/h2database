@@ -46,7 +46,7 @@ public class TransactionStore {
      * is not possible). Log entries are written before the data is changed
      * (write-ahead).
      * <p>
-     * Key: [ opId ], value: [ mapId, key, oldValue ].
+     * Key: opId, value: [ mapId, key, oldValue ].
      */
     final MVMap<Long, Object[]> undoLog;
 
@@ -223,12 +223,15 @@ public class TransactionStore {
      * @return the transaction
      */
     public synchronized Transaction begin() {
+
+        int transactionId;
+        int status;
         if (!init) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TRANSACTION_ILLEGAL_STATE,
                     "Not initialized");
         }
-        int transactionId = openTransactions.nextClearBit(1);
+        transactionId = openTransactions.nextClearBit(1);
         if (transactionId > maxTransactionId) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_TOO_MANY_OPEN_TRANSACTIONS,
@@ -236,7 +239,7 @@ public class TransactionStore {
                     transactionId - 1);
         }
         openTransactions.set(transactionId);
-        int status = Transaction.STATUS_OPEN;
+        status = Transaction.STATUS_OPEN;
         return new Transaction(this, transactionId, status, null, 0);
     }
 
@@ -1232,35 +1235,13 @@ public class TransactionStore {
                 if (d == null) {
                     // this entry should be committed or rolled back
                     // in the meantime (the transaction might still be open)
+                    // or it might be changed again in a different
+                    // transaction (possibly one with the same id)
                     data = map.get(key);
-                    if (data != null && data.operationId == id) {
-                        // the transaction was not committed correctly
-                        throw DataUtils.newIllegalStateException(
-                                DataUtils.ERROR_TRANSACTION_CORRUPT,
-                                "The transaction log might be corrupt for key {0}",
-                                key);
-                    }
                 } else {
                     data = (VersionedValue) d[2];
                 }
-                // verify this is either committed,
-                // or the same transaction and earlier
-                if (data != null) {
-                    long id2 = data.operationId;
-                    if (id2 != 0) {
-                        int tx2 = getTransactionId(id2);
-                        if (tx2 != tx) {
-                            // a different transaction - ok
-                        } else if (getLogId(id2) > getLogId(id)) {
-                            // newer than before
-                            break;
-                        }
-                    }
-                }
             }
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_TRANSACTION_CORRUPT,
-                    "The transaction log might be corrupt for key {0}", key);
         }
 
         /**

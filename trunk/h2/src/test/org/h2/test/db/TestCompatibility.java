@@ -55,7 +55,7 @@ public class TestCompatibility extends TestBase {
         conn.close();
         deleteDb("compatibility");
     }
-    
+
     private void testOnDuplicateKey() throws SQLException {
         Connection c = getConnection("compatibility;MODE=MYSQL");
         Statement stat = c.createStatement();
@@ -63,11 +63,12 @@ public class TestCompatibility extends TestBase {
         stat.execute("create schema s2");
         stat.execute("create table s2.test(id int primary key, name varchar(255))");
         stat.execute("insert into s2.test(id, name) values(1, 'a')");
-        stat.execute("insert into s2.test(id, name) values(1, 'b') on duplicate key update name = values(name)");
+        stat.execute("insert into s2.test(id, name) values(1, 'b') " +
+                "on duplicate key update name = values(name)");
         stat.execute("drop schema s2");
         c.close();
     }
-    
+
     private void testKeyAsColumnInMySQLMode() throws SQLException {
         Connection c = getConnection("compatibility;MODE=MYSQL");
         Statement stat = c.createStatement();

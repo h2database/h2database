@@ -483,7 +483,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             prof.startCollecting();
             TestPerformance.main("-init", "-db", "1", "-size", "1000");
             prof.stopCollecting();
-            System.out.println(prof.getTop(30));
+            System.out.println(prof.getTop(5));
             TestPerformance.main("-init", "-db", "1", "-size", "1000");
         }
         System.out.println(TestBase.formatTime(

@@ -525,6 +525,7 @@ public class TestFileSystem extends TestBase {
             FileUtils.delete(s);
         }
         FileUtils.createDirectories(fsBase + "/test");
+        assertTrue(FileUtils.exists(fsBase));
         FileUtils.delete(fsBase + "/test");
         FileUtils.delete(fsBase + "/test2");
         assertTrue(FileUtils.createFile(fsBase + "/test"));

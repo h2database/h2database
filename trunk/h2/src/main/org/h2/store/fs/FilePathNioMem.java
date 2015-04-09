@@ -194,7 +194,14 @@ public class FilePathNioMem extends FilePath {
         return name.equals(getScheme() + ":");
     }
 
-    private static String getCanonicalPath(String fileName) {
+    /**
+     * Get the canonical path of a file (with backslashes replaced with forward
+     * slashes).
+     *
+     * @param fileName the file name
+     * @return the canonical path
+     */
+    protected static String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
         int idx = fileName.indexOf(':') + 1;
         if (fileName.length() > idx && fileName.charAt(idx) != '/') {
@@ -227,6 +234,13 @@ class FilePathNioMemLZF extends FilePathNioMem {
     @Override
     boolean compressed() {
         return true;
+    }
+
+    @Override
+    public FilePathNioMem getPath(String path) {
+        FilePathNioMemLZF p = new FilePathNioMemLZF();
+        p.name = getCanonicalPath(path);
+        return p;
     }
 
     @Override
@@ -366,7 +380,8 @@ class FileNioMem extends FileBase {
 class FileNioMemData {
 
     private static final int CACHE_SIZE = 8;
-    private static final int BLOCK_SIZE_SHIFT = 10;
+    private static final int BLOCK_SIZE_SHIFT = 16;
+    
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final CompressLZF LZF = new CompressLZF();
@@ -508,6 +523,7 @@ class FileNioMemData {
         ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
         if (d != COMPRESSED_EMPTY_BLOCK) {
             synchronized (LZF) {
+                d.position(0);
                 CompressLZF.expand(d, out);
             }
         }
@@ -523,7 +539,7 @@ class FileNioMemData {
     static void compress(ByteBuffer[] data, int page) {
         ByteBuffer d = data[page];
         synchronized (LZF) {
-            int len = LZF.compress(d, BUFFER, 0);
+            int len = LZF.compress(d, 0, BUFFER, 0);
             d = ByteBuffer.allocateDirect(len);
             d.put(BUFFER, 0, len);
             data[page] = d;

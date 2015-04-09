@@ -308,7 +308,7 @@ public class TestCompress extends TestBase {
             }
             ByteBuffer buff = ByteBuffer.wrap(b);
             byte[] temp = new byte[100 + b.length * 2];
-            int compLen = comp.compress(buff, temp, 0);
+            int compLen = comp.compress(buff, 0, temp, 0);
             ByteBuffer test = ByteBuffer.wrap(temp, 0, compLen);
             byte[] exp = new byte[b.length];
             CompressLZF.expand(test, ByteBuffer.wrap(exp));

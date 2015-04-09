@@ -71,7 +71,7 @@ public class MVPrimaryIndex extends BaseIndex {
         ValueDataType valueType = new ValueDataType(db.getCompareMode(), db,
                 sortTypes);
         mapName = "table." + getId();
-        Transaction t = mvTable.getTransaction(null); 
+        Transaction t = mvTable.getTransaction(null);
         dataMap = t.openMap(mapName, keyType, valueType);
         t.commit();
         if (!table.isPersistData()) {

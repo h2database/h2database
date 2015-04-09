@@ -68,7 +68,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         ValueDataType keyType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         ValueDataType valueType = new ValueDataType(null, null, null);
-        Transaction t = mvTable.getTransaction(null); 
+        Transaction t = mvTable.getTransaction(null);
         dataMap = t.openMap(mapName, keyType, valueType);
         t.commit();
         if (!keyType.equals(dataMap.getKeyType())) {
@@ -219,7 +219,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
             }
         }
     }
-    
+
     private void checkUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
         Iterator<Value> it = map.keyIterator(unique, true);
         while (it.hasNext()) {
@@ -232,7 +232,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 if (!containsNullAndAllowMultipleNull(r2)) {
                     throw getDuplicateKeyException(k.toString());
                 }
-            }            
+            }
         }
     }
 

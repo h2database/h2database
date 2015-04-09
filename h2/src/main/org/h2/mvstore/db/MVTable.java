@@ -313,8 +313,8 @@ public class MVTable extends TableBase {
                     }
                 }
             }
-            // take a local copy so we don't see inconsistent data, since we are not locked
-            // while checking the lockExclusiveSession value
+            // take a local copy so we don't see inconsistent data, since we are
+            // not locked while checking the lockExclusiveSession value
             Session copyOfLockExclusiveSession = lockExclusiveSession;
             if (error == null && copyOfLockExclusiveSession != null) {
                 Table t = copyOfLockExclusiveSession.getWaitForLock();

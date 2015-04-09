@@ -223,8 +223,8 @@ public class Recover extends Tool implements DataHandler {
 
     private static void verifyPageStore(DataHandler h) {
         if (h.getLobStorage() instanceof LobStorageMap) {
-            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, 
-                    "Restore page store recovery SQL script " + 
+            throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1,
+                    "Restore page store recovery SQL script " +
                     "can only be restored to a PageStore file");
         }
     }

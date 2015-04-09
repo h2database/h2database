@@ -28,11 +28,11 @@ public class ThreadDumpCleaner {
         "\"Exception Catcher Thread\".*\n",
 
         "JNI global references:.*\n\n",
-        
+
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\n",
 
         "\".*?\".*\n\n",
-    
+
         "\\$\\$YJP\\$\\$",
 
         "\"(Attach|Service|VM|GC|DestroyJavaVM|Signal|AWT|AppKit|C2 |Low Mem|" +
@@ -62,7 +62,7 @@ public class ThreadDumpCleaner {
 
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.net.SocketInputStream.socketRead0(?s).*?\n\n",
-                
+
     };
 
     private ArrayList<Pattern> patterns = new ArrayList<Pattern>();

@@ -749,7 +749,7 @@ public class Select extends Query {
             }
         }
     }
-    
+
     private int expandColumnList(TableFilter filter, int index) {
         Table t = filter.getTable();
         String alias = filter.getTableAlias();

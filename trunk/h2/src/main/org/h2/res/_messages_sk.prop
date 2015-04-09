@@ -66,6 +66,7 @@
 90036=Sekvencia {0} nenájdená
 90037=Pohľad (view) {0} nenájdený
 90038=Pohľad (view) {0} už existuje
+90039=#This CLOB or BLOB reference timed out: {0}
 90040=Administrátorské práva sú potrebné pre túto operáciu
 90041=Spúštač (trigger) {0} už existuje
 90042=Spúšťač (trigger) {0} nenájdený

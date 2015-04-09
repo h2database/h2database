@@ -294,7 +294,9 @@ public class TestTempTables extends TestBase {
                 executeQuery("select * from test_temp");
     }
 
-    /** There was a bug where creating lots of tables would overflow the transaction table in the MVStore
+    /**
+     * There was a bug where creating lots of tables would overflow the
+     * transaction table in the MVStore
      */
     private void testLotsOfTables() throws SQLException {
         deleteDb("tempTables");

@@ -87,7 +87,7 @@ public class TestMVTableEngine extends TestBase {
         testLocking();
         testSimple();
     }
-    
+
     private void testLobReuse() throws Exception {
         deleteDb("testLobReuse");
         Connection conn = getConnection("testLobReuse");

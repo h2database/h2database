@@ -890,9 +890,9 @@ public class TestSpatial extends TestBase {
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;");
-            stat.execute("CREATE TABLE PT_CLOUD(id serial, the_geom geometry) AS" +
-                 "  SELECT null, CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom " +
-                 "from system_range(0,120) A,system_range(0,10) B;");
+            stat.execute("CREATE TABLE PT_CLOUD(id serial, the_geom geometry) AS " +
+                "SELECT null, CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom " +
+                "from system_range(0,120) A,system_range(0,10) B;");
             stat.execute("create spatial index on pt_cloud(the_geom);");
             ResultSet rs = stat.executeQuery(
                     "explain select * from  PT_CLOUD " +
@@ -910,7 +910,7 @@ public class TestSpatial extends TestBase {
         }
         deleteDb("spatial");
     }
-    
+
     private void testNullableGeometry() throws SQLException {
         deleteDb("spatial");
         Connection conn = getConnection(url);

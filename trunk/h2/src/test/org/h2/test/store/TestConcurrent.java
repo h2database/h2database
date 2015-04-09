@@ -66,7 +66,7 @@ public class TestConcurrent extends TestMVStore {
         testConcurrentWrite();
         testConcurrentRead();
     }
-    
+
     private void testInterruptReopen() throws Exception {
         String fileName = "retry:nio:" + getBaseDir() + "/testInterruptReopen.h3";
         FileUtils.delete(fileName);

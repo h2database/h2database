@@ -1,0 +1,340 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>
+JaQu
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>JaQu</h1>
+<a href="#what_is_jaqu">
+    What is JaQu</a><br />
+<a href="#differences">
+    Differences to Other Data Access Tools</a><br />
+<a href="#current_state">
+    Current State</a><br />
+<a href="#building_jaqu">
+    Building the JaQu Library</a><br />
+<a href="#requirements">
+    Requirements</a><br />
+<a href="#example_code">
+    Example Code</a><br />
+<a href="#configuration">
+    Configuration</a><br />
+<a href="#natural_syntax">
+    Natural Syntax</a><br />
+<a href="#other_ideas">
+    Other Ideas</a><br />
+<a href="#similar_projects">
+    Similar Projects</a><br />
+
+<h2 id="what_is_jaqu">What is JaQu</h2>
+<p>
+Note: This project is currently in maintenance mode.
+A friendly fork of JaQu is
+<a href="http://iciql.com">available under the name iciql</a>.
+</p>
+<p>
+JaQu stands for Java Query and allows to access databases using pure Java.
+JaQu provides a fluent interface (or internal DSL).
+JaQu is something like LINQ for Java (LINQ stands for "language integrated query" and is a
+Microsoft .NET technology). The following JaQu code:
+</p>
+<pre>
+Product p = new Product();
+List&lt;Product&gt; soldOutProducts =
+    db.from(p).where(p.unitsInStock).is(0).select();
+</pre>
+<p>
+stands for the SQL statement:
+</p>
+<pre>
+SELECT * FROM PRODUCTS P
+WHERE P.UNITS_IN_STOCK = 0
+</pre>
+
+<h2 id="differences">Differences to Other Data Access Tools</h2>
+<p>
+Unlike SQL, JaQu can be easily integrated in Java applications. Because JaQu is pure Java,
+auto-complete in the IDE is supported. Type checking is performed by the compiler.
+JaQu fully protects against SQL injection.
+</p>
+<p>
+JaQu is meant as replacement for JDBC and SQL and not as much as a replacement for tools like Hibernate.
+With JaQu, you don't write SQL statements as strings.
+JaQu is much smaller and simpler than other persistence frameworks such as Hibernate,
+but it also does not provide all the features of those.
+Unlike iBatis and Hibernate, no XML or annotation based configuration is required;
+instead the configuration (if required at all) is done in pure Java, within the application.
+</p>
+<p>
+JaQu does not require or contain any data caching mechanism. Like JDBC and iBatis,
+JaQu provides full control over when and what SQL statements are executed
+(but without having to write SQL statements as strings).
+</p>
+
+<h3>Restrictions</h3>
+<p>
+Primitive types (eg. <code>boolean, int, long, double</code>) are not supported.
+Use <code>java.lang.Boolean, Integer, Long, Double</code> instead.
+</p>
+
+<h3>Why in Java?</h3>
+<p>
+Most applications are written in Java. Mixing Java and another language (for example Scala or Groovy)
+in the same application is complicated: you would need to split the application and database code,
+and write adapter / wrapper code.
+</p>
+
+<h2 id="current_state">Current State</h2>
+<p>
+Currently, JaQu is only tested with the H2 database. The API may change in future versions.
+JaQu is not part of the h2 jar file, however the source code is included in H2, under:
+</p>
+<ul><li><code>src/test/org/h2/test/jaqu/*</code> (samples and tests)
+</li><li><code>src/tools/org/h2/jaqu/*</code> (framework)
+</li></ul>
+
+<h2 id="building_jaqu">Building the JaQu Library</h2>
+<p>
+To create the JaQu jar file, run: <code>build jarJaqu</code>. This will create the file <code>bin/h2jaqu.jar</code>.
+</p>
+
+<h2 id="requirements">Requirements</h2>
+<p>
+JaQu requires Java 6. Annotations are not need.
+Currently, JaQu is only tested with the H2 database engine, however in theory it should
+work with any database that supports the JDBC API.
+</p>
+
+<h2 id="example_code">Example Code</h2>
+<pre>
+package org.h2.test.jaqu;
+import java.math.BigDecimal;
+import java.util.List;
+import org.h2.jaqu.Db;
+import static org.h2.jaqu.Function.*;
+
+public class Test {
+    Db db;
+
+    public static void main(String[] args) throws Exception {
+        new SamplesTest().test();
+    }
+
+    public void test() throws Exception {
+        db = Db.open("jdbc:h2:mem:", "sa", "sa");
+        db.insertAll(Product.getProductList());
+        db.insertAll(Customer.getCustomerList());
+        db.insertAll(Order.getOrderList());
+        testLength();
+        testCount();
+        testGroup();
+        testSelectManyCompoundFrom2();
+        testWhereSimple4();
+        testSelectSimple2();
+        testAnonymousTypes3();
+        testWhereSimple2();
+        testWhereSimple3();
+        db.close();
+    }
+
+    private void testWhereSimple2() throws Exception {
+        Product p = new Product();
+        List&lt;Product&gt; soldOutProducts =
+            db.from(p).
+            where(p.unitsInStock).is(0).
+            orderBy(p.productId).select();
+    }
+
+    private void testWhereSimple3() throws Exception {
+        Product p = new Product();
+        List&lt;Product&gt; expensiveInStockProducts =
+            db.from(p).
+            where(p.unitsInStock).bigger(0).
+            and(p.unitPrice).bigger(3.0).
+            orderBy(p.productId).select();
+    }
+
+    private void testWhereSimple4() throws Exception {
+        Customer c = new Customer();
+        List&lt;Customer&gt; waCustomers =
+            db.from(c).
+            where(c.region).is("WA").
+            select();
+    }
+
+    private void testSelectSimple2() throws Exception {
+        Product p = new Product();
+        List&lt;String&gt; productNames =
+            db.from(p).
+            orderBy(p.productId).select(p.productName);
+    }
+
+    public static class ProductPrice {
+        public String productName;
+        public String category;
+        public Double price;
+    }
+
+    private void testAnonymousTypes3() throws Exception {
+        final Product p = new Product();
+        List&lt;ProductPrice&gt; productInfos =
+            db.from(p).orderBy(p.productId).
+            select(new ProductPrice() {{
+                    productName = p.productName;
+                    category = p.category;
+                    price = p.unitPrice;
+            }});
+    }
+
+    public static class CustOrder {
+        public String customerId;
+        public Integer orderId;
+        public BigDecimal total;
+    }
+
+    private void testSelectManyCompoundFrom2() throws Exception {
+        final Customer c = new Customer();
+        final Order o = new Order();
+        List&lt;CustOrder&gt; orders =
+            db.from(c).
+            innerJoin(o).on(c.customerId).is(o.customerId).
+            where(o.total).smaller(new BigDecimal("500.00")).
+            orderBy(1).
+            select(new CustOrder() {{
+                customerId = c.customerId;
+                orderId = o.orderId;
+                total = o.total;
+            }});
+    }
+
+    private void testLength() throws Exception {
+        Product p = new Product();
+        List&lt;Integer&gt; lengths =
+            db.from(p).
+            where(length(p.productName)).smaller(10).
+            orderBy(1).
+            selectDistinct(length(p.productName));
+    }
+
+    private void testCount() throws Exception {
+        long count = db.from(new Product()).selectCount();
+    }
+
+    public static class ProductGroup {
+        public String category;
+        public Long productCount;
+    }
+
+    private void testGroup() throws Exception {
+        final Product p = new Product();
+        List&lt;ProductGroup&gt; list =
+            db.from(p).
+            groupBy(p.category).
+            orderBy(1).
+            select(new ProductGroup() {{
+                category = p.category;
+                productCount = count();
+            }});
+    }
+
+}
+</pre>
+
+<h2 id="configuration">Configuration</h2>
+<p>
+JaQu does not require any configuration when using the default field to column mapping.
+To define table indices, or if you want to map a class to a table with a different name,
+or a field to a column with another name, create a function called <code>define</code> in the data class.
+Example:
+</p>
+<pre>
+import static org.h2.jaqu.Define.*;
+
+public class Product implements Table {
+
+    public Integer productId;
+    public String productName;
+    public String category;
+    public Double unitPrice;
+    public Integer unitsInStock;
+
+    public void define() {
+        tableName("Product");
+        primaryKey(productId);
+        index(productName, category);
+    }
+
+}
+</pre>
+<p>
+The method <code>define()</code> contains the mapping definition. It is called once
+when the class is used for the first time. Like annotations, the mapping is defined in the class itself.
+Unlike when using annotations, the compiler can check the syntax even for multi-column
+objects (multi-column indexes, multi-column primary keys and so on).
+Because the definition is written in Java, the configuration can be set at runtime,
+which is not possible using annotations.
+Unlike XML mapping configuration, the configuration is integrated in the class itself.
+</p>
+
+<h2 id="natural_syntax">Natural Syntax</h2>
+<p>The plan is to support more natural (pure Java) syntax in conditions.
+To do that, the condition class is de-compiled to a SQL condition.
+A proof of concept decompiler is included (but it doesn't fully work yet; patches are welcome).
+The planned syntax is:
+</p>
+<pre>
+long count = db.from(co).
+    where(new Filter() { public boolean where() {
+        return co.id == x
+            &amp;&amp; co.name.equals(name)
+            &amp;&amp; co.value == new BigDecimal("1")
+            &amp;&amp; co.amount == 1L
+            &amp;&amp; co.birthday.before(new java.util.Date())
+            &amp;&amp; co.created.before(java.sql.Timestamp.valueOf("2005-05-05 05:05:05"))
+            &amp;&amp; co.time.before(java.sql.Time.valueOf("23:23:23"));
+        } }).selectCount();
+</pre>
+
+<h2 id="other_ideas">Other Ideas</h2>
+<p>
+This project has just been started, and nothing is fixed yet.
+Some ideas are:
+</p>
+<ul><li>Support queries on collections (instead of using a database).
+</li><li>Provide API level compatibility with JPA (so that JaQu can be used as an extension of JPA).
+</li><li>Internally use a JPA implementation (for example Hibernate) instead of SQL directly.
+</li><li>Use PreparedStatements and cache them.
+</li></ul>
+
+<h2 id="similar_projects">Similar Projects</h2>
+<p class="notranslate">
+<a href="http://iciql.com">iciql (a friendly fork of JaQu)</a><br />
+<a href="http://www.cementframework.org">Cement Framework</a><br />
+<a href="http://code.google.com/p/dreamsource-orm">Dreamsource ORM</a><br />
+<a href="http://incubator.apache.org/empire-db/empiredb/empiredb.htm">Empire-db</a><br />
+<a href="http://jequel.jexp.de">JEQUEL: Java Embedded QUEry Language</a><br />
+<a href="http://joist.ws">Joist</a><br />
+<a href="http://www.jooq.org">jOOQ</a><br />
+<a href="http://josql.sourceforge.net">JoSQL</a><br />
+<a href="http://code.google.com/p/liquidform">LIQUidFORM</a><br />
+<a href="http://svn.quaere.codehaus.org/browse/~raw,r=76/quaere/trunk/Quaere/src/test/java/org/quaere/alias/test/SamplesTest.java">Quaere (Alias implementation)</a><br />
+<a href="http://quaere.codehaus.org/">Quaere</a><br />
+<a href="http://www.querydsl.com">Querydsl</a><br />
+<a href="http://java.net/projects/squill">Squill</a><br />
+</p>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

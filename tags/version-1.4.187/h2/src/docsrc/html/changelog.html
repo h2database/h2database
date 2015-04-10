@@ -1,0 +1,437 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!--
+Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
+and under the Eclipse Public License, Version 1.0
+Initial Developer: H2 Group
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head><meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>
+Change Log
+</title>
+<link rel="stylesheet" type="text/css" href="stylesheet.css" />
+<!-- [search] { -->
+<script type="text/javascript" src="navigation.js"></script>
+</head><body onload="frameMe();">
+<table class="content"><tr class="content"><td class="content"><div class="contentDiv">
+<!-- } -->
+
+<h1>Change Log</h1>
+
+<h2>Next Version (unreleased)</h2>
+<ul><li>-
+</li></ul>
+
+<h2>Version 1.4.187 Beta (2015-04-10)</h2>
+<ul><li>MVStore: concurrent changes to the same row could result in
+    the exception "The transaction log might be corrupt for key ...".
+    This could only be reproduced with 3 or more threads.
+</li><li>Results with CLOB or BLOB data are no longer reused.
+</li><li>References to BLOB and CLOB objects now have a timeout.
+    The configuration setting is LOB_TIMEOUT (default 5 minutes).
+    This should avoid growing the database file if there are many queries that return BLOB or CLOB objects,
+    and the database is not closed for a longer time.
+</li><li>MVStore: when committing a session that removed LOB values,
+    changes were flushed unnecessarily.
+</li><li>Issue 610: possible integer overflow in WriteBuffer.grow().
+</li><li>Issue 609: the spatial index did not support NULL (ClassCastException).
+</li><li>MVStore: in some cases, CLOB/BLOB data blocks were removed
+    incorrectly when opening a database.
+</li><li>MVStore: updates that affected many rows were were slow
+    in some cases if there was a secondary index.
+</li><li>Using "runscript" with autocommit disabled could result
+    in a lock timeout on the internal table "SYS".
+</li><li>Issue 603: there was a memory leak when using H2 in a web application.
+    Apache Tomcat logged an error message: "The web application ...
+    created a ThreadLocal with key of type [org.h2.util.DateTimeUtils$1]".
+</li><li>When using the MVStore,
+    running a SQL script generate by the Recover tool from a PageStore file
+    failed with a strange error message (NullPointerException),
+    now a clear error message is shown.
+</li><li>Issue 605: with version 1.4.186, opening a database could result in
+    an endless loop in LobStorageMap.init.
+</li><li>Queries that use the same table alias multiple times now work.
+    Before, the select expression list was expanded incorrectly.
+    Example: "select * from a as x, b as x".
+</li><li>The MySQL compatibility feature "insert ... on duplicate key update"
+    did not work with a non-default schema.
+</li><li>Issue 599: the condition "in(x, y)" could not be used in the select list
+    when using "group by".
+</li><li>The LIRS cache could grow larger than the allocated memory.
+</li><li>A new file system implementation that re-opens the file if it was closed due
+    to the application calling Thread.interrupt(). File name prefix "retry:".
+    Please note it is strongly recommended to avoid calling Thread.interrupt;
+    this is a problem for various libraries, including Apache Lucene.
+</li><li>MVStore: use RandomAccessFile file system if the file name starts with "file:".
+</li><li>Allow DATEADD to take a long value for count when manipulating milliseconds.
+</li><li>When using MV_STORE=TRUE and the SET CACHE_SIZE setting, the cache size was incorrectly set,
+    so that it was effectively 1024 times smaller than it should be.
+</li><li>Concurrent CREATE TABLE... IF NOT EXISTS in the presence of MULTI_THREAD=TRUE could
+    throw an exception.
+</li><li>Fix bug in MVStore when creating lots of temporary tables, where we could run out of
+    transaction IDs.
+</li><li>Add support for PostgreSQL STRING_AGG function. Patch by Fred Aquiles.
+</li><li>Fix bug in "jdbc:h2:nioMemFS" isRoot() function.
+    Also, the page size was increased to 64 KB.
+</li></ul>
+
+<h2>Version 1.4.186 Beta (2015-03-02)</h2>
+<ul><li>The Servlet API 3.0.1 is now used, instead of 2.4.
+</li><li>MVStore: old chunks no longer removed in append-only mode.
+</li><li>MVStore: the cache for page references could grow far too big, resulting in out of memory in some cases.
+</li><li>MVStore: orphaned lob objects were not correctly removed in some cases,
+    making the database grow unnecessarily.
+</li><li>MVStore: the maximum cache size was artificially limited to 2 GB
+    (due to an integer overflow).
+</li><li>MVStore / TransactionStore: concurrent updates could result in a
+    "Too many open transactions" exception.
+</li><li>StringUtils.toUpperEnglish now has a small cache.
+    This should speed up reading from a ResultSet when using the column name.
+</li><li>MVStore: up to 65535 open transactions are now supported.
+    Previously, the limit was at most 65535 transactions between the oldest open and the
+    newest open transaction (which was quite a strange limit).
+</li><li>The default limit for in-place LOB objects was changed from 128 to 256 bytes.
+    This is because each read creates a reference to a LOB, and maintaining the references
+    is a big overhead. With the higher limit, less references are needed.
+</li><li>Tables without columns didn't work.
+    (The use case for such tables is testing.)
+</li><li>The LIRS cache now resizes the table automatically in all cases
+    and no longer needs the averageMemory configuration.
+</li><li>Creating a linked table from an MVStore database to a non-MVStore database
+    created a second (non-MVStore) database file.
+</li><li>In version 1.4.184, a bug was introduced that broke queries
+    that have both joins and wildcards, for example:
+    select * from dual join(select x from dual) on 1=1
+</li><li>Issue 598: parser fails on timestamp "24:00:00.1234" - prevent the creation of out-of-range time values.
+</li><li>Allow declaring triggers as source code (like functions). Patch by Sylvain Cuaz.
+</li><li>Make the planner use indexes for sorting when doing a GROUP BY where
+    all of the GROUP BY columns are not mentioned in the select. Patch by Frederico (zepfred).
+</li><li>PostgreSQL compatibility: generate_series (as an alias for system_range). Patch by litailang.
+</li><li>Fix missing "column" type in right-hand parameter in ConditionIn. Patch by Arnaud Thimel.
+</li></ul>
+
+<h2>Version 1.4.185 Beta (2015-01-16)</h2>
+<ul><li>In version 1.4.184, "group by" ignored the table name,
+    and could pick a select column by mistake.
+    Example: select 0 as x from system_range(1, 2) d group by d.x;
+</li><li>New connection setting "REUSE_SPACE" (default: true). If disabled,
+    all changes are appended to the database file, and existing content is never overwritten.
+    This allows to rollback to a previous state of the database by truncating
+    the database file.
+</li><li>Issue 587: MVStore: concurrent compaction and store operations could result in an IllegalStateException.
+</li><li>Issue 594: Profiler.copyInThread does not work properly.
+</li><li>Script tool: Now, SCRIPT ... TO is always used (for higher speed and lower disk space usage).
+</li><li>Script tool: Fix parsing of BLOCKSIZE parameter, original patch by Ken Jorissen.
+</li><li>Fix bug in PageStore#commit method - when the ignoreBigLog flag was set,
+    the logic that cleared the flag could never be reached, resulting in performance degradation.
+    Reported by Alexander Nesterov.
+</li><li>Issue 552: Implement BIT_AND and BIT_OR aggregate functions.
+</li></ul>
+
+<h2>Version 1.4.184 Beta (2014-12-19)</h2>
+<ul><li>In version 1.3.183, indexes were not used if the table contains
+    columns with a default value generated by a sequence.
+    This includes tables with identity and auto-increment columns.
+    This bug was introduced by supporting "rownum" in views and derived tables.
+</li><li>MVStore: imported BLOB and CLOB data sometimes disappeared.
+    This was caused by a bug in the ObjectDataType comparison.
+</li><li>Reading from a StreamStore now throws an
+    IOException if the underlying data doesn't exist.
+</li><li>MVStore: if there is an exception while saving, the store is now in all cases immediately closed.
+</li><li>MVStore: the dump tool could go into an endless loop for some files.
+</li><li>MVStore: recovery for a database with many CLOB or BLOB entries is now much faster.
+</li><li>Group by with a quoted select column name alias didn't work. Example:
+    select 1 "a" from dual group by "a"
+</li><li>Auto-server mode: the host name is now stored in the .lock.db file.
+</li></ul>
+
+<h2>Version 1.4.183 Beta (2014-12-13)</h2>
+<ul><li>MVStore: the default auto-commit buffer size is now about twice as big.
+    This should reduce the database file size after inserting a lot of data.
+</li><li>The built-in functions "power" and "radians" now always return a double.
+</li><li>Using "row_number" or "rownum" in views or derived tables had unexpected results
+    if the outer query contained constraints for the given view. Example:
+    select b.nr, b.id from (select row_number() over() as nr, a.id as id
+    from (select id from test order by name) as a) as b where b.id = 1
+</li><li>MVStore: the Recover tool can now deal with more types of corruption in the file.
+</li><li>MVStore: the TransactionStore now first needs to be initialized before it can be used.
+</li><li>Views and derived tables with equality and range conditions on the same columns
+    did not work properly. example: select x from (select x from (select 1 as x)
+    where x &gt; 0 and x &lt; 2) where x = 1
+</li><li>The database URL setting PAGE_SIZE setting is now also used for the MVStore.
+</li><li>MVStore: the default page split size for persistent stores is now 4096
+    (it was 16 KB so far). This should reduce the database file size for most situations
+    (in some cases, less than half the size of the previous version).
+</li><li>With query literals disabled, auto-analyze of a table with CLOB or BLOB did not work.
+</li><li>MVStore: use a mark and sweep GC algorithm instead of reference counting,
+    to ensure used chunks are never overwrite, even if the reference counting
+    algorithm does not work properly.
+</li><li>In the multi-threaded mode, updating the column selectivity ("analyze")
+    in the background sometimes did not work.
+</li><li>In the multi-threaded mode, database metadata operations
+    did sometimes not work if the schema was changed at the same time
+    (for example, if tables were dropped).
+</li><li>Some CLOB and BLOB values could no longer be read when
+    the original row was removed (even when using the MVCC mode).
+</li><li>The MVStoreTool could throw an IllegalArgumentException.
+</li><li>Improved performance for some
+    date / time / timestamp conversion operations.
+    Thanks to Sergey Evdokimov for reporting the problem.
+</li><li>H2 Console: the built-in web server did not work properly
+    if an unknown file was requested.
+</li><li>MVStore: the jar file is renamed to "h2-mvstore-*.jar" and is
+    deployed to Maven separately.
+</li><li>MVStore: support for concurrent reads and writes is now enabled by default.
+</li><li>Server mode: the transfer buffer size has been changed from 16 KB to 64 KB,
+    after it was found that this improves performance on Linux quite a lot.
+</li><li>H2 Console and server mode: SSL is now disabled and TLS is used
+    to protect against the Poodle SSLv3 vulnerability.
+    The system property to disable secure anonymous connections is now
+    "h2.enableAnonymousTLS".
+    The default certificate is still self-signed, so you need to manually install
+    another one if you want to avoid man in the middle attacks.
+</li><li>MVStore: the R-tree did not correctly measure the memory usage.
+</li><li>MVStore: compacting a store with an R-tree did not always work.
+</li><li>Issue 581: When running in LOCK_MODE=0,
+        JdbcDatabaseMetaData#supportsTransactionIsolationLevel(TRANSACTION_READ_UNCOMMITTED)
+    should return false
+</li><li>Fix bug which could generate deadlocks when multiple connections accessed the same table.
+</li><li>Some places in the code were not respecting the value set in the "SET MAX_MEMORY_ROWS x" command
+</li><li>Fix bug which could generate a NegativeArraySizeException when performing large (>40M) row union operations
+</li><li>Fix "USE schema" command for MySQL compatibility, patch by mfulton
+</li><li>Parse and ignore the ROW_FORMAT=DYNAMIC MySQL syntax, patch by mfulton
+</li></ul>
+
+<h2>Version 1.4.182 Beta (2014-10-17)</h2>
+<ul><li>MVStore: improved error messages and logging;
+    improved behavior if there is an error when serializing objects.
+</li><li>OSGi: the MVStore packages are now exported.
+</li><li>With the MVStore option, when using multiple threads
+    that concurrently create indexes or tables,
+    it was relatively easy to get a lock timeout on the "SYS" table.
+</li><li>When using the multi-threaded option, the exception
+    "Unexpected code path" could be thrown, specially if the option
+    "analyze_auto" was set to a low value.
+</li><li>In the server mode, when reading from a CLOB or BLOB, if the connection
+    was closed, a NullPointerException could be thrown instead of an exception saying
+    the connection is closed.
+</li><li>DatabaseMetaData.getProcedures and getProcedureColumns
+    could throw an exception if a user defined class is not available.
+</li><li>Issue 584: the error message for a wrong sequence definition was wrong.
+</li><li>CSV tool: the rowSeparator option is no longer supported,
+    as the same can be achieved with the lineSeparator.
+</li><li>Descending indexes on MVStore tables did not work properly.
+</li><li>Issue 579: Conditions on the "_rowid_" pseudo-column didn't use an index
+    when using the MVStore.
+</li><li>Fixed documentation that "offset" and "fetch" are also keywords since version 1.4.x.
+</li><li>The Long.MIN_VALUE could not be parsed for auto-increment (identity) columns.
+</li><li>Issue 573: Add implementation for Methods "isWrapperFor()" and "unwrap()" in
+    other JDBC classes.
+</li><li>Issue 572: MySQL compatibility for "order by" in update statements.
+</li><li>The change in  JDBC escape processing in version 1.4.181 affects both the parser
+    (which is running on the server) and the JDBC API (which is running on the client).
+    If you (or a tool you use) use the syntax "{t 'time}", or "{ts 'timestamp'}", or "{d 'data'}",
+    then both the client and the server need to be upgraded to version 1.4.181 or later.
+</li></ul>
+
+<h2>Version 1.4.181 Beta (2014-08-06)</h2>
+<ul><li>Improved MySQL compatibility by supporting "use schema".
+    Thanks a lot to Karl Pietrzak for the patch!
+</li><li>Writing to the trace file is now faster, specially with the debug level.
+</li><li>The database option "defrag_always=true" did not work with the MVStore.
+</li><li>The JDBC escape syntax {ts 'value'} did not interpret the value as a timestamp.
+    The same for {d 'value'} (for date) and {t 'value'} (for time).
+    Thanks to Lukas Eder for reporting the issue.
+    The following problem was detected after version 1.4.181 was released:
+    The change in  JDBC escape processing affects both the parser (which is running on the server)
+    and the JDBC API (which is running on the client).
+    If you (or a tool you use) use the syntax {t 'time'}, or {ts 'timestamp'}, or {d 'date'},
+    then both the client and the server need to be upgraded to version 1.4.181 or later.
+</li><li>File system abstraction: support replacing existing files using move
+    (currently not for Windows).
+</li><li>The statement "shutdown defrag" now compresses the database (with the MVStore).
+    This command can greatly reduce the file size, and is relatively fast,
+    but is not incremental.
+</li><li>The MVStore now automatically compacts the store in the background if there is no read or write activity,
+    which should (after some time; sometimes about one minute) reduce the file size.
+    This is still work in progress, feedback is welcome!
+</li><li>Change default value of PAGE_SIZE from 2048 to 4096 to more closely match most file systems block size
+    (PageStore only; the MVStore already used 4096).
+</li><li>Auto-scale MAX_MEMORY_ROWS and CACHE_SIZE settings by the amount of available RAM. Gives a better
+    out of box experience for people with more powerful machines.
+</li><li>Handle tabs like 4 spaces in web console, patch by Martin Grajcar.
+</li><li>Issue 573: Add implementation for Methods "isWrapperFor()" and "unwrap()" in JdbcConnection.java,
+    patch by BigMichi1.
+</li></ul>
+
+<h2>Version 1.4.180 Beta (2014-07-13)</h2>
+<ul><li>MVStore: the store is now auto-compacted automatically up to some point,
+    to avoid very large file sizes. This area is still work in progress.
+</li><li>Sequences of temporary tables (auto-increment or identity columns)
+    were persisted unnecessarily in the database file, and were not removed
+    when re-opening the database.
+</li><li>MVStore: an IndexOutOfBoundsException could sometimes
+    occur MVMap.openVersion when concurrently accessing the store.
+</li><li>The LIRS cache now re-sizes the internal hash map if needed.
+</li><li>Optionally persist session history in the H2 console. (patch from Martin Grajcar)
+</li><li>Add client-info property to get the number of servers currently in the cluster
+    and which servers that are available. (patch from Nikolaj Fogh)
+</li><li>Fix bug in changing encrypted DB password that kept the file handle
+    open when the wrong password was supplied. (test case from Jens Hohmuth).
+</li><li>Issue 567: H2 hangs for a long time then (sometimes) recovers.
+    Introduce a queue when doing table locking to prevent session starvation.
+</li></ul>
+
+<h2>Version 1.4.179 Beta (2014-06-23)</h2>
+<ul><li>The license was changed to MPL 2.0 (from 1.0) and EPL 1.0.
+</li><li>Issue 565: MVStore: concurrently adding LOB objects
+    (with MULTI_THREADED option) resulted in a NullPointerException.
+</li><li>MVStore: reduced dependencies to other H2 classes.
+</li><li>There was a way to prevent a database from being re-opened,
+    by creating a column constraint that references a table with a higher id,
+    for example with "check" constraints that contains queries.
+    This is now detected, and creating the table is prohibited.
+    In future versions of H2, most likely creating references to other
+    tables will no longer be supported because of such problems.
+</li><li>MVStore: descending indexes with "nulls first" did not work as expected
+    (null was ordered last).
+</li><li>Large result sets now always create temporary tables instead of temporary files.
+</li><li>When using the PageStore, opening a database failed in some cases with a NullPointerException
+    if temporary tables were used (explicitly, or implicitly when using large result sets).
+</li><li>If a database file in the PageStore file format exists, this file and this mode
+    is now used, even if the database URL does not contain "MV_STORE=FALSE".
+    If a MVStore file exists, it is used.
+</li><li>Databases created with version 1.3.175 and earlier
+    that contained foreign keys in combination with multi-column indexes
+    could not be opened in some cases.
+    This was due to a bugfix in version 1.3.176:
+    Referential integrity constraints sometimes used the wrong index.
+</li><li>MVStore: the ObjectDataType comparison method was incorrect if one
+    key was Serializable and the other was of a common class.
+</li><li>Recursive queries with many result rows (more than the setting "max_memory_rows")
+    did not work correctly.
+</li><li>The license has changed to MPL 2.0 + EPL 1.0.
+</li><li>MVStore: temporary tables from result sets could survive re-opening a database,
+    which could result in a ClassCastException.
+</li><li>Issue 566: MVStore: unique indexes that were created later on did not work correctly
+    if there were over 5000 rows in the table.
+    Existing databases need to be re-created (at least the broken index need to be re-built).
+</li><li>MVStore: creating secondary indexes on large tables
+    results in missing rows in the index.
+</li><li>Metadata: the password of linked tables is now only visible for admin users.
+</li><li>For Windows, database URLs of the form "jdbc:h2:/test" where considered
+    relative and did not work unless the system property "h2.implicitRelativePath" was used.
+</li><li>Windows: using a base directory of "C:/" and similar did not work as expected.
+</li><li>Follow JDBC specification on Procedures MetaData, use P0 as
+    return type of procedure.
+</li><li>Issue 531: IDENTITY ignored for added column.
+</li><li>FileSystem: improve exception throwing compatibility with JDK
+</li><li>Spatial Index: adjust costs so we do not use the spatial index if the
+    query does not contain an intersects operator.
+</li><li>Fix multi-threaded deadlock when using a View that includes a TableFunction.
+</li><li>Fix bug in dividing very-small BigDecimal numbers.
+</li></ul>
+
+<h2>Version 1.4.178 Beta (2014-05-02)</h2>
+<ul><li>Issue 559: Make dependency on org.osgi.service.jdbc optional.
+</li><li>Improve error message when the user specifies an unsupported combination of database settings.
+</li><li>MVStore: in the multi-threaded mode, NullPointerException and other exceptions could occur.
+</li><li>MVStore: some database file could not be compacted due to a bug in
+    the bookkeeping of the fill rate. Also, database file were compacted quite slowly.
+    This has been improved; but more changes in this area are expected.
+</li><li>MVStore: support for volatile maps (that don't store changes).
+</li><li>MVStore mode: in-memory databases now also use the MVStore.
+</li><li>In server mode, appending ";autocommit=false" to the database URL was working,
+    but the return value of Connection.getAutoCommit() was wrong.
+</li><li>Issue 561: OSGi: the import package declaration of org.h2 excluded version 1.4.
+</li><li>Issue 558: with the MVStore, a NullPointerException could occur when using LOBs
+    at session commit (LobStorageMap.removeLob).
+</li><li>Remove the "h2.MAX_MEMORY_ROWS_DISTINCT" system property to reduce confusion.
+    We already have the MAX_MEMORY_ROWS setting which does a very similar thing, and is better documented.
+</li><li>Issue 554: Web Console in an IFrame was not fully supported.
+</li></ul>
+
+<h2>Version 1.4.177 Beta (2014-04-12)</h2>
+<ul><li>By default, the MV_STORE option is enabled, so it is using the new MVStore
+    storage. The MVCC setting is by default set to the same values as the MV_STORE setting,
+    so it is also enabled by default. For testing, both settings can be disabled by appending
+    ";MV_STORE=FALSE" and/or ";MVCC=FALSE" to the database URL.
+</li><li>The file locking method 'serialized' is no longer supported.
+    This mode might return in a future version,
+    however this is not clear right now.
+    A new implementation and new tests would be needed.
+</li><li>Enable the new storage format for dates (system property "h2.storeLocalTime").
+    For the MVStore mode, this is always enabled, but with version 1.4
+    this is even enabled in the PageStore mode.
+</li><li>Implicit relative paths are disabled (system property "h2.implicitRelativePath"),
+    so that the database URL jdbc:h2:test now needs to be written as jdbc:h2:./test.
+</li><li>"select ... fetch first 1 row only" is supported with the regular mode.
+    This was disabled so far because "fetch" and "offset" are now keywords.
+    See also Mode.supportOffsetFetch.
+</li><li>Byte arrays are now sorted in unsigned mode
+    (x'99' is larger than x'09').
+    (System property "h2.sortBinaryUnsigned", Mode.binaryUnsigned, setting "binary_collation").
+</li><li>Csv.getInstance will be removed in future versions of 1.4.
+    Use the public constructor instead.
+</li><li>Remove support for the limited old-style outer join syntax using "(+)".
+    Use "outer join" instead.
+    System property "h2.oldStyleOuterJoin".
+</li><li>Support the data type "DATETIME2" as an alias for "DATETIME", for MS SQL Server compatibility.
+</li><li>Add Oracle-compatible TRANSLATE function, patch by Eric Chatellier.
+</li></ul>
+
+<h2>Version 1.3.176 (2014-04-05)</h2>
+<ul><li>The file locking method 'serialized' is no longer documented,
+    as it will not be available in version 1.4.
+</li><li>The static method Csv.getInstance() was removed.
+    Use the public constructor instead.
+</li><li>The default user name for the Script, RunScript, Shell,
+    and CreateCluster tools are no longer "sa" but an empty string.
+</li><li>The stack trace of the exception "The object is already closed" is no longer logged by default.
+</li><li>If a value of a result set was itself a result set, the result
+    could only be read once.
+</li><li>Column constraints are also visible in views (patch from Nicolas Fortin for H2GIS).
+</li><li>Granting a additional right to a role that already had a right for that table was not working.
+</li><li>Spatial index: a few bugs have been fixed (using spatial constraints in views,
+    transferring geometry objects over TCP/IP, the returned geometry object is copied when needed).
+</li><li>Issue 551: the datatype documentation was incorrect (found by Bernd Eckenfels).
+</li><li>Issue 368: ON DUPLICATE KEY UPDATE did not work for multi-row inserts.
+    Test case from Angus Macdonald.
+</li><li>OSGi: the package javax.tools is now imported (as an optional).
+</li><li>H2 Console: auto-complete is now disabled by default, but there is a hot-key (Ctrl+Space).
+</li><li>H2 Console: auto-complete did not work with multi-line statements.
+</li><li>CLOB and BLOB data was not immediately removed after a rollback.
+</li><li>There is a new Aggregate API that supports the internal H2 data types
+    (GEOMETRY for example). Thanks a lot to Nicolas Fortin for the patch!
+</li><li>Referential integrity constraints sometimes used the wrong index,
+    such that updating a row in the referenced table incorrectly failed with
+    a constraint violation.
+</li><li>The Polish translation was completed and corrected by Wojtek Jurczyk. Thanks a lot!
+</li><li>Issue 545: Unnecessary duplicate code was removed.
+</li><li>The profiler tool can now process files with full thread dumps.
+</li><li>MVStore: the file format was changed slightly.
+</li><li>MVStore mode: the CLOB and BLOB storage was re-implemented and is
+    now much faster than with the PageStore (which is still the default storage).
+</li><li>MVStore mode: creating indexes is now much faster
+    (in many cases faster than with the default PageStore).
+</li><li>Various bugs in the MVStore storage and have been fixed,
+    including a bug in the R-tree implementation.
+    The database could get corrupt if there were transient IO exceptions while storing.
+</li><li>The method org.h2.expression.Function.getCost could throw a NullPointException.
+</li><li>Storing LOBs in separate files (outside of the main database file)
+    is no longer supported for new databases.
+</li><li>Lucene 2 is no longer supported.
+</li><li>Fix bug in calculating default MIN and MAX values for SEQUENCE.
+</li><li>Fix bug in performing IN queries with multiple values when IGNORECASE=TRUE
+</li><li>Add entry-point to org.h2.tools.Shell so it can be called from inside an application.
+    patch by Thomas Gillet.
+</li><li>Fix bug that prevented the PgServer from being stopped and started multiple times.
+</li><li>Support some more DDL syntax for MySQL, patch from Peter Jentsch.
+</li><li>Issue 548: TO_CHAR does not format MM and DD correctly when the month or day of
+    the month is 1 digit, patch from "the.tucc"
+</li><li>Fix bug in varargs support in ALIAS's, patch from Nicolas Fortin
+</li></ul>
+
+<!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
+

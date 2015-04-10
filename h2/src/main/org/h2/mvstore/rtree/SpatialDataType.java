@@ -83,6 +83,10 @@ public class SpatialDataType implements DataType {
 
     @Override
     public void write(WriteBuffer buff, Object obj) {
+        if (obj == null) {
+            buff.putVarInt(-1);
+            return;
+        }
         SpatialKey k = (SpatialKey) obj;
         int flags = 0;
         for (int i = 0; i < dimensions; i++) {
@@ -103,6 +107,9 @@ public class SpatialDataType implements DataType {
     @Override
     public Object read(ByteBuffer buff) {
         int flags = DataUtils.readVarInt(buff);
+        if (flags == -1) {
+            return null;
+        }
         float[] minMax = new float[dimensions * 2];
         for (int i = 0; i < dimensions; i++) {
             float min = buff.getFloat();

@@ -381,7 +381,7 @@ class FileNioMemData {
 
     private static final int CACHE_SIZE = 8;
     private static final int BLOCK_SIZE_SHIFT = 16;
-    
+
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final CompressLZF LZF = new CompressLZF();

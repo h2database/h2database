@@ -26,7 +26,7 @@ import org.h2.util.New;
 
 /**
  * This file system keeps files fully in memory. There is an option to compress
- * file blocks to safe memory.
+ * file blocks to save memory.
  */
 public class FilePathMem extends FilePath {
 

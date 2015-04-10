@@ -924,8 +924,17 @@ public class TestSpatial extends TestBase {
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertNull(rs.getObject(2));
-        stat.execute("drop table test");
         conn.close();
+        if (!config.memory) {
+            conn = getConnection(url);
+            stat = conn.createStatement();
+            rs = stat.executeQuery("select * from test");
+            assertTrue(rs.next());
+            assertEquals(1, rs.getInt(1));
+            assertNull(rs.getObject(2));
+            conn.close();
+        }
+
         deleteDb("spatial");
     }
 

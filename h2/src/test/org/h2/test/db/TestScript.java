@@ -349,7 +349,7 @@ public class TestScript extends TestBase {
 
     private void writeResult(String sql, String s, SQLException e)
             throws Exception {
-        assertKnownException(e);
+        assertKnownException(sql, e);
         s = ("> " + s).trim();
         String compare = readLine();
         if (compare != null && compare.startsWith(">")) {
@@ -377,7 +377,6 @@ public class TestScript extends TestBase {
             putBack = compare;
         }
         write(s);
-
     }
 
     private void write(String s) {

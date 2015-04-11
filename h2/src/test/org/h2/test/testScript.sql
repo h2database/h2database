@@ -1614,7 +1614,7 @@ SELECT * FROM TEST;
 DROP TABLE TEST;
 > ok
 
-call 'a' regexp '\Ho.*';
+call 'a' regexp 'Ho.*\';
 > exception
 
 set @t = 0;
@@ -9376,10 +9376,10 @@ select degrees(null) vn, degrees(1) v1, degrees(1.1) v2, degrees(-1.1) v3, degre
 > null 57.29577951308232 63.02535746439057 -63.02535746439057 108.86198107485642 -108.86198107485642
 > rows: 1
 
-select exp(null) vn, exp(1) v1, exp(1.1) v2, exp(-1.1) v3, exp(1.9) v4, exp(-1.9) v5 from test;
-> VN   V1                 V2                 V3                 V4                 V5
-> ---- ------------------ ------------------ ------------------ ------------------ -------------------
-> null 2.7182818284590455 3.0041660239464334 0.3328710836980795 6.6858944422792685 0.14956861922263506
+select exp(null) vn, left(exp(1), 4) v1, left(exp(1.1), 4) v2, left(exp(-1.1), 4) v3, left(exp(1.9), 4) v4, left(exp(-1.9), 4) v5 from test;
+> VN   V1   V2   V3   V4   V5
+> ---- ---- ---- ---- ---- ----
+> null 2.71 3.00 0.33 6.68 0.14
 > rows: 1
 
 select radians(null) vn, radians(1) v1, radians(1.1) v2, radians(-1.1) v3, radians(1.9) v4, radians(-1.9) v5 from test;

@@ -1,0 +1,8 @@
+.classpath
+.project
+bin
+docs
+ext
+error.*
+temp
+test.out.txt

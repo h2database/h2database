@@ -783,8 +783,22 @@ public class Build extends BuildBase {
      */
     public void test() {
         downloadTest();
-        String testClass = System.getProperty("test", "org.h2.test.TestAll");
-        java(testClass, null);
+        String cp = "temp" + File.pathSeparator + "bin" +
+                File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
+                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
+                File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
+                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/jts-1.13.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
+                File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
+                File.pathSeparator + System.getProperty("java.home") +
+                "/../lib/tools.jar";
+            exec("java", args(
+                    "-Xmx128m",
+                    "-cp", cp,
+                    "org.h2.test.TestAll"));
     }
 
     /**

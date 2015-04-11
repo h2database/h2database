@@ -1360,6 +1360,9 @@ public class Function extends Expression implements FunctionCall {
             } catch (PatternSyntaxException e) {
                 throw DbException.get(
                         ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+            } catch (IllegalArgumentException e) {
+                throw DbException.get(
+                        ErrorCode.LIKE_ESCAPE_ERROR_1, e, replacement);
             }
             break;
         }

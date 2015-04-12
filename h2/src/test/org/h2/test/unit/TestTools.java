@@ -354,6 +354,12 @@ public class TestTools extends TestBase {
                     continue;
                 }
                 int len = m.getParameterTypes().length;
+                if (m.getName().equals("updateObject") && m.getParameterTypes().length > 2) {
+                    Class<?> p3 = m.getParameterTypes()[2];
+                    if (p3.toString().indexOf("SQLType") >= 0) {
+                        continue;
+                    }
+                }
                 Object[] params = new Object[len];
                 int i = 0;
                 String expectedValue = null;

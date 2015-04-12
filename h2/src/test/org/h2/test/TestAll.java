@@ -372,6 +372,8 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
+    private boolean fast;
+
     /**
      * Run all tests.
      *
@@ -436,7 +438,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 */
         TestAll test = new TestAll();
         if (args.length > 0) {
-            if ("reopen".equals(args[0])) {
+            if ("fast".equals(args[0])) {
+                test.fast = true;
+                test.testAll();
+            } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
                 System.setProperty("h2.check2", "false");
                 System.setProperty("h2.analyzeAuto", "100");
@@ -476,18 +481,22 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
                 new TestTimer().runTest(test);
             }
         } else {
-            test.runTests();
-            Profiler prof = new Profiler();
-            prof.depth = 16;
-            prof.interval = 1;
-            prof.startCollecting();
-            TestPerformance.main("-init", "-db", "1", "-size", "1000");
-            prof.stopCollecting();
-            System.out.println(prof.getTop(5));
-            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            test.testAll();
         }
         System.out.println(TestBase.formatTime(
                 System.currentTimeMillis() - time) + " total");
+    }
+
+    private void testAll() throws Exception {
+        runTests();
+        Profiler prof = new Profiler();
+        prof.depth = 16;
+        prof.interval = 1;
+        prof.startCollecting();
+        TestPerformance.main("-init", "-db", "1", "-size", "1000");
+        prof.stopCollecting();
+        System.out.println(prof.getTop(5));
+        TestPerformance.main("-init", "-db", "1", "-size", "1000");
     }
 
     /**
@@ -564,17 +573,21 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         traceLevelFile = 0;
         smallLog = true;
         networked = true;
-        ssl = true;
+        if (!fast) {
+            ssl = true;
+        }
         defrag = false;
         test();
 
-        big = true;
-        smallLog = false;
-        networked = false;
-        ssl = false;
-        traceLevelFile = 0;
-        test();
-        testUnit();
+        if (!fast) {
+            big = true;
+            smallLog = false;
+            networked = false;
+            ssl = false;
+            traceLevelFile = 0;
+            test();
+            testUnit();
+        }
 
         big = false;
         cipher = "AES";
@@ -892,6 +905,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
+        appendIf(buff, fast, "fast");
         appendIf(buff, mvStore, "mvStore");
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");

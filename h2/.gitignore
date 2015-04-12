@@ -1,6 +1,7 @@
 .classpath
 .project
 bin
+data
 docs
 ext
 error.*

@@ -782,6 +782,17 @@ public class Build extends BuildBase {
      * Compile and run all tests. This does not include the compile step.
      */
     public void test() {
+        test(false);
+    }
+    
+    /**
+     * Compile and run all fast tests. This does not include the compile step.
+     */    
+    public void testFast() {
+        test(true);
+    }
+    
+    private void test(boolean fast) {
         downloadTest();
         String cp = "temp" + File.pathSeparator + "bin" +
                 File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
@@ -795,10 +806,17 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") +
                 "/../lib/tools.jar";
+        if (fast) {
             exec("java", args(
                     "-Xmx128m",
                     "-cp", cp,
-                    "org.h2.test.TestAll"));
+                    "org.h2.test.TestAll", "fast"));        
+        } else {
+            exec("java", args(
+                    "-Xmx128m",
+                    "-cp", cp,
+                    "org.h2.test.TestAll"));        
+        }
     }
 
     /**

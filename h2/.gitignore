@@ -1,5 +1,7 @@
 .classpath
 .project
+.settings
+benchmark.html
 bin
 data
 docs

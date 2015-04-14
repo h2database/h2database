@@ -6,6 +6,7 @@
 package org.h2.test.unit;
 
 import java.awt.Button;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.ByteArrayOutputStream;
@@ -142,20 +143,26 @@ public class TestTools extends TestBase {
             lastUrl = "-";
             // double-click prevention is 100 ms
             Thread.sleep(200);
-            MouseEvent me = new MouseEvent(new Button(), 0, 0, 0, 0, 0, 0,
-                    false, MouseEvent.BUTTON1);
-            c.mouseClicked(me);
-            assertContains(lastUrl, ":9002");
-            lastUrl = "-";
-            // no delay - ignore because it looks like a double click
-            c.mouseClicked(me);
-            assertEquals("-", lastUrl);
-            // open the window
-            c.actionPerformed(new ActionEvent(this, 0, "status"));
-            c.actionPerformed(new ActionEvent(this, 0, "exit"));
+            try {
+                MouseEvent me = new MouseEvent(new Button(), 0, 0, 0, 0, 0, 0,
+                        false, MouseEvent.BUTTON1);
+                c.mouseClicked(me);
+                assertContains(lastUrl, ":9002");
+                lastUrl = "-";
+                // no delay - ignore because it looks like a double click
+                c.mouseClicked(me);
+                assertEquals("-", lastUrl);
+                // open the window
+                c.actionPerformed(new ActionEvent(this, 0, "status"));
+                c.actionPerformed(new ActionEvent(this, 0, "exit"));
 
-            // check if the service was stopped
-            c.runTool("-webPort", "9002");
+                // check if the service was stopped
+                c.runTool("-webPort", "9002");
+
+            } catch (HeadlessException e) {
+                // ignore
+            }
+
             c.shutdown();
 
             // trying to use the same port for two services should fail,

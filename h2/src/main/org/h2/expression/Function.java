@@ -2479,9 +2479,15 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case CONVERT: {
-            buff.append(args[0].getSQL()).append(',').
-                append(new Column(null, dataType, precision,
+            if (database.getMode().swapConvertFunctionParameters) {
+                buff.append(new Column(null, dataType, precision,
+                        scale, displaySize).getCreateSQL()).
+                    append(',').append(args[0].getSQL());
+            } else {
+                buff.append(args[0].getSQL()).append(',').
+                    append(new Column(null, dataType, precision,
                         scale, displaySize).getCreateSQL());
+            }
             break;
         }
         case EXTRACT: {

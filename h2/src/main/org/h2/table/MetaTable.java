@@ -893,6 +893,7 @@ public class MetaTable extends Table {
             add(rows, Table.TABLE_LINK);
             add(rows, Table.SYSTEM_TABLE);
             add(rows, Table.VIEW);
+            add(rows, Table.EXTERNAL_TABLE_ENGINE);
             break;
         }
         case CATALOGS: {

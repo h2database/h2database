@@ -56,7 +56,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
      * @return the new immutable array
      */
     public ImmutableArray<K> set(int index, K obj) {
-        K[] array = Arrays.copyOf(this.array, this.array.length);
+        K[] array = this.array.clone();
         array[index] = obj;
         return new ImmutableArray<K>(array);
     }

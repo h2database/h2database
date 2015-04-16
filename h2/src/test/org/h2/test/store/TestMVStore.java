@@ -50,8 +50,6 @@ public class TestMVStore extends TestBase {
 
     @Override
     public void test() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        FileUtils.createDirectories(getBaseDir());
         testRemoveMapRollback();
         testProvidedFileStoreNotOpenedAndClosed();
         testVolatileMap();
@@ -127,7 +125,8 @@ public class TestMVStore extends TestBase {
         assertNull(map.get("1"));
         store.close();
 
-        String fileName = getBaseDir() + "/testRemoveMapRollback.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         store = new MVStore.Builder().
                 autoCommitDisabled().
                 fileName(fileName).
@@ -168,7 +167,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testVolatileMap() {
-        String fileName = getBaseDir() + "/testVolatile.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore store = new MVStore.Builder().
                 fileName(fileName).
                 open();
@@ -205,7 +205,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCompressEmptyPage() {
-        String fileName = getBaseDir() + "/testDeletedMap.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore store = new MVStore.Builder().
                 cacheSize(100).fileName(fileName).
                 compress().
@@ -222,7 +223,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCompressed() {
-        String fileName = getBaseDir() + "/testCompressed.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         long lastSize = 0;
         for (int level = 0; level <= 2; level++) {
             FileUtils.delete(fileName);
@@ -254,7 +256,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testFileFormatExample() {
-        String fileName = getBaseDir() + "/testFileFormatExample.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s = MVStore.open(fileName);
         MVMap<Integer, String> map = s.openMap("data");
         for (int i = 0; i < 400; i++) {
@@ -270,7 +273,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testMaxChunkLength() {
-        String fileName = getBaseDir() + "/testMaxChunkLength.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().fileName(fileName).open();
         MVMap<Integer, byte[]> map = s.openMap("data");
         map.put(0, new byte[2 * 1024 * 1024]);
@@ -285,7 +289,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCacheInfo() {
-        String fileName = getBaseDir() + "/testCloseMap.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().fileName(fileName).cacheSize(2).open();
         assertEquals(2, s.getCacheSize());
         MVMap<Integer, byte[]> map;
@@ -355,7 +360,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testRemoveMap() throws Exception {
-        String fileName = getBaseDir() + "/testCloseMap.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
             fileName(fileName).
@@ -418,7 +423,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testNewerWriteVersion() throws Exception {
-        String fileName = getBaseDir() + "/testNewerWriteVersion.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
                 encryptionKey("007".toCharArray()).
@@ -475,7 +480,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCompactFully() throws Exception {
-        String fileName = getBaseDir() + "/testCompactFully.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
                 fileName(fileName).
@@ -500,7 +505,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testBackgroundExceptionListener() throws Exception {
-        String fileName = getBaseDir() + "/testBackgroundExceptionListener.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         final AtomicReference<Throwable> exRef =
@@ -516,28 +521,34 @@ public class TestMVStore extends TestBase {
 
                 }).
                 open();
-        s.setAutoCommitDelay(50);
+        s.setAutoCommitDelay(10);
         MVMap<Integer, String> m;
         m = s.openMap("data");
         s.getFileStore().getFile().close();
-        m.put(1, "Hello");
-        for (int i = 0; i < 200; i++) {
-            if (exRef.get() != null) {
-                break;
+        try {
+            m.put(1, "Hello");
+            for (int i = 0; i < 200; i++) {
+                if (exRef.get() != null) {
+                    break;
+                }
+                Thread.sleep(10);
             }
-            Thread.sleep(1);
+            Throwable e = exRef.get();
+            assertTrue(e != null);
+            assertEquals(DataUtils.ERROR_WRITING_FAILED,
+                    DataUtils.getErrorCode(e.getMessage()));
+        } catch (IllegalStateException e) {
+            // sometimes it is detected right away
+            assertEquals(DataUtils.ERROR_CLOSED,
+                    DataUtils.getErrorCode(e.getMessage()));
         }
-        Throwable e = exRef.get();
-        assertTrue(e != null);
-        assertEquals(DataUtils.ERROR_WRITING_FAILED,
-                DataUtils.getErrorCode(e.getMessage()));
 
         s.closeImmediately();
         FileUtils.delete(fileName);
     }
 
     private void testAtomicOperations() {
-        String fileName = getBaseDir() + "/testAtomicOperations.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, byte[]> m;
@@ -572,7 +583,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testWriteBuffer() {
-        String fileName = getBaseDir() + "/testWriteBuffer.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, byte[]> m;
@@ -617,7 +628,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testWriteDelay() throws InterruptedException {
-        String fileName = getBaseDir() + "/testWriteDelay.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, String> m;
 
@@ -640,34 +652,33 @@ public class TestMVStore extends TestBase {
         s = new MVStore.Builder().
                 fileName(fileName).
                 open();
-        s.setAutoCommitDelay(1);
         m = s.openMap("data");
         m.put(1, "Hello");
-        s.commit();
-        long v = s.getCurrentVersion();
         m.put(2, "World.");
-        Thread.sleep(5);
-        // must not store, as nothing has been committed yet
-        s.closeImmediately();
+        s.commit();
+        s.close();
+
         s = new MVStore.Builder().
                 fileName(fileName).
                 open();
-        s.setAutoCommitDelay(1);
+        s.setAutoCommitDelay(2);
         m = s.openMap("data");
         assertEquals("World.", m.get(2));
         m.put(2, "World");
         s.commit();
-        v = s.getCurrentVersion();
+        long v = s.getCurrentVersion();
+        long time = System.currentTimeMillis();
         m.put(3, "!");
 
-        for (int i = 100; i > 0; i--) {
+        for (int i = 200; i > 0; i--) {
             if (s.getCurrentVersion() > v) {
                 break;
             }
-            if (i < 10) {
+            long diff = System.currentTimeMillis() - time;
+            if (diff > 1000) {
                 fail();
             }
-            Thread.sleep(1);
+            Thread.sleep(10);
         }
         s.closeImmediately();
 
@@ -684,7 +695,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testEncryptedFile() {
-        String fileName = getBaseDir() + "/testEncryptedFile.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, String> m;
@@ -741,7 +752,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testFileFormatChange() {
-        String fileName = getBaseDir() + "/testFileFormatChange.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, Integer> m;
@@ -774,7 +785,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testRecreateMap() {
-        String fileName = getBaseDir() + "/testRecreateMap.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, Integer> m = s.openMap("test");
@@ -805,7 +816,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCustomMapType() {
-        String fileName = getBaseDir() + "/testMapType.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         SequenceMap seq = s.openMap("data", new SequenceMap.Builder());
@@ -818,7 +829,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCacheSize() {
-        String fileName = getBaseDir() + "/testCacheSize.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, String> map;
         s = new MVStore.Builder().
@@ -857,7 +869,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testConcurrentOpen() {
-        String fileName = getBaseDir() + "/testConcurrentOpen.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().fileName(fileName).open();
         try {
             MVStore s1 = new MVStore.Builder().fileName(fileName).open();
@@ -881,7 +894,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testFileHeader() {
-        String fileName = getBaseDir() + "/testFileHeader.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         s.setRetentionTime(Integer.MAX_VALUE);
         long time = System.currentTimeMillis();
@@ -910,7 +924,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testFileHeaderCorruption() throws Exception {
-        String fileName = getBaseDir() + "/testFileHeader.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         MVStore s = new MVStore.Builder().
                 fileName(fileName).pageSplitSize(1000).autoCommitDisabled().open();
         s.setRetentionTime(0);
@@ -1100,7 +1115,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testStoreVersion() {
-        String fileName = getBaseDir() + "/testStoreVersion.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = MVStore.open(fileName);
         assertEquals(0, s.getCurrentVersion());
@@ -1144,7 +1159,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testObjects() {
-        String fileName = getBaseDir() + "/testObjects.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         Map<Object, Object> map;
@@ -1167,7 +1182,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testExample() {
-        String fileName = getBaseDir() + "/testExample.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
 
         // open the store (in-memory if fileName is null)
@@ -1190,7 +1205,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testExampleMvcc() {
-        String fileName = getBaseDir() + "/testExampleMvcc.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
 
         // open the store (in-memory if fileName is null)
@@ -1236,7 +1251,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testOpenStoreCloseLoop() {
-        String fileName = getBaseDir() + "/testOpenClose.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         for (int k = 0; k < 1; k++) {
             // long t = System.currentTimeMillis();
@@ -1282,7 +1297,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testVersion() {
-        String fileName = getBaseDir() + "/testVersion.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
@@ -1347,7 +1362,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testTruncateFile() {
-        String fileName = getBaseDir() + "/testTruncate.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, String> m;
@@ -1377,7 +1392,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testFastDelete() {
-        String fileName = getBaseDir() + "/testFastDelete.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         MVMap<Integer, String> m;
@@ -1419,7 +1434,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testRollbackStored() {
-        String fileName = getBaseDir() + "/testRollback.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVMap<String, String> meta;
         MVStore s = openStore(fileName);
@@ -1512,7 +1527,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testRollbackInMemory() {
-        String fileName = getBaseDir() + "/testRollback.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName, 5);
         s.setAutoCommitDelay(0);
@@ -1553,7 +1568,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testMeta() {
-        String fileName = getBaseDir() + "/testMeta.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         s.setRetentionTime(Integer.MAX_VALUE);
@@ -1623,7 +1638,8 @@ public class TestMVStore extends TestBase {
     }
 
     private void testLargeImport() {
-        String fileName = getBaseDir() + "/testImport.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        FileUtils.delete(fileName);
         int len = 1000;
         for (int j = 0; j < 5; j++) {
             FileUtils.delete(fileName);
@@ -1659,7 +1675,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testBtreeStore() {
-        String fileName = getBaseDir() + "/testBtreeStore.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         s.close();
@@ -1707,7 +1723,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCompactMapNotOpen() {
-        String fileName = getBaseDir() + "/testCompactNotOpen.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName, 1000);
         MVMap<Integer, String> m = s.openMap("data");
@@ -1767,7 +1783,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCompact() {
-        String fileName = getBaseDir() + "/testCompact.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 20; j++) {
@@ -1808,7 +1824,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testReuseSpace() {
-        String fileName = getBaseDir() + "/testReuseSpace.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 20; j++) {
@@ -1835,7 +1851,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testRandom() {
-        String fileName = getBaseDir() + "/testRandom.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, Integer> m = s.openMap("data");
@@ -1898,7 +1914,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testKeyValueClasses() {
-        String fileName = getBaseDir() + "/testKeyValueClasses.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, String> is = s.openMap("intString");
@@ -1923,7 +1939,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testIterate() {
-        String fileName = getBaseDir() + "/testIterate.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, String> m = s.openMap("data");
@@ -1956,7 +1972,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testCloseTwice() {
-        String fileName = getBaseDir() + "/testCloseTwice.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, String> m = s.openMap("data");
@@ -1969,7 +1985,7 @@ public class TestMVStore extends TestBase {
     }
 
     private void testSimple() {
-        String fileName = getBaseDir() + "/testSimple.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, String> m = s.openMap("data");
@@ -1998,7 +2014,7 @@ public class TestMVStore extends TestBase {
         if (!config.big) {
             return;
         }
-        String fileName = getBaseDir() + "/testLargerThan2G.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore store = new MVStore.Builder().cacheSize(16).
                 fileName(fileName).open();

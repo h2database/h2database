@@ -5,7 +5,9 @@
  */
 package org.h2.test;
 
+import java.lang.management.ManagementFactory;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Properties;
 import org.h2.Driver;
 import org.h2.engine.Constants;
@@ -168,6 +170,7 @@ import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
 import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestIntPerfectHash;
+import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMathUtils;
 import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestNetUtils;
@@ -201,8 +204,10 @@ import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
+import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
+import org.h2.util.Task;
 import org.h2.util.Utils;
 
 /**
@@ -341,6 +346,11 @@ java org.h2.test.TestAll timer
     boolean endless;
 
     /**
+     * If only fast tests should be run. If enabled, SSL is not tested.
+     */
+    public boolean fast;
+
+    /**
      * The THROTTLE value to use.
      */
     int throttle;
@@ -372,7 +382,7 @@ java org.h2.test.TestAll timer
 
     private Server server;
 
-    private boolean fast;
+    ArrayList<TestBase> tests = New.arrayList();
 
     /**
      * Run all tests.
@@ -625,213 +635,262 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         beforeTest();
 
         // db
-        new TestScriptSimple().runTest(this);
-        new TestScript().runTest(this);
-        new TestAlter().runTest(this);
-        new TestAlterSchemaRename().runTest(this);
-        new TestAutoRecompile().runTest(this);
-        new TestBitField().runTest(this);
-        new TestBackup().runTest(this);
-        new TestBigDb().runTest(this);
-        new TestBigResult().runTest(this);
-        new TestCases().runTest(this);
-        new TestCheckpoint().runTest(this);
-        new TestCluster().runTest(this);
-        new TestCompatibility().runTest(this);
-        new TestCompatibilityOracle().runTest(this);
-        new TestCsv().runTest(this);
-        new TestDateStorage().runTest(this);
-        new TestDeadlock().runTest(this);
-        new TestDrop().runTest(this);
-        new TestDuplicateKeyUpdate().runTest(this);
-        new TestEncryptedDb().runTest(this);
-        new TestExclusive().runTest(this);
-        new TestFullText().runTest(this);
-        new TestFunctionOverload().runTest(this);
-        new TestFunctions().runTest(this);
-        new TestInit().runTest(this);
-        new TestIndex().runTest(this);
-        new TestLargeBlob().runTest(this);
-        new TestLinkedTable().runTest(this);
-        new TestListener().runTest(this);
-        new TestLob().runTest(this);
-        new TestMemoryUsage().runTest(this);
-        new TestMultiConn().runTest(this);
-        new TestMultiDimension().runTest(this);
-        new TestMultiThread().runTest(this);
-        new TestMultiThreadedKernel().runTest(this);
-        new TestOpenClose().runTest(this);
-        new TestOptimizations().runTest(this);
-        new TestOutOfMemory().runTest(this);
-        new TestPowerOff().runTest(this);
-        new TestQueryCache().runTest(this);
-        new TestReadOnly().runTest(this);
-        new TestRecursiveQueries().runTest(this);
-        new TestRights().runTest(this);
-        new TestRunscript().runTest(this);
-        new TestSQLInjection().runTest(this);
-        new TestSessionsLocks().runTest(this);
-        new TestSelectCountNonNullColumn().runTest(this);
-        new TestSequence().runTest(this);
-        new TestShow().runTest(this);
-        new TestSpaceReuse().runTest(this);
-        new TestSpatial().runTest(this);
-        new TestSpeed().runTest(this);
-        new TestTableEngines().runTest(this);
-        new TestTempTables().runTest(this);
-        new TestTransaction().runTest(this);
-        new TestTriggersConstraints().runTest(this);
-        new TestTwoPhaseCommit().runTest(this);
-        new TestView().runTest(this);
-        new TestViewAlterTable().runTest(this);
-        new TestViewDropView().runTest(this);
+        addTest(new TestScriptSimple());
+        addTest(new TestScript());
+        addTest(new TestAlter());
+        addTest(new TestAlterSchemaRename());
+        addTest(new TestAutoRecompile());
+        addTest(new TestBackup());
+        addTest(new TestBigDb());
+        addTest(new TestBigResult());
+        addTest(new TestCases());
+        addTest(new TestCheckpoint());
+        addTest(new TestCompatibility());
+        addTest(new TestCompatibilityOracle());
+        addTest(new TestCsv());
+        addTest(new TestDeadlock());
+        addTest(new TestDrop());
+        addTest(new TestDuplicateKeyUpdate());
+        addTest(new TestEncryptedDb());
+        addTest(new TestExclusive());
+        addTest(new TestFullText());
+        addTest(new TestFunctionOverload());
+        addTest(new TestFunctions());
+        addTest(new TestInit());
+        addTest(new TestIndex());
+        addTest(new TestLargeBlob());
+        addTest(new TestLinkedTable());
+        addTest(new TestListener());
+        addTest(new TestLob());
+        addTest(new TestMultiConn());
+        addTest(new TestMultiDimension());
+        addTest(new TestMultiThreadedKernel());
+        addTest(new TestOpenClose());
+        addTest(new TestOptimizations());
+        addTest(new TestOutOfMemory());
+        addTest(new TestReadOnly());
+        addTest(new TestRecursiveQueries());
+        addTest(new TestRights());
+        addTest(new TestRunscript());
+        addTest(new TestSQLInjection());
+        addTest(new TestSessionsLocks());
+        addTest(new TestSelectCountNonNullColumn());
+        addTest(new TestSequence());
+        addTest(new TestShow());
+        addTest(new TestSpaceReuse());
+        addTest(new TestSpatial());
+        addTest(new TestSpeed());
+        addTest(new TestTableEngines());
+        addTest(new TestTempTables());
+        addTest(new TestTransaction());
+        addTest(new TestTriggersConstraints());
+        addTest(new TestTwoPhaseCommit());
+        addTest(new TestView());
+        addTest(new TestViewAlterTable());
+        addTest(new TestViewDropView());
 
         // jaqu
-        new AliasMapTest().runTest(this);
-        new AnnotationsTest().runTest(this);
-        new ClobTest().runTest(this);
-        new ModelsTest().runTest(this);
-        new SamplesTest().runTest(this);
-        new UpdateTest().runTest(this);
+        addTest(new AliasMapTest());
+        addTest(new AnnotationsTest());
+        addTest(new ClobTest());
+        addTest(new ModelsTest());
+        addTest(new SamplesTest());
+        addTest(new UpdateTest());
 
         // jdbc
-        new TestBatchUpdates().runTest(this);
-        new TestCallableStatement().runTest(this);
-        new TestCancel().runTest(this);
-        new TestDatabaseEventListener().runTest(this);
-        new TestDriver().runTest(this);
-        new TestJavaObject().runTest(this);
-        new TestJavaObjectSerializer().runTest(this);
-        new TestUrlJavaObjectSerializer().runTest(this);
-        new TestLimitUpdates().runTest(this);
-        new TestLobApi().runTest(this);
-        new TestManyJdbcObjects().runTest(this);
-        new TestMetaData().runTest(this);
-        new TestNativeSQL().runTest(this);
-        new TestPreparedStatement().runTest(this);
-        new TestResultSet().runTest(this);
-        new TestStatement().runTest(this);
-        new TestTransactionIsolation().runTest(this);
-        new TestUpdatableResultSet().runTest(this);
-        new TestZloty().runTest(this);
+        addTest(new TestBatchUpdates());
+        addTest(new TestCallableStatement());
+        addTest(new TestCancel());
+        addTest(new TestDatabaseEventListener());
+        addTest(new TestJavaObject());
+        addTest(new TestLimitUpdates());
+        addTest(new TestLobApi());
+        addTest(new TestManyJdbcObjects());
+        addTest(new TestMetaData());
+        addTest(new TestNativeSQL());
+        addTest(new TestPreparedStatement());
+        addTest(new TestResultSet());
+        addTest(new TestStatement());
+        addTest(new TestTransactionIsolation());
+        addTest(new TestUpdatableResultSet());
+        addTest(new TestZloty());
 
         // jdbcx
-        new TestConnectionPool().runTest(this);
-        new TestDataSource().runTest(this);
-        new TestXA().runTest(this);
-        new TestXASimple().runTest(this);
+        addTest(new TestConnectionPool());
+        addTest(new TestDataSource());
+        addTest(new TestXA());
+        addTest(new TestXASimple());
 
         // server
-        new TestAutoServer().runTest(this);
-        new TestNestedLoop().runTest(this);
-        new TestWeb().runTest(this);
+        addTest(new TestAutoServer());
+        addTest(new TestNestedLoop());
 
         // mvcc & row level locking
-        new TestMvcc1().runTest(this);
-        new TestMvcc2().runTest(this);
-        new TestMvcc3().runTest(this);
-        new TestMvccMultiThreaded().runTest(this);
-        new TestRowLocks().runTest(this);
+        addTest(new TestMvcc1());
+        addTest(new TestMvcc2());
+        addTest(new TestMvcc3());
+        addTest(new TestMvccMultiThreaded());
+        addTest(new TestRowLocks());
 
         // synth
-        new TestBtreeIndex().runTest(this);
-        new TestConcurrentUpdate().runTest(this);
-        new TestDiskFull().runTest(this);
-        new TestCrashAPI().runTest(this);
-        new TestFuzzOptimizations().runTest(this);
-        new TestLimit().runTest(this);
-        new TestRandomSQL().runTest(this);
-        new TestRandomCompare().runTest(this);
-        new TestKillRestart().runTest(this);
-        new TestKillRestartMulti().runTest(this);
-        new TestMultiThreaded().runTest(this);
-        new TestOuterJoins().runTest(this);
-        new TestNestedJoins().runTest(this);
+        addTest(new TestBtreeIndex());
+        addTest(new TestConcurrentUpdate());
+        addTest(new TestDiskFull());
+        addTest(new TestCrashAPI());
+        addTest(new TestFuzzOptimizations());
+        addTest(new TestLimit());
+        addTest(new TestRandomCompare());
+        addTest(new TestKillRestart());
+        addTest(new TestKillRestartMulti());
+        addTest(new TestMultiThreaded());
+        addTest(new TestOuterJoins());
+        addTest(new TestNestedJoins());
+
+        runAddedTests();
+
+        // serial
+        addTest(new TestDateStorage());
+        addTest(new TestDriver());
+        addTest(new TestJavaObjectSerializer());
+        addTest(new TestLocale());
+        addTest(new TestMemoryUsage());
+        addTest(new TestMultiThread());
+        addTest(new TestPowerOff());
+        addTest(new TestRandomSQL());
+        addTest(new TestQueryCache());
+        addTest(new TestUrlJavaObjectSerializer());
+        addTest(new TestWeb());
+
+        runAddedTests(1);
 
         afterTest();
     }
 
     private void testUnit() {
         // mv store
-        new TestCacheConcurrentLIRS().runTest(this);
-        new TestCacheLIRS().runTest(this);
-        new TestCacheLongKeyLIRS().runTest(this);
-        new TestConcurrent().runTest(this);
-        new TestConcurrentLinkedList().runTest(this);
-        new TestDataUtils().runTest(this);
-        new TestFreeSpace().runTest(this);
-        new TestKillProcessWhileWriting().runTest(this);
-        new TestMVRTree().runTest(this);
-        new TestMVStore().runTest(this);
-        new TestMVStoreBenchmark().runTest(this);
-        new TestMVStoreTool().runTest(this);
-        new TestMVTableEngine().runTest(this);
-        new TestObjectDataType().runTest(this);
-        new TestRandomMapOps().runTest(this);
-        new TestSpinLock().runTest(this);
-        new TestStreamStore().runTest(this);
-        new TestTransactionStore().runTest(this);
+        addTest(new TestCacheConcurrentLIRS());
+        addTest(new TestCacheLIRS());
+        addTest(new TestCacheLongKeyLIRS());
+        addTest(new TestConcurrentLinkedList());
+        addTest(new TestDataUtils());
+        addTest(new TestFreeSpace());
+        addTest(new TestKillProcessWhileWriting());
+        addTest(new TestMVRTree());
+        addTest(new TestMVStore());
+        addTest(new TestMVStoreBenchmark());
+        addTest(new TestMVStoreTool());
+        addTest(new TestMVTableEngine());
+        addTest(new TestObjectDataType());
+        addTest(new TestRandomMapOps());
+        addTest(new TestSpinLock());
+        addTest(new TestStreamStore());
+        addTest(new TestTransactionStore());
 
         // unit
-        new TestAutoReconnect().runTest(this);
-        new TestBnf().runTest(this);
-        new TestCache().runTest(this);
-        new TestClearReferences().runTest(this);
-        new TestCollation().runTest(this);
-        new TestCompress().runTest(this);
-        new TestConnectionInfo().runTest(this);
-        new TestDataPage().runTest(this);
-        new TestDate().runTest(this);
-        new TestDateIso8601().runTest(this);
-        new TestExit().runTest(this);
-        new TestFile().runTest(this);
-        new TestFileLock().runTest(this);
-        new TestFileLockProcess().runTest(this);
-        new TestFileLockSerialized().runTest(this);
-        new TestFtp().runTest(this);
-        new TestFileSystem().runTest(this);
-        new TestIntArray().runTest(this);
-        new TestIntIntHashMap().runTest(this);
-        new TestIntPerfectHash().runTest(this);
-        new TestJmx().runTest(this);
-        new TestMathUtils().runTest(this);
-        new TestModifyOnWrite().runTest(this);
-        new TestOldVersion().runTest(this);
-        new TestNetUtils().runTest(this);
-        new TestObjectDeserialization().runTest(this);
-        new TestMultiThreadedKernel().runTest(this);
-        new TestOverflow().runTest(this);
-        new TestPageStore().runTest(this);
-        new TestPageStoreCoverage().runTest(this);
-        new TestPattern().runTest(this);
-        new TestPerfectHash().runTest(this);
-        new TestPgServer().runTest(this);
-        new TestReader().runTest(this);
-        new TestRecovery().runTest(this);
-        new TestSampleApps().runTest(this);
-        new TestScriptReader().runTest(this);
-        runTest("org.h2.test.unit.TestServlet");
-        new TestSecurity().runTest(this);
-        new TestShell().runTest(this);
-        new TestSort().runTest(this);
-        new TestStreams().runTest(this);
-        new TestStringCache().runTest(this);
-        new TestStringUtils().runTest(this);
-        new TestTools().runTest(this);
-        new TestTraceSystem().runTest(this);
-        new TestUpgrade().runTest(this);
-        new TestUtils().runTest(this);
-        new TestValue().runTest(this);
-        new TestValueHashMap().runTest(this);
-        new TestValueMemory().runTest(this);
-        new TestWeb().runTest(this);
+        addTest(new TestAutoReconnect());
+        addTest(new TestBitField());
+        addTest(new TestBnf());
+        addTest(new TestCache());
+        addTest(new TestClearReferences());
+        addTest(new TestCollation());
+        addTest(new TestCompress());
+        addTest(new TestConnectionInfo());
+        addTest(new TestDataPage());
+        addTest(new TestDateIso8601());
+        addTest(new TestExit());
+        addTest(new TestFile());
+        addTest(new TestFileLock());
+        addTest(new TestFtp());
+        addTest(new TestIntArray());
+        addTest(new TestIntIntHashMap());
+        addTest(new TestIntPerfectHash());
+        addTest(new TestJmx());
+        addTest(new TestMathUtils());
+        addTest(new TestModifyOnWrite());
+        addTest(new TestOldVersion());
+        addTest(new TestObjectDeserialization());
+        addTest(new TestMultiThreadedKernel());
+        addTest(new TestOverflow());
+        addTest(new TestPageStore());
+        addTest(new TestPageStoreCoverage());
+        addTest(new TestPerfectHash());
+        addTest(new TestPgServer());
+        addTest(new TestReader());
+        addTest(new TestRecovery());
+        addTest(new TestScriptReader());
+        addTest(createTest("org.h2.test.unit.TestServlet"));
+        addTest(new TestSecurity());
+        addTest(new TestShell());
+        addTest(new TestSort());
+        addTest(new TestStreams());
+        addTest(new TestStringUtils());
+        addTest(new TestTraceSystem());
+        addTest(new TestUpgrade());
+        addTest(new TestUtils());
+        addTest(new TestValue());
+        addTest(new TestValueHashMap());
+        addTest(new TestWeb());
+
+        runAddedTests();
+
+        // serial
+        addTest(new TestDate());
+        addTest(new TestCluster());
+        addTest(new TestConcurrent());
+        addTest(new TestFileLockSerialized());
+        addTest(new TestFileLockProcess());
+        addTest(new TestFileSystem());
+        addTest(new TestNetUtils());
+        addTest(new TestPattern());
+        addTest(new TestTools());
+        addTest(new TestSampleApps());
+        addTest(new TestStringCache());
+        addTest(new TestValueMemory());
+
+        runAddedTests(1);
+
     }
 
-    private void runTest(String className) {
+    private void addTest(TestBase test) {
+        tests.add(test);
+    }
+
+    private void runAddedTests() {
+        int threadCount = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
+        threadCount = 1;
+        runAddedTests(threadCount);
+    }
+
+    private void runAddedTests(int threadCount) {
+        Task[] tasks = new Task[threadCount];
+        for (int i=0; i<threadCount;i++) {
+            Task t = new Task() {
+                @Override
+                public void call() throws Exception {
+                    while (true) {
+                        TestBase test;
+                        synchronized (tests) {
+                            if (tests.isEmpty()) {
+                                break;
+                            }
+                            test = tests.remove(0);
+                        }
+                        test.runTest(TestAll.this);
+                    }
+                }
+            };
+            t.execute();
+            tasks[i] = t;
+        }
+        for(Task t : tasks) {
+            t.get();
+        }
+    }
+
+    private static TestBase createTest(String className) {
         try {
             Class<?> clazz = Class.forName(className);
-            TestBase test = (TestBase) clazz.newInstance();
-            test.runTest(this);
+            return (TestBase) clazz.newInstance();
         } catch (Exception e) {
             // ignore
             TestBase.printlnWithTime(0, className + " class not found");
@@ -839,6 +898,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             // ignore
             TestBase.printlnWithTime(0, className + " class not found");
         }
+        return new TestBase() {
+
+            @Override
+            public void test() throws Exception {
+                // ignore
+            }
+
+        };
     }
 
     /**
@@ -868,10 +935,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
      * Stop the server if it was started.
      */
     public void afterTest() {
-        FileUtils.deleteRecursive("trace.db", true);
         if (networked && server != null) {
             server.stop();
         }
+        FileUtils.deleteRecursive("trace.db", true);
         FileUtils.deleteRecursive(TestBase.BASE_TEST_DIR, true);
     }
 

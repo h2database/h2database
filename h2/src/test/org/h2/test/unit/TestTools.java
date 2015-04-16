@@ -517,6 +517,13 @@ public class TestTools extends TestBase {
     }
 
     private void testServerMain() throws SQLException {
+        testNonSSL();
+        if (!config.fast) {
+            testSSL();
+        }
+    }
+
+    private void testNonSSL() throws SQLException {
         String result;
         Connection conn;
 
@@ -538,6 +545,11 @@ public class TestTools extends TestBase {
         result = runServer(0, new String[]{"-tcpShutdown",
                 "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.contains("Shutting down"));
+    }
+
+    private void testSSL() throws SQLException {
+        String result;
+        Connection conn;
 
         result = runServer(0, new String[]{"-tcp",
                 "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});

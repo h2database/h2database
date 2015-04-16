@@ -45,12 +45,12 @@ public class TestLobApi extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("lob");
+        deleteDb(getTestName());
         testUnsupportedOperations();
         testLobStaysOpenUntilCommitted();
         testInputStreamThrowsException(true);
         testInputStreamThrowsException(false);
-        conn = (JdbcConnection) getConnection("lob");
+        conn = (JdbcConnection) getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("create table test(id int, x blob)");
         testBlob(0);
@@ -68,7 +68,7 @@ public class TestLobApi extends TestBase {
     }
 
     private void testUnsupportedOperations() throws Exception {
-        Connection conn = getConnection("lob");
+        Connection conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("create table test(id int, c clob, b blob)");
         stat.execute("insert into test values(1, 'x', x'00')");
@@ -118,7 +118,7 @@ public class TestLobApi extends TestBase {
      * the result set is closed (see ResultSet.close).
      */
     private void testLobStaysOpenUntilCommitted() throws Exception {
-        Connection conn = getConnection("lob");
+        Connection conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
         PreparedStatement prep = conn.prepareStatement(
@@ -163,7 +163,7 @@ public class TestLobApi extends TestBase {
 
     private void testInputStreamThrowsException(final boolean ioException)
             throws Exception {
-        Connection conn = getConnection("lob");
+        Connection conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("create table test(id identity, c clob, b blob)");
         PreparedStatement prep = conn.prepareStatement(

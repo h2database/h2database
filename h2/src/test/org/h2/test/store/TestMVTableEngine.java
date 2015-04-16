@@ -29,7 +29,6 @@ import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 import org.h2.tools.Restore;
 import org.h2.util.JdbcUtils;
@@ -89,14 +88,14 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testLobReuse() throws Exception {
-        deleteDb("testLobReuse");
-        Connection conn = getConnection("testLobReuse");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity primary key, lob clob)");
         conn.close();
         byte[] buffer = new byte[8192];
         for (int i = 0; i < 20; i++) {
-            conn = getConnection("testLobReuse");
+            conn = getConnection(getTestName());
             stat = conn.createStatement();
             stat.execute("insert into test(lob) select space(1025) from system_range(1, 10)");
             stat.execute("delete from test where random() > 0.5");
@@ -113,8 +112,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testShutdownDuringLobCreation() throws Exception {
-        deleteDb("testShutdownDuringLobCreation");
-        Connection conn = getConnection("testShutdownDuringLobCreation");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test(data clob) as select space(10000)");
         final PreparedStatement prep = conn
@@ -159,7 +158,7 @@ public class TestMVTableEngine extends TestBase {
         } catch (Exception e) {
             // ignore
         }
-        conn = getConnection("testShutdownDuringLobCreation");
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("shutdown defrag");
         try {
@@ -167,7 +166,7 @@ public class TestMVTableEngine extends TestBase {
         } catch (Exception e) {
             // ignore
         }
-        conn = getConnection("testShutdownDuringLobCreation");
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * " +
                 "from information_schema.settings " +
@@ -180,8 +179,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testLobCreationThenShutdown() throws Exception {
-        deleteDb("testLobCreationThenShutdown");
-        Connection conn = getConnection("testLobCreationThenShutdown");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, data clob)");
         PreparedStatement prep = conn
@@ -199,7 +198,7 @@ public class TestMVTableEngine extends TestBase {
         } catch (Exception e) {
             // ignore
         }
-        conn = getConnection("testLobCreationThenShutdown");
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("drop all objects");
         stat.execute("shutdown defrag");
@@ -208,7 +207,7 @@ public class TestMVTableEngine extends TestBase {
         } catch (Exception e) {
             // ignore
         }
-        conn = getConnection("testLobCreationThenShutdown");
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("select * " +
                 "from information_schema.settings " +
@@ -221,14 +220,14 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testManyTransactions() throws Exception {
-        deleteDb("testManyTransactions");
-        Connection conn = getConnection("testManyTransactions");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test()");
         conn.setAutoCommit(false);
         stat.execute("insert into test values()");
 
-        Connection conn2 = getConnection("testManyTransactions");
+        Connection conn2 = getConnection(getTestName());
         Statement stat2 = conn2.createStatement();
         for (long i = 0; i < 100000; i++) {
             stat2.execute("insert into test values()");
@@ -238,9 +237,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testAppendOnly() throws Exception {
-        deleteDb("testAppendOnly");
-        Connection conn = getConnection(
-                "testAppendOnly");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("set retention_time 0");
         for (int i = 0; i < 10; i++) {
@@ -250,11 +248,11 @@ public class TestMVTableEngine extends TestBase {
         }
         stat.execute("create table test as select x from system_range(1, 1000)");
         conn.close();
-        String fileName = getBaseDir() + "/testAppendOnly" + Constants.SUFFIX_MV_FILE;
+        String fileName = getBaseDir() + "/" + getTestName() + Constants.SUFFIX_MV_FILE;
         long fileSize = FileUtils.size(fileName);
 
         conn = getConnection(
-                "testAppendOnly;reuse_space=false");
+                getTestName() + ";reuse_space=false");
         stat = conn.createStatement();
         stat.execute("set retention_time 0");
         for (int i = 0; i < 10; i++) {
@@ -270,8 +268,7 @@ public class TestMVTableEngine extends TestBase {
         // undo all changes
         fc.truncate(fileSize);
 
-        conn = getConnection(
-                "testAppendOnly");
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("select * from dummy0 where 1 = 0");
         stat.execute("select * from dummy9 where 1 = 0");
@@ -280,11 +277,11 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testLowRetentionTime() throws SQLException {
-        deleteDb("testLowRetentionTime");
+        deleteDb(getTestName());
         Connection conn = getConnection(
-                "testLowRetentionTime;RETENTION_TIME=10;WRITE_DELAY=10");
+                getTestName() + ";RETENTION_TIME=10;WRITE_DELAY=10");
         Statement stat = conn.createStatement();
-        Connection conn2 = getConnection("testLowRetentionTime");
+        Connection conn2 = getConnection(getTestName());
         Statement stat2 = conn2.createStatement();
         stat.execute("create alias sleep as " +
                 "$$void sleep(int ms) throws Exception { Thread.sleep(ms); }$$");
@@ -309,12 +306,11 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testOldAndNew() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
-
-        String urlOld = getURL("mvstore;MV_STORE=FALSE", true);
-        String urlNew = getURL("mvstore;MV_STORE=TRUE", true);
-        String url = getURL("mvstore", true);
+        deleteDb(getTestName());
+        String urlOld = getURL(getTestName() + ";MV_STORE=FALSE", true);
+        String urlNew = getURL(getTestName() + ";MV_STORE=TRUE", true);
+        String url = getURL(getTestName(), true);
 
         conn = getConnection(urlOld);
         conn.createStatement().execute("create table test_old(id int)");
@@ -337,10 +333,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testTemporaryTables() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -365,10 +361,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testUniqueIndex() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -381,10 +377,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testSecondaryIndex() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -403,10 +399,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testGarbageCollectionForLOB() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -425,7 +421,7 @@ public class TestMVTableEngine extends TestBase {
         assertThrows(ErrorCode.IO_EXCEPTION_1, prep).
             setBinaryStream(1, createFailingStream(new IllegalStateException()));
         conn.close();
-        MVStore s = MVStore.open(getBaseDir()+ "/mvstore.mv.db");
+        MVStore s = MVStore.open(getBaseDir()+ "/" + getTestName() + ".mv.db");
         assertTrue(s.hasMap("lobData"));
         MVMap<Long, byte[]> lobData = s.openMap("lobData");
         assertEquals(0, lobData.sizeAsLong());
@@ -439,10 +435,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testSpatial() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -462,12 +458,12 @@ public class TestMVTableEngine extends TestBase {
             return;
         }
 
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Connection conn2;
         Statement stat;
         Statement stat2;
-        String url = "mvstore;MV_STORE=TRUE;MVCC=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE;MVCC=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -519,12 +515,12 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testMinMaxWithNull() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Connection conn2;
         Statement stat;
         Statement stat2;
-        String url = "mvstore;MV_STORE=TRUE;MVCC=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE;MVCC=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -549,12 +545,12 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testTimeout() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Connection conn2;
         Statement stat;
         Statement stat2;
-        String url = "mvstore;MV_STORE=TRUE;MVCC=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE;MVCC=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -574,10 +570,10 @@ public class TestMVTableEngine extends TestBase {
         if (config.memory) {
             return;
         }
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -599,10 +595,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testTransactionLogUsuallyNotStored() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -619,7 +615,7 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("shutdown immediately");
         JdbcUtils.closeSilently(conn);
 
-        String file = getBaseDir() + "/mvstore" + Constants.SUFFIX_MV_FILE;
+        String file = getBaseDir() + "/" + getTestName() + Constants.SUFFIX_MV_FILE;
 
         MVStore store = MVStore.open(file);
         TransactionStore t = new TransactionStore(store);
@@ -629,9 +625,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testShrinkDatabaseFile() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore" +
-                ";MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
         Statement stat;
         long maxSize = 0;
@@ -672,7 +667,7 @@ public class TestMVTableEngine extends TestBase {
             } catch (Exception e) {
                 // ignore
             }
-            String fileName = getBaseDir() + "/mvstore"
+            String fileName = getBaseDir() + "/" + getTestName()
                     + Constants.SUFFIX_MV_FILE;
             long size = FileUtils.size(fileName);
             if (i < 10) {
@@ -681,22 +676,22 @@ public class TestMVTableEngine extends TestBase {
                 fail(i + " size: " + size + " max: " + maxSize);
             }
         }
-        long sizeOld = FileUtils.size(getBaseDir() + "/mvstore"
+        long sizeOld = FileUtils.size(getBaseDir() + "/" + getTestName()
                 + Constants.SUFFIX_MV_FILE);
         conn = getConnection(dbName);
         stat = conn.createStatement();
         stat.execute("shutdown compact");
         conn.close();
-        long sizeNew = FileUtils.size(getBaseDir() + "/mvstore"
+        long sizeNew = FileUtils.size(getBaseDir() + "/" + getTestName()
                 + Constants.SUFFIX_MV_FILE);
         assertTrue("new: " + sizeNew + " old: " + sizeOld, sizeNew < sizeOld);
     }
 
     private void testTwoPhaseCommit() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -720,10 +715,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testRecover() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         url = getURL(url, true);
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -733,11 +728,11 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("insert into test2 values('Hello World')");
         conn.close();
 
-        Recover.execute(getBaseDir(), "mvstore");
-        DeleteDbFiles.execute(getBaseDir(), "mvstore", true);
+        Recover.execute(getBaseDir(), getTestName());
+        deleteDb(getTestName());
         conn = getConnection(url);
         stat = conn.createStatement();
-        stat.execute("runscript from '" + getBaseDir() + "/mvstore.h2.sql'");
+        stat.execute("runscript from '" + getBaseDir() + "/" + getTestName()+ ".h2.sql'");
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
@@ -750,10 +745,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testRollback() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
         conn = getConnection(url);
         stat = conn.createStatement();
         stat.execute("create table test(id identity)");
@@ -765,11 +760,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testSeparateKey() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-
-        String url = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
 
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -791,12 +785,11 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testRollbackAfterCrash() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-
-        String url = "mvstore;MV_STORE=TRUE";
-        String url2 = "mvstore2;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String url = getTestName() + ";MV_STORE=TRUE";
+        String url2 = getTestName() + "2;MV_STORE=TRUE";
 
         conn = getConnection(url);
         stat = conn.createStatement();
@@ -839,9 +832,10 @@ public class TestMVTableEngine extends TestBase {
                 "from system_range(1, 10)");
         conn.setAutoCommit(false);
         stat.execute("delete from test where id > 5");
-        stat.execute("backup to '" + getBaseDir() + "/backup.zip'");
+        stat.execute("backup to '" + getBaseDir() + "/" + getTestName() + ".zip'");
         conn.rollback();
-        Restore.execute(getBaseDir() + "/backup.zip", getBaseDir(), "mvstore2");
+        Restore.execute(getBaseDir() + "/" +getTestName() + ".zip",
+                getBaseDir(), getTestName() + "2");
         Connection conn2;
         conn2 = getConnection(url2);
         conn.close();
@@ -850,11 +844,10 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testReferentialIntegrity() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-
-        conn = getConnection("mvstore;MV_STORE=TRUE");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName() + ";MV_STORE=TRUE");
 
         stat = conn.createStatement();
         stat.execute("create table test(id int, parent int " +
@@ -923,11 +916,11 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testWriteDelay() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
         ResultSet rs;
-        conn = getConnection("mvstore;MV_STORE=TRUE");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName() + ";MV_STORE=TRUE");
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
         stat.execute("set write_delay 0");
@@ -938,7 +931,7 @@ public class TestMVTableEngine extends TestBase {
         } catch (Exception e) {
             // ignore
         }
-        conn = getConnection("mvstore;MV_STORE=TRUE");
+        conn = getConnection(getTestName() + ";MV_STORE=TRUE");
         stat = conn.createStatement();
         rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
@@ -946,11 +939,11 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testAutoCommit() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
         ResultSet rs;
-        conn = getConnection("mvstore;MV_STORE=TRUE");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName() + ";MV_STORE=TRUE");
         for (int i = 0; i < 2; i++) {
             stat = conn.createStatement();
             stat.execute("create table test(id int primary key, name varchar)");
@@ -980,22 +973,22 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testReopen() throws SQLException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         Connection conn;
         Statement stat;
-        conn = getConnection("mvstore;MV_STORE=TRUE");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName() + ";MV_STORE=TRUE");
         stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar)");
         conn.close();
-        conn = getConnection("mvstore;MV_STORE=TRUE");
+        conn = getConnection(getTestName() + ";MV_STORE=TRUE");
         stat = conn.createStatement();
         stat.execute("drop table test");
         conn.close();
     }
 
     private void testBlob() throws SQLException, IOException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
         Statement stat;
         conn = getConnection(dbName);
@@ -1018,12 +1011,11 @@ public class TestMVTableEngine extends TestBase {
             assertEquals(129, len);
         }
         conn.close();
-        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testEncryption() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
         Statement stat;
         String url = getURL(dbName + ";CIPHER=AES", true);
@@ -1038,12 +1030,11 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("select * from test");
         stat.execute("drop table test");
         conn.close();
-        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testExclusiveLock() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE;MVCC=FALSE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE;MVCC=FALSE";
         Connection conn, conn2;
         Statement stat, stat2;
         conn = getConnection(dbName);
@@ -1062,31 +1053,29 @@ public class TestMVTableEngine extends TestBase {
         assertEquals("WRITE", rs2.getString("lock_type"));
         conn2.close();
         conn.close();
-        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testReadOnly() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
         Statement stat;
         conn = getConnection(dbName);
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
         conn.close();
-        FileUtils.setReadOnly(getBaseDir() + "/mvstore" +
+        FileUtils.setReadOnly(getBaseDir() + "/" + getTestName() +
                 Constants.SUFFIX_MV_FILE);
         conn = getConnection(dbName);
         Database db = (Database) ((JdbcConnection) conn).getSession()
                 .getDataHandler();
         assertTrue(db.getMvStore().getStore().getFileStore().isReadOnly());
         conn.close();
-        FileUtils.deleteRecursive(getBaseDir(), true);
     }
 
     private void testReuseDiskSpace() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn;
         Statement stat;
         long maxSize = 0;
@@ -1101,7 +1090,7 @@ public class TestMVTableEngine extends TestBase {
                     "from system_range(1, 1000)");
             stat.execute("drop table test");
             conn.close();
-            long size = FileUtils.size(getBaseDir() + "/mvstore"
+            long size = FileUtils.size(getBaseDir() + "/" + getTestName()
                     + Constants.SUFFIX_MV_FILE);
             if (i < 10) {
                 maxSize = (int) (Math.max(size, maxSize) * 1.1);
@@ -1112,8 +1101,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testDataTypes() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn = getConnection(dbName);
         Statement stat = conn.createStatement();
 
@@ -1272,8 +1261,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testLocking() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE;MVCC=FALSE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE;MVCC=FALSE";
         Connection conn = getConnection(dbName);
         Statement stat = conn.createStatement();
         stat.execute("set lock_timeout 1000");
@@ -1308,8 +1297,8 @@ public class TestMVTableEngine extends TestBase {
     }
 
     private void testSimple() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        String dbName = "mvstore;MV_STORE=TRUE";
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
         Connection conn = getConnection(dbName);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar)");

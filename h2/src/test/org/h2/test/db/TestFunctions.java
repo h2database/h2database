@@ -94,11 +94,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testToCharFromText();
         testTranslate();
         testGenerateSeries();
-        // TODO
-        // testCachingOfDeterministicFunctionAlias();
 
         deleteDb("functions");
-        FileUtils.deleteRecursive(TEMP_DIR, true);
     }
 
     private void testDataType() throws SQLException {

@@ -64,7 +64,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentSchemaChange() throws Exception {
-        String db = "testConcurrentSchemaChange";
+        String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
         Connection conn = getConnection(url);
@@ -98,7 +98,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentLobAdd() throws Exception {
-        String db = "concurrentLobAdd";
+        String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
         Connection conn = getConnection(url);
@@ -137,7 +137,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         if (config.mvcc) {
             return;
         }
-        String db = "concurrentView";
+        String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
         final Random r = new Random();
@@ -176,8 +176,8 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentAlter() throws Exception {
-        deleteDb("concurrentAlter");
-        final Connection conn = getConnection("concurrentAlter");
+        deleteDb(getTestName());
+        final Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         Task t = new Task() {
             @Override
@@ -195,14 +195,13 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
         t.get();
         conn.close();
-        deleteDb("concurrentAlter");
     }
 
     private void testConcurrentAnalyze() throws Exception {
         if (config.mvcc) {
             return;
         }
-        deleteDb("concurrentAnalyze");
+        deleteDb(getTestName());
         final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
         Connection conn = getConnection(url);
         Statement stat = conn.createStatement();
@@ -227,7 +226,6 @@ public class TestMultiThread extends TestBase implements Runnable {
         t.get();
         stat.execute("drop table test");
         conn.close();
-        deleteDb("concurrentAnalyze");
     }
 
     private void testConcurrentInsertUpdateSelect() throws Exception {
@@ -255,7 +253,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private Connection getConnection() throws SQLException {
-        return getConnection("jdbc:h2:mem:multiThread");
+        return getConnection("jdbc:h2:mem:" + getTestName());
     }
 
     @Override

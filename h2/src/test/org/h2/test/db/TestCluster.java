@@ -21,7 +21,7 @@ import org.h2.tools.Server;
 import org.h2.util.JdbcUtils;
 
 /**
- * Test for the cluster feature.
+ * Test the cluster feature.
  */
 public class TestCluster extends TestBase {
 

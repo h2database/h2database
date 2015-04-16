@@ -13,7 +13,6 @@ import org.h2.engine.SysProperties;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.tools.DeleteDbFiles;
 import org.h2.util.MathUtils;
 
 /**
@@ -44,8 +43,8 @@ public class TestRandomSQL extends TestBase {
         }
     }
 
-    private String getDatabaseName() {
-        return "dataRandomSQL/randomSql" + seed;
+    protected String getDatabaseName() {
+        return getTestName() + "/db" + seed;
     }
 
     private Connection connect() throws SQLException {
@@ -53,13 +52,7 @@ public class TestRandomSQL extends TestBase {
     }
 
     private void deleteDb() {
-        String name = getDatabaseName();
-        if (name.startsWith("memFS:")) {
-            DeleteDbFiles.execute("memFS:/", name, true);
-        } else {
-            DeleteDbFiles.execute(getBaseDir() + "/dataRandomSQL", null, true);
-            FileUtils.delete(getBaseDir() + "/dataRandomSQL");
-        }
+        FileUtils.delete(getDatabaseName());
     }
 
     @Override
@@ -111,7 +104,8 @@ public class TestRandomSQL extends TestBase {
     public void testCase(int i) throws Exception {
         String old = SysProperties.getScriptDirectory();
         try {
-            System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY, "dataScript/");
+            System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY,
+                    getBaseDir() + "/" + getTestName());
             seed = i;
             printTime("seed: " + seed);
             deleteDb();

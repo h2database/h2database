@@ -56,28 +56,28 @@ public class TestAutoReconnect extends TestBase {
         testReconnect();
         autoServer = false;
         testReconnect();
-        deleteDb("autoReconnect");
+        deleteDb(getTestName());
     }
 
     private void testWrongUrl() throws Exception {
-        deleteDb("autoReconnect");
+        deleteDb(getTestName());
         Server tcp = Server.createTcpServer().start();
         try {
             conn = getConnection("jdbc:h2:" + getBaseDir() +
-                    "/autoReconnect;AUTO_SERVER=TRUE");
+                    "/" + getTestName() + ";AUTO_SERVER=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
                     getConnection("jdbc:h2:" + getBaseDir() +
-                            "/autoReconnect;OPEN_NEW=TRUE");
+                            "/" + getTestName() + ";OPEN_NEW=TRUE");
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
                     getConnection("jdbc:h2:" + getBaseDir() +
-                            "/autoReconnect;OPEN_NEW=TRUE");
+                            "/" + getTestName() + ";OPEN_NEW=TRUE");
             conn.close();
 
             conn = getConnection("jdbc:h2:tcp://localhost/" + getBaseDir() +
-                    "/autoReconnect");
+                    "/" + getTestName());
             assertThrows(ErrorCode.DATABASE_ALREADY_OPEN_1, this).
                     getConnection("jdbc:h2:" + getBaseDir() +
-                            "/autoReconnect;AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
+                            "/" + getTestName() + ";AUTO_SERVER=TRUE;OPEN_NEW=TRUE");
             conn.close();
         } finally {
             tcp.stop();
@@ -85,15 +85,15 @@ public class TestAutoReconnect extends TestBase {
     }
 
     private void testReconnect() throws Exception {
-        deleteDb("autoReconnect");
+        deleteDb(getTestName());
         if (autoServer) {
-            url = "jdbc:h2:" + getBaseDir() + "/autoReconnect;" +
+            url = "jdbc:h2:" + getBaseDir() + "/" + getTestName() + ";" +
                 "FILE_LOCK=SOCKET;" +
                 "AUTO_SERVER=TRUE;OPEN_NEW=TRUE";
             restart();
         } else {
             server = Server.createTcpServer("-tcpPort", "8181").start();
-            url = "jdbc:h2:tcp://localhost:8181/" + getBaseDir() + "/autoReconnect;" +
+            url = "jdbc:h2:tcp://localhost:8181/" + getBaseDir() + "/" + getTestName() + ";" +
                 "FILE_LOCK=SOCKET;AUTO_RECONNECT=TRUE";
         }
 

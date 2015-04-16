@@ -17,7 +17,7 @@ import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 
 /**
- * Tests the in-memory file system.
+ * Tests the in-memory file store.
  */
 public class TestFile extends TestBase implements DataHandler {
 

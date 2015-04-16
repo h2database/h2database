@@ -38,18 +38,18 @@ public class TestSampleApps extends TestBase {
         if (!getBaseDir().startsWith(TestBase.BASE_TEST_DIR)) {
             return;
         }
-        deleteDb("optimizations");
+        deleteDb(getTestName());
         InputStream in = getClass().getClassLoader().getResourceAsStream(
                 "org/h2/samples/optimizations.sql");
         new File(getBaseDir()).mkdirs();
         FileOutputStream out = new FileOutputStream(getBaseDir() +
                 "/optimizations.sql");
         IOUtils.copyAndClose(in, out);
-        String url = "jdbc:h2:" + getBaseDir() + "/optimizations";
+        String url = "jdbc:h2:" + getBaseDir() + "/" + getTestName();
         testApp("", org.h2.tools.RunScript.class, "-url", url, "-user", "sa",
                 "-password", "sa", "-script", getBaseDir() +
                         "/optimizations.sql", "-checkResults");
-        deleteDb("optimizations");
+        deleteDb(getTestName());
         testApp("Compacting...\nDone.", org.h2.samples.Compact.class);
         testApp("NAME: Bob Meier\n" +
                 "EMAIL: bob.meier@abcde.abc\n" +

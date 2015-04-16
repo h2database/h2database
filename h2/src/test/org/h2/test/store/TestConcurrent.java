@@ -46,10 +46,7 @@ public class TestConcurrent extends TestMVStore {
 
     @Override
     public void test() throws Exception {
-        FileUtils.deleteRecursive(getBaseDir(), true);
         FileUtils.createDirectories(getBaseDir());
-        FileUtils.deleteRecursive("memFS:", false);
-
         testInterruptReopen();
         testConcurrentSaveCompact();
         testConcurrentDataType();
@@ -68,7 +65,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testInterruptReopen() throws Exception {
-        String fileName = "retry:nio:" + getBaseDir() + "/testInterruptReopen.h3";
+        String fileName = "retry:nio:" + getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
                 fileName(fileName).
@@ -99,7 +96,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentSaveCompact() throws Exception {
-        String fileName = "memFS:testConcurrentSaveCompact";
+        String fileName = "memFS:" + getTestName();
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
                 fileName(fileName).
@@ -188,7 +185,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentAutoCommitAndChange() throws InterruptedException {
-        String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
+        String fileName = "memFS:" + getTestName();
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().
                 fileName(fileName).pageSplitSize(1000).
@@ -268,7 +265,7 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentChangeAndCompact() throws InterruptedException {
-        String fileName = "memFS:testConcurrentChangeAndBackgroundCompact";
+        String fileName = "memFS:" + getTestName();
         FileUtils.delete(fileName);
         final MVStore s = new MVStore.Builder().fileName(
                 fileName).
@@ -346,11 +343,10 @@ public class TestConcurrent extends TestMVStore {
             s.commit();
             s.close();
         }
-        FileUtils.deleteRecursive("memFS:", false);
     }
 
     private void testConcurrentFree() throws InterruptedException {
-        String fileName = "memFS:testConcurrentFree.h3";
+        String fileName = "memFS:" + getTestName();
         for (int test = 0; test < 10; test++) {
             FileUtils.delete(fileName);
             final MVStore s1 = new MVStore.Builder().
@@ -425,11 +421,11 @@ public class TestConcurrent extends TestMVStore {
             assertTrue("" + chunkCount, chunkCount < 3);
             s.close();
         }
-        FileUtils.deleteRecursive("memFS:", false);
     }
 
     private void testConcurrentStoreAndRemoveMap() throws InterruptedException {
-        String fileName = "memFS:testConcurrentStoreAndRemoveMap.h3";
+        String fileName = "memFS:" + getTestName();
+        FileUtils.delete(fileName);
         final MVStore s = openStore(fileName);
         int count = 200;
         for (int i = 0; i < count; i++) {
@@ -458,11 +454,10 @@ public class TestConcurrent extends TestMVStore {
         }
         task.get();
         s.close();
-        FileUtils.deleteRecursive("memFS:", false);
     }
 
     private void testConcurrentStoreAndClose() throws InterruptedException {
-        String fileName = "memFS:testConcurrentStoreAndClose";
+        String fileName = "memFS:" + getTestName();
         for (int i = 0; i < 10; i++) {
             FileUtils.delete(fileName);
             final MVStore s = openStore(fileName);
@@ -500,7 +495,6 @@ public class TestConcurrent extends TestMVStore {
             }
             s.close();
         }
-        FileUtils.deleteRecursive("memFS:", false);
     }
 
     /**
@@ -557,8 +551,8 @@ public class TestConcurrent extends TestMVStore {
     }
 
     private void testConcurrentOnlineBackup() throws Exception {
-        String fileName = getBaseDir() + "/onlineBackup.h3";
-        String fileNameRestore = getBaseDir() + "/onlineRestore.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
+        String fileNameRestore = getBaseDir() + "/" + getTestName() + "2";
         final MVStore s = openStore(fileName);
         final MVMap<Integer, byte[]> map = s.openMap("test");
         final Random r = new Random();

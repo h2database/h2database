@@ -43,8 +43,8 @@ public class TestBtreeIndex extends TestBase {
     }
 
     private void testAddDelete() throws SQLException {
-        deleteDb("index");
-        Connection conn = getConnection("index");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE TEST(ID bigint primary key)");
@@ -54,7 +54,7 @@ public class TestBtreeIndex extends TestBase {
                     count + ")");
             if (!config.memory) {
                 conn.close();
-                conn = getConnection("index");
+                conn = getConnection(getTestName());
                 stat = conn.createStatement();
             }
             for (int i = 1; i < count; i++) {
@@ -68,7 +68,7 @@ public class TestBtreeIndex extends TestBase {
         } finally {
             conn.close();
         }
-        deleteDb("index");
+        deleteDb(getTestName());
     }
 
     @Override
@@ -78,7 +78,7 @@ public class TestBtreeIndex extends TestBase {
 
     private void testOne(int seed) throws SQLException {
         org.h2.Driver.load();
-        deleteDb("index");
+        deleteDb(getTestName());
         printTime("testIndex " + seed);
         Random random = new Random(seed);
         int distinct, prefixLength;
@@ -101,8 +101,8 @@ public class TestBtreeIndex extends TestBase {
             }
         }
         String prefix = buff.toString().substring(0, prefixLength);
-        DeleteDbFiles.execute(getBaseDir() + "/index", null, true);
-        Connection conn = getConnection("index");
+        DeleteDbFiles.execute(getBaseDir() + "/" + getTestName(), null, true);
+        Connection conn = getConnection(getTestName());
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
@@ -192,7 +192,7 @@ public class TestBtreeIndex extends TestBase {
         } finally {
             conn.close();
         }
-        deleteDb("index");
+        deleteDb(getTestName());
     }
 
     private void printError(int seed, String message) {

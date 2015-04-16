@@ -7,12 +7,9 @@ package org.h2.server.web;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Iterator;
@@ -37,7 +34,6 @@ class WebThread extends WebApp implements Runnable {
     protected final Socket socket;
     private final Thread thread;
     private InputStream input;
-    private int headerBytes;
     private String ifModifiedSince;
 
     WebThread(Socket socket, WebServer server) {
@@ -210,12 +206,10 @@ class WebThread extends WebApp implements Runnable {
     private String readHeaderLine() throws IOException {
         StringBuilder buff = new StringBuilder();
         while (true) {
-            headerBytes++;
             int c = input.read();
             if (c == -1) {
                 throw new IOException("Unexpected EOF");
             } else if (c == '\r') {
-                headerBytes++;
                 if (input.read() == '\n') {
                     return buff.length() > 0 ? buff.toString() : null;
                 }
@@ -320,7 +314,7 @@ class WebThread extends WebApp implements Runnable {
             }
         }
         if (multipart) {
-            uploadMultipart(input, len);
+            // not supported
         } else if (session != null && len > 0) {
             byte[] bytes = DataUtils.newBytes(len);
             for (int pos = 0; pos < len;) {
@@ -330,45 +324,6 @@ class WebThread extends WebApp implements Runnable {
             parseAttributes(s);
         }
         return keepAlive;
-    }
-
-    private void uploadMultipart(InputStream in, int len) throws IOException {
-        if (!new File(WebServer.TRANSFER).exists()) {
-            return;
-        }
-        String fileName = "temp.bin";
-        headerBytes = 0;
-        String boundary = readHeaderLine();
-        while (true) {
-            String line = readHeaderLine();
-            if (line == null) {
-                break;
-            }
-            int index = line.indexOf("filename=\"");
-            if (index > 0) {
-                fileName = line.substring(index +
-                        "filename=\"".length(), line.lastIndexOf('"'));
-            }
-            trace(" " + line);
-        }
-        if (!WebServer.isSimpleName(fileName)) {
-            return;
-        }
-        len -= headerBytes;
-        File file = new File(WebServer.TRANSFER, fileName);
-        OutputStream out = new FileOutputStream(file);
-        IOUtils.copy(in, out, len);
-        out.close();
-        // remove the boundary
-        RandomAccessFile f = new RandomAccessFile(file, "rw");
-        int testSize = (int) Math.min(f.length(), Constants.IO_BUFFER_SIZE);
-        f.seek(f.length() - testSize);
-        byte[] bytes = DataUtils.newBytes(Constants.IO_BUFFER_SIZE);
-        f.readFully(bytes, 0, testSize);
-        String s = new String(bytes, "ASCII");
-        int x = s.lastIndexOf(boundary);
-        f.setLength(f.length() - testSize + x - 2);
-        f.close();
     }
 
     private static String getHeaderLineValue(String line) {

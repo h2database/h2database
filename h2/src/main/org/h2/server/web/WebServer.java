@@ -6,7 +6,6 @@
 package org.h2.server.web;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +31,6 @@ import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -47,8 +45,6 @@ import org.h2.util.Utils;
  * Console application. It is not optimized for performance.
  */
 public class WebServer implements Service {
-
-    static final String TRANSFER = "transfer";
 
     static final String[][] LANGUAGES = {
         { "cs", "\u010ce\u0161tina" },
@@ -170,17 +166,6 @@ public class WebServer implements Service {
      */
     byte[] getFile(String file) throws IOException {
         trace("getFile <" + file + ">");
-        if (file.startsWith(TRANSFER + "/") && new File(TRANSFER).exists()) {
-            file = file.substring(TRANSFER.length() + 1);
-            if (!isSimpleName(file)) {
-                return null;
-            }
-            File f = new File(TRANSFER, file);
-            if (!f.exists()) {
-                return null;
-            }
-            return IOUtils.readBytesAndClose(new FileInputStream(f), -1);
-        }
         byte[] data = Utils.getResource("/org/h2/server/web/res/" + file);
         if (data == null) {
             trace(" null");

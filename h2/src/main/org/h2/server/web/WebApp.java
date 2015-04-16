@@ -151,7 +151,7 @@ public class WebApp {
                 "jsp".equals(suffix)) {
             cache = false;
             mimeType = "text/html";
-            if (session == null && !file.startsWith(WebServer.TRANSFER)) {
+            if (session == null) {
                 session = server.createNewSession(hostAddr);
                 if (!"notAllowed.jsp".equals(file)) {
                     file = "index.do";
@@ -239,8 +239,6 @@ public class WebApp {
                 file = autoCompleteList();
             } else if ("tools.do".equals(file)) {
                 file = tools();
-            } else if ("transfer.do".equals(file)) {
-                file = "transfer.jsp";
             } else {
                 file = "error.jsp";
             }

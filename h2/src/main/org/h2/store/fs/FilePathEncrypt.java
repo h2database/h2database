@@ -474,7 +474,7 @@ public class FilePathEncrypt extends FilePathWrapper {
                     updateTweak(tweak);
                     if (i + CIPHER_BLOCK_SIZE + CIPHER_BLOCK_SIZE > len &&
                             i + CIPHER_BLOCK_SIZE < len) {
-                        tweakEnd = Arrays.copyOf(tweak, CIPHER_BLOCK_SIZE);
+                        tweakEnd = tweak.clone();
                         updateTweak(tweak);
                     }
                 }

@@ -125,7 +125,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 if (indexType.isUnique()) {
                     Value[] array = ((ValueArray) v).getList();
                     // don't change the original value
-                    array = Arrays.copyOf(array, array.length);
+                    array = array.clone();
                     array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
                     ValueArray unique = ValueArray.get(array);
                     SearchRow row = convertToSearchRow((ValueArray) v);

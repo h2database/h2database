@@ -246,7 +246,7 @@ public class LobStorageMap implements LobStorageInterface {
             throw DbException.throwInternalError("Length is different");
         }
         Object[] value = lobMap.get(oldLobId);
-        value = Arrays.copyOf(value, value.length);
+        value = value.clone();
         byte[] streamStoreId = (byte[]) value[0];
         long lobId = generateLobId();
         value[1] = tableId;

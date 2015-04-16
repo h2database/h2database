@@ -171,6 +171,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         try {
             Value old = map.remove(key);
             if (old == null) {
+                old = map.remove(key);
                 throw DbException.get(ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1,
                         getSQL() + ": " + row.getKey());
             }
@@ -211,12 +212,9 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     private SpatialKey getKey(SearchRow row) {
-        if (row == null) {
-            return null;
-        }
         Value v = row.getValue(columnIds[0]);
         if (v == ValueNull.INSTANCE) {
-            return null;
+            return new SpatialKey(row.getKey());
         }
         Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
         Envelope env = g.getEnvelopeInternal();

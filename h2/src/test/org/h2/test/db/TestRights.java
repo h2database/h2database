@@ -34,6 +34,7 @@ public class TestRights extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testNullPassword();
         testLinkedTableMeta();
         testGrantMore();
         testOpenNonAdminWithMode();
@@ -46,6 +47,17 @@ public class TestRights extends TestBase {
         testAccessRights();
         testSchemaAdminRole();
         deleteDb("rights");
+    }
+
+    private void testNullPassword() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password null");
+        stat.execute("alter user test set password null");
+        stat.execute("create user test2 salt null hash null");
+        stat.execute("alter user test set salt null hash null");
+        conn.close();
     }
 
     private void testLinkedTableMeta() throws SQLException {

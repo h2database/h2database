@@ -15,8 +15,8 @@
         </license>
     </licenses>
     <scm>
-        <connection>scm:svn:http://h2database.googlecode.com/svn/trunk</connection>
-        <url>http://h2database.googlecode.com/svn/trunk</url>
+        <connection>scm:git:https://github.com/h2database/h2database</connection>
+        <url>https://github.com/h2database/h2database</url>
     </scm>
     <developers>
         <developer>

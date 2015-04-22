@@ -20,7 +20,9 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Pull request #4: Creating and removing temporary tables was getting
+<ul><li>Foreign key: don't add a single column index if column 
+    is leading key of existing index.
+</li><li>Pull request #4: Creating and removing temporary tables was getting
     slower and slower over time, because an internal object id was allocated but
     never de-allocated.
 </li><li>Issue 609: the spatial index did not support NULL with update and delete operations.

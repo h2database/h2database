@@ -6,7 +6,6 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 

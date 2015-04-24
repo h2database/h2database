@@ -352,13 +352,20 @@ public class ScriptCommand extends ScriptBase {
             }
             // Generate GRANT ...
             for (Right right : db.getAllRights()) {
-                Table table = right.getGrantedTable();
-                if (table != null) {
-                    if (excludeSchema(table.getSchema())) {
-                        continue;
-                    }
-                    if (excludeTable(table)) {
-                        continue;
+                DbObject object = right.getGrantedObject();
+                if (object != null) {
+                    if (object instanceof Schema) {
+                        if (excludeSchema((Schema) object)) {
+                            continue;
+                        }
+                    } else if (object instanceof Table) {
+                        Table table = (Table) object;
+                        if (excludeSchema(table.getSchema())) {
+                            continue;
+                        }
+                        if (excludeTable(table)) {
+                            continue;
+                        }
                     }
                 }
                 add(right.getCreateSQL(), false);

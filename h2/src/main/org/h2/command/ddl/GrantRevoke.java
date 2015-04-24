@@ -10,11 +10,13 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.RightOwner;
 import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.util.New;
 
@@ -31,6 +33,7 @@ public class GrantRevoke extends DefineCommand {
     private int operationType;
     private int rightMask;
     private final ArrayList<Table> tables = New.arrayList();
+    private Schema schema;
     private RightOwner grantee;
 
     public GrantRevoke(Session session) {
@@ -105,18 +108,25 @@ public class GrantRevoke extends DefineCommand {
     }
 
     private void grantRight() {
-        Database db = session.getDatabase();
+        if (schema != null) {
+            grantRight(schema);
+        }
         for (Table table : tables) {
-            Right right = grantee.getRightForTable(table);
-            if (right == null) {
-                int id = getObjectId();
-                right = new Right(db, id, grantee, rightMask, table);
-                grantee.grantRight(table, right);
-                db.addDatabaseObject(session, right);
-            } else {
-                right.setRightMask(right.getRightMask() | rightMask);
-                db.updateMeta(session, right);
-            }
+            grantRight(table);
+        }
+    }
+
+    private void grantRight(DbObject object) {
+        Database db = session.getDatabase();
+        Right right = grantee.getRightForObject(object);
+        if (right == null) {
+            int id = getObjectId();
+            right = new Right(db, id, grantee, rightMask, object);
+            grantee.grantRight(object, right);
+            db.addDatabaseObject(session, right);
+        } else {
+            right.setRightMask(right.getRightMask() | rightMask);
+            db.updateMeta(session, right);
         }
     }
 
@@ -139,22 +149,30 @@ public class GrantRevoke extends DefineCommand {
     }
 
     private void revokeRight() {
+        if (schema != null) {
+            revokeRight(schema);
+        }
         for (Table table : tables) {
-            Right right = grantee.getRightForTable(table);
-            if (right == null) {
-                continue;
-            }
-            int mask = right.getRightMask();
-            int newRight = mask & ~rightMask;
-            Database db = session.getDatabase();
-            if (newRight == 0) {
-                db.removeDatabaseObject(session, right);
-            } else {
-                right.setRightMask(newRight);
-                db.updateMeta(session, right);
-            }
+            revokeRight(table);
         }
     }
+
+    private void revokeRight(DbObject object) {
+        Right right = grantee.getRightForObject(object);
+        if (right == null) {
+            return;
+        }
+        int mask = right.getRightMask();
+        int newRight = mask & ~rightMask;
+        Database db = session.getDatabase();
+        if (newRight == 0) {
+            db.removeDatabaseObject(session, right);
+        } else {
+            right.setRightMask(newRight);
+            db.updateMeta(session, right);
+        }
+    }
+
 
     private void revokeRole(Role grantedRole) {
         Right right = grantee.getRightForRole(grantedRole);
@@ -177,6 +195,15 @@ public class GrantRevoke extends DefineCommand {
      */
     public void addTable(Table table) {
         tables.add(table);
+    }
+
+    /**
+     * Set the specified schema
+     *
+     * @param schema the schema
+     */
+    public void setSchema(Schema schema) {
+        this.schema = schema;
     }
 
     @Override

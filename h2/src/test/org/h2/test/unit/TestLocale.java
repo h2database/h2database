@@ -13,6 +13,9 @@ import java.util.Locale;
 
 import org.h2.test.TestBase;
 
+/**
+ * Tests that change the default locale.
+ */
 public class TestLocale extends TestBase {
 
     /**

@@ -51,14 +51,14 @@ public abstract class TestBase {
     public static final String BASE_TEST_DIR = "./data";
 
     /**
-     * The temporary directory.
-     */
-    private static final String TEMP_DIR = "./data/temp";
-
-    /**
      * An id used to create unique file names.
      */
     protected static int uniqueId;
+
+    /**
+     * The temporary directory.
+     */
+    private static final String TEMP_DIR = "./data/temp";
 
     /**
      * The base directory to write test databases.
@@ -1012,7 +1012,7 @@ public abstract class TestBase {
     protected void assertThrows(String expectedErrorMessage, Statement stat,
             String sql) {
         try {
-            stat.executeQuery(sql);
+            stat.execute(sql);
             fail("Expected error: " + expectedErrorMessage);
         } catch (SQLException ex) {
             assertStartsWith(ex.getMessage(), expectedErrorMessage);

@@ -320,6 +320,11 @@ java org.h2.test.TestAll timer
     public boolean nestedJoins;
 
     /**
+     * If only fast tests should be run. If enabled, SSL is not tested.
+     */
+    public boolean fast;
+
+    /**
      * If the transaction log should be kept small (that is, the log should be
      * switched early).
      */
@@ -344,11 +349,6 @@ java org.h2.test.TestAll timer
      * If the tests should run forever.
      */
     boolean endless;
-
-    /**
-     * If only fast tests should be run. If enabled, SSL is not tested.
-     */
-    public boolean fast;
 
     /**
      * The THROTTLE value to use.
@@ -380,9 +380,9 @@ java org.h2.test.TestAll timer
      */
     AbbaLockingDetector abbaLockingDetector;
 
-    private Server server;
-
     ArrayList<TestBase> tests = New.arrayList();
+
+    private Server server;
 
     /**
      * Run all tests.
@@ -863,7 +863,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void runAddedTests(int threadCount) {
         Task[] tasks = new Task[threadCount];
-        for (int i=0; i<threadCount;i++) {
+        for (int i = 0; i < threadCount; i++) {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
@@ -882,7 +882,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             t.execute();
             tasks[i] = t;
         }
-        for(Task t : tasks) {
+        for (Task t : tasks) {
             t.get();
         }
     }

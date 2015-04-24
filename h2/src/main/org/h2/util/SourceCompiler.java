@@ -336,7 +336,7 @@ public class SourceCompiler {
         }.execute();
     }
 
-    private synchronized static void javacSun(File javaFile) {
+    private static synchronized void javacSun(File javaFile) {
         PrintStream old = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream temp = new PrintStream(buff);

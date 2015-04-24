@@ -380,6 +380,9 @@ java org.h2.test.TestAll timer
      */
     AbbaLockingDetector abbaLockingDetector;
 
+    /**
+     * The list of tests.
+     */
     ArrayList<TestBase> tests = New.arrayList();
 
     private Server server;

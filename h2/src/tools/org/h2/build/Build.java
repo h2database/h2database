@@ -784,14 +784,14 @@ public class Build extends BuildBase {
     public void test() {
         test(false);
     }
-    
+
     /**
      * Compile and run all fast tests. This does not include the compile step.
-     */    
+     */
     public void testFast() {
         test(true);
     }
-    
+
     private void test(boolean fast) {
         downloadTest();
         String cp = "temp" + File.pathSeparator + "bin" +
@@ -810,12 +810,12 @@ public class Build extends BuildBase {
             exec("java", args(
                     "-Xmx128m",
                     "-cp", cp,
-                    "org.h2.test.TestAll", "fast"));        
+                    "org.h2.test.TestAll", "fast"));
         } else {
             exec("java", args(
                     "-Xmx128m",
                     "-cp", cp,
-                    "org.h2.test.TestAll"));        
+                    "org.h2.test.TestAll"));
         }
     }
 

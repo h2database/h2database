@@ -92,6 +92,7 @@ public class UploadBuild {
             error = testOutput.contains(OutputCatcher.START_ERROR);
         } else if (new File("log.txt").exists()) {
             testOutput = IOUtils.readStringAndClose(new FileReader("log.txt"), -1);
+            testOutput = testOutput.replaceAll("\n", "<br />");
             error = true;
         } else {
             testOutput = "No log.txt";

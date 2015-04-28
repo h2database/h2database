@@ -518,6 +518,16 @@ public class Database implements DataHandler {
     public Trace getTrace(String module) {
         return traceSystem.getTrace(module);
     }
+    
+    /**
+     * Get the trace object for the given module id.
+     *
+     * @param moduleId the module id
+     * @return the trace object
+     */
+    public Trace getTrace(int moduleId) {
+        return traceSystem.getTrace(moduleId);
+    }
 
     @Override
     public FileStore openFile(String name, String openMode, boolean mustExist) {

@@ -44,6 +44,11 @@ public class TraceWriterAdapter implements TraceWriter {
             return false;
         }
     }
+    
+    @Override
+    public void write(int level, int moduleId, String s, Throwable t) {
+        write(level, Trace.MODULE_NAMES[moduleId], s, t);
+    };
 
     @Override
     public void write(int level, String module, String s, Throwable t) {

@@ -130,15 +130,17 @@ the database is stored in the user directory.
 For Windows, this is usually
 <code>C:\Documents and Settings\&lt;userName&gt;</code> or
 <code>C:\Users\&lt;userName&gt;</code>.
-If the base directory is not set (as in <code>jdbc:h2:test</code>),
+If the base directory is not set (as in <code>jdbc:h2:./test</code>),
 the database files are stored in the directory where the application is started
-(the current working directory). When using the H2 Console application from the start menu,
+(the current working directory).
+When using the H2 Console application from the start menu,
 this is <code>&lt;Installation Directory&gt;/bin</code>.
-The base directory can be set in the database URL. A fixed or relative path can be used. When using the URL
-<code>jdbc:h2:file:data/sample</code>, the database is stored in the directory
+The base directory can be set in the database URL.
+A fixed or relative path can be used. When using the URL
+<code>jdbc:h2:file:./data/sample</code>, the database is stored in the directory
 <code>data</code> (relative to the current working directory).
-The directory is created automatically if it does not yet exist. It is also possible to use the
-fully qualified directory name (and for Windows, drive name).
+The directory is created automatically if it does not yet exist.
+It is also possible to use the fully qualified directory name (and for Windows, drive name).
 Example: <code>jdbc:h2:file:C:/data/test</code>
 </p>
 

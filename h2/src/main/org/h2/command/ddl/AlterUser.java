@@ -12,8 +12,6 @@ import org.h2.engine.Session;
 import org.h2.engine.User;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
-import org.h2.security.SHA256;
-import org.h2.util.StringUtils;
 
 /**
  * This class represents the statements
@@ -63,15 +61,6 @@ public class AlterUser extends DefineCommand {
         this.password = password;
     }
 
-    private char[] getCharArray(Expression e) {
-        return e.optimize(session).getValue(session).getString().toCharArray();
-    }
-
-    private byte[] getByteArray(Expression e) {
-        return StringUtils.convertHexToBytes(
-                e.optimize(session).getValue(session).getString());
-    }
-
     @Override
     public int update() {
         session.commit(true);
@@ -82,12 +71,9 @@ public class AlterUser extends DefineCommand {
                 session.getUser().checkAdmin();
             }
             if (hash != null && salt != null) {
-                user.setSaltAndHash(getByteArray(salt), getByteArray(hash));
+                CreateUser.setSaltAndHash(user, session, salt, hash);
             } else {
-                String name = newName == null ? user.getName() : newName;
-                char[] passwordChars = getCharArray(password);
-                byte[] userPasswordHash = SHA256.getKeyPasswordHash(name, passwordChars);
-                user.setUserPasswordHash(userPasswordHash);
+                CreateUser.setPassword(user, session, password);
             }
             break;
         case CommandInterface.ALTER_USER_RENAME:

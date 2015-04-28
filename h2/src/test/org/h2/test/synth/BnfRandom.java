@@ -27,7 +27,7 @@ public class BnfRandom implements BnfVisitor {
     private int level;
     private String sql;
 
-    BnfRandom() throws Exception {
+    public BnfRandom() throws Exception {
         Bnf config = Bnf.getInstance(null);
         config.linkStatements();
 

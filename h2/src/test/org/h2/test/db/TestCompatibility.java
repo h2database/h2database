@@ -399,6 +399,10 @@ public class TestCompatibility extends TestBase {
         rs.next();
         assertEquals(10, rs.getInt(1));
         rs.close();
+        rs = stat.executeQuery("SELECT X FROM (SELECT CONVERT(INT, '10') AS X)");
+        rs.next();
+        assertEquals(10, rs.getInt(1));
+        rs.close();
 
         // make sure we're ignoring the index part of the statement
         rs = stat.executeQuery("select * from test (index table1_index)");

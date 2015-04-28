@@ -22,14 +22,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
-import java.util.List;
 import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -81,8 +79,6 @@ public class TestLob extends TestBase {
         testConvert();
         testCreateAsSelect();
         testDelete();
-        testTempFilesDeleted(true);
-        testTempFilesDeleted(false);
         testLobServerMemory();
         testUpdatingLobRow();
         if (config.memory) {
@@ -110,7 +106,6 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
-        FileUtils.deleteRecursive(TEMP_DIR, true);
     }
 
     private void testRemovedAfterTimeout() throws Exception {
@@ -667,41 +662,6 @@ public class TestLob extends TestBase {
                 "select count(*) from information_schema.lob_data", 0);
         stat.execute("drop table test");
         conn.close();
-    }
-
-    private void testTempFilesDeleted(boolean stream) throws Exception {
-        FileUtils.deleteRecursive(TEMP_DIR, true);
-        FileUtils.createDirectories(TEMP_DIR);
-        List<String> list = FileUtils.newDirectoryStream(TEMP_DIR);
-        assertEquals("Unexpected temp file: " + list, 0, list.size());
-        deleteDb("lob");
-        Connection conn = getConnection("lob");
-        Statement stat;
-        stat = conn.createStatement();
-        stat.execute("create table test(id int primary key, name text)");
-        PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(2, ?)");
-        if (stream) {
-            String large = new String(new char[1024 * 1024 * 2]).replace((char) 0, 'x');
-            prep.setCharacterStream(1, new StringReader(large), -1);
-            large = null;
-            prep.execute();
-        } else {
-            stat.execute("insert into test values(1, space(100000))");
-        }
-        /*
-        list = FileUtils.newDirectoryStream(TEMP_DIR);
-        assertEquals("Unexpected temp file: " + list, 0, list.size());
-        */
-        ResultSet rs;
-        rs = stat.executeQuery("select * from test");
-        while (rs.next()) {
-            rs.getCharacterStream("name").close();
-        }
-        prep.close();
-        conn.close();
-        list = FileUtils.newDirectoryStream(TEMP_DIR);
-        assertEquals("Unexpected temp file: " + list, 0, list.size());
     }
 
     private void testLobUpdateMany() throws SQLException {

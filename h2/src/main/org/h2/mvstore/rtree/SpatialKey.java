@@ -70,6 +70,10 @@ public class SpatialKey {
         return id;
     }
 
+    public boolean isNull() {
+        return minMax.length == 0;
+    }
+
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();

@@ -18,6 +18,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -32,8 +34,7 @@ import java.util.LinkedList;
 import java.util.SimpleTimeZone;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
-import org.h2.message.TraceSystem;
-import org.h2.store.FileLock;
+import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
@@ -50,14 +51,14 @@ public abstract class TestBase {
     public static final String BASE_TEST_DIR = "./data";
 
     /**
-     * The temporary directory.
-     */
-    protected static final String TEMP_DIR = "./data/temp";
-
-    /**
      * An id used to create unique file names.
      */
     protected static int uniqueId;
+
+    /**
+     * The temporary directory.
+     */
+    private static final String TEMP_DIR = "./data/temp";
 
     /**
      * The base directory to write test databases.
@@ -115,6 +116,7 @@ public abstract class TestBase {
      */
     public TestBase init(TestAll conf) throws Exception {
         baseDir = getTestDir("");
+        FileUtils.createDirectories(baseDir);
         System.setProperty("java.io.tmpdir", TEMP_DIR);
         this.config = conf;
         return this;
@@ -153,15 +155,6 @@ public abstract class TestBase {
             }
             if (e instanceof OutOfMemoryError) {
                 throw (OutOfMemoryError) e;
-            }
-        } finally {
-            try {
-                FileUtils.deleteRecursive("memFS:", false);
-                FileUtils.deleteRecursive("nioMemFS:", false);
-                FileUtils.deleteRecursive("memLZF:", false);
-                FileUtils.deleteRecursive("nioMemLZF:", false);
-            } catch (RuntimeException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -473,18 +466,31 @@ public abstract class TestBase {
         System.err.println("ERROR: " + s + " " + e.toString()
                 + " ------------------------------");
         e.printStackTrace();
-        try {
-            TraceSystem ts = new TraceSystem(null);
-            FileLock lock = new FileLock(ts, "error.lock", 1000);
-            lock.lock(FileLock.LOCK_FILE);
-            FileWriter fw = new FileWriter("error.txt", true);
-            PrintWriter pw = new PrintWriter(fw);
-            e.printStackTrace(pw);
-            pw.close();
-            fw.close();
-            lock.unlock();
-        } catch (Throwable t) {
-            t.printStackTrace();
+        // synchronize on this class, because file locks are only visible to
+        // other JVMs
+        synchronized (TestBase.class) {
+            try {
+                // lock
+                FileChannel fc = FilePath.get("error.lock").open("rw");
+                FileLock lock;
+                while (true) {
+                    lock = fc.tryLock();
+                    if (lock != null) {
+                        break;
+                    }
+                    Thread.sleep(10);
+                }
+                // append
+                FileWriter fw = new FileWriter("error.txt", true);
+                PrintWriter pw = new PrintWriter(fw);
+                e.printStackTrace(pw);
+                pw.close();
+                fw.close();
+                // unlock
+                lock.release();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
         }
         System.err.flush();
     }
@@ -509,7 +515,7 @@ public abstract class TestBase {
      * @param millis the time in milliseconds
      * @param s the message
      */
-    static void printlnWithTime(long millis, String s) {
+    static synchronized void printlnWithTime(long millis, String s) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         s = dateFormat.format(new java.util.Date()) + " " +
                 formatTime(millis) + " " + s;
@@ -1006,7 +1012,7 @@ public abstract class TestBase {
     protected void assertThrows(String expectedErrorMessage, Statement stat,
             String sql) {
         try {
-            stat.executeQuery(sql);
+            stat.execute(sql);
             fail("Expected error: " + expectedErrorMessage);
         } catch (SQLException ex) {
             assertStartsWith(ex.getMessage(), expectedErrorMessage);
@@ -1576,6 +1582,10 @@ public abstract class TestBase {
     @SuppressWarnings("unchecked")
     private static <E extends Throwable> void throwThis(Throwable e) throws E {
         throw (E) e;
+    }
+
+    protected String getTestName() {
+        return getClass().getSimpleName();
     }
 
 }

@@ -1,4 +1,34 @@
+Old issue tracking
 
+Please send a question to the H2 Google Group or StackOverflow first,
+and only then, once you are completely sure it is an issue, submit it here.
+The reason is that only very few people actively monitor the issue tracker.
+
+Before submitting a bug, please also check the FAQ:
+http://www.h2database.com/html/faq.html
+
+What steps will reproduce the problem?
+(simple SQL scripts or simple standalone applications are preferred)
+1.
+2.
+3.
+
+What is the expected output? What do you see instead?
+
+
+What version of the product are you using? On what operating system, file
+system, and virtual machine?
+
+
+Do you know a workaround?
+
+What is your use case, meaning why do you need this feature?
+
+How important/urgent is the problem for you?
+
+Please provide any additional information below.
+
+------------------
 Benchmark:
 
 Hi,

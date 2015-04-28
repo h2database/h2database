@@ -943,7 +943,8 @@ public class TestMetaData extends TestBase {
         rs = meta.getTableTypes();
         assertResultSetMeta(rs, 1, new String[] { "TABLE_TYPE" },
                 new int[] { Types.VARCHAR }, null, null);
-        assertResultSetOrdered(rs, new String[][] { { "SYSTEM TABLE" },
+        assertResultSetOrdered(rs, new String[][] {
+                { "EXTERNAL" }, { "SYSTEM TABLE" },
                 { "TABLE" }, { "TABLE LINK" }, { "VIEW" } });
 
         rs = meta.getTypeInfo();
@@ -1018,6 +1019,8 @@ public class TestMetaData extends TestBase {
         assertFalse(rs.next());
 
         rs = meta.getTableTypes();
+        rs.next();
+        assertEquals("EXTERNAL", rs.getString("TABLE_TYPE"));
         rs.next();
         assertEquals("SYSTEM TABLE", rs.getString("TABLE_TYPE"));
         rs.next();

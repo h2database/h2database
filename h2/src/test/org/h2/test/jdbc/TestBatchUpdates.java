@@ -5,8 +5,6 @@
  */
 package org.h2.test.jdbc;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.sql.BatchUpdateException;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -156,16 +154,9 @@ public class TestBatchUpdates extends TestBase {
         }
         try {
             prep.executeBatch();
+            fail();
         } catch (BatchUpdateException e) {
-            PrintStream temp = System.err;
-            try {
-                ByteArrayOutputStream buff = new ByteArrayOutputStream();
-                PrintStream p = new PrintStream(buff);
-                System.setErr(p);
-                e.printStackTrace();
-            } finally {
-                System.setErr(temp);
-            }
+            // expected
         }
         conn.close();
     }

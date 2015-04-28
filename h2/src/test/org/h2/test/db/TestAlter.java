@@ -33,8 +33,8 @@ public class TestAlter extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("alter");
-        conn = getConnection("alter");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         testAlterTableAlterColumnAsSelfColumn();
         testAlterTableDropColumnWithReferences();
@@ -49,7 +49,7 @@ public class TestAlter extends TestBase {
         testAlterTableAddColumnAfter();
         testAlterTableModifyColumn();
         conn.close();
-        deleteDb("alter");
+        deleteDb(getTestName());
     }
 
     private void testAlterTableAlterColumnAsSelfColumn() throws SQLException {
@@ -121,7 +121,7 @@ public class TestAlter extends TestBase {
         stat.execute("alter table test alter id rename to id2");
         // disconnect and reconnect
         conn.close();
-        conn = getConnection("alter");
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         stat.execute("insert into test values(1)");
         assertThrows(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, stat).

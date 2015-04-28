@@ -38,15 +38,15 @@ public class TestFuzzOptimizations extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("optimizations");
-        conn = getConnection("optimizations");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName());
         if (!config.diskResult) {
             testIn();
         }
         testGroupSorted();
         testInSelect();
         conn.close();
-        deleteDb("optimizations");
+        deleteDb(getTestName());
     }
 
     /*

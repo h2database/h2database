@@ -282,8 +282,11 @@ public class SourceCompiler {
                     .getStandardFileManager(null, null, null));
         ArrayList<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
         compilationUnits.add(new StringJavaFileObject(fullClassName, source));
-        JAVA_COMPILER.getTask(writer, fileManager, null, null,
+        // can not concurrently compile
+        synchronized (JAVA_COMPILER) {
+            JAVA_COMPILER.getTask(writer, fileManager, null, null,
                 null, compilationUnits).call();
+        }
         String err = writer.toString();
         throwSyntaxError(err);
         try {
@@ -333,7 +336,7 @@ public class SourceCompiler {
         }.execute();
     }
 
-    private static void javacSun(File javaFile) {
+    private static synchronized void javacSun(File javaFile) {
         PrintStream old = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream temp = new PrintStream(buff);
@@ -344,6 +347,7 @@ public class SourceCompiler {
             Object javac = JAVAC_SUN.newInstance();
             compile.invoke(javac, (Object) new String[] {
                     "-sourcepath", COMPILE_DIR,
+                    // "-Xlint:unchecked",
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });

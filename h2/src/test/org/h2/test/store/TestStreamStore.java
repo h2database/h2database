@@ -41,8 +41,6 @@ public class TestStreamStore extends TestBase {
 
     @Override
     public void test() throws IOException {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        FileUtils.createDirectories(getBaseDir());
         testIOException();
         testSaveCount();
         testExceptionDuringStore();

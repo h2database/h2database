@@ -919,7 +919,6 @@ public class Database implements DataHandler {
                     // the moment
                     session.log(meta, UndoLogRecord.DELETE, found);
                 }
-                objectIds.clear(id);
                 if (SysProperties.CHECK) {
                     checkMetaFree(session, id);
                 }
@@ -929,6 +928,7 @@ public class Database implements DataHandler {
                 meta.unlock(session);
                 session.unlock(meta);
             }
+            objectIds.clear(id);
         }
     }
 

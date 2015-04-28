@@ -95,7 +95,7 @@ $$<rdf:RDF xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/19
     <category rdf:resource="http://projects.apache.org/category/library"/>
     <category rdf:resource="http://projects.apache.org/category/network-server"/>
     <license rdf:resource="http://usefulinc.com/doap/licenses/mpl"/>
-    <bug-database rdf:resource="http://code.google.com/p/h2database/issues/list"/>
+    <bug-database rdf:resource="https://github.com/h2database/h2database/issues"/>
     <download-page rdf:resource="http://h2database.com/html/download.html"/>
     <shortdesc xml:lang="en">H2 Database Engine</shortdesc>
     <description xml:lang="en">
@@ -110,8 +110,8 @@ $$<rdf:RDF xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/19
     </description>
     <repository>
         <SVNRepository>
-            <browse rdf:resource="http://code.google.com/p/h2database/source/browse"/>
-            <location rdf:resource="http://h2database.googlecode.com/svn/trunk"/>
+            <browse rdf:resource="https://github.com/h2database/h2database"/>
+            <location rdf:resource="https://github.com/h2database/h2database"/>
         </SVNRepository>
     </repository>
     <mailing-list rdf:resource="http://groups.google.com/group/h2-database"/>

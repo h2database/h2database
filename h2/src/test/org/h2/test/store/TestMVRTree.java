@@ -44,9 +44,6 @@ public class TestMVRTree extends TestMVStore {
 
     @Override
     public void test() {
-        FileUtils.deleteRecursive(getBaseDir(), true);
-        FileUtils.createDirectories(getBaseDir());
-
         testRemoveAll();
         testRandomInsert();
         testSpatialKey();
@@ -58,7 +55,7 @@ public class TestMVRTree extends TestMVStore {
     }
 
     private void testRemoveAll() {
-        String fileName = getBaseDir() + "/testRemoveAll.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         s = new MVStore.Builder().fileName(fileName).
@@ -77,7 +74,7 @@ public class TestMVRTree extends TestMVStore {
     }
 
     private void testRandomInsert() {
-        String fileName = getBaseDir() + "/testMany.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         s = new MVStore.Builder().fileName(fileName).
@@ -143,7 +140,7 @@ public class TestMVRTree extends TestMVStore {
     }
 
     private void testMany() {
-        String fileName = getBaseDir() + "/testMany.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
@@ -209,7 +206,7 @@ public class TestMVRTree extends TestMVStore {
     }
 
     private void testSimple() {
-        String fileName = getBaseDir() + "/testTree.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
         s = openStore(fileName);
@@ -387,7 +384,7 @@ public class TestMVRTree extends TestMVStore {
     }
 
     private void testRandom(boolean quadraticSplit) {
-        String fileName = getBaseDir() + "/testRandom.h3";
+        String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
 

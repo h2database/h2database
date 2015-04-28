@@ -32,8 +32,8 @@ public class TestAlterSchemaRename extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("alter");
-        conn = getConnection("alter");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
         testTryToRenameSystemSchemas();
         testSimpleRename();
@@ -41,7 +41,7 @@ public class TestAlterSchemaRename extends TestBase {
         testCrossSchemaViews();
         testAlias();
         conn.close();
-        deleteDb("alter");
+        deleteDb(getTestName());
     }
 
     private void testTryToRenameSystemSchemas() throws SQLException {
@@ -93,7 +93,7 @@ public class TestAlterSchemaRename extends TestBase {
         assertEquals(6, rs.getInt(1));
         if (!config.memory) {
             conn.close();
-            conn = getConnection("alter");
+            conn = getConnection(getTestName());
             stat = conn.createStatement();
             stat.executeQuery("select * from s2_new.v1");
         }
@@ -116,7 +116,7 @@ public class TestAlterSchemaRename extends TestBase {
         assertEquals("4321", rs.getString(1));
         if (!config.memory) {
             conn.close();
-            conn = getConnection("alter");
+            conn = getConnection(getTestName());
             stat = conn.createStatement();
             stat.executeQuery("CALL S2.REVERSE('1234')");
         }

@@ -4262,10 +4262,15 @@ public class Parser {
         }
         if (tableClauseExpected) {
             if (readIf("ON")) {
-                do {
-                    Table table = readTableOrView();
-                    command.addTable(table);
-                } while (readIf(","));
+                if (readIf("SCHEMA")) {
+                    Schema schema = database.getSchema(readAliasIdentifier());
+                    command.setSchema(schema);
+                } else {
+                    do {
+                        Table table = readTableOrView();
+                        command.addTable(table);
+                    } while (readIf(","));
+                }
             }
         }
         if (operationType == CommandInterface.GRANT) {

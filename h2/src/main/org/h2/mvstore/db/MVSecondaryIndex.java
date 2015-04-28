@@ -6,7 +6,6 @@
 package org.h2.mvstore.db;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -125,7 +124,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 if (indexType.isUnique()) {
                     Value[] array = ((ValueArray) v).getList();
                     // don't change the original value
-                    array = Arrays.copyOf(array, array.length);
+                    array = array.clone();
                     array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
                     ValueArray unique = ValueArray.get(array);
                     SearchRow row = convertToSearchRow((ValueArray) v);

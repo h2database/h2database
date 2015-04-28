@@ -6,6 +6,7 @@
 package org.h2.test.unit;
 
 import java.awt.Button;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.ByteArrayOutputStream;
@@ -142,20 +143,26 @@ public class TestTools extends TestBase {
             lastUrl = "-";
             // double-click prevention is 100 ms
             Thread.sleep(200);
-            MouseEvent me = new MouseEvent(new Button(), 0, 0, 0, 0, 0, 0,
-                    false, MouseEvent.BUTTON1);
-            c.mouseClicked(me);
-            assertContains(lastUrl, ":9002");
-            lastUrl = "-";
-            // no delay - ignore because it looks like a double click
-            c.mouseClicked(me);
-            assertEquals("-", lastUrl);
-            // open the window
-            c.actionPerformed(new ActionEvent(this, 0, "status"));
-            c.actionPerformed(new ActionEvent(this, 0, "exit"));
+            try {
+                MouseEvent me = new MouseEvent(new Button(), 0, 0, 0, 0, 0, 0,
+                        false, MouseEvent.BUTTON1);
+                c.mouseClicked(me);
+                assertContains(lastUrl, ":9002");
+                lastUrl = "-";
+                // no delay - ignore because it looks like a double click
+                c.mouseClicked(me);
+                assertEquals("-", lastUrl);
+                // open the window
+                c.actionPerformed(new ActionEvent(this, 0, "status"));
+                c.actionPerformed(new ActionEvent(this, 0, "exit"));
 
-            // check if the service was stopped
-            c.runTool("-webPort", "9002");
+                // check if the service was stopped
+                c.runTool("-webPort", "9002");
+
+            } catch (HeadlessException e) {
+                // ignore
+            }
+
             c.shutdown();
 
             // trying to use the same port for two services should fail,
@@ -354,6 +361,12 @@ public class TestTools extends TestBase {
                     continue;
                 }
                 int len = m.getParameterTypes().length;
+                if (m.getName().equals("updateObject") && m.getParameterTypes().length > 2) {
+                    Class<?> p3 = m.getParameterTypes()[2];
+                    if (p3.toString().indexOf("SQLType") >= 0) {
+                        continue;
+                    }
+                }
                 Object[] params = new Object[len];
                 int i = 0;
                 String expectedValue = null;
@@ -504,6 +517,13 @@ public class TestTools extends TestBase {
     }
 
     private void testServerMain() throws SQLException {
+        testNonSSL();
+        if (!config.fast) {
+            testSSL();
+        }
+    }
+
+    private void testNonSSL() throws SQLException {
         String result;
         Connection conn;
 
@@ -525,6 +545,11 @@ public class TestTools extends TestBase {
         result = runServer(0, new String[]{"-tcpShutdown",
                 "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
         assertTrue(result.contains("Shutting down"));
+    }
+
+    private void testSSL() throws SQLException {
+        String result;
+        Connection conn;
 
         result = runServer(0, new String[]{"-tcp",
                 "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});

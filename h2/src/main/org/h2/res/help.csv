@@ -299,7 +299,8 @@ COMMIT TRANSACTION transactionName
 Sets the resolution of an in-doubt transaction to 'commit'."
 "Commands (Other)","GRANT RIGHT","
 GRANT { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-tableName [,...] TO { PUBLIC | userName | roleName }
+{ { SCHEMA schemaName } | { tableName [,...] } }
+TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role."
 "Commands (Other)","GRANT ALTER ANY SCHEMA","
@@ -320,7 +321,8 @@ PREPARE COMMIT newTransactionName
 Prepares committing a transaction."
 "Commands (Other)","REVOKE RIGHT","
 REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-tableName [,...] FROM { PUBLIC | userName | roleName }
+{ { SCHEMA schemaName } | { tableName [,...] } }
+FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role."
 "Commands (Other)","REVOKE ROLE","

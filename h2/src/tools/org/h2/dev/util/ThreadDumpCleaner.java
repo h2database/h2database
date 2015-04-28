@@ -63,6 +63,9 @@ public class ThreadDumpCleaner {
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at java.net.SocketInputStream.socketRead0(?s).*?\n\n",
 
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
+                "at sun.nio.ch.WindowsSelectorImpl\\$SubSelector.poll0(?s).*?\n\n",
+
     };
 
     private ArrayList<Pattern> patterns = new ArrayList<Pattern>();

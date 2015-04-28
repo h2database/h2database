@@ -6,7 +6,6 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -471,14 +470,18 @@ public class Page {
     public void setChild(int index, Page c) {
         if (c == null) {
             long oldCount = children[index].count;
-            children = Arrays.copyOf(children, children.length);
+            // this is slightly slower:
+            // children = Arrays.copyOf(children, children.length);
+            children = children.clone();
             PageReference ref = new PageReference(null, 0, 0);
             children[index] = ref;
             totalCount -= oldCount;
         } else if (c != children[index].page ||
                 c.getPos() != children[index].pos) {
             long oldCount = children[index].count;
-            children = Arrays.copyOf(children, children.length);
+            // this is slightly slower:
+            // children = Arrays.copyOf(children, children.length);
+            children = children.clone();
             PageReference ref = new PageReference(c, c.pos, c.totalCount);
             children[index] = ref;
             totalCount += c.totalCount - oldCount;
@@ -492,7 +495,9 @@ public class Page {
      * @param key the new key
      */
     public void setKey(int index, Object key) {
-        keys = Arrays.copyOf(keys, keys.length);
+        // this is slightly slower:
+        // keys = Arrays.copyOf(keys, keys.length);
+        keys = keys.clone();
         Object old = keys[index];
         DataType keyType = map.getKeyType();
         int mem = keyType.getMemory(key);
@@ -512,7 +517,9 @@ public class Page {
      */
     public Object setValue(int index, Object value) {
         Object old = values[index];
-        values = Arrays.copyOf(values, values.length);
+        // this is slightly slower:
+        // values = Arrays.copyOf(values, values.length);
+        values = values.clone();
         DataType valueType = map.getValueType();
         addMemory(valueType.getMemory(value) -
                 valueType.getMemory(old));

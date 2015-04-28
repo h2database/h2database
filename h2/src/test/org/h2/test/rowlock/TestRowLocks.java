@@ -39,12 +39,12 @@ public class TestRowLocks extends TestBase {
     public void test() throws Exception {
         testSetMode();
         testCases();
-        deleteDb("rowLocks");
+        deleteDb(getTestName());
     }
 
     private void testSetMode() throws SQLException {
-        deleteDb("rowLocks");
-        c1 = getConnection("rowLocks");
+        deleteDb(getTestName());
+        c1 = getConnection(getTestName());
         Statement stat = c1.createStatement();
         stat.execute("SET LOCK_MODE 2");
         ResultSet rs = stat.executeQuery("call lock_mode()");
@@ -54,8 +54,8 @@ public class TestRowLocks extends TestBase {
     }
 
     private void testCases() throws Exception {
-        deleteDb("rowLocks");
-        c1 = getConnection("rowLocks;MVCC=TRUE");
+        deleteDb(getTestName());
+        c1 = getConnection(getTestName() + ";MVCC=TRUE");
         s1 = c1.createStatement();
         s1.execute("SET LOCK_TIMEOUT 10000");
         s1.execute("CREATE TABLE TEST AS " +
@@ -64,7 +64,7 @@ public class TestRowLocks extends TestBase {
         c1.setAutoCommit(false);
         s1.execute("UPDATE TEST SET NAME='Hallo' WHERE ID=1");
 
-        c2 = getConnection("rowLocks");
+        c2 = getConnection(getTestName());
         c2.setAutoCommit(false);
         s2 = c2.createStatement();
 

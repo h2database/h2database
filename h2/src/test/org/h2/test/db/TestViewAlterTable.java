@@ -31,8 +31,8 @@ public class TestViewAlterTable extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("alter");
-        conn = getConnection("alter");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
 
         testDropColumnWithoutViews();
@@ -47,7 +47,7 @@ public class TestViewAlterTable extends TestBase {
         testForeignKey();
 
         conn.close();
-        deleteDb("alter");
+        deleteDb(getTestName());
     }
 
     private void testDropColumnWithoutViews() throws SQLException {

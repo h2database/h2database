@@ -90,6 +90,9 @@ public class TestSpatial extends TestBase {
         testStoreCorruption();
         testExplainSpatialIndexWithPk();
         testNullableGeometry();
+        testNullableGeometryDelete();
+        testNullableGeometryInsert();
+        testNullableGeometryUpdate();
     }
 
     private void testHashCode() {
@@ -202,9 +205,11 @@ public class TestSpatial extends TestBase {
                     "(id int primary key, poly geometry)");
             stat.execute("insert into test values(1, " +
                     "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-            stat.execute("insert into test values(2, " +
-                    "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
+            stat.execute("insert into test values(2,null)");
             stat.execute("insert into test values(3, " +
+                    "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
+            stat.execute("insert into test values(4,null)");
+            stat.execute("insert into test values(5, " +
                     "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
             stat.execute("create spatial index on test(poly)");
 
@@ -258,18 +263,20 @@ public class TestSpatial extends TestBase {
                     "(id int primary key, poly geometry)");
             stat.execute("insert into test values(1, " +
                     "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-            stat.execute("insert into test values(2, " +
-                    "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
+            stat.execute("insert into test values(2,null)");
             stat.execute("insert into test values(3, " +
+                    "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
+            stat.execute("insert into test values(4,null)");
+            stat.execute("insert into test values(5, " +
                     "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
 
             ResultSet rs = stat.executeQuery(
                     "select * from test " +
                     "where NOT poly && 'POINT (1.5 1.5)'::Geometry");
             assertTrue(rs.next());
-            assertEquals(2, rs.getInt("id"));
-            assertTrue(rs.next());
             assertEquals(3, rs.getInt("id"));
+            assertTrue(rs.next());
+            assertEquals(5, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
         } finally {
@@ -292,6 +299,10 @@ public class TestSpatial extends TestBase {
                 "'POLYGON ((90 9, 190 9, 190 -91, 90 -91, 90 9))')");
         stat.execute("insert into area values(6, " +
                 "'POLYGON ((190 9, 290 9, 290 -91, 190 -91, 190 9))')");
+        stat.execute("insert into area values(7,null)");
+        stat.execute("insert into area values(8,null)");
+
+
         stat.execute("create table roads(idRoad int primary key, the_geom geometry)");
         stat.execute("create spatial index on roads(the_geom)");
         stat.execute("insert into roads values(1, " +
@@ -315,6 +326,9 @@ public class TestSpatial extends TestBase {
         stat.execute("insert into roads values(7, " +
                 "'LINESTRING (60.321361058601155 -13.099243856332663, " +
                 "149.24385633270325 5.955576559546344)')");
+        stat.execute("insert into roads values(8, null)");
+        stat.execute("insert into roads values(9, null)");
+
     }
 
     private void testSpatialIndexQueryMultipleTable() throws SQLException {
@@ -367,6 +381,7 @@ public class TestSpatial extends TestBase {
             createTestTable(stat);
             Savepoint sp = conn.setSavepoint();
             // Remove a row but do not commit
+            stat.execute("delete from roads where idRoad=9");
             stat.execute("delete from roads where idRoad=7");
             // Check if index is updated
             ResultSet rs = stat.executeQuery(
@@ -414,6 +429,7 @@ public class TestSpatial extends TestBase {
         stat.execute("create memory table test(id int primary key, polygon geometry)");
         stat.execute("create spatial index idx_test_polygon on test(polygon)");
         stat.execute("insert into test values(1, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+        stat.execute("insert into test values(2, null)");
         ResultSet rs;
 
         // an query that can not possibly return a result
@@ -705,7 +721,7 @@ public class TestSpatial extends TestBase {
             st.execute("CREATE AGGREGATE TABLE_ENVELOPE FOR \""+
                     TableEnvelope.class.getName()+"\"");
             st.execute("CREATE TABLE test(the_geom GEOMETRY)");
-            st.execute("INSERT INTO test VALUES ('POINT(1 1)'), ('POINT(10 5)')");
+            st.execute("INSERT INTO test VALUES ('POINT(1 1)'), (null), (null), ('POINT(10 5)')");
             ResultSet rs = st.executeQuery("select TABLE_ENVELOPE(the_geom) from test");
             assertEquals("geometry", rs.getMetaData().
                     getColumnTypeName(1).toLowerCase());
@@ -767,6 +783,7 @@ public class TestSpatial extends TestBase {
             stat.execute("drop view if exists test_view");
             stat.execute("create table test(id int primary key, poly geometry)");
             stat.execute("insert into test values(1, 'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+            stat.execute("insert into test values(4, null)");
             stat.execute("insert into test values(2, 'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
             stat.execute("insert into test values(3, 'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
             stat.execute("create view test_view as select * from test");
@@ -920,10 +937,48 @@ public class TestSpatial extends TestBase {
                 + "(id int primary key, the_geom geometry)");
         stat.execute("create spatial index on test(the_geom)");
         stat.execute("insert into test values(1, null)");
+        stat.execute("insert into test values(2, null)");
+        stat.execute("delete from test where the_geom is null");
+        stat.execute("insert into test values(1, null)");
+        stat.execute("insert into test values(2, null)");
+        stat.execute("insert into test values(3, 'POLYGON ((1000 2000, 1000 3000, 2000 3000, 1000 2000))')");
+        stat.execute("insert into test values(4, null)");
+        stat.execute("insert into test values(5, null)");
+        stat.execute("insert into test values(6, 'POLYGON ((1000 3000, 1000 4000, 2000 4000, 1000 3000))')");
+
         ResultSet rs = stat.executeQuery("select * from test");
-        assertTrue(rs.next());
-        assertEquals(1, rs.getInt(1));
-        assertNull(rs.getObject(2));
+        int count = 0;
+        while (rs.next()) {
+            count++;
+            int id = rs.getInt(1);
+            if (id == 3 || id == 6) {
+                assertTrue(rs.getObject(2) != null);
+            } else {
+                assertNull(rs.getObject(2));
+            }
+        }
+        assertEquals(6, count);
+
+        rs = stat.executeQuery("select * from test where the_geom is null");
+        count = 0;
+        while (rs.next()) {
+            count++;
+            assertNull(rs.getObject(2));
+        }
+        assertEquals(4, count);
+
+        rs = stat.executeQuery("select * from test where the_geom is not null");
+        count = 0;
+        while (rs.next()) {
+            count++;
+            assertTrue(rs.getObject(2) != null);
+        }
+        assertEquals(2, count);
+
+        rs = stat.executeQuery(
+                "select * from test " +
+                "where intersects(the_geom, 'POLYGON ((1000 1000, 1000 2000, 2000 2000, 1000 1000))')");
+
         conn.close();
         if (!config.memory) {
             conn = getConnection(url);
@@ -934,7 +989,72 @@ public class TestSpatial extends TestBase {
             assertNull(rs.getObject(2));
             conn.close();
         }
+        deleteDb("spatial");
+    }
 
+    private void testNullableGeometryDelete() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create memory table test"
+                + "(id int primary key, the_geom geometry)");
+        stat.execute("create spatial index on test(the_geom)");
+        stat.execute("insert into test values(1, null)");
+        stat.execute("insert into test values(2, null)");
+        stat.execute("insert into test values(3, null)");
+        ResultSet rs = stat.executeQuery("select * from test order by id");
+        while (rs.next()) {
+            assertNull(rs.getObject(2));
+        }
+        stat.execute("delete from test where id = 1");
+        stat.execute("delete from test where id = 2");
+        stat.execute("delete from test where id = 3");
+        stat.execute("insert into test values(4, null)");
+        stat.execute("insert into test values(5, null)");
+        stat.execute("insert into test values(6, null)");
+        stat.execute("delete from test where id = 4");
+        stat.execute("delete from test where id = 5");
+        stat.execute("delete from test where id = 6");
+        conn.close();
+        deleteDb("spatial");
+    }
+
+    private void testNullableGeometryInsert() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create memory table test"
+                + "(id identity, the_geom geometry)");
+        stat.execute("create spatial index on test(the_geom)");
+        for (int i = 0; i < 1000; i++) {
+            stat.execute("insert into test values(null, null)");
+        }
+        ResultSet rs = stat.executeQuery("select * from test");
+        while (rs.next()) {
+            assertNull(rs.getObject(2));
+        }
+        conn.close();
+        deleteDb("spatial");
+    }
+
+    private void testNullableGeometryUpdate() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("create memory table test"
+                + "(id int primary key, the_geom geometry, description varchar2(32))");
+        stat.execute("create spatial index on test(the_geom)");
+        stat.execute("insert into test values(1, null, null)");
+        stat.execute("insert into test values(2, null, null)");
+        stat.execute("insert into test values(3, null, null)");
+        ResultSet rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertNull(rs.getObject(2));
+        stat.execute("update test set description='DESCRIPTION' where id = 1");
+        stat.execute("update test set description='DESCRIPTION' where id = 2");
+        stat.execute("update test set description='DESCRIPTION' where id = 3");
+        conn.close();
         deleteDb("spatial");
     }
 

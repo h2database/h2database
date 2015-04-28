@@ -32,7 +32,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
@@ -70,7 +69,6 @@ public class TestResultSet extends TestBase {
         testInsertRowWithUpdatableResultSetDefault();
         testBeforeFirstAfterLast();
         testParseSpecialValues();
-        testSpecialLocale();
         testSubstringPrecision();
         testSubstringDataType();
         testColumnLabelColumnName();
@@ -345,26 +343,6 @@ public class TestResultSet extends TestBase {
         Object o = rs.getObject(1);
         assertEquals(expected.getClass().getName(), o.getClass().getName());
         assertTrue(expected.equals(o));
-    }
-
-    private void testSpecialLocale() throws SQLException {
-        Locale old = Locale.getDefault();
-        try {
-            // when using Turkish as the default locale, "i".toUpperCase() is
-            // not "I"
-            Locale.setDefault(new Locale("tr"));
-            stat.execute("create table test(I1 int, i2 int, b int, c int, d int) " +
-                    "as select 1, 1, 1, 1, 1");
-            ResultSet rs = stat.executeQuery("select * from test");
-            rs.next();
-            rs.getString("I1");
-            rs.getString("i1");
-            rs.getString("I2");
-            rs.getString("i2");
-            stat.execute("drop table test");
-        } finally {
-            Locale.setDefault(old);
-        }
     }
 
     private void testSubstringDataType() throws SQLException {

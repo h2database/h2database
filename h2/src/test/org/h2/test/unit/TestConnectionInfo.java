@@ -44,12 +44,12 @@ public class TestConnectionInfo extends TestBase {
             return;
         }
         assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, this).
-            getConnection("jdbc:h2:test");
+            getConnection("jdbc:h2:" + getTestName());
         assertThrows(ErrorCode.URL_RELATIVE_TO_CWD, this).
-            getConnection("jdbc:h2:data/test");
+            getConnection("jdbc:h2:data/" + getTestName());
 
-        getConnection("jdbc:h2:./testDatabase").close();
-        DeleteDbFiles.execute(".", "testDatabase", true);
+        getConnection("jdbc:h2:./data/" + getTestName()).close();
+        DeleteDbFiles.execute("data", getTestName(), true);
     }
 
     private void testConnectInitError() throws Exception {
@@ -62,14 +62,14 @@ public class TestConnectionInfo extends TestBase {
     private void testConnectionInfo() {
         Properties info = new Properties();
         ConnectionInfo connectionInfo = new ConnectionInfo(
-                "jdbc:h2:mem:test" +
+                "jdbc:h2:mem:" + getTestName() +
                         ";LOG=2" +
                         ";ACCESS_MODE_DATA=rws" +
                         ";INIT=CREATE this...\\;INSERT that..." +
                         ";IFEXISTS=TRUE",
                 info);
 
-        assertEquals("jdbc:h2:mem:test",
+        assertEquals("jdbc:h2:mem:" + getTestName(),
                 connectionInfo.getURL());
 
         assertEquals("2",

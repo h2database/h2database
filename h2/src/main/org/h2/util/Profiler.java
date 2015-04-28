@@ -45,14 +45,16 @@ public class Profiler implements Runnable {
             "sun," +
             "com.sun.," +
             "com.google.common.," +
-            "com.mongodb."
+            "com.mongodb.," +
+            "org.bson.,"
             ).split(",");
     private final String[] ignorePackages = (
             "java," +
             "sun," +
             "com.sun.," +
             "com.google.common.," +
-            "com.mongodb."
+            "com.mongodb.," +
+            "org.bson"
             ).split(",");
     private final String[] ignoreThreads = (
             "java.lang.Object.wait," +

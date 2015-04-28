@@ -38,8 +38,8 @@ public class TestMvccMultiThreaded extends TestBase {
     }
 
     private void testMergeWithUniqueKeyViolation() throws Exception {
-        deleteDb("mvccMultiThreaded");
-        Connection conn = getConnection("mvccMultiThreaded");
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test(x int primary key, y int unique)");
         stat.execute("insert into test values(1, 1)");
@@ -51,12 +51,12 @@ public class TestMvccMultiThreaded extends TestBase {
     }
 
     private void testConcurrentMerge() throws Exception {
-        deleteDb("mvccMultiThreaded");
+        deleteDb(getTestName());
         int len = 3;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
             Connection conn = getConnection(
-                    "mvccMultiThreaded;MVCC=TRUE;LOCK_TIMEOUT=500");
+                    getTestName() + ";MVCC=TRUE;LOCK_TIMEOUT=500");
             connList[i] = conn;
         }
         Connection conn = connList[0];
@@ -88,16 +88,16 @@ public class TestMvccMultiThreaded extends TestBase {
         for (int i = 0; i < len; i++) {
             connList[i].close();
         }
-        deleteDb("mvccMultiThreaded");
+        deleteDb(getTestName());
     }
 
     private void testConcurrentUpdate(String suffix) throws Exception {
-        deleteDb("mvccMultiThreaded");
+        deleteDb(getTestName());
         int len = 2;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
             connList[i] = getConnection(
-                    "mvccMultiThreaded;MVCC=TRUE" + suffix);
+                    getTestName() + ";MVCC=TRUE" + suffix);
         }
         Connection conn = connList[0];
         conn.createStatement().execute(
@@ -133,7 +133,6 @@ public class TestMvccMultiThreaded extends TestBase {
         for (int i = 0; i < len; i++) {
             connList[i].close();
         }
-        deleteDb("mvccMultiThreaded");
     }
 
 }

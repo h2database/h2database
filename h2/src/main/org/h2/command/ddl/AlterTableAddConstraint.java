@@ -199,15 +199,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                if (db.isStarting()) {
-                    // before version 1.3.176, an existing index was used:
-                    // must do the same to avoid
-                    // Unique index or primary key violation:
-                    // "PRIMARY KEY ON """".PAGE_INDEX"
-                    index = getIndex(table, indexColumns, true);
-                } else {
-                    index = getIndex(table, indexColumns, false);
-                }
+                index = getIndex(table, indexColumns, true);
                 if (index == null) {
                     index = createIndex(table, indexColumns, false);
                     isOwner = true;

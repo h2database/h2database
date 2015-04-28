@@ -312,14 +312,14 @@ public class FileUtils {
     }
 
     /**
-     * Try to delete a file (ignore errors).
+     * Try to delete a file or directory (ignoring errors).
      *
-     * @param fileName the file name
+     * @param path the file or directory name
      * @return true if it worked
      */
-    public static boolean tryDelete(String fileName) {
+    public static boolean tryDelete(String path) {
         try {
-            FilePath.get(fileName).delete();
+            FilePath.get(path).delete();
             return true;
         } catch (Exception e) {
             return false;

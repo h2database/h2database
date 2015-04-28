@@ -307,7 +307,7 @@ public class TestPageStore extends TestBase {
         stat.execute("select nextval('SEQ') from system_range(1, 100000)");
         long after = System.currentTimeMillis();
         // it's hard to test - basically it shouldn't checkpoint too often
-        if (after - before > 10000) {
+        if (after - before > 20000) {
             if (!config.reopen) {
                 fail("Checkpoint took " + (after - before) + " ms");
             }

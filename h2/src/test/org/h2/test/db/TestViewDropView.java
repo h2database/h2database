@@ -32,8 +32,8 @@ public class TestViewDropView extends TestBase {
 
     @Override
     public void test() throws Exception {
-        deleteDb("alter");
-        conn = getConnection("alter");
+        deleteDb(getTestName());
+        conn = getConnection(getTestName());
         stat = conn.createStatement();
 
         testDropViewDefaultBehaviour();
@@ -45,7 +45,7 @@ public class TestViewDropView extends TestBase {
         testCreateOrReplaceForceViewWithNowInvalidDependentViews();
 
         conn.close();
-        deleteDb("alter");
+        deleteDb(getTestName());
     }
 
     private void testCreateForceView() throws SQLException {

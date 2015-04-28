@@ -191,10 +191,11 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
 To create an Eclipse project for H2, use the following steps:
 </p>
 <ul><li>Install Subversion and <a href="http://www.eclipse.org">Eclipse</a>.
-</li><li>Get the H2 source code from the Subversion repository:<br />
-    <code>svn checkout http://h2database.googlecode.com/svn/trunk h2database-read-only</code>
-</li><li>Download all dependencies (Windows):<br />
-    <code>build.bat download</code>
+</li><li>Get the H2 source code from Github:<br />
+    <code>git clone https://github.com/h2database/h2database</code>
+</li><li>Download all dependencies:<br />
+    <code>build.bat download</code>(Windows)<br />
+    <code>./build.sh download</code>(otherwise)<br />
 </li><li>In Eclipse, create a new Java project from existing source code:
     <code>File, New, Project, Java Project, Create project from existing source</code>.
 </li><li>Select the <code>h2</code> folder, click <code>Next</code> and <code>Finish</code>.
@@ -251,7 +252,7 @@ If you like to provide patches, please consider the following guidelines to simp
 <p>
 For legal reasons, patches need to be public in the form of an email to the
 <a href="http://groups.google.com/group/h2-database">group</a>, or in the form
-of an <a href="http://code.google.com/p/h2database/issues/list">issue report or attachment</a>.
+of an <a href="https://github.com/h2database/h2database/issues">issue report or attachment</a>.
 Significant contributions need to include the following statement:
 </p>
 <p>
@@ -284,7 +285,7 @@ or if  you have a feature request:
     Please keep test cases as simple and short as possible,
     but so that the problem can still be reproduced.
     As a template, use:
-    <a href="http://h2database.googlecode.com/svn/trunk/h2/src/test/org/h2/samples/HelloWorld.java">HelloWorld.java</a>.
+    <a href="https://github.com/h2database/h2database/tree/master/h2/src/test/org/h2/samples/HelloWorld.java">HelloWorld.java</a>.
     Method that simply call other methods should be avoided,
     as well as unnecessary exception handling.
     Please use the JDBC API and no external tools or libraries.
@@ -297,7 +298,7 @@ or if  you have a feature request:
     <a href="http://groups.google.com/group/h2-database">Google Group</a>
     for questions or if you are not sure it's a bug.
     If you are sure it's a bug, you can create an
-    <a href="http://code.google.com/p/h2database/issues/list">issue</a>,
+    <a href="https://github.com/h2database/h2database/issues">issue</a>,
     but you don't need to (sending an email to the group is enough).
     Please note that only few people monitor the issue tracking system.
 </li><li>For out-of-memory problems, please analyze the problem yourself first,

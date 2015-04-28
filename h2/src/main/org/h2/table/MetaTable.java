@@ -893,6 +893,7 @@ public class MetaTable extends Table {
             add(rows, Table.TABLE_LINK);
             add(rows, Table.SYSTEM_TABLE);
             add(rows, Table.VIEW);
+            add(rows, Table.EXTERNAL_TABLE_ENGINE);
             break;
         }
         case CATALOGS: {
@@ -1127,8 +1128,19 @@ public class MetaTable extends Table {
                     String rightType = grantee.getType() == DbObject.USER ?
                             "USER" : "ROLE";
                     if (role == null) {
-                        Table granted = r.getGrantedTable();
-                        String tableName = identifier(granted.getName());
+                        DbObject object = r.getGrantedObject();
+                        Schema schema = null;
+                        Table table = null;
+                        if (object != null) {
+                            if (object instanceof Schema) {
+                                schema = (Schema) object;
+                            } else if (object instanceof Table) {
+                                table = (Table) object;
+                                schema = table.getSchema();
+                            }
+                        }
+                        String tableName = (table != null) ? identifier(table.getName()) : "";
+                        String schemaName = (schema != null) ? identifier(schema.getName()) : "";
                         if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                             continue;
                         }
@@ -1142,9 +1154,9 @@ public class MetaTable extends Table {
                                 // RIGHTS
                                 r.getRights(),
                                 // TABLE_SCHEMA
-                                identifier(granted.getSchema().getName()),
+                                schemaName,
                                 // TABLE_NAME
-                                identifier(granted.getName()),
+                                tableName,
                                 // ID
                                 "" + r.getId()
                         );
@@ -1374,7 +1386,11 @@ public class MetaTable extends Table {
         }
         case TABLE_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
-                Table table = r.getGrantedTable();
+                DbObject object = r.getGrantedObject();
+                if (!(object instanceof Table)) {
+                    continue;
+                }
+                Table table = (Table) object;
                 if (table == null || hideTable(table, session)) {
                     continue;
                 }
@@ -1389,7 +1405,11 @@ public class MetaTable extends Table {
         }
         case COLUMN_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
-                Table table = r.getGrantedTable();
+                DbObject object = r.getGrantedObject();
+                if (!(object instanceof Table)) {
+                    continue;
+                }
+                Table table = (Table) object;
                 if (table == null || hideTable(table, session)) {
                     continue;
                 }

@@ -43,10 +43,10 @@ public class TestAutoServer extends TestBase {
 
     private void testUnsupportedCombinations() throws SQLException {
         String[] urls = {
-                "jdbc:h2:test;file_lock=no;auto_server=true",
-                "jdbc:h2:test;file_lock=serialized;auto_server=true",
-                "jdbc:h2:test;access_mode_data=r;auto_server=true",
-                "jdbc:h2:mem:test;auto_server=true"
+                "jdbc:h2:" + getTestName() + ";file_lock=no;auto_server=true",
+                "jdbc:h2:" + getTestName() + ";file_lock=serialized;auto_server=true",
+                "jdbc:h2:" + getTestName() + ";access_mode_data=r;auto_server=true",
+                "jdbc:h2:mem:" + getTestName() + ";auto_server=true"
         };
         for (String url : urls) {
             assertThrows(SQLException.class, this).getConnection(url);
@@ -63,8 +63,8 @@ public class TestAutoServer extends TestBase {
         if (config.memory || config.networked) {
             return;
         }
-        deleteDb("autoServer");
-        String url = getURL("autoServer;AUTO_SERVER=TRUE", true);
+        deleteDb(getTestName());
+        String url = getURL(getTestName() + ";AUTO_SERVER=TRUE", true);
         if (port) {
             url += ";AUTO_SERVER_PORT=11111";
         }
@@ -76,7 +76,7 @@ public class TestAutoServer extends TestBase {
         for (; i > 0; i--) {
             Thread.sleep(100);
             SortedProperties prop = SortedProperties.loadProperties(
-                    getBaseDir() + "/autoServer.lock.db");
+                    getBaseDir() + "/" + getTestName() + ".lock.db");
             String key = prop.getProperty("id");
             String server = prop.getProperty("server");
             if (server != null) {
@@ -117,10 +117,10 @@ public class TestAutoServer extends TestBase {
         if (config.memory || config.networked) {
             return;
         }
-        deleteDb("autoServerLinkedTable1");
-        deleteDb("autoServerLinkedTable2");
-        String url = getURL("autoServerLinkedTable1;AUTO_SERVER=TRUE", true);
-        String urlLinked = getURL("autoServerLinkedTable2", true);
+        deleteDb(getTestName() + "1");
+        deleteDb(getTestName() + "2");
+        String url = getURL(getTestName() + "1;AUTO_SERVER=TRUE", true);
+        String urlLinked = getURL(getTestName() + "2", true);
         String user = getUser(), password = getPassword();
 
         Connection connLinked = getConnection(urlLinked, user, password);
@@ -163,8 +163,8 @@ public class TestAutoServer extends TestBase {
             // ignore
         }
 
-        deleteDb("autoServerLinkedTable1");
-        deleteDb("autoServerLinkedTable2");
+        deleteDb(getTestName() + "1");
+        deleteDb(getTestName() + "2");
     }
 
     /**

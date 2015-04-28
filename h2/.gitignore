@@ -1,6 +1,10 @@
+.checkstyle
 .classpath
 .project
+.settings
+benchmark.html
 bin
+data
 docs
 ext
 error.*

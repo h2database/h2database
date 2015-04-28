@@ -769,10 +769,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     }
 
     /**
-     * Gets the list of table types. This call returns a result set with three
-     * records: "SYSTEM TABLE", "TABLE", "and "VIEW".
-     * The result set is sorted by TABLE_TYPE.
-     *
+     * Gets the list of table types. This call returns a result set with five
+     * records: "SYSTEM TABLE", "TABLE", "VIEW", "TABLE LINK" and "EXTERNAL".
      * <ul>
      * <li>1 TABLE_TYPE (String) table type
      * </li></ul>

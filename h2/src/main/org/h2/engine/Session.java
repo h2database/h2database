@@ -855,11 +855,11 @@ public class Session extends SessionWithState {
         if (trace != null && !closed) {
             return trace;
         }
-        String traceModuleName = Trace.JDBC + "[" + id + "]";
+        String traceModuleName = "jdbc[" + id + "]";
         if (closed) {
             return new TraceSystem(null).getTrace(traceModuleName);
         }
-        trace = database.getTrace(traceModuleName);
+        trace = database.getTraceSystem().getTrace(traceModuleName);
         return trace;
     }
 

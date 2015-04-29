@@ -510,13 +510,13 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Get the trace object for the given module.
+     * Get the trace object for the given module id.
      *
-     * @param module the module name
+     * @param moduleId the module id
      * @return the trace object
      */
-    public Trace getTrace(String module) {
-        return traceSystem.getTrace(module);
+    public Trace getTrace(int moduleId) {
+        return traceSystem.getTrace(moduleId);
     }
 
     @Override

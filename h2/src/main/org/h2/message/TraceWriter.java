@@ -31,6 +31,17 @@ interface TraceWriter {
     void write(int level, String module, String s, Throwable t);
 
     /**
+     * Write a message.
+     *
+     * @param level the trace level
+     * @param moduleId the id of the module
+     * @param s the message
+     * @param t the exception (may be null)
+     */
+    void write(int level, int moduleId, String s, Throwable t);
+
+
+    /**
      * Check the given trace / log level is enabled.
      *
      * @param level the level

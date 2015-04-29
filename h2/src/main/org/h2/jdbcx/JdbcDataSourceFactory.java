@@ -34,7 +34,7 @@ public class JdbcDataSourceFactory implements ObjectFactory {
      * The public constructor to create new factory objects.
      */
     public JdbcDataSourceFactory() {
-        trace = getTraceSystem().getTrace("JDBCX");
+        trace = getTraceSystem().getTrace(Trace.JDBCX);
     }
 
     /**

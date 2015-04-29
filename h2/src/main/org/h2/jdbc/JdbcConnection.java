@@ -28,17 +28,18 @@ import java.sql.Struct;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.store.DataHandler;
 import org.h2.util.CloseWatcher;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
@@ -65,6 +66,8 @@ import java.util.concurrent.Executor;
 public class JdbcConnection extends TraceObject implements Connection {
 
     private static boolean keepOpenStackTrace;
+    
+    private static final CompareMode COMPARE_MODE = CompareMode.getInstance(null, 0);
 
     private final String url;
     private final String user;
@@ -81,7 +84,6 @@ public class JdbcConnection extends TraceObject implements Connection {
     private int savepointId;
     private String catalog;
     private Statement executingStatement;
-    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
     private final CloseWatcher watcher;
     private int queryTimeoutCache = -1;
 
@@ -1938,7 +1940,13 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     CompareMode getCompareMode() {
-        return compareMode;
+        DataHandler handler = session.getDataHandler();
+        
+        if (handler instanceof Database) {
+            return ((Database) handler).getCompareMode();
+        }
+        
+        return COMPARE_MODE;
     }
 
     /**

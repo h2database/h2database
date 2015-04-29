@@ -941,10 +941,12 @@ public class TestSpatial extends TestBase {
         stat.execute("delete from test where the_geom is null");
         stat.execute("insert into test values(1, null)");
         stat.execute("insert into test values(2, null)");
-        stat.execute("insert into test values(3, 'POLYGON ((1000 2000, 1000 3000, 2000 3000, 1000 2000))')");
+        stat.execute("insert into test values(3, " +
+                "'POLYGON ((1000 2000, 1000 3000, 2000 3000, 1000 2000))')");
         stat.execute("insert into test values(4, null)");
         stat.execute("insert into test values(5, null)");
-        stat.execute("insert into test values(6, 'POLYGON ((1000 3000, 1000 4000, 2000 4000, 1000 3000))')");
+        stat.execute("insert into test values(6, " +
+                "'POLYGON ((1000 3000, 1000 4000, 2000 4000, 1000 3000))')");
 
         ResultSet rs = stat.executeQuery("select * from test");
         int count = 0;
@@ -977,7 +979,8 @@ public class TestSpatial extends TestBase {
 
         rs = stat.executeQuery(
                 "select * from test " +
-                "where intersects(the_geom, 'POLYGON ((1000 1000, 1000 2000, 2000 2000, 1000 1000))')");
+                "where intersects(the_geom, " +
+                "'POLYGON ((1000 1000, 1000 2000, 2000 2000, 1000 1000))')");
 
         conn.close();
         if (!config.memory) {

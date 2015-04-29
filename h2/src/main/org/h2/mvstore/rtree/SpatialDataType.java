@@ -352,7 +352,7 @@ public class SpatialDataType implements DataType {
         return new int[] { firstIndex, lastIndex };
     }
 
-    ArrayList<Object> getNotNull(ArrayList<Object> list) {
+    private static ArrayList<Object> getNotNull(ArrayList<Object> list) {
         ArrayList<Object> result = null;
         for (Object o : list) {
             SpatialKey a = (SpatialKey) o;

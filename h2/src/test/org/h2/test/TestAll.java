@@ -860,7 +860,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void runAddedTests() {
         int threadCount = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
-        threadCount = 1;
+        threadCount = 2;
         runAddedTests(threadCount);
     }
 

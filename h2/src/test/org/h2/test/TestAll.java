@@ -150,6 +150,7 @@ import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
 import org.h2.test.unit.TestAutoReconnect;
 import org.h2.test.unit.TestBitField;
+import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestClearReferences;
@@ -792,6 +793,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // unit
         addTest(new TestAutoReconnect());
         addTest(new TestBitField());
+        addTest(new TestBitStream());
         addTest(new TestBnf());
         addTest(new TestCache());
         addTest(new TestClearReferences());

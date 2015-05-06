@@ -136,12 +136,16 @@ public class TestBnf extends TestBase {
         DbContextRule columnRule = new
                 DbContextRule(dbContents, DbContextRule.COLUMN);
         bnf.updateTopic("column_name", columnRule);
-        bnf.updateTopic("expression", new
+        bnf.updateTopic("procedure", new
                 DbContextRule(dbContents, DbContextRule.PROCEDURE));
         bnf.linkStatements();
         // Test partial
         Map<String, String> tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");
         assertTrue(tokens.values().contains("INT"));
+
+        // Test built-in function
+        tokens = bnf.getNextTokenList("SELECT LEAS");
+        assertTrue(tokens.values().contains("T"));
 
         // Test parameters
         tokens = bnf.getNextTokenList("SELECT CUSTOM_PRINT(");

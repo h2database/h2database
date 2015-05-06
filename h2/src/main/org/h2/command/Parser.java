@@ -4199,8 +4199,6 @@ public class Parser {
             checkSchema(oldSchema);
             CreateIndex command = new CreateIndex(session, getSchema());
             command.setIfNotExists(ifNotExists);
-            command.setHash(hash);
-            command.setSpatial(spatial);
             command.setPrimaryKey(primaryKey);
             command.setTableName(tableName);
             command.setUnique(unique);
@@ -4208,6 +4206,26 @@ public class Parser {
             command.setComment(readCommentIf());
             read("(");
             command.setIndexColumns(parseIndexColumnList());
+
+            if (readIf("USING")) {
+                if (hash) {
+                    throw getSyntaxError();
+                }
+                if (spatial) {
+                    throw getSyntaxError();
+                }
+                if (readIf("BTREE")) {
+                } else if (readIf("RTREE")) {
+                    spatial = true;
+                } else if (readIf("HASH")) {
+                    hash = true;
+                } else {
+                    throw getSyntaxError();
+                }
+
+            }
+            command.setHash(hash);
+            command.setSpatial(spatial);
             return command;
         }
     }

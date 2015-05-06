@@ -27,6 +27,7 @@ import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
 import org.h2.value.ValueLobDb;
+import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 import org.h2.value.ValueUuid;
@@ -47,6 +48,7 @@ public class TestValue extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testResultSetOperations();
         testCastTrim();
         testValueResultSet();
         testDataType();
@@ -56,6 +58,55 @@ public class TestValue extends TestBase {
         testModulusDouble();
         testModulusDecimal();
         testModulusOperator();
+    }
+
+    private void testResultSetOperations() throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.setAutoClose(false);
+        rs.addColumn("X", Types.INTEGER, 10, 0);
+        rs.addRow(new Object[]{null});
+        rs.next();
+        for (int type = Value.NULL; type < Value.TYPE_COUNT; type++) {
+            Value v = DataType.readValue(null, rs, 1, type);
+            assertTrue(v == ValueNull.INSTANCE);
+        }
+        testResultSetOperation(new byte[0]);
+        testResultSetOperation(1);
+        testResultSetOperation(Boolean.TRUE);
+        testResultSetOperation((byte) 1);
+        testResultSetOperation((short) 2);
+        testResultSetOperation((long) 3);
+        testResultSetOperation(4.0f);
+        testResultSetOperation(5.0d);
+        testResultSetOperation(new Date(6));
+        testResultSetOperation(new Time(7));
+        testResultSetOperation(new Timestamp(8));
+        testResultSetOperation(new BigDecimal("9"));
+
+        SimpleResultSet rs2 = new SimpleResultSet();
+        rs2.setAutoClose(false);
+        rs2.addColumn("X", Types.INTEGER, 10, 0);
+        rs2.addRow(new Object[]{1});
+        rs2.next();
+        testResultSetOperation(rs2);
+
+    }
+
+    private void testResultSetOperation(Object obj) throws SQLException {
+        SimpleResultSet rs = new SimpleResultSet();
+        rs.setAutoClose(false);
+        int valueType = DataType.getTypeFromClass(obj.getClass());
+        int sqlType = DataType.convertTypeToSQLType(valueType);
+        rs.addColumn("X", sqlType, 10, 0);
+        rs.addRow(new Object[]{obj});
+        rs.next();
+        Value v = DataType.readValue(null, rs, 1, valueType);
+        Value v2 = DataType.convertToValue(null, obj, valueType);
+        if (v.getType() == Value.RESULT_SET) {
+            assertEquals(v.toString(), v2.toString());
+        } else {
+            assertTrue(v.equals(v2));
+        }
     }
 
     private void testCastTrim() {

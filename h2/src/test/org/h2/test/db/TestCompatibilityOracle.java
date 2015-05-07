@@ -6,6 +6,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -89,6 +90,17 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("0", stat, "SELECT COUNT(*) FROM E WHERE X = ''");
         assertResult(new Object[][] { { 1, new byte[] { 10 } }, { 2, null } },
                 stat, "SELECT * FROM E");
+
+        stat.execute("CREATE TABLE F (ID NUMBER, X VARCHAR2(1))");
+        stat.execute("INSERT INTO F VALUES (1, 'a')");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO F VALUES (2, ?)");
+        prep.setString(1, "");
+        prep.execute();
+        assertResult("2", stat, "SELECT COUNT(*) FROM F");
+        assertResult("1", stat, "SELECT COUNT(*) FROM F WHERE X IS NULL");
+        assertResult("0", stat, "SELECT COUNT(*) FROM F WHERE X = ''");
+        assertResult(new Object[][]{{1, "a"}, {2, null}}, stat, "SELECT * FROM F");
 
         conn.close();
     }

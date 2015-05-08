@@ -105,7 +105,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/main");
         String version = getTargetJavaVersion();
         if (version != null) {
-            args = args.plus("-target", version);
+            args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
     }
@@ -187,7 +187,7 @@ public class Build extends BuildBase {
         }
         String version = getTargetJavaVersion();
         if (version != null) {
-            args = args.plus("-target", version);
+            args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
     }
@@ -224,7 +224,7 @@ public class Build extends BuildBase {
         }
         String version = getTargetJavaVersion();
         if (version != null) {
-            args = args.plus("-target", version);
+            args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
 
@@ -238,7 +238,7 @@ public class Build extends BuildBase {
                     "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
                     "-classpath", classpath);
             if (version != null) {
-                args = args.plus("-target", version);
+                args = args.plus("-target", version, "-source", version);
             }
             javac(args, files);
             files = files("src/test").
@@ -964,7 +964,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/test" + File.pathSeparator + "src/main");
         String version = getTargetJavaVersion();
         if (version != null) {
-            args = args.plus("-target", version);
+            args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
         String cp = "bin" + File.pathSeparator + "temp" +

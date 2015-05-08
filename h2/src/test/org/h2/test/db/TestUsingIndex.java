@@ -69,7 +69,7 @@ public class TestUsingIndex extends TestBase {
         stat.execute("create table test(id int)");
         assertFalse(isSupportedSyntax(stat, "create hash index idx_name_1 on test(id) using hash"));
         assertFalse(isSupportedSyntax(stat, "create hash index idx_name_2 on test(id) using btree"));
-        assertFalse(isSupportedSyntax(stat, "create index idx_name_3 on test(id) using hashtree"));
+        assertFalse(isSupportedSyntax(stat, "create index idx_name_3 on test(id) using hash_tree"));
         assertFalse(isSupportedSyntax(stat, "create unique hash index idx_name_4 on test(id) using hash"));
         assertFalse(isSupportedSyntax(stat, "create index idx_name_5 on test(id) using hash table"));
         conn.close();

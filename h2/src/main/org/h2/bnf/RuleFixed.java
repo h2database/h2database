@@ -44,6 +44,7 @@ public class RuleFixed implements Rule {
         sentence.stopIfRequired();
         String query = sentence.getQuery();
         String s = query;
+        boolean removeTrailingSpaces = false;
         switch(type) {
         case YMD:
             while (s.length() > 0 && "0123456789-".indexOf(s.charAt(0)) >= 0) {
@@ -52,6 +53,8 @@ public class RuleFixed implements Rule {
             if (s.length() == 0) {
                 sentence.add("2006-01-01", "1", Sentence.KEYWORD);
             }
+            // needed for timestamps
+            removeTrailingSpaces = true;
             break;
         case HMS:
             while (s.length() > 0 && "0123456789:".indexOf(s.charAt(0)) >= 0) {
@@ -68,6 +71,7 @@ public class RuleFixed implements Rule {
             if (s.length() == 0) {
                 sentence.add("nanoseconds", "0", Sentence.KEYWORD);
             }
+            removeTrailingSpaces = true;
             break;
         case ANY_EXCEPT_SINGLE_QUOTE:
             while (true) {
@@ -135,6 +139,7 @@ public class RuleFixed implements Rule {
             } else if (s.length() == 0) {
                 sentence.add("||", "||", Sentence.KEYWORD);
             }
+            removeTrailingSpaces = true;
             break;
         case AZ_UNDERSCORE:
             if (s.length() > 0 &&
@@ -170,6 +175,7 @@ public class RuleFixed implements Rule {
             } else if (s.charAt(0) == '[') {
                 s = s.substring(1);
             }
+            removeTrailingSpaces = true;
             break;
         case CLOSE_BRACKET:
             if (s.length() == 0) {
@@ -177,6 +183,7 @@ public class RuleFixed implements Rule {
             } else if (s.charAt(0) == ']') {
                 s = s.substring(1);
             }
+            removeTrailingSpaces = true;
             break;
         // no autocomplete support for comments
         // (comments are not reachable in the bnf tree)
@@ -186,8 +193,14 @@ public class RuleFixed implements Rule {
             throw new AssertionError("type="+type);
         }
         if (!s.equals(query)) {
-            while (Bnf.startWithSpace(s)) {
-                s = s.substring(1);
+            // can not always remove spaces here, because a repeat
+            // rule for a-z would remove multiple words
+            // but we have to remove spaces after '||'
+            // and after ']'
+            if (removeTrailingSpaces) {
+                while (Bnf.startWithSpace(s)) {
+                    s = s.substring(1);
+                }
             }
             sentence.setQuery(s);
             return true;

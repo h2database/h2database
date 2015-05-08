@@ -20,7 +20,10 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Oracle compatibility: empty strings were not converted to NULL when using prepared statements.
+<ul>
+<li>BNF auto-completion failed with unquoted identifiers.
+</li>
+<li>Oracle compatibility: empty strings were not converted to NULL when using prepared statements.
 </li><li>PostgreSQL compatibility: new syntax "create index ... using ...".
 </li><li>There was a bug in DataType.convertToValue when reading a ResultSet from a ResultSet.
 </li><li>Pull request #116: Improved concurrency in the trace system.

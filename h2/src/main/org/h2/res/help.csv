@@ -711,6 +711,7 @@ value
     | ?[ int ]
     | NEXT VALUE FOR sequenceName
     | function
+    | procedure
     | { - | + } term
     | ( expression )
     | select

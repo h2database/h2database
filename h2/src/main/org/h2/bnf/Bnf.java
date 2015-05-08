@@ -57,6 +57,17 @@ public class Bnf {
         return bnf;
     }
 
+    /**
+     * Add an alias for a rule.
+     *
+     * @param name for example "procedure"
+     * @param replacement for example "@func@"
+     */
+    public void addAlias(String name, String replacement) {
+        RuleHead head = ruleMap.get(replacement);
+        ruleMap.put(name,  head);
+    }
+
     private void addFixedRule(String name, int fixedType) {
         Rule rule = new RuleFixed(fixedType);
         addRule(name, "Fixed", rule);

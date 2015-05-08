@@ -140,11 +140,31 @@ public class TestBnf extends TestBase {
                 DbContextRule(dbContents, DbContextRule.PROCEDURE));
         bnf.linkStatements();
         // Test partial
-        Map<String, String> tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");
+        Map<String, String> tokens;
+        tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");
         assertTrue(tokens.values().contains("INT"));
 
-        // Test built-in function
-        tokens = bnf.getNextTokenList("SELECT LEAS");
+        // Test identifiers are working
+        tokens = bnf.getNextTokenList("create table \"test\" as sel");
+        assertTrue(tokens.values().contains("ECT"));
+
+        tokens = bnf.getNextTokenList("create table test as sel");
+        assertTrue(tokens.values().contains("ECT"));
+
+        // Test || with and without spaces
+        tokens = bnf.getNextTokenList("select 1||f");
+        assertFalse(tokens.values().contains("ROM"));
+        tokens = bnf.getNextTokenList("select 1 || f");
+        assertFalse(tokens.values().contains("ROM"));
+        tokens = bnf.getNextTokenList("select 1 || 2 ");
+        assertTrue(tokens.values().contains("FROM"));
+        tokens = bnf.getNextTokenList("select 1||2");
+        assertTrue(tokens.values().contains("FROM"));
+        tokens = bnf.getNextTokenList("select 1 || 2");
+        assertTrue(tokens.values().contains("FROM"));
+
+        // Test keyword
+        tokens = bnf.getNextTokenList("SELECT LE" + "AS");
         assertTrue(tokens.values().contains("T"));
 
         // Test parameters

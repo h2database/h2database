@@ -1,0 +1,208 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>@version@</version>
+    <packaging>jar</packaging>
+    <name>H2 Database Engine</name>
+    <url>http://www.h2database.com</url>
+    <description>H2 Database Engine</description>
+
+	<!-- **************************************************************************** -->
+	<!-- NOTE: Not finished pom as H2 is not mavanized (yet) -->
+	<!-- Written by Sam Blume -->
+	<!-- Used initially to get H2 running with maven and to find the used jar-dependencies -->
+	<!-- as I counldn't find any source on that. -->
+	<!-- ****************************************************************************** -->
+	
+    <licenses>
+        <license>
+            <name>MPL 2.0, and EPL 1.0</name>
+            <url>http://h2database.com/html/license.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/h2database/h2database</connection>
+        <url>https://github.com/h2database/h2database</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>thomas.tom.mueller</id>
+            <name>Thomas Mueller</name>
+            <email>thomas.tom.mueller at gmail dot com</email>
+        </developer>
+    </developers>
+
+	<modules>
+		<module>tools</module>
+		<module>h2</module>
+	</modules>
+
+	<properties>
+		<!-- ************************************** -->
+		<!-- General Config Settings -->
+		<!-- ************************************** -->
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+		<jdk.version>1.6</jdk.version>
+		<jdk.debug>true</jdk.debug>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<!-- ************************************** -->
+		<!-- Version of Libraries used by H2-->
+		<!-- ************************************** -->
+		<version.org.slf4j>1.6.6</version.org.slf4j> <!-- 1.6.6 compiles with H2 -->
+		<version.lucene>3.6.2</version.lucene> <!-- 3.6.2 compiles with H2 -->
+		<version.lucene.analyser>4.7.2</version.lucene.analyser> <!-- 4.7.2 Was the last release on Java 6! Compiles with H2-->
+		<version.org.osgi>4.2.0</version.org.osgi>
+        <version.vividsolutions>1.13</version.vividsolutions>
+		<version.javax.servlet-api>3.0.1</version.javax.servlet-api>
+
+		<!-- *** Testing NOT used in H2 (sadly) *** -->
+		<version.org.mockito-all>1.9.5</version.org.mockito-all> <!-- 1.9.5 is a good choice 07.2013 -->
+		<version.junit>4.11</version.junit> <!-- 4.11 is a good choice 07.2013 -->
+
+		<!-- ************************************** -->
+		<!-- Version of Maven Plugings that are nice to have -->
+		<!-- ************************************** -->
+		<version.maven-compiler-plugin>3.2</version.maven-compiler-plugin>
+		<version.maven-javadoc-plugin>2.10.2</version.maven-javadoc-plugin>
+		<version.jgitflow-maven-plugin>1.0-m4.3</version.jgitflow-maven-plugin> <!-- Git -->
+
+		<version.maven-clean-plugin>2.6.1</version.maven-clean-plugin>
+		<version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
+		<version.maven-install-plugin>2.5.2</version.maven-install-plugin>
+		<version.maven-site-plugin>3.4</version.maven-site-plugin>
+		<version.maven-source-plugin>2.1.2</version.maven-source-plugin>
+		<version.maven-surefire-plugin>2.18.1</version.maven-surefire-plugin>
+		<version.maven-enforcer-plugin>1.4</version.maven-enforcer-plugin>
+		<version.maven-resources-plugin>2.6</version.maven-resources-plugin> <!-- NOTE: maven-resources-plugin 2.7 has a bug -->
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
+					<debug>${jdk.debug}</debug>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+			</plugin>
+
+			<!-- Maven JGit-Flow Plugin : https://bitbucket.org/atlassian/jgit-flow/wiki/Home -->
+			<plugin>
+				<!-- Used with Git as repository -->
+				<groupId>external.atlassian.jgitflow</groupId>
+				<artifactId>jgitflow-maven-plugin</artifactId>
+				<configuration>
+					<username>${git.user.atBitBucket}</username>
+					<password>${git.pw.atBitBucket}</password>
+					<!-- see goals wiki page for configuration options -->
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<!-- see http://stackoverflow.com/questions/10024185/excel-file-corrupt-when-copied-from-src-to-target-in-eclipse-ide -->
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<!-- encoding>UTF-8</encoding -->
+					<nonFilteredFileExtensions>
+						<nonFilteredFileExtension>xls*</nonFilteredFileExtension>
+						<nonFilteredFileExtension>~*</nonFilteredFileExtension>
+					</nonFilteredFileExtensions>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<forkMode>once</forkMode>
+					<argLine>-Xmx2G</argLine>
+					<systemProperties>
+						<property>
+							<name>java.awt.headless</name>
+							<value>true</value>
+						</property>
+					</systemProperties>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<!-- ************************************** -->
+	<!-- H2 dependencies  -->
+	<!-- ************************************** -->
+	<dependencies>
+
+		<!-- Logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${version.org.slf4j}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${version.org.slf4j}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>${version.org.osgi}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.enterprise</artifactId>
+			<version>${version.org.osgi}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>${version.javax.servlet-api}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-core</artifactId>
+			<version>${version.lucene}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-common</artifactId>
+			<version>${version.lucene.analyser}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-queryparser</artifactId>
+			<version>${version.lucene}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.vividsolutions</groupId>
+			<artifactId>jts</artifactId>
+			<version>${version.vividsolutions}</version>
+		</dependency>
+
+		<!-- *** Testing NOT used by H2 :-( *** -->
+		<!-- dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${version.junit}</version>
+		</dependency -->
+	</dependencies>
+
+</project>

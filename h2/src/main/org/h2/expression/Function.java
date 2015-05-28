@@ -1224,6 +1224,24 @@ public class Function extends Expression implements FunctionCall {
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+            } else if (v0.getType() == Value.DATE) {
+                ValueDate vd = (ValueDate) v0;
+                Calendar c = Calendar.getInstance();
+                c.setTime(vd.getDate());
+                c.set(Calendar.HOUR_OF_DAY, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+            } else if (v0.getType() == Value.STRING) {
+                ValueString vd = (ValueString) v0;
+                Calendar c = Calendar.getInstance();
+                c.setTime(ValueDate.parse(vd.getString()).getDate());
+                c.set(Calendar.HOUR_OF_DAY, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else {
                 double d = v0.getDouble();
                 int p = v1 == null ? 0 : v1.getInt();

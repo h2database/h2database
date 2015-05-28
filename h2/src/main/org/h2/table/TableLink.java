@@ -150,12 +150,13 @@ public class TableLink extends Table {
             String n = rs.getString("COLUMN_NAME");
             n = convertColumnName(n);
             int sqlType = rs.getInt("DATA_TYPE");
+            String sqlTypeName = rs.getString("TYPE_NAME");
             long precision = rs.getInt("COLUMN_SIZE");
             precision = convertPrecision(sqlType, precision);
             int scale = rs.getInt("DECIMAL_DIGITS");
             scale = convertScale(sqlType, scale);
             int displaySize = MathUtils.convertLongToInt(precision);
-            int type = DataType.convertSQLTypeToValueType(sqlType);
+            int type = DataType.convertSQLTypeToValueType(sqlType, sqlTypeName);
             Column col = new Column(n, type, precision, scale, displaySize);
             col.setTable(this, i++);
             columnList.add(col);

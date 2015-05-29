@@ -1,0 +1,17 @@
+h2/out/*
+h2/.checkstyle
+h2/.classpath
+h2/.project
+h2/.settings
+h2/.idea
+h2/benchmark.html
+h2/bin
+h2/data
+h2/docs
+h2/ext
+h2/error.*
+h2/temp
+h2/test.out.txt
+h2/src/docsrc/html/build.html
+h2/src/main/org/h2/server/web/res/transfer.jsp
+h2/h2.iml

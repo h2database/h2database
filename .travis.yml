@@ -1,0 +1,6 @@
+before_install:
+  - cd h2
+language: java
+jdk:
+  - openjdk6
+  - oraclejdk6

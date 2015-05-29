@@ -581,7 +581,7 @@ public class Function extends Expression implements FunctionCall {
         Value result;
         switch (info.type) {
         case ABS:
-            result = v0.getSignum() > 0 ? v0 : v0.negate();
+            result = v0.getSignum() >= 0 ? v0 : v0.negate();
             break;
         case ACOS:
             result = ValueDouble.get(Math.acos(v0.getDouble()));

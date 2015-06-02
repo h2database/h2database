@@ -100,7 +100,9 @@ public class TestBitStream extends TestBase {
             }
         };
         o.writeGolomb(div, value);
+        int size = Out.getGolombSize(div, value);
         String got = buff.toString();
+        assertEquals(size, got.length());
         assertEquals(expected, got);
     }
 

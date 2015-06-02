@@ -127,6 +127,23 @@ public class BitStream {
         }
 
         /**
+         * Get the size of the Golomb code for this value.
+         *
+         * @param divisor the divisor
+         * @param value the value
+         * @return the number of bits
+         */
+        public static int getGolombSize(int divisor, int value) {
+            int q = value / divisor;
+            int r = value - q * divisor;
+            int bit = 31 - Integer.numberOfLeadingZeros(divisor - 1);
+            if (r < ((2 << bit) - divisor)) {
+                bit--;
+            }
+            return bit + q + 2;
+        }
+
+        /**
          * Write a bit.
          *
          * @param bit the bit (0 or 1)
@@ -195,7 +212,9 @@ public class BitStream {
             }
             codes = new int[frequencies.length];
             tree = queue.poll();
-            tree.initCodes(codes, 1);
+            if (tree != null) {
+                tree.initCodes(codes, 1);
+            }
         }
 
         /**

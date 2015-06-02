@@ -67,11 +67,16 @@ public class TestUsingIndex extends TestBase {
         conn = getConnection("using_index");
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
-        assertFalse(isSupportedSyntax(stat, "create hash index idx_name_1 on test(id) using hash"));
-        assertFalse(isSupportedSyntax(stat, "create hash index idx_name_2 on test(id) using btree"));
-        assertFalse(isSupportedSyntax(stat, "create index idx_name_3 on test(id) using hash_tree"));
-        assertFalse(isSupportedSyntax(stat, "create unique hash index idx_name_4 on test(id) using hash"));
-        assertFalse(isSupportedSyntax(stat, "create index idx_name_5 on test(id) using hash table"));
+        assertFalse(isSupportedSyntax(stat,
+                "create hash index idx_name_1 on test(id) using hash"));
+        assertFalse(isSupportedSyntax(stat,
+                "create hash index idx_name_2 on test(id) using btree"));
+        assertFalse(isSupportedSyntax(stat,
+                "create index idx_name_3 on test(id) using hash_tree"));
+        assertFalse(isSupportedSyntax(stat,
+                "create unique hash index idx_name_4 on test(id) using hash"));
+        assertFalse(isSupportedSyntax(stat,
+                "create index idx_name_5 on test(id) using hash table"));
         conn.close();
         deleteDb("using_index");
     }
@@ -80,9 +85,12 @@ public class TestUsingIndex extends TestBase {
         conn = getConnection("using_index");
         stat = conn.createStatement();
         stat.execute("create table test(id int)");
-        assertTrue(isSupportedSyntax(stat, "create index idx_name_1 on test(id) using hash"));
-        assertTrue(isSupportedSyntax(stat, "create index idx_name_2 on test(id) using btree"));
-        assertTrue(isSupportedSyntax(stat, "create unique index idx_name_3 on test(id) using hash"));
+        assertTrue(isSupportedSyntax(stat,
+                "create index idx_name_1 on test(id) using hash"));
+        assertTrue(isSupportedSyntax(stat,
+                "create index idx_name_2 on test(id) using btree"));
+        assertTrue(isSupportedSyntax(stat,
+                "create unique index idx_name_3 on test(id) using hash"));
         conn.close();
         deleteDb("using_index");
     }
@@ -110,39 +118,33 @@ public class TestUsingIndex extends TestBase {
         if (config.memory && config.mvcc) {
             return;
         }
-        if (DataType.GEOMETRY_CLASS != null) {
-            deleteDb("spatial");
-
-            conn = getConnection("spatial");
-            try {
-                stat = conn.createStatement();
-                stat.execute("create table test"
-                        + "(id int primary key, poly geometry)");
-                stat.execute("insert into test values(1, "
-                        + "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-                stat.execute("insert into test values(2,null)");
-                stat.execute("insert into test values(3, "
-                        + "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
-                stat.execute("insert into test values(4,null)");
-                stat.execute("insert into test values(5, "
-                        + "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
-                stat.execute("create index on test(poly) using rtree");
-
-                ResultSet rs = stat.executeQuery(
-                        "select * from test "
-                                + "where poly && 'POINT (1.5 1.5)'::Geometry");
-                assertTrue(rs.next());
-                assertEquals(1, rs.getInt("id"));
-                assertFalse(rs.next());
-                rs.close();
-            } finally {
-                // Close the database
-                conn.close();
-            }
-
-            deleteDb("spatial");
+        if (DataType.GEOMETRY_CLASS == null) {
+            return;
         }
+        deleteDb("spatial");
+        conn = getConnection("spatial");
+        stat = conn.createStatement();
+        stat.execute("create table test"
+                + "(id int primary key, poly geometry)");
+        stat.execute("insert into test values(1, "
+                + "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+        stat.execute("insert into test values(2,null)");
+        stat.execute("insert into test values(3, "
+                + "'POLYGON ((3 1, 3 2, 4 2, 3 1))')");
+        stat.execute("insert into test values(4,null)");
+        stat.execute("insert into test values(5, "
+                + "'POLYGON ((1 3, 1 4, 2 4, 1 3))')");
+        stat.execute("create index on test(poly) using rtree");
 
+        ResultSet rs = stat.executeQuery(
+                "select * from test "
+                        + "where poly && 'POINT (1.5 1.5)'::Geometry");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt("id"));
+        assertFalse(rs.next());
+        rs.close();
+        conn.close();
+        deleteDb("spatial");
     }
 
     private void testBadSpatialSyntax() throws SQLException {
@@ -152,25 +154,20 @@ public class TestUsingIndex extends TestBase {
         if (config.memory && config.mvcc) {
             return;
         }
-        if (DataType.GEOMETRY_CLASS != null) {
-            deleteDb("spatial");
-
-            conn = getConnection("spatial");
-            try {
-                stat = conn.createStatement();
-                stat.execute("create table test"
-                        + "(id int primary key, poly geometry)");
-                stat.execute("insert into test values(1, "
-                        + "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
-
-                assertFalse(isSupportedSyntax(stat, "create spatial index on test(poly) using rtree"));
-            } finally {
-                // Close the database
-                conn.close();
-            }
-            deleteDb("spatial");
+        if (DataType.GEOMETRY_CLASS == null) {
+            return;
         }
-
+        deleteDb("spatial");
+        conn = getConnection("spatial");
+        stat = conn.createStatement();
+        stat.execute("create table test"
+                + "(id int primary key, poly geometry)");
+        stat.execute("insert into test values(1, "
+                + "'POLYGON ((1 1, 1 2, 2 2, 1 1))')");
+        assertFalse(isSupportedSyntax(stat,
+                "create spatial index on test(poly) using rtree"));
+        conn.close();
+        deleteDb("spatial");
     }
 
 }

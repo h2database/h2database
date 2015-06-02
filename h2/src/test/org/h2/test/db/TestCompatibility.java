@@ -353,6 +353,8 @@ public class TestCompatibility extends TestBase {
         stat.execute("CREATE TABLE TEST(NAME VARCHAR(50), SURNAME VARCHAR(50))");
         stat.execute("INSERT INTO TEST VALUES('John', 'Doe')");
         stat.execute("INSERT INTO TEST VALUES('Jack', 'Sullivan')");
+        stat.execute("CREATE TABLE TESTSHORT(ID SMALLINT)");
+        stat.execute("INSERT INTO TESTSHORT VALUES(23)");
 
         assertResult("abcd123", stat, "SELECT 'abc' + 'd123'");
 
@@ -403,6 +405,11 @@ public class TestCompatibility extends TestBase {
         rs.next();
         assertEquals(10, rs.getInt(1));
         rs.close();
+
+        // Select and getObject on smallint should return an Integer object, not a Short one
+        rs = stat.executeQuery("SELECT ID FROM TESTSHORT");
+        rs.next();
+        assertTrue("", rs.getObject(1) instanceof Integer);
 
         // make sure we're ignoring the index part of the statement
         rs = stat.executeQuery("select * from test (index table1_index)");

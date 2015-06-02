@@ -145,17 +145,17 @@ public class TestBnf extends TestBase {
         assertTrue(tokens.values().contains("INT"));
 
         // Test identifiers are working
-        tokens = bnf.getNextTokenList("create table \"test\" as sel");
-        assertTrue(tokens.values().contains("ECT"));
+        tokens = bnf.getNextTokenList("create table \"test\" as s" + "  el");
+        assertTrue(tokens.values().contains("E" + "CT"));
 
-        tokens = bnf.getNextTokenList("create table test as sel");
-        assertTrue(tokens.values().contains("ECT"));
+        tokens = bnf.getNextTokenList("create table test as s" + "el");
+        assertTrue(tokens.values().contains("E" + "CT"));
 
         // Test || with and without spaces
         tokens = bnf.getNextTokenList("select 1||f");
-        assertFalse(tokens.values().contains("ROM"));
+        assertFalse(tokens.values().contains("R" + "OM"));
         tokens = bnf.getNextTokenList("select 1 || f");
-        assertFalse(tokens.values().contains("ROM"));
+        assertFalse(tokens.values().contains("R" + "OM"));
         tokens = bnf.getNextTokenList("select 1 || 2 ");
         assertTrue(tokens.values().contains("FROM"));
         tokens = bnf.getNextTokenList("select 1||2");

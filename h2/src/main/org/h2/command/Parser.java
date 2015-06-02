@@ -4215,6 +4215,7 @@ public class Parser {
                     throw getSyntaxError();
                 }
                 if (readIf("BTREE")) {
+                    // default
                 } else if (readIf("RTREE")) {
                     spatial = true;
                 } else if (readIf("HASH")) {

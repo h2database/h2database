@@ -782,7 +782,7 @@ public class DataType {
      * @param sqlTypeName the SQL type name
      * @return the value type
      */
-    private static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
+    public static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
         switch (sqlType) {
             case Types.OTHER:
             case Types.JAVA_OBJECT:

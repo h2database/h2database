@@ -136,7 +136,7 @@ public class TestBnf extends TestBase {
         DbContextRule columnRule = new
                 DbContextRule(dbContents, DbContextRule.COLUMN);
         bnf.updateTopic("column_name", columnRule);
-        bnf.updateTopic("procedure", new
+        bnf.updateTopic("user_defined_function_name", new
                 DbContextRule(dbContents, DbContextRule.PROCEDURE));
         bnf.linkStatements();
         // Test partial
@@ -145,7 +145,7 @@ public class TestBnf extends TestBase {
         assertTrue(tokens.values().contains("INT"));
 
         // Test identifiers are working
-        tokens = bnf.getNextTokenList("create table \"test\" as s" + "  el");
+        tokens = bnf.getNextTokenList("create table \"test\" as s" + "el");
         assertTrue(tokens.values().contains("E" + "CT"));
 
         tokens = bnf.getNextTokenList("create table test as s" + "el");

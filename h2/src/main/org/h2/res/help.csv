@@ -711,13 +711,13 @@ value
     | ?[ int ]
     | NEXT VALUE FOR sequenceName
     | function
-    | procedure
     | { - | + } term
     | ( expression )
     | select
     | case
     | caseWhen
     | tableAlias.columnName
+    | userDefinedFunctionName
 ","
 A value."
 "Other Grammar","Time","

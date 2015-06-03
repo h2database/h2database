@@ -2140,13 +2140,13 @@ value
     | ?[ int ]
     | NEXT VALUE FOR sequenceName
     | function
-    | procedure
     | { - | + } term
     | ( expression )
     | select
     | case
     | caseWhen
     | tableAlias.columnName
+    | userDefinedFunctionName
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
 Each table has a pseudo-column named ""_ROWID_"" that contains the unique row identifier.

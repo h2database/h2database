@@ -864,6 +864,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void addTest(TestBase test) {
         tests.add(test);
+        // test.runTest(this);
     }
 
     private void runAddedTests() {

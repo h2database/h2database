@@ -214,7 +214,7 @@ public class TraceSystem implements TraceWriter {
 
     private synchronized String format(String module, String s) {
         if (dateFormat == null) {
-            dateFormat = new SimpleDateFormat("MM-dd-yyyy HH:mm:ss ");
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
         }
         return dateFormat.format(System.currentTimeMillis()) + module + ": " + s;
     }

@@ -199,11 +199,11 @@ public class Engine implements SessionFactory {
                         Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
-            	if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED){
-                	session.getTrace().error(e, "admin rights required; user: \"" +
+                if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
+                    session.getTrace().error(e, "admin rights required; user: \"" +
                             ci.getUserName() + "\"");
                 } else {
-                	session.getTrace().error(e, "");
+                    session.getTrace().error(e, "");
                 }
                 if (!ignoreUnknownSetting) {
                     session.close();

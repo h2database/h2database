@@ -1009,13 +1009,13 @@ public abstract class TestBase {
      * @param stat the statement
      * @param sql the SQL statement to execute
      */
-    protected void assertThrows(String expectedErrorMessage, Statement stat,
+    protected void assertThrows(int expectedErrorCode, Statement stat,
             String sql) {
         try {
             stat.execute(sql);
-            fail("Expected error: " + expectedErrorMessage);
+            fail("Expected error: " + expectedErrorCode);
         } catch (SQLException ex) {
-            assertStartsWith(ex.getMessage(), expectedErrorMessage);
+            assertEquals(expectedErrorCode, ex.getErrorCode());
         }
     }
 

@@ -12,6 +12,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.dml.SetTypes;
 import org.h2.message.DbException;
+import org.h2.message.Trace;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -98,8 +99,11 @@ public class Engine implements SessionFactory {
                 }
             }
             if (user == null) {
+                DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
+                database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +
+                        ci.getUserName() + "\"");
                 database.removeSession(null);
-                throw DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
+                throw er;
             }
             checkClustering(ci, database);
             Session session = database.createSession(user);
@@ -195,6 +199,12 @@ public class Engine implements SessionFactory {
                         Integer.MAX_VALUE);
                 command.executeUpdate();
             } catch (DbException e) {
+            	if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED){
+                	session.getTrace().error(e, "admin rights required; user: \"" +
+                            ci.getUserName() + "\"");
+                } else {
+                	session.getTrace().error(e, "");
+                }
                 if (!ignoreUnknownSetting) {
                     session.close();
                     throw e;

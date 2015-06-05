@@ -95,6 +95,16 @@ public abstract class Task implements Runnable {
     }
 
     /**
+     * Interrupt the thread.
+     */
+    public void interruptThread() {
+        if (thread == null) {
+            throw new IllegalStateException("Thread not started");
+        }
+        thread.interrupt();
+    }
+
+    /**
      * Get the exception that was thrown in the call (if any).
      *
      * @return the exception or null

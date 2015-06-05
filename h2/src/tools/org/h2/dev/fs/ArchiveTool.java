@@ -392,7 +392,7 @@ public class ArchiveTool {
     private static void sort(InputStream in, OutputStream out,
             String tempFileName, long size) throws IOException {
         long lastTime = System.currentTimeMillis();
-        int bufferSize = 16 * 1024 * 1024;
+        int bufferSize = 32 * 1024 * 1024;
         DataOutputStream tempOut = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(tempFileName), 1024 * 1024));
         byte[] bytes = new byte[bufferSize];

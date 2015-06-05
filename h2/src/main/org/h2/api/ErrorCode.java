@@ -1914,6 +1914,12 @@ public class ErrorCode {
     public static final int STEP_SIZE_MUST_NOT_BE_ZERO = 90142;
 
 
+    /**
+     * The error with code <code>90143</code> is thrown when
+     * trying to format a string TO_NUMBER with an invalid format.
+     */
+    public static final int INVALID_TO_NUMBER_FORMAT = 90143;
+    
     // next are 90051, 90056, 90110, 90122, 90143
 
     private ErrorCode() {

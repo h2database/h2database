@@ -283,7 +283,7 @@ class FileMem extends FileBase {
 
     @Override
     public FileChannel position(long newPos) {
-        this.pos = (int) newPos;
+        this.pos = newPos;
         return this;
     }
 

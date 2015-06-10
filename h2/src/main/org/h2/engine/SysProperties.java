@@ -163,7 +163,7 @@ public class SysProperties {
      * Up to this many tables, the column names are listed.
      */
     public static final int CONSOLE_MAX_TABLES_LIST_COLUMNS =
-            Utils.getProperty("h2.consoleTableColumns", 300);
+            Utils.getProperty("h2.consoleTableColumns", 500);
 
     /**
      * System property <code>h2.consoleProcedureColumns</code>

@@ -90,6 +90,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testNvl2();
         testConcatWs();
         testTruncate();
+        testOraHash();
         testToCharFromDateTime();
         testToCharFromNumber();
         testToCharFromText();
@@ -1221,6 +1222,18 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    private void testOraHash() throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        String testStr = "foo";
+        assertResult(String.valueOf("foo".hashCode()), stat, String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
+        assertResult(String.valueOf("foo".hashCode()), stat,
+                String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
+        assertResult(String.valueOf("foo".hashCode()), stat,
+                String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+    }
+
     private void testToCharFromDateTime() throws SQLException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
@@ -1657,7 +1670,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("abc", stat, "SELECT TO_CHAR('abc') FROM DUAL");
         conn.close();
     }
-
 
     private void testGenerateSeries() throws SQLException {
         Connection conn = getConnection("functions");

@@ -393,12 +393,22 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testFileSystem(String fsBase) throws Exception {
+        testRootExists(fsBase);
         testPositionedReadWrite(fsBase);
         testSetReadOnly(fsBase);
         testParentEventuallyReturnsNull(fsBase);
         testSimple(fsBase);
         testTempFile(fsBase);
         testRandomAccess(fsBase);
+    }
+
+    private void testRootExists(String fsBase) {
+        String fileName = fsBase + "/testFile";
+        FilePath p = FilePath.get(fileName);
+        while (p.getParent() != null) {
+            p = p.getParent();
+        }
+        assertTrue(p.exists());
     }
 
     private void testSetReadOnly(String fsBase) {

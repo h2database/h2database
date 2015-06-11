@@ -6,13 +6,20 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 import org.h2.api.ErrorCode;
+import org.h2.mvstore.MVStore;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathMem;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.tools.DeleteDbFiles;
 
 /**
  * Tests out of memory situations. The database must not get corrupted, and
@@ -31,6 +38,64 @@ public class TestOutOfMemory extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testMVStoreUsingInMemoryFileSystem();
+        testDatabaseUsingInMemoryFileSystem();
+        testUpdateWhenNearlyOutOfMemory();
+    }
+
+    private void testMVStoreUsingInMemoryFileSystem() {
+        FilePath.register(new FilePathMem());
+        String fileName = "memLZF:" + getTestName();
+        MVStore store = MVStore.open(fileName);
+        Map<Integer, byte[]> map = store.openMap("test");
+        byte[] data = new byte[10 * 1024 * 1024];
+        try {
+            for (int i = 0; i < 100; i++) {
+                map.put(i, data);
+            }
+            fail();
+        } catch (OutOfMemoryError e) {
+            // expected
+        }
+        data = null;
+        try {
+            store.close();
+            fail();
+        } catch (IllegalStateException e) {
+            // expected
+        }
+        store.closeImmediately();
+        store = MVStore.open(fileName);
+        map = store.openMap("test");
+        store.close();
+        FileUtils.delete(fileName);
+    }
+
+    private void testDatabaseUsingInMemoryFileSystem() throws SQLException {
+        String url = "jdbc:h2:memLZF:" + getTestName();
+        Connection conn = DriverManager.getConnection(url);
+        Statement stat = conn.createStatement();
+        try {
+            stat.execute("create table test(id int, name varchar) as " +
+                    "select x, space(10000000) from system_range(1, 1000)");
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.GENERAL_ERROR_1, e.getErrorCode());
+        }
+        try {
+            conn.close();
+            fail();
+        } catch (SQLException e) {
+            assertEquals(ErrorCode.GENERAL_ERROR_1, e.getErrorCode());
+        }
+        conn = DriverManager.getConnection(url);
+        stat = conn.createStatement();
+        stat.execute("select 1");
+        conn.close();
+        DeleteDbFiles.execute("memLZF:", getTestName(), true);
+    }
+
+    private void testUpdateWhenNearlyOutOfMemory() throws SQLException {
         if (config.memory || config.mvcc) {
             return;
         }

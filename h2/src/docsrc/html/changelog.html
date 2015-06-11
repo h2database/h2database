@@ -21,6 +21,11 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>MVStore: out of memory while storing could corrupt the store
+    (theoretically, a rollback would be possible, but this case is not yet implemented).
+</li>
+<li>The compressed in-memory file systems (memLZF:) could not be used in the MVStore.
+</li>
 <li>The in-memory file systems (memFS: and memLZF:) did not support files larger than 2 GB
     due to an integer overflow.
 </li>

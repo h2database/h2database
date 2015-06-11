@@ -27,6 +27,7 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.Row;
@@ -66,12 +67,14 @@ public class MVTable extends TableBase {
     private boolean containsLargeObject;
     private Column rowIdColumn;
 
-    private final TransactionStore store;
+    private final MVTableEngine.Store store;
+    private final TransactionStore transactionStore;
 
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        this.store = store.getTransactionStore();
+        this.store = store;
+        this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
@@ -420,7 +423,7 @@ public class MVTable extends TableBase {
         int mainIndexColumn;
         mainIndexColumn = getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            if (store.store.hasMap("index." + indexId)) {
+            if (transactionStore.store.hasMap("index." + indexId)) {
                 mainIndexColumn = -1;
             }
         } else if (primaryIndex.getRowCountMax() != 0) {
@@ -786,7 +789,7 @@ public class MVTable extends TableBase {
     Transaction getTransaction(Session session) {
         if (session == null) {
             // TODO need to commit/rollback the transaction
-            return store.begin();
+            return transactionStore.begin();
         }
         return session.getTransaction();
     }
@@ -818,6 +821,15 @@ public class MVTable extends TableBase {
         if (database != null) {
             lastModificationId = database.getNextModificationDataId();
         }
+    }
+
+    DbException convertException(IllegalStateException e) {
+        if (DataUtils.getErrorCode(e.getMessage()) ==
+                DataUtils.ERROR_TRANSACTION_LOCKED) {
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
+                    e, getName());
+        }
+        return store.convertIllegalStateException(e);
     }
 
 }

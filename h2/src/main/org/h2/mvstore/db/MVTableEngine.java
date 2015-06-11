@@ -54,9 +54,9 @@ public class MVTableEngine implements TableEngine {
         byte[] key = db.getFileEncryptionKey();
         String dbPath = db.getDatabasePath();
         MVStore.Builder builder = new MVStore.Builder();
-        if (dbPath == null) {
-            store = new Store(db, builder);
-        } else {
+        store = new Store();
+        boolean encrypted = false;
+        if (dbPath != null) {
             String fileName = dbPath + Constants.SUFFIX_MV_FILE;
             MVStoreTool.compactCleanUp(fileName);
             builder.fileName(fileName);
@@ -74,6 +74,7 @@ public class MVTableEngine implements TableEngine {
                 }
             }
             if (key != null) {
+                encrypted = true;
                 char[] password = new char[key.length / 2];
                 for (int i = 0; i < password.length; i++) {
                     password[i] = (char) (((key[i + i] & 255) << 16) |
@@ -94,30 +95,8 @@ public class MVTableEngine implements TableEngine {
                 }
 
             });
-            try {
-                store = new Store(db, builder);
-            } catch (IllegalStateException e) {
-                int errorCode = DataUtils.getErrorCode(e.getMessage());
-                if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
-                    if (key != null) {
-                        throw DbException.get(
-                                ErrorCode.FILE_ENCRYPTION_ERROR_1,
-                                e, fileName);
-                    }
-                } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
-                    throw DbException.get(
-                            ErrorCode.DATABASE_ALREADY_OPEN_1,
-                            e, fileName);
-                } else if (errorCode == DataUtils.ERROR_READING_FAILED) {
-                    throw DbException.get(
-                            ErrorCode.IO_EXCEPTION_1,
-                            e, fileName);
-                }
-                throw DbException.get(
-                        ErrorCode.FILE_CORRUPTED_1,
-                        e, fileName);
-            }
         }
+        store.open(db, builder, encrypted);
         db.setMvStore(store);
         return store;
     }
@@ -147,26 +126,62 @@ public class MVTableEngine implements TableEngine {
         /**
          * The store.
          */
-        private final MVStore store;
+        private MVStore store;
 
         /**
          * The transaction store.
          */
-        private final TransactionStore transactionStore;
+        private TransactionStore transactionStore;
 
         private long statisticsStart;
 
         private int temporaryMapId;
 
-        public Store(Database db, MVStore.Builder builder) {
-            this.store = builder.open();
-            if (!db.getSettings().reuseSpace) {
-                store.setReuseSpace(false);
+        private boolean encrypted;
+
+        private String fileName;
+
+        void open(Database db, MVStore.Builder builder, boolean encrypted) {
+            this.encrypted = encrypted;
+            try {
+                this.store = builder.open();
+                FileStore fs = store.getFileStore();
+                if (fs != null) {
+                    this.fileName = fs.getFileName();
+                }
+                if (!db.getSettings().reuseSpace) {
+                    store.setReuseSpace(false);
+                }
+                this.transactionStore = new TransactionStore(
+                        store,
+                        new ValueDataType(null, db, null));
+                transactionStore.init();
+            } catch (IllegalStateException e) {
+                throw convertIllegalStateException(e);
             }
-            this.transactionStore = new TransactionStore(
-                    store,
-                    new ValueDataType(null, db, null));
-            transactionStore.init();
+        }
+
+        DbException convertIllegalStateException(IllegalStateException e) {
+            int errorCode = DataUtils.getErrorCode(e.getMessage());
+            if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {
+                if (encrypted) {
+                    throw DbException.get(
+                            ErrorCode.FILE_ENCRYPTION_ERROR_1,
+                            e, fileName);
+                }
+            } else if (errorCode == DataUtils.ERROR_FILE_LOCKED) {
+                throw DbException.get(
+                        ErrorCode.DATABASE_ALREADY_OPEN_1,
+                        e, fileName);
+            } else if (errorCode == DataUtils.ERROR_READING_FAILED) {
+                throw DbException.get(
+                        ErrorCode.IO_EXCEPTION_1,
+                        e, fileName);
+            }
+            throw DbException.get(
+                    ErrorCode.FILE_CORRUPTED_1,
+                    e, fileName);
+
         }
 
         public MVStore getStore() {

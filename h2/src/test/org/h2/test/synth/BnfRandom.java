@@ -29,6 +29,7 @@ public class BnfRandom implements BnfVisitor {
 
     public BnfRandom() throws Exception {
         Bnf config = Bnf.getInstance(null);
+        config.addAlias("procedure", "@func@");
         config.linkStatements();
 
         ArrayList<RuleHead> all = config.getStatements();

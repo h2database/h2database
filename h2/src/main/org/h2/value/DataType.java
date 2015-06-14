@@ -595,8 +595,9 @@ public class DataType {
             }
             case Value.CLOB: {
                 if (session == null) {
-                    v = ValueLobDb.createSmallLob(
-                            Value.CLOB, rs.getString(columnIndex).getBytes(Constants.UTF8));
+                    String s = rs.getString(columnIndex);
+                    v = s == null ? ValueNull.INSTANCE :
+                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
@@ -610,13 +611,13 @@ public class DataType {
             }
             case Value.BLOB: {
                 if (session == null) {
-                    v = ValueLobDb.createSmallLob(
-                            Value.BLOB, rs.getBytes(columnIndex));
-                } else {
-                    InputStream in = rs.getBinaryStream(columnIndex);
-                    v = (in == null) ? (Value) ValueNull.INSTANCE :
-                        session.getDataHandler().getLobStorage().createBlob(in, -1);
+                    byte[] buff = rs.getBytes(columnIndex);
+                    return buff == null ? ValueNull.INSTANCE :
+                        ValueLobDb.createSmallLob(Value.BLOB, buff);
                 }
+                InputStream in = rs.getBinaryStream(columnIndex);
+                v = (in == null) ? (Value) ValueNull.INSTANCE :
+                    session.getDataHandler().getLobStorage().createBlob(in, -1);
                 break;
             }
             case Value.JAVA_OBJECT: {
@@ -653,7 +654,7 @@ public class DataType {
                 if (x == null) {
                     return ValueNull.INSTANCE;
                 }
-                return ValueResultSet.get(rs);
+                return ValueResultSet.get(x);
             }
             case Value.GEOMETRY: {
                 Object x = rs.getObject(columnIndex);
@@ -781,7 +782,7 @@ public class DataType {
      * @param sqlTypeName the SQL type name
      * @return the value type
      */
-    private static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
+    public static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
         switch (sqlType) {
             case Types.OTHER:
             case Types.JAVA_OBJECT:

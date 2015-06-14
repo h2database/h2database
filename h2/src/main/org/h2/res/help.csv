@@ -717,6 +717,7 @@ value
     | case
     | caseWhen
     | tableAlias.columnName
+    | userDefinedFunctionName
 ","
 A value."
 "Other Grammar","Time","
@@ -1023,7 +1024,7 @@ HASH(algorithmString, dataBytes, iterationInt)
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp } )
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp | date | timestampString } )
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","

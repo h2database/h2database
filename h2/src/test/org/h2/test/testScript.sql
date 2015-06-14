@@ -3,6 +3,12 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select abs(cast(0.0 as double)) x;
+> X
+> ---
+> 0.0
+> rows: 1
+
 select * from table(a int=(1)), table(b int=(2));
 > A B
 > - -

@@ -1,3 +1,9 @@
+select trunc('2015-05-29 15:00:00');
+> 2015-05-29 00:00:00.0;
+select trunc('2015-05-29');
+> 2015-05-29 00:00:00.0;
+select trunc(timestamp '2000-01-01 10:20:30.0');
+> 2000-01-01 00:00:00.0;
 select 1000L / 10;
 > 100;
 select * from (select x as y from dual order by y);

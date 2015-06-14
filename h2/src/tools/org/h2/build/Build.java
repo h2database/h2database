@@ -98,11 +98,15 @@ public class Build extends BuildBase {
     }
 
     private void compileTools() {
+        mkdir("temp");
         FileList files = files("src/tools").keep("src/tools/org/h2/build/*");
         StringList args = args("-d", "temp", "-sourcepath", "src/tools" +
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/main");
-        mkdir("temp");
+        String version = getTargetJavaVersion();
+        if (version != null) {
+            args = args.plus("-target", version, "-source", version);
+        }
         javac(args, files);
     }
 
@@ -147,9 +151,13 @@ public class Build extends BuildBase {
         switchSource(true);
     }
 
+    private static String getTargetJavaVersion() {
+        return System.getProperty("version");
+    }
+
     private static void switchSource(boolean enableCheck) {
         try {
-            String version = System.getProperty("version");
+            String version = getTargetJavaVersion();
             String check = enableCheck ? "+CHECK" : "-CHECK";
             if (version == null) {
                 SwitchSource.main("-dir", "src", "-auto", check);
@@ -177,6 +185,10 @@ public class Build extends BuildBase {
             args = args.plus("-Xlint:unchecked", "-g:none", "-d", "temp",
                     "-sourcepath", "src/main", "-classpath", classpath);
         }
+        String version = getTargetJavaVersion();
+        if (version != null) {
+            args = args.plus("-target", version, "-source", version);
+        }
         javac(args, files);
     }
 
@@ -203,18 +215,16 @@ public class Build extends BuildBase {
             files = files("src/main");
         }
         StringList args = args();
-        if (System.getProperty("version") != null) {
-            String bcp = System.getProperty("bcp");
-            // /System/Library/Frameworks/JavaVM.framework/
-            // Versions/1.4/Classes/classes.jar
-            args = args.plus("-source", "1.5", "-target", "jsr14", "-bootclasspath", bcp);
-        }
         if (debugInfo) {
             args = args.plus("-Xlint:unchecked",
                     "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
         } else {
             args = args.plus("-Xlint:unchecked", "-g:none",
                     "-d", "temp", "-sourcepath", "src/main", "-classpath", classpath);
+        }
+        String version = getTargetJavaVersion();
+        if (version != null) {
+            args = args.plus("-target", version, "-source", version);
         }
         javac(args, files);
 
@@ -227,6 +237,9 @@ public class Build extends BuildBase {
             args = args("-Xlint:unchecked", "-Xlint:deprecation",
                     "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
                     "-classpath", classpath);
+            if (version != null) {
+                args = args.plus("-target", version, "-source", version);
+            }
             javac(args, files);
             files = files("src/test").
                 exclude("*.java").
@@ -945,10 +958,14 @@ public class Build extends BuildBase {
             throw new RuntimeException("h2.ftpPassword not set");
         }
         downloadTest();
+        mkdir("temp");
         FileList files = files("src/tools").keep("*/UploadBuild.java");
         StringList args = args("-d", "temp", "-sourcepath", "src/tools" +
                 File.pathSeparator + "src/test" + File.pathSeparator + "src/main");
-        mkdir("temp");
+        String version = getTargetJavaVersion();
+        if (version != null) {
+            args = args.plus("-target", version, "-source", version);
+        }
         javac(args, files);
         String cp = "bin" + File.pathSeparator + "temp" +
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar";

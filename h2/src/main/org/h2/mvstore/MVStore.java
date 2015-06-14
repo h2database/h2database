@@ -1000,9 +1000,19 @@ public class MVStore {
             time = Math.max(lastChunk.time, time);
         }
         int newChunkId = lastChunkId;
-        do {
+        while (true) {
             newChunkId = (newChunkId + 1) % Chunk.MAX_ID;
-        } while (chunks.containsKey(newChunkId));
+            Chunk old = chunks.get(newChunkId);
+            if (old == null) {
+                break;
+            }
+            if (old.block == Long.MAX_VALUE) {
+                IllegalStateException e = DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_INTERNAL,
+                        "Last block not stored, possibly due to out-of-memory");
+                panic(e);
+            }
+        }
         Chunk c = new Chunk(newChunkId);
 
         c.pageCount = Integer.MAX_VALUE;

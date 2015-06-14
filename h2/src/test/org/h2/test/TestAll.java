@@ -70,6 +70,7 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestUpgrade;
+import org.h2.test.db.TestUsingIndex;
 import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
@@ -148,8 +149,11 @@ import org.h2.test.synth.TestRandomSQL;
 import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
+import org.h2.test.unit.TestAnsCompression;
 import org.h2.test.unit.TestAutoReconnect;
+import org.h2.test.unit.TestBinaryArithmeticStream;
 import org.h2.test.unit.TestBitField;
+import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestClearReferences;
@@ -790,8 +794,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestTransactionStore());
 
         // unit
+        addTest(new TestAnsCompression());
         addTest(new TestAutoReconnect());
+        addTest(new TestBinaryArithmeticStream());
         addTest(new TestBitField());
+        addTest(new TestBitStream());
         addTest(new TestBnf());
         addTest(new TestCache());
         addTest(new TestClearReferences());
@@ -829,6 +836,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestStringUtils());
         addTest(new TestTraceSystem());
         addTest(new TestUpgrade());
+        addTest(new TestUsingIndex());
         addTest(new TestUtils());
         addTest(new TestValue());
         addTest(new TestValueHashMap());
@@ -856,11 +864,12 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void addTest(TestBase test) {
         tests.add(test);
+        // test.runTest(this);
     }
 
     private void runAddedTests() {
         int threadCount = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
-        threadCount = 1;
+        // threadCount = 2;
         runAddedTests(threadCount);
     }
 

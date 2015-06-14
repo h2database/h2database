@@ -202,7 +202,7 @@ public class FilePathMem extends FilePath {
         return name.equals(getScheme() + ":");
     }
 
-    private static String getCanonicalPath(String fileName) {
+    protected static String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
         int idx = fileName.indexOf(':') + 1;
         if (fileName.length() > idx && fileName.charAt(idx) != '/') {
@@ -231,6 +231,13 @@ public class FilePathMem extends FilePath {
  * A memory file system that compresses blocks to conserve memory.
  */
 class FilePathMemLZF extends FilePathMem {
+
+    @Override
+    public FilePathMem getPath(String path) {
+        FilePathMemLZF p = new FilePathMemLZF();
+        p.name = getCanonicalPath(path);
+        return p;
+    }
 
     @Override
     boolean compressed() {
@@ -283,7 +290,7 @@ class FileMem extends FileBase {
 
     @Override
     public FileChannel position(long newPos) {
-        this.pos = (int) newPos;
+        this.pos = newPos;
         return this;
     }
 

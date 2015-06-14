@@ -92,7 +92,7 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -297,6 +297,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
+        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
 
         // date
@@ -581,7 +582,7 @@ public class Function extends Expression implements FunctionCall {
         Value result;
         switch (info.type) {
         case ABS:
-            result = v0.getSignum() > 0 ? v0 : v0.negate();
+            result = v0.getSignum() >= 0 ? v0 : v0.negate();
             break;
         case ACOS:
             result = ValueDouble.get(Math.acos(v0.getDouble()));
@@ -1224,6 +1225,24 @@ public class Function extends Expression implements FunctionCall {
                 c.set(Calendar.SECOND, 0);
                 c.set(Calendar.MILLISECOND, 0);
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+            } else if (v0.getType() == Value.DATE) {
+                ValueDate vd = (ValueDate) v0;
+                Calendar c = Calendar.getInstance();
+                c.setTime(vd.getDate());
+                c.set(Calendar.HOUR_OF_DAY, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+            } else if (v0.getType() == Value.STRING) {
+                ValueString vd = (ValueString) v0;
+                Calendar c = Calendar.getInstance();
+                c.setTime(ValueTimestamp.parse(vd.getString()).getDate());
+                c.set(Calendar.HOUR_OF_DAY, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else {
                 double d = v0.getDouble();
                 int p = v1 == null ? 0 : v1.getInt();
@@ -1375,6 +1394,11 @@ public class Function extends Expression implements FunctionCall {
             result = ValueString.get(StringUtils.pad(v0.getString(),
                     v1.getInt(), v2 == null ? null : v2.getString(), false),
                     database.getMode().treatEmptyStringsAsNull);
+            break;
+        case ORA_HASH:
+            result = ValueLong.get(oraHash(v0.getString(),
+                    v1 == null ? null : v1.getInt(),
+                    v2 == null ? null : v2.getInt()));
             break;
         case TO_CHAR:
             switch(v0.getType()){
@@ -2021,6 +2045,20 @@ public class Function extends Expression implements FunctionCall {
         return new String(chars);
     }
 
+    private static Integer oraHash(String s, Integer bucket, Integer seed) {
+        int hc = s.hashCode();
+        if (seed != null && seed.intValue() != 0) {
+            hc *= seed.intValue() * 17;
+        }
+        if (bucket == null  || bucket.intValue() <= 0) {
+            // do nothing
+        } else {
+            hc %= bucket.intValue();
+        }
+        return hc;
+    }
+
+    
     @Override
     public int getType() {
         return dataType;
@@ -2067,6 +2105,10 @@ public class Function extends Expression implements FunctionCall {
             max = 2;
             break;
         case TO_CHAR:
+            min = 1;
+            max = 3;
+            break;
+        case ORA_HASH:
             min = 1;
             max = 3;
             break;

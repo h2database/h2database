@@ -18,6 +18,7 @@ import java.sql.Timestamp;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.value.DataType;
 
 /**
  * Tests the linked table feature (CREATE LINKED TABLE).
@@ -52,7 +53,7 @@ public class TestLinkedTable extends TestBase {
         testLinkTwoTables();
         testCachingResults();
         testLinkedTableInReadOnlyDb();
-
+        testGeometry();
         deleteDb("linkedTable");
     }
 
@@ -693,4 +694,35 @@ public class TestLinkedTable extends TestBase {
         deleteDb("testLinkedTableInReadOnlyDb");
     }
 
+    private void testGeometry() throws SQLException {
+        if (!config.mvStore && config.mvcc) {
+            return;
+        }
+        if (config.memory && config.mvcc) {
+            return;
+        }
+        if (DataType.GEOMETRY_CLASS == null) {
+            return;
+        }
+        org.h2.Driver.load();
+        Connection ca = DriverManager.getConnection("jdbc:h2:mem:one", "sa", "sa");
+        Connection cb = DriverManager.getConnection("jdbc:h2:mem:two", "sa", "sa");
+        Statement sa = ca.createStatement();
+        Statement sb = cb.createStatement();
+        sa.execute("CREATE TABLE TEST(ID SERIAL, the_geom geometry)");
+        sa.execute("INSERT INTO TEST(THE_GEOM) VALUES('POINT (1 1)')");
+        String sql = "CREATE LINKED TABLE T(NULL, " +
+                "'jdbc:h2:mem:one', 'sa', 'sa', 'TEST') READONLY";
+        sb.execute(sql);
+        ResultSet rs = sb.executeQuery("SELECT * FROM T");
+        try {
+            assertTrue(rs.next());
+            assertEquals("POINT (1 1)", rs.getString("THE_GEOM"));
+        } finally {
+            rs.close();
+        }
+        sb.execute("DROP TABLE T");
+        ca.close();
+        cb.close();
+    }
 }

@@ -55,11 +55,12 @@ public class DateTimeUtils {
      * The thread local. Can not override initialValue because this would result
      * in an inner class, which would not be garbage collected in a web
      * container, and prevent the class loader of H2 from being garbage
-     * collected. Using a ThreadLocal on a system class like Calendar does have
-     * that problem, and while it is still a small memory leak, it is not a
+     * collected. Using a ThreadLocal on a system class like Calendar does not
+     * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<Calendar>();
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR =
+            new ThreadLocal<Calendar>();
 
     private DateTimeUtils() {
         // utility class

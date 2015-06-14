@@ -143,8 +143,7 @@ public class MVPrimaryIndex extends BaseIndex {
         try {
             map.put(key, ValueArray.get(row.getValueList()));
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
-                    e, table.getName());
+            throw mvTable.convertException(e);
         }
         lastKey = Math.max(lastKey, row.getKey());
     }
@@ -167,8 +166,7 @@ public class MVPrimaryIndex extends BaseIndex {
                         getSQL() + ": " + row.getKey());
             }
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
-                    e, table.getName());
+            throw mvTable.convertException(e);
         }
     }
 

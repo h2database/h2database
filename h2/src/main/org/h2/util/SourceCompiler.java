@@ -287,8 +287,8 @@ public class SourceCompiler {
             JAVA_COMPILER.getTask(writer, fileManager, null, null,
                 null, compilationUnits).call();
         }
-        String err = writer.toString();
-        throwSyntaxError(err);
+        String output = writer.toString();
+        handleSyntaxError(output);
         try {
             return fileManager.getClassLoader(null).loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
@@ -319,8 +319,8 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String err = new String(buff.toByteArray(), Constants.UTF8);
-            throwSyntaxError(err);
+            String output = new String(buff.toByteArray(), Constants.UTF8);
+            handleSyntaxError(output);
             return p.exitValue();
         } catch (Exception e) {
             throw DbException.convert(e);
@@ -351,8 +351,8 @@ public class SourceCompiler {
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            String err = new String(buff.toByteArray(), Constants.UTF8);
-            throwSyntaxError(err);
+            String output = new String(buff.toByteArray(), Constants.UTF8);
+            handleSyntaxError(output);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
@@ -360,12 +360,12 @@ public class SourceCompiler {
         }
     }
 
-    private static void throwSyntaxError(String err) {
-        if (err.startsWith("Note:")) {
-            // unchecked or unsafe operations - just a warning
-        } else if (err.length() > 0) {
-            err = StringUtils.replaceAll(err, COMPILE_DIR, "");
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
+    private static void handleSyntaxError(String output) {
+        if (output.startsWith("Note:") || output.startsWith("warning:")) {
+            // just a warning (e.g. unchecked or unsafe operations)
+        } else if (output.length() > 0) {
+            output = StringUtils.replaceAll(output, COMPILE_DIR, "");
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, output);
         }
     }
 

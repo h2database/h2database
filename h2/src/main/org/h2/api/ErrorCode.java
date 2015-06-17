@@ -492,6 +492,16 @@ public class ErrorCode {
     public static final int INVALID_VALUE_2 = 90008;
 
     /**
+     * The error with code <code>90051</code> is thrown when
+     * trying to use a scale that is > precision.
+     * Example:
+     * <pre>
+     * CREATE TABLE TABLE1 ( FAIL NUMBER(6,24) );
+     * </pre>
+     */
+    public static final int INVALID_VALUE_SCALE_PRECISION = 90051;
+
+    /**
      * The error with code <code>90009</code> is thrown when
      * trying to create a sequence with an invalid combination
      * of attributes (min value, max value, start value, etc).
@@ -1914,7 +1924,7 @@ public class ErrorCode {
     public static final int STEP_SIZE_MUST_NOT_BE_ZERO = 90142;
 
 
-    // next are 90051, 90056, 90110, 90122, 90143
+    // next are 90056, 90110, 90122, 90143
 
     private ErrorCode() {
         // utility class

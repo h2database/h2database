@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
-
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
@@ -24,6 +23,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -287,5 +287,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
+    }
+    
+    @Override
+    public CompareMode getCompareMode() {
+        return CompareMode.getInstance(null, 0);
     }
 }

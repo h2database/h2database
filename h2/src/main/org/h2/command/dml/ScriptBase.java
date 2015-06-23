@@ -10,7 +10,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.command.Prepared;
@@ -31,6 +30,7 @@ import org.h2.tools.CompressTool;
 import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.CompareMode;
 
 /**
  * This class is the base for RunScriptCommand and ScriptCommand.
@@ -258,5 +258,10 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
         return session.getDataHandler().getJavaObjectSerializer();
+    }
+    
+    @Override
+    public CompareMode getCompareMode() {
+        return session.getDataHandler().getCompareMode();
     }
 }

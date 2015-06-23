@@ -82,6 +82,7 @@
 90053=Skalární vnořený dotaz obsahuje více než jeden řádek
 90054=Neplatné použití agregátní funkce {0}
 90055=Nepodporované šifrování {0}
+90056=#Function {0}: Invalid date format. {1}
 90057=Omezení {0} nenalezeno
 90058=Vkládání nebo vrácení změn není povoleno uvnitř triggeru
 90059=Dvojsmyslný název sloupce {0}

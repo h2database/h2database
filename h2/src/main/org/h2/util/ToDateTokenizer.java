@@ -149,18 +149,18 @@ class ToDateTokenizer {
     }
 
     /**
-    * Interface of the classes that can parse a specialized small bit of the TO_DATE format-string
-    */
+     * Interface of the classes that can parse a specialized small bit of the TO_DATE format-string
+     */
     interface ToDateParslet {
         ToDateParams parse(ToDateParams params, FormatTokenEnum formatTokenEnum, String formatTokenStr);
     }
 
     /**
-    *
-    */
+     *
+     */
     private static final class YearParslet implements ToDateParslet {
         @Override
-        public ToDateParams parse(final ToDateParams params, FormatTokenEnum formatTokenEnum,
+        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
                 final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String intputFragmentStr = null;
@@ -232,14 +232,14 @@ class ToDateTokenizer {
     }
 
     /**
-    *
-    */
+     *
+     */
     private static final class MonthParslet implements ToDateParslet {
         private static String[] ROMAN_Month = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI",
-                "XII" };
+        "XII" };
 
         @Override
-        public ToDateParams parse(final ToDateParams params, FormatTokenEnum formatTokenEnum,
+        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
                 final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             final String s = params.getInputStr();
@@ -295,7 +295,7 @@ class ToDateTokenizer {
      */
     private static final class WeekParslet implements ToDateParslet {
         @Override
-        public ToDateParams parse(final ToDateParams params, FormatTokenEnum formatTokenEnum,
+        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
                 final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String intputFragmentStr = null;
@@ -340,7 +340,7 @@ class ToDateTokenizer {
      */
     private static final class DayParslet implements ToDateParslet {
         @Override
-        public ToDateParams parse(final ToDateParams params, FormatTokenEnum formatTokenEnum,
+        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
                 final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String intputFragmentStr = null;
@@ -385,12 +385,12 @@ class ToDateTokenizer {
     private static int MILLIS_in_hour = 60 * 60 * 1000;
 
     /**
-    *
-    */
+     *
+     */
     private static final class TimeParslet implements ToDateParslet {
 
         @Override
-        public ToDateParams parse(final ToDateParams params, FormatTokenEnum formatTokenEnum,
+        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
                 final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String intputFragmentStr = null;
@@ -475,7 +475,7 @@ class ToDateTokenizer {
 
     // ========== PRIVATE ===================
 
-    private static int parseInt(String s) {
+    private static int parseInt(final String s) {
         int result = 0;
         if (s.length() > 0 && s.charAt(0) == '+') {
             result = Integer.parseInt(s.substring(1));
@@ -513,11 +513,11 @@ class ToDateTokenizer {
         return intputFragmentStr;
     }
 
-    private static void throwException(final ToDateParams params, String errorStr) {
+    private static void throwException(final ToDateParams params, final String errorStr) {
         throw DbException.get(
                 ErrorCode.INVALID_TO_DATE_FORMAT,
                 params.getFunctionName().name(),
-                format(" %s. Details: ", errorStr, params));
+                format(" %s. Details: %s", errorStr, params));
     }
 
 }

@@ -23,7 +23,7 @@ class ToDateParams {
      * @param format  the format of date-time info
      * @param functionName one of [TO_DATE, TO_TIMESTAMP] (both share the same code)
      */
-    ToDateParams(TO_DATE_FunctionName functionName, final String input, final String format) {
+    ToDateParams(final TO_DATE_FunctionName functionName, final String input, final String format) {
         resultCalendar.set(1970, 0, 1, 0, 0, 0);
         resultCalendar.set(Calendar.MILLISECOND, 0);
         this.functionName = functionName;
@@ -97,11 +97,10 @@ class ToDateParams {
 
         StringBuilder sb = new StringBuilder();
         sb.append(format("\n    %s('%s', '%s')", functionName, unmodifiedInputStr, unmodifiedFormatStr));
-        sb.append(format(
-                "\n       %s^%s ,  %s^ <-- Parsing failed at this point", //
-                format("%" + functionName.name().length() + currentInputPos + "s", ""),
-                format("%" + restInputLeng + "s", ""),
-                format("%" + currentFormatPos + "s", "")));
+        sb.append(format("\n      %s^%s ,  %s^ <-- Parsing failed at this point", //
+                format("%" + (functionName.name().length() + currentInputPos) + "s", ""),
+                restInputLeng <= 0 ? "" : format("%" + restInputLeng + "s", ""),
+                currentFormatPos <= 0 ? "" : format("%" + currentFormatPos + "s", "")));
 
         return sb.toString();
     }

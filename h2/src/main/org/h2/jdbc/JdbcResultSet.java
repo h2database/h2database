@@ -2613,7 +2613,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     @Override
     public void setFetchDirection(int direction) throws SQLException {
-        throw unsupported("setFetchDirection");
+        debugCodeCall("setFetchDirection", direction)
+        if (direction == ResultSet.FETCH_FORWARD) {
+            // do nothing, it's already FETCH_FORWARD
+        }
+        else {
+            throw unsupported("setFetchDirection");
+        }
     }
 
     /**

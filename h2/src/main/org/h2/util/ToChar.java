@@ -1,7 +1,7 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
- * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: Daniel
- * Gredler
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: Daniel Gredler
  */
 package org.h2.util;
 
@@ -17,6 +17,7 @@ import java.util.Currency;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
@@ -45,123 +46,84 @@ public class ToChar {
 
     /**
      * Emulates Oracle's TO_CHAR(number) function.
-     * <p>
-     * <table border="1">
-     * <th>
-     * <td>Input</td>
+     *
+     * <p><table border="1">
+     * <th><td>Input</td>
      * <td>Output</td>
      * <td>Closest {@link DecimalFormat} Equivalent</td></th>
-     * <tr>
-     * <td>,</td>
+     * <tr><td>,</td>
      * <td>Grouping separator.</td>
-     * <td>,</td>
-     * </tr>
-     * <tr>
-     * <td>.</td>
+     * <td>,</td></tr>
+     * <tr><td>.</td>
      * <td>Decimal separator.</td>
-     * <td>.</td>
-     * </tr>
-     * <tr>
-     * <td>$</td>
+     * <td>.</td></tr>
+     * <tr><td>$</td>
      * <td>Leading dollar sign.</td>
-     * <td>$</td>
-     * </tr>
-     * <tr>
-     * <td>0</td>
+     * <td>$</td></tr>
+     * <tr><td>0</td>
      * <td>Leading or trailing zeroes.</td>
-     * <td>0</td>
-     * </tr>
-     * <tr>
-     * <td>9</td>
+     * <td>0</td></tr>
+     * <tr><td>9</td>
      * <td>Digit.</td>
-     * <td>#</td>
-     * </tr>
-     * <tr>
-     * <td>B</td>
+     * <td>#</td></tr>
+     * <tr><td>B</td>
      * <td>Blanks integer part of a fixed point number less than 1.</td>
-     * <td>#</td>
-     * </tr>
-     * <tr>
-     * <td>C</td>
+     * <td>#</td></tr>
+     * <tr><td>C</td>
      * <td>ISO currency symbol.</td>
-     * <td>\u00A4</td>
-     * </tr>
-     * <tr>
-     * <td>D</td>
+     * <td>\u00A4</td></tr>
+     * <tr><td>D</td>
      * <td>Local decimal separator.</td>
-     * <td>.</td>
-     * </tr>
-     * <tr>
-     * <td>EEEE</td>
+     * <td>.</td></tr>
+     * <tr><td>EEEE</td>
      * <td>Returns a value in scientific notation.</td>
-     * <td>E</td>
-     * </tr>
-     * <tr>
-     * <td>FM</td>
+     * <td>E</td></tr>
+     * <tr><td>FM</td>
      * <td>Returns values with no leading or trailing spaces.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>G</td>
+     * <td>None.</td></tr>
+     * <tr><td>G</td>
      * <td>Local grouping separator.</td>
-     * <td>,</td>
-     * </tr>
-     * <tr>
-     * <td>L</td>
+     * <td>,</td></tr>
+     * <tr><td>L</td>
      * <td>Local currency symbol.</td>
-     * <td>\u00A4</td>
-     * </tr>
-     * <tr>
-     * <td>MI</td>
-     * <td>Negative values get trailing minus sign, positive get trailing space.
-     * </td>
-     * <td>-</td>
-     * </tr>
-     * <tr>
-     * <td>PR</td>
-     * <td>Negative values get enclosing angle brackets, positive get spaces.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>RN</td>
+     * <td>\u00A4</td></tr>
+     * <tr><td>MI</td>
+     * <td>Negative values get trailing minus sign,
+     * positive get trailing space.</td>
+     * <td>-</td></tr>
+     * <tr><td>PR</td>
+     * <td>Negative values get enclosing angle brackets,
+     * positive get spaces.</td>
+     * <td>None.</td></tr>
+     * <tr><td>RN</td>
      * <td>Returns values in Roman numerals.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>S</td>
+     * <td>None.</td></tr>
+     * <tr><td>S</td>
      * <td>Returns values with leading/trailing +/- signs.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>TM</td>
+     * <td>None.</td></tr>
+     * <tr><td>TM</td>
      * <td>Returns smallest number of characters possible.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>U</td>
+     * <td>None.</td></tr>
+     * <tr><td>U</td>
      * <td>Returns the dual currency symbol.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>V</td>
+     * <td>None.</td></tr>
+     * <tr><td>V</td>
      * <td>Returns a value multiplied by 10^n.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>X</td>
+     * <td>None.</td></tr>
+     * <tr><td>X</td>
      * <td>Hex value.</td>
-     * <td>None.</td>
-     * </tr>
+     * <td>None.</td></tr>
      * </table>
-     * See also TO_CHAR(number) and number format models in the Oracle
-     * documentation.
+     * See also TO_CHAR(number) and number format models
+     * in the Oracle documentation.
      *
      * @param number the number to format
      * @param format the format pattern to use (if any)
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted number
      */
-    public static String toChar(BigDecimal number, String format, final String nlsParam) {
+    public static String toChar(BigDecimal number, String format,
+            String nlsParam) {
 
         // short-circuit logic for formats that don't follow common logic below
         String formatUp = format != null ? format.toUpperCase() : null;
@@ -171,7 +133,8 @@ public class ToChar {
         } else if (formatUp.equals("TME")) {
             int pow = number.precision() - number.scale() - 1;
             number = number.movePointLeft(pow);
-            return number.toPlainString() + "E" + (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
+            return number.toPlainString() + "E" +
+                    (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
         } else if (formatUp.equals("RN")) {
             boolean lowercase = format.startsWith("r");
             String rn = StringUtils.pad(toRomanNumeral(number.intValue()), 15, " ", false);
@@ -297,7 +260,8 @@ public class ToChar {
                 String cs = currency.getSymbol();
                 output.insert(0, cs);
             } else {
-                throw DbException.get(ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
+                throw DbException.get(
+                        ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
             }
         }
 
@@ -336,12 +300,14 @@ public class ToChar {
                         }
                     }
                 } else {
-                    throw DbException.get(ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
+                    throw DbException.get(
+                            ErrorCode.INVALID_TO_CHAR_FORMAT, originalFormat);
                 }
             }
         }
 
-        addSign(output, number.signum(), leadingSign, trailingSign, trailingMinus, angleBrackets, fillMode);
+        addSign(output, number.signum(), leadingSign, trailingSign,
+                trailingMinus, angleBrackets, fillMode);
 
         if (power != null) {
             output.append('E');
@@ -363,8 +329,9 @@ public class ToChar {
         return output.toString();
     }
 
-    private static void addSign(final StringBuilder output, final int signum, final boolean leadingSign,
-            final boolean trailingSign, final boolean trailingMinus, final boolean angleBrackets, final boolean fillMode) {
+    private static void addSign(StringBuilder output, int signum,
+            boolean leadingSign, boolean trailingSign, boolean trailingMinus,
+            boolean angleBrackets, boolean fillMode) {
         if (angleBrackets) {
             if (signum < 0) {
                 output.insert(0, '<');
@@ -396,7 +363,7 @@ public class ToChar {
         }
     }
 
-    private static int findDecimalSeparator(final String format) {
+    private static int findDecimalSeparator(String format) {
         int index = format.indexOf('.');
         if (index == -1) {
             index = format.indexOf('D');
@@ -410,7 +377,7 @@ public class ToChar {
         return index;
     }
 
-    private static int calculateScale(final String format, final int separator) {
+    private static int calculateScale(String format, int separator) {
         int scale = 0;
         for (int i = separator; i < format.length(); i++) {
             char c = format.charAt(i);
@@ -422,8 +389,10 @@ public class ToChar {
     }
 
     private static String toRomanNumeral(int number) {
-        int[] values = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
-        String[] numerals = new String[] { "M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+        int[] values = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
+                5, 4, 1 };
+        String[] numerals = new String[] { "M", "CM", "D", "CD", "C", "XC",
+                "L", "XL", "X", "IX", "V", "IV", "I" };
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < values.length; i++) {
             int value = values[i];
@@ -436,7 +405,7 @@ public class ToChar {
         return result.toString();
     }
 
-    private static String toHex(final BigDecimal number, final String format) {
+    private static String toHex(BigDecimal number, String format) {
 
         boolean fillMode = !format.toUpperCase().startsWith("FM");
         boolean uppercase = !format.contains("x");
@@ -470,223 +439,142 @@ public class ToChar {
 
     /**
      * Emulates Oracle's TO_CHAR(datetime) function.
-     * <p>
-     * <table border="1">
-     * <th>
-     * <td>Input</td>
+     *
+     * <p><table border="1">
+     * <th><td>Input</td>
      * <td>Output</td>
      * <td>Closest {@link SimpleDateFormat} Equivalent</td></th>
-     * <tr>
-     * <td>- / , . ; : "text"</td>
+     * <tr><td>- / , . ; : "text"</td>
      * <td>Reproduced verbatim.</td>
-     * <td>'text'</td>
-     * </tr>
-     * <tr>
-     * <td>A.D. AD B.C. BC</td>
+     * <td>'text'</td></tr>
+     * <tr><td>A.D. AD B.C. BC</td>
      * <td>Era designator, with or without periods.</td>
-     * <td>G</td>
-     * </tr>
-     * <tr>
-     * <td>A.M. AM P.M. PM</td>
+     * <td>G</td></tr>
+     * <tr><td>A.M. AM P.M. PM</td>
      * <td>AM/PM marker.</td>
-     * <td>a</td>
-     * </tr>
-     * <tr>
-     * <td>CC SCC</td>
+     * <td>a</td></tr>
+     * <tr><td>CC SCC</td>
      * <td>Century.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>D</td>
+     * <td>None.</td></tr>
+     * <tr><td>D</td>
      * <td>Day of week.</td>
-     * <td>u</td>
-     * </tr>
-     * <tr>
-     * <td>DAY</td>
+     * <td>u</td></tr>
+     * <tr><td>DAY</td>
      * <td>Name of day.</td>
-     * <td>EEEE</td>
-     * </tr>
-     * <tr>
-     * <td>DY</td>
+     * <td>EEEE</td></tr>
+     * <tr><td>DY</td>
      * <td>Abbreviated day name.</td>
-     * <td>EEE</td>
-     * </tr>
-     * <tr>
-     * <td>DD</td>
+     * <td>EEE</td></tr>
+     * <tr><td>DD</td>
      * <td>Day of month.</td>
-     * <td>d</td>
-     * </tr>
-     * <tr>
-     * <td>DDD</td>
+     * <td>d</td></tr>
+     * <tr><td>DDD</td>
      * <td>Day of year.</td>
-     * <td>D</td>
-     * </tr>
-     * <tr>
-     * <td>DL</td>
+     * <td>D</td></tr>
+     * <tr><td>DL</td>
      * <td>Long date format.</td>
-     * <td>EEEE, MMMM d, yyyy</td>
-     * </tr>
-     * <tr>
-     * <td>DS</td>
+     * <td>EEEE, MMMM d, yyyy</td></tr>
+     * <tr><td>DS</td>
      * <td>Short date format.</td>
-     * <td>MM/dd/yyyy</td>
-     * </tr>
-     * <tr>
-     * <td>E</td>
+     * <td>MM/dd/yyyy</td></tr>
+     * <tr><td>E</td>
      * <td>Abbreviated era name (Japanese, Chinese, Thai)</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>EE</td>
+     * <td>None.</td></tr>
+     * <tr><td>EE</td>
      * <td>Full era name (Japanese, Chinese, Thai)</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>FF[1-9]</td>
+     * <td>None.</td></tr>
+     * <tr><td>FF[1-9]</td>
      * <td>Fractional seconds.</td>
-     * <td>S</td>
-     * </tr>
-     * <tr>
-     * <td>FM</td>
+     * <td>S</td></tr>
+     * <tr><td>FM</td>
      * <td>Returns values with no leading or trailing spaces.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>FX</td>
+     * <td>None.</td></tr>
+     * <tr><td>FX</td>
      * <td>Requires exact matches between character data and format model.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>HH HH12</td>
+     * <td>None.</td></tr>
+     * <tr><td>HH HH12</td>
      * <td>Hour in AM/PM (1-12).</td>
-     * <td>hh</td>
-     * </tr>
-     * <tr>
-     * <td>HH24</td>
+     * <td>hh</td></tr>
+     * <tr><td>HH24</td>
      * <td>Hour in day (0-23).</td>
-     * <td>HH</td>
-     * </tr>
-     * <tr>
-     * <td>IW</td>
+     * <td>HH</td></tr>
+     * <tr><td>IW</td>
      * <td>Week in year.</td>
-     * <td>w</td>
-     * </tr>
-     * <tr>
-     * <td>WW</td>
+     * <td>w</td></tr>
+     * <tr><td>WW</td>
      * <td>Week in year.</td>
-     * <td>w</td>
-     * </tr>
-     * <tr>
-     * <td>W</td>
+     * <td>w</td></tr>
+     * <tr><td>W</td>
      * <td>Week in month.</td>
-     * <td>W</td>
-     * </tr>
-     * <tr>
-     * <td>IYYY IYY IY I</td>
+     * <td>W</td></tr>
+     * <tr><td>IYYY IYY IY I</td>
      * <td>Last 4/3/2/1 digit(s) of ISO year.</td>
-     * <td>yyyy yyy yy y</td>
-     * </tr>
-     * <tr>
-     * <td>RRRR RR</td>
+     * <td>yyyy yyy yy y</td></tr>
+     * <tr><td>RRRR RR</td>
      * <td>Last 4/2 digits of year.</td>
-     * <td>yyyy yy</td>
-     * </tr>
-     * <tr>
-     * <td>Y,YYY</td>
+     * <td>yyyy yy</td></tr>
+     * <tr><td>Y,YYY</td>
      * <td>Year with comma.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>YEAR SYEAR</td>
+     * <td>None.</td></tr>
+     * <tr><td>YEAR SYEAR</td>
      * <td>Year spelled out (S prefixes BC years with minus sign).</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>YYYY SYYYY</td>
+     * <td>None.</td></tr>
+     * <tr><td>YYYY SYYYY</td>
      * <td>4-digit year (S prefixes BC years with minus sign).</td>
-     * <td>yyyy</td>
-     * </tr>
-     * <tr>
-     * <td>YYY YY Y</td>
+     * <td>yyyy</td></tr>
+     * <tr><td>YYY YY Y</td>
      * <td>Last 3/2/1 digit(s) of year.</td>
-     * <td>yyy yy y</td>
-     * </tr>
-     * <tr>
-     * <td>J</td>
+     * <td>yyy yy y</td></tr>
+     * <tr><td>J</td>
      * <td>Julian day (number of days since January 1, 4712 BC).</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>MI</td>
+     * <td>None.</td></tr>
+     * <tr><td>MI</td>
      * <td>Minute in hour.</td>
-     * <td>mm</td>
-     * </tr>
-     * <tr>
-     * <td>MM</td>
+     * <td>mm</td></tr>
+     * <tr><td>MM</td>
      * <td>Month in year.</td>
-     * <td>MM</td>
-     * </tr>
-     * <tr>
-     * <td>MON</td>
+     * <td>MM</td></tr>
+     * <tr><td>MON</td>
      * <td>Abbreviated name of month.</td>
-     * <td>MMM</td>
-     * </tr>
-     * <tr>
-     * <td>MONTH</td>
+     * <td>MMM</td></tr>
+     * <tr><td>MONTH</td>
      * <td>Name of month, padded with spaces.</td>
-     * <td>MMMM</td>
-     * </tr>
-     * <tr>
-     * <td>RM</td>
+     * <td>MMMM</td></tr>
+     * <tr><td>RM</td>
      * <td>Roman numeral month.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>Q</td>
+     * <td>None.</td></tr>
+     * <tr><td>Q</td>
      * <td>Quarter of year.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>SS</td>
+     * <td>None.</td></tr>
+     * <tr><td>SS</td>
      * <td>Seconds in minute.</td>
-     * <td>ss</td>
-     * </tr>
-     * <tr>
-     * <td>SSSSS</td>
+     * <td>ss</td></tr>
+     * <tr><td>SSSSS</td>
      * <td>Seconds in day.</td>
-     * <td>None.</td>
-     * </tr>
-     * <tr>
-     * <td>TS</td>
+     * <td>None.</td></tr>
+     * <tr><td>TS</td>
      * <td>Short time format.</td>
-     * <td>h:mm:ss aa</td>
-     * </tr>
-     * <tr>
-     * <td>TZD</td>
+     * <td>h:mm:ss aa</td></tr>
+     * <tr><td>TZD</td>
      * <td>Daylight savings time zone abbreviation.</td>
-     * <td>z</td>
-     * </tr>
-     * <tr>
-     * <td>TZR</td>
+     * <td>z</td></tr>
+     * <tr><td>TZR</td>
      * <td>Time zone region information.</td>
-     * <td>zzzz</td>
-     * </tr>
-     * <tr>
-     * <td>X</td>
+     * <td>zzzz</td></tr>
+     * <tr><td>X</td>
      * <td>Local radix character.</td>
-     * <td>None.</td>
-     * </tr>
+     * <td>None.</td></tr>
      * </table>
      * <p>
-     * See also TO_CHAR(datetime) and datetime format models in the Oracle
-     * documentation.
+     * See also TO_CHAR(datetime) and datetime format models
+     * in the Oracle documentation.
      *
      * @param ts the timestamp to format
      * @param format the format pattern to use (if any)
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted timestamp
      */
-    public static String toChar(final Timestamp ts, String format, final String nlsParam) {
+    public static String toChar(Timestamp ts, String format, String nlsParam) {
 
         if (format == null) {
             format = "DD-MON-YY HH.MI.SS.FF PM";
@@ -701,7 +589,7 @@ public class ToChar {
 
             Capitalization cap;
 
-            // AD / BC
+                // AD / BC
 
             if ((cap = containsAt(format, i, "A.D.", "B.C.")) != null) {
                 String era = cal.get(Calendar.ERA) == GregorianCalendar.AD ? "A.D." : "B.C.";
@@ -741,7 +629,8 @@ public class ToChar {
                 output.append(cal.get(Calendar.DAY_OF_YEAR));
                 i += 3;
             } else if ((cap = containsAt(format, i, "DD")) != null) {
-                output.append(String.format("%02d", cal.get(Calendar.DAY_OF_MONTH)));
+                output.append(String.format("%02d",
+                        cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
                 String day = new SimpleDateFormat("EEE").format(ts).toUpperCase();
@@ -795,7 +684,8 @@ public class ToChar {
 
                 // Fractional seconds
 
-            } else if ((cap = containsAt(format, i, "FF1", "FF2", "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
+            } else if ((cap = containsAt(format, i, "FF1", "FF2",
+                    "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
                 int x = Integer.parseInt(format.substring(i + 2, i + 3));
                 int ff = (int) (cal.get(Calendar.MILLISECOND) * Math.pow(10, x - 3));
                 output.append(ff);
@@ -902,8 +792,12 @@ public class ToChar {
                         break;
                     }
                 }
-            } else if (format.charAt(i) == '-' || format.charAt(i) == '/' || format.charAt(i) == ','
-                    || format.charAt(i) == '.' || format.charAt(i) == ';' || format.charAt(i) == ':'
+            } else if (format.charAt(i) == '-'
+                    || format.charAt(i) == '/'
+                    || format.charAt(i) == ','
+                    || format.charAt(i) == '.'
+                    || format.charAt(i) == ';'
+                    || format.charAt(i) == ':'
                     || format.charAt(i) == ' ') {
                 output.append(format.charAt(i));
                 i += 1;
@@ -918,7 +812,7 @@ public class ToChar {
         return output.toString();
     }
 
-    private static int getYear(final Calendar cal) {
+    private static int getYear(Calendar cal) {
         int year = cal.get(Calendar.YEAR);
         if (cal.get(Calendar.ERA) == GregorianCalendar.BC) {
             year--;
@@ -940,7 +834,8 @@ public class ToChar {
      *         the specified substrings at the specified index,
      *         <code>null</code> otherwise
      */
-    private static Capitalization containsAt(final String s, final int index, final String... substrings) {
+    private static Capitalization containsAt(String s, int index,
+            String... substrings) {
         for (String substring : substrings) {
             if (index + substring.length() <= s.length()) {
                 boolean found = true;
@@ -996,7 +891,7 @@ public class ToChar {
          * @return the capitalization / casing strategy which should be used
          *         when the first and second letters have the specified casing
          */
-        static Capitalization toCapitalization(final Boolean up1, final Boolean up2) {
+        public static Capitalization toCapitalization(Boolean up1, Boolean up2) {
             if (up1 == null) {
                 return Capitalization.CAPITALIZE;
             } else if (up2 == null) {
@@ -1014,7 +909,7 @@ public class ToChar {
          * @param s the string to apply this strategy to
          * @return the resultant string
          */
-        String apply(final String s) {
+        public String apply(String s) {
             if (s == null || s.isEmpty()) {
                 return s;
             }
@@ -1024,9 +919,11 @@ public class ToChar {
             case LOWERCASE:
                 return s.toLowerCase();
             case CAPITALIZE:
-                return Character.toUpperCase(s.charAt(0)) + (s.length() > 1 ? s.toLowerCase().substring(1) : "");
+                return Character.toUpperCase(s.charAt(0)) +
+                        (s.length() > 1 ? s.toLowerCase().substring(1) : "");
             default:
-                throw new IllegalArgumentException("Unknown capitalization strategy: " + this);
+                throw new IllegalArgumentException(
+                        "Unknown capitalization strategy: " + this);
             }
         }
     }

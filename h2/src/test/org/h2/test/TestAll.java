@@ -221,6 +221,10 @@ import org.h2.util.Utils;
  */
 public class TestAll {
 
+    static {
+        // Locale.setDefault(new Locale("ru", "ru"));
+    }
+
 /*
 
 PIT test:
@@ -863,8 +867,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void addTest(TestBase test) {
-        tests.add(test);
-        // test.runTest(this);
+        // tests.add(test);
+        // run directly for now, because concurrently running tests
+        // fails on Raspberry Pi quite often (seems to be a JVM problem)
+        test.runTest(this);
     }
 
     private void runAddedTests() {

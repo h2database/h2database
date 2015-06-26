@@ -47,7 +47,7 @@ public class CompareMode {
      */
     public static final String UNSIGNED = "UNSIGNED";
 
-    private static CompareMode lastUsed;
+    private static volatile CompareMode lastUsed;
 
     private static final boolean CAN_USE_ICU4J;
 
@@ -86,8 +86,7 @@ public class CompareMode {
      * @param strength the collation strength
      * @return the compare mode
      */
-    public static synchronized CompareMode getInstance(String name,
-            int strength) {
+    public static CompareMode getInstance(String name, int strength) {
         return getInstance(name, strength, SysProperties.SORT_BINARY_UNSIGNED);
     }
 
@@ -102,17 +101,18 @@ public class CompareMode {
      * @param binaryUnsigned whether to compare binaries as unsigned
      * @return the compare mode
      */
-    public static synchronized CompareMode getInstance(String name,
-            int strength, boolean binaryUnsigned) {
-        if (lastUsed != null) {
-            if (StringUtils.equals(lastUsed.name, name) &&
-                    lastUsed.strength == strength &&
-                    lastUsed.binaryUnsigned == binaryUnsigned) {
-                return lastUsed;
+    public static CompareMode getInstance(String name, int strength, boolean binaryUnsigned) {
+        CompareMode last;
+        
+        if ((last = lastUsed) != null) {
+            if (StringUtils.equals(last.name, name) &&
+                    last.strength == strength &&
+                    last.binaryUnsigned == binaryUnsigned) {
+                return last;
             }
         }
         if (name == null || name.equals(OFF)) {
-            lastUsed = new CompareMode(name, strength, binaryUnsigned);
+            lastUsed = last = new CompareMode(name, strength, binaryUnsigned);
         } else {
             boolean useICU4J;
             if (name.startsWith(ICU4J)) {
@@ -125,12 +125,12 @@ public class CompareMode {
                 useICU4J = CAN_USE_ICU4J;
             }
             if (useICU4J) {
-                lastUsed = new CompareModeIcu4J(name, strength, binaryUnsigned);
+                lastUsed = last = new CompareModeIcu4J(name, strength, binaryUnsigned);
             } else {
-                lastUsed = new CompareModeDefault(name, strength, binaryUnsigned);
+                lastUsed = last = new CompareModeDefault(name, strength, binaryUnsigned);
             }
         }
-        return lastUsed;
+        return last;
     }
 
     /**

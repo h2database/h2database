@@ -1530,6 +1530,7 @@ public class Database implements DataHandler {
         return cluster;
     }
 
+    @Override
     public CompareMode getCompareMode() {
         return compareMode;
     }

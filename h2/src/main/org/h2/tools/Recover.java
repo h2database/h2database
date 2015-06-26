@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.CRC32;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.compress.CompressLZF;
@@ -72,6 +71,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
@@ -1729,5 +1729,10 @@ public class Recover extends Tool implements DataHandler {
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
+    }
+    
+    @Override
+    public CompareMode getCompareMode() {
+        return CompareMode.getInstance(null, 0);
     }
 }

@@ -9,6 +9,7 @@ import org.h2.api.JavaObjectSerializer;
 import org.h2.message.DbException;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.CompareMode;
 
 /**
  * A data handler contains a number of callback methods, mostly related to CLOB
@@ -113,4 +114,11 @@ public interface DataHandler {
      * column of type OTHER
      */
     JavaObjectSerializer getJavaObjectSerializer();
+    
+    /**
+     * Return compare mode.
+     * 
+     * @return Compare mode.
+     */
+    CompareMode getCompareMode();
 }

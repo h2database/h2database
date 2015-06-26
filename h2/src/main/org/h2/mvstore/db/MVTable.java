@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.Analyze;
@@ -37,6 +38,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
+import org.h2.util.DebuggingThreadLocal;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.DataType;
@@ -55,6 +57,10 @@ public class MVTable extends TableBase {
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
             new ConcurrentHashMap<Session, Session>();
+
+    public static final DebuggingThreadLocal<String> WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
+    public static final DebuggingThreadLocal<ArrayList<String>> EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+    public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
@@ -130,11 +136,13 @@ public class MVTable extends TableBase {
                 return true;
             }
             session.setWaitForLock(this, Thread.currentThread());
+            WAITING_FOR_LOCK.set(getName());
             waitingSessions.addLast(session);
             try {
                 doLock1(session, lockMode, exclusive);
             } finally {
                 session.setWaitForLock(null, null);
+                WAITING_FOR_LOCK.remove();
                 waitingSessions.remove(session);
             }
         }
@@ -218,11 +226,19 @@ public class MVTable extends TableBase {
                     traceLock(session, exclusive, "added for");
                     session.addLock(this);
                     lockExclusiveSession = session;
+                    if (EXCLUSIVE_LOCKS.get() == null) {
+                      EXCLUSIVE_LOCKS.set(new ArrayList<String>());
+                    }
+                    EXCLUSIVE_LOCKS.get().add(getName());
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
                         lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "add (upgraded) for ");
                     lockExclusiveSession = session;
+                    if (EXCLUSIVE_LOCKS.get() == null) {
+                      EXCLUSIVE_LOCKS.set(new ArrayList<String>());
+                    }
+                    EXCLUSIVE_LOCKS.get().add(getName());
                     return true;
                 }
             }
@@ -244,6 +260,10 @@ public class MVTable extends TableBase {
                     traceLock(session, exclusive, "ok");
                     session.addLock(this);
                     lockSharedSessions.put(session, session);
+                    if (SHARED_LOCKS.get() == null) {
+                    	SHARED_LOCKS.set(new ArrayList<String>());
+                    }
+                    SHARED_LOCKS.get().add(getName());
                 }
                 return true;
             }
@@ -357,10 +377,16 @@ public class MVTable extends TableBase {
             traceLock(s, lockExclusiveSession == s, "unlock");
             if (lockExclusiveSession == s) {
                 lockExclusiveSession = null;
+                if (EXCLUSIVE_LOCKS.get() != null) {
+                  EXCLUSIVE_LOCKS.get().remove(getName());
+                }
             }
             synchronized (getLockSyncObject()) {
                 if (lockSharedSessions.size() > 0) {
                     lockSharedSessions.remove(s);
+                    if (SHARED_LOCKS.get() != null) {
+                    	SHARED_LOCKS.get().remove(getName());
+                    }
                 }
                 if (!waitingSessions.isEmpty()) {
                     getLockSyncObject().notifyAll();

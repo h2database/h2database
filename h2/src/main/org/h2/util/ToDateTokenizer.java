@@ -22,12 +22,13 @@ import org.h2.message.DbException;
  * This class knows all about the TO_DATE-format conventions and how to parse the corresponding data
  */
 class ToDateTokenizer {
-    private static final Pattern PATTERN_Number = Pattern.compile("^([+-]?[0-9]*)");
+    private static final Pattern PATTERN_Number = Pattern.compile("^([+-]?[0-9]+)");
     private static final Pattern PATTERN_4_Digit = Pattern.compile("^([+-]?[0-9]{4})");
     private static final Pattern PATTERN_3_Digit = Pattern.compile("^([+-]?[0-9]{3})");
     private static final Pattern PATTERN_2_Digit = Pattern.compile("^([+-]?[0-9]{2})");
     private static final Pattern PATTERN_2_DigitOrLess = Pattern.compile("^([+-]?[0-9][0-9]?)");
     private static final Pattern PATTERN_1_Digit = Pattern.compile("^([+-]?[0-9])");
+    private static final Pattern PATTERN_FF = Pattern.compile("^(FF[0-9]?)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_AM = Pattern.compile("^(AM|A\\.M\\.)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_PM = Pattern.compile("^(PM|P\\.M\\.)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_AD = Pattern.compile("^(AD|A\\.D\\.)", Pattern.CASE_INSENSITIVE);
@@ -66,20 +67,24 @@ class ToDateTokenizer {
         , HH12(PARSLET_Time) //
         , HH(PARSLET_Time) // Hour of day (1-12).
         , MI(PARSLET_Time) // Min
-        , SSSSS(PARSLET_Time) // Seconds past midnight
+        , SSSSS(PARSLET_Time) // Seconds past midnight (0-86399)
         , SS(PARSLET_Time) //
+        , FF(PARSLET_Time, PATTERN_FF) // Fractional seconds
         , TZH(PARSLET_Time) // Time zone hour.
         , TZM(PARSLET_Time) // Time zone minute.
         , TZR(PARSLET_Time) // Time zone region ID
+        , TZD(PARSLET_Time) // Daylight savings information. Example: PST (for US/Pacific standard time);
         , AM(PARSLET_Time, PATTERN_AM) // Meridian indicator
         , PM(PARSLET_Time, PATTERN_PM) // Meridian indicator
+        , EE/*NOT supported yet*/(PARSLET_Year) // // Full era name (Japanese Imperial, ROC Official, and Thai Buddha calendars).
         // 1 char
+        , E/*NOT supported yet*/(PARSLET_Year) // Abbreviated era name (Japanese Imperial, ROC Official, and Thai Buddha calendars).
         , Y(PARSLET_Year) //
         , I(PARSLET_Year) //
         , Q(PARSLET_Month) // Quarter of year (1, 2, 3, 4; JAN-MAR = 1).
         , W(PARSLET_Week) // Week of month (1-5)
         , D(PARSLET_Day) // Day of week (1-7).
-        , J(PARSLET_Day) // Julian day; the number of days since January 1, 4712 BC.
+        , J/*NOT supported yet*/(PARSLET_Day) // Julian day; the number of days since Jan 1, 4712 BC.
         ;
 
         private final static Map<Character, List<FormatTokenEnum>> cache = new HashMap<Character, List<FormatTokenEnum>>(FormatTokenEnum.values().length);
@@ -194,6 +199,18 @@ class ToDateTokenizer {
                 dateNr = parseInt(intputFragmentStr) + cc * 100;
                 result.set(Calendar.YEAR, dateNr);
                 break;
+            case EE /*NOT supported yet*/:
+                throwException(
+                        params,
+                        format("token '%s' not supported jet. Help by donation or code contribution to H2 and ask for an update :-)",
+                                formatTokenEnum.name()));
+                break;
+            case E /*NOT supported yet*/:
+                throwException(
+                        params,
+                        format("token '%s' not supported jet. Help by donation or code contribution to H2 and ask for an update :-)",
+                                formatTokenEnum.name()));
+                break;
             case YY:
             case IY:
                 intputFragmentStr = matchStringOrDie(PATTERN_2_Digit, params, formatTokenEnum);
@@ -236,7 +253,7 @@ class ToDateTokenizer {
      */
     private static final class MonthParslet implements ToDateParslet {
         private static String[] ROMAN_Month = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI",
-        "XII" };
+                "XII" };
 
         @Override
         public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
@@ -249,10 +266,10 @@ class ToDateTokenizer {
             case MONTH:
                 intputFragmentStr = setByName(result, params, Calendar.MONTH, Calendar.LONG);
                 break;
-            case Q:
+            case Q /*NOT supported yet*/:
                 throwException(
                         params,
-                        format("token '%s' not implemented jet. Donate to H2 and ask for an update :-)",
+                        format("token '%s' not supported jet. Help by donation or code contribution to H2 and ask for an update :-)",
                                 formatTokenEnum.name()));
                 break;
             case MON:
@@ -367,10 +384,10 @@ class ToDateTokenizer {
             case DY:
                 intputFragmentStr = setByName(result, params, Calendar.DAY_OF_WEEK, Calendar.SHORT);
                 break;
-            case J:
+            case J /*NOT supported yet*/:
                 throwException(
                         params,
-                        format("token '%s' not implemented jet. Donate to H2 and ask for an update :-)",
+                        format("token '%s' not supported jet. Help by donation or code contribution to H2 and ask for an update :-)",
                                 formatTokenEnum.name()));
                 break;
             default:
@@ -424,6 +441,14 @@ class ToDateTokenizer {
                 result.set(Calendar.MINUTE, 0);
                 result.set(Calendar.SECOND, dateNr);
                 break;
+            case FF: // Can only support millis, thus up to 3 digits, rest is ignored
+                intputFragmentStr = matchStringOrDie(PATTERN_Number, params, formatTokenEnum);
+                String paddedRightNrStr = format("%-9s", intputFragmentStr).replace(' ', '0');
+                paddedRightNrStr = paddedRightNrStr.substring(0, 9);
+                double nineDigits = Double.parseDouble(paddedRightNrStr);
+                dateNr = (int) Math.round(nineDigits / 1000000.0);
+                result.set(Calendar.MILLISECOND, dateNr);
+                break;
             case AM:
                 intputFragmentStr = matchStringOrDie(PATTERN_AM, params, formatTokenEnum);
                 result.set(Calendar.AM_PM, Calendar.AM);
@@ -450,7 +475,7 @@ class ToDateTokenizer {
                 tz.setRawOffset(dateNr * MILLIS_in_hour + offsetMillis);
                 result.setTimeZone(tz);
                 break;
-            case TZR:
+            case TZR: // Example: US/Pacific
                 final String s = params.getInputStr();
                 tz = result.getTimeZone();
                 for (String tzName : TimeZone.getAvailableIDs()) {
@@ -463,7 +488,12 @@ class ToDateTokenizer {
                     }
                 }
                 break;
-
+            case TZD/*NOT supported yet*/: // Must correspond with TZR region. Example: PST (for US/Pacific standard time)
+                throwException(
+                        params,
+                        format("token '%s' not supported jet. Help by donation or code contribution to H2 and ask for an update :-)",
+                                formatTokenEnum.name()));
+                break;
             default:
                 throw new IllegalArgumentException(format("%s: Internal Error. Unhandled case: %s", this.getClass()
                         .getSimpleName(), formatTokenEnum));

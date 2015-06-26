@@ -1241,7 +1241,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private String toSting(final Date date) {
-        return new SimpleDateFormat("EE yyyy-MM-dd HH:mm:ss zzz G").format(date);
+        return new SimpleDateFormat("EE yyyy-MM-dd HH:mm:ss.SSS zzz G").format(date);
     }
 
     private void testToDate() throws SQLException, ParseException {
@@ -1261,6 +1261,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979:11:12", "YYYY:MM:DD")));
         //
         date = new SimpleDateFormat("yyyy").parse("1979");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 00001", "YYYY FF5")));
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979", "YYYY")));
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 AD", "YYYY AD")));
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 A.D.", "YYYY A.D.")));
@@ -1319,6 +1320,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         date = new SimpleDateFormat("yyyy hh:mm:ss").parse("1970 08:12:34");
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("29554", "SSSSS")));
         //
+        date = new SimpleDateFormat("yyyy hh:mm:ss SSS").parse("1970 08:12:34 555");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12:34 555", "HH:MI:SS FF")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12:34 5545", "HH:MI:SS FF3")));
+        //
         date = new SimpleDateFormat("hh:mm:ss").parse("14:04:00");
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("02:04 P.M.", "HH:MI p.M.")));
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("02:04 PM", "HH:MI PM")));
@@ -1336,13 +1341,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("316", "dDD")));
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("316", "ddd")));
         //
-        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-14");
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-16");
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-46", "YYYY-WW")));
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-46", "YYYY-IW")));
         //
-        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-01-10");
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-01-12");
         assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-2", "YYYY-W")));
-        // assertEquals(toSting(date), toSting(ToDate.TO_DATE("2444190", "J")));
+        // /*NOT supported jet*/ assertEquals(toSting(date), toSting(ToDate.TO_DATE("2444190", "J")));
     }
 
     private void testToCharFromDateTime() throws SQLException {

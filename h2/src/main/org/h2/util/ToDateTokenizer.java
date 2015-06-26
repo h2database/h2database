@@ -441,11 +441,12 @@ class ToDateTokenizer {
                 result.set(Calendar.MINUTE, 0);
                 result.set(Calendar.SECOND, dateNr);
                 break;
-            case FF: // Can only support millis, thus up to 3 digits, rest is ignored
+            case FF: //
                 intputFragmentStr = matchStringOrDie(PATTERN_Number, params, formatTokenEnum);
                 String paddedRightNrStr = format("%-9s", intputFragmentStr).replace(' ', '0');
                 paddedRightNrStr = paddedRightNrStr.substring(0, 9);
-                double nineDigits = Double.parseDouble(paddedRightNrStr);
+                Double nineDigits = Double.parseDouble(paddedRightNrStr);
+                params.setNanos(nineDigits.intValue());
                 dateNr = (int) Math.round(nineDigits / 1000000.0);
                 result.set(Calendar.MILLISECOND, dateNr);
                 break;

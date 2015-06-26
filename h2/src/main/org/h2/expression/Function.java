@@ -478,7 +478,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);
     }
 
-    protected Function(Database database, FunctionInfo info) {
+    protected Function(final Database database, final FunctionInfo info) {
         this.database = database;
         this.info = info;
         if (info.parameterCount == VAR_ARGS) {
@@ -488,9 +488,9 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static void addFunction(String name, int type, int parameterCount,
-            int dataType, boolean nullIfParameterIsNull, boolean deterministic,
-            boolean bufferResultSetToLocalTemp) {
+    private static void addFunction(final String name, final int type, final int parameterCount,
+            final int dataType, final boolean nullIfParameterIsNull, final boolean deterministic,
+            final boolean bufferResultSetToLocalTemp) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
@@ -502,18 +502,18 @@ public class Function extends Expression implements FunctionCall {
         FUNCTIONS.put(name, info);
     }
 
-    private static void addFunctionNotDeterministic(String name, int type,
-            int parameterCount, int dataType) {
+    private static void addFunctionNotDeterministic(final String name, final int type,
+            final int parameterCount, final int dataType) {
         addFunction(name, type, parameterCount, dataType, true, false, true);
     }
 
-    private static void addFunction(String name, int type, int parameterCount,
-            int dataType) {
+    private static void addFunction(final String name, final int type, final int parameterCount,
+            final int dataType) {
         addFunction(name, type, parameterCount, dataType, true, true, true);
     }
 
-    private static void addFunctionWithNull(String name, int type,
-            int parameterCount, int dataType) {
+    private static void addFunctionWithNull(final String name, final int type,
+            final int parameterCount, final int dataType) {
         addFunction(name, type, parameterCount, dataType, false, true, true);
     }
 
@@ -524,7 +524,7 @@ public class Function extends Expression implements FunctionCall {
      * @param name the function name
      * @return the function info
      */
-    private static FunctionInfo getFunctionInfo(String name) {
+    private static FunctionInfo getFunctionInfo(final String name) {
         return FUNCTIONS.get(name);
     }
 
@@ -536,7 +536,7 @@ public class Function extends Expression implements FunctionCall {
      * @param name the function name
      * @return the function object or null
      */
-    public static Function getFunction(Database database, String name) {
+    public static Function getFunction(final Database database, String name) {
         if (!database.getSettings().databaseToUpper) {
             // if not yet converted to uppercase, do it now
             name = StringUtils.toUpperEnglish(name);
@@ -560,7 +560,7 @@ public class Function extends Expression implements FunctionCall {
      * @param index the index (0, 1,...)
      * @param param the expression
      */
-    public void setParameter(int index, Expression param) {
+    public void setParameter(final int index, final Expression param) {
         if (varArgs != null) {
             varArgs.add(param);
         } else {
@@ -572,17 +572,17 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static strictfp double log10(double value) {
+    private static strictfp double log10(final double value) {
         return roundMagic(StrictMath.log(value) / StrictMath.log(10));
     }
 
     @Override
-    public Value getValue(Session session) {
+    public Value getValue(final Session session) {
         return getValueWithArgs(session, args);
     }
 
-    private Value getSimpleValue(Session session, Value v0, Expression[] args,
-            Value[] values) {
+    private Value getSimpleValue(final Session session, Value v0, final Expression[] args,
+            final Value[] values) {
         Value result;
         switch (info.type) {
         case ABS:
@@ -684,7 +684,7 @@ public class Function extends Expression implements FunctionCall {
         case RANDOM_UUID:
             result = ValueUuid.getNewRandom();
             break;
-        // string
+            // string
         case ASCII: {
             String s = v0.getString();
             if (s.length() == 0) {
@@ -922,7 +922,7 @@ public class Function extends Expression implements FunctionCall {
             result = path == null ?
                     (Value) ValueNull.INSTANCE : ValueString.get(path,
                             database.getMode().treatEmptyStringsAsNull);
-            break;
+                    break;
         }
         case LOCK_TIMEOUT:
             result = ValueInt.get(session.getLockTimeout());
@@ -988,7 +988,7 @@ public class Function extends Expression implements FunctionCall {
                 index = args.length - 1;
             }
             Value v = index < 0 ? ValueNull.INSTANCE :
-                    getNullOrValue(session, args, values, index);
+                getNullOrValue(session, args, values, index);
             result = v.convertTo(dataType);
             break;
         }
@@ -1126,7 +1126,7 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
-    private static boolean cancelStatement(Session session, int targetSessionId) {
+    private static boolean cancelStatement(final Session session, final int targetSessionId) {
         session.getUser().checkAdmin();
         Session[] sessions = session.getDatabase().getSessions(false);
         for (Session s : sessions) {
@@ -1142,15 +1142,15 @@ public class Function extends Expression implements FunctionCall {
         return false;
     }
 
-    private static long getDiskSpaceUsed(Session session, Value v0) {
+    private static long getDiskSpaceUsed(final Session session, final Value v0) {
         Parser p = new Parser(session);
         String sql = v0.getString();
         Table table = p.parseTableName(sql);
         return table.getDiskSpaceUsed();
     }
 
-    private static Value getNullOrValue(Session session, Expression[] args,
-            Value[] values, int i) {
+    private static Value getNullOrValue(final Session session, final Expression[] args,
+            final Value[] values, final int i) {
         if (i >= args.length) {
             return null;
         }
@@ -1165,7 +1165,7 @@ public class Function extends Expression implements FunctionCall {
         return v;
     }
 
-    private Value getValueWithArgs(Session session, Expression[] args) {
+    private Value getValueWithArgs(final Session session, final Expression[] args) {
         Value[] values = new Value[args.length];
         if (info.nullIfParameterIsNull) {
             for (int i = 0; i < args.length; i++) {
@@ -1402,7 +1402,7 @@ public class Function extends Expression implements FunctionCall {
         case ORA_HASH:
             result = ValueLong.get(oraHash(v0.getString(),
                     v1 == null ? null : v1.getInt(),
-                    v2 == null ? null : v2.getInt()));
+                            v2 == null ? null : v2.getInt()));
             break;
         case TO_CHAR:
             switch (v0.getType()) {
@@ -1411,8 +1411,8 @@ public class Function extends Expression implements FunctionCall {
             case Value.TIMESTAMP:
                 result = ValueString.get(toChar(v0.getTimestamp(),
                         v1 == null ? null : v1.getString(),
-                        v2 == null ? null : v2.getString()),
-                        database.getMode().treatEmptyStringsAsNull);
+                                v2 == null ? null : v2.getString()),
+                                database.getMode().treatEmptyStringsAsNull);
                 break;
             case Value.SHORT:
             case Value.INT:
@@ -1422,8 +1422,8 @@ public class Function extends Expression implements FunctionCall {
             case Value.FLOAT:
                 result = ValueString.get(toChar(v0.getBigDecimal(),
                         v1 == null ? null : v1.getString(),
-                        v2 == null ? null : v2.getString()),
-                        database.getMode().treatEmptyStringsAsNull);
+                                v2 == null ? null : v2.getString()),
+                                database.getMode().treatEmptyStringsAsNull);
                 break;
             default:
                 result = ValueString.get(v0.getString(),
@@ -1435,7 +1435,7 @@ public class Function extends Expression implements FunctionCall {
                     v1 == null ? null : v1.getString()));
             break;
         case TO_TIMESTAMP:
-            result = ValueDate.get(ToDate.TO_TIMESTAMP(v0.getString(), //
+            result = ValueTimestamp.get(ToDate.TO_TIMESTAMP(v0.getString(), //
                     v1 == null ? null : v1.getString()));
             break;
         case TRANSLATE: {
@@ -1495,7 +1495,7 @@ public class Function extends Expression implements FunctionCall {
         case NULLIF:
             result = database.areEqual(v0, v1) ? ValueNull.INSTANCE : v0;
             break;
-        // system
+            // system
         case NEXTVAL: {
             Sequence sequence = getSequence(session, v0, v1);
             SequenceValue value = new SequenceValue(sequence);
@@ -1634,7 +1634,7 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
-    private Sequence getSequence(Session session, Value v0, Value v1) {
+    private Sequence getSequence(final Session session, final Value v0, final Value v1) {
         String schemaName, sequenceName;
         if (v1 == null) {
             Parser p = new Parser(session);
@@ -1669,7 +1669,7 @@ public class Function extends Expression implements FunctionCall {
         return seq;
     }
 
-    private static long length(Value v) {
+    private static long length(final Value v) {
         switch (v.getType()) {
         case Value.BLOB:
         case Value.CLOB:
@@ -1681,14 +1681,14 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
+    private static byte[] getPaddedArrayCopy(final byte[] data, final int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
         byte[] newData = DataUtils.newBytes(size);
         System.arraycopy(data, 0, newData, 0, data.length);
         return newData;
     }
 
-    private static byte[] decrypt(String algorithm, byte[] key, byte[] data) {
+    private static byte[] decrypt(final String algorithm, final byte[] key, final byte[] data) {
         BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
         byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
         cipher.setKey(newKey);
@@ -1697,7 +1697,7 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private static byte[] encrypt(String algorithm, byte[] key, byte[] data) {
+    private static byte[] encrypt(final String algorithm, final byte[] key, final byte[] data) {
         BlockCipher cipher = CipherFactory.getBlockCipher(algorithm);
         byte[] newKey = getPaddedArrayCopy(key, cipher.getKeyLength());
         cipher.setKey(newKey);
@@ -1706,7 +1706,7 @@ public class Function extends Expression implements FunctionCall {
         return newData;
     }
 
-    private static byte[] getHash(String algorithm, byte[] bytes, int iterations) {
+    private static byte[] getHash(final String algorithm, byte[] bytes, final int iterations) {
         if (!"SHA256".equalsIgnoreCase(algorithm)) {
             throw DbException.getInvalidValueException("algorithm", algorithm);
         }
@@ -1722,12 +1722,12 @@ public class Function extends Expression implements FunctionCall {
      * @param part the string
      * @return true if it is
      */
-    public static boolean isDatePart(String part) {
+    public static boolean isDatePart(final String part) {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         return p != null;
     }
 
-    private static int getDatePart(String part) {
+    private static int getDatePart(final String part) {
         Integer p = DATE_PART.get(StringUtils.toUpperEnglish(part));
         if (p == null) {
             throw DbException.getInvalidValueException("date part", part);
@@ -1735,7 +1735,7 @@ public class Function extends Expression implements FunctionCall {
         return p.intValue();
     }
 
-    private static Timestamp dateadd(String part, long count, Timestamp d) {
+    private static Timestamp dateadd(final String part, final long count, final Timestamp d) {
         int field = getDatePart(part);
         if (field == Calendar.MILLISECOND) {
             Timestamp ts = new Timestamp(d.getTime() + count);
@@ -1769,7 +1769,7 @@ public class Function extends Expression implements FunctionCall {
      * @param d2 the second date
      * @return the number of crossed boundaries
      */
-    private static long datediff(String part, Timestamp d1, Timestamp d2) {
+    private static long datediff(final String part, final Timestamp d1, final Timestamp d2) {
         int field = getDatePart(part);
         Calendar calendar = Calendar.getInstance();
         long t1 = d1.getTime(), t2 = d2.getTime();
@@ -1828,7 +1828,7 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
-    private static String substring(String s, int start, int length) {
+    private static String substring(final String s, int start, int length) {
         int len = s.length();
         start--;
         if (start < 0) {
@@ -1844,7 +1844,7 @@ public class Function extends Expression implements FunctionCall {
         return s.substring(start, start + length);
     }
 
-    private static String replace(String s, String replace, String with) {
+    private static String replace(final String s, final String replace, final String with) {
         if (s == null || replace == null || with == null) {
             return null;
         }
@@ -1867,7 +1867,7 @@ public class Function extends Expression implements FunctionCall {
         return buff.toString();
     }
 
-    private static String repeat(String s, int count) {
+    private static String repeat(final String s, int count) {
         StringBuilder buff = new StringBuilder(s.length() * count);
         while (count-- > 0) {
             buff.append(s);
@@ -1875,7 +1875,7 @@ public class Function extends Expression implements FunctionCall {
         return buff.toString();
     }
 
-    private static String rawToHex(String s) {
+    private static String rawToHex(final String s) {
         int length = s.length();
         StringBuilder buff = new StringBuilder(4 * length);
         for (int i = 0; i < length; i++) {
@@ -1888,7 +1888,7 @@ public class Function extends Expression implements FunctionCall {
         return buff.toString();
     }
 
-    private static int locate(String search, String s, int start) {
+    private static int locate(final String search, final String s, final int start) {
         if (start < 0) {
             int i = s.length() + start;
             return s.lastIndexOf(search, i) + 1;
@@ -1897,7 +1897,7 @@ public class Function extends Expression implements FunctionCall {
         return s.indexOf(search, i) + 1;
     }
 
-    private static String right(String s, int count) {
+    private static String right(final String s, int count) {
         if (count < 0) {
             count = 0;
         } else if (count > s.length()) {
@@ -1906,7 +1906,7 @@ public class Function extends Expression implements FunctionCall {
         return s.substring(s.length() - count);
     }
 
-    private static String left(String s, int count) {
+    private static String left(final String s, int count) {
         if (count < 0) {
             count = 0;
         } else if (count > s.length()) {
@@ -1915,7 +1915,7 @@ public class Function extends Expression implements FunctionCall {
         return s.substring(0, count);
     }
 
-    private static String insert(String s1, int start, int length, String s2) {
+    private static String insert(final String s1, int start, int length, final String s2) {
         if (s1 == null) {
             return s2;
         }
@@ -1934,7 +1934,7 @@ public class Function extends Expression implements FunctionCall {
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    private static String hexToRaw(String s) {
+    private static String hexToRaw(final String s) {
         // TODO function hextoraw compatibility with oracle
         int len = s.length();
         if (len % 4 != 0) {
@@ -1965,8 +1965,8 @@ public class Function extends Expression implements FunctionCall {
         return e;
     }
 
-    private static String translate(String original, String findChars,
-            String replaceChars) {
+    private static String translate(final String original, final String findChars,
+            final String replaceChars) {
         if (StringUtils.isNullOrEmpty(original) ||
                 StringUtils.isNullOrEmpty(findChars)) {
             return original;
@@ -1997,7 +1997,7 @@ public class Function extends Expression implements FunctionCall {
         return buff == null ? original : buff.toString();
     }
 
-    private static double roundMagic(double d) {
+    private static double roundMagic(final double d) {
         if ((d < 0.0000000000001) && (d > -0.0000000000001)) {
             return 0.0;
         }
@@ -2032,7 +2032,7 @@ public class Function extends Expression implements FunctionCall {
         return Double.parseDouble(s.toString());
     }
 
-    private static String getSoundex(String s) {
+    private static String getSoundex(final String s) {
         int len = s.length();
         char[] chars = { '0', '0', '0', '0' };
         char lastDigit = '0';
@@ -2057,7 +2057,7 @@ public class Function extends Expression implements FunctionCall {
         return new String(chars);
     }
 
-    private static Integer oraHash(String s, Integer bucket, Integer seed) {
+    private static Integer oraHash(final String s, final Integer bucket, final Integer seed) {
         int hc = s.hashCode();
         if (seed != null && seed.intValue() != 0) {
             hc *= seed.intValue() * 17;
@@ -2076,7 +2076,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public void mapColumns(ColumnResolver resolver, int level) {
+    public void mapColumns(final ColumnResolver resolver, final int level) {
         for (Expression e : args) {
             if (e != null) {
                 e.mapColumns(resolver, level);
@@ -2090,7 +2090,7 @@ public class Function extends Expression implements FunctionCall {
      * @param len the number of parameters set
      * @throws DbException if the parameter count is incorrect
      */
-    protected void checkParameterCount(int len) {
+    protected void checkParameterCount(final int len) {
         int min = 0, max = Integer.MAX_VALUE;
         switch (info.type) {
         case COALESCE:
@@ -2198,7 +2198,7 @@ public class Function extends Expression implements FunctionCall {
         }
     }
 
-    public void setDataType(Column col) {
+    public void setDataType(final Column col) {
         dataType = col.getType();
         precision = col.getPrecision();
         displaySize = col.getDisplaySize();
@@ -2206,7 +2206,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public Expression optimize(Session session) {
+    public Expression optimize(final Session session) {
         boolean allConst = info.deterministic;
         for (int i = 0; i < args.length; i++) {
             Expression e = args[i];
@@ -2420,7 +2420,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public void setEvaluatable(TableFilter tableFilter, boolean b) {
+    public void setEvaluatable(final TableFilter tableFilter, final boolean b) {
         for (Expression e : args) {
             if (e != null) {
                 e.setEvaluatable(tableFilter, b);
@@ -2535,8 +2535,8 @@ public class Function extends Expression implements FunctionCall {
         switch (info.type) {
         case CAST: {
             buff.append(args[0].getSQL()).append(" AS ").
-                    append(new Column(null, dataType, precision,
-                            scale, displaySize).getCreateSQL());
+            append(new Column(null, dataType, precision,
+                    scale, displaySize).getCreateSQL());
             break;
         }
         case CONVERT: {
@@ -2546,8 +2546,8 @@ public class Function extends Expression implements FunctionCall {
                         append(',').append(args[0].getSQL());
             } else {
                 buff.append(args[0].getSQL()).append(',').
-                        append(new Column(null, dataType, precision,
-                                scale, displaySize).getCreateSQL());
+                append(new Column(null, dataType, precision,
+                        scale, displaySize).getCreateSQL());
             }
             break;
         }
@@ -2567,7 +2567,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public void updateAggregate(Session session) {
+    public void updateAggregate(final Session session) {
         for (Expression e : args) {
             if (e != null) {
                 e.updateAggregate(session);
@@ -2585,8 +2585,8 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public ValueResultSet getValueForColumnList(Session session,
-            Expression[] argList) {
+    public ValueResultSet getValueForColumnList(final Session session,
+            final Expression[] argList) {
         switch (info.type) {
         case CSVREAD: {
             String fileName = argList[0].getValue(session).getString();
@@ -2633,8 +2633,8 @@ public class Function extends Expression implements FunctionCall {
         return (ValueResultSet) getValueWithArgs(session, argList);
     }
 
-    private static void setCsvDelimiterEscape(Csv csv, String fieldSeparator,
-            String fieldDelimiter, String escapeCharacter) {
+    private static void setCsvDelimiterEscape(final Csv csv, final String fieldSeparator,
+            final String fieldDelimiter, final String escapeCharacter) {
         if (fieldSeparator != null) {
             csv.setFieldSeparatorWrite(fieldSeparator);
             if (fieldSeparator.length() > 0) {
@@ -2660,7 +2660,7 @@ public class Function extends Expression implements FunctionCall {
     }
 
     @Override
-    public boolean isEverything(ExpressionVisitor visitor) {
+    public boolean isEverything(final ExpressionVisitor visitor) {
         for (Expression e : args) {
             if (e != null && !e.isEverything(visitor)) {
                 return false;

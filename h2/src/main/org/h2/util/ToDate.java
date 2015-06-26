@@ -1,6 +1,7 @@
 package org.h2.util;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.List;
 
 import org.h2.util.ToDateTokenizer.FormatTokenEnum;
@@ -15,7 +16,7 @@ public class ToDate {
 
         private final String defaultFormatStr;
 
-        TO_DATE_FunctionName(String defaultFormatStr) {
+        TO_DATE_FunctionName(final String defaultFormatStr) {
             this.defaultFormatStr = defaultFormatStr;
         }
 
@@ -24,19 +25,21 @@ public class ToDate {
         }
     };
 
-    public static Date TO_DATE(final String input, String format) {
-        return parse(new ToDateParams(TO_DATE_FunctionName.TO_DATE, input, format));
+    public static Date TO_DATE(final String input, final String format) {
+        ToDateParams parsed = parse(new ToDateParams(TO_DATE_FunctionName.TO_DATE, input, format));
+        return parsed.getResultingDate();
     }
 
-    public static Date TO_TIMESTAMP(final String input, String format) {
-        return parse(new ToDateParams(TO_DATE_FunctionName.TO_TIMESTAMP, input, format));
+    public static Timestamp TO_TIMESTAMP(final String input, final String format) {
+        ToDateParams parsed = parse(new ToDateParams(TO_DATE_FunctionName.TO_TIMESTAMP, input, format));
+        return parsed.getResultingTimestamp();
     }
 
     /**
      * Parse the format-string with passed token of {@link FormatTokenEnum}}.<br>
      * if token matches return true otherwise false.
      */
-    private static Date parse(ToDateParams p) {
+    private static ToDateParams parse(final ToDateParams p) {
         while (p.hasToParseData()) {
             List<FormatTokenEnum> tokenList = FormatTokenEnum.getTokensInQuestion(p);
             if (tokenList.isEmpty()) {
@@ -55,7 +58,7 @@ public class ToDate {
                 continue;
             }
         }
-        return new Date(p.getResultCalendar().getTimeInMillis());
+        return p;
     }
 
 }

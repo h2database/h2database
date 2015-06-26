@@ -2,6 +2,8 @@ package org.h2.util;
 
 import static java.lang.String.format;
 
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.Calendar;
 
 import org.h2.util.ToDate.TO_DATE_FunctionName;
@@ -17,6 +19,7 @@ class ToDateParams {
     private String inputStr;
     private String formatStr;
     private final Calendar resultCalendar = (Calendar) Calendar.getInstance().clone();
+    private Integer nanos = null;
 
     /**
      * @param input the input date with the date-time info
@@ -37,6 +40,19 @@ class ToDateParams {
         unmodifiedFormatStr = formatStr; // Keep a copy
     }
 
+    Date getResultingDate() {
+        return new Date(getResultCalendar().getTimeInMillis());
+    }
+
+    Timestamp getResultingTimestamp() {
+        Calendar cal = (Calendar) getResultCalendar().clone();
+        int nanosToSet = nanos == null ? cal.get(Calendar.MILLISECOND) * 1000000 : nanos.intValue();
+        cal.set(Calendar.MILLISECOND, 0);
+        Timestamp ts = new Timestamp(cal.getTimeInMillis());
+        ts.setNanos(nanosToSet);
+        return ts;
+    }
+
     Calendar getResultCalendar() {
         return resultCalendar;
     }
@@ -51,6 +67,10 @@ class ToDateParams {
 
     TO_DATE_FunctionName getFunctionName() {
         return functionName;
+    }
+
+    void setNanos(final int nanos) {
+        this.nanos = nanos;
     }
 
     boolean hasToParseData() {

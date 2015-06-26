@@ -102,9 +102,8 @@ public class CompareMode {
      * @return the compare mode
      */
     public static CompareMode getInstance(String name, int strength, boolean binaryUnsigned) {
-        CompareMode last;
-        
-        if ((last = lastUsed) != null) {
+        CompareMode last = lastUsed;
+        if (last != null) {
             if (StringUtils.equals(last.name, name) &&
                     last.strength == strength &&
                     last.binaryUnsigned == binaryUnsigned) {
@@ -112,7 +111,7 @@ public class CompareMode {
             }
         }
         if (name == null || name.equals(OFF)) {
-            lastUsed = last = new CompareMode(name, strength, binaryUnsigned);
+            last = new CompareMode(name, strength, binaryUnsigned);
         } else {
             boolean useICU4J;
             if (name.startsWith(ICU4J)) {
@@ -125,11 +124,12 @@ public class CompareMode {
                 useICU4J = CAN_USE_ICU4J;
             }
             if (useICU4J) {
-                lastUsed = last = new CompareModeIcu4J(name, strength, binaryUnsigned);
+                last = new CompareModeIcu4J(name, strength, binaryUnsigned);
             } else {
-                lastUsed = last = new CompareModeDefault(name, strength, binaryUnsigned);
+                last = new CompareModeDefault(name, strength, binaryUnsigned);
             }
         }
+        lastUsed = last;
         return last;
     }
 

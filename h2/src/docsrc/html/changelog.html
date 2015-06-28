@@ -21,7 +21,15 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>Fix for issue #143, deadlock between two sessions hitting the same sequence on a column
+<li>In version 1.4.186, "order by" was broken in some cases
+    due to the change "Make the planner use indexes for sorting when doing a GROUP BY".
+    The change was reverted.
+</li>
+<li>Pull request #146: Improved CompareMode.
+</li>
+<li>Fix for #144, JdbcResultSet.setFetchDirection() throws "Feature not supported".
+</li>
+<li>Fix for issue #143, deadlock between two sessions hitting the same sequence on a column.
 </li>
 <li>Pull request #137: SourceCompiler should not throw a syntax error on javac warning.
 </li>

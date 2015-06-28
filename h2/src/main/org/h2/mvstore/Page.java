@@ -645,10 +645,10 @@ public class Page {
     void read(ByteBuffer buff, int chunkId, int offset, int maxLength) {
         int start = buff.position();
         int pageLength = buff.getInt();
-        if (pageLength > maxLength) {
+        if (pageLength > maxLength || pageLength < 4) {
             throw DataUtils.newIllegalStateException(
                     DataUtils.ERROR_FILE_CORRUPT,
-                    "File corrupted in chunk {0}, expected page length =< {1}, got {2}",
+                    "File corrupted in chunk {0}, expected page length 4..{1}, got {2}",
                     chunkId, maxLength, pageLength);
         }
         buff.limit(start + pageLength);

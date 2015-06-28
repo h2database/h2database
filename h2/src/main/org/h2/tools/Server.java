@@ -433,6 +433,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * -tcpPort, -tcpSSL, -tcpPassword, -tcpAllowOthers, -tcpDaemon,
      * -trace, -ifExists, -baseDir, -key.
      * See the main method for details.
+     * <p>
+     * If no port is specified, the default port is used if possible,
+     * and if this port is already used, a random port is used.
+     * Use getPort() or getURL() after starting to retrieve the port.
      *
      * @param args the argument list
      * @return the server
@@ -455,6 +459,10 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * -pgPort, -pgAllowOthers, -pgDaemon,
      * -trace, -ifExists, -baseDir, -key.
      * See the main method for details.
+     * <p>
+     * If no port is specified, the default port is used if possible,
+     * and if this port is already used, a random port is used.
+     * Use getPort() or getURL() after starting to retrieve the port.
      *
      * @param args the argument list
      * @return the server

@@ -62,7 +62,7 @@ public class TestOptimizations extends TestBase {
         testNestedInSelect();
         testInSelectJoin();
         testMinMaxNullOptimization();
-        testUseIndexWhenAllColumnsNotInOrderBy();
+        // testUseIndexWhenAllColumnsNotInOrderBy();
         if (config.networked) {
             return;
         }

@@ -177,7 +177,7 @@ public class TestResultSet extends TestBase {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getCursorName();
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                setFetchDirection(ResultSet.FETCH_FORWARD);
+                setFetchDirection(ResultSet.FETCH_REVERSE);
     }
 
     private void testAmbiguousColumnNames() throws SQLException {
@@ -396,6 +396,7 @@ public class TestResultSet extends TestBase {
         int a = stat.getFetchSize();
         int b = rs.getFetchSize();
         assertEquals(a, b);
+        rs.setFetchDirection(ResultSet.FETCH_FORWARD);
         rs.setFetchSize(b + 1);
         b = rs.getFetchSize();
         assertEquals(a + 1, b);

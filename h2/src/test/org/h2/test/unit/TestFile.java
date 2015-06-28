@@ -6,7 +6,6 @@
 package org.h2.test.unit;
 
 import java.util.Random;
-
 import org.h2.api.JavaObjectSerializer;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
@@ -15,6 +14,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.CompareMode;
 
 /**
  * Tests the in-memory file store.
@@ -197,4 +197,8 @@ public class TestFile extends TestBase implements DataHandler {
         return null;
     }
 
+    @Override
+    public CompareMode getCompareMode() {
+        return CompareMode.getInstance(null, 0);
+    }
 }

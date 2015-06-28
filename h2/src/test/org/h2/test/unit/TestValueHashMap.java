@@ -171,4 +171,9 @@ public class TestValueHashMap extends TestBase implements DataHandler {
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
     }
+    
+    @Override
+    public CompareMode getCompareMode() {
+        return compareMode;
+    }
 }

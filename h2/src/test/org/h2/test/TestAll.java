@@ -107,6 +107,7 @@ import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
+import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
@@ -220,6 +221,10 @@ import org.h2.util.Utils;
  * different settings).
  */
 public class TestAll {
+
+    static {
+        // Locale.setDefault(new Locale("ru", "ru"));
+    }
 
 /*
 
@@ -763,6 +768,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMemoryUsage());
         addTest(new TestMultiThread());
         addTest(new TestPowerOff());
+        addTest(new TestReorderWrites());
         addTest(new TestRandomSQL());
         addTest(new TestQueryCache());
         addTest(new TestUrlJavaObjectSerializer());
@@ -863,8 +869,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void addTest(TestBase test) {
-        tests.add(test);
-        // test.runTest(this);
+        // tests.add(test);
+        // run directly for now, because concurrently running tests
+        // fails on Raspberry Pi quite often (seems to be a JVM problem)
+        test.runTest(this);
     }
 
     private void runAddedTests() {

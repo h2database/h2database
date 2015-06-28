@@ -27,6 +27,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -754,7 +755,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
-    @Override
+    @Deprecated
+		@Override
     public BigDecimal getBigDecimal(String columnLabel, int scale)
             throws SQLException {
         try {
@@ -783,7 +785,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
-    @Override
+    @Deprecated
+		@Override
     public BigDecimal getBigDecimal(int columnIndex, int scale)
             throws SQLException {
         try {
@@ -804,7 +807,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported]
      * @deprecated since JDBC 2.0, use getCharacterStream
      */
-    @Override
+    @Deprecated
+		@Override
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         throw unsupported("unicodeStream");
     }
@@ -813,7 +817,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported]
      * @deprecated since JDBC 2.0, use setCharacterStream
      */
-    @Override
+    @Deprecated
+		@Override
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
         throw unsupported("unicodeStream");
     }
@@ -2613,7 +2618,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     @Override
     public void setFetchDirection(int direction) throws SQLException {
-        throw unsupported("setFetchDirection");
+        debugCodeCall("setFetchDirection", direction);
+        // ignore FETCH_FORWARD, that's the default value, which we do support
+        if (direction != ResultSet.FETCH_FORWARD) {
+            throw unsupported("setFetchDirection");
+        }
     }
 
     /**

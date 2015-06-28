@@ -8,7 +8,6 @@ package org.h2.engine;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -32,6 +31,7 @@ import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
+import org.h2.value.CompareMode;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 
@@ -90,6 +90,8 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private JavaObjectSerializer javaObjectSerializer;
     private volatile boolean javaObjectSerializerInitialized;
+    
+    private CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;
@@ -845,5 +847,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     @Override
     public void addTemporaryLob(Value v) {
         // do nothing
+    }
+    
+    @Override
+    public CompareMode getCompareMode() {
+        return compareMode;
     }
 }

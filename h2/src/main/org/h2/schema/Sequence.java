@@ -33,6 +33,10 @@ public class Sequence extends SchemaObjectBase {
     private long maxValue;
     private boolean cycle;
     private boolean belongsToTable;
+    /**
+     * The last valueWithMargin we flushed. We do a little dance with this to avoid an ABBA deadlock.
+     */
+    private long lastFlushValueWithMargin;
 
     /**
      * Creates a new sequence for an auto-increment column.
@@ -240,29 +244,35 @@ public class Sequence extends SchemaObjectBase {
      * @param session the session
      * @return the next value
      */
-    public synchronized long getNext(Session session) {
+    public long getNext(Session session) {
         boolean needsFlush = false;
-        if ((increment > 0 && value >= valueWithMargin) ||
-                (increment < 0 && value <= valueWithMargin)) {
-            valueWithMargin += increment * cacheSize;
-            needsFlush = true;
-        }
-        if ((increment > 0 && value > maxValue) ||
-                (increment < 0 && value < minValue)) {
-            if (cycle) {
-                value = increment > 0 ? minValue : maxValue;
-                valueWithMargin = value + (increment * cacheSize);
-                needsFlush = true;
-            } else {
-                throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
-            }
+        long retVal;
+        long flushValueWithMargin = -1;
+        synchronized(this) {
+	        if ((increment > 0 && value >= valueWithMargin) ||
+	                (increment < 0 && value <= valueWithMargin)) {
+	            valueWithMargin += increment * cacheSize;
+	            flushValueWithMargin = valueWithMargin;
+	            needsFlush = true;
+	        }
+	        if ((increment > 0 && value > maxValue) ||
+	                (increment < 0 && value < minValue)) {
+	            if (cycle) {
+	                value = increment > 0 ? minValue : maxValue;
+	                valueWithMargin = value + (increment * cacheSize);
+	  	            flushValueWithMargin = valueWithMargin;
+	                needsFlush = true;
+	            } else {
+	                throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
+	            }
+	        }
+	        retVal = value;
+	        value += increment;
         }
         if (needsFlush) {
-            flush(session);
+            flush(session, flushValueWithMargin);
         }
-        long v = value;
-        value += increment;
-        return v;
+        return retVal;
     }
 
     /**
@@ -271,7 +281,7 @@ public class Sequence extends SchemaObjectBase {
     public void flushWithoutMargin() {
         if (valueWithMargin != value) {
             valueWithMargin = value;
-            flush(null);
+            flush(null, valueWithMargin);
         }
     }
 
@@ -280,24 +290,33 @@ public class Sequence extends SchemaObjectBase {
      *
      * @param session the session
      */
-    public synchronized void flush(Session session) {
-        if (session == null || !database.isSysTableLocked()) {
+    public void flush(Session session, long flushValueWithMargin) {
+        if (session == null || !database.isSysTableLockedBy(session)) {
             // This session may not lock the sys table (except if it already has
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
             Session sysSession = database.getSystemSession();
             synchronized (sysSession) {
-                flushInternal(sysSession);
+                flushInternal(sysSession, flushValueWithMargin);
                 sysSession.commit(false);
             }
         } else {
             synchronized (session) {
-                flushInternal(session);
+                flushInternal(session, flushValueWithMargin);
             }
         }
     }
 
-    private void flushInternal(Session session) {
+    private void flushInternal(Session session, long flushValueWithMargin) {
+	  		final boolean metaWasLocked = database.lockMeta(session);
+	  		synchronized (this) {
+	  			if (flushValueWithMargin == lastFlushValueWithMargin) {
+	  				if (!metaWasLocked) {
+	  					database.unlockMeta(session);
+	  				}
+	  				return;
+	  			}
+	  		}
         // just for this case, use the value with the margin for the script
         long realValue = value;
         try {
@@ -308,6 +327,12 @@ public class Sequence extends SchemaObjectBase {
         } finally {
             value = realValue;
         }
+	  		synchronized (this) {
+	  			lastFlushValueWithMargin = flushValueWithMargin;
+	  		}
+				if (!metaWasLocked) {
+					database.unlockMeta(session);
+				}
     }
 
     /**

@@ -382,42 +382,42 @@ public class ConnectionInfo implements Cloneable {
      * @return the database name
      */
     public String getName() {
-        if (persistent) {
-            if (nameNormalized == null) {
-                if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
-                    if (!FileUtils.isAbsolute(name)) {
-                        if (name.indexOf("./") < 0 &&
-                                name.indexOf(".\\") < 0 &&
-                                name.indexOf(":/") < 0 &&
-                                name.indexOf(":\\") < 0) {
-                            // the name could start with "./", or
-                            // it could start with a prefix such as "nio:./"
-                            // for Windows, the path "\test" is not considered
-                            // absolute as the drive letter is missing,
-                            // but we consider it absolute
-                            throw DbException.get(
-                                    ErrorCode.URL_RELATIVE_TO_CWD,
-                                    originalURL);
-                        }
+        if (!persistent) {
+        	return name;
+        }
+        if (nameNormalized == null) {
+            if (!SysProperties.IMPLICIT_RELATIVE_PATH) {
+                if (!FileUtils.isAbsolute(name)) {
+                    if (name.indexOf("./") < 0 &&
+                            name.indexOf(".\\") < 0 &&
+                            name.indexOf(":/") < 0 &&
+                            name.indexOf(":\\") < 0) {
+                        // the name could start with "./", or
+                        // it could start with a prefix such as "nio:./"
+                        // for Windows, the path "\test" is not considered
+                        // absolute as the drive letter is missing,
+                        // but we consider it absolute
+                        throw DbException.get(
+                                ErrorCode.URL_RELATIVE_TO_CWD,
+                                originalURL);
                     }
                 }
-                String suffix = Constants.SUFFIX_PAGE_FILE;
-                String n;
-                if (FileUtils.exists(name + suffix)) {
-                    n = FileUtils.toRealPath(name + suffix);
-                } else {
-                    suffix = Constants.SUFFIX_MV_FILE;
-                    n = FileUtils.toRealPath(name + suffix);
-                }
-                String fileName = FileUtils.getName(n);
-                if (fileName.length() < suffix.length() + 1) {
-                    throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);
-                }
-                nameNormalized = n.substring(0, n.length() - suffix.length());
             }
-            return nameNormalized;
+            String suffix = Constants.SUFFIX_PAGE_FILE;
+            String n;
+            if (FileUtils.exists(name + suffix)) {
+                n = FileUtils.toRealPath(name + suffix);
+            } else {
+                suffix = Constants.SUFFIX_MV_FILE;
+                n = FileUtils.toRealPath(name + suffix);
+            }
+            String fileName = FileUtils.getName(n);
+            if (fileName.length() < suffix.length() + 1) {
+                throw DbException.get(ErrorCode.INVALID_DATABASE_NAME_1, name);
+            }
+            nameNormalized = n.substring(0, n.length() - suffix.length());
         }
-        return name;
+        return nameNormalized;
     }
 
     /**

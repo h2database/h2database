@@ -1,5 +1,4 @@
 @echo off
-set JAVA_HOME=S:\CI\java\jdk1.6.0_45
 if "%JAVA_HOME%"=="" echo Error: JAVA_HOME is not defined.
 if "%1"=="clean" rmdir /s /q temp bin 2>nul
 if not exist temp mkdir temp

@@ -82,6 +82,7 @@
 90053=A Subquery contém mais de uma linha
 90054=Uso inválido da função {0} agregada
 90055=Cipher {0} não é suportado
+90056=#Function {0}: Invalid date format. {1}
 90057=Restrição {0} não foi encontrada
 90058=#Commit or rollback is not allowed within a trigger
 90059=Nome da coluna {0} é ambíguo.

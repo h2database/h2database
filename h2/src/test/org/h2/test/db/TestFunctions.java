@@ -61,7 +61,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      *
      * @param a ignored
      */
-    public static void main(final String... a) throws Exception {
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
@@ -162,7 +162,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return a result set
      */
-    public static ResultSet simpleFunctionTable(final Connection conn) {
+    public static ResultSet simpleFunctionTable(Connection conn) {
         SimpleResultSet result = new SimpleResultSet();
         result.addColumn("A", Types.INTEGER, 0, 0);
         result.addColumn("B", Types.CHAR, 0, 0);
@@ -176,7 +176,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the value array
      * @return a result set
      */
-    public static ResultSet varArgsFunctionTable(final int... values) throws SQLException {
+    public static ResultSet varArgsFunctionTable(int... values) throws SQLException {
         if (values.length != 6) {
             throw new SQLException("Unexpected argument count");
         }
@@ -316,7 +316,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param args the argument list
      * @return the value
      */
-    public static Value toChar(final Value... args) {
+    public static Value toChar(Value... args) {
         if (args.length == 0) {
             return null;
         }
@@ -635,7 +635,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         private final ArrayList<String> list = New.arrayList();
 
         @Override
-        public void add(final Object value) {
+        public void add(Object value) {
             list.add(value.toString());
         }
 
@@ -645,12 +645,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
 
         @Override
-        public int getType(final int[] inputType) {
+        public int getType(int[] inputType) {
             return Types.VARCHAR;
         }
 
         @Override
-        public void init(final Connection conn) {
+        public void init(Connection conn) {
             // nothing to do
         }
 
@@ -664,7 +664,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         private final ArrayList<String> list = New.arrayList();
 
         @Override
-        public void add(final Object value) {
+        public void add(Object value) {
             list.add(value.toString());
         }
 
@@ -674,12 +674,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
 
         @Override
-        public int getInternalType(final int[] inputTypes) throws SQLException {
+        public int getInternalType(int[] inputTypes) throws SQLException {
             return Value.STRING;
         }
 
         @Override
-        public void init(final Connection conn) {
+        public void init(Connection conn) {
             // nothing to do
         }
 
@@ -1240,7 +1240,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
     }
 
-    private String toSting(final Date date) {
+    private String toSting(Date date) {
         return new SimpleDateFormat("EE yyyy-MM-dd HH:mm:ss.SSS zzz G").format(date);
     }
 
@@ -1837,7 +1837,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    private void assertCallResult(final String expected, final Statement stat, final String sql)
+    private void assertCallResult(String expected, Statement stat, String sql)
             throws SQLException {
         ResultSet rs = stat.executeQuery("CALL " + sql);
         rs.next();
@@ -1851,7 +1851,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param value the blob
      * @return the input stream
      */
-    public static BufferedInputStream blob2stream(final Blob value)
+    public static BufferedInputStream blob2stream(Blob value)
             throws SQLException {
         if (value == null) {
             return null;
@@ -1867,7 +1867,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param value the blob
      * @return the blob
      */
-    public static Blob blob(final Blob value) {
+    public static Blob blob(Blob value) {
         return value;
     }
 
@@ -1877,7 +1877,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param value the blob
      * @return the blob
      */
-    public static Clob clob(final Clob value) {
+    public static Clob clob(Clob value) {
         return value;
     }
 
@@ -1887,7 +1887,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param value the input stream
      * @return the buffered input stream
      */
-    public static BufferedInputStream stream2stream(final InputStream value) {
+    public static BufferedInputStream stream2stream(InputStream value) {
         if (value == null) {
             return null;
         }
@@ -1903,7 +1903,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param name the text
      * @return the count
      */
-    public static int addRow(final Connection conn, final int id, final String name)
+    public static int addRow(Connection conn, int id, String name)
             throws SQLException {
         conn.createStatement().execute(
                 "INSERT INTO TEST VALUES(" + id + ", '" + name + "')");
@@ -1922,7 +1922,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param sql the SQL statement
      * @return the result set
      */
-    public static ResultSet select(final Connection conn, final String sql)
+    public static ResultSet select(Connection conn, String sql)
             throws SQLException {
         Statement stat = conn.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -1935,7 +1935,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet selectMaxId(final Connection conn) throws SQLException {
+    public static ResultSet selectMaxId(Connection conn) throws SQLException {
         return conn.createStatement().executeQuery(
                 "SELECT MAX(ID) FROM TEST");
     }
@@ -1955,7 +1955,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet resultSetWithNull(final Connection conn) throws SQLException {
+    public static ResultSet resultSetWithNull(Connection conn) throws SQLException {
         PreparedStatement statement = conn.prepareStatement(
                 "select null from system_range(1,1)");
         return statement.executeQuery();
@@ -1967,7 +1967,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet nullResultSet(final Connection conn) {
+    public static ResultSet nullResultSet(Connection conn) {
         return null;
     }
 
@@ -1984,8 +1984,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param sp a short
      * @return a result set
      */
-    public static ResultSet simpleResultSet(final Integer rowCount, final int ip,
-            final boolean bp, final float fp, final double dp, final long lp, final byte byParam, final short sp) {
+    public static ResultSet simpleResultSet(Integer rowCount, int ip,
+            boolean bp, float fp, double dp, long lp, byte byParam, short sp) {
         SimpleResultSet rs = new SimpleResultSet();
         rs.addColumn("ID", Types.INTEGER, 10, 0);
         rs.addColumn("NAME", Types.VARCHAR, 255, 0);
@@ -2016,7 +2016,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param value the value
      * @return the square root
      */
-    public static int root(final int value) {
+    public static int root(int value) {
         if (value < 0) {
             TestBase.logError("function called but should not", null);
         }
@@ -2038,7 +2038,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param dec the value
      * @return the value
      */
-    public static BigDecimal noOp(final BigDecimal dec) {
+    public static BigDecimal noOp(BigDecimal dec) {
         return dec;
     }
 
@@ -2051,7 +2051,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         return count++;
     }
 
-    private static void setCount(final int newCount) {
+    private static void setCount(int newCount) {
         count = newCount;
     }
 
@@ -2061,7 +2061,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param s the string
      * @return the string, reversed
      */
-    public static String reverse(final String s) {
+    public static String reverse(String s) {
         return new StringBuilder(s).reverse().toString();
     }
 
@@ -2071,7 +2071,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the values
      * @return the mean value
      */
-    public static double mean(final double... values) {
+    public static double mean(double... values) {
         double sum = 0;
         for (double x : values) {
             sum += x;
@@ -2086,7 +2086,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the values
      * @return the mean value
      */
-    public static double mean2(final Connection conn, final double... values) {
+    public static double mean2(Connection conn, double... values) {
         conn.getClass();
         double sum = 0;
         for (double x : values) {
@@ -2102,7 +2102,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param values the values
      * @return the text
      */
-    public static String printMean(final String prefix, final double... values) {
+    public static String printMean(String prefix, double... values) {
         double sum = 0;
         for (double x : values) {
             sum += x;
@@ -2117,7 +2117,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param b the second UUID
      * @return a xor b
      */
-    public static UUID xorUUID(final UUID a, final UUID b) {
+    public static UUID xorUUID(UUID a, UUID b) {
         return new UUID(a.getMostSignificantBits() ^ b.getMostSignificantBits(),
                 a.getLeastSignificantBits() ^ b.getLeastSignificantBits());
     }
@@ -2128,7 +2128,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param args the argument list
      * @return an array of one element
      */
-    public static Object[] dynamic(final Object[] args) {
+    public static Object[] dynamic(Object[] args) {
         StringBuilder buff = new StringBuilder();
         for (Object a : args) {
             buff.append(a);
@@ -2137,7 +2137,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     @Override
-    public void add(final Object value) {
+    public void add(Object value) {
         // ignore
     }
 
@@ -2147,7 +2147,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     @Override
-    public int getType(final int[] inputTypes) {
+    public int getType(int[] inputTypes) {
         if (inputTypes.length != 1 || inputTypes[0] != Types.INTEGER) {
             throw new RuntimeException("unexpected data type");
         }
@@ -2155,7 +2155,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     @Override
-    public void init(final Connection conn) {
+    public void init(Connection conn) {
         // ignore
     }
 

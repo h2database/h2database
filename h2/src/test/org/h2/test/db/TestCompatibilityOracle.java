@@ -34,6 +34,7 @@ public class TestCompatibilityOracle extends TestBase {
     public void test() throws Exception {
         testTreatEmptyStringsAsNull();
         testDecimalScale();
+        testPoundSymbolInColumnName();
     }
 
     private void testTreatEmptyStringsAsNull() throws SQLException {
@@ -117,6 +118,22 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("3", stat, "SELECT COUNT(*) FROM A");
         assertResult(new Object[][] { { 1, 2 }, { 2, 4.3 }, { 3, 6.78 } },
                 stat, "SELECT * FROM A");
+
+        conn.close();
+    }
+
+    /**
+     * Test the # in a column name for oracle compatibility
+     */
+    private void testPoundSymbolInColumnName() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, U##NAME VARCHAR(255))");
+        stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'HelloWorld'), (3, 'HelloWorldWorld')");
+
+        assertResult("1", stat, "SELECT ID FROM TEST where U##NAME ='Hello'");
 
         conn.close();
     }

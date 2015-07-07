@@ -14,7 +14,6 @@ import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -3573,6 +3572,11 @@ public class Parser {
             case '_':
                 type = CHAR_NAME;
                 break;
+            case '#':
+                if (database.getMode().supportPoundSymbolForColumnNames) {
+                    type = CHAR_NAME;
+                    break;
+                }
             default:
                 if (c >= 'a' && c <= 'z') {
                     if (identifiersToUpper) {

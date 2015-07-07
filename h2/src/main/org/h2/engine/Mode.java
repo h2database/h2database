@@ -137,6 +137,11 @@ public class Mode {
      */
     public boolean onDuplicateKeyUpdate;
 
+    /**
+     * Support the # for column names
+     */
+    public boolean supportPoundSymbolForColumnNames;
+
     private final String name;
 
     static {
@@ -173,6 +178,7 @@ public class Mode {
         mode.uniqueIndexSingleNull = true;
         mode.allowPlusForStringConcat = true;
         mode.swapConvertFunctionParameters = true;
+        mode.supportPoundSymbolForColumnNames = true;
         add(mode);
 
         mode = new Mode("MySQL");
@@ -187,6 +193,7 @@ public class Mode {
         mode.convertOnlyToSmallerScale = true;
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
         mode.treatEmptyStringsAsNull = true;
+        mode.supportPoundSymbolForColumnNames = true;
         add(mode);
 
         mode = new Mode("PostgreSQL");

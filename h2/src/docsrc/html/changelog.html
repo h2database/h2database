@@ -24,6 +24,8 @@ Change Log
 <li>For compatibility with other databases, support for (double and float)
     -0.0 has been removed. 0.0 is used instead.
 </li>
+<li>Fix for #134, Column name with a # character. Patch by bradmesserle.
+</li>
 <li>In version 1.4.186, "order by" was broken in some cases
     due to the change "Make the planner use indexes for sorting when doing a GROUP BY".
     The change was reverted.

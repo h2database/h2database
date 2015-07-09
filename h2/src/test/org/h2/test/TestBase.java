@@ -1275,7 +1275,9 @@ public abstract class TestBase {
      */
     protected void assertEquals(Integer expected, Integer actual) {
         if (expected == null || actual == null) {
-            assertTrue(expected == null && actual == null);
+            if (expected != actual) {
+                assertEquals("" + expected, "" + actual);
+            }
         } else {
             assertEquals(expected.intValue(), actual.intValue());
         }

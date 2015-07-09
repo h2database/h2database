@@ -5,6 +5,7 @@
  */
 package org.h2.test.store;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
@@ -20,6 +21,7 @@ import org.h2.test.TestBase;
  */
 public class TestRandomMapOps extends TestBase {
 
+    private static final boolean LOG = false;
     private String fileName;
     private int seed;
     private int op;
@@ -182,9 +184,11 @@ public class TestRandomMapOps extends TestBase {
      * @param msg the message
      */
     private static void log(int op, int k, byte[] v, String msg) {
-        // msg = MessageFormat.format(msg, k,
-        //         v == null ? null : "new byte[" + v.length + "]");
-        // System.out.println(msg + "; // op " + op);
+        if (LOG) {
+            msg = MessageFormat.format(msg, k,
+                    v == null ? null : "new byte[" + v.length + "]");
+            System.out.println(msg + "; // op " + op);
+        }
     }
 
 }

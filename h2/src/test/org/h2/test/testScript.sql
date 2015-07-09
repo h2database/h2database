@@ -407,14 +407,14 @@ select * from dual where cast('xx' as varchar_ignorecase(1)) = 'X' and cast('x x
 
 explain select -cast(0 as real), -cast(0 as double);
 > PLAN
-> --------------------------------------------------------------------------------------------
-> SELECT -CAST(0 AS REAL), -CAST(0 AS DOUBLE) FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */
+> ----------------------------------------------------------------
+> SELECT 0.0, 0.0 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */
 > rows: 1
 
 select -cast(0 as double) nz;
 > NZ
-> ----
-> -0.0
+> ---
+> 0.0
 > rows: 1
 
 select () empty;
@@ -7927,7 +7927,7 @@ SELECT ID++0, -X1, -XT, -X_SM, -XB, -XD, -XD2, -XR FROM TEST;
 > ID + 0 - X1  - XT - X_SM - XB - XD  - XD2 - XR
 > ------ ----- ---- ------ ---- ----- ----- ----
 > -1     TRUE  1    1      1    1.00  1.0   1.0
-> 0      TRUE  0    0      0    0.00  -0.0  -0.0
+> 0      TRUE  0    0      0    0.00  0.0   0.0
 > 1      FALSE -1   -1     -1   -1.00 -1.0  -1.0
 > 4      FALSE -4   -4     -4   -4.00 -4.0  -4.0
 > null   null  null null   null null  null  null

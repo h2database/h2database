@@ -67,6 +67,7 @@ public class Profiler implements Runnable {
             "java.net.PlainSocketImpl.socketAccept," +
             "java.net.SocketInputStream.socketRead," +
             "java.net.SocketOutputStream.socketWrite," +
+            "org.eclipse.jetty.io.nio.SelectorManager$SelectSet.doSelect," +
             "sun.awt.windows.WToolkit.eventLoop," +
             "sun.misc.Unsafe.park," +
             "sun.nio.ch.EPollArrayWrapper.epollWait," +

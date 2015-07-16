@@ -8,7 +8,6 @@ package org.h2.schema;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
@@ -16,6 +15,7 @@ import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.DbObjectBase;
+import org.h2.engine.DbSettings;
 import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
@@ -568,7 +568,10 @@ public class Schema extends DbObjectBase {
             }
             data.schema = this;
             if (data.tableEngine == null) {
-                if (database.getSettings().mvStore) {
+                DbSettings s = database.getSettings(); 
+                if (s.defaultTableEngine != null) {
+                    data.tableEngine = s.defaultTableEngine; 
+                } else if (s.mvStore) {
                     data.tableEngine = MVTableEngine.class.getName();
                 }
             }

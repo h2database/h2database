@@ -576,13 +576,7 @@ public class Schema extends DbObjectBase {
                 }
             }
             if (data.tableEngine != null) {
-                TableEngine engine;
-                try {
-                    engine = (TableEngine) JdbcUtils.loadUserClass(data.tableEngine).newInstance();
-                } catch (Exception e) {
-                    throw DbException.convert(e);
-                }
-                return engine.createTable(data);
+                return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);
         }

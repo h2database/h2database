@@ -5890,8 +5890,6 @@ public class Parser {
                     command.setTableEngineParams(tableEngineParams);
                 }
             }
-        } else if (database.getSettings().defaultTableEngine != null) {
-            command.setTableEngine(database.getSettings().defaultTableEngine);
         }
         // MySQL compatibility
         if (readIf("AUTO_INCREMENT")) {

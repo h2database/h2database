@@ -14,10 +14,10 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
+import org.h2.api.TableEngine;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
@@ -104,6 +104,7 @@ public class Database implements DataHandler {
     private final HashMap<String, UserDataType> userDataTypes = New.hashMap();
     private final HashMap<String, UserAggregate> aggregates = New.hashMap();
     private final HashMap<String, Comment> comments = New.hashMap();
+    private final HashMap<String, TableEngine> tableEngines = New.hashMap();
 
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
@@ -2780,4 +2781,19 @@ public class Database implements DataHandler {
         }
     }
 
+    public TableEngine getTableEngine(String tableEngine) {
+        assert Thread.holdsLock(this);
+        
+        TableEngine engine = tableEngines.get(tableEngine);
+        if (engine == null) {
+            try {
+                engine = (TableEngine) JdbcUtils.loadUserClass(tableEngine).newInstance();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+            tableEngines.put(tableEngine, engine);
+        }
+        return engine;
+    }
+    
 }

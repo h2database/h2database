@@ -52,6 +52,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.ToDate;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -92,7 +93,8 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
+            TO_DATE = 96, TO_TIMESTAMP = 97;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -297,6 +299,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
+        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
+        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
 
@@ -541,7 +545,7 @@ public class Function extends Expression implements FunctionCall {
         if (info == null) {
             return null;
         }
-        switch(info.type) {
+        switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
             return new TableFunction(database, info, Long.MAX_VALUE);
@@ -1401,7 +1405,7 @@ public class Function extends Expression implements FunctionCall {
                     v2 == null ? null : v2.getInt()));
             break;
         case TO_CHAR:
-            switch(v0.getType()){
+            switch (v0.getType()) {
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
@@ -1425,6 +1429,14 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueString.get(v0.getString(),
                         database.getMode().treatEmptyStringsAsNull);
             }
+            break;
+        case TO_DATE:
+            result = ValueDate.get(ToDate.TO_DATE(v0.getString(), //
+                    v1 == null ? null : v1.getString()));
+            break;
+        case TO_TIMESTAMP:
+            result = ValueTimestamp.get(ToDate.TO_TIMESTAMP(v0.getString(), //
+                    v1 == null ? null : v1.getString()));
             break;
         case TRANSLATE: {
             String matching = v1.getString();
@@ -2050,7 +2062,7 @@ public class Function extends Expression implements FunctionCall {
         if (seed != null && seed.intValue() != 0) {
             hc *= seed.intValue() * 17;
         }
-        if (bucket == null  || bucket.intValue() <= 0) {
+        if (bucket == null || bucket.intValue() <= 0) {
             // do nothing
         } else {
             hc %= bucket.intValue();
@@ -2058,7 +2070,6 @@ public class Function extends Expression implements FunctionCall {
         return hc;
     }
 
-    
     @Override
     public int getType() {
         return dataType;
@@ -2107,6 +2118,14 @@ public class Function extends Expression implements FunctionCall {
         case TO_CHAR:
             min = 1;
             max = 3;
+            break;
+        case TO_DATE:
+            min = 1;
+            max = 3;
+            break;
+        case TO_TIMESTAMP:
+            min = 1;
+            max = 2;
             break;
         case ORA_HASH:
             min = 1;

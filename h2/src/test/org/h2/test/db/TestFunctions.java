@@ -24,6 +24,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
@@ -38,11 +40,13 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.util.ToDate;
 import org.h2.value.Value;
 
 /**
@@ -64,6 +68,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testToDate();
         testDataType();
         testVersion();
         testFunctionTable();
@@ -231,8 +236,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 rs.getMetaData().getColumnType(1));
 
         assertThrows(ErrorCode.DATA_CONVERSION_ERROR_1, stat).
-                executeQuery("SELECT NVL2(num, num, txt1), num " +
-                        "FROM testNvl2 where id = 7 order by id asc");
+        executeQuery("SELECT NVL2(num, num, txt1), num " +
+                "FROM testNvl2 where id = 7 order by id asc");
 
         // nvl2 should return expr2's datatype, if expr2 is character data.
         rs = stat.executeQuery("SELECT NVL2(1, 'test', 123), 'test' FROM dual");
@@ -321,8 +326,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     private void testDefaultConnection() throws SQLException {
         Connection conn = getConnection("functions;DEFAULT_CONNECTION=TRUE");
         Statement stat = conn.createStatement();
-        stat.execute("create alias test for \""+
-                TestFunctions.class.getName()+".testDefaultConn\"");
+        stat.execute("create alias test for \"" +
+                TestFunctions.class.getName() + ".testDefaultConn\"");
         stat.execute("call test()");
         stat.execute("drop alias test");
         conn.close();
@@ -423,8 +428,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("create alias xorUUID for \""+
-                getClass().getName()+".xorUUID\"");
+        stat.execute("create alias xorUUID for \"" +
+                getClass().getName() + ".xorUUID\"");
         setCount(0);
         rs = stat.executeQuery("call xorUUID(random_uuid(), random_uuid())");
         rs.next();
@@ -440,8 +445,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
         ResultSet rs;
 
-        stat.execute("create alias getCount for \""+
-                getClass().getName()+".getCount\"");
+        stat.execute("create alias getCount for \"" +
+                getClass().getName() + ".getCount\"");
         setCount(0);
         rs = stat.executeQuery("select getCount() from system_range(1, 2)");
         rs.next();
@@ -450,8 +455,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(1, rs.getInt(1));
         stat.execute("drop alias getCount");
 
-        stat.execute("create alias getCount deterministic for \""+
-                getClass().getName()+".getCount\"");
+        stat.execute("create alias getCount deterministic for \"" +
+                getClass().getName() + ".getCount\"");
         setCount(0);
         rs = stat.executeQuery("select getCount() from system_range(1, 2)");
         rs.next();
@@ -463,8 +468,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "INFORMATION_SCHEMA.FUNCTION_ALIASES " +
                 "WHERE UPPER(ALIAS_NAME) = 'GET' || 'COUNT'");
         assertFalse(rs.next());
-        stat.execute("create alias reverse deterministic for \""+
-                getClass().getName()+".reverse\"");
+        stat.execute("create alias reverse deterministic for \"" +
+                getClass().getName() + ".reverse\"");
         rs = stat.executeQuery("select reverse(x) from system_range(700, 700)");
         rs.next();
         assertEquals("007", rs.getString(1));
@@ -500,14 +505,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     private void testPrecision() throws SQLException {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
-        stat.execute("create alias no_op for \""+getClass().getName()+".noOp\"");
+        stat.execute("create alias no_op for \"" + getClass().getName() + ".noOp\"");
         PreparedStatement prep = conn.prepareStatement(
                 "select * from dual where no_op(1.6)=?");
         prep.setBigDecimal(1, new BigDecimal("1.6"));
         ResultSet rs = prep.executeQuery();
         assertTrue(rs.next());
 
-        stat.execute("create aggregate agg_sum for \""+getClass().getName()+"\"");
+        stat.execute("create aggregate agg_sum for \"" + getClass().getName() + "\"");
         rs = stat.executeQuery("select agg_sum(1), sum(1.6) from dual");
         rs.next();
         assertEquals(1, rs.getMetaData().getScale(2));
@@ -848,7 +853,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals("((1, Hello), (2, World))", rs.getString(1));
         assertFalse(rs.next());
         assertThrows(ErrorCode.SYNTAX_ERROR_2, stat).
-                executeQuery("CALL SELECT_F('ERROR')");
+        executeQuery("CALL SELECT_F('ERROR')");
         stat.execute("CREATE ALIAS SIMPLE FOR \"" +
                 getClass().getName() + ".simpleResultSet\"");
         rs = stat.executeQuery("CALL SIMPLE(2, 1, 1, 1, 1, 1, 1, 1)");
@@ -1038,7 +1043,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertFalse(rs.next());
 
         stat.execute("CREATE ALIAS RESULT_WITH_NULL FOR \"" +
-        getClass().getName() + ".resultSetWithNull\"");
+                getClass().getName() + ".resultSetWithNull\"");
         rs = stat.executeQuery("CALL RESULT_WITH_NULL()");
         assertEquals(1, rs.getMetaData().getColumnCount());
         rs.next();
@@ -1227,11 +1232,122 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         String testStr = "foo";
-        assertResult(String.valueOf("foo".hashCode()), stat, String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
+        assertResult(String.valueOf("foo".hashCode()), stat,
+                String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+    }
+
+    private String toSting(Date date) {
+        return new SimpleDateFormat("EE yyyy-MM-dd HH:mm:ss.SSS zzz G").format(date);
+    }
+
+    private void testToDate() throws SQLException, ParseException {
+        try {
+            ToDate.TO_DATE("1979-ThisWillFail-12", "YYYY-MM-DD");
+        } catch (Exception e) {
+            assertEquals(DbException.class.getSimpleName(), e.getClass().getSimpleName());
+        }
+
+        Date date = null;
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-12");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-11-12", "YYYY-MM-DD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979/11/12", "YYYY/MM/DD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979,11,12", "YYYY,MM,DD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979.11.12", "YYYY.MM.DD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979;11;12", "YYYY;MM;DD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979:11:12", "YYYY:MM:DD")));
+        //
+        date = new SimpleDateFormat("yyyy").parse("1979");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 00001", "YYYY FF5")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979", "YYYY")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 AD", "YYYY AD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 A.D.", "YYYY A.D.")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979 A.D.", "YYYY a.d.")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979", "IYYY")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("+1979", "SYYYY")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("79", "RRRR")));
+        //
+        date = new SimpleDateFormat("yyyy-mm").parse("1970-12");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("12", "MI")));
+        //
+        date = new SimpleDateFormat("yyyy-MM").parse("1970-11");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("11", "MM")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("11", "Mm")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("11", "mM")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("11", "mm")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("XI", "RM")));
+
+        // assertEquals(toSting(date), toSting(ToDate.TO_DATE("4", "Q")));
+        //
+        date = new SimpleDateFormat("yyyy").parse("9");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("9", "Y")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("9", "I")));
+        date = new SimpleDateFormat("yyyy").parse("79");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("79", "YY")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("79", "IY")));
+        //
+        date = new SimpleDateFormat("yyyy").parse("979");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("979", "YYY")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("979", "IYY")));
+        //
+        date = new SimpleDateFormat("yyy").parse("-99"); // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("0100 BC", "YYYY BC")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("0100 B.C.", "YYYY B.C.")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("100 BC", "YYY BC")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("-0100", "SYYYY")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("-0100", "YYYY")));
+        //
+        date = new SimpleDateFormat("y").parse("0"); // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("01 BC", "YY BC")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1 BC", "Y BC")));
+        //
+        date = new SimpleDateFormat("hh:mm:ss").parse("08:12:00");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12 AM", "HH:MI AM")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12 A.M.", "HH:MI A.M.")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12", "HH:MI")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12", "HH12:MI")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12", "HH24:MI")));
+        //
+        date = new SimpleDateFormat("hh:mm:ss").parse("08:12:34");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12:34", "HH:MI:SS")));
+        //
+        date = new SimpleDateFormat("ss").parse("34");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("34", "SS")));
+        //
+        date = new SimpleDateFormat("yyyy hh:mm:ss").parse("1970 08:12:34");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("29554", "SSSSS")));
+        //
+        date = new SimpleDateFormat("yyyy hh:mm:ss SSS").parse("1970 08:12:34 555");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12:34 555", "HH:MI:SS FF")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("08:12:34 5545", "HH:MI:SS FF3")));
+        //
+        date = new SimpleDateFormat("hh:mm:ss").parse("14:04:00");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("02:04 P.M.", "HH:MI p.M.")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("02:04 PM", "HH:MI PM")));
+        //
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-01-02");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("2", "D")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("2", "d")));
+        //
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-01-12");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("12", "DD")));
+        //
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-11-12");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("316", "DDD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("316", "DdD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("316", "dDD")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("316", "ddd")));
+        //
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-16");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-46", "YYYY-WW")));
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-46", "YYYY-IW")));
+        //
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-01-12");
+        assertEquals(toSting(date), toSting(ToDate.TO_DATE("1979-2", "YYYY-W")));
+        // /*NOT supported jet*/ assertEquals(toSting(date), toSting(ToDate.TO_DATE("2444190", "J")));
     }
 
     private void testToCharFromDateTime() throws SQLException {
@@ -1328,7 +1444,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult(expected, stat,
                 "SELECT TO_CHAR(X, 'DL') FROM T");
         // assertResult("Monday, November 12, 1979", stat,
-        //        "SELECT TO_CHAR(X, 'DL', 'NLS_DATE_LANGUAGE = English') FROM T");
+        // "SELECT TO_CHAR(X, 'DL', 'NLS_DATE_LANGUAGE = English') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'DS') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'Ds') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'dS') FROM T");

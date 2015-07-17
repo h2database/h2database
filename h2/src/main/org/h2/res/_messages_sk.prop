@@ -82,6 +82,7 @@
 90053=Skalárny vnorený dopyt (scalar subquery) obsahuje viac ako jeden riadok
 90054=Nesprávne použitie agregačnej funkcie {0}
 90055=Nepodporovaný typ šifry {0}
+90056=#Function {0}: Invalid date format. {1}
 90057=Obmedzenie (constraint) {0} nenájdený
 90058=Commit alebo Rollback nie je povolené použiť v spúšťači (trigger)
 90059=Nejednoznačné meno stĺpca {0}

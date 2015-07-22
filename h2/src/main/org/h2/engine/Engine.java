@@ -36,7 +36,7 @@ public class Engine implements SessionFactory {
 
     private Engine() {
         // use getInstance()
-    	ThreadDeadlockDetector.init();
+        ThreadDeadlockDetector.init();
     }
 
     public static Engine getInstance() {

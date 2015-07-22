@@ -23,128 +23,131 @@ import org.h2.mvstore.db.MVTable;
  * Detects deadlocks between threads. Prints out data in the same format as the CTRL-BREAK handler,
  * but includes information about table locks.
  */
-public class ThreadDeadlockDetector
-{
-	private static String INDENT = "    ";
+public class ThreadDeadlockDetector {
 
-	private final ThreadMXBean tmbean;
+    private static final String INDENT = "    ";
 
-	private final Timer threadCheck = new Timer("ThreadDeadlockDetector", true/* isDaemon */);
+    private static ThreadDeadlockDetector detector;
 
-	private static ThreadDeadlockDetector detector = null;
+    private final ThreadMXBean tmbean;
 
-	public synchronized static void init() {
-		if (detector == null) {
-			detector = new ThreadDeadlockDetector();
-		}
-	}
+    // a daemon thread
+    private final Timer threadCheck = new Timer("ThreadDeadlockDetector", true);
 
-	private ThreadDeadlockDetector() {
-		this.tmbean = ManagementFactory.getThreadMXBean();
-		threadCheck.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				checkForDeadlocks();
-			}
-		}, 10/*delay(ms)*/, 10000/*period(ms)*/);
-	}
+    private ThreadDeadlockDetector() {
+        this.tmbean = ManagementFactory.getThreadMXBean();
+        // delay: 10 ms
+        // period: 10000 ms (100 seconds)
+        threadCheck.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                checkForDeadlocks();
+            }
+        }, 10, 10000);
+    }
 
-	/**
-	 * Checks if any threads are deadlocked. If any, print the thread dump information.
-	 */
-	private void checkForDeadlocks() {
-		long[] tids = tmbean.findDeadlockedThreads();
-		if (tids == null) {
-			return;
-		}
+    public static synchronized void init() {
+        if (detector == null) {
+            detector = new ThreadDeadlockDetector();
+        }
+    }
 
-		final StringWriter stringWriter = new StringWriter();
-		final PrintWriter print = new PrintWriter(stringWriter);
+    /**
+     * Checks if any threads are deadlocked. If any, print the thread dump information.
+     */
+    void checkForDeadlocks() {
+        long[] tids = tmbean.findDeadlockedThreads();
+        if (tids == null) {
+            return;
+        }
 
-		print.println("ThreadDeadlockDetector - deadlock found :");
-		final ThreadInfo[] infos = tmbean.getThreadInfo(tids, true, true);
-		final HashMap<Long,String> mvtableWaitingForLockMap =
-				MVTable.WAITING_FOR_LOCK.getSnapshotOfAllThreads();
-		final HashMap<Long,ArrayList<String>> mvtableExclusiveLocksMap =
-				MVTable.EXCLUSIVE_LOCKS.getSnapshotOfAllThreads();
-		final HashMap<Long,ArrayList<String>> mvtableSharedLocksMap =
-				MVTable.SHARED_LOCKS.getSnapshotOfAllThreads();
-		for (ThreadInfo ti : infos) {
-			printThreadInfo(print, ti);
-			printLockInfo(print, ti.getLockedSynchronizers(),
-					mvtableWaitingForLockMap.get(ti.getThreadId()),
-					mvtableExclusiveLocksMap.get(ti.getThreadId()),
-					mvtableSharedLocksMap.get(ti.getThreadId()));
-		}
+        final StringWriter stringWriter = new StringWriter();
+        final PrintWriter print = new PrintWriter(stringWriter);
 
-		print.flush();
-		// Dump it to system.out in one block, so it doesn't get mixed up with other stuff when we're
-		// using a logging subsystem.
-		System.out.println(stringWriter.getBuffer());
-	}
+        print.println("ThreadDeadlockDetector - deadlock found :");
+        final ThreadInfo[] infos = tmbean.getThreadInfo(tids, true, true);
+        final HashMap<Long, String> mvtableWaitingForLockMap =
+                MVTable.WAITING_FOR_LOCK.getSnapshotOfAllThreads();
+        final HashMap<Long, ArrayList<String>> mvtableExclusiveLocksMap =
+                MVTable.EXCLUSIVE_LOCKS.getSnapshotOfAllThreads();
+        final HashMap<Long, ArrayList<String>> mvtableSharedLocksMap =
+                MVTable.SHARED_LOCKS.getSnapshotOfAllThreads();
+        for (ThreadInfo ti : infos) {
+            printThreadInfo(print, ti);
+            printLockInfo(print, ti.getLockedSynchronizers(),
+                    mvtableWaitingForLockMap.get(ti.getThreadId()),
+                    mvtableExclusiveLocksMap.get(ti.getThreadId()),
+                    mvtableSharedLocksMap.get(ti.getThreadId()));
+        }
 
-	private static void printThreadInfo(PrintWriter print, ThreadInfo ti) {
-		// print thread information
-		printThread(print, ti);
+        print.flush();
+        // Dump it to system.out in one block, so it doesn't get mixed up with other stuff when we're
+        // using a logging subsystem.
+        System.out.println(stringWriter.getBuffer());
+    }
 
-		// print stack trace with locks
-		StackTraceElement[] stacktrace = ti.getStackTrace();
-		MonitorInfo[] monitors = ti.getLockedMonitors();
-		for (int i = 0; i < stacktrace.length; i++) {
-			StackTraceElement ste = stacktrace[i];
-			print.println(INDENT + "at " + ste.toString());
-			for (MonitorInfo mi : monitors) {
-				if (mi.getLockedStackDepth() == i) {
-					print.println(INDENT + "  - locked " + mi);
-				}
-			}
-		}
-		print.println();
-	}
+    private static void printThreadInfo(PrintWriter print, ThreadInfo ti) {
+        // print thread information
+        printThread(print, ti);
 
-	private static void printThread(PrintWriter print, ThreadInfo ti) {
-		print.print("\"" + ti.getThreadName() + "\"" + " Id="
-				+ ti.getThreadId() + " in " + ti.getThreadState());
-		if (ti.getLockName() != null) {
-			print.append(" on lock=" + ti.getLockName());
-		}
-		if (ti.isSuspended()) {
-			print.append(" (suspended)");
-		}
-		if (ti.isInNative()) {
-			print.append(" (running in native)");
-		}
-		print.println();
-		if (ti.getLockOwnerName() != null) {
-			print.println(INDENT + " owned by " + ti.getLockOwnerName() + " Id="
-					+ ti.getLockOwnerId());
-		}
-	}
+        // print stack trace with locks
+        StackTraceElement[] stacktrace = ti.getStackTrace();
+        MonitorInfo[] monitors = ti.getLockedMonitors();
+        for (int i = 0; i < stacktrace.length; i++) {
+            StackTraceElement ste = stacktrace[i];
+            print.println(INDENT + "at " + ste.toString());
+            for (MonitorInfo mi : monitors) {
+                if (mi.getLockedStackDepth() == i) {
+                    print.println(INDENT + "  - locked " + mi);
+                }
+            }
+        }
+        print.println();
+    }
 
-	private static void printLockInfo(PrintWriter print, LockInfo[] locks,
-			String mvtableWaitingForLock,
-			ArrayList<String> mvtableExclusiveLocks,
-			ArrayList<String> mvtableSharedLocksMap) {
-		print.println(INDENT + "Locked synchronizers: count = " + locks.length);
-		for (LockInfo li : locks) {
-			print.println(INDENT + "  - " + li);
-		}
-		if (mvtableWaitingForLock != null) {
-			print.println(INDENT + "Waiting for table: " + mvtableWaitingForLock);
-		}
-		if (mvtableExclusiveLocks != null) {
-			print.println(INDENT + "Exclusive table locks: count = " + mvtableExclusiveLocks.size());
-			for (String name : mvtableExclusiveLocks) {
-				print.println(INDENT + "  - " + name);
-			}
-		}
-		if (mvtableSharedLocksMap != null) {
-			print.println(INDENT + "Shared table locks: count = " + mvtableSharedLocksMap.size());
-			for (String name : mvtableSharedLocksMap) {
-				print.println(INDENT + "  - " + name);
-			}
-		}
-		print.println();
-	}
+    private static void printThread(PrintWriter print, ThreadInfo ti) {
+        print.print("\"" + ti.getThreadName() + "\"" + " Id="
+                + ti.getThreadId() + " in " + ti.getThreadState());
+        if (ti.getLockName() != null) {
+            print.append(" on lock=" + ti.getLockName());
+        }
+        if (ti.isSuspended()) {
+            print.append(" (suspended)");
+        }
+        if (ti.isInNative()) {
+            print.append(" (running in native)");
+        }
+        print.println();
+        if (ti.getLockOwnerName() != null) {
+            print.println(INDENT + " owned by " + ti.getLockOwnerName() + " Id="
+                    + ti.getLockOwnerId());
+        }
+    }
+
+    private static void printLockInfo(PrintWriter print, LockInfo[] locks,
+            String mvtableWaitingForLock,
+            ArrayList<String> mvtableExclusiveLocks,
+            ArrayList<String> mvtableSharedLocksMap) {
+        print.println(INDENT + "Locked synchronizers: count = " + locks.length);
+        for (LockInfo li : locks) {
+            print.println(INDENT + "  - " + li);
+        }
+        if (mvtableWaitingForLock != null) {
+            print.println(INDENT + "Waiting for table: " + mvtableWaitingForLock);
+        }
+        if (mvtableExclusiveLocks != null) {
+            print.println(INDENT + "Exclusive table locks: count = " + mvtableExclusiveLocks.size());
+            for (String name : mvtableExclusiveLocks) {
+                print.println(INDENT + "  - " + name);
+            }
+        }
+        if (mvtableSharedLocksMap != null) {
+            print.println(INDENT + "Shared table locks: count = " + mvtableSharedLocksMap.size());
+            for (String name : mvtableSharedLocksMap) {
+                print.println(INDENT + "  - " + name);
+            }
+        }
+        print.println();
+    }
 
 }

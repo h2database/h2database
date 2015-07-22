@@ -49,6 +49,10 @@ import org.h2.value.Value;
  */
 public class MVTable extends TableBase {
 
+    public static final DebuggingThreadLocal<String> WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
+    public static final DebuggingThreadLocal<ArrayList<String>> EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+    public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+
     private MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = New.arrayList();
     private long lastModificationId;
@@ -57,10 +61,6 @@ public class MVTable extends TableBase {
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
             new ConcurrentHashMap<Session, Session>();
-
-    public static final DebuggingThreadLocal<String> WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
-    public static final DebuggingThreadLocal<ArrayList<String>> EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
-    public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
@@ -261,7 +261,7 @@ public class MVTable extends TableBase {
                     session.addLock(this);
                     lockSharedSessions.put(session, session);
                     if (SHARED_LOCKS.get() == null) {
-                    	SHARED_LOCKS.set(new ArrayList<String>());
+                        SHARED_LOCKS.set(new ArrayList<String>());
                     }
                     SHARED_LOCKS.get().add(getName());
                 }
@@ -385,7 +385,7 @@ public class MVTable extends TableBase {
                 if (lockSharedSessions.size() > 0) {
                     lockSharedSessions.remove(s);
                     if (SHARED_LOCKS.get() != null) {
-                    	SHARED_LOCKS.get().remove(getName());
+                        SHARED_LOCKS.get().remove(getName());
                     }
                 }
                 if (!waitingSessions.isEmpty()) {

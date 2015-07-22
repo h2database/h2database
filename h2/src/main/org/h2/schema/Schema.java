@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
-import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
@@ -27,7 +26,6 @@ import org.h2.mvstore.db.MVTableEngine;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
-import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 
 /**
@@ -568,9 +566,9 @@ public class Schema extends DbObjectBase {
             }
             data.schema = this;
             if (data.tableEngine == null) {
-                DbSettings s = database.getSettings(); 
+                DbSettings s = database.getSettings();
                 if (s.defaultTableEngine != null) {
-                    data.tableEngine = s.defaultTableEngine; 
+                    data.tableEngine = s.defaultTableEngine;
                 } else if (s.mvStore) {
                     data.tableEngine = MVTableEngine.class.getName();
                 }

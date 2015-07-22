@@ -150,10 +150,10 @@ public class Sequence extends SchemaObjectBase {
             maxValue > minValue &&
             increment != 0 &&
             // Math.abs(increment) < maxValue - minValue
-                // use BigInteger to avoid overflows when maxValue and minValue
-                // are really big
+            // use BigInteger to avoid overflows when maxValue and minValue
+            // are really big
             BigInteger.valueOf(increment).abs().compareTo(
-                BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
+                    BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
     }
 
     private static long getDefaultMinValue(Long startValue, long increment) {
@@ -248,26 +248,26 @@ public class Sequence extends SchemaObjectBase {
         boolean needsFlush = false;
         long retVal;
         long flushValueWithMargin = -1;
-        synchronized(this) {
-	        if ((increment > 0 && value >= valueWithMargin) ||
-	                (increment < 0 && value <= valueWithMargin)) {
-	            valueWithMargin += increment * cacheSize;
-	            flushValueWithMargin = valueWithMargin;
-	            needsFlush = true;
-	        }
-	        if ((increment > 0 && value > maxValue) ||
-	                (increment < 0 && value < minValue)) {
-	            if (cycle) {
-	                value = increment > 0 ? minValue : maxValue;
-	                valueWithMargin = value + (increment * cacheSize);
-	  	            flushValueWithMargin = valueWithMargin;
-	                needsFlush = true;
-	            } else {
-	                throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
-	            }
-	        }
-	        retVal = value;
-	        value += increment;
+        synchronized (this) {
+            if ((increment > 0 && value >= valueWithMargin) ||
+                    (increment < 0 && value <= valueWithMargin)) {
+                valueWithMargin += increment * cacheSize;
+                flushValueWithMargin = valueWithMargin;
+                needsFlush = true;
+            }
+            if ((increment > 0 && value > maxValue) ||
+                    (increment < 0 && value < minValue)) {
+                if (cycle) {
+                    value = increment > 0 ? minValue : maxValue;
+                    valueWithMargin = value + (increment * cacheSize);
+                      flushValueWithMargin = valueWithMargin;
+                    needsFlush = true;
+                } else {
+                    throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
+                }
+            }
+            retVal = value;
+            value += increment;
         }
         if (needsFlush) {
             flush(session, flushValueWithMargin);
@@ -308,15 +308,15 @@ public class Sequence extends SchemaObjectBase {
     }
 
     private void flushInternal(Session session, long flushValueWithMargin) {
-	  		final boolean metaWasLocked = database.lockMeta(session);
-	  		synchronized (this) {
-	  			if (flushValueWithMargin == lastFlushValueWithMargin) {
-	  				if (!metaWasLocked) {
-	  					database.unlockMeta(session);
-	  				}
-	  				return;
-	  			}
-	  		}
+        final boolean metaWasLocked = database.lockMeta(session);
+        synchronized (this) {
+            if (flushValueWithMargin == lastFlushValueWithMargin) {
+                if (!metaWasLocked) {
+                    database.unlockMeta(session);
+                }
+                return;
+            }
+        }
         // just for this case, use the value with the margin for the script
         long realValue = value;
         try {
@@ -327,12 +327,12 @@ public class Sequence extends SchemaObjectBase {
         } finally {
             value = realValue;
         }
-	  		synchronized (this) {
-	  			lastFlushValueWithMargin = flushValueWithMargin;
-	  		}
-				if (!metaWasLocked) {
-					database.unlockMeta(session);
-				}
+        synchronized (this) {
+            lastFlushValueWithMargin = flushValueWithMargin;
+        }
+        if (!metaWasLocked) {
+            database.unlockMeta(session);
+        }
     }
 
     /**

@@ -383,7 +383,7 @@ public class ConnectionInfo implements Cloneable {
      */
     public String getName() {
         if (!persistent) {
-        	return name;
+            return name;
         }
         if (nameNormalized == null) {
             if (!SysProperties.IMPLICIT_RELATIVE_PATH) {

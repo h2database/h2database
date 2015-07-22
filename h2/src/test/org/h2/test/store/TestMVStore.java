@@ -948,6 +948,10 @@ public class TestMVStore extends TestBase {
                 break;
             }
         }
+        // the last chunk is at the end
+        s.setReuseSpace(false);
+        map = s.openMap("test2");
+        map.put(1, new byte[1000]);
         s.close();
         FilePath f = FilePath.get(fileName);
         int blockSize = 4 * 1024;
@@ -976,6 +980,8 @@ public class TestMVStore extends TestBase {
                 s = openStore(fileName);
                 map = s.openMap("test");
                 assertEquals(100, map.get(0).length);
+                map = s.openMap("test2");
+                assertFalse(map.containsKey(1));
                 s.close();
             } else {
                 // both headers are corrupt
@@ -1414,7 +1420,7 @@ public class TestMVStore extends TestBase {
         assertEquals(0, m.size());
         s.commit();
         // ensure only nodes are read, but not leaves
-        assertEquals(41, s.getFileStore().getReadCount());
+        assertEquals(45, s.getFileStore().getReadCount());
         assertTrue(s.getFileStore().getWriteCount() < 5);
         s.close();
     }
@@ -1579,7 +1585,6 @@ public class TestMVStore extends TestBase {
         data.put("2", "World");
         s.commit();
         assertEquals(1, s.getCurrentVersion());
-        assertFalse(m.containsKey("chunk.2"));
 
         assertEquals("[data]", s.getMapNames().toString());
         assertEquals("data", s.getMapName(data.getId()));
@@ -1599,8 +1604,6 @@ public class TestMVStore extends TestBase {
         s.rollbackTo(1);
         assertEquals("Hello", data.get("1"));
         assertEquals("World", data.get("2"));
-        assertFalse(m.containsKey("chunk.1"));
-        assertFalse(m.containsKey("chunk.2"));
 
         s.close();
     }

@@ -105,10 +105,11 @@ public class FilePathReorderWrites extends FilePathWrapper {
         if (powerFailureCountdown == 0) {
             return;
         }
-        if (--powerFailureCountdown > 0) {
-            return;
+        if (powerFailureCountdown < 0) {
+            throw POWER_FAILURE;
         }
-        if (powerFailureCountdown >= -1) {
+        powerFailureCountdown--;
+        if (powerFailureCountdown == 0) {
             powerFailureCountdown--;
             throw POWER_FAILURE;
         }
@@ -122,7 +123,7 @@ public class FilePathReorderWrites extends FilePathWrapper {
         IOUtils.copy(in, out);
         FileChannel base = getBase().open(mode);
         FileChannel readBase = copy.open(mode);
-        return new FilePowerFailure(this, base, readBase);
+        return new FileReorderWrites(this, base, readBase);
     }
 
     @Override
@@ -140,7 +141,7 @@ public class FilePathReorderWrites extends FilePathWrapper {
 /**
  * An file that checks for errors before each write operation.
  */
-class FilePowerFailure extends FileBase {
+class FileReorderWrites extends FileBase {
 
     private final FilePathReorderWrites file;
     /**
@@ -162,7 +163,7 @@ class FilePowerFailure extends FileBase {
 
     private int id;
 
-    FilePowerFailure(FilePathReorderWrites file, FileChannel base, FileChannel readBase) {
+    FileReorderWrites(FilePathReorderWrites file, FileChannel base, FileChannel readBase) {
         this.file = file;
         this.base = base;
         this.readBase = readBase;

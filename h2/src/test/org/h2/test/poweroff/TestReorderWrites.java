@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.h2.mvstore.MVStore;
+import org.h2.mvstore.MVStoreTool;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -23,6 +24,8 @@ import org.h2.test.utils.FilePathReorderWrites;
  * disk re-ordered the write operations.
  */
 public class TestReorderWrites  extends TestBase {
+
+    private static final boolean LOG = false;
 
     /**
      * Run just this test.
@@ -35,16 +38,16 @@ public class TestReorderWrites  extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testMVStore();
         testFileSystem();
-        // testMVStore();
     }
 
     private void testMVStore() {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
         String fileName = "reorder:memFS:test.mv";
-        Random r = new Random(1);
-        for (int i = 0; i < 100; i++) {
-            System.out.println(i + " tst --------------------------------");
+        for (int i = 0; i < 1000; i++) {
+            log(i + " --------------------------------");
+            Random r = new Random(i);
             fs.setPowerOffCountdown(100, i);
             FileUtils.delete(fileName);
             MVStore store = new MVStore.Builder().
@@ -52,12 +55,12 @@ public class TestReorderWrites  extends TestBase {
                     autoCommitDisabled().open();
             // store.setRetentionTime(10);
             Map<Integer, byte[]> map = store.openMap("data");
-            map.put(0, new byte[1]);
+            map.put(-1, new byte[1]);
             store.commit();
-         //   if (r.nextBoolean()) {
-                store.getFileStore().sync();
-            //}
-            fs.setPowerOffCountdown(4 + r.nextInt(20), i);
+            store.getFileStore().sync();
+            int stop = 4 + r.nextInt(20);
+            log("synched start");
+            fs.setPowerOffCountdown(stop, i);
             try {
                 for (int j = 1; j < 100; j++) {
                     Map<Integer, Integer> newMap = store.openMap("d" + j);
@@ -69,28 +72,58 @@ public class TestReorderWrites  extends TestBase {
                     } else {
                         map.put(key, new byte[len]);
                     }
+                    log("op " + j + ": ");
                     store.commit();
+                    switch (r.nextInt(10)) {
+                    case 0:
+                        log("op compact");
+                        store.compact(100, 10 * 1024);
+                        break;
+                    case 1:
+                        log("op compactMoveChunks");
+                        store.compactMoveChunks();
+                        log("op compactMoveChunks done");
+                        break;
+                    }
                 }
                 // write has to fail at some point
                 fail();
             } catch (IllegalStateException e) {
+                log("stop " + e);
                 // expected
             }
-            store.close();
-            System.out.println("-------------------------------- test");
+            try {
+                store.close();
+            } catch (IllegalStateException e) {
+                // expected
+                store.closeImmediately();
+            }
+            log("verify");
             fs.setPowerOffCountdown(100, 0);
-            System.out.println("file size: " + FileUtils.size(fileName));
+            if (LOG) {
+                MVStoreTool.dump(fileName, true);
+            }
             store = new MVStore.Builder().
                     fileName(fileName).
                     autoCommitDisabled().open();
             map = store.openMap("data");
-            assertEquals(1, map.get(0).length);
+            if (!map.containsKey(-1)) {
+                fail("key not found, size=" + map.size() + " i=" + i);
+            } else {
+                assertEquals("i=" + i, 1, map.get(-1).length);
+            }
             for (int j = 0; j < 100; j++) {
                 Map<Integer, Integer> newMap = store.openMap("d" + j);
                 newMap.get(j);
             }
-            // map.keySet();
+            map.keySet();
             store.close();
+        }
+    }
+
+    private static void log(String message) {
+        if (LOG) {
+            System.out.println(message);
         }
     }
 

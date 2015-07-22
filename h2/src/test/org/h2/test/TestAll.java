@@ -795,6 +795,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMVTableEngine());
         addTest(new TestObjectDataType());
         addTest(new TestRandomMapOps());
+        addTest(new TestReorderWrites());
         addTest(new TestSpinLock());
         addTest(new TestStreamStore());
         addTest(new TestTransactionStore());

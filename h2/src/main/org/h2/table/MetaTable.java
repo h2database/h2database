@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
+
 import org.h2.command.Command;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintCheck;
@@ -615,6 +616,16 @@ public class MetaTable extends Table {
         return tables;
     }
 
+    private ArrayList<Table> getTablesByName(Session session, String tableName) {
+      ArrayList<Table> tables = database.getTableOrViewByName(tableName);
+      for (Table temp : session.getLocalTempTables()) {
+      	if (temp.getName().equals(tableName)) {
+      		tables.add(temp);
+      	}
+      }
+      return tables;
+    }
+
     private boolean checkIndex(Session session, String value, Value indexFrom,
             Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
@@ -727,7 +738,15 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMNS: {
-            for (Table table : getAllTables(session)) {
+        	  // reduce the number of tables to scan - makes some metadata queries 10x faster
+        		final ArrayList<Table> tablesToList;
+            if (indexFrom != null && indexTo != null && indexFrom.equals(indexTo)) {
+              String tableName = identifier(indexFrom.getString());
+            	tablesToList = getTablesByName(session, tableName);
+            } else {
+            	tablesToList = getAllTables(session);
+            }
+            for (Table table : tablesToList) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;

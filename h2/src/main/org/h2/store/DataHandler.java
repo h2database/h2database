@@ -114,10 +114,10 @@ public interface DataHandler {
      * column of type OTHER
      */
     JavaObjectSerializer getJavaObjectSerializer();
-    
+
     /**
      * Return compare mode.
-     * 
+     *
      * @return Compare mode.
      */
     CompareMode getCompareMode();

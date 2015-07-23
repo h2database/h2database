@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Similar to ThreadLocal, except that it allows it's data to be read from other
+ * Similar to ThreadLocal, except that it allows its data to be read from other
  * threads - useful for debugging info.
  *
  * @param <T> the type
@@ -22,6 +22,9 @@ public class DebuggingThreadLocal<T> {
         map.put(Thread.currentThread().getId(), value);
     }
 
+    /**
+     * Remove the value for the current thread.
+     */
     public void remove() {
         map.remove(Thread.currentThread().getId());
     }
@@ -31,14 +34,12 @@ public class DebuggingThreadLocal<T> {
     }
 
     /**
+     * Get a snapshot of the data of all threads.
+     *
      * @return a HashMap containing a mapping from thread-id to value
      */
     public HashMap<Long, T> getSnapshotOfAllThreads() {
         return new HashMap<Long, T>(map);
-    }
-
-    public T deepCopy(T value) {
-        return value;
     }
 
 }

@@ -25,6 +25,9 @@ import org.h2.util.IOUtils;
  */
 public class FilePathReorderWrites extends FilePathWrapper {
 
+    /**
+     * Whether trace output of all method calls is enabled.
+     */
     static final boolean TRACE = false;
 
     private static final FilePathReorderWrites INSTANCE = new FilePathReorderWrites();
@@ -48,8 +51,8 @@ public class FilePathReorderWrites extends FilePathWrapper {
     }
 
     /**
-     * Set the number of write operations before a simulated power failure, and the
-     * random seed (for partial writes).
+     * Set the number of write operations before a simulated power failure, and
+     * the random seed (for partial writes).
      *
      * @param count the number of write operations (0 to never fail,
      *            Integer.MAX_VALUE to count the operations)
@@ -150,7 +153,8 @@ class FileReorderWrites extends FileBase {
     private final FileChannel base;
 
     /**
-     * The base channel that is used for reading, where all operations are immediately applied to get a consistent view before a power failure.
+     * The base channel that is used for reading, where all operations are
+     * immediately applied to get a consistent view before a power failure.
      */
     private final FileChannel readBase;
 
@@ -216,12 +220,12 @@ class FileReorderWrites extends FileBase {
         trace("op " + op);
         checkError();
         notAppliedList.add(op);
-        long now = op.time;
+        long now = op.getTime();
         for (int i = 0; i < notAppliedList.size() - 1; i++) {
             FileOperation old = notAppliedList.get(i);
             boolean applyOld = false;
             // String reason = "";
-            if (old.time + 45000 < now) {
+            if (old.getTime() + 45000 < now) {
                 // reason = "old";
                 applyOld = true;
             } else if (old.overlaps(op)) {
@@ -238,7 +242,7 @@ class FileReorderWrites extends FileBase {
                 i--;
             }
         }
-         return op.apply(readBase);
+        return op.apply(readBase);
     }
 
     private void applyAll() throws IOException {
@@ -295,10 +299,10 @@ class FileReorderWrites extends FileBase {
      * be applied on power failure).
      */
     static class FileOperation {
-        final int id;
-        final long time;
-        final ByteBuffer buffer;
-        final long position;
+        private final int id;
+        private final long time;
+        private final ByteBuffer buffer;
+        private final long position;
 
         FileOperation(int id, long position, ByteBuffer src) {
             this.id = id;
@@ -314,7 +318,18 @@ class FileReorderWrites extends FileBase {
             this.position = position;
         }
 
-        public boolean overlaps(FileOperation other) {
+        public long getTime() {
+            return time;
+        }
+
+        /**
+         * Check whether the file region of this operation overlaps with
+         * another operation.
+         *
+         * @param other the other operation
+         * @return if there is an overlap
+         */
+        boolean overlaps(FileOperation other) {
             if (isTruncate() && other.isTruncate()) {
                 // we just keep the latest truncate operation
                 return true;
@@ -340,6 +355,12 @@ class FileReorderWrites extends FileBase {
             return buffer == null ? 0 : buffer.limit() - buffer.position();
         }
 
+        /**
+         * Apply the operation to the channel.
+         *
+         * @param channel the channel
+         * @return the return value of the operation
+         */
         int apply(FileChannel channel) throws IOException {
             if (isTruncate()) {
                 channel.truncate(position);

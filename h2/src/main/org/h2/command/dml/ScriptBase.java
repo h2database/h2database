@@ -259,7 +259,7 @@ abstract class ScriptBase extends Prepared implements DataHandler {
     public JavaObjectSerializer getJavaObjectSerializer() {
         return session.getDataHandler().getJavaObjectSerializer();
     }
-    
+
     @Override
     public CompareMode getCompareMode() {
         return session.getDataHandler().getCompareMode();

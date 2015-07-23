@@ -141,6 +141,13 @@ public class MVTableEngine implements TableEngine {
 
         private String fileName;
 
+        /**
+         * Open the store for this database.
+         *
+         * @param db the database
+         * @param builder the builder
+         * @param encrypted whether the store is encrypted
+         */
         void open(Database db, MVStore.Builder builder, boolean encrypted) {
             this.encrypted = encrypted;
             try {
@@ -161,6 +168,13 @@ public class MVTableEngine implements TableEngine {
             }
         }
 
+        /**
+         * Convert the illegal state exception to the correct database
+         * exception.
+         *
+         * @param e the illegal state exception
+         * @return the database exception
+         */
         DbException convertIllegalStateException(IllegalStateException e) {
             int errorCode = DataUtils.getErrorCode(e.getMessage());
             if (errorCode == DataUtils.ERROR_FILE_CORRUPT) {

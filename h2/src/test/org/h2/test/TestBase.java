@@ -1005,7 +1005,7 @@ public abstract class TestBase {
     /**
      * Check that executing the specified query results in the specified error.
      *
-     * @param expectedErrorMessage the expected error message
+     * @param expectedErrorCode the expected error code
      * @param stat the statement
      * @param sql the SQL statement to execute
      */

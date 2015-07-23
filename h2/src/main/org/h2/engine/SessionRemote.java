@@ -90,7 +90,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
 
     private JavaObjectSerializer javaObjectSerializer;
     private volatile boolean javaObjectSerializerInitialized;
-    
+
     private CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     public SessionRemote(ConnectionInfo ci) {
@@ -848,7 +848,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public void addTemporaryLob(Value v) {
         // do nothing
     }
-    
+
     @Override
     public CompareMode getCompareMode() {
         return compareMode;

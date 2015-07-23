@@ -130,8 +130,10 @@ public class TestCompatibilityOracle extends TestBase {
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, U##NAME VARCHAR(255))");
-        stat.execute("INSERT INTO TEST VALUES(1, 'Hello'), (2, 'HelloWorld'), (3, 'HelloWorldWorld')");
+        stat.execute(
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, U##NAME VARCHAR(255))");
+        stat.execute(
+                "INSERT INTO TEST VALUES(1, 'Hello'), (2, 'HelloWorld'), (3, 'HelloWorldWorld')");
 
         assertResult("1", stat, "SELECT ID FROM TEST where U##NAME ='Hello'");
 

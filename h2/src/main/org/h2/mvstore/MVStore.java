@@ -2314,7 +2314,7 @@ public class MVStore {
                 releaseWriteBuffer(buff);
                 // only really needed if we remove many chunks, when writes are
                 // re-ordered - but we do it always, because rollback is not
-                // performance criticial
+                // performance critical
                 sync();
             }
             lastChunk = keep;

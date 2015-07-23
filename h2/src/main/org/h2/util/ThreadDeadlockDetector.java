@@ -20,8 +20,8 @@ import java.util.TimerTask;
 import org.h2.mvstore.db.MVTable;
 
 /**
- * Detects deadlocks between threads. Prints out data in the same format as the CTRL-BREAK handler,
- * but includes information about table locks.
+ * Detects deadlocks between threads. Prints out data in the same format as the
+ * CTRL-BREAK handler, but includes information about table locks.
  */
 public class ThreadDeadlockDetector {
 
@@ -29,13 +29,13 @@ public class ThreadDeadlockDetector {
 
     private static ThreadDeadlockDetector detector;
 
-    private final ThreadMXBean tmbean;
+    private final ThreadMXBean threadBean;
 
     // a daemon thread
     private final Timer threadCheck = new Timer("ThreadDeadlockDetector", true);
 
     private ThreadDeadlockDetector() {
-        this.tmbean = ManagementFactory.getThreadMXBean();
+        this.threadBean = ManagementFactory.getThreadMXBean();
         // delay: 10 ms
         // period: 10000 ms (100 seconds)
         threadCheck.schedule(new TimerTask() {
@@ -46,6 +46,9 @@ public class ThreadDeadlockDetector {
         }, 10, 10000);
     }
 
+    /**
+     * Initialize the detector.
+     */
     public static synchronized void init() {
         if (detector == null) {
             detector = new ThreadDeadlockDetector();
@@ -53,11 +56,12 @@ public class ThreadDeadlockDetector {
     }
 
     /**
-     * Checks if any threads are deadlocked. If any, print the thread dump information.
+     * Checks if any threads are deadlocked. If any, print the thread dump
+     * information.
      */
     void checkForDeadlocks() {
-        long[] tids = tmbean.findDeadlockedThreads();
-        if (tids == null) {
+        long[] ids = threadBean.findDeadlockedThreads();
+        if (ids == null) {
             return;
         }
 
@@ -65,24 +69,24 @@ public class ThreadDeadlockDetector {
         final PrintWriter print = new PrintWriter(stringWriter);
 
         print.println("ThreadDeadlockDetector - deadlock found :");
-        final ThreadInfo[] infos = tmbean.getThreadInfo(tids, true, true);
-        final HashMap<Long, String> mvtableWaitingForLockMap =
+        final ThreadInfo[] infos = threadBean.getThreadInfo(ids, true, true);
+        final HashMap<Long, String> tableWaitingForLockMap =
                 MVTable.WAITING_FOR_LOCK.getSnapshotOfAllThreads();
-        final HashMap<Long, ArrayList<String>> mvtableExclusiveLocksMap =
+        final HashMap<Long, ArrayList<String>> tableExclusiveLocksMap =
                 MVTable.EXCLUSIVE_LOCKS.getSnapshotOfAllThreads();
-        final HashMap<Long, ArrayList<String>> mvtableSharedLocksMap =
+        final HashMap<Long, ArrayList<String>> tableSharedLocksMap =
                 MVTable.SHARED_LOCKS.getSnapshotOfAllThreads();
         for (ThreadInfo ti : infos) {
             printThreadInfo(print, ti);
             printLockInfo(print, ti.getLockedSynchronizers(),
-                    mvtableWaitingForLockMap.get(ti.getThreadId()),
-                    mvtableExclusiveLocksMap.get(ti.getThreadId()),
-                    mvtableSharedLocksMap.get(ti.getThreadId()));
+                    tableWaitingForLockMap.get(ti.getThreadId()),
+                    tableExclusiveLocksMap.get(ti.getThreadId()),
+                    tableSharedLocksMap.get(ti.getThreadId()));
         }
 
         print.flush();
-        // Dump it to system.out in one block, so it doesn't get mixed up with other stuff when we're
-        // using a logging subsystem.
+        // Dump it to system.out in one block, so it doesn't get mixed up with
+        // other stuff when we're using a logging subsystem.
         System.out.println(stringWriter.getBuffer());
     }
 
@@ -91,11 +95,11 @@ public class ThreadDeadlockDetector {
         printThread(print, ti);
 
         // print stack trace with locks
-        StackTraceElement[] stacktrace = ti.getStackTrace();
+        StackTraceElement[] stackTrace = ti.getStackTrace();
         MonitorInfo[] monitors = ti.getLockedMonitors();
-        for (int i = 0; i < stacktrace.length; i++) {
-            StackTraceElement ste = stacktrace[i];
-            print.println(INDENT + "at " + ste.toString());
+        for (int i = 0; i < stackTrace.length; i++) {
+            StackTraceElement e = stackTrace[i];
+            print.println(INDENT + "at " + e.toString());
             for (MonitorInfo mi : monitors) {
                 if (mi.getLockedStackDepth() == i) {
                     print.println(INDENT + "  - locked " + mi);
@@ -125,25 +129,25 @@ public class ThreadDeadlockDetector {
     }
 
     private static void printLockInfo(PrintWriter print, LockInfo[] locks,
-            String mvtableWaitingForLock,
-            ArrayList<String> mvtableExclusiveLocks,
-            ArrayList<String> mvtableSharedLocksMap) {
+            String tableWaitingForLock,
+            ArrayList<String> tableExclusiveLocks,
+            ArrayList<String> tableSharedLocksMap) {
         print.println(INDENT + "Locked synchronizers: count = " + locks.length);
         for (LockInfo li : locks) {
             print.println(INDENT + "  - " + li);
         }
-        if (mvtableWaitingForLock != null) {
-            print.println(INDENT + "Waiting for table: " + mvtableWaitingForLock);
+        if (tableWaitingForLock != null) {
+            print.println(INDENT + "Waiting for table: " + tableWaitingForLock);
         }
-        if (mvtableExclusiveLocks != null) {
-            print.println(INDENT + "Exclusive table locks: count = " + mvtableExclusiveLocks.size());
-            for (String name : mvtableExclusiveLocks) {
+        if (tableExclusiveLocks != null) {
+            print.println(INDENT + "Exclusive table locks: count = " + tableExclusiveLocks.size());
+            for (String name : tableExclusiveLocks) {
                 print.println(INDENT + "  - " + name);
             }
         }
-        if (mvtableSharedLocksMap != null) {
-            print.println(INDENT + "Shared table locks: count = " + mvtableSharedLocksMap.size());
-            for (String name : mvtableSharedLocksMap) {
+        if (tableSharedLocksMap != null) {
+            print.println(INDENT + "Shared table locks: count = " + tableSharedLocksMap.size());
+            for (String name : tableSharedLocksMap) {
                 print.println(INDENT + "  - " + name);
             }
         }

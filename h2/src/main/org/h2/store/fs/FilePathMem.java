@@ -202,6 +202,12 @@ public class FilePathMem extends FilePath {
         return name.equals(getScheme() + ":");
     }
 
+    /**
+     * Get the canonical path for this file name.
+     *
+     * @param fileName the file name
+     * @return the canonical path
+     */
     protected static String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
         int idx = fileName.indexOf(':') + 1;

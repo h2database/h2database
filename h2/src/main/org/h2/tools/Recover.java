@@ -1730,7 +1730,7 @@ public class Recover extends Tool implements DataHandler {
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
     }
-    
+
     @Override
     public CompareMode getCompareMode() {
         return CompareMode.getInstance(null, 0);

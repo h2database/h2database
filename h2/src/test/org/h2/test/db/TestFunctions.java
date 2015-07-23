@@ -1227,7 +1227,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement();
         String testStr = "foo";
-        assertResult(String.valueOf("foo".hashCode()), stat, String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
+        assertResult(String.valueOf("foo".hashCode()), stat,
+                String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
@@ -1327,8 +1328,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 Timestamp.valueOf("1979-11-12 08:12:34.560"));
         assertResult(expected, stat,
                 "SELECT TO_CHAR(X, 'DL') FROM T");
-        // assertResult("Monday, November 12, 1979", stat,
-        //        "SELECT TO_CHAR(X, 'DL', 'NLS_DATE_LANGUAGE = English') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'DS') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'Ds') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'dS') FROM T");

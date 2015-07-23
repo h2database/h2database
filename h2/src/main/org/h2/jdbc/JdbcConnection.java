@@ -1937,7 +1937,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     CompareMode getCompareMode() {
-        return session.getDataHandler().getCompareMode(); 
+        return session.getDataHandler().getCompareMode();
     }
 
     /**

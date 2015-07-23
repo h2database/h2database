@@ -437,6 +437,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * If no port is specified, the default port is used if possible,
      * and if this port is already used, a random port is used.
      * Use getPort() or getURL() after starting to retrieve the port.
+     * </p>
      *
      * @param args the argument list
      * @return the server
@@ -463,6 +464,7 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
      * If no port is specified, the default port is used if possible,
      * and if this port is already used, a random port is used.
      * Use getPort() or getURL() after starting to retrieve the port.
+     * </p>
      *
      * @param args the argument list
      * @return the server

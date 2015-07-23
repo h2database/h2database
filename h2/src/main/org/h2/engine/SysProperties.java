@@ -454,6 +454,14 @@ public class SysProperties {
             Utils.getProperty("h2.traceIO", false);
 
     /**
+     * System property <code>h2.threadDeadlockDetector</code>
+     * (default: false).<br />
+     * Detect thread deadlocks in a background thread.
+     */
+    public static final boolean THREAD_DEADLOCK_DETECTOR =
+            Utils.getProperty("h2.threadDeadlockDetector", false);
+
+    /**
      * System property <code>h2.implicitRelativePath</code>
      * (default: true for version 1.3, false for version 1.4).<br />
      * If disabled, relative paths in database URLs need to be written as

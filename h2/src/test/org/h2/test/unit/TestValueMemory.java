@@ -288,7 +288,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
     }
-    
+
     @Override
     public CompareMode getCompareMode() {
         return CompareMode.getInstance(null, 0);

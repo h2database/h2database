@@ -2058,7 +2058,7 @@ public class Function extends Expression implements FunctionCall {
         return hc;
     }
 
-    
+
     @Override
     public int getType() {
         return dataType;

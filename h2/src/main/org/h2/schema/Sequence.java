@@ -33,8 +33,10 @@ public class Sequence extends SchemaObjectBase {
     private long maxValue;
     private boolean cycle;
     private boolean belongsToTable;
+
     /**
-     * The last valueWithMargin we flushed. We do a little dance with this to avoid an ABBA deadlock.
+     * The last valueWithMargin we flushed. We do a little dance with this to
+     * avoid an ABBA deadlock.
      */
     private long lastFlushValueWithMargin;
 
@@ -260,7 +262,7 @@ public class Sequence extends SchemaObjectBase {
                 if (cycle) {
                     value = increment > 0 ? minValue : maxValue;
                     valueWithMargin = value + (increment * cacheSize);
-                      flushValueWithMargin = valueWithMargin;
+                    flushValueWithMargin = valueWithMargin;
                     needsFlush = true;
                 } else {
                     throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
@@ -289,6 +291,7 @@ public class Sequence extends SchemaObjectBase {
      * Flush the current value, including the margin, to disk.
      *
      * @param session the session
+     * @param flushValueWithMargin whether to reserve more entries
      */
     public void flush(Session session, long flushValueWithMargin) {
         if (session == null || !database.isSysTableLockedBy(session)) {

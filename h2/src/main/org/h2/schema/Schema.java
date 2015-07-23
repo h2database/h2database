@@ -538,6 +538,13 @@ public class Schema extends DbObjectBase {
         }
     }
 
+    public Table getTableOrViewByName(String name) {
+      synchronized (database) {
+          return tablesAndViews.get(name);
+      }
+    }
+
+
     /**
      * Remove an object from this schema.
      *

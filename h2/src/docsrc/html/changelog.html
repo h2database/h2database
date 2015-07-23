@@ -21,6 +21,10 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>A thread deadlock detector (disabled by default) can help
+    detect and analyze Java level deadlocks.
+    To enable, set the system property "h2.threadDeadlockDetector" to true.
+</li>
 <li>MVStore: power failure could corrupt the store, if writes were re-ordered.
 </li>
 <li>For compatibility with other databases, support for (double and float)

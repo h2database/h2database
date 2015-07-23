@@ -896,8 +896,13 @@ public class Database implements DataHandler {
         return wasLocked;
     }
 
+    /**
+     * Unlock the metadata table.
+     *
+     * @param session the session
+     */
     public void unlockMeta(Session session) {
-      meta.unlock(session);
+        meta.unlock(session);
     }
 
     /**
@@ -2350,9 +2355,16 @@ public class Database implements DataHandler {
         return meta == null || meta.isLockedExclusively();
     }
 
+    /**
+     * Checks if the system table (containing the catalog) is locked by the
+     * given session.
+     *
+     * @param session the session
+     * @return true if it is currently locked
+     */
     public boolean isSysTableLockedBy(Session session) {
-      return meta == null || meta.isLockedExclusivelyBy(session);
-  }
+        return meta == null || meta.isLockedExclusivelyBy(session);
+    }
 
     /**
      * Open a new connection or get an existing connection to another database.
@@ -2781,9 +2793,15 @@ public class Database implements DataHandler {
         }
     }
 
+    /**
+     * Get the table engine class, loading it if needed.
+     *
+     * @param tableEngine the table engine name
+     * @return the class
+     */
     public TableEngine getTableEngine(String tableEngine) {
         assert Thread.holdsLock(this);
-        
+
         TableEngine engine = tableEngines.get(tableEngine);
         if (engine == null) {
             try {
@@ -2795,5 +2813,5 @@ public class Database implements DataHandler {
         }
         return engine;
     }
-    
+
 }

@@ -538,12 +538,17 @@ public class Schema extends DbObjectBase {
         }
     }
 
+    /**
+     * Get the table with the given name, if any.
+     *
+     * @param name the table name
+     * @return the table or null if not found
+     */
     public Table getTableOrViewByName(String name) {
-      synchronized (database) {
-          return tablesAndViews.get(name);
-      }
+        synchronized (database) {
+            return tablesAndViews.get(name);
+        }
     }
-
 
     /**
      * Remove an object from this schema.

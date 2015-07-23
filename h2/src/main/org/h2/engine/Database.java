@@ -1516,16 +1516,22 @@ public class Database implements DataHandler {
         return list;
     }
 
+    /**
+     * Get the tables with the given name, if any.
+     *
+     * @param name the table name
+     * @return the list
+     */
     public ArrayList<Table> getTableOrViewByName(String name) {
-      ArrayList<Table> list = New.arrayList();
-      for (Schema schema : schemas.values()) {
-          Table table = schema.getTableOrViewByName(name);
-          if (table != null) {
-          	list.add(table);
-          }
-      }
-      return list;
-  }
+        ArrayList<Table> list = New.arrayList();
+        for (Schema schema : schemas.values()) {
+            Table table = schema.getTableOrViewByName(name);
+            if (table != null) {
+                list.add(table);
+            }
+        }
+        return list;
+    }
 
     public ArrayList<Schema> getAllSchemas() {
         initMetaTables();

@@ -617,13 +617,13 @@ public class MetaTable extends Table {
     }
 
     private ArrayList<Table> getTablesByName(Session session, String tableName) {
-      ArrayList<Table> tables = database.getTableOrViewByName(tableName);
-      for (Table temp : session.getLocalTempTables()) {
-      	if (temp.getName().equals(tableName)) {
-      		tables.add(temp);
-      	}
-      }
-      return tables;
+        ArrayList<Table> tables = database.getTableOrViewByName(tableName);
+        for (Table temp : session.getLocalTempTables()) {
+            if (temp.getName().equals(tableName)) {
+                tables.add(temp);
+            }
+        }
+        return tables;
     }
 
     private boolean checkIndex(Session session, String value, Value indexFrom,
@@ -738,13 +738,14 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMNS: {
-        	  // reduce the number of tables to scan - makes some metadata queries 10x faster
-        		final ArrayList<Table> tablesToList;
+            // reduce the number of tables to scan - makes some metadata queries
+            // 10x faster
+            final ArrayList<Table> tablesToList;
             if (indexFrom != null && indexTo != null && indexFrom.equals(indexTo)) {
-              String tableName = identifier(indexFrom.getString());
-            	tablesToList = getTablesByName(session, tableName);
+                String tableName = identifier(indexFrom.getString());
+                tablesToList = getTablesByName(session, tableName);
             } else {
-            	tablesToList = getAllTables(session);
+                tablesToList = getAllTables(session);
             }
             for (Table table : tablesToList) {
                 String tableName = identifier(table.getName());

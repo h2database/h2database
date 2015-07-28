@@ -128,7 +128,6 @@ public class TestTransactionStore extends TestBase {
                     try {
                         map.put(k, r.nextInt());
                     } catch (IllegalStateException e) {
-//System.out.println("a: " + e);
                         failCount.incrementAndGet();
                         // ignore and retry
                     }
@@ -149,7 +148,6 @@ public class TestTransactionStore extends TestBase {
             try {
                 map.put(k, r.nextInt());
             } catch (IllegalStateException e) {
-//System.out.println("b: " + e);
                 failCount.incrementAndGet();
                 // ignore and retry
             }

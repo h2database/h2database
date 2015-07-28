@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -129,6 +128,7 @@ public class TestTransactionStore extends TestBase {
                     try {
                         map.put(k, r.nextInt());
                     } catch (IllegalStateException e) {
+//System.out.println("a: " + e);
                         failCount.incrementAndGet();
                         // ignore and retry
                     }
@@ -149,13 +149,15 @@ public class TestTransactionStore extends TestBase {
             try {
                 map.put(k, r.nextInt());
             } catch (IllegalStateException e) {
+//System.out.println("b: " + e);
                 failCount.incrementAndGet();
                 // ignore and retry
             }
             tx.commit();
         }
-        // we expect at least half the operations were successful
-        assertTrue(failCount.toString(), failCount.get() < count / 2);
+        // we expect at least 10% the operations were successful
+        assertTrue(failCount.toString() + " >= " + (count * 0.9),
+                failCount.get() < count * 0.9);
         // we expect at least a few failures
         assertTrue(failCount.toString(), failCount.get() > 0);
         s.close();
@@ -983,152 +985,58 @@ public class TestTransactionStore extends TestBase {
         s.close();
     }
 
-    // Internal helper class
-     private static class Sync extends AbstractQueuedSynchronizer {
-         private static final int FREE = 0;
-         private static final int LOCKED = 1;
-         private static final long serialVersionUID = 1L;
-
-         // Reports whether in locked state by this thread
-         @Override
-         protected boolean isHeldExclusively() {
-             return getState() == LOCKED &&
-                     this.getExclusiveOwnerThread() == Thread.currentThread();
-         }
-
-         @Override
-         public boolean tryAcquire(int newState) {
-             assert newState == LOCKED;
-             if (getFirstQueuedThread() != Thread.currentThread() &&
-                      hasQueuedThreads()) {
-                 // prevent barging
-                 return false;
-             }
-             if (compareAndSetState(FREE, LOCKED)) {
-                 setExclusiveOwnerThread(Thread.currentThread());
-                 return true;
-             }
-             // someone else won the race
-             return false;
-         }
-
-         @Override
-         protected boolean tryRelease(int arg) {
-             if (getState() != LOCKED) throw new IllegalMonitorStateException();
-             setExclusiveOwnerThread(null);
-             setState(FREE);
-             // generation == state now (free)
-             return true;
-         }
-     }
-
-    class ReadUpdateWriteTask extends Task {
-
-        final int n;
-        final TransactionStore store;
-        final Sync sync;
-
-        public ReadUpdateWriteTask(int n, TransactionStore store, Sync sync) {
-            this.n = n;
-            this.store = store;
-            this.sync = sync;
-        }
-
-        /**
-         * This tests the synchronization of the undoLog with the getting of
-         * committed values when other threads are committing to a different
-         * map. The failure became noticeable when the transaction "window" was
-         * changed to a <code>BitSet</code>. This caused the reuse of recent
-         * transaction id's so that the lack of proper undoLog synchronization
-         * cause the stale uncommitted value to be decoded using a changed
-         * undoLog. This test should (with the fix) run in multiple threads
-         * without a problem.
-         */
-        @Override
-        public void call() {
-            Transaction tx;
-            int j = 0;
-            // Fails reliably on i5 3.4 quad core in the first few hundred
-            // iterations
-            for (int i = 0; i < 10000; i++) {
-                tx = store.begin();
-                TransactionMap<Object, Object> txMapA = tx.openMap("a");
-                Object o;
-                // retrieve the control value (key = 1)
-                Object key = txMapA.higherKey(0);
-                if (key == null) {
-                    // this is the potential failure point; they key is null
-                    // because the undoLog entry
-                    // examined was for the same transaction id in the B map,
-                    // not this one
-                    result = "null key for control map on try #" + i;
-                    return;
-                }
-                // now serialize all threads
-                sync.acquire(1);
-                j = ((o = txMapA.get(key)) instanceof Integer) ? ((Integer) o)
-                        : -1;
-                if (j < 0) {
-                    result = "get of control value key " + key + " not valid";
-                    return;
-                }
-                // update the control (map A) value
-                boolean ok = txMapA.tryPut(key, ++j);
-                if (!ok) {
-                    result = "transactional put of " + j + " to key " + key
-                            + " failed";
-                    return;
-                }
-                // commit the map A transaction
-                tx.commit();
-                // release the other thread(s) [they will immediately attempt to
-                // read the map A key]
-                // one of them will get the lock, and another one or more will
-                // get a map A uncommitted value
-                // but by the time they try to walk back to the committed value,
-                // the undoLog has changed out from
-                // under them
-                sync.release(0);
-                // begin a map B transaction
-                tx = store.begin();
-                TransactionMap<Object, Object> txMapB = tx.openMap("b");
-                // put a new value to the map; this will cause a map B undoLog
-                // entry to be created with a null pre-image value
-                txMapB.tryPut(j, n);
-                // This is where the real race condition occurs
-                // some other thread might get the B log entry
-                // for this transaction rather than the uncommitted A log entry
-                // they are expecting
-                tx.commit();
-            }
-        }
-    }
-
     private void testStoreMultiThreadedReads() throws Exception {
         MVStore s = MVStore.open(null);
-        TransactionStore ts = new TransactionStore(s);
-        ts.init();
-        Sync sync = new Sync();
+        final TransactionStore ts = new TransactionStore(s);
 
+        ts.init();
         Transaction t = ts.begin();
-        TransactionMap<Object, Object> txMapA = t.openMap("a");
-        txMapA.put(1, 0);
+        TransactionMap<Integer, Integer> mapA = t.openMap("a");
+        mapA.put(1, 0);
         t.commit();
 
-        final int threadCount = 3;
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                for (int i = 0; !stop; i++) {
+                    Transaction tx = ts.begin();
+                    TransactionMap<Integer, Integer> mapA = tx.openMap("a");
+                    while (!mapA.tryPut(1, i)) {
+                        // repeat
+                    }
+                    tx.commit();
 
-        Task[] tasks = new Task[threadCount];
-
-        for (int i = 0; i < tasks.length; i++)
-            (tasks[i] = new ReadUpdateWriteTask(i, ts, sync)).execute();
-
-        for (int i = 0; i < tasks.length; i++) {
-            Object result = (String) tasks[i].get();
-            if (result instanceof String) {
-                fail((String) result);
+                    // map B transaction
+                    // the other thread will get a map A uncommitted value,
+                    // but by the time it tries to walk back to the committed
+                    // value, the undoLog has changed
+                    tx = ts.begin();
+                    TransactionMap<Integer, Integer> mapB = tx.openMap("b");
+                    // put a new value to the map; this will cause a map B
+                    // undoLog entry to be created with a null pre-image value
+                    mapB.tryPut(i, -i);
+                    // this is where the real race condition occurs:
+                    // some other thread might get the B log entry
+                    // for this transaction rather than the uncommitted A log
+                    // entry it is expecting
+                    tx.commit();
+                }
             }
+        };
+        task.execute();
+        try {
+            for (int i = 0; i < 10000; i++) {
+                Transaction tx = ts.begin();
+                mapA = tx.openMap("a");
+                if (mapA.get(1) == null) {
+                    throw new AssertionError("key not found");
+                }
+                tx.commit();
+            }
+        } finally {
+            task.get();
         }
-
         ts.close();
     }
+
 }

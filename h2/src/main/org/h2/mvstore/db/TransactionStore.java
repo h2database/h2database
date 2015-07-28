@@ -1199,10 +1199,14 @@ public class TransactionStore {
         }
 
         private VersionedValue getValue(K key, long maxLog) {
-            synchronized (transaction.store.undoLog) {
+            synchronized (getUndoLog()) {
                 VersionedValue data = map.get(key);
                 return getValue(key, maxLog, data);
             }
+        }
+
+        Object getUndoLog() {
+            return transaction.store.undoLog;
         }
 
         /**
@@ -1215,10 +1219,10 @@ public class TransactionStore {
          */
         VersionedValue getValue(K key, long maxLog, VersionedValue data) {
             if (MVStore.ASSERT) {
-                if (!Thread.holdsLock(transaction.store.undoLog)) {
+                if (!Thread.holdsLock(getUndoLog())) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_INTERNAL,
-                            "getValue not invoked while synchronized on undoLog");
+                            "not synchronized on undoLog");
                 }
             }
             while (true) {
@@ -1449,8 +1453,8 @@ public class TransactionStore {
 
                 private void fetchNext() {
                     while (cursor.hasNext()) {
-                        K k;
-                        synchronized (transaction.store.undoLog) {
+                        synchronized (getUndoLog()) {
+                            K k;
                             try {
                                 k = cursor.next();
                             } catch (IllegalStateException e) {

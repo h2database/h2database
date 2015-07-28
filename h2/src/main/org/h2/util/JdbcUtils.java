@@ -45,7 +45,7 @@ public class JdbcUtils {
         "Cache:", "com.intersys.jdbc.CacheDriver",
         "daffodilDB://", "in.co.daffodil.db.rmi.RmiDaffodilDBDriver",
         "daffodil", "in.co.daffodil.db.jdbc.DaffodilDBDriver",
-        "db2:", "COM.ibm.db2.jdbc.net.DB2Driver",
+        "db2:", "com.ibm.db2.jcc.DB2Driver",
         "derby:net:", "org.apache.derby.jdbc.ClientDriver",
         "derby://", "org.apache.derby.jdbc.ClientDriver",
         "derby:", "org.apache.derby.jdbc.EmbeddedDriver",

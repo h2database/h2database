@@ -33,6 +33,7 @@ public class DbContents {
     private boolean isMySQL;
     private boolean isFirebird;
     private boolean isMSSQLServer;
+    private boolean isDB2;
 
     /**
      * @return The default schema.
@@ -105,6 +106,13 @@ public class DbContents {
     }
 
     /**
+     * @return True if this is an IBM DB2 database.
+     */
+    public boolean isDB2() {
+        return isDB2;
+    }
+
+    /**
      * @return The list of schemas.
      */
     public DbSchema[] getSchemas() {
@@ -133,6 +141,7 @@ public class DbContents {
             rs.close();
             prep.close();
         }
+        isDB2 = url.startsWith("jdbc:db2:");
         isSQLite = url.startsWith("jdbc:sqlite:");
         isOracle = url.startsWith("jdbc:oracle:");
         // the Vertica engine is based on PostgreSQL
@@ -158,7 +167,7 @@ public class DbContents {
             String[] tableTypes = { "TABLE", "SYSTEM TABLE", "VIEW",
                     "SYSTEM VIEW", "TABLE LINK", "SYNONYM", "EXTERNAL" };
             schema.readTables(meta, tableTypes);
-            if (!isPostgreSQL) {
+            if (!isPostgreSQL && !isDB2) {
                 schema.readProcedures(meta);
             }
         }
@@ -202,6 +211,14 @@ public class DbContents {
                         "db_backupoperator", "db_datareader", "db_datawriter",
                         "db_ddladmin", "db_denydatareader",
                         "db_denydatawriter", "db_owner", "db_securityadmin" };
+            } else if (isDB2) {
+                ignoreNames = new String[] { "NULLID", "SYSFUN",
+                        "SYSIBMINTERNAL", "SYSIBMTS", "SYSPROC", "SYSPUBLIC",
+                        // not empty, but not sure what they contain
+                        "SYSCAT",  "SYSIBM", "SYSIBMADM",
+                        "SYSSTAT", "SYSTOOLS",
+                };
+
             }
             if (ignoreNames != null) {
                 for (String ignore : ignoreNames) {

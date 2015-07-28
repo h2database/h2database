@@ -1692,8 +1692,10 @@ public class WebApp {
         }
         boolean isUpdatable = false;
         try {
-            isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE
-                && rs.getType() != ResultSet.TYPE_FORWARD_ONLY;
+            if (!session.getContents().isDB2()) {
+                isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE
+                    && rs.getType() != ResultSet.TYPE_FORWARD_ONLY;
+            }
         } catch (NullPointerException e) {
             // ignore
             // workaround for a JDBC-ODBC bridge problem

@@ -110,6 +110,18 @@ public abstract class Task implements Runnable {
      * @return the exception or null
      */
     public Exception getException() {
+        join();
+        if (ex != null) {
+            return ex;
+        }
+        return null;
+    }
+
+    /**
+     * Stop the thread and wait until it is no longer running. Exceptions are
+     * ignored.
+     */
+    public void join() {
         stop = true;
         if (thread == null) {
             throw new IllegalStateException("Thread not started");
@@ -119,10 +131,6 @@ public abstract class Task implements Runnable {
         } catch (InterruptedException e) {
             // ignore
         }
-        if (ex != null) {
-            return ex;
-        }
-        return null;
     }
 
 }

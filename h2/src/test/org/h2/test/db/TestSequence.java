@@ -6,6 +6,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Tests the sequence feature of this database.
@@ -29,7 +31,9 @@ public class TestSequence extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
+    public void test() throws Exception {
+        testConcurrentCreate();
+;if(true)return;
         testSchemaSearchPath();
         testAlterSequenceColumn();
         testAlterSequence();
@@ -42,6 +46,59 @@ public class TestSequence extends TestBase {
         testCreateSql();
         testDefaultMinMax();
         deleteDb("sequence");
+    }
+
+    private void testConcurrentCreate() throws Exception {
+        while(true)
+        try {
+            testConcurrentCreate2();
+        } catch(Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    private void testConcurrentCreate2() throws Exception {
+        deleteDb("sequence");
+        final String url = getURL("sequence;MULTI_THREADED=1", true);
+        Connection conn = getConnection(url);
+        Task[] tasks = new Task[2];
+        try {
+            Statement stat = conn.createStatement();
+            stat.execute("create table test(id bigint primary key)");
+            stat.execute("create sequence test_seq cache 2");
+            for (int i = 0; i < tasks.length; i++) {
+                tasks[i] = new Task() {
+                    @Override
+                    public void call() throws Exception {
+                        Connection conn = getConnection(url);
+                        try {
+                            PreparedStatement prep = conn.prepareStatement(
+                                    "insert into test(id) values(next value for test_seq)");
+                            PreparedStatement prep2 = conn.prepareStatement(
+                                    "delete from test");
+                            while (!stop) {
+                                prep.execute();
+                                if (Math.random() < 0.01) {
+                                    prep2.execute();
+                                }
+                            }
+                        } finally {
+                            conn.close();
+                        }
+                    }
+                }.execute();
+            }
+            Thread.sleep(100);
+            for (Task t : tasks) {
+                t.get();
+            }
+            stat.execute("shutdown immediately");
+        } finally {
+            for (Task t : tasks) {
+                t.join();
+            }
+            conn.close();
+        }
     }
 
     private void testSchemaSearchPath() throws SQLException {

@@ -21,6 +21,9 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Multi-threaded processing: concurrent deleting the same row could throw the exception
+    "Row not found when trying to delete".
+</li>
 <li>MVStore transactions: a thread could see a change of a different thread
     within a different map. Pull request #153.
 </li>

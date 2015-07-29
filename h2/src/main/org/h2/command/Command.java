@@ -293,7 +293,9 @@ public abstract class Command implements CommandInterface {
     }
 
     private long filterConcurrentUpdate(DbException e, long start) {
-        if (e.getErrorCode() != ErrorCode.CONCURRENT_UPDATE_1) {
+        int errorCode = e.getErrorCode();
+        if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 &&
+                errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
         long now = System.nanoTime() / 1000000;

@@ -348,7 +348,7 @@ public class Column {
             if (update) {
                 sequence.modify(now + inc, null, null, null);
                 session.setLastIdentity(ValueLong.get(now));
-                sequence.flush(session, 0);
+                sequence.flush(session);
             }
         }
     }

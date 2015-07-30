@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.h2.api.Trigger;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
 
@@ -33,7 +35,6 @@ public class TestSequence extends TestBase {
     @Override
     public void test() throws Exception {
         testConcurrentCreate();
-;if(true)return;
         testSchemaSearchPath();
         testAlterSequenceColumn();
         testAlterSequence();
@@ -49,24 +50,17 @@ public class TestSequence extends TestBase {
     }
 
     private void testConcurrentCreate() throws Exception {
-        while(true)
-        try {
-            testConcurrentCreate2();
-        } catch(Exception e) {
-            System.out.println(e);
-        }
-    }
-
-    private void testConcurrentCreate2() throws Exception {
         deleteDb("sequence");
-        final String url = getURL("sequence;MULTI_THREADED=1", true);
+        final String url = getURL("sequence;MULTI_THREADED=1;LOCK_TIMEOUT=2000", true);
         Connection conn = getConnection(url);
         Task[] tasks = new Task[2];
         try {
             Statement stat = conn.createStatement();
+            stat.execute("create table dummy(id bigint primary key)");
             stat.execute("create table test(id bigint primary key)");
             stat.execute("create sequence test_seq cache 2");
             for (int i = 0; i < tasks.length; i++) {
+                final int x = i;
                 tasks[i] = new Task() {
                     @Override
                     public void call() throws Exception {
@@ -81,18 +75,30 @@ public class TestSequence extends TestBase {
                                 if (Math.random() < 0.01) {
                                     prep2.execute();
                                 }
+                                if (Math.random() < 0.01) {
+                                    createDropTrigger(conn);
+                                }
                             }
                         } finally {
                             conn.close();
                         }
                     }
+
+                    private void createDropTrigger(Connection conn) throws Exception {
+                        String triggerName = "t_" + x;
+                        Statement stat = conn.createStatement();
+                        stat.execute("create trigger " + triggerName +
+                                " before insert on dummy call \"" +
+                                TriggerTest.class.getName() + "\"");
+                        stat.execute("drop trigger " + triggerName);
+                    }
+
                 }.execute();
             }
-            Thread.sleep(100);
+            Thread.sleep(1000);
             for (Task t : tasks) {
                 t.get();
             }
-            stat.execute("shutdown immediately");
         } finally {
             for (Task t : tasks) {
                 t.join();
@@ -413,4 +419,35 @@ public class TestSequence extends TestBase {
         long value = rs.getLong(1);
         return value;
     }
+
+    /**
+     * A test trigger.
+     */
+    public static class TriggerTest implements Trigger {
+
+        @Override
+        public void init(Connection conn, String schemaName,
+                String triggerName, String tableName, boolean before, int type)
+                throws SQLException {
+            conn.createStatement().executeQuery("call next value for test_seq");
+        }
+
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow)
+                throws SQLException {
+            // ignore
+        }
+
+        @Override
+        public void close() throws SQLException {
+            // ignore
+        }
+
+        @Override
+        public void remove() throws SQLException {
+            // ignore
+        }
+
+    }
+
 }

@@ -983,14 +983,16 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the object to add
      */
-    public synchronized void addSchemaObject(Session session, SchemaObject obj) {
+    public void addSchemaObject(Session session, SchemaObject obj) {
         int id = obj.getId();
         if (id > 0 && !starting) {
             checkWritingAllowed();
         }
         lockMeta(session);
-        obj.getSchema().add(obj);
-        addMeta(session, obj);
+        synchronized (this) {
+            obj.getSchema().add(obj);
+            addMeta(session, obj);
+        }
     }
 
     /**
@@ -1791,7 +1793,7 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the object to be removed
      */
-    public synchronized void removeSchemaObject(Session session,
+    public void removeSchemaObject(Session session,
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
@@ -1817,22 +1819,24 @@ public class Database implements DataHandler {
         }
         checkWritingAllowed();
         lockMeta(session);
-        Comment comment = findComment(obj);
-        if (comment != null) {
-            removeDatabaseObject(session, comment);
-        }
-        obj.getSchema().remove(obj);
-        int id = obj.getId();
-        if (!starting) {
-            Table t = getDependentTable(obj, null);
-            if (t != null) {
-                obj.getSchema().add(obj);
-                throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
-                        t.getSQL());
+        synchronized (this) {
+            Comment comment = findComment(obj);
+            if (comment != null) {
+                removeDatabaseObject(session, comment);
             }
-            obj.removeChildrenAndResources(session);
+            obj.getSchema().remove(obj);
+            int id = obj.getId();
+            if (!starting) {
+                Table t = getDependentTable(obj, null);
+                if (t != null) {
+                    obj.getSchema().add(obj);
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
+                            t.getSQL());
+                }
+                obj.removeChildrenAndResources(session);
+            }
+            removeMeta(session, id);
         }
-        removeMeta(session, id);
     }
 
     /**

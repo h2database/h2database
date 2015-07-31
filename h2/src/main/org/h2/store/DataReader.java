@@ -165,6 +165,9 @@ public class DataReader extends Reader {
 
     @Override
     public int read(char[] buff, int off, int len) throws IOException {
+        if (len == 0) {
+            return 0;
+        }
         int i = 0;
         try {
             for (; i < len; i++) {
@@ -172,6 +175,9 @@ public class DataReader extends Reader {
             }
             return len;
         } catch (EOFException e) {
+            if (i == 0) {
+                return -1;
+            }
             return i;
         }
     }

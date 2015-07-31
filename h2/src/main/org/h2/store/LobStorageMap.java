@@ -153,6 +153,9 @@ public class LobStorageMap implements LobStorageInterface {
                 b.reset();
                 in = b;
             }
+            if (maxLength != Long.MAX_VALUE) {
+                in = new LimitInputStream(in, maxLength);
+            }
             return createLob(in, type);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);

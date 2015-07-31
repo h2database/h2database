@@ -84,6 +84,7 @@ public class TestLob extends TestBase {
         if (config.memory) {
             return;
         }
+        testLargeClob();
         testLobCleanupSessionTemporaries();
         testLobUpdateMany();
         testLobVariable();
@@ -106,6 +107,27 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
+    }
+
+    private void testLargeClob() throws Exception {
+        deleteDb("lob");
+        Connection conn;
+        conn = reconnect(null);
+        conn.createStatement().execute(
+                "CREATE TABLE TEST(ID IDENTITY, C CLOB)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST(C) VALUES(?)");
+        int len = SysProperties.LOB_CLIENT_MAX_SIZE_MEMORY + 1;
+        prep.setCharacterStream(1, getRandomReader(len, 2), -1);
+        prep.execute();
+        conn = reconnect(conn);
+        ResultSet rs = conn.createStatement().executeQuery(
+                "SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        assertEqualReaders(getRandomReader(len, 2),
+                rs.getCharacterStream("C"), -1);
+        assertFalse(rs.next());
+        conn.close();
     }
 
     private void testRemovedAfterTimeout() throws Exception {

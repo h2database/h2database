@@ -72,10 +72,10 @@ class LobStorageRemoteInputStream extends InputStream {
         } catch (DbException e) {
             throw DbException.convertToIOException(e);
         }
-        remainingBytes -= length;
         if (length == 0) {
             return -1;
         }
+        remainingBytes -= length;
         pos += length;
         return length;
     }

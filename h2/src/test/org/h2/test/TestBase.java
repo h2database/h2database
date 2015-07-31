@@ -448,6 +448,21 @@ public abstract class TestBase {
      */
     protected void fail(String string) {
         lastPrint = 0;
+        if (string.length() > 100) {
+            // avoid long strings with special characters, because they are slow
+            // to display in Eclipse
+            char[] data = string.toCharArray();
+            for (int i = 0; i < data.length; i++) {
+                char c = data[i];
+                if (c >= 128 || c < 32) {
+                    data[i] = (char) ('a' + (c & 15));
+                    string = null;
+                }
+            }
+            if (string == null) {
+                string = new String(data);
+            }
+        }
         println(string);
         throw new AssertionError(string);
     }
@@ -744,6 +759,9 @@ public abstract class TestBase {
                 String s = expected.substring(0, i);
                 if (!actual.startsWith(s)) {
                     expected = expected.substring(0, i) + "<*>" + expected.substring(i);
+                    if (al > 20) {
+                        expected = "@" + i + " " + expected;
+                    }
                     break;
                 }
             }

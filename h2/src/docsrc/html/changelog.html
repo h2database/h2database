@@ -21,6 +21,10 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Server mode: CLOB processing for texts larger than about 1 MB sometimes did not work.
+</li>
+<li>Server mode: BLOB processing for binaries larger than 2 GB did not work.
+</li>
 <li>Multi-threaded processing: concurrent deleting the same row could throw the exception
     "Row not found when trying to delete".
 </li>

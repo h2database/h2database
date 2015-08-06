@@ -281,7 +281,7 @@ public class ClassReader {
         endOfMethod = false;
         condition = false;
         nextPc = 0;
-        switch(opCode) {
+        switch (opCode) {
         case 0:
             op = "nop";
             break;

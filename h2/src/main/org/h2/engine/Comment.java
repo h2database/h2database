@@ -31,7 +31,7 @@ public class Comment extends DbObjectBase {
     }
 
     private static String getTypeName(int type) {
-        switch(type) {
+        switch (type) {
         case DbObject.CONSTANT:
             return "CONSTANT";
         case DbObject.CONSTRAINT:

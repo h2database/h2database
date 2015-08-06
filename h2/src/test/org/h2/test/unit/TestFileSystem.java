@@ -683,7 +683,7 @@ public class TestFileSystem extends TestBase {
             for (int i = 0; i < size; i++) {
                 trace("op " + i);
                 int pos = random.nextInt(10000);
-                switch(random.nextInt(7)) {
+                switch (random.nextInt(7)) {
                 case 0: {
                     pos = (int) Math.min(pos, ra.length());
                     trace("seek " + pos);

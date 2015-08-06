@@ -46,7 +46,7 @@ public class Call extends Prepared {
     public int update() {
         Value v = expression.getValue(session);
         int type = v.getType();
-        switch(type) {
+        switch (type) {
         case Value.RESULT_SET:
             // this will throw an exception
             // methods returning a result set may not be called like this.

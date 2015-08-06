@@ -264,7 +264,7 @@ public abstract class Value {
      * @return the order number
      */
     static int getOrder(int type) {
-        switch(type) {
+        switch (type) {
         case UNKNOWN:
             return 1;
         case NULL:
@@ -748,7 +748,7 @@ public abstract class Value {
                 break;
             }
             case BYTES: {
-                switch(getType()) {
+                switch (getType()) {
                 case JAVA_OBJECT:
                 case BLOB:
                     return ValueBytes.getNoCopy(getBytesNoCopy());
@@ -790,7 +790,7 @@ public abstract class Value {
                 break;
             }
             case JAVA_OBJECT: {
-                switch(getType()) {
+                switch (getType()) {
                 case BYTES:
                 case BLOB:
                     return ValueJavaObject.getNoCopy(
@@ -799,7 +799,7 @@ public abstract class Value {
                 break;
             }
             case BLOB: {
-                switch(getType()) {
+                switch (getType()) {
                 case BYTES:
                     return ValueLobDb.createSmallLob(
                             Value.BLOB, getBytesNoCopy());
@@ -807,13 +807,13 @@ public abstract class Value {
                 break;
             }
             case UUID: {
-                switch(getType()) {
+                switch (getType()) {
                 case BYTES:
                     return ValueUuid.get(getBytesNoCopy());
                 }
             }
             case GEOMETRY:
-                switch(getType()) {
+                switch (getType()) {
                 case BYTES:
                     return ValueGeometry.get(getBytesNoCopy());
                 case JAVA_OBJECT:

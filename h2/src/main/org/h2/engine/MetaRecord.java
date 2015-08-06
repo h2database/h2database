@@ -104,7 +104,7 @@ public class MetaRecord implements Comparable<MetaRecord> {
      * @return the sort index
      */
     private int getCreateOrder() {
-        switch(objectType) {
+        switch (objectType) {
         case DbObject.SETTING:
             return 0;
         case DbObject.USER:

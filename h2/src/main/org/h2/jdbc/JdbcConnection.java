@@ -700,7 +700,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             debugCodeCall("setTransactionIsolation", level);
             checkClosed();
             int lockMode;
-            switch(level) {
+            switch (level) {
             case Connection.TRANSACTION_READ_UNCOMMITTED:
                 lockMode = Constants.LOCK_MODE_OFF;
                 break;
@@ -786,7 +786,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             int lockMode = result.currentRow()[0].getInt();
             result.close();
             int transactionIsolationLevel;
-            switch(lockMode) {
+            switch (lockMode) {
             case Constants.LOCK_MODE_OFF:
                 transactionIsolationLevel = Connection.TRANSACTION_READ_UNCOMMITTED;
                 break;
@@ -1194,7 +1194,7 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     private static int translateGetEnd(String sql, int i, char c) {
         int len = sql.length();
-        switch(c) {
+        switch (c) {
         case '$': {
             if (i < len - 1 && sql.charAt(i + 1) == '$' &&
                     (i == 0 || sql.charAt(i - 1) <= ' ')) {

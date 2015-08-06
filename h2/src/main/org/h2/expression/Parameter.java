@@ -147,7 +147,7 @@ public class Parameter extends Expression implements ParameterInterface {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.getType()) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
             // the parameter _will_be_ evaluatable at execute time
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:

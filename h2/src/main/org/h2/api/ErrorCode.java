@@ -1663,7 +1663,7 @@ public class ErrorCode {
      * DROP TABLE INFORMATION_SCHEMA.SETTINGS;
      * </pre>
      */
-    public static final int CANNOT_DROP_TABLE_1  = 90118;
+    public static final int CANNOT_DROP_TABLE_1 = 90118;
 
     /**
      * The error with code <code>90119</code> is thrown when
@@ -1907,7 +1907,6 @@ public class ErrorCode {
      * all columns of the primary key or of a unique index of a table.
      */
     public static final int RESULT_SET_READONLY = 90140;
-
 
     /**
      * The error with code <code>90141</code> is thrown when

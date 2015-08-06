@@ -94,7 +94,7 @@ public class BnfRailroad implements BnfVisitor {
      * @return the HTML text
      */
     static String getHtmlText(int type) {
-        switch(type) {
+        switch (type) {
         case RuleFixed.YMD:
             return "2000-01-01";
         case RuleFixed.HMS:

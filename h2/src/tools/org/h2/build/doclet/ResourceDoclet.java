@@ -77,7 +77,7 @@ public class ResourceDoclet {
         boolean inColumn = false;
         while (p.hasNext()) {
             String s;
-            switch(p.next()) {
+            switch (p.next()) {
             case XMLParser.END_ELEMENT:
                 s = p.getName();
                 if ("p".equals(s) || "tr".equals(s) || "br".equals(s)) {

@@ -37,7 +37,7 @@ public class PageStoreInDoubtTransaction implements InDoubtTransaction {
 
     @Override
     public void setState(int state) {
-        switch(state) {
+        switch (state) {
         case COMMIT:
             store.setInDoubtTransactionState(sessionId, pos, true);
             break;
@@ -52,7 +52,7 @@ public class PageStoreInDoubtTransaction implements InDoubtTransaction {
 
     @Override
     public String getState() {
-        switch(state) {
+        switch (state) {
         case IN_DOUBT:
             return "IN_DOUBT";
         case COMMIT:

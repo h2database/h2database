@@ -128,7 +128,7 @@ public class MetaTable extends Table {
         this.type = type;
         Column[] cols;
         String indexColumnName = null;
-        switch(type) {
+        switch (type) {
         case TABLES:
             setObjectName("TABLES");
             cols = createColumns(
@@ -1854,7 +1854,7 @@ public class MetaTable extends Table {
     }
 
     private static int getRefAction(int action) {
-        switch(action) {
+        switch (action) {
         case ConstraintReferential.CASCADE:
             return DatabaseMetaData.importedKeyCascade;
         case ConstraintReferential.RESTRICT:

@@ -535,7 +535,7 @@ public class Transfer {
      */
     public Value readValue() throws IOException {
         int type = readInt();
-        switch(type) {
+        switch (type) {
         case Value.NULL:
             return ValueNull.INSTANCE;
         case Value.BYTES:

@@ -297,7 +297,7 @@ public class TestIndex extends TestBase {
         for (int i = 0; i < len; i++) {
             int x = rand.nextInt(len);
             String sql = "";
-            switch(rand.nextInt(3)) {
+            switch (rand.nextInt(3)) {
             case 0:
                 sql = "delete from testA where id = " + x;
                 break;

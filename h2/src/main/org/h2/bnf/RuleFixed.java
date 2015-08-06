@@ -45,7 +45,7 @@ public class RuleFixed implements Rule {
         String query = sentence.getQuery();
         String s = query;
         boolean removeTrailingSpaces = false;
-        switch(type) {
+        switch (type) {
         case YMD:
             while (s.length() > 0 && "0123456789-".indexOf(s.charAt(0)) >= 0) {
                 s = s.substring(1);

@@ -144,7 +144,7 @@ public class TestNativeSQL extends TestBase {
             StringBuilder buff = new StringBuilder("{oj }");
             for (int j = random.nextInt(10); j > 0; j--) {
                 String s;
-                switch(random.nextInt(7)) {
+                switch (random.nextInt(7)) {
                 case 0:
                     buff.append(" $$");
                     s = "{}\'\"-/* a\n";

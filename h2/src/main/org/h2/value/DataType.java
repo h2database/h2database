@@ -493,7 +493,7 @@ public class DataType {
             int columnIndex, int type) {
         try {
             Value v;
-            switch(type) {
+            switch (type) {
             case Value.NULL: {
                 return ValueNull.INSTANCE;
             }
@@ -679,7 +679,7 @@ public class DataType {
      * @return the class name
      */
     public static String getTypeClassName(int type) {
-        switch(type) {
+        switch (type) {
         case Value.BOOLEAN:
             // "java.lang.Boolean";
             return Boolean.class.getName();
@@ -815,7 +815,7 @@ public class DataType {
      * @return the value type
      */
     public static int convertSQLTypeToValueType(int sqlType) {
-        switch(sqlType) {
+        switch (sqlType) {
         case Types.CHAR:
         case Types.NCHAR:
             return Value.STRING_FIXED;

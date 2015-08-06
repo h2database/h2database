@@ -1269,7 +1269,7 @@ public class Select extends Query {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.getType()) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC: {
             if (isForUpdate) {
                 return false;

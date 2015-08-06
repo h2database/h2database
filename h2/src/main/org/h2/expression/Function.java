@@ -541,7 +541,7 @@ public class Function extends Expression implements FunctionCall {
         if (info == null) {
             return null;
         }
-        switch(info.type) {
+        switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
             return new TableFunction(database, info, Long.MAX_VALUE);
@@ -1401,7 +1401,7 @@ public class Function extends Expression implements FunctionCall {
                     v2 == null ? null : v2.getInt()));
             break;
         case TO_CHAR:
-            switch(v0.getType()){
+            switch (v0.getType()){
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:

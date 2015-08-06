@@ -424,16 +424,6 @@ public class SysProperties {
             Utils.getProperty("h2.splitFileSizeShift", 30);
 
     /**
-     * System property <code>h2.storeLocalTime</code>
-     * (default: false for version 1.3, true for version 1.4).<br />
-     * Store the local time. If disabled, the daylight saving offset is not
-     * taken into account.
-     */
-    public static final boolean STORE_LOCAL_TIME =
-            Utils.getProperty("h2.storeLocalTime",
-                    Constants.VERSION_MINOR >= 4 ? true : false);
-
-    /**
      * System property <code>h2.syncMethod</code> (default: sync).<br />
      * What method to call when closing the database, on checkpoint, and on
      * CHECKPOINT SYNC. The following options are supported:

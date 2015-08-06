@@ -91,6 +91,15 @@ public class Data {
     private static final long MILLIS_PER_MINUTE = 1000 * 60;
 
     /**
+     * Can not store the local time, because doing so with old database files
+     * that didn't do it could result in an ArrayIndexOutOfBoundsException. The
+     * reason is that adding a row to a page only allocated space for the new
+     * row, but didn't take into account that existing rows now can use more
+     * space, due to the changed format.
+     */
+    private static final boolean STORE_LOCAL_TIME = false;
+
+    /**
      * The data itself.
      */
     private byte[] data;
@@ -485,7 +494,7 @@ public class Data {
             break;
         }
         case Value.TIME:
-            if (SysProperties.STORE_LOCAL_TIME) {
+            if (STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_TIME);
                 ValueTime t = (ValueTime) v;
                 long nanos = t.getNanos();
@@ -499,7 +508,7 @@ public class Data {
             }
             break;
         case Value.DATE: {
-            if (SysProperties.STORE_LOCAL_TIME) {
+            if (STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_DATE);
                 long x = ((ValueDate) v).getDateValue();
                 writeVarLong(x);
@@ -511,7 +520,7 @@ public class Data {
             break;
         }
         case Value.TIMESTAMP: {
-            if (SysProperties.STORE_LOCAL_TIME) {
+            if (STORE_LOCAL_TIME) {
                 writeByte((byte) LOCAL_TIMESTAMP);
                 ValueTimestamp ts = (ValueTimestamp) v;
                 long dateValue = ts.getDateValue();
@@ -982,7 +991,7 @@ public class Data {
             return 1 + getVarIntLen(scale) + getVarIntLen(bytes.length) + bytes.length;
         }
         case Value.TIME:
-            if (SysProperties.STORE_LOCAL_TIME) {
+            if (STORE_LOCAL_TIME) {
                 long nanos = ((ValueTime) v).getNanos();
                 long millis = nanos / 1000000;
                 nanos -= millis * 1000000;
@@ -990,7 +999,7 @@ public class Data {
             }
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(v.getTime()));
         case Value.DATE: {
-            if (SysProperties.STORE_LOCAL_TIME) {
+            if (STORE_LOCAL_TIME) {
                 long dateValue = ((ValueDate) v).getDateValue();
                 return 1 + getVarLongLen(dateValue);
             }
@@ -998,7 +1007,7 @@ public class Data {
             return 1 + getVarLongLen(x / MILLIS_PER_MINUTE);
         }
         case Value.TIMESTAMP: {
-            if (SysProperties.STORE_LOCAL_TIME) {
+            if (STORE_LOCAL_TIME) {
                 ValueTimestamp ts = (ValueTimestamp) v;
                 long dateValue = ts.getDateValue();
                 long nanos = ts.getTimeNanos();

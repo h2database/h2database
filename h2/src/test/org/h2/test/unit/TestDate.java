@@ -15,8 +15,6 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.SysProperties;
-import org.h2.store.Data;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.util.DateTimeUtils;
@@ -25,8 +23,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueInt;
-import org.h2.value.ValueNull;
-import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 
@@ -57,7 +53,6 @@ public class TestDate extends TestBase {
         testValidDate();
         testAbsoluteDay();
         testCalculateLocalMillis();
-        testTimeOperationsAcrossTimeZones();
         testDateTimeUtils();
     }
 
@@ -434,62 +429,6 @@ public class TestDate extends TestBase {
             String s = y + "-" + (m < 10 ? "0" + m : m) +
                     "-" + (day < 10 ? "0" + day : day);
             System.out.println(s + "<>" + st + " " + TimeZone.getDefault().getID());
-        }
-    }
-
-    private void testTimeOperationsAcrossTimeZones() {
-        if (!SysProperties.STORE_LOCAL_TIME) {
-            return;
-        }
-        TimeZone defaultTimeZone = TimeZone.getDefault();
-        ArrayList<TimeZone> distinct = TestDate.getDistinctTimeZones();
-        Data d = Data.create(null, 10240);
-        try {
-            for (TimeZone tz : distinct) {
-                TimeZone.setDefault(tz);
-                DateTimeUtils.resetCalendar();
-                d.reset();
-                for (int m = 1; m <= 12; m++) {
-                    for (int h = 0; h <= 23; h++) {
-                        if (h == 0 || h == 2 || h == 3) {
-                            // those hours may not exist for all days in all
-                            // timezones because of daylight saving
-                            continue;
-                        }
-                        String s = "2000-" + (m < 10 ? "0" + m : m) +
-                                "-01 " + (h < 10 ? "0" + h : h) + ":00:00.0";
-                        d.writeValue(ValueString.get(s));
-                        d.writeValue(ValueTimestamp.get(Timestamp.valueOf(s)));
-                    }
-                }
-                d.writeValue(ValueNull.INSTANCE);
-                d.reset();
-                for (TimeZone target : distinct) {
-                    if ("Pacific/Kiritimati".equals(target.getID())) {
-                        // there is a problem with this time zone, but it seems
-                        // unrelated to this database (possibly wrong timezone
-                        // information?)
-                        continue;
-                    }
-                    TimeZone.setDefault(target);
-                    DateTimeUtils.resetCalendar();
-                    while (true) {
-                        Value v = d.readValue();
-                        if (v == ValueNull.INSTANCE) {
-                            break;
-                        }
-                        String a = v.getString();
-                        String b = d.readValue().getString();
-                        if (!a.equals(b)) {
-                            assertEquals("source: " + tz.getID() + " target: " +
-                                    target.getID(), a, b);
-                        }
-                    }
-                }
-            }
-        } finally {
-            TimeZone.setDefault(defaultTimeZone);
-            DateTimeUtils.resetCalendar();
         }
     }
 

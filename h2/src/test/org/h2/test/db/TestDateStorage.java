@@ -19,7 +19,6 @@ import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 
-import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.test.unit.TestDate;
 import org.h2.util.DateTimeUtils;
@@ -156,7 +155,7 @@ public class TestDateStorage extends TestBase {
         if (config.memory) {
             return;
         }
-        if (!SysProperties.STORE_LOCAL_TIME) {
+        if (config.mvStore) {
             return;
         }
         String db = getTestName() + ";LOG=0;FILE_LOCK=NO";

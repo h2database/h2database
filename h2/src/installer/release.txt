@@ -29,4 +29,7 @@ Add to http://twitter.com
 Close bugs: https://github.com/h2database/h2database/issues
 Update statistics
 
-
+Sign files and publish files on Maven Central
+http://central.sonatype.org/pages/ossrh-guide.html
+http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-*

@@ -582,6 +582,23 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/jts-1.13.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
+
+        mkdir("docs/javadocImpl3");
+        javadoc("-sourcepath", "src/main",
+                "-noindex",
+                "-tag", "h2.resource",
+                "-d", "docs/javadocImpl3",
+                "-classpath", System.getProperty("java.home") +
+                "/../lib/tools.jar" +
+                File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
+                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
+                File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
+                File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
+                File.pathSeparator + "ext/jts-1.13.jar",
+                "-subpackages", "org.h2.mvstore",
+                "-exclude", "org.h2.mvstore.db");
+
         System.setProperty("h2.interfacesOnly", "false");
         System.setProperty("h2.javadocDestDir", "docs/javadocImpl");
         javadoc("-sourcepath", "src/main" +
@@ -693,6 +710,50 @@ public class Build extends BuildBase {
                 "-DpomFile=bin/pom.xml",
                 "-DartifactId=h2",
                 "-DgroupId=com.h2database"));
+
+        // generate the h2-mvstore-*-sources.jar file
+        files = files("src/main");
+        copy("docs", files, "src/main");
+        files = files("docs").keep("docs/org/h2/mvstore/*").
+                exclude("docs/org/h2/mvstore/db/*").
+                keep("*.java");
+        files.addAll(files("docs").keep("docs/META-INF/*"));
+        manifest = new String(readFile(new File(
+                "src/installer/source-manifest.mf")));
+        manifest = replaceAll(manifest, "${version}", getVersion());
+        writeFile(new File("docs/META-INF/MANIFEST.MF"), manifest.getBytes());
+        jar("docs/h2-mvstore-" + getVersion() + "-sources.jar", files, "docs");
+        delete("docs/org");
+        delete("docs/META-INF");
+
+        // deploy the h2-mvstore-*-source.jar file
+        execScript("mvn", args(
+                "deploy:deploy-file",
+                "-Dfile=docs/h2-mvstore-" + getVersion() + "-sources.jar",
+                "-Durl=file:///data/h2database/m2-repo",
+                "-Dpackaging=jar",
+                "-Dclassifier=sources",
+                "-Dversion=" + getVersion(),
+                "-DartifactId=h2-mvstore",
+                "-DgroupId=com.h2database"
+                // ,"-DgeneratePom=false"
+                ));
+
+        // generate and deploy the h2-mvstore-*-javadoc.jar file
+        javadocImpl();
+        files = files("docs/javadocImpl3");
+        jar("docs/h2-mvstore-" + getVersion() + "-javadoc.jar", files, "docs/javadocImpl3");
+        execScript("mvn", args(
+                "deploy:deploy-file",
+                "-Dfile=docs/h2-mvstore-" + getVersion() + "-javadoc.jar",
+                "-Durl=file:///data/h2database/m2-repo",
+                "-Dpackaging=jar",
+                "-Dclassifier=javadoc",
+                "-Dversion=" + getVersion(),
+                "-DartifactId=h2-mvstore",
+                "-DgroupId=com.h2database"
+                // ,"-DgeneratePom=false"
+                ));
 
         // generate and deploy the h2-mvstore-*.jar file
         jarMVStore();

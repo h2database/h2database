@@ -242,7 +242,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
     }
 
-    private void setAutoCommitSend(boolean autoCommit) {
+    private synchronized void setAutoCommitSend(boolean autoCommit) {
         if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_8) {
             for (int i = 0, count = 0; i < transferList.size(); i++) {
                 Transfer transfer = transferList.get(i);

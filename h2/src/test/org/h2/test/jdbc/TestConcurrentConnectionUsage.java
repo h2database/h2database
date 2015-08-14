@@ -33,7 +33,6 @@ public class TestConcurrentConnectionUsage extends TestBase {
     }
 
     private void testAutoCommit() throws SQLException {
-;        config.networked = true;
         deleteDb(getTestName());
         final Connection conn = getConnection(getTestName());
         final PreparedStatement p1 = conn.prepareStatement("select 1 from dual");

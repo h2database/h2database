@@ -616,6 +616,9 @@ public class MetaTable extends Table {
     }
 
     private ArrayList<Table> getTablesByName(Session session, String tableName) {
+        if (database.getMode().lowerCaseIdentifiers) {
+            tableName = StringUtils.toUpperEnglish(tableName);
+        }
         ArrayList<Table> tables = database.getTableOrViewByName(tableName);
         for (Table temp : session.getLocalTempTables()) {
             if (temp.getName().equals(tableName)) {

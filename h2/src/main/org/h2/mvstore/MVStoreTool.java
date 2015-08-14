@@ -113,9 +113,9 @@ public class MVStoreTool {
                 block.rewind();
                 int headerType = block.get();
                 if (headerType == 'H') {
+                    String header = new String(block.array(), DataUtils.LATIN).trim();
                     pw.printf("%0" + len + "x fileHeader %s%n",
-                            pos,
-                            new String(block.array(), DataUtils.LATIN).trim());
+                            pos, header);
                     pos += blockSize;
                     continue;
                 }

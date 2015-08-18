@@ -1620,6 +1620,8 @@ public class Database implements DataHandler {
         int id = obj.getId();
         removeMeta(session, id);
         addMeta(session, obj);
+        // for temporary objects
+        objectIds.set(id);
     }
 
     /**

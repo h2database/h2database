@@ -73,12 +73,18 @@ public class DateTimeUtils {
     }
 
     /**
-     * Reset the calendar, for example after changing the default timezone.
+     * Reset the cached calendar for default timezone, for example after
+     * changing the default timezone.
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
     }
 
+    /**
+     * Get a calendar for the default timezone.
+     *
+     * @return a calendar instance. A cached instance is returned where possible
+     */
     private static Calendar getCalendar() {
         Calendar c = CACHED_CALENDAR.get();
         if (c == null) {
@@ -89,8 +95,10 @@ public class DateTimeUtils {
     }
 
     /**
+     * Get a calendar for the given timezone.
+     *
      * @param tz timezone for the calendar, is never null
-     * @return a calendar instance for the specified timezone. A cached instance is returned where possible
+     * @return a calendar instance. A cached instance is returned where possible
      */
     private static Calendar getCalendar(TimeZone tz) {
         Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();

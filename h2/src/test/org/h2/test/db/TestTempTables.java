@@ -56,8 +56,9 @@ public class TestTempTables extends TestBase {
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();
         stat.execute("create local temporary table test(id identity)");
-        PreparedStatement prep = conn.prepareStatement("insert into test values(null)");
-        for(int i=0; i<10000; i++) {
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(null)");
+        for (int i = 0; i < 10000; i++) {
             prep.execute();
         }
         stat.execute("create local temporary table test2(id identity) as select x from system_range(1, 10)");

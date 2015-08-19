@@ -83,6 +83,7 @@ import org.h2.test.jaqu.UpdateTest;
 import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
+import org.h2.test.jdbc.TestConcurrentConnectionUsage;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
 import org.h2.test.jdbc.TestJavaObject;
@@ -713,6 +714,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBatchUpdates());
         addTest(new TestCallableStatement());
         addTest(new TestCancel());
+        addTest(new TestConcurrentConnectionUsage());
         addTest(new TestDatabaseEventListener());
         addTest(new TestJavaObject());
         addTest(new TestLimitUpdates());

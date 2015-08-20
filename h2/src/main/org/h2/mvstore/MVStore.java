@@ -322,15 +322,11 @@ public class MVStore {
         o = config.get("cacheSize");
         int mb = o == null ? 16 : (Integer) o;
         if (mb > 0) {
-            long maxMemoryBytes = mb * 1024L * 1024L;
-            int segmentCount = 16;
-            int stackMoveDistance = 8;
-            cache = new CacheLongKeyLIRS<Page>(
-                    maxMemoryBytes,
-                    segmentCount, stackMoveDistance);
-            cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(
-                    maxMemoryBytes / 4,
-                    segmentCount, stackMoveDistance);
+            CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
+            cc.maxMemory = mb * 1024L * 1024L;
+            cache = new CacheLongKeyLIRS<Page>(cc);
+            cc.maxMemory /= 4;
+            cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(cc);
         }
         o = config.get("autoCommitBufferSize");
         int kb = o == null ? 1024 : (Integer) o;

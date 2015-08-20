@@ -110,11 +110,11 @@ public class TestCacheLongKeyLIRS extends TestBase {
             test.put(j, j);
         }
         // for a cache of size 1000,
-        // there are 62 cold entries (about 6.25%).
-        assertEquals(62, test.size() - test.sizeHot());
+        // there are 63 cold entries (about 6.25%).
+        assertEquals(63, test.size() - test.sizeHot());
         // at most as many non-resident elements
         // as there are entries in the stack
-        assertEquals(968, test.sizeNonResident());
+        assertEquals(999, test.sizeNonResident());
     }
 
     private void verifyMapSize(int elements, int expectedMapSize) {
@@ -344,13 +344,13 @@ public class TestCacheLongKeyLIRS extends TestBase {
         verify(test, "mem: 4 stack: 4 3 2 1 cold: 4 non-resident: 0");
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
         test.put(6, 60, 3);
-        verify(test, "mem: 4 stack: 6 3 cold: 6 non-resident:");
+        verify(test, "mem: 4 stack: 6 3 cold: 6 non-resident: 2 1");
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
         test.put(7, 70, 3);
-        verify(test, "mem: 4 stack: 7 6 3 cold: 7 non-resident: 6");
+        verify(test, "mem: 4 stack: 7 6 3 cold: 7 non-resident: 6 2");
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
         test.put(8, 80, 4);
-        verify(test, "mem: 4 stack: 8 cold: non-resident:");
+        verify(test, "mem: 4 stack: 8 cold: non-resident: 3");
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
     }
 
@@ -497,7 +497,11 @@ public class TestCacheLongKeyLIRS extends TestBase {
     }
 
     private static <V> CacheLongKeyLIRS<V> createCache(int maxSize) {
-        return new CacheLongKeyLIRS<V>(maxSize, 1, 0);
+        CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
+        cc.maxMemory = maxSize;
+        cc.segmentCount = 1;
+        cc.stackMoveDistance = 0;
+        return new CacheLongKeyLIRS<V>(cc);
     }
 
 }

@@ -1019,7 +1019,7 @@ public class Function extends Expression implements FunctionCall {
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
-                        int comp = database.compareTypeSave(result, v);
+                        int comp = database.compareTypeSafe(result, v);
                         if (info.type == GREATEST && comp < 0) {
                             result = v;
                         } else if (info.type == LEAST && comp > 0) {

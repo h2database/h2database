@@ -258,13 +258,13 @@ public class TestValue extends TestBase {
             Value v = useFloat ? (Value) ValueFloat.get((float) d[i])
                     : (Value) ValueDouble.get(d[i]);
             values[i] = v;
-            assertTrue(values[i].compareTypeSave(values[i], null) == 0);
+            assertTrue(values[i].compareTypeSafe(values[i], null) == 0);
             assertTrue(v.equals(v));
             assertEquals(i < 2 ? -1 : i > 2 ? 1 : 0, v.getSignum());
         }
         for (int i = 0; i < d.length - 1; i++) {
-            assertTrue(values[i].compareTypeSave(values[i+1], null) < 0);
-            assertTrue(values[i + 1].compareTypeSave(values[i], null) > 0);
+            assertTrue(values[i].compareTypeSafe(values[i+1], null) < 0);
+            assertTrue(values[i + 1].compareTypeSafe(values[i], null) > 0);
             assertTrue(!values[i].equals(values[i+1]));
         }
     }

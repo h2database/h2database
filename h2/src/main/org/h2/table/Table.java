@@ -1089,14 +1089,14 @@ public abstract class Table extends SchemaObjectBase {
      * @return 0 if both values are equal, -1 if the first value is smaller, and
      *         1 otherwise
      */
-    public int compareTypeSave(Value a, Value b) {
+    public int compareTypeSafe(Value a, Value b) {
         if (a == b) {
             return 0;
         }
         int dataType = Value.getHigherOrder(a.getType(), b.getType());
         a = a.convertTo(dataType);
         b = b.convertTo(dataType);
-        return a.compareTypeSave(b, compareMode);
+        return a.compareTypeSafe(b, compareMode);
     }
 
     public CompareMode getCompareMode() {

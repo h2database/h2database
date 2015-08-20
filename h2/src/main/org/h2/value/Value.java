@@ -913,7 +913,7 @@ public abstract class Value {
      * @return 0 if both values are equal, -1 if the other value is smaller, and
      *         1 otherwise
      */
-    public final int compareTypeSave(Value v, CompareMode mode) {
+    public final int compareTypeSafe(Value v, CompareMode mode) {
         if (this == v) {
             return 0;
         } else if (this == ValueNull.INSTANCE) {

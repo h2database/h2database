@@ -133,18 +133,18 @@ public class ValueDataType implements DataType {
         if (aNull || bNull) {
             return SortOrder.compareNull(aNull, sortType);
         }
-        int comp = compareTypeSave(a, b);
+        int comp = compareTypeSafe(a, b);
         if ((sortType & SortOrder.DESCENDING) != 0) {
             comp = -comp;
         }
         return comp;
     }
 
-    private int compareTypeSave(Value a, Value b) {
+    private int compareTypeSafe(Value a, Value b) {
         if (a == b) {
             return 0;
         }
-        return a.compareTypeSave(b, compareMode);
+        return a.compareTypeSafe(b, compareMode);
     }
 
     @Override

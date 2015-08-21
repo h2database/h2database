@@ -2293,8 +2293,9 @@ public class Parser {
             }
         } else if (aggregateType == Aggregate.GROUP_CONCAT) {
             Aggregate agg = null;
+            boolean distinct = readIf("DISTINCT");
+
             if (equalsToken("GROUP_CONCAT", aggregateName)) {
-                boolean distinct = readIf("DISTINCT");
                 agg = new Aggregate(Aggregate.GROUP_CONCAT,
                     readExpression(), currentSelect, distinct);
                 if (readIf("ORDER")) {
@@ -2308,8 +2309,13 @@ public class Parser {
             } else if (equalsToken("STRING_AGG", aggregateName)) {
                 // PostgreSQL compatibility: string_agg(expression, delimiter)
                 agg = new Aggregate(Aggregate.GROUP_CONCAT,
-                    readExpression(), currentSelect, false);
+                    readExpression(), currentSelect, distinct);
                 read(",");
+                if(readIf("ORDER")) {
+                   read("BY");
+                   agg.setGroupConcatOrder(parseSimpleOrderList());
+                }
+
                 agg.setGroupConcatSeparator(readExpression());
             }
             r = agg;

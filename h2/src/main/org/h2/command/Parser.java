@@ -5904,7 +5904,9 @@ public class Parser {
         readIf("DEFAULT");
         if (readIf("CHARSET")) {
             read("=");
-            read("UTF8");
+            if (!readIf("UTF8")) {
+                read("UTF8MB4");
+            }
         }
         if (temp) {
             if (readIf("ON")) {

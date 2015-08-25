@@ -4,13 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.h2.test.TestBase;
 
 /**
- * Test for check compatibility with posgresql function string_agg()
- *
- * */
+ * Test for check compatibility with PostgreSQL function string_agg()
+ */
 public class TestStringAggCompatibility extends TestBase {
 
     public static final String STRING_AGG_DB = "stringAgg";
@@ -28,10 +26,6 @@ public class TestStringAggCompatibility extends TestBase {
         conn = getConnection(STRING_AGG_DB);
 
         prepareDb();
-
-
-
-
 
         testWhenOrderByMissing();
         testWithOrderBy();
@@ -51,7 +45,6 @@ public class TestStringAggCompatibility extends TestBase {
         assertEquals("1, 2, 3", result.getString(1));
     }
 
-
     private ResultSet query(String q) throws SQLException {
         PreparedStatement st = conn.prepareStatement(q);
 
@@ -61,14 +54,11 @@ public class TestStringAggCompatibility extends TestBase {
     }
 
     private void prepareDb() throws SQLException {
-        exec("create table stringAgg(\n" +
-                " a int not null,\n" +
-                " b varchar(50) not null\n" +
-                ");");
+        exec("create table stringAgg(\n" + " a int not null,\n" + " b varchar(50) not null\n" + ");");
 
-           exec("insert into stringAgg values(1, '1')");
-           exec("insert into stringAgg values(1, '2')");
-           exec("insert into stringAgg values(1, '3')");
+        exec("insert into stringAgg values(1, '1')");
+        exec("insert into stringAgg values(1, '2')");
+        exec("insert into stringAgg values(1, '3')");
 
     }
 

@@ -52,6 +52,9 @@ public class ThreadDumpCleaner {
                 "at sun.nio.ch.ServerSocketChannelImpl.accept(?s).*?\n\n",
 
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
+                "at java.net.DualStackPlainSocketImpl.accept0(?s).*\n\n",
+
+        "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +
                 "at sun.nio.ch.EPollArrayWrapper.epollWait(?s).*?\n\n",
 
         "\".*?\".*?\n   java.lang.Thread.State:.*\n\t" +

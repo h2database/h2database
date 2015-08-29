@@ -174,8 +174,8 @@ public class TestTableEngines extends TestBase {
         stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
        
-        stat.executeUpdate("CREATE INDEX CBA ON T(C, B, A)");
-        stat.executeUpdate("CREATE INDEX BA ON T(B, A)");
+        stat.executeUpdate("CREATE INDEX IDX_CBA ON T(C, B, A)");
+        stat.executeUpdate("CREATE INDEX IDX_BA ON T(B, A)");
         
         List<List<Object>> dataSet = New.arrayList();
         
@@ -201,22 +201,22 @@ public class TestTableEngines extends TestBase {
         
         checkPlan(stat, "select * from t", "scan");
         
-        checkPlan(stat, "select * from t order by c", "CBA");
-        checkPlan(stat, "select * from t order by c, b", "CBA");
-        checkPlan(stat, "select * from t order by b", "BA");
-        checkPlan(stat, "select * from t order by b, a", "BA");
+        checkPlan(stat, "select * from t order by c", "IDX_CBA");
+        checkPlan(stat, "select * from t order by c, b", "IDX_CBA");
+        checkPlan(stat, "select * from t order by b", "IDX_BA");
+        checkPlan(stat, "select * from t order by b, a", "IDX_BA");
         checkPlan(stat, "select * from t order by b, c", "scan");
         checkPlan(stat, "select * from t order by a, b", "scan");
         checkPlan(stat, "select * from t order by a, c, b", "scan");
         
-        checkPlan(stat, "select * from t where b > ''", "BA");
-        checkPlan(stat, "select * from t where a > 0 and b > ''", "BA");
-        checkPlan(stat, "select * from t where b < ''", "BA");
-        checkPlan(stat, "select * from t where b < '' and c < 1", "CBA");
+        checkPlan(stat, "select * from t where b > ''", "IDX_BA");
+        checkPlan(stat, "select * from t where a > 0 and b > ''", "IDX_BA");
+        checkPlan(stat, "select * from t where b < ''", "IDX_BA");
+        checkPlan(stat, "select * from t where b < '' and c < 1", "IDX_CBA");
         checkPlan(stat, "select * from t where a = 0", "scan");
-        checkPlan(stat, "select * from t where a > 0 order by c, b", "CBA");
-        checkPlan(stat, "select * from t where a = 0 and c > 0", "CBA");
-        checkPlan(stat, "select * from t where a = 0 and b < 0", "BA");
+        checkPlan(stat, "select * from t where a > 0 order by c, b", "IDX_CBA");
+        checkPlan(stat, "select * from t where a = 0 and c > 0", "IDX_CBA");
+        checkPlan(stat, "select * from t where a = 0 and b < 0", "IDX_BA");
         
         assertEquals(6, ((Number) query(stat, "select count(*) from t").get(0).get(0)).intValue());
         

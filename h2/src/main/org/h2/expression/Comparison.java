@@ -18,6 +18,7 @@ import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueSpatial;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
@@ -293,8 +294,8 @@ public class Comparison extends Condition {
             result = database.compare(l, r) < 0;
             break;
         case SPATIAL_INTERSECTS: {
-            ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
-            ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
+            ValueSpatial lg = (ValueSpatial) l.convertToSpatial();
+            ValueSpatial rg = (ValueSpatial) r.convertToSpatial();
             result = lg.intersectsBoundingBox(rg);
             break;
         }

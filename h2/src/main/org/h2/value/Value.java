@@ -161,9 +161,14 @@ public abstract class Value {
     public static final int GEOMETRY = 22;
 
     /**
+     * The value type for georeferenced raster.
+     */
+    public static final int GEORASTER = 23;
+    
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = GEOMETRY + 1;
+    public static final int TYPE_COUNT = GEORASTER + 1;
 
     private static SoftReference<Value[]> softCache =
             new SoftReference<Value[]>(null);
@@ -309,6 +314,8 @@ public abstract class Value {
             return 43;
         case GEOMETRY:
             return 44;
+        case GEORASTER:
+            return 45;
         case ARRAY:
             return 50;
         case RESULT_SET:
@@ -750,6 +757,7 @@ public abstract class Value {
             case BYTES: {
                 switch (getType()) {
                 case JAVA_OBJECT:
+                case GEORASTER:
                 case BLOB:
                     return ValueBytes.getNoCopy(getBytesNoCopy());
                 case UUID:
@@ -882,6 +890,8 @@ public abstract class Value {
             case BLOB:
                 return ValueLobDb.createSmallLob(
                         BLOB, StringUtils.convertHexToBytes(s.trim()));
+            case GEORASTER:
+                return ValueLobDb.createSmallLob(GEORASTER, StringUtils.convertHexToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {
@@ -901,6 +911,19 @@ public abstract class Value {
         } catch (NumberFormatException e) {
             throw DbException.get(
                     ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
+        }
+    }
+
+    /**
+     * Compare a value to the spatial types.
+     *
+     * @return the converted value
+     */
+    public Value convertToSpatial() {
+        try {
+            return convertTo(GEOMETRY);
+        } catch (DbException e) {
+            return convertTo(GEORASTER);
         }
     }
 
@@ -1166,6 +1189,10 @@ public abstract class Value {
      */
     public interface ValueBlob {
         // this is a marker interface
+    }
+
+    public interface ValueRaster {
+
     }
 
 }

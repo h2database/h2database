@@ -34,6 +34,7 @@ import org.h2.test.db.TestExclusive;
 import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctionOverload;
 import org.h2.test.db.TestFunctions;
+import org.h2.test.db.TestGeoRaster;
 import org.h2.test.db.TestIndex;
 import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
@@ -670,6 +671,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFullText());
         addTest(new TestFunctionOverload());
         addTest(new TestFunctions());
+        addTest(new TestGeoRaster());
         addTest(new TestInit());
         addTest(new TestIndex());
         addTest(new TestLargeBlob());

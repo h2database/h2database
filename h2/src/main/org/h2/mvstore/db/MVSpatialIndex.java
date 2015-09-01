@@ -37,6 +37,8 @@ import org.h2.value.ValueNull;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
+import org.h2.value.ValueSpatial;
+
 /**
  * This is an index based on a MVRTreeMap.
  *

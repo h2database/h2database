@@ -1,6 +1,12 @@
 /*
+<<<<<<< HEAD
  * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
+=======
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+>>>>>>> oldh2repo/h2raster_2014_03_18
  * Initial Developer: H2 Group
  *
  * The variable size number format code is a port from SQLite,
@@ -614,6 +620,7 @@ public class Data {
             }
             break;
         }
+        case Value.GEORASTER:
         case Value.BLOB:
         case Value.CLOB: {
             writeByte((byte) type);
@@ -1035,6 +1042,7 @@ public class Data {
         }
         case Value.UUID:
             return 1 + LENGTH_LONG + LENGTH_LONG;
+        case Value.GEORASTER:
         case Value.BLOB:
         case Value.CLOB: {
             int len = 1;

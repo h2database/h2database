@@ -1,7 +1,13 @@
 /*
+<<<<<<< HEAD
  * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
+=======
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License, Version
+ * 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html). Initial Developer: H2 Group
+>>>>>>> oldh2repo/h2raster_2014_03_18
  */
 package org.h2.index;
 
@@ -27,6 +33,8 @@ import org.h2.value.ValueNull;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+
+import org.h2.value.ValueSpatial;
 
 /**
  * This is an index based on a MVR-TreeMap.
@@ -144,6 +152,19 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                 (float) env.getMinY(), (float) env.getMaxY());
     }
 
+    private SpatialKey getEnvelope(SearchRow row) {
+        Value v = row.getValue(columnIds[0]);
+        if(v instanceof ValueSpatial) {
+            ValueSpatial vs = (ValueSpatial) v;
+            Envelope env = vs.getEnvelope();
+            return new SpatialKey(row.getKey(),
+                (float) env.getMinX(), (float) env.getMaxX(),
+                (float) env.getMinY(), (float) env.getMaxY());
+        }
+        return null;
+>>>>>>> oldh2repo/h2raster_2014_03_18
+    }
+
     @Override
     public void remove(Session session, Row row) {
         if (closed) {
@@ -212,6 +233,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
             SortOrder sortOrder) {
         return getCostRangeIndex(masks, table.getRowCountApproximation(),
                 filter, sortOrder);
+    }
+
+    @Override
+    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+        return getCostRangeIndex(masks, table.getRowCountApproximation(), filter, sortOrder);
+>>>>>>> oldh2repo/h2raster_2014_03_18
     }
 
     @Override

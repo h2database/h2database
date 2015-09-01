@@ -5,6 +5,8 @@
  */
 package org.h2.value;
 
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.io.ByteOrderValues;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -36,7 +38,7 @@ import org.h2.util.Utils;
  * Large objects are either stored in the database, or in temporary files.
  */
 public class ValueLobDb extends Value implements Value.ValueClob,
-        Value.ValueBlob {
+        Value.ValueBlob, Value.ValueRaster, ValueSpatial {
 
     private final int type;
     private final long lobId;
@@ -679,4 +681,85 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         return new ValueLobDb(type, small, precision);
     }
 
+    @Override
+    public Envelope getEnvelope() {
+        if (getType() == Value.GEORASTER) {
+            InputStream input = getInputStream();
+
+            try {
+                byte[] buffer = new byte[8];
+
+                // Retrieve the endian value
+                input.read(buffer, 0, 1);
+                int endian = buffer[0]==1 ? ByteOrderValues.LITTLE_ENDIAN  : ByteOrderValues.BIG_ENDIAN;
+
+                // Skip the bytes related to the version and the number of bands
+                input.skip(4);
+
+                // Retrieve scale values
+                input.read(buffer,0,8);
+                double scaleX = ByteOrderValues.getDouble(buffer, endian);
+
+                input.read(buffer,0,8);
+                double scaleY = ByteOrderValues.getDouble(buffer, endian);
+
+                // Retrieve ip values
+                input.read(buffer,0,8);
+                double ipX = ByteOrderValues.getDouble(buffer, endian);
+
+                input.read(buffer,0,8);
+                double ipY = ByteOrderValues.getDouble(buffer, endian);
+
+                // Retrieve skew values
+                input.read(buffer,0,8);
+                double skewX = ByteOrderValues.getDouble(buffer, endian);
+
+                input.read(buffer,0,8);
+                double skewY = ByteOrderValues.getDouble(buffer, endian);
+
+                // Retrieve the srid value
+                input.read(buffer,0,4);
+                long srid = ValueGeoRaster.getUnsignedInt32(buffer, endian);
+
+                // Retrieve width and height values
+                input.read(buffer,0,2);
+                short width = ValueGeoRaster.getShort(buffer, endian);
+
+                input.read(buffer,0,2);
+                short height = ValueGeoRaster.getShort(buffer, endian);
+
+                // Calculate the four points of the envelope and keep max and min values for x and y
+                double xMax = ipX;
+                double yMax = ipY;
+                double xMin = ipX;
+                double yMin = ipY;
+
+                xMax = Math.max(xMax,ipX + width*scaleX);
+                xMin = Math.min(xMin,ipX + width*scaleX);
+                yMax = Math.max(yMax,ipY + width*scaleY);
+                yMin = Math.min(yMin,ipY + width*scaleY);
+
+                xMax = Math.max(xMax,ipX + height*skewX);
+                xMin = Math.min(xMin,ipX + height*skewX);
+                yMax = Math.max(yMax,ipY + height*skewY);
+                yMin = Math.min(yMin,ipY + height*skewY);
+
+                xMax = Math.max(xMax,ipX + width*scaleX + height*skewX);
+                xMin = Math.min(xMin,ipX + width*scaleX + height*skewX);
+                yMax = Math.max(yMax,ipY + width*scaleY + height*skewY);
+                yMin = Math.min(yMin,ipY + width*scaleY + height*skewY);
+
+                return new Envelope(xMax, xMin, yMax, yMin);
+
+            } catch (IOException ex) {
+                throw DbException.throwInternalError("H2 is unable to read the raster. " + ex.getMessage());
+            }
+        }
+        throw DbException.throwInternalError("The envelope can be computed only for GeoRaster type.");
+    }
+
+    @Override
+    public boolean intersectsBoundingBox(ValueSpatial vs) {
+        return getEnvelope().intersects(vs.getEnvelope());
+    }
 }

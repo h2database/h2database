@@ -1,6 +1,12 @@
 /*
+<<<<<<< HEAD
  * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
+=======
+ * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
+ * Version 1.0, and under the Eclipse Public License, Version 1.0
+ * (http://h2database.com/html/license.html).
+>>>>>>> oldh2repo/h2raster_2014_03_18
  * Initial Developer: H2 Group
  */
 package org.h2.test.unit;
@@ -23,30 +29,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
-import org.h2.value.CompareMode;
-import org.h2.value.DataType;
-import org.h2.value.Value;
-import org.h2.value.ValueArray;
-import org.h2.value.ValueBoolean;
-import org.h2.value.ValueByte;
-import org.h2.value.ValueBytes;
-import org.h2.value.ValueDate;
-import org.h2.value.ValueDecimal;
-import org.h2.value.ValueDouble;
-import org.h2.value.ValueFloat;
-import org.h2.value.ValueGeometry;
-import org.h2.value.ValueInt;
-import org.h2.value.ValueJavaObject;
-import org.h2.value.ValueLong;
-import org.h2.value.ValueNull;
-import org.h2.value.ValueResultSet;
-import org.h2.value.ValueShort;
-import org.h2.value.ValueString;
-import org.h2.value.ValueStringFixed;
-import org.h2.value.ValueStringIgnoreCase;
-import org.h2.value.ValueTime;
-import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueUuid;
+import org.h2.value.*;
 
 /**
  * Tests the memory consumption of values. Values can estimate how much memory
@@ -161,7 +144,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.DATE:
             return ValueDate.get(new java.sql.Date(random.nextLong()));
         case Value.TIMESTAMP:
+<<<<<<< HEAD
             return ValueTimestamp.fromMillis(random.nextLong());
+=======
+            return ValueTimestamp.get(new java.sql.Timestamp(random.nextLong()));
+>>>>>>> oldh2repo/h2raster_2014_03_18
         case Value.BYTES:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
         case Value.STRING:
@@ -200,7 +187,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
             }
             return ValueGeometry.get("POINT (" + random.nextInt(100) + " " +
                     random.nextInt(100) + ")");
-        default:
+        case Value.GEORASTER:
+            if (DataType.GEOMETRY_CLASS == null) {
+                return ValueNull.INSTANCE;
+            }
+            return ValueGeoRaster.createEmptyGeoRaster(1, 1, random.nextInt(100), random.nextInt(100), 0, 0, 0, 1, 1);
+            default:
             throw new AssertionError("type=" + type);
         }
     }

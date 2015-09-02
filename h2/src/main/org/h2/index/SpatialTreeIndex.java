@@ -162,7 +162,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                 (float) env.getMinY(), (float) env.getMaxY());
         }
         return null;
->>>>>>> oldh2repo/h2raster_2014_03_18
     }
 
     @Override
@@ -233,12 +232,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
             SortOrder sortOrder) {
         return getCostRangeIndex(masks, table.getRowCountApproximation(),
                 filter, sortOrder);
-    }
-
-    @Override
-    public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(), filter, sortOrder);
->>>>>>> oldh2repo/h2raster_2014_03_18
     }
 
     @Override

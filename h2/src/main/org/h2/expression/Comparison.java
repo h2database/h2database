@@ -14,11 +14,7 @@ import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
-import org.h2.value.Value;
-import org.h2.value.ValueBoolean;
-import org.h2.value.ValueGeometry;
-import org.h2.value.ValueNull;
-import org.h2.value.ValueSpatial;
+import org.h2.value.*;
 
 /**
  * Example comparison expressions are ID=1, NAME=NAME, NAME IS NULL.
@@ -252,9 +248,13 @@ public class Comparison extends Condition {
                 return ValueNull.INSTANCE;
             }
         }
-        int dataType = Value.getHigherOrder(left.getType(), right.getType());
-        l = l.convertTo(dataType);
-        r = r.convertTo(dataType);
+        // && operator support mix of argument type GEOMETRY and GEORASTER
+        if(compareType != SPATIAL_INTERSECTS || !DataType.isSpatialType(l.getType())
+                || !DataType.isSpatialType(r.getType())) {
+            int dataType = Value.getHigherOrder(left.getType(), right.getType());
+            l = l.convertTo(dataType);
+            r = r.convertTo(dataType);
+        }
         boolean result = compareNotNull(database, l, r, compareType);
         return ValueBoolean.get(result);
     }

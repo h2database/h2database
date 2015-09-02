@@ -144,11 +144,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.DATE:
             return ValueDate.get(new java.sql.Date(random.nextLong()));
         case Value.TIMESTAMP:
-<<<<<<< HEAD
             return ValueTimestamp.fromMillis(random.nextLong());
-=======
-            return ValueTimestamp.get(new java.sql.Timestamp(random.nextLong()));
->>>>>>> oldh2repo/h2raster_2014_03_18
         case Value.BYTES:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
         case Value.STRING:

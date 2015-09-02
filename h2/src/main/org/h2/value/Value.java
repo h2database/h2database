@@ -1191,8 +1191,11 @@ public abstract class Value {
         // this is a marker interface
     }
 
+    /**
+     * A "large georaster object"
+     */
     public interface ValueRaster {
-
+        // this is a marker interface
     }
 
 }

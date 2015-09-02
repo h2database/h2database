@@ -359,6 +359,11 @@ public class DataType {
                 new String[]{"GEOMETRY"},
                 32
         );
+        add(Value.GEORASTER, Types.OTHER, "Georaster",
+                createLob(),
+                new String[]{"GEORASTER"},
+                104
+        );
         DataType dataType = new DataType();
         dataType.prefix = "(";
         dataType.suffix = "')";
@@ -1177,6 +1182,16 @@ public class DataType {
         }
         throw DbException.throwInternalError(
                 "primitive=" + clazz.toString());
+    }
+
+    /**
+     * Return whether the type in parameter can be used for spatial index or not.
+     *
+     * @param type the type to test
+     * @return true if type is spatial
+     */
+    public static boolean isSpatialType(int type) {
+        return (type == Value.GEOMETRY || type == Value.GEORASTER);
     }
 
     /**

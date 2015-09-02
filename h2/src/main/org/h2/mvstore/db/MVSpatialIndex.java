@@ -87,7 +87,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             throw DbException.getUnsupportedException(
                     "Nulls last is not supported");
         }
-        if (col.column.getType() != Value.GEOMETRY) {
+        if (col.column.getType() != Value.GEOMETRY && col.column.getType() != Value.GEORASTER) {
             throw DbException.getUnsupportedException(
                     "Spatial index on non-geometry column, "
                     + col.column.getCreateSQL());
@@ -216,8 +216,17 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         if (v == ValueNull.INSTANCE) {
             return new SpatialKey(row.getKey());
         }
-        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
-        Envelope env = g.getEnvelopeInternal();
+        ValueSpatial vs;
+        if(v instanceof ValueSpatial) {
+            vs = (ValueSpatial) v;
+        } else {
+            try {
+                vs = (ValueSpatial) v.convertTo(Value.GEOMETRY);
+            } catch (DbException ex) {
+                vs = (ValueSpatial) v.convertTo(Value.GEORASTER);
+            }
+        }
+        Envelope env = vs.getEnvelope();
         return new SpatialKey(row.getKey(),
                 (float) env.getMinX(), (float) env.getMaxX(),
                 (float) env.getMinY(), (float) env.getMaxY());

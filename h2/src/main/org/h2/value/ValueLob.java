@@ -58,19 +58,19 @@ public class ValueLob extends Value {
      */
     private static int dirCounter;
 
-    private final int type;
-    private long precision;
-    private DataHandler handler;
-    private int tableId;
-    private int objectId;
-    private String fileName;
-    private boolean linked;
-    private byte[] small;
-    private int hash;
-    private boolean compressed;
+    protected final int type;
+    protected long precision;
+    protected DataHandler handler;
+    protected int tableId;
+    protected int objectId;
+    protected String fileName;
+    protected boolean linked;
+    protected byte[] small;
+    protected int hash;
+    protected boolean compressed;
     private FileStore tempFile;
 
-    private ValueLob(int type, DataHandler handler, String fileName,
+    protected ValueLob(int type, DataHandler handler, String fileName,
             int tableId, int objectId, boolean linked, long precision,
             boolean compressed) {
         this.type = type;
@@ -366,7 +366,7 @@ public class ValueLob extends Value {
      * @param handler the data handler
      * @return the lob value
      */
-    private static ValueLob createBlob(InputStream in, long length,
+    protected static ValueLob createBlob(InputStream in, long length,
             DataHandler handler) {
         try {
             if (handler == null) {

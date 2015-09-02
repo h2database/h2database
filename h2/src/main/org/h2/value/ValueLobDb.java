@@ -691,7 +691,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
                 // Retrieve the endian value
                 input.read(buffer, 0, 1);
-                int endian = buffer[0]==1 ? ByteOrderValues.LITTLE_ENDIAN  : ByteOrderValues.BIG_ENDIAN;
+                int endian = buffer[0]==1 ? ByteOrderValues.LITTLE_ENDIAN : ByteOrderValues.BIG_ENDIAN;
 
                 // Skip the bytes related to the version and the number of bands
                 input.skip(4);

@@ -359,9 +359,9 @@ public class DataType {
                 new String[]{"GEOMETRY"},
                 32
         );
-        add(Value.GEORASTER, Types.OTHER, "Georaster",
+        add(Value.RASTER, Types.OTHER, "Raster",
                 createLob(),
-                new String[]{"GEORASTER"},
+                new String[]{"RASTER"},
                 104
         );
         DataType dataType = new DataType();
@@ -1191,7 +1191,7 @@ public class DataType {
      * @return true if type is spatial
      */
     public static boolean isSpatialType(int type) {
-        return (type == Value.GEOMETRY || type == Value.GEORASTER);
+        return (type == Value.GEOMETRY || type == Value.RASTER);
     }
 
     /**

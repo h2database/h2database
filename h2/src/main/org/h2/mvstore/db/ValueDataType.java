@@ -358,7 +358,7 @@ public class ValueDataType implements DataType {
             }
             break;
         }
-        case Value.GEORASTER:
+        case Value.RASTER:
         case Value.BLOB:
         case Value.CLOB: {
             buff.put((byte) type);
@@ -524,7 +524,7 @@ public class ValueDataType implements DataType {
         case Value.FLOAT:
             return ValueFloat.get(Float.intBitsToFloat(
                     Integer.reverse(readVarInt(buff))));
-        case Value.GEORASTER:
+        case Value.RASTER:
         case Value.BLOB:
         case Value.CLOB: {
             int smallLen = readVarInt(buff);

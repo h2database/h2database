@@ -248,7 +248,7 @@ public class Comparison extends Condition {
                 return ValueNull.INSTANCE;
             }
         }
-        // && operator support mix of argument type GEOMETRY and GEORASTER
+        // && operator support mix of argument type GEOMETRY and RASTER
         if(compareType != SPATIAL_INTERSECTS || !DataType.isSpatialType(l.getType())
                 || !DataType.isSpatialType(r.getType())) {
             int dataType = Value.getHigherOrder(left.getType(), right.getType());

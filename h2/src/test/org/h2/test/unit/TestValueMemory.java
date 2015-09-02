@@ -183,11 +183,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
             }
             return ValueGeometry.get("POINT (" + random.nextInt(100) + " " +
                     random.nextInt(100) + ")");
-        case Value.GEORASTER:
+        case Value.RASTER:
             if (DataType.GEOMETRY_CLASS == null) {
                 return ValueNull.INSTANCE;
             }
-            return ValueGeoRaster.createEmptyGeoRaster(1, 1, random.nextInt(100), random.nextInt(100), 0, 0, 0, 1, 1);
+            return ValueRaster.createEmptyGeoRaster(1, 1, random.nextInt(100), random.nextInt(100), 0, 0, 0, 1, 1);
             default:
             throw new AssertionError("type=" + type);
         }

@@ -30,12 +30,10 @@ import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
-import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
 
 import org.h2.value.ValueSpatial;
 
@@ -87,7 +85,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             throw DbException.getUnsupportedException(
                     "Nulls last is not supported");
         }
-        if (col.column.getType() != Value.GEOMETRY && col.column.getType() != Value.GEORASTER) {
+        if (col.column.getType() != Value.GEOMETRY && col.column.getType() != Value.RASTER) {
             throw DbException.getUnsupportedException(
                     "Spatial index on non-geometry column, "
                     + col.column.getCreateSQL());
@@ -223,7 +221,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
             try {
                 vs = (ValueSpatial) v.convertTo(Value.GEOMETRY);
             } catch (DbException ex) {
-                vs = (ValueSpatial) v.convertTo(Value.GEORASTER);
+                vs = (ValueSpatial) v.convertTo(Value.RASTER);
             }
         }
         Envelope env = vs.getEnvelope();

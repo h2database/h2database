@@ -683,7 +683,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public Envelope getEnvelope() {
-        if (getType() == Value.GEORASTER) {
+        if (getType() == Value.RASTER) {
             InputStream input = getInputStream();
 
             try {
@@ -719,14 +719,14 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
                 // Retrieve the srid value
                 input.read(buffer,0,4);
-                long srid = ValueGeoRaster.getUnsignedInt32(buffer, endian);
+                long srid = org.h2.value.ValueRaster.getUnsignedInt32(buffer, endian);
 
                 // Retrieve width and height values
                 input.read(buffer,0,2);
-                short width = ValueGeoRaster.getShort(buffer, endian);
+                short width = org.h2.value.ValueRaster.getShort(buffer, endian);
 
                 input.read(buffer,0,2);
-                short height = ValueGeoRaster.getShort(buffer, endian);
+                short height = org.h2.value.ValueRaster.getShort(buffer, endian);
 
                 // Calculate the four points of the envelope and keep max and min values for x and y
                 double xMax = ipX;
@@ -755,7 +755,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 throw DbException.throwInternalError("H2 is unable to read the raster. " + ex.getMessage());
             }
         }
-        throw DbException.throwInternalError("The envelope can be computed only for GeoRaster type.");
+        throw DbException.throwInternalError("The envelope can be computed only for Raster type.");
     }
 
     @Override

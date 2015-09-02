@@ -163,12 +163,12 @@ public abstract class Value {
     /**
      * The value type for georeferenced raster.
      */
-    public static final int GEORASTER = 23;
+    public static final int RASTER = 23;
     
     /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = GEORASTER + 1;
+    public static final int TYPE_COUNT = RASTER + 1;
 
     private static SoftReference<Value[]> softCache =
             new SoftReference<Value[]>(null);
@@ -314,7 +314,7 @@ public abstract class Value {
             return 43;
         case GEOMETRY:
             return 44;
-        case GEORASTER:
+        case RASTER:
             return 45;
         case ARRAY:
             return 50;
@@ -757,7 +757,7 @@ public abstract class Value {
             case BYTES: {
                 switch (getType()) {
                 case JAVA_OBJECT:
-                case GEORASTER:
+                case RASTER:
                 case BLOB:
                     return ValueBytes.getNoCopy(getBytesNoCopy());
                 case UUID:
@@ -890,8 +890,8 @@ public abstract class Value {
             case BLOB:
                 return ValueLobDb.createSmallLob(
                         BLOB, StringUtils.convertHexToBytes(s.trim()));
-            case GEORASTER:
-                return ValueLobDb.createSmallLob(GEORASTER, StringUtils.convertHexToBytes(s.trim()));
+            case RASTER:
+                return ValueLobDb.createSmallLob(RASTER, StringUtils.convertHexToBytes(s.trim()));
             case ARRAY:
                 return ValueArray.get(new Value[]{ValueString.get(s)});
             case RESULT_SET: {
@@ -923,7 +923,7 @@ public abstract class Value {
         try {
             return convertTo(GEOMETRY);
         } catch (DbException e) {
-            return convertTo(GEORASTER);
+            return convertTo(RASTER);
         }
     }
 
@@ -1192,7 +1192,7 @@ public abstract class Value {
     }
 
     /**
-     * A "large georaster object"
+     * A "large raster object"
      */
     public interface ValueRaster {
         // this is a marker interface

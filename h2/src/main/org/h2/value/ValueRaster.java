@@ -19,10 +19,10 @@ import com.vividsolutions.jts.geom.Envelope;
  *
  * @author Thomas Crevoisier, Jules Party
  */
-public class ValueGeoRaster extends ValueLob implements ValueSpatial {
+public class ValueRaster extends ValueLob implements ValueSpatial {
 
     /**
-     * Get or create a georaster value for the given byte array.
+     * Get or create a raster value for the given byte array.
      *
      * @param bytesNoCopy the byte array
      * @return the value
@@ -30,30 +30,30 @@ public class ValueGeoRaster extends ValueLob implements ValueSpatial {
     public static Value get(byte[] bytesNoCopy) {
         InputStream bytesStream = new ByteArrayInputStream(bytesNoCopy);
         long len = bytesNoCopy.length;
-        return ValueGeoRaster.createGeoRaster(bytesStream, len, null);
+        return org.h2.value.ValueRaster.createGeoRaster(bytesStream, len, null);
     }
 
 
     /**
-     * Create a GeoRaster from a value lob.
+     * Create a raster from a value lob.
      * 
      * @param v the ValueLob containing the data of the raster
      */
-    private ValueGeoRaster (ValueLob v){
+    private ValueRaster(ValueLob v){
         super(v.type , v.handler, v.fileName, v.tableId, v.objectId, v.linked, v.precision, v.compressed);
         small = v.small;
         hash = v.hash;
     }
     
     /**
-     * Create an empty GeoRaster with given parameters.
+     * Create an empty Raster with given parameters.
      *
-     * @param width the width of the GeoRaster (in pixels)
-     * @param height the height of the GeoRaster (in pixels)
+     * @param width the width of the Raster (in pixels)
+     * @param height the height of the Raster (in pixels)
      *
-     * @return an empty GeoRaster of given dimension.
+     * @return an empty Raster of given dimension.
      */
-    public static ValueGeoRaster createEmptyGeoRaster(double scaleX, double scaleY,
+    public static org.h2.value.ValueRaster createEmptyGeoRaster(double scaleX, double scaleY,
             double ipX, double ipY, double skewX, double skewY, long srid,
             int width, int height) {
         String hexaRast = "0000000000";
@@ -69,19 +69,19 @@ public class ValueGeoRaster extends ValueLob implements ValueSpatial {
         byte[] bytes = hexStringToByteArray(hexaRast);
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         long len = bytes.length;
-        return ValueGeoRaster.createGeoRaster(bytesStream, len, null);
+        return org.h2.value.ValueRaster.createGeoRaster(bytesStream, len, null);
     }
 
     /**
-     * Create a GeoRaster from a given byte input stream
+     * Create a Raster from a given byte input stream
      * 
-     * @param in the InputStream to build the GeoRaster from
+     * @param in the InputStream to build the Raster from
      * 
      * @return the ValueGeoRaster created
      */
-    public static ValueGeoRaster createGeoRaster(InputStream in, long length, DataHandler handler){
-        ValueGeoRaster geoRaster = new ValueGeoRaster(ValueLob.createBlob(in, length, handler));
-        return geoRaster;
+    public static org.h2.value.ValueRaster createGeoRaster(InputStream in, long length, DataHandler handler){
+        org.h2.value.ValueRaster raster = new org.h2.value.ValueRaster(ValueLob.createBlob(in, length, handler));
+        return raster;
     }
 
     /**
@@ -299,9 +299,9 @@ public class ValueGeoRaster extends ValueLob implements ValueSpatial {
     }
 
     /**
-     * Create an envelope based on the inputstream of the georaster
+     * Create an envelope based on the inputstream of the raster
      *
-     * @return the envelope of the georaster
+     * @return the envelope of the raster
      */
     @Override
     public Envelope getEnvelope(){
@@ -502,7 +502,7 @@ public class ValueGeoRaster extends ValueLob implements ValueSpatial {
 
     @Override
     public int getType() {
-        return Value.GEORASTER;
+        return Value.RASTER;
     }
 
     @Override

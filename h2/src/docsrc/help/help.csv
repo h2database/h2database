@@ -1481,6 +1481,19 @@ Admin rights are required to execute this command, as it affects all connections
 SET QUERY_STATISTICS FALSE
 "
 
+"Commands (Other)","SET QUERY_STATISTICS_MAX_ENTRIES","
+SET QUERY_STATISTICS int
+","
+Set the maximum number of entries in query statistics meta-table.
+Default value is 100.
+
+This setting is not persistent.
+This command commits an open transaction in this connection.
+Admin rights are required to execute this command, as it affects all connections.
+","
+SET QUERY_STATISTICS_MAX_ENTRIES 500
+"
+
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","

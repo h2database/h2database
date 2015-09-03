@@ -189,6 +189,7 @@ public class Database implements DataHandler {
     private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
     private boolean queryStatistics;
+    private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
 
     public Database(ConnectionInfo ci, String cipher) {
@@ -2260,6 +2261,17 @@ public class Database implements DataHandler {
         return queryStatistics;
     }
 
+    public void setQueryStatisticsMaxEntries(int n) {
+        queryStatisticsMaxEntries = n;
+        if (queryStatisticsData != null) {
+            synchronized (this) {
+                if (queryStatisticsData != null) {
+                    queryStatisticsData.setMaxQueryEntries(queryStatisticsMaxEntries);
+                }
+            }
+        }
+    }
+
     public QueryStatisticsData getQueryStatisticsData() {
         if (!queryStatistics) {
             return null;
@@ -2267,7 +2279,7 @@ public class Database implements DataHandler {
         if (queryStatisticsData == null) {
             synchronized (this) {
                 if (queryStatisticsData == null) {
-                    queryStatisticsData = new QueryStatisticsData();
+                    queryStatisticsData = new QueryStatisticsData(queryStatisticsMaxEntries);
                 }
             }
         }

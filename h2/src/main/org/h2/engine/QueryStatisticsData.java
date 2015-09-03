@@ -19,8 +19,6 @@ import java.util.Map.Entry;
  */
 public class QueryStatisticsData {
 
-    private static final int MAX_QUERY_ENTRIES = 100;
-
     private static final Comparator<QueryEntry> QUERY_ENTRY_COMPARATOR =
             new Comparator<QueryEntry>() {
         @Override
@@ -32,6 +30,16 @@ public class QueryStatisticsData {
     private final HashMap<String, QueryEntry> map =
             new HashMap<String, QueryEntry>();
 
+    private int maxQueryEntries;
+
+    public QueryStatisticsData(int maxQueryEntries) {
+        this.maxQueryEntries = maxQueryEntries;
+    }
+
+    public synchronized void setMaxQueryEntries(int maxQueryEntries) {
+        this.maxQueryEntries = maxQueryEntries;
+    }
+
     public synchronized List<QueryEntry> getQueries() {
         // return a copy of the map so we don't have to
         // worry about external synchronization
@@ -39,7 +47,7 @@ public class QueryStatisticsData {
         list.addAll(map.values());
         // only return the newest 100 entries
         Collections.sort(list, QUERY_ENTRY_COMPARATOR);
-        return list.subList(0, Math.min(list.size(), MAX_QUERY_ENTRIES));
+        return list.subList(0, Math.min(list.size(), maxQueryEntries));
     }
 
     /**
@@ -62,7 +70,7 @@ public class QueryStatisticsData {
 
         // Age-out the oldest entries if the map gets too big.
         // Test against 1.5 x max-size so we don't do this too often
-        if (map.size() > MAX_QUERY_ENTRIES * 1.5f) {
+        if (map.size() > maxQueryEntries * 1.5f) {
             // Sort the entries by age
             ArrayList<QueryEntry> list = new ArrayList<QueryEntry>();
             list.addAll(map.values());

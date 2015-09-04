@@ -505,6 +505,11 @@ public class Constants {
      */
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
 
+    /**
+     * The maximum number of entries in query statistics.
+     */
+    public static final int QUERY_STATISTICS_MAX_ENTRIES = 100;
+
     private Constants() {
         // utility class
     }

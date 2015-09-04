@@ -393,6 +393,16 @@ public class Set extends Prepared {
             database.setQueryStatistics(value == 1);
             break;
         }
+        case SetTypes.QUERY_STATISTICS_MAX_ENTRIES: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            if (value < 1) {
+                throw DbException.getInvalidValueException("QUERY_STATISTICS_MAX_ENTRIES",
+                        getIntValue());
+            }
+            database.setQueryStatisticsMaxEntries(value);
+            break;
+        }
         case SetTypes.SCHEMA: {
             Schema schema = database.getSchema(stringValue);
             session.setCurrentSchema(schema);

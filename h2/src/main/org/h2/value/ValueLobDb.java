@@ -685,75 +685,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     public Envelope getEnvelope() {
         if (getType() == Value.RASTER) {
             InputStream input = getInputStream();
-
-            try {
-                byte[] buffer = new byte[8];
-
-                // Retrieve the endian value
-                input.read(buffer, 0, 1);
-                int endian = buffer[0]==1 ? ByteOrderValues.LITTLE_ENDIAN : ByteOrderValues.BIG_ENDIAN;
-
-                // Skip the bytes related to the version and the number of bands
-                input.skip(4);
-
-                // Retrieve scale values
-                input.read(buffer,0,8);
-                double scaleX = ByteOrderValues.getDouble(buffer, endian);
-
-                input.read(buffer,0,8);
-                double scaleY = ByteOrderValues.getDouble(buffer, endian);
-
-                // Retrieve ip values
-                input.read(buffer,0,8);
-                double ipX = ByteOrderValues.getDouble(buffer, endian);
-
-                input.read(buffer,0,8);
-                double ipY = ByteOrderValues.getDouble(buffer, endian);
-
-                // Retrieve skew values
-                input.read(buffer,0,8);
-                double skewX = ByteOrderValues.getDouble(buffer, endian);
-
-                input.read(buffer,0,8);
-                double skewY = ByteOrderValues.getDouble(buffer, endian);
-
-                // Retrieve the srid value
-                input.read(buffer,0,4);
-                long srid = org.h2.value.ValueRaster.getUnsignedInt32(buffer, endian);
-
-                // Retrieve width and height values
-                input.read(buffer,0,2);
-                short width = org.h2.value.ValueRaster.getShort(buffer, endian);
-
-                input.read(buffer,0,2);
-                short height = org.h2.value.ValueRaster.getShort(buffer, endian);
-
-                // Calculate the four points of the envelope and keep max and min values for x and y
-                double xMax = ipX;
-                double yMax = ipY;
-                double xMin = ipX;
-                double yMin = ipY;
-
-                xMax = Math.max(xMax,ipX + width*scaleX);
-                xMin = Math.min(xMin,ipX + width*scaleX);
-                yMax = Math.max(yMax,ipY + width*scaleY);
-                yMin = Math.min(yMin,ipY + width*scaleY);
-
-                xMax = Math.max(xMax,ipX + height*skewX);
-                xMin = Math.min(xMin,ipX + height*skewX);
-                yMax = Math.max(yMax,ipY + height*skewY);
-                yMin = Math.min(yMin,ipY + height*skewY);
-
-                xMax = Math.max(xMax,ipX + width*scaleX + height*skewX);
-                xMin = Math.min(xMin,ipX + width*scaleX + height*skewX);
-                yMax = Math.max(yMax,ipY + width*scaleY + height*skewY);
-                yMin = Math.min(yMin,ipY + width*scaleY + height*skewY);
-
-                return new Envelope(xMax, xMin, yMax, yMin);
-
-            } catch (IOException ex) {
-                throw DbException.throwInternalError("H2 is unable to read the raster. " + ex.getMessage());
-            }
+            org.h2.value.ValueRaster.RasterMetaData metaData = org.h2.value.ValueRaster.RasterMetaData.fetchMetaData(input);
+            return metaData.getEnvelope();
         }
         throw DbException.throwInternalError("The envelope can be computed only for Raster type.");
     }

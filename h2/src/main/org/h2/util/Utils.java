@@ -5,6 +5,8 @@
  */
 package org.h2.util;
 
+import org.h2.message.DbException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +15,7 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -49,11 +52,144 @@ public class Utils {
         // utility class
     }
 
-    private static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) +
-                ((buff[pos++] & 0xff) << 16) +
-                ((buff[pos++] & 0xff) << 8) +
-                (buff[pos] & 0xff);
+
+    /**
+     * Convert a double into its hexadecimal representation (with big endian
+     * convention).
+     *
+     * @param value the double to convert
+     * @return hexadecimal String representation of the double, with a fix length of 16
+     */
+    public static String doubleToHex(double value) {
+        long valueAsLong = Double.doubleToRawLongBits(value);
+        String hexaValue = Long.toHexString(valueAsLong);
+        while (hexaValue.length() < 16) {
+            hexaValue = "0" + hexaValue;
+        }
+        return hexaValue;
+    }
+
+    /**
+     * Convert a long reprensenting an unsigned integer 32 bits into its
+     * hexadecimal representation (with big endian convention).
+     *
+     * @param value the long (uint32) to convert
+     * @return hexadecimal String representation of the uint32, with a fix
+     * length of 8
+     */
+    public static String uint32ToHex(long value) {
+        if (value < 0 || value > 2 * ((long) Integer.MAX_VALUE) + 1) {
+            throw DbException.throwInternalError("Error in argument : " + value + " is not a valid unsigned integer 32 bits. It should be include between 0 and " + 2 * Integer.MAX_VALUE + 1 + ".");
+        }
+        String hexaValue = Long.toHexString(value);
+        while (hexaValue.length() < 8) {
+            hexaValue = "0" + hexaValue;
+        }
+        return hexaValue;
+    }
+
+    /**
+     * Convert an int reprensenting an unsigned integer 16 bits into its
+     * hexadecimal representation (with big endian convention).
+     *
+     * @param value the long (uint32) to convert
+     * @return hexadecimal String representation of the uint32, with a fix
+     * length of 4
+     */
+    public static String uint16ToHex(int value) {
+        if (value < 0 || value > 2 * ((int) Short.MAX_VALUE) + 1) {
+            throw DbException.throwInternalError("Error in argument : " + value + " is not a valid unsigned integer 16 bits value. It should be include between 0 and " + 2*Short.MAX_VALUE + 1 + ".");
+        }
+        String hexaValue = Long.toHexString(value);
+        while (hexaValue.length() < 4) {
+            hexaValue = "0" + hexaValue;
+        }
+        return hexaValue;
+    }
+
+    /**
+     * Convert a haxadecimal String into the equivalent byte array.
+     *
+     * @param s the string to tansform
+     * @return the equivalent byte array
+     */
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        if (len % 2 != 0) {
+            throw DbException.throwInternalError("The length of an hexadecimal string must be an even number.");
+        }
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    /**
+     * Convert an given array of bytes into a short int by precising the value of endian
+     * @param buff the array of bytes to convert
+     * @param pos Read 4 bytes from this position
+     * @return Integer value
+     */
+    public static int readInt(byte[] buff, int pos, ByteOrder endian) {
+        if(endian == ByteOrder.BIG_ENDIAN) {
+            return (buff[pos++] << 24) +
+                    ((buff[pos++] & 0xff) << 16) +
+                    ((buff[pos++] & 0xff) << 8) +
+                    (buff[pos] & 0xff);
+        } else {
+            return  ((buff[pos + 3] & 0xff) << 24)
+                    | ( (buff[pos + 2] & 0xff) << 16)
+                    | ( (buff[pos + 1] & 0xff) << 8)
+                    | ( (buff[pos] & 0xff) );
+        }
+
+    }
+
+    /**
+     * Convert an given array of bytes into a short int using Big Endian
+     * @param buff Buffer to read
+     * @param pos Read 4 bytes from this position
+     * @return Int value
+     */
+    public static int readInt(byte[] buff, int pos) {
+        return readInt(buff, pos, ByteOrder.BIG_ENDIAN);
+    }
+
+    public static double readDouble(byte[] buff, int pos, ByteOrder endian) {
+        return Double.longBitsToDouble(readLong(buff, pos, endian));
+    }
+
+    /**
+     * Convert an given array of bytes into a unsigned int 32 bits (represented
+     * by a long in Java) by precising the value of endian
+     *
+     * @param buff the array of bytes to convert
+     * @param pos Read 4 bytes from this position
+     * @param endian {@link ByteOrder#BIG_ENDIAN} or {@link ByteOrder#LITTLE_ENDIAN}
+     *
+     * @return long the result of the conversion
+     */
+    public static long readUnsignedInt32(byte[] buff,int pos, ByteOrder endian) {
+        return readInt(buff, pos, endian)  & 0xFFFFFFFFL;
+    }
+
+    /**
+     * Convert an given array of bytes into a short int by precising the value of endian
+     *
+     * @param buff the array of bytes to convert
+     * @param pos Read 2 bytes from this position
+     * @param endian {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     *
+     * @return short the result of the conversion, it is int, as java does not support unsigned short
+     */
+    public static int readUnsignedShort(byte[] buff,int pos, ByteOrder endian){
+        if(endian == ByteOrder.BIG_ENDIAN){
+            return (((buff[pos] & 0xff) << 8)|((buff[pos + 1] & 0xff)));
+        }else{
+            return (((buff[pos + 1] & 0xff) << 8)|((buff[pos] & 0xff)));
+        }
     }
 
     /**
@@ -85,10 +221,18 @@ public class Utils {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) +
-                (readInt(buff, pos + 4) & 0xffffffffL);
+        return readLong(buff, pos, ByteOrder.BIG_ENDIAN);
     }
 
+    public static long readLong(byte[] buff, int pos,ByteOrder endian) {
+        if(endian == ByteOrder.BIG_ENDIAN) {
+            return (((long) readInt(buff, pos)) << 32) +
+                    (readInt(buff, pos + 4) & 0xffffffffL);
+        } else {
+            return (((long) readInt(buff, pos + 4, ByteOrder.LITTLE_ENDIAN)) << 32) +
+                    (readInt(buff, pos, ByteOrder.LITTLE_ENDIAN) & 0xffffffffL);
+        }
+    }
     /**
      * Calculate the index of the first occurrence of the pattern in the byte
      * array, starting with the given index. This methods returns -1 if the

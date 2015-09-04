@@ -15,7 +15,10 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestBase;
+import org.h2.util.Utils;
 import org.h2.value.ValueRaster;
+
+import javax.rmi.CORBA.Util;
 
 /**
  * Unit test of Raster type
@@ -83,7 +86,7 @@ public class TestGeoRaster extends TestBase {
                 + "0a00"                // width (uint16 10)
                 + "1400";               // height (uint16 20)
         
-        byte[] bytes = ValueRaster.hexStringToByteArray(bytesString);
+        byte[] bytes = Utils.hexStringToByteArray(bytesString);
         
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         
@@ -120,7 +123,7 @@ public class TestGeoRaster extends TestBase {
                 + "00000000"
                 + "0a00"
                 + "0a00";
-        byte[] bytes = ValueRaster.hexStringToByteArray(bytesString);
+        byte[] bytes = Utils.hexStringToByteArray(bytesString);
         InputStream bytesStream1 = new ByteArrayInputStream(bytes);
 
         bytesString = "01"
@@ -135,7 +138,7 @@ public class TestGeoRaster extends TestBase {
                 + "00000000"
                 + "0a00"
                 + "0a00";
-        bytes = ValueRaster.hexStringToByteArray(bytesString);
+        bytes = Utils.hexStringToByteArray(bytesString);
         InputStream bytesStream2 = new ByteArrayInputStream(bytes);
 
         bytesString = "01"
@@ -150,7 +153,7 @@ public class TestGeoRaster extends TestBase {
                 + "00000000"
                 + "0a00"
                 + "0a00";
-        bytes = ValueRaster.hexStringToByteArray(bytesString);
+        bytes = Utils.hexStringToByteArray(bytesString);
         InputStream bytesStream3 = new ByteArrayInputStream(bytes);
 
         Connection conn;
@@ -187,10 +190,11 @@ public class TestGeoRaster extends TestBase {
         assertEquals(0.5, env.getMinY());
         assertEquals(20.5, env.getMaxX());
         assertEquals(30.5, env.getMaxY());
-        assertEquals(2, testRaster.getScaleX());
-        assertEquals(3, testRaster.getScaleY());
-        assertEquals(10, testRaster.getWidth());
-        assertEquals(20, testRaster.getHeight());
+        ValueRaster.RasterMetaData meta = testRaster.getMetaData();
+        assertEquals(2, meta.scaleX);
+        assertEquals(3, meta.scaleY);
+        assertEquals(10, meta.width);
+        assertEquals(20, meta.height);
     }
 
     public void testGeoRasterWithBands() throws Exception {
@@ -228,7 +232,7 @@ public class TestGeoRaster extends TestBase {
                 + "4D566DA4CB"
                 + "3E454C5665";
         
-        byte[] bytes = ValueRaster.hexStringToByteArray(bytesString);
+        byte[] bytes = Utils.hexStringToByteArray(bytesString);
         
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         long len = bytes.length;
@@ -238,6 +242,6 @@ public class TestGeoRaster extends TestBase {
         assertEquals(env.getMinY(), 5793243.75);
         assertEquals(env.getMaxX(), 3427928);
         assertEquals(env.getMaxY(), 5793244);
-        assertEquals(testRaster.getSRID(), 4326);
+        assertEquals(testRaster.getMetaData().srid, 4326);
     }
 }

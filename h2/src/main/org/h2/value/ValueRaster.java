@@ -9,6 +9,8 @@ package org.h2.value;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -80,7 +82,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
     /**
      * @return Raster metadata
      */
-    public RasterMetaData getMetaData() {
+    public RasterMetaData getMetaData() throws IOException {
         return RasterMetaData.fetchMetaData(getInputStream());
     }
 
@@ -104,8 +106,12 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
     @Override
     public Envelope getEnvelope(){
         InputStream input = getInputStream();
-        RasterMetaData metaData = RasterMetaData.fetchMetaData(input);
-        return metaData.getEnvelope();
+        try {
+            RasterMetaData metaData = RasterMetaData.fetchMetaData(input);
+            return metaData.getEnvelope();
+        } catch (IOException ex) {
+            throw DbException.throwInternalError("H2 is unable to read the raster. " + ex.getMessage());
+        }
     }
 
     @Override
@@ -130,12 +136,12 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
         public final double ipY;
         public final double skewX;
         public final double skewY;
-        public final long srid;
+        public final int srid;
         public final int width;
         public final int height;
 
         public RasterMetaData(int version, int numBands, double scaleX, double scaleY, double ipX, double ipY,
-                              double skewX, double skewY, long srid, int width, int height) {
+                              double skewX, double skewY, int srid, int width, int height) {
             this.version = version;
             this.numBands = numBands;
             this.scaleX = scaleX;
@@ -150,44 +156,70 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
         }
 
 
-        public static RasterMetaData fetchMetaData(InputStream raster) {
+        public static RasterMetaData fetchMetaData(InputStream raster) throws IOException {
             try {
-                try {
-                    byte[] buffer = new byte[RASTER_METADATA_SIZE];
-                    AtomicInteger cursor = new AtomicInteger(0);
-                    if(raster.read(buffer, 0, buffer.length) != buffer.length) {
-                        throw DbException.throwInternalError("H2 is unable to read the raster. ");
-                    }
-                    ByteOrder endian = buffer[cursor.getAndAdd(1)]==1 ? ByteOrder.LITTLE_ENDIAN  : ByteOrder.BIG_ENDIAN;
-                    int version = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
-                    int numBands = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
-
-                    // Retrieve scale values
-                    double scaleX = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-                    double scaleY = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-
-                    // Retrieve insertion point values
-                    double ipX = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-                    double ipY = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-
-                    // Retrieve XY offset values
-                    double skewX = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-                    double skewY = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-
-                    // Retrieve the srid value
-                    long srid = Utils.readInt(buffer, cursor.getAndAdd(Integer.SIZE / Byte.SIZE), endian);
-
-                    // Retrieve width and height values
-                    int width = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
-                    int height =  Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
-
-                    return new RasterMetaData(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height);
-                } finally {
-                    raster.close();
+                byte[] buffer = new byte[RASTER_METADATA_SIZE];
+                AtomicInteger cursor = new AtomicInteger(0);
+                if(raster.read(buffer, 0, buffer.length) != buffer.length) {
+                    throw DbException.throwInternalError("H2 is unable to read the raster. ");
                 }
-            } catch (IOException ex) {
-                throw DbException.throwInternalError("H2 is unable to read the raster. " + ex.getMessage());
+                ByteOrder endian = buffer[cursor.getAndAdd(1)]==1 ? ByteOrder.LITTLE_ENDIAN  : ByteOrder.BIG_ENDIAN;
+                int version = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                int numBands = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+
+                // Retrieve scale values
+                double scaleX = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                double scaleY = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+
+                // Retrieve insertion point values
+                double ipX = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                double ipY = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+
+                // Retrieve XY offset values
+                double skewX = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                double skewY = Utils.readDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+
+                // Retrieve the srid value
+                int srid = Utils.readInt(buffer, cursor.getAndAdd(Integer.SIZE / Byte.SIZE), endian);
+
+                // Retrieve width and height values
+                int width = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                int height =  Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+
+                return new RasterMetaData(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height);
+            } finally {
+                raster.close();
             }
+        }
+
+        public void writeRasterHeader(OutputStream stream, ByteOrder endian) throws IOException {
+            byte[] buffer = new byte[RASTER_METADATA_SIZE];
+            AtomicInteger cursor = new AtomicInteger(0);
+
+            // Write byte order
+            buffer[cursor.getAndAdd(1)] = (byte)(endian == ByteOrder.LITTLE_ENDIAN ? 1 : 0);
+
+            Utils.writeUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), version, endian);
+            Utils.writeUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), numBands, endian);
+
+            // Write scale values
+            Utils.writeDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), scaleX, endian);
+            Utils.writeDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), scaleY, endian);
+
+            // Write insertion point values
+            Utils.writeDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), ipX, endian);
+            Utils.writeDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), ipY, endian);
+
+            // Write XY offset values
+            Utils.writeDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), skewX, endian);
+            Utils.writeDouble(buffer, cursor.getAndAdd(Double.SIZE / Byte.SIZE), skewY, endian);
+
+            // Write the srid value
+            Utils.writeInt(buffer, cursor.getAndAdd(Integer.SIZE / Byte.SIZE), srid, endian);
+
+            // Retrieve width and height values
+            Utils.writeUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), width, endian);
+            Utils.writeUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), height, endian);
         }
 
         public Envelope getEnvelope() {

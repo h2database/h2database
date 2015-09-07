@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import org.h2.dev.util.BitStream;
 import org.h2.message.DbException;
 
 import java.io.ByteArrayOutputStream;
@@ -193,6 +194,24 @@ public class Utils {
     }
 
     /**
+     * Write a short value to the byte array at the given position.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param value the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeUnsignedShort(byte[] buff,int pos, int value, ByteOrder byteOrder) {
+        if(byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos] = (byte) ((value >> 8) & 0xff);
+            buff[pos + 1] = (byte) (value & 0xff);
+        } else {
+            buff[pos] = (byte) (value & 0xff);
+            buff[pos + 1] = (byte) ((value >> 8) & 0xff);
+        }
+    }
+
+    /**
      * Write a long value to the byte array at the given position. The most
      * significant byte is written first.
      *
@@ -205,11 +224,67 @@ public class Utils {
         writeInt(buff, pos + 4, (int) x);
     }
 
-    private static void writeInt(byte[] buff, int pos, int x) {
-        buff[pos++] = (byte) (x >> 24);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos++] = (byte) x;
+    /**
+     * Write a long value to the byte array at the given position.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param value the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeLong(byte[] buff, int pos, long value, ByteOrder byteOrder) {
+        if(byteOrder == ByteOrder.BIG_ENDIAN) {
+            writeInt(buff, pos, (int) (value >> 32));
+            writeInt(buff, pos + 4, (int) value);
+        } else {
+            writeInt(buff, pos + 4, (int) value, ByteOrder.LITTLE_ENDIAN);
+            writeInt(buff, pos, (int) (value >> 32), ByteOrder.LITTLE_ENDIAN);
+        }
+    }
+    /**
+     * Write an int value to the byte array at the given position. The most
+     * significant byte is written first.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param value the value to write
+     */
+    public static void writeInt(byte[] buff, int pos, int value) {
+        writeInt(buff, pos, value, ByteOrder.BIG_ENDIAN);
+    }
+
+    /**
+     * Write an int value to the byte array at the given position.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param value the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeInt(byte[] buff, int pos, int value, ByteOrder byteOrder) {
+        if(byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos++] = (byte) (value >> 24);
+            buff[pos++] = (byte) (value >> 16);
+            buff[pos++] = (byte) (value >> 8);
+            buff[pos++] = (byte) value;
+        } else {
+            buff[pos++] = (byte) value;
+            buff[pos++] = (byte) (value >> 8);
+            buff[pos++] = (byte) (value >> 16);
+            buff[pos++] = (byte) (value >> 24);
+        }
+    }
+
+    /**
+     * Write a double value to the byte array at the given position.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param value the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeDouble(byte[] buff, int pos, double value, ByteOrder byteOrder) {
+        writeLong(buff, pos, Double.doubleToRawLongBits(value), byteOrder);
     }
 
     /**
@@ -224,7 +299,16 @@ public class Utils {
         return readLong(buff, pos, ByteOrder.BIG_ENDIAN);
     }
 
-    public static long readLong(byte[] buff, int pos,ByteOrder endian) {
+    /**
+     * Read a long value from the byte array at the given position. The most
+     * significant byte is read first.
+     *
+     * @param buff the byte array
+     * @param pos the position
+     * @param endian {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     * @return the value
+     */
+    public static long readLong(byte[] buff, int pos, ByteOrder endian) {
         if(endian == ByteOrder.BIG_ENDIAN) {
             return (((long) readInt(buff, pos)) << 32) +
                     (readInt(buff, pos + 4) & 0xffffffffL);
@@ -233,6 +317,7 @@ public class Utils {
                     (readInt(buff, pos, ByteOrder.LITTLE_ENDIAN) & 0xffffffffL);
         }
     }
+
     /**
      * Calculate the index of the first occurrence of the pattern in the byte
      * array, starting with the given index. This methods returns -1 if the

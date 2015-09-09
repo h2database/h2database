@@ -48,6 +48,7 @@ public class TestGeoRaster extends TestBase {
         testWriteRasterFromString();
         testSpatialIndex();
         testLittleEndian();
+        testLittleEndianHexa();
     }
  
    
@@ -240,6 +241,16 @@ public class TestGeoRaster extends TestBase {
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         long len = bytes.length;
         ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
+        ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        assertEquals(3, metaData.numBands);
+        assertEquals(0.05, metaData.scaleX);
+        assertEquals(-0.05, metaData.scaleY);
+        assertEquals(3427927.75, metaData.ipX);
+        assertEquals(5793244.00, metaData.ipY);
+        assertEquals(0., metaData.skewX);
+        assertEquals(0., metaData.skewY);
+        assertEquals(5, metaData.width);
+        assertEquals(5, metaData.height);
         Envelope env = testRaster.getEnvelope();
         assertEquals(env.getMinX(), 3427927.75);
         assertEquals(env.getMinY(), 5793243.75);
@@ -268,5 +279,46 @@ public class TestGeoRaster extends TestBase {
         assertEquals(20.5, env.getMaxX());
         assertEquals(30.5, env.getMaxY());
 
+    }
+
+    /**
+     * Raster unit test using PostGIS WKB.
+     * @throws IOException
+     */
+    private void testLittleEndianHexa() throws IOException {
+        String hexwkb = "01" +              /* little endian (uint8 ndr) */
+                "0000" +                    /* version (uint16 0) */
+                "0100" +                    /* nBands (uint16 1) */
+                "0000000000805640" +        /* scaleX (float64 90.0) */
+                "00000000008056C0" +        /* scaleY (float64 -90.0) */
+                "000000001C992D41" +        /* ipX (float64 969870.0) */
+                "00000000E49E2341" +        /* ipY (float64 642930.0) */
+                "0000000000000000" +        /* skewX (float64 0) */
+                "0000000000000000" +        /* skewY (float64 0) */
+                "FFFFFFFF" +                /* SRID (int32 -1) */
+                "0300" +                    /* width (uint16 3) */
+                "0100" +                    /* height (uint16 1) */
+                "45" +                      /* First band type (16BSI, in memory, hasnodata) */
+                "0100" +                    /* nodata value (1) */
+                "0100" +                    /* pix(0,0) == 1 */
+                "B401" +                    /* pix(1,0) == 436 */
+                "AF01";                     /* pix(2,0) == 431 */
+
+        byte[] bytes = Utils.hexStringToByteArray(hexwkb);
+
+        InputStream bytesStream = new ByteArrayInputStream(bytes);
+        long len = bytes.length;
+        ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
+        ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        assertEquals(1, metaData.numBands);
+        assertEquals(90, metaData.scaleX);
+        assertEquals(-90, metaData.scaleY);
+        assertEquals(969870, metaData.ipX);
+        assertEquals(642930, metaData.ipY);
+        assertEquals(0, metaData.skewX);
+        assertEquals(0, metaData.skewY);
+        assertEquals(-1, metaData.srid);
+        assertEquals(3, metaData.width);
+        assertEquals(1, metaData.height);
     }
 }

@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.message.DbException;
@@ -120,6 +122,49 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
     }
 
     /**
+     * Raster band pixel type
+     */
+    public static enum PixelType {
+        PT_1BB(0, 1),     /* 1-bit boolean            */
+        PT_2BUI(1, 1),    /* 2-bit unsigned integer   */
+        PT_4BUI(2, 1),    /* 4-bit unsigned integer   */
+        PT_8BSI(3, 1),    /* 8-bit signed integer     */
+        PT_8BUI(4, 1),    /* 8-bit unsigned integer   */
+        PT_16BSI(5, Short.SIZE / Byte.SIZE),   /* 16-bit signed integer    */
+        PT_16BUI(6, Short.SIZE / Byte.SIZE),   /* 16-bit unsigned integer  */
+        PT_32BSI(7, Integer.SIZE / Byte.SIZE),   /* 32-bit signed integer    */
+        PT_32BUI(8, Integer.SIZE / Byte.SIZE),   /* 32-bit unsigned integer  */
+        PT_32BF(10, Integer.SIZE / Byte.SIZE),   /* 32-bit float             */
+        PT_64BF(11, Double.SIZE / Byte.SIZE);   /* 64-bit float             */
+        /** Pixel type identifier */
+        final int value;
+
+        /** Pixel size in bytes. */
+        final int pixelSize;
+
+        final static Map<Integer, PixelType> mapIntToEnum = new HashMap<Integer, PixelType>();
+        static {
+            for(PixelType pixelType : values()) {
+                mapIntToEnum.put(pixelType.value, pixelType);
+            }
+        }
+
+        private PixelType(int value, int pixelSize) {
+            this.value = value;
+            this.pixelSize = pixelSize;
+        }
+
+        /**
+         * Create PixelType from pixel type identifier
+         * @param pixelTypeIdentifier Pixel type identifier from WKB Raster Format
+         * @return PixelType enum or null if it does not exists.
+         */
+        public static PixelType cast(int pixelTypeIdentifier) {
+            return mapIntToEnum.get(pixelTypeIdentifier);
+        }
+    }
+
+    /**
      * Raster MetaData
      */
     public static class RasterMetaData {
@@ -160,6 +205,9 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
                 }
                 ByteOrder endian = buffer[cursor.getAndAdd(1)]==1 ? ByteOrder.LITTLE_ENDIAN  : ByteOrder.BIG_ENDIAN;
                 int version = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                if(version > LAST_WKB_VERSION) {
+                    throw DbException.throwInternalError("H2 is does not support raster version "+version+" raster.");
+                }
                 int numBands = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
 
                 // Retrieve scale values
@@ -243,42 +291,6 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
             yMin = Math.min(yMin, ipY + width * scaleY + height * skewY);
 
             return new Envelope(xMax, xMin, yMax, yMin);
-        }
-
-
-        /**
-         * Read the first bytes of the raster to get the pixels' type used in this band
-         *
-         * @return the pixels' type of this raster
-         */
-        public static String getPixelType(int pixelType) {
-            // Retrieve pixel type
-            switch (pixelType) {
-                case 0:
-                    return "1BB"; /* 1-bit boolean */
-                case 1:
-                    return "2BUI"; /* 2-bit unsigned integer*/
-                case 2:
-                    return "4BUI"; /* 4-bit unsigned integer */
-                case 3:
-                    return "8BSI"; /* 8-bit signed integer */
-                case 4:
-                    return "8BUI"; /* 8-bit unsigned integer */
-                case 5:
-                    return "16BSI"; /* 16-bit signed integer */
-                case 6:
-                    return "16BUI"; /* 16-bit unsigned integer */
-                case 7:
-                    return "32BSI"; /* 32-bit signed integer */
-                case 8:
-                    return "32BUI"; /* 32-bit unsigned integer */
-                case 10:
-                    return "32BF"; /* float */
-                case 11:
-                    return "64BF"; /* double */
-                default:
-                    return "Unknown";
-            }
         }
     }
 }

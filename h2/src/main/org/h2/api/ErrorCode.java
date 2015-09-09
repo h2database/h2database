@@ -408,6 +408,18 @@ public class ErrorCode {
     public static final int LOCK_TIMEOUT_1 = 50200;
 
     /**
+     * The error with code <code>57014</code> is thrown when
+     * a statement was canceled using Statement.cancel() or
+     * when the query timeout has been reached.
+     * Examples:
+     * <pre>
+     * stat.setQueryTimeout(1);
+     * stat.cancel();
+     * </pre>
+     */
+    public static final int STATEMENT_WAS_CANCELED = 57014;
+
+    /**
      * The error with code <code>90000</code> is thrown when
      * a function that does not return a result set was used in the FROM clause.
      * Example:
@@ -490,16 +502,6 @@ public class ErrorCode {
      * </pre>
      */
     public static final int INVALID_VALUE_2 = 90008;
-
-    /**
-     * The error with code <code>90051</code> is thrown when
-     * trying to use a scale that is > precision.
-     * Example:
-     * <pre>
-     * CREATE TABLE TABLE1 ( FAIL NUMBER(6,24) );
-     * </pre>
-     */
-    public static final int INVALID_VALUE_SCALE_PRECISION = 90051;
 
     /**
      * The error with code <code>90009</code> is thrown when
@@ -937,16 +939,15 @@ public class ErrorCode {
     public static final int WRONG_PASSWORD_FORMAT = 90050;
 
     /**
-     * The error with code <code>57014</code> is thrown when
-     * a statement was canceled using Statement.cancel() or
-     * when the query timeout has been reached.
-     * Examples:
+     * The error with code <code>90051</code> is thrown when
+     * trying to use a scale that is > precision.
+     * Example:
      * <pre>
-     * stat.setQueryTimeout(1);
-     * stat.cancel();
+     * CREATE TABLE TABLE1 ( FAIL NUMBER(6,24) );
      * </pre>
      */
-    public static final int STATEMENT_WAS_CANCELED = 57014;
+  ; // message missing
+    public static final int INVALID_VALUE_SCALE_PRECISION = 90051;
 
     /**
      * The error with code <code>90052</code> is thrown when

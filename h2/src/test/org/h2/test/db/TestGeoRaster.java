@@ -49,6 +49,7 @@ public class TestGeoRaster extends TestBase {
         testSpatialIndex();
         testLittleEndian();
         testLittleEndianHexa();
+        testExternalRaster();
     }
  
    
@@ -320,5 +321,32 @@ public class TestGeoRaster extends TestBase {
         assertEquals(-1, metaData.srid);
         assertEquals(3, metaData.width);
         assertEquals(1, metaData.height);
+    }
+
+    private void testExternalRaster() throws IOException {
+        String hexwkb = "00" +              /* big endian (uint8 xdr) */
+                "0000" +                    /* version (uint16 0) */
+                "0001" +                    /* nBands (uint16 1) */
+                "3FF0000000000000" +        /* scaleX (float64 1) */
+                "4000000000000000" +        /* scaleY (float64 2) */
+                "4008000000000000" +        /* ipX (float64 3) */
+                "4010000000000000" +        /* ipY (float64 4) */
+                "4014000000000000" +        /* skewX (float64 5) */
+                "4018000000000000" +        /* skewY (float64 6) */
+                "0000000A" +                /* SRID (int32 10) */
+                "0003" +                    /* width (uint16 3) */
+                "0002" +                    /* height (uint16 2) */
+                "C5" +                      /* First band type (16BSI, on disk, hasnodata) */
+                "FFFF" +                    /* nodata value (-1) */
+                "03" +                      /* ext band num == 3 */
+                "2F746D702F742E74696600";   /* ext band path == /tmp/t.tif */
+
+        byte[] bytes = Utils.hexStringToByteArray(hexwkb);
+
+        InputStream bytesStream = new ByteArrayInputStream(bytes);
+        long len = bytes.length;
+        ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
+        ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        assertEquals("/tmp/t.tif\0", metaData.bands[0].externalPath);
     }
 }

@@ -10,6 +10,7 @@ import java.io.*;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.message.DbException;
@@ -172,7 +173,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
         public final int externalBandId;
         public final String externalPath;
 
-        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData, boolean isNoData) {
+        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData) {
             this.noDataValue = noDataValue;
             this.pixelType = pixelType;
             this.hasNoData = hasNoData;
@@ -181,13 +182,13 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
             this.externalPath = "";
         }
 
-        public RasterBandMetaData(PixelType pixelType, boolean hasNoData,boolean offDB, double noDataValue, int externalBandId, String externalPath) {
+        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData, int externalBandId, String externalPath) {
             this.pixelType = pixelType;
             this.hasNoData = hasNoData;
-            this.offDB = offDB;
             this.noDataValue = noDataValue;
             this.externalBandId = externalBandId;
             this.externalPath = externalPath;
+            this.offDB = true;
         }
     }
 
@@ -276,6 +277,9 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
                         cursor.addAndGet(1);
                         byte flag = buffer[0];
                         final PixelType pixelType = PixelType.cast(flag & RasterBandMetaData.BANDTYPE_PIXTYPE_MASK);
+                        if(pixelType == null) {
+                            throw DbException.throwInternalError("H2 is unable to read the raster's band pixel type. ");
+                        }
                         final boolean hasNoData = (flag & RasterBandMetaData.BANDTYPE_FLAG_HASNODATA) != 0;
                         final boolean offDB = (flag & RasterBandMetaData.BANDTYPE_FLAG_OFFDB) != 0;
 
@@ -322,8 +326,24 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
                             default:
                                 throw DbException.throwInternalError("H2 is unable to read the raster's nodata. ");
                         }
-                        RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData, offDB);
-                        bands[idBand++] = rasterBandMetaData;
+                        if(offDB) {
+                            // Read external band id
+                            if(1 != raster.read(buffer, 0, 1)) {
+                                throw DbException.throwInternalError("H2 is unable to read the raster's band. ");
+                            }
+                            cursor.addAndGet(1);
+                            int bandId = buffer[0];
+                            // read path
+                            Scanner scanner = new Scanner(raster);
+                            String path = scanner.next();
+                            RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData, bandId, path);
+                            bands[idBand++] = rasterBandMetaData;
+                        } else {
+                            RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData);
+                            bands[idBand++] = rasterBandMetaData;
+                            // Skip remaining pixel until next band
+                            raster.skip(width * height * pixelType.pixelSize);
+                        }
                     }
                 }
                 return new RasterMetaData(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height, bands);

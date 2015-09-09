@@ -21,6 +21,11 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>MVStore CLOB and BLOB: An exception with the message "Block not found" could be thrown
+    when using the MVStore storage, when copying LOB objects
+    (for example due to "alter table" on a table with a LOB object),
+    and then re-opening the database.
+</li>
 <li>Fix for issue #171: Broken QueryStatisticsData duration data when trace level < TraceSystem.INFO
 </li>
 <li>Pull request #170: Added SET QUERY_STATISTICS_MAX_ENTRIES

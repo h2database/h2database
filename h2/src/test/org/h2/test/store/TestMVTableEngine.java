@@ -50,6 +50,7 @@ public class TestMVTableEngine extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testLobCopy();
         testLobReuse();
         testShutdownDuringLobCreation();
         testLobCreationThenShutdown();
@@ -85,6 +86,27 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+    }
+
+    private void testLobCopy() throws Exception {
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName());
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data clob)");
+        stat = conn.createStatement();
+        stat.execute("insert into test(id, data) values(2, space(300))");
+        stat.execute("insert into test(id, data) values(1, space(300))");
+        stat.execute("alter table test add column x int");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection(getTestName());
+        }
+        stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select data from test");
+        while (rs.next()) {
+            rs.getString(1);
+        }
+        conn.close();
     }
 
     private void testLobReuse() throws Exception {

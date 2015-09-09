@@ -137,6 +137,34 @@ public class Utils {
         }
     }
 
+
+    /**
+     * Convert an given array of bytes into a short int by precising the value of endian
+     *
+     * @param buff the array of bytes to convert
+     * @param pos Read 2 bytes from this position
+     * @param endian {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java.nio.ByteOrder#LITTLE_ENDIAN}
+     *
+     * @return short the result of the conversion, it is int, as java does not support short
+     */
+    public static short readShort(byte[] buff,int pos, ByteOrder endian){
+        if(endian == ByteOrder.BIG_ENDIAN){
+            return (short)(((buff[pos]) << 8)|((buff[pos + 1] & 0xff)));
+        }else{
+            return (short)(((buff[pos + 1]) << 8)|((buff[pos] & 0xff)));
+        }
+    }
+
+    /**
+     * Read unsigned byte
+     * @param buff Data
+     * @param pos Position to read
+     * @return Unsigned byte 0-255
+     */
+    public static int readUnsignedByte(byte[] buff,int pos) {
+        return buff[pos] & 0xff;
+    }
+
     /**
      * Write a short value to the byte array at the given position.
      *

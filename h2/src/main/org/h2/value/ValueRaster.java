@@ -6,11 +6,7 @@
  */
 package org.h2.value;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
@@ -164,6 +160,37 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
         }
     }
 
+    public static class RasterBandMetaData {
+        public static final int BANDTYPE_PIXTYPE_MASK = 0x0F;
+        public static final int BANDTYPE_FLAG_OFFDB = (1 << 7);
+        public static final int BANDTYPE_FLAG_HASNODATA = (1 << 6);
+
+        public final PixelType pixelType;
+        public final boolean hasNoData;
+        public final boolean offDB; /* If True, then external band id and path are defined */
+        public final double noDataValue;
+        public final int externalBandId;
+        public final String externalPath;
+
+        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData, boolean isNoData) {
+            this.noDataValue = noDataValue;
+            this.pixelType = pixelType;
+            this.hasNoData = hasNoData;
+            this.offDB = true;
+            this.externalBandId = -1;
+            this.externalPath = "";
+        }
+
+        public RasterBandMetaData(PixelType pixelType, boolean hasNoData,boolean offDB, double noDataValue, int externalBandId, String externalPath) {
+            this.pixelType = pixelType;
+            this.hasNoData = hasNoData;
+            this.offDB = offDB;
+            this.noDataValue = noDataValue;
+            this.externalBandId = externalBandId;
+            this.externalPath = externalPath;
+        }
+    }
+
     /**
      * Raster MetaData
      */
@@ -179,9 +206,14 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
         public final int srid;
         public final int width;
         public final int height;
+        public final RasterBandMetaData[] bands;
 
         public RasterMetaData(int version, int numBands, double scaleX, double scaleY, double ipX, double ipY,
                               double skewX, double skewY, int srid, int width, int height) {
+            this(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height, new RasterBandMetaData[0]);
+        }
+        public RasterMetaData(int version, int numBands, double scaleX, double scaleY, double ipX, double ipY,
+                              double skewX, double skewY, int srid, int width, int height, RasterBandMetaData[] bands) {
             this.version = version;
             this.numBands = numBands;
             this.scaleX = scaleX;
@@ -193,10 +225,14 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
             this.srid = srid;
             this.width = width;
             this.height = height;
+            this.bands = bands;
         }
 
-
         public static RasterMetaData fetchMetaData(InputStream raster) throws IOException {
+            return fetchMetaData(raster, true);
+        }
+
+        public static RasterMetaData fetchMetaData(InputStream raster, boolean fetchBandsMetaData) throws IOException {
             try {
                 byte[] buffer = new byte[RASTER_METADATA_SIZE];
                 AtomicInteger cursor = new AtomicInteger(0);
@@ -229,7 +265,68 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
                 int width = Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
                 int height =  Utils.readUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
 
-                return new RasterMetaData(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height);
+                RasterBandMetaData[] bands = new RasterBandMetaData[numBands];
+                int idBand = 0;
+                if(numBands > 0 && fetchBandsMetaData) {
+                    while(idBand < numBands) {
+                        // Read Flag
+                        if (1 != raster.read(buffer, 0, 1)) {
+                            throw DbException.throwInternalError("H2 is unable to read the raster's band. ");
+                        }
+                        cursor.addAndGet(1);
+                        byte flag = buffer[0];
+                        final PixelType pixelType = PixelType.cast(flag & RasterBandMetaData.BANDTYPE_PIXTYPE_MASK);
+                        final boolean hasNoData = (flag & RasterBandMetaData.BANDTYPE_FLAG_HASNODATA) != 0;
+                        final boolean offDB = (flag & RasterBandMetaData.BANDTYPE_FLAG_OFFDB) != 0;
+
+                        // Read NODATA value
+                        final double noData;
+                        if (pixelType.pixelSize != raster.read(buffer, 0, pixelType.pixelSize)) {
+                            throw DbException.throwInternalError("H2 is unable to read the raster's nodata. ");
+                        }
+                        cursor.getAndAdd(pixelType.pixelSize);
+                        switch (pixelType) {
+                            case PT_1BB:
+                                noData = Utils.readUnsignedByte(buffer, 0) & 0x01;
+                                break;
+                            case PT_2BUI:
+                                noData = Utils.readUnsignedByte(buffer, 0) & 0x03;
+                                break;
+                            case PT_4BUI:
+                                noData = Utils.readUnsignedByte(buffer, 0) & 0x0F;
+                                break;
+                            case PT_8BSI:
+                                noData = buffer[0];
+                                break;
+                            case PT_8BUI:
+                                noData = Utils.readUnsignedByte(buffer, 0);
+                                break;
+                            case PT_16BSI:
+                                noData = Utils.readShort(buffer, 0, endian);
+                                break;
+                            case PT_16BUI:
+                                noData = Utils.readUnsignedShort(buffer, 0, endian);
+                                break;
+                            case PT_32BSI:
+                                noData = Utils.readInt(buffer, 0, endian);
+                                break;
+                            case PT_32BUI:
+                                noData = Utils.readUnsignedInt32(buffer, 0, endian);
+                                break;
+                            case PT_32BF:
+                                noData = Float.intBitsToFloat(Utils.readInt(buffer, 0, endian));
+                                break;
+                            case PT_64BF:
+                                noData = Utils.readDouble(buffer, 0, endian);
+                                break;
+                            default:
+                                throw DbException.throwInternalError("H2 is unable to read the raster's nodata. ");
+                        }
+                        RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData, offDB);
+                        bands[idBand++] = rasterBandMetaData;
+                    }
+                }
+                return new RasterMetaData(version, numBands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height, bands);
             } finally {
                 raster.close();
             }

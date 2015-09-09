@@ -7,8 +7,10 @@
 package org.h2.test.db;
 
 import com.vividsolutions.jts.geom.Envelope;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -45,6 +47,7 @@ public class TestGeoRaster extends TestBase {
         testReadRaster();
         testWriteRasterFromString();
         testSpatialIndex();
+        testLittleEndian();
     }
  
    
@@ -243,5 +246,27 @@ public class TestGeoRaster extends TestBase {
         assertEquals(env.getMaxX(), 3427928);
         assertEquals(env.getMaxY(), 5793244);
         assertEquals(testRaster.getMetaData().srid, 4326);
+    }
+
+    private void testLittleEndian() throws IOException {
+        // Write as little endian
+        ValueRaster testRasterLittleEndian = ValueRaster.createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        testRasterLittleEndian.getMetaData().writeRasterHeader(byteArrayOutputStream, ByteOrder.LITTLE_ENDIAN);
+        // Read the stream
+        byte[] dataLittleEndian = byteArrayOutputStream.toByteArray();
+        ValueRaster testRaster = ValueRaster.createGeoRaster(new ByteArrayInputStream(dataLittleEndian), dataLittleEndian.length, null);
+        ValueRaster.RasterMetaData meta = testRaster.getMetaData();
+        assertEquals(0, meta.numBands);
+        assertEquals(2, meta.scaleX);
+        assertEquals(3, meta.scaleY);
+        assertEquals(10, meta.width);
+        assertEquals(20, meta.height);
+        Envelope env = testRaster.getEnvelope();
+        assertEquals(0.5, env.getMinX());
+        assertEquals(0.5, env.getMinY());
+        assertEquals(20.5, env.getMaxX());
+        assertEquals(30.5, env.getMaxY());
+
     }
 }

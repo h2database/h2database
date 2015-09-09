@@ -5,7 +5,6 @@
  */
 package org.h2.util;
 
-import org.h2.dev.util.BitStream;
 import org.h2.message.DbException;
 
 import java.io.ByteArrayOutputStream;
@@ -182,8 +181,8 @@ public class Utils {
             writeInt(buff, pos, (int) (value >> 32));
             writeInt(buff, pos + 4, (int) value);
         } else {
-            writeInt(buff, pos + 4, (int) value, ByteOrder.LITTLE_ENDIAN);
-            writeInt(buff, pos, (int) (value >> 32), ByteOrder.LITTLE_ENDIAN);
+            writeInt(buff, pos, (int) value, ByteOrder.LITTLE_ENDIAN);
+            writeInt(buff, pos + 4, (int) (value >> 32), ByteOrder.LITTLE_ENDIAN);
         }
     }
     /**

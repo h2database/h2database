@@ -78,6 +78,7 @@
 90048=Nieprawidłowa wersja pliku bazy danych lub nieprawidłowy nagłówek pliku {0}
 90049=Błąd szyfrowania pliku {0}
 90050=Zły format hasła, powinno być: plik hasło <spacja> użytkownik hasło
+90051=#Scale(${0}) must not be bigger than precision({1})
 90052=Podzapytanie nie jest zapytaniem opartym o jedna kolumnę
 90053=Skalarna pod-kwerenda zawiera więcej niż jeden wiersz
 90054=Nieprawidłowe użycie funkcji agregującej {0}

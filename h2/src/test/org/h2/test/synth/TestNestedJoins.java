@@ -46,9 +46,8 @@ public class TestNestedJoins extends TestBase {
             return;
         }
         deleteDb("nestedJoins");
+        // testCases2();
         testCases();
-        // bug somewhere in our join handling and planning code
-        //testCases2();
         testRandom();
         deleteDb("nestedJoins");
     }
@@ -643,23 +642,14 @@ public class TestNestedJoins extends TestBase {
     private void testCases2() throws Exception {
         Connection conn = getConnection("nestedJoins");
         Statement stat = conn.createStatement();
-
-        stat.execute("CREATE TABLE A (ID INT NOT NULL UNIQUE, DTYPE VARCHAR(31), GUID text, UUID VARCHAR NOT NULL UNIQUE, PRIMARY KEY (ID))");
-        stat.execute("CREATE TABLE B (ID INT NOT NULL, A_ID BIGINT, PRIMARY KEY (ID))");
-        stat.execute("CREATE TABLE C (ID INT NOT NULL, PRIMARY KEY (ID))");
-        stat.execute("ALTER TABLE B ADD CONSTRAINT FK_B_A_ID FOREIGN KEY (A_ID) REFERENCES A (ID)");
-        stat.execute("ALTER TABLE B ADD CONSTRAINT FK_B_ID FOREIGN KEY (ID) REFERENCES A (ID)");
-        stat.execute("ALTER TABLE C ADD CONSTRAINT FK_C_ID FOREIGN KEY (ID) REFERENCES A (ID)");
-        stat.execute("CREATE SEQUENCE A_SEQ INCREMENT BY 50 START WITH 50");
-        stat.execute("INSERT INTO A(ID, DTYPE, GUID, UUID) VALUES (1, 'Complextest1ClassC', '6e05c875-734c-4dfd-867f-a903ba7ddd4a', '1aedabd9-0cf6-4d7f-ab36-6ec136B14ac')");
-        stat.execute("INSERT INTO A(ID, DTYPE, GUID, UUID) VALUES (2, 'Complextest1ClassB', 'cB97305-15d7-41b2-87a9-f4cf9cc7a70a', '927d0b8f-e298-4368-af8a-388b752701a3')");
-        stat.execute("INSERT INTO C(ID) VALUES (1)");
-        stat.execute("INSERT INTO B(ID, A_ID) VALUES (2,1)");
-        stat.executeQuery("SELECT t0.ID, t0.DTYPE, t0.GUID, t0.UUID, t1.ID, t1.A_ID " +
-        "FROM A " +
-        " LEFT OUTER JOIN (A t0 JOIN B t1 ON (t1.ID = t0.ID)) ON (t1.A_ID = A.ID), " +
-        " C " +
-        "WHERE (A.ID = 1) AND (C.ID = A.ID) AND (A.DTYPE = 'Complextest1ClassC')");
+        stat.execute("create table a(id int primary key)");
+        stat.execute("create table b(id int primary key)");
+        stat.execute("create table c(id int primary key)");
+        stat.execute("insert into a(id) values(1)");
+        stat.execute("insert into c(id) values(1)");
+        stat.execute("insert into b(id) values(1)");
+        stat.executeQuery("select 1  from a left outer join " +
+                "(a t0 join b t1 on 1 = 1) on t1.id = 1, c");
         conn.close();
         deleteDb("nestedJoins");
     }

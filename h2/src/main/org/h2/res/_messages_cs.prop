@@ -78,6 +78,7 @@
 90048=Nepodporovaná verze souboru databáze nebo neplatná hlavička souboru {0}
 90049=Chyba šifrování v souboru {0}
 90050=Nesprávný formát hesla, musí být: heslo k souboru <mezera> uživatelské heslo
+90051=#Scale(${0}) must not be bigger than precision({1})
 90052=Vnořený dotaz není pouze jediný sloupec dotazu
 90053=Skalární vnořený dotaz obsahuje více než jeden řádek
 90054=Neplatné použití agregátní funkce {0}

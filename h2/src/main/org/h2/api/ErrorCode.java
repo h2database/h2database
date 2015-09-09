@@ -946,7 +946,6 @@ public class ErrorCode {
      * CREATE TABLE TABLE1 ( FAIL NUMBER(6,24) );
      * </pre>
      */
-  ; // message missing
     public static final int INVALID_VALUE_SCALE_PRECISION = 90051;
 
     /**

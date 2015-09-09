@@ -38,7 +38,7 @@
 90008=Unerlaubter Wert {0} für Parameter {1}
 90009=Kann die Sequenz {0} nicht ändern aufgrund falscher Attribute (Start-Wert {1}, Minimal-Wert {2}, Maximal-Wert {3}, Inkrement {4})
 90010=Ungültiges TO_CHAR Format {0}
-90011=#A file path that is implicitly relative to the current working directory is not allowed in the database URL {0}. Use an absolute path, ~/name, ./name, or the baseDir setting instead.
+90011=Ein implizit relativer Pfad zum Arbeitsverzeichnis ist nicht erlaubt in der Datenbank URL {0}. Bitte absolute Pfade, ~/name, ./name, oder baseDir verwenden.
 90012=Parameter {0} wurde nicht gesetzt
 90013=Datenbank {0} nicht gefunden
 90014=Fehler beim Parsen von {0}
@@ -66,7 +66,7 @@
 90036=Sequenz {0} nicht gefunden
 90037=View {0} nicht gefunden
 90038=View {0} besteht bereits
-90039=#This CLOB or BLOB reference timed out: {0}
+90039=Diese CLOB oder BLOB Reference ist abgelaufen: {0}
 90040=Für diese Operation werden Administrator-Rechte benötigt
 90041=Trigger {0} besteht bereits
 90042=Trigger {0} nicht gefunden
@@ -78,6 +78,7 @@
 90048=Datenbank Datei Version wird nicht unterstützt oder ungültiger Dateikopf in Datei {0}
 90049=Verschlüsselungsfehler in Datei {0}
 90050=Falsches Passwort Format, benötigt wird: Datei-Passwort <Leerschlag> Benutzer-Passwort
+90051=Skalierung(${0}) darf nicht grösser als Präzision sein({1})
 90052=Unterabfrage gibt mehr als eine Feld zurück
 90053=Skalar-Unterabfrage enthält mehr als eine Zeile
 90054=Ungültige Verwendung der Aggregat Funktion {0}
@@ -164,7 +165,7 @@
 90139=Die (public static) Java Funktion wurde nicht gefunden: {0}
 90140=Die Resultat-Zeilen können nicht verändert werden. Mögliche Lösung: conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=Serialisierer kann nicht geändert werden wenn eine Daten-Tabelle existiert: {0}
-90142=#Step size must not be zero
+90142=Schrittgrösse darf nicht 0 sein
 HY000=Allgemeiner Fehler: {0}
 HY004=Unbekannter Datentyp: {0}
 HYC00=Dieses Feature wird nicht unterstützt: {0}

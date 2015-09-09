@@ -78,6 +78,7 @@
 90048=Versión del archivo de base de datos no soportada ó encabezado de archivo invalido en archivo {0}
 90049=Error de Encriptación en archivo {0}
 90050=Formato de password erroneo, debe ser: archivo password <space> Usuario password
+90051=#Scale(${0}) must not be bigger than precision({1})
 90052=El Subquery no es un query escalar (debe devolver una sola columna)
 90053=El Subquery escalar contiene mas de una fila
 90054=Uso Invalido de la función de columna agregada {0}

@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.test.synth;
 
 import java.sql.Connection;
@@ -11,28 +16,30 @@ import org.h2.test.TestBase;
  */
 public class TestStringAggCompatibility extends TestBase {
 
-    public static final String STRING_AGG_DB = "stringAgg";
-
     private Connection conn;
 
-    public static void main(String[] args) throws Exception {
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
+    public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
 
     @Override
     public void test() throws Exception {
-        deleteDb(STRING_AGG_DB);
-
-        conn = getConnection(STRING_AGG_DB);
-
+        deleteDb(getTestName());
+        conn = getConnection(getTestName());
         prepareDb();
-
         testWhenOrderByMissing();
         testWithOrderBy();
+        conn.close();
     }
 
     private void testWithOrderBy() throws SQLException {
-        ResultSet result = query("select string_agg(b, ', ' order by b desc) from stringAgg group by a; ");
+        ResultSet result = query(
+                "select string_agg(b, ', ' order by b desc) from stringAgg group by a; ");
 
         assertTrue(result.next());
         assertEquals("3, 2, 1", result.getString(1));
@@ -54,7 +61,10 @@ public class TestStringAggCompatibility extends TestBase {
     }
 
     private void prepareDb() throws SQLException {
-        exec("create table stringAgg(\n" + " a int not null,\n" + " b varchar(50) not null\n" + ");");
+        exec("create table stringAgg(\n" +
+                " a int not null,\n" +
+                " b varchar(50) not null\n" +
+                ");");
 
         exec("insert into stringAgg values(1, '1')");
         exec("insert into stringAgg values(1, '2')");

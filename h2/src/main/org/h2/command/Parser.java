@@ -2312,10 +2312,9 @@ public class Parser {
                     readExpression(), currentSelect, distinct);
                 read(",");
                 agg.setGroupConcatSeparator(readExpression());
-
-                if(readIf("ORDER")) {
-                   read("BY");
-                   agg.setGroupConcatOrder(parseSimpleOrderList());
+                if (readIf("ORDER")) {
+                    read("BY");
+                    agg.setGroupConcatOrder(parseSimpleOrderList());
                 }
             }
             r = agg;

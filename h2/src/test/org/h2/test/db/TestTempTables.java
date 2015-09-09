@@ -61,7 +61,8 @@ public class TestTempTables extends TestBase {
         for (int i = 0; i < 10000; i++) {
             prep.execute();
         }
-        stat.execute("create local temporary table test2(id identity) as select x from system_range(1, 10)");
+        stat.execute("create local temporary table " +
+                "test2(id identity) as select x from system_range(1, 10)");
         conn.close();
     }
 

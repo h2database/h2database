@@ -460,6 +460,10 @@ Changes the password of the current user."
 SET QUERY_STATISTICS { TRUE | FALSE }
 ","
 Disabled or enables query statistics gathering for the whole database."
+"Commands (Other)","SET QUERY_STATISTICS_MAX_ENTRIES","
+SET QUERY_STATISTICS int
+","
+Set the maximum number of entries in query statistics meta-table."
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","

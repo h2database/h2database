@@ -187,7 +187,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             if (DataType.GEOMETRY_CLASS == null) {
                 return ValueNull.INSTANCE;
             }
-            return ValueRaster.createEmptyGeoRaster(1, 1, random.nextInt(100), random.nextInt(100), 0, 0, 0, 1, 1);
+            return ValueRaster.createEmptyGeoRaster(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             default:
             throw new AssertionError("type=" + type);
         }

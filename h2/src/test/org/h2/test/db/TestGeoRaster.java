@@ -14,11 +14,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Random;
+
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
 import org.h2.value.ValueRaster;
 
-import javax.rmi.CORBA.Util;
 
 /**
  * Unit test of Raster type
@@ -184,7 +184,7 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testEmptyGeoRaster() throws Exception {
-        ValueRaster testRaster = ValueRaster.createEmptyGeoRaster(2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        ValueRaster testRaster = ValueRaster.createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
         Envelope env = testRaster.getEnvelope();
         assertEquals(0.5, env.getMinX());
         assertEquals(0.5, env.getMinY());
@@ -231,7 +231,7 @@ public class TestGeoRaster extends TestBase {
                 + "5A6CAFFBFE"
                 + "4D566DA4CB"
                 + "3E454C5665";
-        
+
         byte[] bytes = Utils.hexStringToByteArray(bytesString);
         
         InputStream bytesStream = new ByteArrayInputStream(bytes);

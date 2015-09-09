@@ -53,61 +53,6 @@ public class Utils {
         // utility class
     }
 
-
-    /**
-     * Convert a double into its hexadecimal representation (with big endian
-     * convention).
-     *
-     * @param value the double to convert
-     * @return hexadecimal String representation of the double, with a fix length of 16
-     */
-    public static String doubleToHex(double value) {
-        long valueAsLong = Double.doubleToRawLongBits(value);
-        String hexaValue = Long.toHexString(valueAsLong);
-        while (hexaValue.length() < 16) {
-            hexaValue = "0" + hexaValue;
-        }
-        return hexaValue;
-    }
-
-    /**
-     * Convert a long reprensenting an unsigned integer 32 bits into its
-     * hexadecimal representation (with big endian convention).
-     *
-     * @param value the long (uint32) to convert
-     * @return hexadecimal String representation of the uint32, with a fix
-     * length of 8
-     */
-    public static String uint32ToHex(long value) {
-        if (value < 0 || value > 2 * ((long) Integer.MAX_VALUE) + 1) {
-            throw DbException.throwInternalError("Error in argument : " + value + " is not a valid unsigned integer 32 bits. It should be include between 0 and " + 2 * Integer.MAX_VALUE + 1 + ".");
-        }
-        String hexaValue = Long.toHexString(value);
-        while (hexaValue.length() < 8) {
-            hexaValue = "0" + hexaValue;
-        }
-        return hexaValue;
-    }
-
-    /**
-     * Convert an int reprensenting an unsigned integer 16 bits into its
-     * hexadecimal representation (with big endian convention).
-     *
-     * @param value the long (uint32) to convert
-     * @return hexadecimal String representation of the uint32, with a fix
-     * length of 4
-     */
-    public static String uint16ToHex(int value) {
-        if (value < 0 || value > 2 * ((int) Short.MAX_VALUE) + 1) {
-            throw DbException.throwInternalError("Error in argument : " + value + " is not a valid unsigned integer 16 bits value. It should be include between 0 and " + 2*Short.MAX_VALUE + 1 + ".");
-        }
-        String hexaValue = Long.toHexString(value);
-        while (hexaValue.length() < 4) {
-            hexaValue = "0" + hexaValue;
-        }
-        return hexaValue;
-    }
-
     /**
      * Convert a haxadecimal String into the equivalent byte array.
      *

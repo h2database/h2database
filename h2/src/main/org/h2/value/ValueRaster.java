@@ -7,10 +7,10 @@
 package org.h2.value;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,6 +28,7 @@ import org.h2.util.Utils;
  */
 public class ValueRaster extends ValueLob implements ValueSpatial {
     private static final int RASTER_METADATA_SIZE = 61;
+    private static final int LAST_WKB_VERSION = 0;
     /**
      * Get or create a raster value for the given byte array.
      *
@@ -60,23 +61,17 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
      *
      * @return an empty Raster of given dimension.
      */
-    public static org.h2.value.ValueRaster createEmptyGeoRaster(double scaleX, double scaleY,
-            double ipX, double ipY, double skewX, double skewY, long srid,
+    public static org.h2.value.ValueRaster createEmptyGeoRaster(int numbands, double scaleX, double scaleY,
+            double ipX, double ipY, double skewX, double skewY, int srid,
             int width, int height) {
-        String hexaRast = "0000000000";
-        hexaRast += Utils.doubleToHex(scaleX);
-        hexaRast += Utils.doubleToHex(scaleY);
-        hexaRast += Utils.doubleToHex(ipX);
-        hexaRast += Utils.doubleToHex(ipY);
-        hexaRast += Utils.doubleToHex(skewX);
-        hexaRast += Utils.doubleToHex(skewY);
-        hexaRast += Utils.uint32ToHex(srid);
-        hexaRast += Utils.uint16ToHex(width);
-        hexaRast += Utils.uint16ToHex(height);
-        byte[] bytes = Utils.hexStringToByteArray(hexaRast);
-        InputStream bytesStream = new ByteArrayInputStream(bytes);
-        long len = bytes.length;
-        return org.h2.value.ValueRaster.createGeoRaster(bytesStream, len, null);
+        RasterMetaData rasterMetaData = new RasterMetaData(LAST_WKB_VERSION, numbands, scaleX, scaleY, ipX, ipY, skewX, skewY, srid, width, height);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(RASTER_METADATA_SIZE);
+        try {
+            rasterMetaData.writeRasterHeader(byteArrayOutputStream, ByteOrder.BIG_ENDIAN);
+            return createGeoRaster(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()), byteArrayOutputStream.size(), null);
+        } catch (IOException ex) {
+            throw DbException.throwInternalError("H2 is unable to create the raster. " + ex.getMessage());
+        }
     }
 
     /**
@@ -220,6 +215,8 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
             // Retrieve width and height values
             Utils.writeUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), width, endian);
             Utils.writeUnsignedShort(buffer, cursor.getAndAdd(Short.SIZE / Byte.SIZE), height, endian);
+
+            stream.write(buffer);
         }
 
         public Envelope getEnvelope() {

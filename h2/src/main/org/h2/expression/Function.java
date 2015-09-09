@@ -1922,7 +1922,7 @@ public class Function extends Expression implements FunctionCall {
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    private static String hexToRaw(String s) {
+    public static String hexToRaw(String s) {
         // TODO function hextoraw compatibility with oracle
         int len = s.length();
         if (len % 4 != 0) {

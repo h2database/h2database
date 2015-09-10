@@ -203,39 +203,27 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testGeoRasterWithBands() throws Exception {
-        String bytesString = "01"
-                + "0000"
-                + "0300"
-                + "9A9999999999A93F"
-                + "9A9999999999A9BF"
-                + "000000E02B274A41"
-                + "0000000077195641"
-                + "0000000000000000"
-                + "0000000000000000"
-                + "E6100000"
-                + "0500"
-                + "0500"
-                + "04"
-                + "00"
-                + "FDFEFDFEFE"
-                + "FDFEFEFDF9"
-                + "FAFEFEFCF9"
-                + "FBFDFEFEFD"
-                + "FCFAFEFEFE"
-                + "04"
-                + "00"
-                + "4E627AADD1"
-                + "6076B4F9FE"
-                + "6370A9F5FE"
-                + "59637AB0E5"
-                + "4F58617087"
-                + "04"
-                + "00"
-                + "46566487A1"
-                + "506CA2E3FA"
-                + "5A6CAFFBFE"
-                + "4D566DA4CB"
-                + "3E454C5665";
+        String bytesString = "01" +	                                   /* little endian (uint8 ndr) */
+                "0000" +                                               /* version (uint16 0) */
+                "0300" +                                               /* nBands (uint16 3) */
+                "9A9999999999A93F" +                                   /* scaleX (float64 0.050000) */
+                "9A9999999999A9BF" +                                   /* scaleY (float64 -0.050000) */
+                "000000E02B274A41" +                                   /* ipX (float64 3427927.750000) */
+                "0000000077195641" +                                   /* ipY (float64 5793244.000000) */
+                "0000000000000000" +                                   /* skewX (float64 0.000000) */
+                "0000000000000000" +                                   /* skewY (float64 0.000000) */
+                "FFFFFFFF" +                                           /* srid (int32 -1) */
+                "0500" +                                               /* width (uint16 5) */
+                "0500" +                                               /* height (uint16 5) */
+                "44" +                                                 /* 1st band pixel type (8BUI, in memory, hasnodata) */
+                "00" +                                                 /* 1st band nodata 0 */
+                "FDFEFDFEFEFDFEFEFDF9FAFEFEFCF9FBFDFEFEFDFCFAFEFEFE" + /* 1st band pixels */
+                "44" +                                                 /* 2nd band pixel type (8BUI, in memory, hasnodata) */
+                "00" +                                                 /* 2nd band nodata 0 */
+                "4E627AADD16076B4F9FE6370A9F5FE59637AB0E54F58617087" + /* 2nd band pixels */
+                "44" +                                                 /* 3rd band pixel type (8BUI, in memory, hasnodata) */
+                "00" +                                                 /* 3rd band nodata 0 */
+                "46566487A1506CA2E3FA5A6CAFFBFE4D566DA4CB3E454C5665";  /* 3rd band pixels */
 
         byte[] bytes = Utils.hexStringToByteArray(bytesString);
         
@@ -253,11 +241,28 @@ public class TestGeoRaster extends TestBase {
         assertEquals(5, metaData.width);
         assertEquals(5, metaData.height);
         Envelope env = testRaster.getEnvelope();
-        assertEquals(env.getMinX(), 3427927.75);
-        assertEquals(env.getMinY(), 5793243.75);
-        assertEquals(env.getMaxX(), 3427928);
-        assertEquals(env.getMaxY(), 5793244);
-        assertEquals(testRaster.getMetaData().srid, 4326);
+        assertEquals(3427927.75, env.getMinX());
+        assertEquals(5793243.75, env.getMinY());
+        assertEquals(3427928, env.getMaxX());
+        assertEquals(5793244, env.getMaxY());
+        assertEquals(-1, testRaster.getMetaData().srid);
+        // Check bands meta
+        assertEquals(3, metaData.bands.length);
+        ValueRaster.RasterBandMetaData bandMetaData = metaData.bands[0];
+        assertTrue(ValueRaster.PixelType.PT_8BUI == bandMetaData.pixelType);
+        assertFalse(bandMetaData.offDB);
+        assertTrue(bandMetaData.hasNoData);
+        assertEquals(0, bandMetaData.noDataValue);
+        bandMetaData = metaData.bands[1];
+        assertTrue(ValueRaster.PixelType.PT_8BUI == bandMetaData.pixelType);
+        assertFalse(bandMetaData.offDB);
+        assertTrue(bandMetaData.hasNoData);
+        assertEquals(0, bandMetaData.noDataValue);
+        bandMetaData = metaData.bands[2];
+        assertTrue(ValueRaster.PixelType.PT_8BUI == bandMetaData.pixelType);
+        assertFalse(bandMetaData.offDB);
+        assertTrue(bandMetaData.hasNoData);
+        assertEquals(0, bandMetaData.noDataValue);
     }
 
     private void testLittleEndian() throws IOException {
@@ -321,6 +326,10 @@ public class TestGeoRaster extends TestBase {
         assertEquals(-1, metaData.srid);
         assertEquals(3, metaData.width);
         assertEquals(1, metaData.height);
+        assertTrue(ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
+        assertFalse(metaData.bands[0].offDB);
+        assertTrue(metaData.bands[0].hasNoData);
+        assertEquals(1, metaData.bands[0].noDataValue);
     }
 
     private void testExternalRaster() throws IOException {

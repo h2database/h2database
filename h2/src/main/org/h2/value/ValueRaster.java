@@ -177,7 +177,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
             this.noDataValue = noDataValue;
             this.pixelType = pixelType;
             this.hasNoData = hasNoData;
-            this.offDB = true;
+            this.offDB = false;
             this.externalBandId = -1;
             this.externalPath = "";
         }

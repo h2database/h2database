@@ -347,6 +347,22 @@ public class TestGeoRaster extends TestBase {
         long len = bytes.length;
         ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
         ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        assertEquals(0, metaData.version);
+        assertEquals(1, metaData.numBands);
+        assertEquals(1, metaData.scaleX);
+        assertEquals(2, metaData.scaleY);
+        assertEquals(3, metaData.ipX);
+        assertEquals(4, metaData.ipY);
+        assertEquals(5, metaData.skewX);
+        assertEquals(6, metaData.skewY);
+        assertEquals(10, metaData.srid);
+        assertEquals(3, metaData.width);
+        assertEquals(2, metaData.height);
+        assertTrue(ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
+        assertTrue(metaData.bands[0].offDB);
+        assertTrue(metaData.bands[0].hasNoData);
+        assertEquals(-1, metaData.bands[0].noDataValue);
+        assertEquals(3, metaData.bands[0].externalBandId);
         assertEquals("/tmp/t.tif\0", metaData.bands[0].externalPath);
     }
 }

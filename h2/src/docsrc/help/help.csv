@@ -1766,7 +1766,7 @@ multiple lines long.
 <> | <= | >= | = | < | > | != | &&
 ","
 Comparison operator. The operator != is the same as <>.
-The operator ""&&"" means overlapping; it can only be used with geometry types.
+The operator ""&&"" means overlapping; it can only be used with spatial types such as Geometry or Raster.
 ","
 <>
 "
@@ -2460,6 +2460,16 @@ Use a quoted string containing a WKT formatted string or ""PreparedStatement.set
 and ""ResultSet.getObject(..)"" or ""ResultSet.getString(..)"" to retrieve the values.
 ","
 GEOMETRY
+"
+
+"Data Types","RASTER Type","
+RASTER
+","
+A spatial geometry type. This type represent a geo-referenced image.
+
+The internal structure use Raster WKB. It is binary compatible with the PostGIS raster.
+","
+RASTER
 "
 
 "Functions (Aggregate)","AVG","
@@ -3612,6 +3622,15 @@ ARRAY_CONTAINS(arrayExpression, value)
 Returns a boolean true if the array contains the value.
 ","
 CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
+"
+
+"Functions (Raster)","ST_METADATA","
+{ ST_METADATA } (raster)
+","
+Read the metadata of the raster
+This method returns an array. (Coordinate X, Coordinate Y, Width, Height, ScaleX, ScaleY, SkewX, SkewY, SRID, bands count)
+","
+ST_METADATA(rast)
 "
 
 "Functions (System)","AUTOCOMMIT","

@@ -25,9 +25,10 @@ import org.h2.util.Utils;
  * @author Jules Party
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class ValueRaster extends ValueLob implements ValueSpatial {
+public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRasterMarker {
     private static final int RASTER_METADATA_SIZE = 61;
     private static final int LAST_WKB_VERSION = 0;
+    private RasterMetaData cachedMetaData;
     /**
      * Get or create a raster value for the given byte array.
      *
@@ -51,7 +52,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
         small = v.small;
         hash = v.hash;
     }
-    
+
     /**
      * Create an empty Raster with given parameters.
      *
@@ -76,8 +77,12 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
     /**
      * @return Raster metadata
      */
+    @Override
     public RasterMetaData getMetaData() throws IOException {
-        return RasterMetaData.fetchMetaData(getInputStream());
+        if(cachedMetaData == null) {
+            cachedMetaData = RasterMetaData.fetchMetaData(getInputStream(), true);
+        }
+        return cachedMetaData;
     }
 
     /**
@@ -331,7 +336,6 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
                             if(1 != raster.read(buffer, 0, 1)) {
                                 throw DbException.throwInternalError("H2 is unable to read the raster's band. ");
                             }
-                            cursor.addAndGet(1);
                             int bandId = buffer[0];
                             // read path
                             Scanner scanner = new Scanner(raster);
@@ -342,7 +346,10 @@ public class ValueRaster extends ValueLob implements ValueSpatial {
                             RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData);
                             bands[idBand++] = rasterBandMetaData;
                             // Skip remaining pixel until next band
-                            raster.skip(width * height * pixelType.pixelSize);
+                            int skipLength = width * height * pixelType.pixelSize;
+                            if(skipLength != raster.skip(skipLength)) {
+                                throw DbException.throwInternalError("H2 is unable to read the raster's band. ");
+                            }
                         }
                     }
                 }

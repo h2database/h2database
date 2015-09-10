@@ -6,7 +6,7 @@
 package org.h2.value;
 
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.io.ByteOrderValues;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -38,7 +38,7 @@ import org.h2.util.Utils;
  * Large objects are either stored in the database, or in temporary files.
  */
 public class ValueLobDb extends Value implements Value.ValueClob,
-        Value.ValueBlob, Value.ValueRaster, ValueSpatial {
+        Value.ValueBlob, Value.ValueRasterMarker, ValueSpatial {
 
     private final int type;
     private final long lobId;
@@ -51,6 +51,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * For a CLOB, precision is length in chars.
      */
     private final long precision;
+
+    // For Raster only
+    private ValueRaster.RasterMetaData cachedMetaData;
 
     private final String fileName;
     private final FileStore tempFile;
@@ -698,5 +701,15 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     @Override
     public boolean intersectsBoundingBox(ValueSpatial vs) {
         return getEnvelope().intersects(vs.getEnvelope());
+    }
+
+    /**
+     * @return Raster metadata
+     */
+    public ValueRaster.RasterMetaData getMetaData() throws IOException {
+        if(cachedMetaData == null) {
+            cachedMetaData = ValueRaster.RasterMetaData.fetchMetaData(getInputStream(), true);
+        }
+        return cachedMetaData;
     }
 }

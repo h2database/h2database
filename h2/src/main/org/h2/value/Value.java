@@ -5,10 +5,7 @@
  */
 package org.h2.value;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
+import java.io.*;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -819,6 +816,7 @@ public abstract class Value {
                 case BYTES:
                     return ValueUuid.get(getBytesNoCopy());
                 }
+                break;
             }
             case GEOMETRY:
                 switch (getType()) {
@@ -830,6 +828,7 @@ public abstract class Value {
                         return ValueGeometry.getFromGeometry(object);
                     }
                 }
+                break;
             }
             // conversion by parsing the string value
             String s = getString();
@@ -1194,8 +1193,9 @@ public abstract class Value {
     /**
      * A "large raster object"
      */
-    public interface ValueRaster {
+    public interface ValueRasterMarker {
         // this is a marker interface
+        org.h2.value.ValueRaster.RasterMetaData getMetaData() throws IOException;
     }
 
 }

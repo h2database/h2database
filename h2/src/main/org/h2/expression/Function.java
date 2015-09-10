@@ -66,6 +66,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
+import org.h2.value.ValueRaster;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
@@ -130,6 +131,11 @@ public class Function extends Expression implements FunctionCall {
     public static final int H2VERSION = 231;
 
     public static final int ROW_NUMBER = 300;
+
+    /**
+     * Raster functions
+     */
+    public static final int ST_METADATA = 350;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -472,6 +478,9 @@ public class Function extends Expression implements FunctionCall {
 
         // ON DUPLICATE KEY VALUES function
         addFunction("VALUES", VALUES, 1, Value.NULL, false, true, false);
+
+        // Raster function
+        addFunction("ST_METADATA", ST_METADATA, 1, Value.ARRAY);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -1114,6 +1123,20 @@ public class Function extends Expression implements FunctionCall {
         }
         case TRANSACTION_ID: {
             result = session.getTransactionId();
+            break;
+        }
+        case ST_METADATA: {
+            try {
+                ValueRaster.RasterMetaData metaData;
+                if(v0 instanceof Value.ValueRasterMarker) {
+                    metaData = ((Value.ValueRasterMarker)v0).getMetaData();
+                } else {
+                    metaData = ((Value.ValueRasterMarker)v0.convertTo(Value.RASTER)).getMetaData();
+                }
+                result = ValueArray.get(new Value[]{ValueDouble.get(metaData.ipX), ValueDouble.get(metaData.ipY), ValueInt.get(metaData.width), ValueInt.get(metaData.height), ValueDouble.get(metaData.scaleX), ValueDouble.get(metaData.scaleY), ValueDouble.get(metaData.skewX), ValueDouble.get(metaData.skewY), ValueInt.get(metaData.srid), ValueInt.get(metaData.numBands)});
+            } catch (IOException ex) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
             break;
         }
         default:

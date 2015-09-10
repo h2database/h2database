@@ -11,10 +11,7 @@ import com.vividsolutions.jts.geom.Envelope;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Random;
 
 import org.h2.test.TestBase;
@@ -50,6 +47,7 @@ public class TestGeoRaster extends TestBase {
         testLittleEndian();
         testLittleEndianHexa();
         testExternalRaster();
+        testStRasterMetaData();
     }
  
    
@@ -373,5 +371,23 @@ public class TestGeoRaster extends TestBase {
         assertEquals(-1, metaData.bands[0].noDataValue);
         assertEquals(3, metaData.bands[0].externalBandId);
         assertEquals("/tmp/t.tif\0", metaData.bands[0].externalPath);
+    }
+
+    public void testStRasterMetaData() throws SQLException {
+        Connection conn;
+        conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5) skewY(6) SRID(10) numbands(0)
+        stat.execute("INSERT INTO TEST(data) VALUES ('00000000003FF000000000000040000000000000004008000000000000401" +
+                "0000000000000401400000000000040180000000000000000000A00070008')");
+        ResultSet rs = stat.executeQuery("SELECT ST_METADATA(data) meta FROM TEST");
+        try {
+            assertTrue(rs.next());
+            assertEquals(new Object[]{3.0, 4.0, 7, 8, 1.0, 2.0, 5.0, 6.0, 10, 0}, (Object[])rs.getObject(1));
+        } finally {
+            rs.close();
+        }
     }
 }

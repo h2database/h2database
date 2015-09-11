@@ -269,7 +269,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
          * @return
          */
         public Coordinate getPixelCoordinate(int x, int y) {
-            return new Coordinate(scaleX * x + skewY * y + ipX, scaleY * y + skewY * x + ipY);
+            return new Coordinate(scaleX * x + skewX * y + ipX, scaleY * y + skewY * x + ipY);
         }
 
         public static RasterMetaData fetchMetaData(InputStream raster) throws IOException {

@@ -413,8 +413,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertTrue(rs.getObject(1) instanceof Geometry);
-            ValueRaster raster = ValueRaster.get(Utils.hexStringToByteArray(wkbRaster));
-            assertTrue(raster.getEnvelope().equals(((Geometry) rs.getObject(1)).getEnvelopeInternal()));
+            assertEquals("POLYGON ((3 4, 10 46, 50 62, 43 20, 3 4))", rs.getString(1));
         } finally {
             rs.close();
         }

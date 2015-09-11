@@ -929,10 +929,14 @@ public abstract class Value {
      * @return the converted value
      */
     public Value convertToSpatial() {
-        try {
-            return convertTo(GEOMETRY);
-        } catch (DbException e) {
-            return convertTo(RASTER);
+        if(this instanceof ValueSpatial) {
+            return this;
+        } else {
+            try {
+                return convertTo(GEOMETRY);
+            } catch (DbException e) {
+                return convertTo(RASTER);
+            }
         }
     }
 

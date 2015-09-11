@@ -833,8 +833,7 @@ public abstract class Value {
                 case RASTER:
                     try {
                         // Build envelope
-                        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), ((ValueRasterMarker) this).getMetaData().srid);
-                        return ValueGeometry.getFromGeometry(geometryFactory.toGeometry(((ValueSpatial) this).getEnvelope()));
+                        return ValueGeometry.getFromGeometry(((ValueRasterMarker) this).getMetaData().convexHull());
                     } catch (IOException ex) {
                         throw throwUnsupportedExceptionForType("Failed to cast raster to geometry");
                     }

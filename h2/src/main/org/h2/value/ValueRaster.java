@@ -13,10 +13,10 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.vividsolutions.jts.geom.*;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 
-import com.vividsolutions.jts.geom.Envelope;
 import org.h2.util.Utils;
 
 /**
@@ -262,6 +262,16 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
             return metaData.offsetPixel + metaData.pixelType.pixelSize * width * y + x;
         }
 
+        /**
+         * Translate the pixel row,column into map coordinate
+         * @param x
+         * @param y
+         * @return
+         */
+        public Coordinate getPixelCoordinate(int x, int y) {
+            return new Coordinate(scaleX * x + skewY * y + ipX, scaleY * y + skewY * x + ipY);
+        }
+
         public static RasterMetaData fetchMetaData(InputStream raster) throws IOException {
             return fetchMetaData(raster, true);
         }
@@ -423,30 +433,27 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
             stream.write(buffer);
         }
 
+        /**
+         * @return The envelope of the raster, take account of the rotation of the raster
+         */
+        public Polygon convexHull() {
+            GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), srid);
+            Coordinate bottomLeft = getPixelCoordinate(0, 0);
+            Coordinate bottomRight = getPixelCoordinate(width, 0);
+            Coordinate topRight = getPixelCoordinate(width, height);
+            Coordinate topLeft = getPixelCoordinate(0, height);
+            return geometryFactory.createPolygon(new Coordinate[]{bottomLeft, bottomRight, topRight, topLeft, bottomLeft});
+        }
+
+        /**
+         * @return The envelope of the raster. This envelope is larger than the convex hull as
+         */
         public Envelope getEnvelope() {
-
-            // Calculate the four points of the envelope and keep max and min values for x and y
-            double xMax = ipX;
-            double yMax = ipY;
-            double xMin = ipX;
-            double yMin = ipY;
-
-            xMax = Math.max(xMax, ipX + width * scaleX);
-            xMin = Math.min(xMin, ipX + width * scaleX);
-            yMax = Math.max(yMax, ipY + width * scaleY);
-            yMin = Math.min(yMin, ipY + width * scaleY);
-
-            xMax = Math.max(xMax, ipX + height * skewX);
-            xMin = Math.min(xMin, ipX + height * skewX);
-            yMax = Math.max(yMax, ipY + height * skewY);
-            yMin = Math.min(yMin, ipY + height * skewY);
-
-            xMax = Math.max(xMax, ipX + width * scaleX + height * skewX);
-            xMin = Math.min(xMin, ipX + width * scaleX + height * skewX);
-            yMax = Math.max(yMax, ipY + width * scaleY + height * skewY);
-            yMin = Math.min(yMin, ipY + width * scaleY + height * skewY);
-
-            return new Envelope(xMax, xMin, yMax, yMin);
+            Envelope env = new Envelope(getPixelCoordinate(0, 0));
+            env.expandToInclude(getPixelCoordinate(width, 0));
+            env.expandToInclude(getPixelCoordinate(width, height));
+            env.expandToInclude(getPixelCoordinate(0, height));
+            return env;
         }
     }
 }

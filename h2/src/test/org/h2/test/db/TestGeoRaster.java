@@ -192,11 +192,12 @@ public class TestGeoRaster extends TestBase {
 
     public void testEmptyGeoRaster() throws Exception {
         ValueRaster testRaster = ValueRaster.createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        // POLYGON((0.5 0.5,0.5 60.5,20.5 60.5,20.5 0.5,0.5 0.5))
         Envelope env = testRaster.getEnvelope();
         assertEquals(0.5, env.getMinX());
         assertEquals(0.5, env.getMinY());
         assertEquals(20.5, env.getMaxX());
-        assertEquals(30.5, env.getMaxY());
+        assertEquals(60.5, env.getMaxY());
         ValueRaster.RasterMetaData meta = testRaster.getMetaData();
         assertEquals(2, meta.scaleX);
         assertEquals(3, meta.scaleY);
@@ -285,7 +286,7 @@ public class TestGeoRaster extends TestBase {
         assertEquals(0.5, env.getMinX());
         assertEquals(0.5, env.getMinY());
         assertEquals(20.5, env.getMaxX());
-        assertEquals(30.5, env.getMaxY());
+        assertEquals(60.5, env.getMaxY());
 
     }
 
@@ -395,6 +396,10 @@ public class TestGeoRaster extends TestBase {
         }
     }
 
+    /**
+     * Check if cast of raster into geometry is going well.
+     * @throws SQLException
+     */
     public void testRasterCastToGeometry() throws SQLException {
         // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5) skewY(6) SRID(10) numbands(0)
         final String wkbRaster = "00000000003FF0000000000000400000000000000040080000000000004010000000000000401400000000000040180000000000000000000A00070008";

@@ -14,6 +14,7 @@ import java.nio.ByteOrder;
 import java.sql.*;
 import java.util.Random;
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
 import org.h2.value.ValueRaster;
@@ -21,7 +22,9 @@ import org.h2.value.ValueRaster;
 
 /**
  * Unit test of Raster type
- * @author Thomas Crevoisier, Jules Party
+ * @author Thomas Crevoisier
+ * @author Jules Party
+ * @author Nicolas Fortin
  */
 public class TestGeoRaster extends TestBase {
 
@@ -48,6 +51,7 @@ public class TestGeoRaster extends TestBase {
         testLittleEndianHexa();
         testExternalRaster();
         testStRasterMetaData();
+        testRasterCastToGeometry();
     }
  
    
@@ -386,6 +390,26 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(new Object[]{3.0, 4.0, 7, 8, 1.0, 2.0, 5.0, 6.0, 10, 0}, (Object[])rs.getObject(1));
+        } finally {
+            rs.close();
+        }
+    }
+
+    public void testRasterCastToGeometry() throws SQLException {
+        // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5) skewY(6) SRID(10) numbands(0)
+        final String wkbRaster = "00000000003FF0000000000000400000000000000040080000000000004010000000000000401400000000000040180000000000000000000A00070008";
+        Connection conn;
+        conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        stat.execute("INSERT INTO TEST(data) VALUES ('"+wkbRaster+"')");
+        ResultSet rs = stat.executeQuery("SELECT data::geometry env FROM TEST");
+        try {
+            assertTrue(rs.next());
+            assertTrue(rs.getObject(1) instanceof Geometry);
+            ValueRaster raster = ValueRaster.get(Utils.hexStringToByteArray(wkbRaster));
+            assertTrue(raster.getEnvelope().equals(((Geometry) rs.getObject(1)).getEnvelopeInternal()));
         } finally {
             rs.close();
         }

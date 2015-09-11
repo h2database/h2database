@@ -16,6 +16,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -826,6 +828,15 @@ public abstract class Value {
                     Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
                     if (DataType.isGeometry(object)) {
                         return ValueGeometry.getFromGeometry(object);
+                    }
+                    break;
+                case RASTER:
+                    try {
+                        // Build envelope
+                        GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), ((ValueRasterMarker) this).getMetaData().srid);
+                        return ValueGeometry.getFromGeometry(geometryFactory.toGeometry(((ValueSpatial) this).getEnvelope()));
+                    } catch (IOException ex) {
+                        throw throwUnsupportedExceptionForType("Failed to cast raster to geometry");
                     }
                 }
                 break;

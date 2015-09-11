@@ -35,10 +35,10 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
      * @param bytesNoCopy the byte array
      * @return the value
      */
-    public static Value get(byte[] bytesNoCopy) {
+    public static ValueRaster get(byte[] bytesNoCopy) {
         InputStream bytesStream = new ByteArrayInputStream(bytesNoCopy);
         long len = bytesNoCopy.length;
-        return org.h2.value.ValueRaster.createGeoRaster(bytesStream, len, null);
+        return createGeoRaster(bytesStream, len, null);
     }
 
 
@@ -177,23 +177,29 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
         public final double noDataValue;
         public final int externalBandId;
         public final String externalPath;
+        public final long offset;
+        public final long offsetPixel;
 
-        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData) {
+        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData, long offset) {
             this.noDataValue = noDataValue;
             this.pixelType = pixelType;
             this.hasNoData = hasNoData;
             this.offDB = false;
             this.externalBandId = -1;
             this.externalPath = "";
+            this.offset = offset;
+            this.offsetPixel = offset + 1 + pixelType.pixelSize;
         }
 
-        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData, int externalBandId, String externalPath) {
+        public RasterBandMetaData(double noDataValue, PixelType pixelType, boolean hasNoData, int externalBandId, String externalPath, long offset) {
             this.pixelType = pixelType;
             this.hasNoData = hasNoData;
             this.noDataValue = noDataValue;
             this.externalBandId = externalBandId;
             this.externalPath = externalPath;
             this.offDB = true;
+            this.offset = offset;
+            this.offsetPixel = offset + 1 + pixelType.pixelSize + 1 + externalPath.getBytes().length;
         }
     }
 
@@ -232,6 +238,28 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
             this.width = width;
             this.height = height;
             this.bands = bands;
+        }
+
+        /**
+         * Compute bytes to skip in InputStream in order to read the specified band
+         * @param band Band id [0-numBands[
+         * @return bytes to skip
+         */
+        public long getStreamOffset(int band) {
+            return getStreamOffset(band, 0, 0);
+        }
+
+        /**
+         * Compute bytes to skip in InputStream in order to read the specified pixel.
+         * @param band Band id [0-numBands[
+         * @return bytes to skip
+         */
+        public long getStreamOffset(int band,int x, int y) {
+            if(band >= numBands) {
+                throw new IllegalArgumentException("Band number out of range");
+            }
+            final RasterBandMetaData metaData = bands[band];
+            return metaData.offsetPixel + metaData.pixelType.pixelSize * width * y + x;
         }
 
         public static RasterMetaData fetchMetaData(InputStream raster) throws IOException {
@@ -275,6 +303,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
                 int idBand = 0;
                 if(numBands > 0 && fetchBandsMetaData) {
                     while(idBand < numBands) {
+                        final int bandOffset = cursor.get();
                         // Read Flag
                         if (1 != raster.read(buffer, 0, 1)) {
                             throw DbException.throwInternalError("H2 is unable to read the raster's band. ");
@@ -290,6 +319,7 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
 
                         // Read NODATA value
                         final double noData;
+                        cursor.addAndGet(pixelType.pixelSize);
                         if (pixelType.pixelSize != raster.read(buffer, 0, pixelType.pixelSize)) {
                             throw DbException.throwInternalError("H2 is unable to read the raster's nodata. ");
                         }
@@ -340,13 +370,15 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
                             // read path
                             Scanner scanner = new Scanner(raster);
                             String path = scanner.next();
-                            RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData, bandId, path);
+                            cursor.addAndGet(1 + path.getBytes().length);
+                            RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData, bandId, path, bandOffset);
                             bands[idBand++] = rasterBandMetaData;
                         } else {
-                            RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData);
+                            RasterBandMetaData rasterBandMetaData = new RasterBandMetaData(noData, pixelType, hasNoData, bandOffset);
                             bands[idBand++] = rasterBandMetaData;
                             // Skip remaining pixel until next band
                             int skipLength = width * height * pixelType.pixelSize;
+                            cursor.addAndGet(skipLength);
                             if(skipLength != raster.skip(skipLength)) {
                                 throw DbException.throwInternalError("H2 is unable to read the raster's band. ");
                             }

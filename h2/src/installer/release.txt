@@ -1,5 +1,4 @@
-Check dictionary.txt
-svn up
+git pull
 ./build.sh spellcheck
 ./build.sh javadocImpl
 ./build.sh docs

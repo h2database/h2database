@@ -24,6 +24,7 @@ import org.h2.mvstore.StreamStore;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
 
@@ -101,25 +102,35 @@ public class LobStorageMap implements LobStorageInterface {
         if (dataMap.isEmpty()) {
             return;
         }
-        // search the last referenced block
-        // (a lob may not have any referenced blocks if data is kept inline,
-        // so we need to loop)
+        // search for the last block
+        // (in theory, only the latest lob can have unreferenced blocks,
+        // but the latest lob could by a copy of another one, and
+        // we don't know that, so we iterate over all lobs)
         long lastUsedKey = -1;
-        Long lobId = lobMap.lastKey();
-        while (lobId != null) {
-            Object[] v = lobMap.get(lobId);
+        for (Entry<Long, Object[]> e : lobMap.entrySet()) {
+            long lobId = e.getKey();
+            Object[] v = e.getValue();
             byte[] id = (byte[]) v[0];
-            lastUsedKey = streamStore.getMaxBlockKey(id);
-            if (lastUsedKey >= 0) {
-                break;
+            long max = streamStore.getMaxBlockKey(id);
+            // a lob may not have a referenced blocks if data is kept inline
+            if (max != -1 && max > lastUsedKey) {
+                lastUsedKey = max;
+                if (TRACE) {
+                    trace("lob " + lobId + " lastUsedKey=" + lastUsedKey);
+                }
             }
-            lobId = lobMap.lowerKey(lobId);
+        }
+        if (TRACE) {
+            trace("lastUsedKey=" + lastUsedKey);
         }
         // delete all blocks that are newer
         while (true) {
             Long last = dataMap.lastKey();
             if (last == null || last <= lastUsedKey) {
                 break;
+            }
+            if (TRACE) {
+                trace("gc " + last);
             }
             dataMap.remove(last);
         }
@@ -349,10 +360,16 @@ public class LobStorageMap implements LobStorageInterface {
         if (value != null) {
             byte[] s2 = (byte[]) value[0];
             if (Arrays.equals(streamStoreId, s2)) {
+                if (TRACE) {
+                    trace("  stream still needed in lob " + value[1]);
+                }
                 hasMoreEntries = true;
             }
         }
         if (!hasMoreEntries) {
+            if (TRACE) {
+                trace("  remove stream " + StringUtils.convertBytesToHex(streamStoreId));
+            }
             streamStore.remove(streamStoreId);
         }
     }

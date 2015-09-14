@@ -21,6 +21,23 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>-
+</li>
+</ul>
+
+<h2>Version 1.4.189 Beta (2015-09-13)</h2>
+<ul>
+<li>Fix bug in XA management when doing rollback after prepare. Patch by Stephane Lacoin.
+</li>
+<li>MVStore CLOB and BLOB: An exception with the message "Block not found" could be thrown
+    when using the MVStore storage, when copying LOB objects
+    (for example due to "alter table" on a table with a LOB object),
+    and then re-opening the database.
+</li>
+<li>Fix for issue #171: Broken QueryStatisticsData duration data when trace level smaller than TraceSystem.INFO
+</li>
+<li>Pull request #170: Added SET QUERY_STATISTICS_MAX_ENTRIES
+</li>
 <li>Pull request #165: Fix compatibility postgresql function string_agg
 </li>
 <li>Pull request #163: improved performance when not using the default timezone.

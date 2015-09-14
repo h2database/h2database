@@ -56,6 +56,7 @@ public class TestMetaData extends TestBase {
         testClientInfo();
         testSessionsUncommitted();
         testQueryStatistics();
+        testQueryStatisticsLimit();
     }
 
     private void testUnwrap() throws SQLException {
@@ -1257,6 +1258,48 @@ public class TestMetaData extends TestBase {
         assertEquals(count, rs.getInt("EXECUTION_COUNT"));
         assertEquals(10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
         rs.close();
+        conn.close();
+        deleteDb("metaData");
+    }
+
+    private void testQueryStatisticsLimit() throws SQLException {
+        Connection conn = getConnection("metaData");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, name varchar) as " +
+                "select x, space(1000) from system_range(1, 2000)");
+
+        ResultSet rs = stat.executeQuery(
+                "select * from INFORMATION_SCHEMA.QUERY_STATISTICS");
+        assertFalse(rs.next());
+        rs.close();
+
+        //first, test setting the limit before activating statistics
+        int statisticsMaxEntries = 200;
+        //prevent test limit being less than or equal to default limit
+        assertTrue(statisticsMaxEntries > Constants.QUERY_STATISTICS_MAX_ENTRIES);
+        stat.execute("SET QUERY_STATISTICS_MAX_ENTRIES " + statisticsMaxEntries);
+        stat.execute("SET QUERY_STATISTICS TRUE");
+        for (int i = 0; i < statisticsMaxEntries * 2; i++) {
+            stat.execute("select * from test where id = " + i);
+        }
+        rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.QUERY_STATISTICS");
+        assertTrue(rs.next());
+        assertEquals(statisticsMaxEntries, rs.getInt(1));
+        rs.close();
+
+        //first, test changing the limit once statistics is activated
+        int statisticsMaxEntriesNew = 50;
+        //prevent new test limit being greater than or equal to default limit
+        assertTrue(statisticsMaxEntriesNew < Constants.QUERY_STATISTICS_MAX_ENTRIES);
+        stat.execute("SET QUERY_STATISTICS_MAX_ENTRIES " + statisticsMaxEntriesNew);
+        for (int i = 0; i < statisticsMaxEntriesNew * 2; i++) {
+            stat.execute("select * from test where id = " + i);
+        }
+        rs = stat.executeQuery("select count(*) from INFORMATION_SCHEMA.QUERY_STATISTICS");
+        assertTrue(rs.next());
+        assertEquals(statisticsMaxEntriesNew, rs.getInt(1));
+        rs.close();
+
         conn.close();
         deleteDb("metaData");
     }

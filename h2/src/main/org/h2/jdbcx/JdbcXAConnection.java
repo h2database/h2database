@@ -274,8 +274,6 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
             debugCode("rollback("+JdbcXid.toString(xid)+");");
         }
         try {
-            physicalConn.rollback();
-            physicalConn.setAutoCommit(true);
             if (prepared) {
                 Statement stat = null;
                 try {
@@ -285,7 +283,10 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
                     JdbcUtils.closeSilently(stat);
                 }
                 prepared = false;
+            } else {
+                physicalConn.rollback();
             }
+            physicalConn.setAutoCommit(true);
         } catch (SQLException e) {
             throw convertException(e);
         }

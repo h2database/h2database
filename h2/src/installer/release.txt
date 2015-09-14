@@ -1,5 +1,4 @@
-Check dictionary.txt
-svn up
+git pull
 ./build.sh spellcheck
 ./build.sh javadocImpl
 ./build.sh docs
@@ -19,6 +18,7 @@ Check docs, versions and links in main, downloads, build numbers
 Check the PDF file size
 
 Upload to SourceForge
+Upload to ftp://h2database.com/javadoc
 Upload to ftp://h2database.com
 Upload to ftp://h2database.com/m2-repo
 Github: create a release

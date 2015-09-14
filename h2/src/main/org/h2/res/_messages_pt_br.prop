@@ -78,6 +78,7 @@
 90048=Versão do arquivo de base de dados não é suportado, ou o cabeçalho do arquivo é inválido, no arquivo {0}
 90049=Erro de encriptação no arquivo {0}
 90050=Erro no formato da senha, deveria ser: arquivo de senha <espaço> senha do usuário
+90051=#Scale(${0}) must not be bigger than precision({1})
 90052=A Subquery não é de coluna única
 90053=A Subquery contém mais de uma linha
 90054=Uso inválido da função {0} agregada

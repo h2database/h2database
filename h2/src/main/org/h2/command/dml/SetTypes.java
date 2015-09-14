@@ -218,6 +218,11 @@ public class SetTypes {
      */
     public static final int QUERY_STATISTICS = 41;
 
+    /**
+     * The type of a SET QUERY_STATISTICS_MAX_ENTRIES statement.
+     */
+    public static final int QUERY_STATISTICS_MAX_ENTRIES = 42;
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
@@ -268,6 +273,7 @@ public class SetTypes {
         list.add(JAVA_OBJECT_SERIALIZER, "JAVA_OBJECT_SERIALIZER");
         list.add(RETENTION_TIME, "RETENTION_TIME");
         list.add(QUERY_STATISTICS, "QUERY_STATISTICS");
+        list.add(QUERY_STATISTICS_MAX_ENTRIES, "QUERY_STATISTICS_MAX_ENTRIES");
     }
 
     /**

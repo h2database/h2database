@@ -174,8 +174,8 @@ public class TestTableEngines extends TestBase {
         stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
 
-        stat.executeUpdate("CREATE INDEX IDX_CBA ON T(C, B, A)");
-        stat.executeUpdate("CREATE INDEX IDX_BA ON T(B, A)");
+        stat.executeUpdate("CREATE INDEX IDX_C_B_A ON T(C, B, A)");
+        stat.executeUpdate("CREATE INDEX IDX_B_A ON T(B, A)");
 
         List<List<Object>> dataSet = New.arrayList();
 
@@ -201,22 +201,22 @@ public class TestTableEngines extends TestBase {
 
         checkPlan(stat, "select * from t", "scan");
 
-        checkPlan(stat, "select * from t order by c", "IDX_CBA");
-        checkPlan(stat, "select * from t order by c, b", "IDX_CBA");
-        checkPlan(stat, "select * from t order by b", "IDX_BA");
-        checkPlan(stat, "select * from t order by b, a", "IDX_BA");
+        checkPlan(stat, "select * from t order by c", "IDX_C_B_A");
+        checkPlan(stat, "select * from t order by c, b", "IDX_C_B_A");
+        checkPlan(stat, "select * from t order by b", "IDX_B_A");
+        checkPlan(stat, "select * from t order by b, a", "IDX_B_A");
         checkPlan(stat, "select * from t order by b, c", "scan");
         checkPlan(stat, "select * from t order by a, b", "scan");
         checkPlan(stat, "select * from t order by a, c, b", "scan");
 
-        checkPlan(stat, "select * from t where b > ''", "IDX_BA");
-        checkPlan(stat, "select * from t where a > 0 and b > ''", "IDX_BA");
-        checkPlan(stat, "select * from t where b < ''", "IDX_BA");
-        checkPlan(stat, "select * from t where b < '' and c < 1", "IDX_CBA");
+        checkPlan(stat, "select * from t where b > ''", "IDX_B_A");
+        checkPlan(stat, "select * from t where a > 0 and b > ''", "IDX_B_A");
+        checkPlan(stat, "select * from t where b < ''", "IDX_B_A");
+        checkPlan(stat, "select * from t where b < '' and c < 1", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a = 0", "scan");
-        checkPlan(stat, "select * from t where a > 0 order by c, b", "IDX_CBA");
-        checkPlan(stat, "select * from t where a = 0 and c > 0", "IDX_CBA");
-        checkPlan(stat, "select * from t where a = 0 and b < 0", "IDX_BA");
+        checkPlan(stat, "select * from t where a > 0 order by c, b", "IDX_C_B_A");
+        checkPlan(stat, "select * from t where a = 0 and c > 0", "IDX_C_B_A");
+        checkPlan(stat, "select * from t where a = 0 and b < 0", "IDX_B_A");
 
         assertEquals(6, ((Number) query(stat, "select count(*) from t").get(0).get(0)).intValue());
 
@@ -243,13 +243,19 @@ public class TestTableEngines extends TestBase {
         checkResultsNoOrder(stat, 4, "select * from t where a > 0",
                 "select * from t where a > 0 order by a, c, b");
 
-        checkResults(6, dataSet, stat, "select * from t order by a", null, new RowComparator(0));
-        checkResults(6, dataSet, stat, "select * from t order by b, c", null, new RowComparator(1, 2));
-        checkResults(6, dataSet, stat, "select * from t order by c, a", null, new RowComparator(2, 0));
-        checkResults(6, dataSet, stat, "select * from t order by b, a", null, new RowComparator(1, 0));
-        checkResults(6, dataSet, stat, "select * from t order by c, b, a", null, new RowComparator(2, 1, 0));
+        checkResults(6, dataSet, stat,
+                "select * from t order by a", null, new RowComparator(0));
+        checkResults(6, dataSet, stat,
+                "select * from t order by b, c", null, new RowComparator(1, 2));
+        checkResults(6, dataSet, stat,
+                "select * from t order by c, a", null, new RowComparator(2, 0));
+        checkResults(6, dataSet, stat,
+                "select * from t order by b, a", null, new RowComparator(1, 0));
+        checkResults(6, dataSet, stat,
+                "select * from t order by c, b, a", null, new RowComparator(2, 1, 0));
 
-        checkResults(4, dataSet, stat, "select * from t where a > 0", new RowFilter() {
+        checkResults(4, dataSet, stat,
+                "select * from t where a > 0", new RowFilter() {
             @Override
             protected boolean accept(List<Object> row) {
                 return getInt(row, 0) > 0;
@@ -327,10 +333,10 @@ public class TestTableEngines extends TestBase {
         deleteDb("tableEngine");
     }
 
-    private void checkResultsNoOrder(Statement stat, int size, String qry1, String qry2)
+    private void checkResultsNoOrder(Statement stat, int size, String query1, String query2)
             throws SQLException {
-        List<List<Object>> res1 = query(stat, qry1);
-        List<List<Object>> res2 = query(stat, qry2);
+        List<List<Object>> res1 = query(stat, query1);
+        List<List<Object>> res2 = query(stat, query2);
         if (size != res1.size() || size != res2.size()) {
             fail("Wrong size: \n" + res1 + "\n" + res2);
         }
@@ -341,15 +347,16 @@ public class TestTableEngines extends TestBase {
         for (int i = 0; i < cols.length; i++) {
             cols[i] = i;
         }
-        Comparator<List<Object>> cmp = new RowComparator(cols);
-        Collections.sort(res1, cmp);
-        Collections.sort(res2, cmp);
+        Comparator<List<Object>> comp = new RowComparator(cols);
+        Collections.sort(res1, comp);
+        Collections.sort(res2, comp);
         assertTrue("Wrong data: \n" + res1 + "\n" + res2, res1.equals(res2));
     }
 
-    private void checkResults(int size, List<List<Object>> dataSet, Statement stat, String qry, RowFilter filter,
-            RowComparator sort) throws SQLException {
-        List<List<Object>> res1 = query(stat, qry);
+    private void checkResults(int size, List<List<Object>> dataSet,
+            Statement stat, String query, RowFilter filter, RowComparator sort)
+            throws SQLException {
+        List<List<Object>> res1 = query(stat, query);
         List<List<Object>> res2 = query(dataSet, filter, sort);
 
         assertTrue("Wrong size: " + size + " \n" + res1 + "\n" + res2,
@@ -367,7 +374,8 @@ public class TestTableEngines extends TestBase {
         }
     }
 
-    private static List<List<Object>> query(List<List<Object>> dataSet, RowFilter filter, RowComparator sort) {
+    private static List<List<Object>> query(List<List<Object>> dataSet,
+            RowFilter filter, RowComparator sort) {
         List<List<Object>> res = New.arrayList();
         if (filter == null) {
             res.addAll(dataSet);
@@ -384,8 +392,8 @@ public class TestTableEngines extends TestBase {
         return res;
     }
 
-    private static List<List<Object>> query(Statement stat, String qry) throws SQLException {
-        ResultSet rs = stat.executeQuery(qry);
+    private static List<List<Object>> query(Statement stat, String query) throws SQLException {
+        ResultSet rs = stat.executeQuery(query);
         int cols = rs.getMetaData().getColumnCount();
         List<List<Object>> list = New.arrayList();
         while (rs.next()) {
@@ -399,9 +407,11 @@ public class TestTableEngines extends TestBase {
         return list;
     }
 
-    private void checkPlan(Statement stat, String qry, String index) throws SQLException {
-        String plan = query(stat, "EXPLAIN " + qry).get(0).get(0).toString();
-        assertTrue("Index '" + index + "' is not used in query plan: " + plan, plan.contains(index));
+    private void checkPlan(Statement stat, String query, String index)
+            throws SQLException {
+        String plan = query(stat, "EXPLAIN " + query).get(0).get(0).toString();
+        assertTrue("Index '" + index + "' is not used in query plan: " + plan,
+                plan.contains(index));
     }
 
     /**
@@ -710,7 +720,7 @@ public class TestTableEngines extends TestBase {
      * A table that internally uses a tree set.
      */
     private static class TreeSetTable extends TableBase {
-        int dataMoficationId;
+        int dataModificationId;
 
         ArrayList<Index> indexes;
 
@@ -746,7 +756,7 @@ public class TestTableEngines extends TestBase {
             } else {
                 scan.truncate(session);
             }
-            dataMoficationId++;
+            dataModificationId++;
         }
 
         @Override
@@ -758,7 +768,7 @@ public class TestTableEngines extends TestBase {
             } else {
                 scan.remove(session, row);
             }
-            dataMoficationId++;
+            dataModificationId++;
         }
 
         @Override
@@ -770,7 +780,7 @@ public class TestTableEngines extends TestBase {
             } else {
                 scan.add(session, row);
             }
-            dataMoficationId++;
+            dataModificationId++;
         }
 
         @Override
@@ -786,7 +796,7 @@ public class TestTableEngines extends TestBase {
                 index.add(session, (Row) row);
             }
             indexes.add(index);
-            dataMoficationId++;
+            dataModificationId++;
             setModified();
             return index;
         }
@@ -833,7 +843,7 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public long getMaxDataModificationId() {
-            return dataMoficationId;
+            return dataModificationId;
         }
 
         @Override
@@ -935,7 +945,8 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public double getCost(Session session, int[] masks, TableFilter filter, SortOrder sortOrder) {
+        public double getCost(Session session, int[] masks, TableFilter filter,
+                SortOrder sortOrder) {
             return getCostRangeIndex(masks, set.size(), filter, sortOrder);
         }
 
@@ -956,7 +967,8 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public Cursor findFirstOrLast(Session session, boolean first) {
-            return new SingleRowCursor((Row) (set.isEmpty() ? null : first ?  set.first() : set.last()));
+            return new SingleRowCursor((Row)
+                    (set.isEmpty() ? null : first ? set.first() : set.last()));
         }
 
         @Override
@@ -988,11 +1000,11 @@ public class TestTableEngines extends TestBase {
     /**
      */
     private static class IteratorCursor implements Cursor {
-        private Iterator<SearchRow> iter;
+        private Iterator<SearchRow> it;
         private Row current;
 
-        public IteratorCursor(Iterator<SearchRow> iter) {
-            this.iter = iter;
+        public IteratorCursor(Iterator<SearchRow> it) {
+            this.it = it;
         }
 
         @Override
@@ -1002,8 +1014,8 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public boolean next() {
-            if (iter.hasNext()) {
-                current = (Row) iter.next();
+            if (it.hasNext()) {
+                current = (Row) it.next();
                 return true;
             }
             current = null;
@@ -1061,18 +1073,47 @@ public class TestTableEngines extends TestBase {
      */
     abstract static class RowFilter {
 
+        /**
+         * Check whether the row needs to be processed.
+         *
+         * @param row the row
+         * @return true if yes
+         */
         protected abstract boolean accept(List<Object> row);
 
+        /**
+         * Get an integer from a row.
+         *
+         * @param row the row
+         * @param col the column index
+         * @return the value
+         */
         protected Integer getInt(List<Object> row, int col) {
             return (Integer) row.get(col);
         }
 
+        /**
+         * Get a long from a row.
+         *
+         * @param row the row
+         * @param col the column index
+         * @return the value
+         */
         protected Long getLong(List<Object> row, int col) {
             return (Long) row.get(col);
         }
 
+        /**
+         * Get a string from a row.
+         *
+         * @param row the row
+         * @param col the column index
+         * @return the value
+         */
         protected String getString(List<Object> row, int col) {
             return (String) row.get(col);
         }
+
     }
- }
+
+}

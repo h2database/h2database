@@ -3637,13 +3637,13 @@ Returns a boolean true if the array contains the value.
 CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
 "
 
-"Functions (Raster)","ST_METADATA","
-{ ST_METADATA } (raster)
+"Functions (RASTER)","ST_METADATA","
+{ ST_METADATA } (RASTER)
 ","
 Read the metadata of the raster
 This method returns an array. (Coordinate X, Coordinate Y, Width, Height, ScaleX, ScaleY, SkewX, SkewY, SRID, bands count)
 ","
-ST_METADATA(rast)
+ST_METADATA(RASTER)
 "
 
 "Functions (System)","AUTOCOMMIT","

@@ -3,6 +3,7 @@ Implementation-Title: ${title}
 Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
+Class-Path: jts-1.13.jar lucene-core-3.0.2.jar postgresql-8.3-603.jdbc3.jar
 Created-By: ${createdBy}
 ${mainClassTag}
 Bundle-Activator: org.h2.util.DbDriverActivator

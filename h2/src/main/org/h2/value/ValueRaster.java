@@ -264,9 +264,9 @@ public class ValueRaster extends ValueLob implements ValueSpatial,Value.ValueRas
 
         /**
          * Translate the pixel row,column into map coordinate
-         * @param x
-         * @param y
-         * @return
+         * @param x Column
+         * @param y Row
+         * @return Pixel world coordinate
          */
         public Coordinate getPixelCoordinate(int x, int y) {
             return new Coordinate(scaleX * x + skewX * y + ipX, scaleY * y + skewY * x + ipY);

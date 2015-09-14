@@ -163,7 +163,7 @@ public abstract class Value {
      * The value type for georeferenced raster.
      */
     public static final int RASTER = 23;
-    
+
     /**
      * The number of value types.
      */
@@ -822,21 +822,26 @@ public abstract class Value {
             }
             case GEOMETRY:
                 switch (getType()) {
-                case BYTES:
-                    return ValueGeometry.get(getBytesNoCopy());
-                case JAVA_OBJECT:
-                    Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
-                    if (DataType.isGeometry(object)) {
-                        return ValueGeometry.getFromGeometry(object);
-                    }
-                    break;
-                case RASTER:
-                    try {
-                        // Build envelope
-                        return ValueGeometry.getFromGeometry(((ValueRasterMarker) this).getMetaData().convexHull());
-                    } catch (IOException ex) {
-                        throw throwUnsupportedExceptionForType("Failed to cast raster to geometry");
-                    }
+                    case BYTES:
+                        return ValueGeometry.get(getBytesNoCopy());
+                    case JAVA_OBJECT:
+                        Object object = JdbcUtils
+                                .deserialize(getBytesNoCopy(),
+                                        getDataHandler());
+                        if (DataType.isGeometry(object)) {
+                            return ValueGeometry.getFromGeometry(object);
+                        }
+                        break;
+                    case RASTER:
+                        try {
+                            // Build envelope
+                            return ValueGeometry.getFromGeometry(
+                                    ((ValueRasterMarker) this).getMetaData()
+                                            .convexHull());
+                        } catch (IOException ex) {
+                            throw throwUnsupportedExceptionForType(
+                                    "Failed to cast raster to geometry");
+                        }
                 }
                 break;
             }

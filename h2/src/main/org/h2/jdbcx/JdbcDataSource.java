@@ -25,7 +25,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.TraceObject;
 import org.h2.util.StringUtils;
 
-/*## Java 1.7 ##
+//## Java 1.7 ##
 import java.util.logging.Logger;
 //*/
 
@@ -425,7 +425,7 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
+//## Java 1.7 ##
     @Override
     public Logger getParentLogger() {
         return null;

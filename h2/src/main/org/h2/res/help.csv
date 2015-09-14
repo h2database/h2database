@@ -825,6 +825,10 @@ An array of values."
 GEOMETRY
 ","
 A spatial geometry type, based on the ""com."
+"Data Types","RASTER Type","
+RASTER
+","
+A spatial geometry type."
 "Functions (Aggregate)","AVG","
 AVG ( [ DISTINCT ] { numeric } )
 ","
@@ -1303,6 +1307,11 @@ Returns the length of an array."
 ARRAY_CONTAINS(arrayExpression, value)
 ","
 Returns a boolean true if the array contains the value."
+"Functions (Raster)","ST_METADATA","
+{ ST_METADATA } (raster)
+","
+Read the metadata of the raster
+This method returns an array."
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

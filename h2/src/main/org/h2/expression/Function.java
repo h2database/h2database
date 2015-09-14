@@ -1125,20 +1125,32 @@ public class Function extends Expression implements FunctionCall {
             result = session.getTransactionId();
             break;
         }
-        case ST_METADATA: {
-            try {
-                ValueRaster.RasterMetaData metaData;
-                if(v0 instanceof Value.ValueRasterMarker) {
-                    metaData = ((Value.ValueRasterMarker)v0).getMetaData();
-                } else {
-                    metaData = ((Value.ValueRasterMarker)v0.convertTo(Value.RASTER)).getMetaData();
+            case ST_METADATA: {
+                try {
+                    ValueRaster.RasterMetaData metaData;
+                    if (v0 instanceof Value.ValueRasterMarker) {
+                        metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                    } else {
+                        metaData = ((Value.ValueRasterMarker) v0
+                                .convertTo(Value.RASTER)).getMetaData();
+                    }
+                    result = ValueArray
+                            .get(new Value[]{ValueDouble.get(metaData.ipX),
+                                    ValueDouble.get(metaData.ipY),
+                                    ValueInt.get(metaData.width),
+                                    ValueInt.get(metaData.height),
+                                    ValueDouble.get(metaData.scaleX),
+                                    ValueDouble.get(metaData.scaleY),
+                                    ValueDouble.get(metaData.skewX),
+                                    ValueDouble.get(metaData.skewY),
+                                    ValueInt.get(metaData.srid),
+                                    ValueInt.get(metaData.numBands)});
+                } catch (IOException ex) {
+                    throw DbException
+                            .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
                 }
-                result = ValueArray.get(new Value[]{ValueDouble.get(metaData.ipX), ValueDouble.get(metaData.ipY), ValueInt.get(metaData.width), ValueInt.get(metaData.height), ValueDouble.get(metaData.scaleX), ValueDouble.get(metaData.scaleY), ValueDouble.get(metaData.skewX), ValueDouble.get(metaData.skewY), ValueInt.get(metaData.srid), ValueInt.get(metaData.numBands)});
-            } catch (IOException ex) {
-                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+                break;
             }
-            break;
-        }
         default:
             result = null;
         }

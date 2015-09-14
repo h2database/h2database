@@ -1185,7 +1185,8 @@ public class DataType {
     }
 
     /**
-     * Return whether the type in parameter can be used for spatial index or not.
+     * Return whether the type in parameter can be used for spatial index or
+     * not.
      *
      * @param type the type to test
      * @return true if type is spatial

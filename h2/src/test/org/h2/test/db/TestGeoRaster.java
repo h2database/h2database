@@ -1,7 +1,6 @@
 /*
- * Copyright 2004-2013 H2 Group. Multiple-Licensed under the H2 License,
- * Version 1.0, and under the Eclipse Public License, Version 1.0
- * (http://h2database.com/html/license.html).
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
@@ -9,7 +8,6 @@ package org.h2.test.db;
 import com.vividsolutions.jts.geom.Envelope;
 
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.sql.*;
 import java.util.Random;
@@ -22,6 +20,7 @@ import org.h2.value.ValueRaster;
 
 /**
  * Unit test of Raster type
+ *
  * @author Thomas Crevoisier
  * @author Jules Party
  * @author Nicolas Fortin
@@ -33,7 +32,7 @@ public class TestGeoRaster extends TestBase {
         test.config.big = true;
         test.test();
     }
-    
+
     @Override
     public void test() throws Exception {
         if (!config.mvStore && config.mvcc) {
@@ -53,17 +52,17 @@ public class TestGeoRaster extends TestBase {
         testStRasterMetaData();
         testRasterCastToGeometry();
     }
- 
-   
+
+
     private void testReadRaster() throws Exception {
         deleteDb("georaster");
         Connection conn;
         conn = getConnection("georaster");
         Statement stat = conn.createStatement();
-                stat.execute("create table test(id identity, data raster)");
-        
-        PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?)");
+        stat.execute("create table test(id identity, data raster)");
+
+        PreparedStatement prep =
+                conn.prepareStatement("insert into test values(null, ?)");
         byte[] data = new byte[256];
         Random r = new Random(1);
         for (int i = 0; i < 1000; i++) {
@@ -78,7 +77,7 @@ public class TestGeoRaster extends TestBase {
         }
         conn.close();
     }
-    
+
     private void testWriteRasterFromString() throws Exception {
         String bytesString = "01"       // little endian (uint8 ndr)
                 + "0000"                // version (uint16 0)
@@ -92,19 +91,19 @@ public class TestGeoRaster extends TestBase {
                 + "00000000"            // SRID (int32 0)
                 + "0a00"                // width (uint16 10)
                 + "1400";               // height (uint16 20)
-        
+
         byte[] bytes = Utils.hexStringToByteArray(bytesString);
-        
+
         InputStream bytesStream = new ByteArrayInputStream(bytes);
-        
+
         deleteDb("georaster");
         Connection conn;
         conn = getConnection("georaster");
         Statement stat = conn.createStatement();
-                stat.execute("create table test(id identity, data raster)");
-        
-        PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?)");
+        stat.execute("create table test(id identity, data raster)");
+
+        PreparedStatement prep =
+                conn.prepareStatement("insert into test values(null, ?)");
 
         prep.setBinaryStream(1, bytesStream, -1);
         prep.execute();
@@ -114,52 +113,28 @@ public class TestGeoRaster extends TestBase {
         assertTrue(bytesString.equalsIgnoreCase(rs.getString(2)));
         conn.close();
     }
-    
+
     private void testSpatialIndex() throws Exception {
         deleteDb("georaster");
 
-        String bytesString = "01"
-                + "0000"
-                + "0000"
-                + "000000000000F03F"
-                + "000000000000F03F"
-                + "0000000000000000"
-                + "0000000000000000"
-                + "0000000000000000"
-                + "0000000000000000"
-                + "00000000"
-                + "0a00"
-                + "0a00";
+        String bytesString = "01" + "0000" + "0000" + "000000000000F03F" +
+                "000000000000F03F" + "0000000000000000" + "0000000000000000" +
+                "0000000000000000" + "0000000000000000" + "00000000" + "0a00" +
+                "0a00";
         byte[] bytes = Utils.hexStringToByteArray(bytesString);
         InputStream bytesStream1 = new ByteArrayInputStream(bytes);
 
-        bytesString = "01"
-                + "0000"
-                + "0000"
-                + "000000000000F03F"
-                + "000000000000F03F"
-                + "0000000000001440"
-                + "0000000000001440"
-                + "0000000000000000"
-                + "0000000000000000"
-                + "00000000"
-                + "0a00"
-                + "0a00";
+        bytesString = "01" + "0000" + "0000" + "000000000000F03F" +
+                "000000000000F03F" + "0000000000001440" + "0000000000001440" +
+                "0000000000000000" + "0000000000000000" + "00000000" + "0a00" +
+                "0a00";
         bytes = Utils.hexStringToByteArray(bytesString);
         InputStream bytesStream2 = new ByteArrayInputStream(bytes);
 
-        bytesString = "01"
-                + "0000"
-                + "0000"
-                + "000000000000F03F"
-                + "000000000000F03F"
-                + "0000000000002440"
-                + "0000000000001440"
-                + "0000000000000000"
-                + "0000000000000000"
-                + "00000000"
-                + "0a00"
-                + "0a00";
+        bytesString = "01" + "0000" + "0000" + "000000000000F03F" +
+                "000000000000F03F" + "0000000000002440" + "0000000000001440" +
+                "0000000000000000" + "0000000000000000" + "00000000" + "0a00" +
+                "0a00";
         bytes = Utils.hexStringToByteArray(bytesString);
         InputStream bytesStream3 = new ByteArrayInputStream(bytes);
 
@@ -168,8 +143,8 @@ public class TestGeoRaster extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, data raster)");
 
-        PreparedStatement prep = conn.prepareStatement(
-                "insert into test values(null, ?)");
+        PreparedStatement prep =
+                conn.prepareStatement("insert into test values(null, ?)");
         prep.setBinaryStream(1, bytesStream1, -1);
         prep.execute();
         prep.setBinaryStream(1, bytesStream2, -1);
@@ -180,8 +155,7 @@ public class TestGeoRaster extends TestBase {
         Statement stat2 = conn.createStatement();
         stat2.execute("create spatial index on test(data)");
 
-        ResultSet rs = stat.executeQuery(
-                "select * from test " +
+        ResultSet rs = stat.executeQuery("select * from test " +
                 "where data && 'POINT (1.5 1.5)'::Geometry");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt("id"));
@@ -191,7 +165,8 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testEmptyGeoRaster() throws Exception {
-        ValueRaster testRaster = ValueRaster.createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        ValueRaster testRaster = ValueRaster
+                .createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
         // POLYGON((0.5 0.5,0.5 60.5,20.5 60.5,20.5 0.5,0.5 0.5))
         Envelope env = testRaster.getEnvelope();
         assertEquals(0.5, env.getMinX());
@@ -206,33 +181,19 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testGeoRasterWithBands() throws Exception {
-        String bytesString = "01" +	                                   /* little endian (uint8 ndr) */
-                "0000" +                                               /* version (uint16 0) */
-                "0300" +                                               /* nBands (uint16 3) */
-                "9A9999999999A93F" +                                   /* scaleX (float64 0.050000) */
-                "9A9999999999A9BF" +                                   /* scaleY (float64 -0.050000) */
-                "000000E02B274A41" +                                   /* ipX (float64 3427927.750000) */
-                "0000000077195641" +                                   /* ipY (float64 5793244.000000) */
-                "0000000000000000" +                                   /* skewX (float64 0.000000) */
-                "0000000000000000" +                                   /* skewY (float64 0.000000) */
-                "FFFFFFFF" +                                           /* srid (int32 -1) */
-                "0500" +                                               /* width (uint16 5) */
-                "0500" +                                               /* height (uint16 5) */
-                "44" +                                                 /* 1st band pixel type (8BUI, in memory, hasnodata) */
-                "00" +                                                 /* 1st band nodata 0 */
-                "FDFEFDFEFEFDFEFEFDF9FAFEFEFCF9FBFDFEFEFDFCFAFEFEFE" + /* 1st band pixels */
-                "44" +                                                 /* 2nd band pixel type (8BUI, in memory, hasnodata) */
-                "00" +                                                 /* 2nd band nodata 0 */
-                "4E627AADD16076B4F9FE6370A9F5FE59637AB0E54F58617087" + /* 2nd band pixels */
-                "44" +                                                 /* 3rd band pixel type (8BUI, in memory, hasnodata) */
-                "00" +                                                 /* 3rd band nodata 0 */
-                "46566487A1506CA2E3FA5A6CAFFBFE4D566DA4CB3E454C5665";  /* 3rd band pixels */
-
+        String bytesString =
+                "01000003009A9999999999A93F9A9999999999A9BF000000E02B274A41" +
+                        "000000007719564100000000000000000000000000000000FF" +
+                        "FFFFFF050005004400FDFEFDFEFEFDFEFEFDF9FAFEFEFCF9FB" +
+                        "FDFEFEFDFCFAFEFEFE44004E627AADD16076B4F9FE6370A9F5" +
+                        "FE59637AB0E54F58617087440046566487A1506CA2E3FA5A6C" +
+                        "AFFBFE4D566DA4CB3E454C5665";
         byte[] bytes = Utils.hexStringToByteArray(bytesString);
-        
+
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         long len = bytes.length;
-        ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
+        ValueRaster testRaster =
+                ValueRaster.createGeoRaster(bytesStream, len, null);
         ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
         assertEquals(3, metaData.numBands);
         assertEquals(0.05, metaData.scaleX);
@@ -270,12 +231,18 @@ public class TestGeoRaster extends TestBase {
 
     private void testLittleEndian() throws IOException {
         // Write as little endian
-        ValueRaster testRasterLittleEndian = ValueRaster.createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        testRasterLittleEndian.getMetaData().writeRasterHeader(byteArrayOutputStream, ByteOrder.LITTLE_ENDIAN);
+        ValueRaster testRasterLittleEndian = ValueRaster
+                .createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream();
+        testRasterLittleEndian.getMetaData()
+                .writeRasterHeader(byteArrayOutputStream,
+                        ByteOrder.LITTLE_ENDIAN);
         // Read the stream
         byte[] dataLittleEndian = byteArrayOutputStream.toByteArray();
-        ValueRaster testRaster = ValueRaster.createGeoRaster(new ByteArrayInputStream(dataLittleEndian), dataLittleEndian.length, null);
+        ValueRaster testRaster = ValueRaster
+                .createGeoRaster(new ByteArrayInputStream(dataLittleEndian),
+                        dataLittleEndian.length, null);
         ValueRaster.RasterMetaData meta = testRaster.getMetaData();
         assertEquals(0, meta.numBands);
         assertEquals(2, meta.scaleX);
@@ -292,6 +259,7 @@ public class TestGeoRaster extends TestBase {
 
     /**
      * Raster unit test using PostGIS WKB.
+     *
      * @throws IOException
      */
     private void testLittleEndianHexa() throws IOException {
@@ -307,7 +275,8 @@ public class TestGeoRaster extends TestBase {
                 "FFFFFFFF" +                /* SRID (int32 -1) */
                 "0300" +                    /* width (uint16 3) */
                 "0100" +                    /* height (uint16 1) */
-                "45" +                      /* First band type (16BSI, in memory, hasnodata) */
+                "45" +                      /* First band type (16BSI, in
+                memory, hasnodata) */
                 "0100" +                    /* nodata value (1) */
                 "0100" +                    /* pix(0,0) == 1 */
                 "B401" +                    /* pix(1,0) == 436 */
@@ -317,7 +286,8 @@ public class TestGeoRaster extends TestBase {
 
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         long len = bytes.length;
-        ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
+        ValueRaster testRaster =
+                ValueRaster.createGeoRaster(bytesStream, len, null);
         ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
         assertEquals(1, metaData.numBands);
         assertEquals(90, metaData.scaleX);
@@ -329,7 +299,8 @@ public class TestGeoRaster extends TestBase {
         assertEquals(-1, metaData.srid);
         assertEquals(3, metaData.width);
         assertEquals(1, metaData.height);
-        assertTrue(ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
+        assertTrue(
+                ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
         assertFalse(metaData.bands[0].offDB);
         assertTrue(metaData.bands[0].hasNoData);
         assertEquals(1, metaData.bands[0].noDataValue);
@@ -348,7 +319,8 @@ public class TestGeoRaster extends TestBase {
                 "0000000A" +                /* SRID (int32 10) */
                 "0003" +                    /* width (uint16 3) */
                 "0002" +                    /* height (uint16 2) */
-                "C5" +                      /* First band type (16BSI, on disk, hasnodata) */
+                "C5" +                      /* First band type (16BSI, on
+                disk, hasnodata) */
                 "FFFF" +                    /* nodata value (-1) */
                 "03" +                      /* ext band num == 3 */
                 "2F746D702F742E74696600";   /* ext band path == /tmp/t.tif */
@@ -357,7 +329,8 @@ public class TestGeoRaster extends TestBase {
 
         InputStream bytesStream = new ByteArrayInputStream(bytes);
         long len = bytes.length;
-        ValueRaster testRaster = ValueRaster.createGeoRaster(bytesStream, len, null);
+        ValueRaster testRaster =
+                ValueRaster.createGeoRaster(bytesStream, len, null);
         ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
         assertEquals(0, metaData.version);
         assertEquals(1, metaData.numBands);
@@ -370,7 +343,8 @@ public class TestGeoRaster extends TestBase {
         assertEquals(10, metaData.srid);
         assertEquals(3, metaData.width);
         assertEquals(2, metaData.height);
-        assertTrue(ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
+        assertTrue(
+                ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
         assertTrue(metaData.bands[0].offDB);
         assertTrue(metaData.bands[0].hasNoData);
         assertEquals(-1, metaData.bands[0].noDataValue);
@@ -384,13 +358,19 @@ public class TestGeoRaster extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
-        // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5) skewY(6) SRID(10) numbands(0)
-        stat.execute("INSERT INTO TEST(data) VALUES ('00000000003FF000000000000040000000000000004008000000000000401" +
-                "0000000000000401400000000000040180000000000000000000A00070008')");
-        ResultSet rs = stat.executeQuery("SELECT ST_METADATA(data) meta FROM TEST");
+        // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5)
+        // skewY(6) SRID(10) numbands(0)
+        stat.execute("INSERT INTO TEST(data) VALUES " +
+                        "" +
+                "('00000000003FF000000000000040000000000000004008000000000000401" +
+                        "0000000000000401400000000000040180000000000000000000A00070008')");
+        ResultSet rs =
+                stat.executeQuery("SELECT ST_METADATA(data) meta FROM TEST");
         try {
             assertTrue(rs.next());
-            assertEquals(new Object[]{3.0, 4.0, 7, 8, 1.0, 2.0, 5.0, 6.0, 10, 0}, (Object[])rs.getObject(1));
+            assertEquals(
+                    new Object[]{3.0, 4.0, 7, 8, 1.0, 2.0, 5.0, 6.0, 10, 0},
+                    (Object[]) rs.getObject(1));
         } finally {
             rs.close();
         }
@@ -398,22 +378,28 @@ public class TestGeoRaster extends TestBase {
 
     /**
      * Check if cast of raster into geometry is going well.
+     *
      * @throws SQLException
      */
     public void testRasterCastToGeometry() throws SQLException {
-        // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5) skewY(6) SRID(10) numbands(0)
-        final String wkbRaster = "00000000003FF0000000000000400000000000000040080000000000004010000000000000401400000000000040180000000000000000000A00070008";
+        // ipx(3) ipY(4) width(7) height(8) scaleX(1) scaleY(2) skewX(5)
+        // skewY(6) SRID(10) numbands(0)
+        final String wkbRaster =
+                "00000000003FF000000000000040000000000000004008000000000" +
+                        "00040100000000000004014000000000000401800000000" +
+                        "00000000000A00070008";
         Connection conn;
         conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
-        stat.execute("INSERT INTO TEST(data) VALUES ('"+wkbRaster+"')");
+        stat.execute("INSERT INTO TEST(data) VALUES ('" + wkbRaster + "')");
         ResultSet rs = stat.executeQuery("SELECT data::geometry env FROM TEST");
         try {
             assertTrue(rs.next());
             assertTrue(rs.getObject(1) instanceof Geometry);
-            assertEquals("POLYGON ((3 4, 10 46, 50 62, 43 20, 3 4))", rs.getString(1));
+            assertEquals("POLYGON ((3 4, 10 46, 50 62, 43 20, 3 4))",
+                    rs.getString(1));
         } finally {
             rs.close();
         }

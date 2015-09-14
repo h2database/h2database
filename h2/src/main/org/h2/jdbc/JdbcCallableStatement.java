@@ -1569,7 +1569,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
+//## Java 1.7 ##
     @Override
     public <T> T getObject(int parameterIndex, Class<T> type) {
         return null;
@@ -1582,7 +1582,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
+//## Java 1.7 ##
     @Override
     public <T> T getObject(String parameterName, Class<T> type) {
         return null;

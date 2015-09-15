@@ -266,6 +266,31 @@ public class Utils {
     }
 
     /**
+     * Write an unsigned int value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeUnsignedInt(byte[] buff, int pos, long value,
+            ByteOrder byteOrder) {
+        value = value & 0xFFFFFFFFL;
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos++] = (byte) ((value >> 24) & 0xFF);
+            buff[pos++] = (byte) ((value >> 16) & 0xFF);
+            buff[pos++] = (byte) ((value >> 8) & 0xFF);
+            buff[pos++] = (byte) (value & 0xFF);
+        } else {
+            buff[pos++] = (byte) (value & 0xFF);
+            buff[pos++] = (byte) ((value >> 8) & 0xFF);
+            buff[pos++] = (byte) ((value >> 16) & 0xFF);
+            buff[pos++] = (byte) ((value >> 24) & 0xFF);
+        }
+    }
+
+    /**
      * Write a double value to the byte array at the given position.
      *
      * @param buff      the byte array

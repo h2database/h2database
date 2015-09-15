@@ -7,15 +7,26 @@ package org.h2.test.db;
 
 import com.vividsolutions.jts.geom.Envelope;
 
+import java.awt.image.Raster;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.sql.*;
+import java.util.Iterator;
 import java.util.Random;
 
 import com.vividsolutions.jts.geom.Geometry;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Utils;
+import org.h2.util.ValueImageInputStream;
+import org.h2.value.Value;
+import org.h2.value.ValueLobDb;
 import org.h2.value.ValueRaster;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
 
 
 /**
@@ -51,6 +62,7 @@ public class TestGeoRaster extends TestBase {
         testExternalRaster();
         testStRasterMetaData();
         testRasterCastToGeometry();
+        testPngLoading();
     }
 
 
@@ -350,6 +362,15 @@ public class TestGeoRaster extends TestBase {
         assertEquals(-1, metaData.bands[0].noDataValue);
         assertEquals(3, metaData.bands[0].externalBandId);
         assertEquals("/tmp/t.tif\0", metaData.bands[0].externalPath);
+        // Write back metadata into bytes
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        metaData.writeRasterHeader(outputStream, ByteOrder.BIG_ENDIAN);
+        // write bands header
+        for(int idband = 0;idband < metaData.numBands; idband++) {
+            metaData.writeRasterBandHeader(outputStream, idband, ByteOrder.BIG_ENDIAN);
+        }
+        // Check equality
+        assertEquals(bytes, outputStream.toByteArray());
     }
 
     public void testStRasterMetaData() throws SQLException {
@@ -404,4 +425,17 @@ public class TestGeoRaster extends TestBase {
             rs.close();
         }
     }
+
+    public void testPngLoading() throws IOException {
+        // Test loading PNG into Raster
+        File testFile = new File("h2/src/docsrc/images/h2-logo.png");
+        // Fetch ImageRead using ImageIO API
+        byte[] data =
+                IOUtils.readBytesAndClose(new FileInputStream(testFile), -1);
+        ValueRaster raster = ValueRaster.getFromImage(
+                ValueLobDb.createSmallLob(Value.BLOB, data, data.length), 0, 0,
+                1, 1, 0, 0, 0);
+        //assertTrue(raster != null);
+    }
+
 }

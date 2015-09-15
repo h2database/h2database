@@ -5,9 +5,11 @@
  */
 package org.h2.value;
 
+import java.awt.image.Raster;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -17,6 +19,11 @@ import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 
 import org.h2.util.Utils;
+import org.h2.util.ValueImageInputStream;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 /**
  * @author Thomas Crevoisier
@@ -39,6 +46,22 @@ public class ValueRaster extends ValueLob
         InputStream bytesStream = new ByteArrayInputStream(bytesNoCopy);
         long len = bytesNoCopy.length;
         return createGeoRaster(bytesStream, len, null);
+    }
+
+    public static ValueRaster getFromImage(Value value,double upperLeftX,
+            double upperLeftY,double scaleX,double scaleY,double skewX,
+            double skewY,double srid) throws IOException {
+        ImageInputStream imageInputStream = new ValueImageInputStream(value);
+        // Fetch ImageRead using ImageIO API
+        Iterator<ImageReader> itReader = ImageIO.getImageReaders(
+                imageInputStream);
+        if(itReader != null && itReader.hasNext()) {
+            ImageReader read = itReader.next();
+            imageInputStream.seek(0);
+            read.setInput(imageInputStream);
+            System.out.print(read.read(0).getData());
+        }
+        return null;
     }
 
 
@@ -524,6 +547,70 @@ public class ValueRaster extends ValueLob
                     cursor.getAndAdd(Short.SIZE / Byte.SIZE), height, endian);
 
             stream.write(buffer);
+        }
+
+
+        public void writeRasterBandHeader(OutputStream stream,int band,
+                ByteOrder endian)
+        throws IOException {
+            RasterBandMetaData bandMetaData = bands[band];
+            // Write flag
+            stream.write(bandMetaData.pixelType.value |
+                    (bandMetaData.offDB ?
+                            RasterBandMetaData.BANDTYPE_FLAG_OFFDB : 0) |
+                    ((bandMetaData.hasNoData ?
+                            RasterBandMetaData.BANDTYPE_FLAG_HASNODATA : 0)));
+            // Write novalue
+            byte[] buffer = new byte[8];
+            switch (bandMetaData.pixelType) {
+                case PT_1BB:
+                    buffer[0] = (byte)(bandMetaData.noDataValue != 0 ? 1 : 0);
+                    break;
+                case PT_2BUI:
+                case PT_4BUI:
+                case PT_8BUI:
+                    buffer[0] = (byte)((int)bandMetaData.noDataValue & 0xFF);
+                    break;
+                case PT_8BSI:
+                    buffer[0] = (byte)((int)bandMetaData.noDataValue);
+                case PT_16BSI:
+                    Utils.writeUnsignedShort(buffer, 0,
+                            (int) bandMetaData.noDataValue, endian);
+                case PT_16BUI:
+                    Utils.writeUnsignedShort(buffer, 0, (int) bandMetaData.noDataValue,
+                            endian);
+                    break;
+                case PT_32BSI:
+                    Utils.writeInt(buffer, 0, (int)bandMetaData.noDataValue,
+                            endian);
+                    break;
+                case PT_32BUI:
+                    Utils.writeUnsignedInt(buffer, 0,
+                            (long) (bandMetaData.noDataValue), endian);
+                    break;
+                case PT_32BF:
+                    Utils.writeInt(buffer, 0, Float.floatToIntBits(
+                            (float)bandMetaData.noDataValue), endian);
+                    break;
+                case PT_64BF:
+                    Utils.writeDouble(buffer, 0, bandMetaData.noDataValue,
+                            endian);
+                    break;
+                default:
+                    throw DbException.throwInternalError("H2 is " +
+                            "unable to read the " + "raster's " +
+                            "nodata. ");
+            }
+            stream.write(buffer, 0, bandMetaData.pixelType.pixelSize);
+            if(bandMetaData.offDB) {
+                stream.write((byte)bandMetaData.externalBandId);
+                if(bandMetaData.externalPath.endsWith("\0")) {
+                    stream.write(bandMetaData.externalPath.getBytes());
+                } else {
+                    // must be a null terminated string
+                    stream.write((bandMetaData.externalPath + "\0").getBytes());
+                }
+            }
         }
 
         /**

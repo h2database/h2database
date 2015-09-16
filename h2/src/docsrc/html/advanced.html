@@ -1430,20 +1430,16 @@ that means the probability is about 0.000'000'000'06.
 
 <h2 id="spatial_features">Spatial Features</h2>
 <p>
-H2 supports the geometry data type and spatial indexes if
-the <a href="http://tsusiatsoftware.net/jts/main.html">JTS Topology Suite</a>
-is in the classpath.
-To run the H2 Console tool with the JTS tool, you need to download the
-<a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts/1.13/jts-1.13.jar">JTS 1.13 jar file</a>
-and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows:
-</p>
-<pre>
-#!/bin/sh
-dir=$(dirname "$0")
-java -cp "$dir/h2.jar:jts-1.13.jar:$H2DRIVERS:$CLASSPATH" org.h2.tools.Console "$@"
-</pre>
-<p>
-Here is an example SQL script to create a table with a spatial column and index:
+H2 supports the vectorial and raster geometry data type. However it need an
+    external dependency named <a href="http://tsusiatsoftware.net/jts/main.html">
+    JTS Topology Suite</a>.To run the H2 Console tool with the JTS tool, you
+    need to download the <a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts/1.13/jts-1.13.jar">JTS 1.13 jar file</a>
+and place it in the h2 bin directory.
+
+Run H2 as usual.
+
+Here is an example SQL script to create a table with a spatial column and
+    a spatial index:
 </p>
 <pre>
 CREATE TABLE GEO_TABLE(GID SERIAL, THE_GEOM GEOMETRY);

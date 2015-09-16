@@ -59,7 +59,13 @@ public class ValueRaster extends ValueLob
             ImageReader read = itReader.next();
             imageInputStream.seek(0);
             read.setInput(imageInputStream);
-            System.out.print(read.read(0).getData());
+            if(read.canReadRaster()) {
+
+            } else {
+                // Not memory efficient as creating BufferedImage will(may?)
+                // generate a copy of image data in memory
+            }
+            System.out.print(read.read(0).getRaster());
         }
         return null;
     }
@@ -174,12 +180,12 @@ public class ValueRaster extends ValueLob
         /**
          * Pixel type identifier
          */
-        final int value;
+        public final int value;
 
         /**
          * Pixel size in bytes.
          */
-        final int pixelSize;
+        public final int pixelSize;
 
         final static Map<Integer, PixelType> mapIntToEnum =
                 new HashMap<Integer, PixelType>();

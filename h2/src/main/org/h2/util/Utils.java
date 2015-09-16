@@ -195,6 +195,27 @@ public class Utils {
         }
     }
 
+
+    /**
+     * Write a short value to the byte array at the given position.
+     *
+     * @param buff      the byte array
+     * @param pos       the position
+     * @param value     the value to write
+     * @param byteOrder {@link java.nio.ByteOrder#BIG_ENDIAN} or {@link java
+     * .nio.ByteOrder#LITTLE_ENDIAN}
+     */
+    public static void writeShort(byte[] buff, int pos, short value,
+            ByteOrder byteOrder) {
+        if (byteOrder == ByteOrder.BIG_ENDIAN) {
+            buff[pos] = (byte) (value >> 8);
+            buff[pos + 1] = (byte) value;
+        } else {
+            buff[pos] = (byte) value;
+            buff[pos + 1] = (byte) (value >> 8);
+        }
+    }
+
     /**
      * Write a long value to the byte array at the given position. The most
      * significant byte is written first.

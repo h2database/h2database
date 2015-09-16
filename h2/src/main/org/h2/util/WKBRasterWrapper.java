@@ -89,10 +89,13 @@ public class WKBRasterWrapper {
                         }
                     case WKB_BAND_HEADER_BEGIN: {
                         if (currentBand < rasterMetaData.numBands) {
+                            currentBand+=1;
                             ByteArrayOutputStream stream = new
                                     ByteArrayOutputStream();
+                            rasterMetaData.bands[currentBand].setOffset
+                                    (streamPosition);
                             rasterMetaData.writeRasterBandHeader(stream,
-                                    currentBand++, ByteOrder.BIG_ENDIAN);
+                                    currentBand, ByteOrder.BIG_ENDIAN);
                             buffer = stream.toByteArray();
                             bufferCursor = 1;
                             state = BUFFER_STATE.WKB_BAND_HEADER_END;
@@ -103,7 +106,7 @@ public class WKBRasterWrapper {
                     }
                     case WKB_BAND_DATA_BEGIN:
                         pixelDriver = RasterPixelDriver.getDriver
-                                (rasterMetaData.bands[currentBand - 1]
+                                (rasterMetaData.bands[currentBand]
                                         .pixelType, raster);
                         state = BUFFER_STATE.WKB_BAND_DATA_ITERATE;
                         buffer = new byte[PIXEL_BUFFER_COUNT * pixelDriver
@@ -124,7 +127,7 @@ public class WKBRasterWrapper {
                             pixelDriver.readSamples(buffer, 0,
                                     (int) (pixelCursor % rasterMetaData.width),
                                     (int) (pixelCursor / rasterMetaData.width),
-                                    (int) readWidth, currentBand - 1);
+                                    (int) readWidth, currentBand);
                             pixelCursor += readWidth;
                             bufferCursor = 0;
                             return read();
@@ -165,8 +168,7 @@ public class WKBRasterWrapper {
                 int band) {
             int countDone = 0;
             while (countDone < count) {
-                int readWidth = Math.min(raster.getWidth() - x, countDone -
-                        count  );
+                int readWidth = Math.min(raster.getWidth() - x, count - countDone );
                 readSamples(buffer, pos, x, y, readWidth, 1, band);
                 countDone+=readWidth;
                 pos += readWidth * pixelType.pixelSize;

@@ -20,6 +20,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 import org.h2.util.ValueImageInputStream;
 import org.h2.value.Value;
+import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueRaster;
 
@@ -435,7 +436,7 @@ public class TestGeoRaster extends TestBase {
         ValueRaster raster = ValueRaster.getFromImage(
                 ValueLobDb.createSmallLob(Value.BLOB, data, data.length), 0, 0,
                 1, 1, 0, 0, 0);
-        //assertTrue(raster != null);
+        assertTrue(raster != null);
     }
 
 }

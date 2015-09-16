@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.io.*;
 import java.nio.ByteOrder;
@@ -20,6 +21,7 @@ import org.h2.store.DataHandler;
 
 import org.h2.util.Utils;
 import org.h2.util.ValueImageInputStream;
+import org.h2.util.WKBRasterWrapper;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -33,7 +35,7 @@ import javax.imageio.stream.ImageInputStream;
 public class ValueRaster extends ValueLob
         implements ValueSpatial, Value.ValueRasterMarker {
     private static final int RASTER_METADATA_SIZE = 61;
-    private static final int LAST_WKB_VERSION = 0;
+    public static final int LAST_WKB_VERSION = 0;
     private RasterMetaData cachedMetaData;
 
     /**
@@ -48,9 +50,9 @@ public class ValueRaster extends ValueLob
         return createGeoRaster(bytesStream, len, null);
     }
 
-    public static ValueRaster getFromImage(Value value,double upperLeftX,
+    public static ValueRaster getFromImage(ValueLobDb value,double upperLeftX,
             double upperLeftY,double scaleX,double scaleY,double skewX,
-            double skewY,double srid) throws IOException {
+            double skewY,int srid) throws IOException {
         ImageInputStream imageInputStream = new ValueImageInputStream(value);
         // Fetch ImageRead using ImageIO API
         Iterator<ImageReader> itReader = ImageIO.getImageReaders(
@@ -59,13 +61,52 @@ public class ValueRaster extends ValueLob
             ImageReader read = itReader.next();
             imageInputStream.seek(0);
             read.setInput(imageInputStream);
+            Raster raster;
             if(read.canReadRaster()) {
-
+                raster = read.readRaster(read.getMinIndex(), null);
             } else {
                 // Not memory efficient as creating BufferedImage will(may?)
                 // generate a copy of image data in memory
+                raster = read.read(read.getMinIndex()).getRaster();
             }
-            System.out.print(read.read(0).getRaster());
+            RasterBandMetaData[] bands = new RasterBandMetaData[raster
+                    .getNumBands()];
+            PixelType pixelType;
+            switch (raster.getDataBuffer().getDataType()) {
+                case DataBuffer.TYPE_BYTE:
+                    pixelType = PixelType.PT_8BUI;
+                    break;
+                case DataBuffer.TYPE_SHORT:
+                    pixelType = PixelType.PT_16BSI;
+                    break;
+                case DataBuffer.TYPE_USHORT:
+                    pixelType = PixelType.PT_16BUI;
+                    break;
+                case DataBuffer.TYPE_INT:
+                    pixelType = PixelType.PT_32BSI;
+                    break;
+                case DataBuffer.TYPE_FLOAT:
+                    pixelType = PixelType.PT_32BF;
+                    break;
+                case DataBuffer.TYPE_DOUBLE:
+                    pixelType = PixelType.PT_64BF;
+                    break;
+                default:
+                    pixelType = PixelType.PT_32BSI;
+            }
+            for(int idBand = 0; idBand < bands.length; idBand++) {
+                // TODO NODATA value
+                bands[idBand] = new RasterBandMetaData(0, pixelType, true, 0);
+            }
+            RasterMetaData rasterMetaData = new RasterMetaData(ValueRaster
+                    .LAST_WKB_VERSION, raster.getNumBands(), scaleX, scaleY,
+                    upperLeftX, upperLeftY, skewX, skewY, srid, raster
+                    .getWidth(), raster.getHeight(), bands);
+
+
+            return ValueRaster.createGeoRaster(
+                    new WKBRasterWrapper(raster, rasterMetaData)
+                            .toWKBRasterStream(), -1, value.getDataHandler());
         }
         return null;
     }
@@ -225,8 +266,8 @@ public class ValueRaster extends ValueLob
         public final double noDataValue;
         public final int externalBandId;
         public final String externalPath;
-        public final long offset;
-        public final long offsetPixel;
+        public long offset;
+        public long offsetPixel;
 
         public RasterBandMetaData(double noDataValue, PixelType pixelType,
                 boolean hasNoData, long offset) {
@@ -236,8 +277,7 @@ public class ValueRaster extends ValueLob
             this.offDB = false;
             this.externalBandId = -1;
             this.externalPath = "";
-            this.offset = offset;
-            this.offsetPixel = offset + 1 + pixelType.pixelSize;
+            setOffset(offset);
         }
 
         public RasterBandMetaData(double noDataValue, PixelType pixelType,
@@ -249,9 +289,17 @@ public class ValueRaster extends ValueLob
             this.externalBandId = externalBandId;
             this.externalPath = externalPath;
             this.offDB = true;
+            setOffset(offset);
+        }
+
+        public void setOffset(long offset) {
             this.offset = offset;
-            this.offsetPixel = offset + 1 + pixelType.pixelSize + 1 +
-                    externalPath.getBytes().length;
+            if(offDB) {
+                this.offsetPixel = offset + 1 + pixelType.pixelSize + 1 +
+                        externalPath.getBytes().length;
+            } else {
+                this.offsetPixel = offset + 1 + pixelType.pixelSize;
+            }
         }
     }
 

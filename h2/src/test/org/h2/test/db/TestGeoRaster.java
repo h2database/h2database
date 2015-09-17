@@ -469,6 +469,17 @@ public class TestGeoRaster extends TestBase {
         assertEquals(4, meta.bands.length);
         assertEquals(530, meta.width);
         assertEquals(288, meta.height);
+        assertEquals(100, meta.ipX);
+        assertEquals(150, meta.ipY);
+        assertEquals(1, meta.scaleX);
+        assertEquals(1, meta.scaleY);
+        assertEquals(0, meta.skewX);
+        assertEquals(0, meta.skewY);
+        assertEquals(4326, meta.srid);
+        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[0].pixelType);
+        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[1].pixelType);
+        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[2].pixelType);
+        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[3].pixelType);
     }
 
 }

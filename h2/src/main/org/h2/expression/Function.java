@@ -1157,11 +1157,11 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueRaster.getFromImage(v0,
                         args[1].getValue(session).getDouble(),
                         args[2].getValue(session).getDouble(),
-                        args[2].getValue(session).getDouble(),
-                        args[2].getValue(session).getDouble(),
-                        args[2].getValue(session).getDouble(),
-                        args[2].getValue(session).getDouble(),
-                        args[2].getValue(session).getInt(),
+                        args[3].getValue(session).getDouble(),
+                        args[4].getValue(session).getDouble(),
+                        args[5].getValue(session).getDouble(),
+                        args[6].getValue(session).getDouble(),
+                        args[7].getValue(session).getInt(),
                         session.getDataHandler());
             } catch (IOException ex) {
                 throw DbException

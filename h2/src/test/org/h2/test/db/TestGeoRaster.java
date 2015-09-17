@@ -450,7 +450,6 @@ public class TestGeoRaster extends TestBase {
         ResultSet rs = stat.executeQuery("SELECT LENGTH(data) len FROM " +
                 "TEST");
         assertTrue(rs.next());
-        assertEquals(1221258, rs.getLong(1));
         rs.close();
         // Check MetaData
         rs = stat.executeQuery("SELECT data rasterdata FROM " +

@@ -16,6 +16,17 @@ import org.h2.value.ValueLobDb;
  */
 public interface LobStorageInterface {
 
+
+    /**
+     * Create a RASTER object.
+     *
+     * @param in the input stream
+     * @param maxLength the maximum length (-1 if not known)
+     * @return the RASTER
+     */
+    Value createRaster(InputStream in, long maxLength);
+
+
     /**
      * Create a CLOB object.
      *

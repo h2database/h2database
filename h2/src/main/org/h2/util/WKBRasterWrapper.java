@@ -1,7 +1,5 @@
 package org.h2.util;
 
-import org.h2.value.ValueRaster;
-
 import java.awt.image.Raster;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,10 +12,10 @@ import java.nio.ByteOrder;
  */
 public class WKBRasterWrapper {
     private final Raster raster;
-    private final ValueRaster.RasterMetaData rasterMetaData;
+    private final RasterUtils.RasterMetaData rasterMetaData;
 
     public WKBRasterWrapper(Raster raster,
-            ValueRaster.RasterMetaData rasterMetaData) {
+            RasterUtils.RasterMetaData rasterMetaData) {
         this.raster = raster;
         this.rasterMetaData = rasterMetaData;
     }
@@ -30,7 +28,7 @@ public class WKBRasterWrapper {
         /* maximum pixel to buffer in the stream memory*/
         private static final int PIXEL_BUFFER_COUNT = 10000;
         private final Raster raster;
-        private final ValueRaster.RasterMetaData rasterMetaData;
+        private final RasterUtils.RasterMetaData rasterMetaData;
         private byte[] buffer = new byte[0];
         private int bufferCursor = 0;
         private RasterPixelDriver pixelDriver;
@@ -46,7 +44,7 @@ public class WKBRasterWrapper {
         private long streamPosition = 0;
 
         public WKBRasterStream(Raster raster,
-                ValueRaster.RasterMetaData rasterMetaData) {
+                RasterUtils.RasterMetaData rasterMetaData) {
             this.raster = raster;
             this.rasterMetaData = rasterMetaData;
         }
@@ -146,15 +144,15 @@ public class WKBRasterWrapper {
 
     private static abstract class RasterPixelDriver {
         protected Raster raster;
-        protected ValueRaster.PixelType pixelType;
+        protected RasterUtils.PixelType pixelType;
 
         private RasterPixelDriver(Raster raster,
-                ValueRaster.PixelType pixelType) {
+                RasterUtils.PixelType pixelType) {
             this.raster = raster;
             this.pixelType = pixelType;
         }
 
-        public ValueRaster.PixelType getPixelType() {
+        public RasterUtils.PixelType getPixelType() {
             return pixelType;
         }
 
@@ -184,7 +182,7 @@ public class WKBRasterWrapper {
             }
         }
 
-        public static RasterPixelDriver getDriver(ValueRaster.PixelType
+        public static RasterPixelDriver getDriver(RasterUtils.PixelType
                 pixelType, Raster raster) {
             switch (pixelType) {
                 case PT_1BB:
@@ -214,7 +212,7 @@ public class WKBRasterWrapper {
                 ,int width,int height, int band);
 
         private static class Driver1BB extends RasterPixelDriver {
-            public Driver1BB(Raster raster, ValueRaster.PixelType pixelType) {
+            public Driver1BB(Raster raster, RasterUtils.PixelType pixelType) {
                 super(raster, pixelType);
             }
             @Override
@@ -229,7 +227,7 @@ public class WKBRasterWrapper {
         }
         private static class Driver16BSI extends RasterPixelDriver {
             public Driver16BSI(Raster raster) {
-                super(raster, ValueRaster.PixelType.PT_16BSI);
+                super(raster, RasterUtils.PixelType.PT_16BSI);
             }
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
@@ -244,7 +242,7 @@ public class WKBRasterWrapper {
         }
         private static class Driver16BUI extends RasterPixelDriver {
             public Driver16BUI(Raster raster) {
-                super(raster, ValueRaster.PixelType.PT_16BUI);
+                super(raster, RasterUtils.PixelType.PT_16BUI);
             }
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
@@ -261,7 +259,7 @@ public class WKBRasterWrapper {
 
         private static class Driver32BF extends RasterPixelDriver {
             public Driver32BF(Raster raster) {
-                super(raster, ValueRaster.PixelType.PT_32BF);
+                super(raster, RasterUtils.PixelType.PT_32BF);
             }
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
@@ -278,7 +276,7 @@ public class WKBRasterWrapper {
         }
         private static class Driver32BUI extends RasterPixelDriver {
             public Driver32BUI(Raster raster) {
-                super(raster, ValueRaster.PixelType.PT_32BUI);
+                super(raster, RasterUtils.PixelType.PT_32BUI);
             }
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
@@ -295,7 +293,7 @@ public class WKBRasterWrapper {
         }
         private static class Driver32BSI extends RasterPixelDriver {
             public Driver32BSI(Raster raster) {
-                super(raster, ValueRaster.PixelType.PT_32BSI);
+                super(raster, RasterUtils.PixelType.PT_32BSI);
             }
 
             @Override
@@ -312,7 +310,7 @@ public class WKBRasterWrapper {
 
         private static class Driver64BF extends RasterPixelDriver {
             public Driver64BF(Raster raster) {
-                super(raster, ValueRaster.PixelType.PT_64BF);
+                super(raster, RasterUtils.PixelType.PT_64BF);
             }
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int

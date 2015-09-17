@@ -83,11 +83,19 @@ public class LobStorageFrontend implements LobStorageInterface {
     }
 
     @Override
+    public Value createRaster(InputStream in, long maxLength) {
+        // need to use a temp file, because the input stream could come from
+        // the same database, which would create a weird situation (trying
+        // to read a block while writing something)
+        return ValueLobDb.createTempBlob(in, maxLength, handler, Value.RASTER);
+    }
+
+    @Override
     public Value createBlob(InputStream in, long maxLength) {
         // need to use a temp file, because the input stream could come from
         // the same database, which would create a weird situation (trying
         // to read a block while writing something)
-        return ValueLobDb.createTempBlob(in, maxLength, handler);
+        return ValueLobDb.createTempBlob(in, maxLength, handler, Value.BLOB);
     }
 
     /**

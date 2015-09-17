@@ -17,6 +17,7 @@ import java.util.Random;
 import com.vividsolutions.jts.geom.Geometry;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
 import org.h2.util.ValueImageInputStream;
 import org.h2.value.*;
@@ -176,15 +177,15 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testEmptyGeoRaster() throws Exception {
-        ValueRaster testRaster = ValueRaster
-                .createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        RasterUtils.RasterMetaData meta = new RasterUtils.RasterMetaData
+                (RasterUtils.LAST_WKB_VERSION,0, 2, 3, 0.5, 0.5, 0, 0, 0, 10,
+                        20);
         // POLYGON((0.5 0.5,0.5 60.5,20.5 60.5,20.5 0.5,0.5 0.5))
-        Envelope env = testRaster.getEnvelope();
+        Envelope env = meta.getEnvelope();
         assertEquals(0.5, env.getMinX());
         assertEquals(0.5, env.getMinY());
         assertEquals(20.5, env.getMaxX());
         assertEquals(60.5, env.getMaxY());
-        ValueRaster.RasterMetaData meta = testRaster.getMetaData();
         assertEquals(2, meta.scaleX);
         assertEquals(3, meta.scaleY);
         assertEquals(10, meta.width);
@@ -202,10 +203,8 @@ public class TestGeoRaster extends TestBase {
         byte[] bytes = Utils.hexStringToByteArray(bytesString);
 
         InputStream bytesStream = new ByteArrayInputStream(bytes);
-        long len = bytes.length;
-        ValueRaster testRaster =
-                ValueRaster.createGeoRaster(bytesStream, len, null);
-        ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(bytesStream, true);
         assertEquals(3, metaData.numBands);
         assertEquals(0.05, metaData.scaleX);
         assertEquals(-0.05, metaData.scaleY);
@@ -215,26 +214,26 @@ public class TestGeoRaster extends TestBase {
         assertEquals(0., metaData.skewY);
         assertEquals(5, metaData.width);
         assertEquals(5, metaData.height);
-        Envelope env = testRaster.getEnvelope();
+        Envelope env = metaData.getEnvelope();
         assertEquals(3427927.75, env.getMinX());
         assertEquals(5793243.75, env.getMinY());
         assertEquals(3427928, env.getMaxX());
         assertEquals(5793244, env.getMaxY());
-        assertEquals(-1, testRaster.getMetaData().srid);
+        assertEquals(-1, metaData.srid);
         // Check bands meta
         assertEquals(3, metaData.bands.length);
-        ValueRaster.RasterBandMetaData bandMetaData = metaData.bands[0];
-        assertTrue(ValueRaster.PixelType.PT_8BUI == bandMetaData.pixelType);
+        RasterUtils.RasterBandMetaData bandMetaData = metaData.bands[0];
+        assertTrue(RasterUtils.PixelType.PT_8BUI == bandMetaData.pixelType);
         assertFalse(bandMetaData.offDB);
         assertTrue(bandMetaData.hasNoData);
         assertEquals(0, bandMetaData.noDataValue);
         bandMetaData = metaData.bands[1];
-        assertTrue(ValueRaster.PixelType.PT_8BUI == bandMetaData.pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == bandMetaData.pixelType);
         assertFalse(bandMetaData.offDB);
         assertTrue(bandMetaData.hasNoData);
         assertEquals(0, bandMetaData.noDataValue);
         bandMetaData = metaData.bands[2];
-        assertTrue(ValueRaster.PixelType.PT_8BUI == bandMetaData.pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == bandMetaData.pixelType);
         assertFalse(bandMetaData.offDB);
         assertTrue(bandMetaData.hasNoData);
         assertEquals(0, bandMetaData.noDataValue);
@@ -242,25 +241,23 @@ public class TestGeoRaster extends TestBase {
 
     private void testLittleEndian() throws IOException {
         // Write as little endian
-        ValueRaster testRasterLittleEndian = ValueRaster
-                .createEmptyGeoRaster(0, 2, 3, 0.5, 0.5, 0, 0, 0, 10, 20);
+        RasterUtils.RasterMetaData testRasterLittleEndian = new RasterUtils.RasterMetaData
+                (RasterUtils.LAST_WKB_VERSION,0, 2, 3, 0.5, 0.5, 0, 0, 0, 10,
+                        20);
         ByteArrayOutputStream byteArrayOutputStream =
                 new ByteArrayOutputStream();
-        testRasterLittleEndian.getMetaData()
-                .writeRasterHeader(byteArrayOutputStream,
-                        ByteOrder.LITTLE_ENDIAN);
+        testRasterLittleEndian.writeRasterHeader(byteArrayOutputStream,
+                ByteOrder.LITTLE_ENDIAN);
         // Read the stream
         byte[] dataLittleEndian = byteArrayOutputStream.toByteArray();
-        ValueRaster testRaster = ValueRaster
-                .createGeoRaster(new ByteArrayInputStream(dataLittleEndian),
-                        dataLittleEndian.length, null);
-        ValueRaster.RasterMetaData meta = testRaster.getMetaData();
+        RasterUtils.RasterMetaData meta = RasterUtils.RasterMetaData
+                .fetchMetaData(new ByteArrayInputStream(dataLittleEndian));
         assertEquals(0, meta.numBands);
         assertEquals(2, meta.scaleX);
         assertEquals(3, meta.scaleY);
         assertEquals(10, meta.width);
         assertEquals(20, meta.height);
-        Envelope env = testRaster.getEnvelope();
+        Envelope env = meta.getEnvelope();
         assertEquals(0.5, env.getMinX());
         assertEquals(0.5, env.getMinY());
         assertEquals(20.5, env.getMaxX());
@@ -296,10 +293,8 @@ public class TestGeoRaster extends TestBase {
         byte[] bytes = Utils.hexStringToByteArray(hexwkb);
 
         InputStream bytesStream = new ByteArrayInputStream(bytes);
-        long len = bytes.length;
-        ValueRaster testRaster =
-                ValueRaster.createGeoRaster(bytesStream, len, null);
-        ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(bytesStream, true);
         assertEquals(1, metaData.numBands);
         assertEquals(90, metaData.scaleX);
         assertEquals(-90, metaData.scaleY);
@@ -311,7 +306,7 @@ public class TestGeoRaster extends TestBase {
         assertEquals(3, metaData.width);
         assertEquals(1, metaData.height);
         assertTrue(
-                ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
+                RasterUtils.PixelType.PT_16BSI == metaData.bands[0].pixelType);
         assertFalse(metaData.bands[0].offDB);
         assertTrue(metaData.bands[0].hasNoData);
         assertEquals(1, metaData.bands[0].noDataValue);
@@ -339,10 +334,8 @@ public class TestGeoRaster extends TestBase {
         byte[] bytes = Utils.hexStringToByteArray(hexwkb);
 
         InputStream bytesStream = new ByteArrayInputStream(bytes);
-        long len = bytes.length;
-        ValueRaster testRaster =
-                ValueRaster.createGeoRaster(bytesStream, len, null);
-        ValueRaster.RasterMetaData metaData = testRaster.getMetaData();
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(bytesStream, true);
         assertEquals(0, metaData.version);
         assertEquals(1, metaData.numBands);
         assertEquals(1, metaData.scaleX);
@@ -355,7 +348,7 @@ public class TestGeoRaster extends TestBase {
         assertEquals(3, metaData.width);
         assertEquals(2, metaData.height);
         assertTrue(
-                ValueRaster.PixelType.PT_16BSI == metaData.bands[0].pixelType);
+                RasterUtils.PixelType.PT_16BSI == metaData.bands[0].pixelType);
         assertTrue(metaData.bands[0].offDB);
         assertTrue(metaData.bands[0].hasNoData);
         assertEquals(-1, metaData.bands[0].noDataValue);
@@ -432,11 +425,13 @@ public class TestGeoRaster extends TestBase {
         // the fly
         byte[] data =
                 IOUtils.readBytesAndClose(new FileInputStream(testFile), -1);
-        ValueRaster raster = ValueRaster.getFromImage(ValueBytes.get(data), 0,
+        Value raster = RasterUtils.getFromImage(ValueBytes.get(data), 0,
                 0, 1, 1, 0, 0, 0, null);
         assertTrue(raster != null);
         // Read again bytes to extract metadata
-        ValueRaster.RasterMetaData meta = raster.getMetaData();
+        assertTrue(raster instanceof Value.ValueRasterMarker);
+        RasterUtils.RasterMetaData meta = ((Value.ValueRasterMarker)raster)
+                .getMetaData();
         assertEquals(4, meta.numBands);
         assertEquals(4, meta.bands.length);
         assertEquals(530, meta.width);
@@ -450,7 +445,7 @@ public class TestGeoRaster extends TestBase {
         stat.execute("create table test(id identity, data raster)");
         stat.execute("INSERT INTO TEST(data) VALUES (" +
                 "ST_RasterFromImage(File_Read('h2/src/docsrc/images/h2-logo" +
-                ".png'), 100, 150, 1, 1, 0, 0, 4326))");
+                ".png'), 47.6443, -2.7766, 1, 1, 0, 0, 4326))");
         // Check WKB length
         ResultSet rs = stat.executeQuery("SELECT LENGTH(data) len FROM " +
                 "TEST");
@@ -462,24 +457,24 @@ public class TestGeoRaster extends TestBase {
                 "TEST");
         // Read MetaData
         assertTrue(rs.next());
-        ValueRaster.RasterMetaData meta = ValueRaster.RasterMetaData
+        RasterUtils.RasterMetaData meta = RasterUtils.RasterMetaData
                 .fetchMetaData(rs.getBinaryStream(1), true);
         assertTrue(meta != null);
         assertEquals(4, meta.numBands);
         assertEquals(4, meta.bands.length);
         assertEquals(530, meta.width);
         assertEquals(288, meta.height);
-        assertEquals(100, meta.ipX);
-        assertEquals(150, meta.ipY);
+        assertEquals(47.6443, meta.ipX);
+        assertEquals(-2.7766, meta.ipY);
         assertEquals(1, meta.scaleX);
         assertEquals(1, meta.scaleY);
         assertEquals(0, meta.skewX);
         assertEquals(0, meta.skewY);
         assertEquals(4326, meta.srid);
-        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[0].pixelType);
-        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[1].pixelType);
-        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[2].pixelType);
-        assertTrue(ValueRaster.PixelType.PT_8BUI == meta.bands[3].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[0].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[1].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[2].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[3].pixelType);
     }
 
 }

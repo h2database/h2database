@@ -1,13 +1,26 @@
-/*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
- */
-package org.h2.value;
+package org.h2.util;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
+import org.h2.message.DbException;
+import org.h2.store.DataHandler;
+import org.h2.value.Value;
+import org.h2.value.ValueLob;
+import org.h2.value.ValueLobDb;
+
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,50 +29,27 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.vividsolutions.jts.geom.*;
-import org.h2.message.DbException;
-import org.h2.store.DataHandler;
-
-import org.h2.util.IOUtils;
-import org.h2.util.Utils;
-import org.h2.util.ValueImageInputStream;
-import org.h2.util.WKBRasterWrapper;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.stream.ImageInputStream;
-
 /**
- * @author Thomas Crevoisier
- * @author Jules Party
- * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
+ * Utility on Raster format
+ * @author Nicolas Fortin
  */
-public class ValueRaster extends ValueLob
-        implements ValueSpatial, Value.ValueRasterMarker {
-    private static final int RASTER_METADATA_SIZE = 61;
+public class RasterUtils {
+    public static final int RASTER_METADATA_SIZE = 61;
     public static final int LAST_WKB_VERSION = 0;
-    private RasterMetaData cachedMetaData;
 
     /**
-     * Get or create a raster value for the given byte array.
-     *
-     * @param bytesNoCopy the byte array
-     * @return the value
+     * Utility class
      */
-    public static ValueRaster get(byte[] bytesNoCopy) {
-        InputStream bytesStream = new ByteArrayInputStream(bytesNoCopy);
-        long len = bytesNoCopy.length;
-        return createGeoRaster(bytesStream, len, null);
+    private RasterUtils() {
     }
 
-    public static ValueRaster getFromImage(Value value,double upperLeftX,
+    public static Value getFromImage(Value value,double upperLeftX,
             double upperLeftY,double scaleX,double scaleY,double skewX,
             double skewY,int srid, DataHandler dataHandler) throws IOException {
         ImageInputStream imageInputStream = new ValueImageInputStream(value);
         // Fetch ImageRead using ImageIO API
-        Iterator<ImageReader> itReader = ImageIO.getImageReaders(
-                imageInputStream);
+        Iterator<ImageReader>
+                itReader = ImageIO.getImageReaders(imageInputStream);
         if(itReader != null && itReader.hasNext()) {
             ImageReader read = itReader.next();
             imageInputStream.seek(0);
@@ -101,107 +91,21 @@ public class ValueRaster extends ValueLob
             for(int idBand = 0; idBand < bands.length; idBand++) {
                 bands[idBand] = new RasterBandMetaData(noDataValue, pixelType, true, 0);
             }
-            RasterMetaData rasterMetaData = new RasterMetaData(ValueRaster
-                    .LAST_WKB_VERSION, raster.getNumBands(), scaleX, scaleY,
+            RasterMetaData rasterMetaData = new RasterMetaData(LAST_WKB_VERSION, raster.getNumBands(), scaleX, scaleY,
                     upperLeftX, upperLeftY, skewX, skewY, srid, raster
                     .getWidth(), raster.getHeight(), bands);
-            return createGeoRaster(
-                    new WKBRasterWrapper(raster, rasterMetaData)
-                            .toWKBRasterStream(), -1, dataHandler);
+            if(dataHandler != null) {
+                return dataHandler.getLobStorage().createRaster(
+                        new WKBRasterWrapper(raster, rasterMetaData)
+                                .toWKBRasterStream(), -1);
+            } else {
+                return ValueLobDb.createSmallLob(Value.RASTER, IOUtils
+                        .readBytesAndClose(
+                        new WKBRasterWrapper(raster, rasterMetaData)
+                        .toWKBRasterStream(), -1));
+            }
         }
         return null;
-    }
-
-
-    /**
-     * Create a raster from a value lob.
-     *
-     * @param v the ValueLob containing the data of the raster
-     */
-    private ValueRaster(ValueLob v) {
-        super(v.type, v.handler, v.fileName, v.tableId, v.objectId, v.linked,
-                v.precision, v.compressed);
-        small = v.small;
-        hash = v.hash;
-    }
-
-    /**
-     * Create an empty Raster with given parameters.
-     *
-     * @param width  the width of the Raster (in pixels)
-     * @param height the height of the Raster (in pixels)
-     * @return an empty Raster of given dimension.
-     */
-    public static org.h2.value.ValueRaster createEmptyGeoRaster(int numbands,
-            double scaleX, double scaleY, double ipX, double ipY, double skewX,
-            double skewY, int srid, int width, int height) {
-        RasterMetaData rasterMetaData =
-                new RasterMetaData(LAST_WKB_VERSION, numbands, scaleX, scaleY,
-                        ipX, ipY, skewX, skewY, srid, width, height);
-        ByteArrayOutputStream byteArrayOutputStream =
-                new ByteArrayOutputStream(RASTER_METADATA_SIZE);
-        try {
-            rasterMetaData.writeRasterHeader(byteArrayOutputStream,
-                    ByteOrder.BIG_ENDIAN);
-            return createGeoRaster(new ByteArrayInputStream(
-                            byteArrayOutputStream.toByteArray()),
-                    byteArrayOutputStream.size(), null);
-        } catch (IOException ex) {
-            throw DbException.throwInternalError("H2 is unable to create the " +
-                    "raster. " + ex.getMessage());
-        }
-    }
-
-    /**
-     * @return Raster metadata
-     */
-    @Override
-    public RasterMetaData getMetaData() throws IOException {
-        if (cachedMetaData == null) {
-            cachedMetaData =
-                    RasterMetaData.fetchMetaData(getInputStream(), true);
-        }
-        return cachedMetaData;
-    }
-
-    /**
-     * Create a Raster from a given byte input stream
-     *
-     * @param in the InputStream to build the Raster from
-     * @return the ValueGeoRaster created
-     */
-    public static org.h2.value.ValueRaster createGeoRaster(InputStream in,
-            long length, DataHandler handler) {
-        org.h2.value.ValueRaster raster = new org.h2.value.ValueRaster(
-                ValueLob.createBlob(in, length, handler));
-        return raster;
-    }
-
-    /**
-     * Create an envelope based on the inputstream of the raster
-     *
-     * @return the envelope of the raster
-     */
-    @Override
-    public Envelope getEnvelope() {
-        InputStream input = getInputStream();
-        try {
-            RasterMetaData metaData = RasterMetaData.fetchMetaData(input);
-            return metaData.getEnvelope();
-        } catch (IOException ex) {
-            throw DbException.throwInternalError("H2 is unable to read the " +
-                    "raster. " + ex.getMessage());
-        }
-    }
-
-    @Override
-    public int getType() {
-        return Value.RASTER;
-    }
-
-    @Override
-    public boolean intersectsBoundingBox(ValueSpatial vs) {
-        return getEnvelope().intersects(vs.getEnvelope());
     }
 
     /**
@@ -469,7 +373,7 @@ public class ValueRaster extends ValueLob
                         final double noData;
                         cursor.addAndGet(pixelType.pixelSize);
                         if (pixelType.pixelSize !=
-                                IOUtils.readFully(raster,buffer,
+                                IOUtils.readFully(raster, buffer,
                                         pixelType.pixelSize)) {
                             throw DbException.throwInternalError("H2 is " +
                                     "unable to read the " + "raster's nodata." +
@@ -606,7 +510,7 @@ public class ValueRaster extends ValueLob
 
         public void writeRasterBandHeader(OutputStream stream,int band,
                 ByteOrder endian)
-        throws IOException {
+                throws IOException {
             RasterBandMetaData bandMetaData = bands[band];
             // Write flag
             stream.write(bandMetaData.pixelType.value |

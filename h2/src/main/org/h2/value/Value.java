@@ -24,11 +24,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.DateTimeUtils;
-import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
-import org.h2.util.Utils;
+import org.h2.util.*;
 
 /**
  * This is the base class for all value classes.
@@ -1214,7 +1210,7 @@ public abstract class Value {
      */
     public interface ValueRasterMarker {
         // this is a marker interface
-        org.h2.value.ValueRaster.RasterMetaData getMetaData() throws IOException;
+        RasterUtils.RasterMetaData getMetaData() throws IOException;
     }
 
 }

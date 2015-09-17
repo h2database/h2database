@@ -1308,10 +1308,15 @@ ARRAY_CONTAINS(arrayExpression, value)
 ","
 Returns a boolean true if the array contains the value."
 "Functions (RASTER)","ST_METADATA","
-{ ST_METADATA } (RASTER)
+ST_METADATA (RASTER)
 ","
 Read the metadata of the raster
 This method returns an array."
+"Functions (RASTER)","ST_RASTERFROMIMAGE","
+ST_RASTERFROMIMAGE(BLOB, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE,
+DOUBLE, INTEGER)
+","
+Create a raster from a non-geo-localised image."
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

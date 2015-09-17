@@ -45,14 +45,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.AutoCloseInputStream;
-import org.h2.util.DateTimeUtils;
-import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
-import org.h2.util.New;
-import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
-import org.h2.util.Utils;
+import org.h2.util.*;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -66,7 +59,6 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
-import org.h2.value.ValueRaster;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueUuid;
 
@@ -1126,49 +1118,6 @@ public class Function extends Expression implements FunctionCall {
             result = session.getTransactionId();
             break;
         }
-        case ST_METADATA: {
-            try {
-                ValueRaster.RasterMetaData metaData;
-                if (v0 instanceof Value.ValueRasterMarker) {
-                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                } else {
-                    metaData = ((Value.ValueRasterMarker) v0
-                            .convertTo(Value.RASTER)).getMetaData();
-                }
-                result = ValueArray
-                        .get(new Value[]{ValueDouble.get(metaData.ipX),
-                                ValueDouble.get(metaData.ipY),
-                                ValueInt.get(metaData.width),
-                                ValueInt.get(metaData.height),
-                                ValueDouble.get(metaData.scaleX),
-                                ValueDouble.get(metaData.scaleY),
-                                ValueDouble.get(metaData.skewX),
-                                ValueDouble.get(metaData.skewY),
-                                ValueInt.get(metaData.srid),
-                                ValueInt.get(metaData.numBands)});
-            } catch (IOException ex) {
-                throw DbException
-                        .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
-            }
-            break;
-        }
-        case ST_RASTERFROMIMAGE: {
-            try {
-                result = ValueRaster.getFromImage(v0,
-                        args[1].getValue(session).getDouble(),
-                        args[2].getValue(session).getDouble(),
-                        args[3].getValue(session).getDouble(),
-                        args[4].getValue(session).getDouble(),
-                        args[5].getValue(session).getDouble(),
-                        args[6].getValue(session).getDouble(),
-                        args[7].getValue(session).getInt(),
-                        session.getDataHandler());
-            } catch (IOException ex) {
-                throw DbException
-                        .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
-            }
-            break;
-        }
         default:
             result = null;
         }
@@ -1669,6 +1618,48 @@ public class Function extends Expression implements FunctionCall {
             result = session.getVariable(args[0].getSchemaName() + "." +
                     args[0].getTableName() + "." + args[0].getColumnName());
             break;
+        case ST_METADATA: {
+            try {
+                RasterUtils.RasterMetaData metaData;
+                if (v0 instanceof Value.ValueRasterMarker) {
+                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                } else {
+                    metaData = ((Value.ValueRasterMarker) v0
+                            .convertTo(Value.RASTER)).getMetaData();
+                }
+                result = ValueArray
+                        .get(new Value[]{ValueDouble.get(metaData.ipX),
+                                ValueDouble.get(metaData.ipY),
+                                ValueInt.get(metaData.width),
+                                ValueInt.get(metaData.height),
+                                ValueDouble.get(metaData.scaleX),
+                                ValueDouble.get(metaData.scaleY),
+                                ValueDouble.get(metaData.skewX),
+                                ValueDouble.get(metaData.skewY),
+                                ValueInt.get(metaData.srid),
+                                ValueInt.get(metaData.numBands)});
+            } catch (IOException ex) {
+                throw DbException
+                        .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
+            break;
+        }
+        case ST_RASTERFROMIMAGE: {
+            try {
+                result = RasterUtils.getFromImage(v0,
+                        getNullOrValue(session, args, values, 1).getDouble(),
+                        getNullOrValue(session, args, values, 2).getDouble(),
+                        getNullOrValue(session, args, values, 3).getDouble(),
+                        getNullOrValue(session, args, values, 4).getDouble(),
+                        getNullOrValue(session, args, values, 5).getDouble(),
+                        getNullOrValue(session, args, values, 6).getDouble(),
+                        getNullOrValue(session, args, values, 7).getInt(),
+                        session.getDataHandler());
+            } catch (IOException ex) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
+            break;
+        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }

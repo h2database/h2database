@@ -368,10 +368,22 @@ public class ValueLob extends Value {
      */
     protected static ValueLob createBlob(InputStream in, long length,
             DataHandler handler) {
+        return createBlob(in, length, handler, Value.BLOB);
+    }
+    /**
+     * Create a BLOB value from a stream.
+     *
+     * @param in the input stream
+     * @param length the number of characters to read, or -1 for no limit
+     * @param handler the data handler
+     * @return the lob value
+     */
+    protected static ValueLob createBlob(InputStream in, long length,
+            DataHandler handler, int type) {
         try {
             if (handler == null) {
                 byte[] data = IOUtils.readBytesAndClose(in, (int) length);
-                return createSmallLob(Value.BLOB, data);
+                return createSmallLob(type, data);
             }
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -390,9 +402,9 @@ public class ValueLob extends Value {
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = DataUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
-                return ValueLob.createSmallLob(Value.BLOB, small);
+                return ValueLob.createSmallLob(type, small);
             }
-            ValueLob lob = new ValueLob(Value.BLOB, null);
+            ValueLob lob = new ValueLob(type, null);
             lob.createFromStream(buff, len, in, remaining, handler);
             return lob;
         } catch (IOException e) {
@@ -463,7 +475,8 @@ public class ValueLob extends Value {
             ValueLob copy = ValueLob.createClob(getReader(), -1, handler);
             return copy;
         } else if (t == Value.BLOB) {
-            ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
+            ValueLob copy = ValueLob.createBlob(getInputStream(), -1,
+                    handler, t);
             return copy;
         }
         return super.convertTo(t);
@@ -819,7 +832,7 @@ public class ValueLob extends Value {
         if (type == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            lob = ValueLob.createBlob(getInputStream(), precision, handler, type);
         }
         return lob;
     }
@@ -833,7 +846,7 @@ public class ValueLob extends Value {
         if (type == CLOB) {
             lob = ValueLob.createClob(getReader(), precision, handler);
         } else {
-            lob = ValueLob.createBlob(getInputStream(), precision, handler);
+            lob = ValueLob.createBlob(getInputStream(), precision, handler, type);
         }
         return lob;
     }

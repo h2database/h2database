@@ -820,6 +820,7 @@ public class Data {
             return ValueFloat.get(Float.intBitsToFloat(
                     Integer.reverse(readVarInt())));
         case Value.BLOB:
+        case Value.RASTER:
         case Value.CLOB: {
             int smallLen = readVarInt();
             if (smallLen >= 0) {

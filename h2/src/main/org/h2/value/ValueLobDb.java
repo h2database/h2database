@@ -26,10 +26,7 @@ import org.h2.store.FileStoreOutputStream;
 import org.h2.store.LobStorageFrontend;
 import org.h2.store.LobStorageInterface;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
-import org.h2.util.StringUtils;
-import org.h2.util.Utils;
+import org.h2.util.*;
 
 /**
  * A implementation of the BLOB and CLOB data types.
@@ -53,7 +50,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     private final long precision;
 
     // For Raster only
-    private ValueRaster.RasterMetaData cachedMetaData;
+    private RasterUtils.RasterMetaData cachedMetaData;
 
     private final String fileName;
     private final FileStore tempFile;
@@ -121,8 +118,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * Create a BLOB in a temporary file.
      */
     private ValueLobDb(DataHandler handler, byte[] buff, int len, InputStream in,
-            long remaining) throws IOException {
-        this.type = Value.BLOB;
+            long remaining, int type) throws IOException {
+        this.type = type;
         this.handler = handler;
         this.small = null;
         this.lobId = 0;
@@ -568,6 +565,18 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      */
     public static ValueLobDb createTempBlob(InputStream in, long length,
             DataHandler handler) {
+        return createTempBlob(in ,length, handler, Value.BLOB);
+    }
+    /**
+     * Create a temporary BLOB value from a stream.
+     *
+     * @param in the input stream
+     * @param length the number of characters to read, or -1 for no limit
+     * @param handler the data handler
+     * @return the lob value
+     */
+    public static ValueLobDb createTempBlob(InputStream in, long length,
+            DataHandler handler, int type) {
         try {
             long remaining = Long.MAX_VALUE;
             boolean compress = handler.getLobCompressionAlgorithm(Value.BLOB) != null;
@@ -586,9 +595,10 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             if (len <= handler.getMaxLengthInplaceLob()) {
                 byte[] small = DataUtils.newBytes(len);
                 System.arraycopy(buff, 0, small, 0, len);
-                return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
+                return ValueLobDb.createSmallLob(type, small, small.length);
             }
-            ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);
+            ValueLobDb lob = new ValueLobDb(handler, buff, len, in,
+                    remaining, type);
             return lob;
         } catch (IOException e) {
             throw DbException.convertIOException(e, null);
@@ -689,8 +699,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         if (getType() == Value.RASTER) {
             InputStream input = getInputStream();
             try {
-                ValueRaster.RasterMetaData metaData =
-                        ValueRaster.RasterMetaData.fetchMetaData(input);
+                RasterUtils.RasterMetaData metaData =
+                        RasterUtils.RasterMetaData.fetchMetaData(input);
                 return metaData.getEnvelope();
             } catch (IOException ex) {
                 throw DbException.throwInternalError(
@@ -709,9 +719,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * @return Raster metadata
      */
-    public ValueRaster.RasterMetaData getMetaData() throws IOException {
+    public RasterUtils.RasterMetaData getMetaData() throws IOException {
         if(cachedMetaData == null) {
-            cachedMetaData = ValueRaster.RasterMetaData.fetchMetaData(getInputStream(), true);
+            cachedMetaData = RasterUtils.RasterMetaData.fetchMetaData(getInputStream(), true);
         }
         return cachedMetaData;
     }

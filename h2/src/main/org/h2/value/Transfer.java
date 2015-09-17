@@ -592,6 +592,7 @@ public class Transfer {
             return ValueStringIgnoreCase.get(readString());
         case Value.STRING_FIXED:
             return ValueStringFixed.get(readString());
+        case Value.RASTER:
         case Value.BLOB: {
             long length = readLong();
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {
@@ -606,7 +607,8 @@ public class Transfer {
                     }
                     long precision = readLong();
                     return ValueLobDb.create(
-                            Value.BLOB, session.getDataHandler(), tableId, id, hmac, precision);
+                            type, session.getDataHandler(), tableId, id, hmac,
+                            precision);
                 }
             }
             Value v = session.getDataHandler().getLobStorage().createBlob(in, length);

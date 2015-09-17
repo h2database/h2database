@@ -3647,15 +3647,17 @@ ST_METADATA(RASTER)
 "
 
 "Functions (RASTER)","ST_RASTERFROMIMAGE","
-ST_RASTERFROMIMAGE(BLOB, upperLeftX, upperLeftY, scaleX, scaleY, skewX,
-skewY, srid)
+ST_RASTERFROMIMAGE(BLOB, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE,
+DOUBLE, INTEGER)
 ","
 Create a raster from a non-geo-localised image. In order to extend supported
  format use the plugin system of java ImageIO. The default supported image
  formats are BMP, GIF, JPEG and PNG. The image pixels are converted into WKB
- Raster format.
+ Raster format. Arguments are upperLeftX, upperLeftY, scaleX, scaleY, skewX,
+skewY, srid.
 ","
-ST_RASTERFROMIMAGE(FILE_READ('/home/user/aerial.png'), 150, 200, 1, 1, 0, 0,
+ST_RASTERFROMIMAGE(FILE_READ('/home/user/aerial.png'), 47.6443, -2.7766, 1, 1,
+0, 0,
 4326)
 "
 

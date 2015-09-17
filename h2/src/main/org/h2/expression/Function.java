@@ -135,7 +135,7 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Raster functions
      */
-    public static final int ST_METADATA = 350;
+    public static final int ST_METADATA = 350, ST_RASTERFROMIMAGE =351;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -481,6 +481,7 @@ public class Function extends Expression implements FunctionCall {
 
         // Raster function
         addFunction("ST_METADATA", ST_METADATA, 1, Value.ARRAY);
+        addFunction("ST_RASTERFROMIMAGE", ST_RASTERFROMIMAGE, 8, Value.RASTER);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -1125,32 +1126,49 @@ public class Function extends Expression implements FunctionCall {
             result = session.getTransactionId();
             break;
         }
-            case ST_METADATA: {
-                try {
-                    ValueRaster.RasterMetaData metaData;
-                    if (v0 instanceof Value.ValueRasterMarker) {
-                        metaData = ((Value.ValueRasterMarker) v0).getMetaData();
-                    } else {
-                        metaData = ((Value.ValueRasterMarker) v0
-                                .convertTo(Value.RASTER)).getMetaData();
-                    }
-                    result = ValueArray
-                            .get(new Value[]{ValueDouble.get(metaData.ipX),
-                                    ValueDouble.get(metaData.ipY),
-                                    ValueInt.get(metaData.width),
-                                    ValueInt.get(metaData.height),
-                                    ValueDouble.get(metaData.scaleX),
-                                    ValueDouble.get(metaData.scaleY),
-                                    ValueDouble.get(metaData.skewX),
-                                    ValueDouble.get(metaData.skewY),
-                                    ValueInt.get(metaData.srid),
-                                    ValueInt.get(metaData.numBands)});
-                } catch (IOException ex) {
-                    throw DbException
-                            .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+        case ST_METADATA: {
+            try {
+                ValueRaster.RasterMetaData metaData;
+                if (v0 instanceof Value.ValueRasterMarker) {
+                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                } else {
+                    metaData = ((Value.ValueRasterMarker) v0
+                            .convertTo(Value.RASTER)).getMetaData();
                 }
-                break;
+                result = ValueArray
+                        .get(new Value[]{ValueDouble.get(metaData.ipX),
+                                ValueDouble.get(metaData.ipY),
+                                ValueInt.get(metaData.width),
+                                ValueInt.get(metaData.height),
+                                ValueDouble.get(metaData.scaleX),
+                                ValueDouble.get(metaData.scaleY),
+                                ValueDouble.get(metaData.skewX),
+                                ValueDouble.get(metaData.skewY),
+                                ValueInt.get(metaData.srid),
+                                ValueInt.get(metaData.numBands)});
+            } catch (IOException ex) {
+                throw DbException
+                        .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
             }
+            break;
+        }
+        case ST_RASTERFROMIMAGE: {
+            try {
+                result = ValueRaster.getFromImage(v0,
+                        args[1].getValue(session).getDouble(),
+                        args[2].getValue(session).getDouble(),
+                        args[2].getValue(session).getDouble(),
+                        args[2].getValue(session).getDouble(),
+                        args[2].getValue(session).getDouble(),
+                        args[2].getValue(session).getDouble(),
+                        args[2].getValue(session).getInt(),
+                        session.getDataHandler());
+            } catch (IOException ex) {
+                throw DbException
+                        .get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
+            break;
+        }
         default:
             result = null;
         }

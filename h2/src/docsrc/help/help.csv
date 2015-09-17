@@ -3638,12 +3638,25 @@ CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
 "
 
 "Functions (RASTER)","ST_METADATA","
-{ ST_METADATA } (RASTER)
+ST_METADATA (RASTER)
 ","
 Read the metadata of the raster
 This method returns an array. (Coordinate X, Coordinate Y, Width, Height, ScaleX, ScaleY, SkewX, SkewY, SRID, bands count)
 ","
 ST_METADATA(RASTER)
+"
+
+"Functions (RASTER)","ST_RASTERFROMIMAGE","
+ST_RASTERFROMIMAGE(BLOB, upperLeftX, upperLeftY, scaleX, scaleY, skewX,
+skewY, srid)
+","
+Create a raster from a non-geo-localised image. In order to extend supported
+ format use the plugin system of java ImageIO. The default supported image
+ formats are BMP, GIF, JPEG and PNG. The image pixels are converted into WKB
+ Raster format.
+","
+ST_RASTERFROMIMAGE(FILE_READ('/home/user/aerial.png'), 150, 200, 1, 1, 0, 0,
+4326)
 "
 
 "Functions (System)","AUTOCOMMIT","

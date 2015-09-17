@@ -19,10 +19,7 @@ import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 import org.h2.util.ValueImageInputStream;
-import org.h2.value.Value;
-import org.h2.value.ValueLob;
-import org.h2.value.ValueLobDb;
-import org.h2.value.ValueRaster;
+import org.h2.value.*;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -64,6 +61,7 @@ public class TestGeoRaster extends TestBase {
         testStRasterMetaData();
         testRasterCastToGeometry();
         testPngLoading();
+        testPngLoadingSQL();
     }
 
 
@@ -434,15 +432,43 @@ public class TestGeoRaster extends TestBase {
         // the fly
         byte[] data =
                 IOUtils.readBytesAndClose(new FileInputStream(testFile), -1);
-        ValueRaster raster = ValueRaster.getFromImage(
-                ValueLobDb.createSmallLob(Value.BLOB, data, data.length), 0, 0,
-                1, 1, 0, 0, 0);
+        ValueRaster raster = ValueRaster.getFromImage(ValueBytes.get(data), 0,
+                0, 1, 1, 0, 0, 0, null);
         assertTrue(raster != null);
         // Read again bytes to extract metadata
         ValueRaster.RasterMetaData meta = raster.getMetaData();
         assertEquals(4, meta.numBands);
         assertEquals(4, meta.bands.length);
         assertEquals(530, meta.width);
+        assertEquals(288, meta.height);
+    }
+
+    public void testPngLoadingSQL() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        stat.execute("INSERT INTO TEST(data) VALUES (" +
+                "ST_RasterFromImage(File_Read('h2/src/docsrc/images/h2-logo" +
+                ".png'), 100, 150, 1, 1, 0, 0, 4326))");
+        // Check WKB length
+        ResultSet rs = stat.executeQuery("SELECT LENGTH(data) len FROM " +
+                "TEST");
+        assertTrue(rs.next());
+        assertEquals(1221258, rs.getLong(1));
+        rs.close();
+        // Check MetaData
+        rs = stat.executeQuery("SELECT data rasterdata FROM " +
+                "TEST");
+        // Read MetaData
+        assertTrue(rs.next());
+        ValueRaster.RasterMetaData meta = ValueRaster.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1), true);
+        assertTrue(meta != null);
+        assertEquals(4, meta.numBands);
+        assertEquals(4, meta.bands.length);
+        assertEquals(530, meta.width);
+        assertEquals(288, meta.height);
     }
 
 }

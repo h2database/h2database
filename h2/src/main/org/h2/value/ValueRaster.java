@@ -14,17 +14,20 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.vividsolutions.jts.geom.*;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 
+import org.h2.util.IOUtils;
 import org.h2.util.Utils;
 import org.h2.util.ValueImageInputStream;
 import org.h2.util.WKBRasterWrapper;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.ImageInputStream;
 
 /**
@@ -50,9 +53,9 @@ public class ValueRaster extends ValueLob
         return createGeoRaster(bytesStream, len, null);
     }
 
-    public static ValueRaster getFromImage(ValueLobDb value,double upperLeftX,
+    public static ValueRaster getFromImage(Value value,double upperLeftX,
             double upperLeftY,double scaleX,double scaleY,double skewX,
-            double skewY,int srid) throws IOException {
+            double skewY,int srid, DataHandler dataHandler) throws IOException {
         ImageInputStream imageInputStream = new ValueImageInputStream(value);
         // Fetch ImageRead using ImageIO API
         Iterator<ImageReader> itReader = ImageIO.getImageReaders(
@@ -94,9 +97,9 @@ public class ValueRaster extends ValueLob
                 default:
                     pixelType = PixelType.PT_32BSI;
             }
+            double noDataValue = Double.NaN;
             for(int idBand = 0; idBand < bands.length; idBand++) {
-                // TODO NODATA value
-                bands[idBand] = new RasterBandMetaData(0, pixelType, true, 0);
+                bands[idBand] = new RasterBandMetaData(noDataValue, pixelType, true, 0);
             }
             RasterMetaData rasterMetaData = new RasterMetaData(ValueRaster
                     .LAST_WKB_VERSION, raster.getNumBands(), scaleX, scaleY,
@@ -104,7 +107,7 @@ public class ValueRaster extends ValueLob
                     .getWidth(), raster.getHeight(), bands);
             return createGeoRaster(
                     new WKBRasterWrapper(raster, rasterMetaData)
-                            .toWKBRasterStream(), -1, value.getDataHandler());
+                            .toWKBRasterStream(), -1, dataHandler);
         }
         return null;
     }
@@ -391,55 +394,57 @@ public class ValueRaster extends ValueLob
                 boolean fetchBandsMetaData) throws IOException {
             try {
                 byte[] buffer = new byte[RASTER_METADATA_SIZE];
-                AtomicInteger cursor = new AtomicInteger(0);
-                if (raster.read(buffer, 0, buffer.length) != buffer.length) {
+                AtomicLong cursor = new AtomicLong(0);
+                if (IOUtils.readFully(raster,buffer, buffer.length)
+                        != buffer
+                        .length) {
                     throw DbException.throwInternalError(
                             "H2 is unable to " + "read the raster. ");
                 }
-                ByteOrder endian = buffer[cursor.getAndAdd(1)] == 1 ?
+                ByteOrder endian = buffer[(int)cursor.getAndAdd(1)] == 1 ?
                         ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
                 int version = Utils.readUnsignedShort(buffer,
-                        cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
                 if (version > LAST_WKB_VERSION) {
                     throw DbException.throwInternalError("H2 is does not " +
                             "support raster version " + version + " raster.");
                 }
                 int numBands = Utils.readUnsignedShort(buffer,
-                        cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
 
                 // Retrieve scale values
                 double scaleX = Utils.readDouble(buffer,
-                        cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
                 double scaleY = Utils.readDouble(buffer,
-                        cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
 
                 // Retrieve insertion point values
                 double ipX = Utils.readDouble(buffer,
-                        cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
                 double ipY = Utils.readDouble(buffer,
-                        cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
 
                 // Retrieve XY offset values
                 double skewX = Utils.readDouble(buffer,
-                        cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
                 double skewY = Utils.readDouble(buffer,
-                        cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
 
                 // Retrieve the srid value
                 int srid = Utils.readInt(buffer,
-                        cursor.getAndAdd(Integer.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Integer.SIZE / Byte.SIZE), endian);
 
                 // Retrieve width and height values
                 int width = Utils.readUnsignedShort(buffer,
-                        cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
                 int height = Utils.readUnsignedShort(buffer,
-                        cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
 
                 RasterBandMetaData[] bands = new RasterBandMetaData[numBands];
                 int idBand = 0;
                 if (numBands > 0 && fetchBandsMetaData) {
                     while (idBand < numBands) {
-                        final int bandOffset = cursor.get();
+                        final long bandOffset = cursor.get();
                         // Read Flag
                         if (1 != raster.read(buffer, 0, 1)) {
                             throw DbException.throwInternalError("H2 is " +
@@ -464,7 +469,8 @@ public class ValueRaster extends ValueLob
                         final double noData;
                         cursor.addAndGet(pixelType.pixelSize);
                         if (pixelType.pixelSize !=
-                                raster.read(buffer, 0, pixelType.pixelSize)) {
+                                IOUtils.readFully(raster,buffer,
+                                        pixelType.pixelSize)) {
                             throw DbException.throwInternalError("H2 is " +
                                     "unable to read the " + "raster's nodata." +
                                     " ");
@@ -538,15 +544,10 @@ public class ValueRaster extends ValueLob
                                             hasNoData, bandOffset);
                             bands[idBand++] = rasterBandMetaData;
                             // Skip remaining pixel until next band
-                            int skipLength =
+                            long skipLength =
                                     width * height * pixelType.pixelSize;
                             cursor.addAndGet(skipLength);
-                            if (skipLength != raster.skip(skipLength)) {
-                                throw DbException.convert(new IOException
-                                        ("H2 is unable to read the raster's " +
-                                                "band. Unexpected end of " +
-                                                "stream"));
-                            }
+                            IOUtils.skipFully(raster, skipLength);
                         }
                     }
                 }

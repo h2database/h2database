@@ -202,6 +202,14 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             } else if (small != null) {
                 return ValueLobDb.createSmallLob(t, small);
             }
+        } else if (t == Value.RASTER) {
+            if (handler != null) {
+                Value copy = handler.getLobStorage().
+                        createRaster(getInputStream(), -1);
+                return copy;
+            } else if (small != null) {
+                return ValueLobDb.createSmallLob(t, small);
+            }
         }
         return super.convertTo(t);
     }
@@ -258,6 +266,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             Value v;
             if (type == Value.BLOB) {
                 v = s.createBlob(getInputStream(), getPrecision());
+            } else if(type == Value.RASTER) {
+                v = s.createRaster(getInputStream(), getPrecision());
             } else {
                 v = s.createClob(getReader(), getPrecision());
             }
@@ -393,7 +403,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             return new BufferedInputStream(new FileStoreInputStream(store,
                     handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
         }
-        long byteCount = (type == Value.BLOB) ? precision : -1;
+        long byteCount = (type == Value.BLOB || type == Value.RASTER) ? precision
+                : -1;
         try {
             return handler.getLobStorage().getInputStream(this, hmac, byteCount);
         } catch (IOException e) {
@@ -408,7 +419,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
-        if (type == Value.BLOB) {
+        if (type == Value.BLOB || type == Value.RASTER) {
             prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
         } else {
             prep.setCharacterStream(parameterIndex, getReader(), (int) p);

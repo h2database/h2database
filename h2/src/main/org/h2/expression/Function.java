@@ -1705,6 +1705,7 @@ public class Function extends Expression implements FunctionCall {
         switch (v.getType()) {
         case Value.BLOB:
         case Value.CLOB:
+        case Value.RASTER:
         case Value.BYTES:
         case Value.JAVA_OBJECT:
             return v.getPrecision();

@@ -359,7 +359,7 @@ public class DataType {
                 new String[]{"GEOMETRY"},
                 32
         );
-        add(Value.RASTER, Types.OTHER, "Raster",
+        add(Value.RASTER, Types.BLOB, "Raster",
                 createLob(),
                 new String[]{"RASTER"},
                 104
@@ -721,6 +721,7 @@ public class DataType {
         case Value.STRING_FIXED:
             // "java.lang.String";
             return String.class.getName();
+        case Value.RASTER:
         case Value.BLOB:
             // "java.sql.Blob";
             return java.sql.Blob.class.getName();
@@ -923,6 +924,8 @@ public class DataType {
             return Value.RESULT_SET;
         } else if (Value.ValueBlob.class.isAssignableFrom(x)) {
             return Value.BLOB;
+        } else if (Value.ValueRasterMarker.class.isAssignableFrom(x)) {
+            return Value.RASTER;
         } else if (Value.ValueClob.class.isAssignableFrom(x)) {
             return Value.CLOB;
         } else if (Date.class.isAssignableFrom(x)) {
@@ -1090,7 +1093,7 @@ public class DataType {
      * @return true if the value type is a lob type
      */
     public static boolean isLargeObject(int type) {
-        if (type == Value.BLOB || type == Value.CLOB) {
+        if (type == Value.BLOB || type == Value.CLOB || type == Value.RASTER) {
             return true;
         }
         return false;

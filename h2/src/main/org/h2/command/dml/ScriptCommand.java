@@ -465,6 +465,7 @@ public class ScriptCommand extends ScriptBase {
         }
         int id = nextLobId++;
         switch (v.getType()) {
+        case Value.RASTER:
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
             InputStream input = v.getInputStream();

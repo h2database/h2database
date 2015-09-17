@@ -1920,6 +1920,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             o = new JdbcClob(this, v, id);
             break;
         }
+        case Value.RASTER:
         case Value.BLOB: {
             int id = getNextId(TraceObject.BLOB);
             o = new JdbcBlob(this, v, id);

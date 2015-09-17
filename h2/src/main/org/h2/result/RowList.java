@@ -63,7 +63,8 @@ public class RowList {
                 buff.writeByte((byte) 0);
             } else {
                 buff.writeByte((byte) 1);
-                if (v.getType() == Value.CLOB || v.getType() == Value.BLOB) {
+                if (v.getType() == Value.CLOB || v.getType() == Value.BLOB ||
+                        v.getType() == Value.RASTER) {
                     // need to keep a reference to temporary lobs,
                     // otherwise the temp file is deleted
                     if (v.getSmall() == null && v.getTableId() == 0) {

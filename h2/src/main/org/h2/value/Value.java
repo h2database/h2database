@@ -795,17 +795,19 @@ public abstract class Value {
             case JAVA_OBJECT: {
                 switch (getType()) {
                 case BYTES:
+                case RASTER:
                 case BLOB:
                     return ValueJavaObject.getNoCopy(
                             null, getBytesNoCopy(), getDataHandler());
                 }
                 break;
             }
+            case RASTER:
             case BLOB: {
                 switch (getType()) {
                 case BYTES:
                     return ValueLobDb.createSmallLob(
-                            Value.BLOB, getBytesNoCopy());
+                            targetType, getBytesNoCopy());
                 }
                 break;
             }

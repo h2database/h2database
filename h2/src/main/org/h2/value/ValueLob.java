@@ -87,7 +87,7 @@ public class ValueLob extends Value {
         this.type = type;
         this.small = small;
         if (small != null) {
-            if (type == Value.BLOB) {
+            if (type == Value.BLOB || type == Value.RASTER) {
                 this.precision = small.length;
             } else {
                 this.precision = getString().length();
@@ -474,7 +474,7 @@ public class ValueLob extends Value {
         } else if (t == Value.CLOB) {
             ValueLob copy = ValueLob.createClob(getReader(), -1, handler);
             return copy;
-        } else if (t == Value.BLOB) {
+        } else if (t == Value.BLOB || t == Value.RASTER) {
             ValueLob copy = ValueLob.createBlob(getInputStream(), -1,
                     handler, t);
             return copy;
@@ -693,7 +693,7 @@ public class ValueLob extends Value {
         if (p > Integer.MAX_VALUE || p <= 0) {
             p = -1;
         }
-        if (type == Value.BLOB) {
+        if (type == Value.BLOB || type == Value.RASTER) {
             prep.setBinaryStream(parameterIndex, getInputStream(), (int) p);
         } else {
             prep.setCharacterStream(parameterIndex, getReader(), (int) p);
@@ -759,7 +759,7 @@ public class ValueLob extends Value {
                 boolean compress = h.getLobCompressionAlgorithm(type) != null;
                 int len = getBufferSize(h, compress, Long.MAX_VALUE);
                 int tabId = tableId;
-                if (type == Value.BLOB) {
+                if (type == Value.BLOB || type == Value.RASTER) {
                     createFromStream(
                             DataUtils.newBytes(len), 0, getInputStream(), Long.MAX_VALUE, h);
                 } else {

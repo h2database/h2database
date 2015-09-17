@@ -54,7 +54,8 @@ public class ResultTempTable implements ResultExternal {
             int type = expressions[i].getType();
             Column col = new Column(COLUMN_NAME + i,
                     type);
-            if (type == Value.CLOB || type == Value.BLOB) {
+            if (type == Value.CLOB || type == Value.BLOB || type == Value
+                    .RASTER) {
                 containsLob = true;
             }
             data.columns.add(col);

@@ -102,9 +102,7 @@ public class ValueRaster extends ValueLob
                     .LAST_WKB_VERSION, raster.getNumBands(), scaleX, scaleY,
                     upperLeftX, upperLeftY, skewX, skewY, srid, raster
                     .getWidth(), raster.getHeight(), bands);
-
-
-            return ValueRaster.createGeoRaster(
+            return createGeoRaster(
                     new WKBRasterWrapper(raster, rasterMetaData)
                             .toWKBRasterStream(), -1, value.getDataHandler());
         }
@@ -544,9 +542,10 @@ public class ValueRaster extends ValueLob
                                     width * height * pixelType.pixelSize;
                             cursor.addAndGet(skipLength);
                             if (skipLength != raster.skip(skipLength)) {
-                                throw DbException.throwInternalError("H2 is " +
-                                        "unable to read the " + "raster's " +
-                                        "band. ");
+                                throw DbException.convert(new IOException
+                                        ("H2 is unable to read the raster's " +
+                                                "band. Unexpected end of " +
+                                                "stream"));
                             }
                         }
                     }

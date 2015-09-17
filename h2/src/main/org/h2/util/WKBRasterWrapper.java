@@ -28,7 +28,7 @@ public class WKBRasterWrapper {
 
     private static class WKBRasterStream extends InputStream {
         /* maximum pixel to buffer in the stream memory*/
-        private static final int PIXEL_BUFFER_COUNT = 500;
+        private static final int PIXEL_BUFFER_COUNT = 10000;
         private final Raster raster;
         private final ValueRaster.RasterMetaData rasterMetaData;
         private byte[] buffer = new byte[0];
@@ -62,7 +62,7 @@ public class WKBRasterWrapper {
         public int read() throws IOException {
             if(bufferCursor < buffer.length) {
                 streamPosition+=1;
-                return buffer[bufferCursor++];
+                return buffer[bufferCursor++] & 0xff;
             } else {
                 switch (state) {
                     case WKB_HEADER_BEGIN: {
@@ -88,8 +88,8 @@ public class WKBRasterWrapper {
                             return read();
                         }
                     case WKB_BAND_HEADER_BEGIN: {
+                        currentBand+=1;
                         if (currentBand < rasterMetaData.numBands) {
-                            currentBand+=1;
                             ByteArrayOutputStream stream = new
                                     ByteArrayOutputStream();
                             rasterMetaData.bands[currentBand].setOffset
@@ -97,9 +97,9 @@ public class WKBRasterWrapper {
                             rasterMetaData.writeRasterBandHeader(stream,
                                     currentBand, ByteOrder.BIG_ENDIAN);
                             buffer = stream.toByteArray();
-                            bufferCursor = 1;
+                            bufferCursor = 0;
                             state = BUFFER_STATE.WKB_BAND_HEADER_END;
-                            return buffer[0];
+                            return read();
                         } else {
                             return -1; // End of Stream
                         }
@@ -124,6 +124,11 @@ public class WKBRasterWrapper {
                             state = BUFFER_STATE.WKB_BAND_HEADER_BEGIN;
                             return read();
                         } else {
+                            if(readWidth < PIXEL_BUFFER_COUNT) {
+                                // Resize buffer
+                                buffer = new byte[(int)(readWidth * pixelDriver
+                                        .getPixelType().pixelSize)];
+                            }
                             pixelDriver.readSamples(buffer, 0,
                                     (int) (pixelCursor % rasterMetaData.width),
                                     (int) (pixelCursor / rasterMetaData.width),

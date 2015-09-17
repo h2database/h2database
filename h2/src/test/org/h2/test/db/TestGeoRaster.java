@@ -430,13 +430,19 @@ public class TestGeoRaster extends TestBase {
     public void testPngLoading() throws IOException {
         // Test loading PNG into Raster
         File testFile = new File("h2/src/docsrc/images/h2-logo.png");
-        // Fetch ImageRead using ImageIO API
+        // Fetch ImageRead using ImageIO API then convert it to WKB Raster on
+        // the fly
         byte[] data =
                 IOUtils.readBytesAndClose(new FileInputStream(testFile), -1);
         ValueRaster raster = ValueRaster.getFromImage(
                 ValueLobDb.createSmallLob(Value.BLOB, data, data.length), 0, 0,
                 1, 1, 0, 0, 0);
         assertTrue(raster != null);
+        // Read again bytes to extract metadata
+        ValueRaster.RasterMetaData meta = raster.getMetaData();
+        assertEquals(4, meta.numBands);
+        assertEquals(4, meta.bands.length);
+        assertEquals(530, meta.width);
     }
 
 }

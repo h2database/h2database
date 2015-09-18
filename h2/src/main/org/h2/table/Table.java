@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
@@ -531,49 +530,53 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Check that this column is not referenced by a multi-column constraint or
+     * Check that these columns are not referenced by a multi-column constraint or
      * multi-column index. If it is, an exception is thrown. Single-column
      * references and indexes are dropped.
      *
      * @param session the session
-     * @param col the column
+     * @param columsToDrop the columns to drop
      * @throws DbException if the column is referenced by multi-column
      *             constraints or indexes
      */
-    public void dropSingleColumnConstraintsAndIndexes(Session session,
-            Column col) {
-        ArrayList<Constraint> constraintsToDrop = New.arrayList();
+    public void dropMultipleColumnsConstraintsAndIndexes(Session session,
+            ArrayList<Column> columsToDrop) {
+        HashSet<Constraint> constraintsToDrop = New.hashSet();
         if (constraints != null) {
-            for (int i = 0, size = constraints.size(); i < size; i++) {
-                Constraint constraint = constraints.get(i);
-                HashSet<Column> columns = constraint.getReferencedColumns(this);
-                if (!columns.contains(col)) {
-                    continue;
-                }
-                if (columns.size() == 1) {
-                    constraintsToDrop.add(constraint);
-                } else {
-                    throw DbException.get(
-                            ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
+            for (Column col : columsToDrop) {
+                for (int i = 0, size = constraints.size(); i < size; i++) {
+                    Constraint constraint = constraints.get(i);
+                    HashSet<Column> columns = constraint.getReferencedColumns(this);
+                    if (!columns.contains(col)) {
+                        continue;
+                    }
+                    if (columns.size() == 1) {
+                        constraintsToDrop.add(constraint);
+                    } else {
+                        throw DbException.get(
+                                ErrorCode.COLUMN_IS_REFERENCED_1, constraint.getSQL());
+                    }
                 }
             }
         }
-        ArrayList<Index> indexesToDrop = New.arrayList();
+        HashSet<Index> indexesToDrop = New.hashSet();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
-            for (int i = 0, size = indexes.size(); i < size; i++) {
-                Index index = indexes.get(i);
-                if (index.getCreateSQL() == null) {
-                    continue;
-                }
-                if (index.getColumnIndex(col) < 0) {
-                    continue;
-                }
-                if (index.getColumns().length == 1) {
-                    indexesToDrop.add(index);
-                } else {
-                    throw DbException.get(
-                            ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
+            for (Column col : columsToDrop) {
+                for (int i = 0, size = indexes.size(); i < size; i++) {
+                    Index index = indexes.get(i);
+                    if (index.getCreateSQL() == null) {
+                        continue;
+                    }
+                    if (index.getColumnIndex(col) < 0) {
+                        continue;
+                    }
+                    if (index.getColumns().length == 1) {
+                        indexesToDrop.add(index);
+                    } else {
+                        throw DbException.get(
+                                ErrorCode.COLUMN_IS_REFERENCED_1, index.getSQL());
+                    }
                 }
             }
         }

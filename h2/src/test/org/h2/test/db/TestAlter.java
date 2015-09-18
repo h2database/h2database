@@ -10,7 +10,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -38,6 +37,7 @@ public class TestAlter extends TestBase {
         stat = conn.createStatement();
         testAlterTableAlterColumnAsSelfColumn();
         testAlterTableDropColumnWithReferences();
+        testAlterTableDropMultipleColumns();
         testAlterTableAlterColumnWithConstraint();
         testAlterTableAlterColumn();
         testAlterTableAddColumnIdentity();
@@ -106,6 +106,17 @@ public class TestAlter extends TestBase {
         stat.execute("alter table test drop column id");
         stat.execute("drop table test");
 
+    }
+
+    private void testAlterTableDropMultipleColumns() throws SQLException {
+        stat.execute("create table test(id int, name varchar, name2 varchar)");
+        stat.execute("alter table test drop column name, name2");
+        stat.execute("drop table test");
+
+        stat.execute("create table test(id int, name varchar, name2 varchar)");
+        assertThrows(ErrorCode.CANNOT_DROP_LAST_COLUMN, stat).
+            execute("alter table test drop column id, name, name2");
+        stat.execute("drop table test");
     }
 
     /**

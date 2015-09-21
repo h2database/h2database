@@ -1,14 +1,14 @@
+/*
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.util;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.geom.*;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.value.Value;
-import org.h2.value.ValueLob;
 import org.h2.value.ValueLobDb;
 
 import javax.imageio.ImageIO;
@@ -16,8 +16,6 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -43,10 +41,41 @@ public class RasterUtils {
     private RasterUtils() {
     }
 
+    /**
+     * Convert a raster into an Image using ImageIO ImageWriter.
+     * @param value Raster
+     * @param suffix Image suffix ex:png
+     * @return Image stream
+     */
+//    public static Value asImage(Value value, String suffix) {
+//        Iterator<ImageWriter> itWriter = ImageIO.getImageWritersBySuffix
+//                (suffix);
+//        if(itWriter != null && itWriter.hasNext()) {
+//            ImageWriter imageWriter = itWriter.next();
+//            IIOImage image;
+//            imageWriter.write(image);
+//        }
+//    }
+
+    /**
+     * Convert an Image stream into a Raster
+     * @param value Image stream
+     * @param upperLeftX Raster position X
+     * @param upperLeftY Raster position Y
+     * @param scaleX Pixel size X
+     * @param scaleY Pixel size Y
+     * @param skewX Pixel rotation X
+     * @param skewY Pixel rotation Y
+     * @param srid Raster coordinates projection system
+     * @param dataHandler Lob storage or null
+     * @return The raster value
+     * @throws IOException
+     */
     public static Value getFromImage(Value value,double upperLeftX,
             double upperLeftY,double scaleX,double scaleY,double skewX,
             double skewY,int srid, DataHandler dataHandler) throws IOException {
-        ImageInputStream imageInputStream = new ValueImageInputStream(value);
+        ImageInputStream imageInputStream = new ImageInputStreamWrapper(new
+                ImageInputStreamWrapper.ValueStreamProvider(value));
         // Fetch ImageRead using ImageIO API
         Iterator<ImageReader>
                 itReader = ImageIO.getImageReaders(imageInputStream);
@@ -269,12 +298,24 @@ public class RasterUtils {
          * @return bytes to skip
          */
         public long getStreamOffset(int band, int x, int y) {
+            return getStreamOffset(band, width * y + x);
+        }
+
+        /**
+         * Compute bytes to skip in InputStream in order to read the
+         * specified pixel.
+         *
+         * @param band Band id [0-numBands[
+         * @param pixelIndex Pixel position (width * y + x)
+         * @return bytes to skip
+         */
+        public long getStreamOffset(int band, int pixelIndex) {
             if (band >= numBands) {
                 throw new IllegalArgumentException("Band number out of range");
             }
             final RasterBandMetaData metaData = bands[band];
             return metaData.offsetPixel + metaData.pixelType.pixelSize *
-                    width * y + x;
+                    pixelIndex;
         }
 
         /**
@@ -302,7 +343,7 @@ public class RasterUtils {
                 if (IOUtils.readFully(raster,buffer, buffer.length)
                         != buffer
                         .length) {
-                    throw DbException.throwInternalError(
+                    throw new IOException(
                             "H2 is unable to " + "read the raster. ");
                 }
                 ByteOrder endian = buffer[(int)cursor.getAndAdd(1)] == 1 ?
@@ -310,7 +351,8 @@ public class RasterUtils {
                 int version = Utils.readUnsignedShort(buffer,
                         (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
                 if (version > LAST_WKB_VERSION) {
-                    throw DbException.throwInternalError("H2 is does not " +
+                    throw new IOException("H2 " +
+                            "is does not " +
                             "support raster version " + version + " raster.");
                 }
                 int numBands = Utils.readUnsignedShort(buffer,
@@ -351,7 +393,7 @@ public class RasterUtils {
                         final long bandOffset = cursor.get();
                         // Read Flag
                         if (1 != raster.read(buffer, 0, 1)) {
-                            throw DbException.throwInternalError("H2 is " +
+                            throw new IOException("H2 is " +
                                     "unable to read the " + "raster's band. ");
                         }
                         cursor.addAndGet(1);
@@ -359,7 +401,7 @@ public class RasterUtils {
                         final PixelType pixelType = PixelType.cast(flag &
                                 RasterBandMetaData.BANDTYPE_PIXTYPE_MASK);
                         if (pixelType == null) {
-                            throw DbException.throwInternalError("H2 is " +
+                            throw new IOException("H2 is " +
                                     "unable to read the " + "raster's band " +
                                     "pixel type. ");
                         }
@@ -375,7 +417,7 @@ public class RasterUtils {
                         if (pixelType.pixelSize !=
                                 IOUtils.readFully(raster, buffer,
                                         pixelType.pixelSize)) {
-                            throw DbException.throwInternalError("H2 is " +
+                            throw new IOException("H2 is " +
                                     "unable to read the " + "raster's nodata." +
                                     " ");
                         }
@@ -421,14 +463,14 @@ public class RasterUtils {
                                 noData = Utils.readDouble(buffer, 0, endian);
                                 break;
                             default:
-                                throw DbException.throwInternalError("H2 is " +
+                                throw new IOException("H2 is " +
                                         "unable to read the " + "raster's " +
                                         "nodata. ");
                         }
                         if (offDB) {
                             // Read external band id
                             if (1 != raster.read(buffer, 0, 1)) {
-                                throw DbException.throwInternalError("H2 is " +
+                                throw new IOException("H2 is " +
                                         "unable to read the " + "raster's " +
                                         "band. ");
                             }

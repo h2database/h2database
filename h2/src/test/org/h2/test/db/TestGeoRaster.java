@@ -7,7 +7,7 @@ package org.h2.test.db;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import java.awt.image.Raster;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.sql.*;
@@ -17,14 +17,13 @@ import java.util.Random;
 import com.vividsolutions.jts.geom.Geometry;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.ImageInputStreamWrapper;
 import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
-import org.h2.util.ValueImageInputStream;
 import org.h2.value.*;
 
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
-import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
 
@@ -36,6 +35,8 @@ import javax.imageio.stream.ImageInputStream;
  * @author Nicolas Fortin
  */
 public class TestGeoRaster extends TestBase {
+    private static String UNIT_TEST_IMAGE = TestGeoRaster.class.getResource("h2-logo.png")
+    .getFile();
 
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
@@ -63,6 +64,7 @@ public class TestGeoRaster extends TestBase {
         testRasterCastToGeometry();
         testPngLoading();
         testPngLoadingSQL();
+        testImageIOWKBTranslation();
     }
 
 
@@ -420,7 +422,7 @@ public class TestGeoRaster extends TestBase {
 
     public void testPngLoading() throws IOException {
         // Test loading PNG into Raster
-        File testFile = new File("h2/src/docsrc/images/h2-logo.png");
+        File testFile = new File(UNIT_TEST_IMAGE);
         // Fetch ImageRead using ImageIO API then convert it to WKB Raster on
         // the fly
         byte[] data =
@@ -444,15 +446,10 @@ public class TestGeoRaster extends TestBase {
         stat.execute("drop table if exists test");
         stat.execute("create table test(id identity, data raster)");
         stat.execute("INSERT INTO TEST(data) VALUES (" +
-                "ST_RasterFromImage(File_Read('h2/src/docsrc/images/h2-logo" +
-                ".png'), 47.6443, -2.7766, 1, 1, 0, 0, 4326))");
-        // Check WKB length
-        ResultSet rs = stat.executeQuery("SELECT LENGTH(data) len FROM " +
-                "TEST");
-        assertTrue(rs.next());
-        rs.close();
+                "ST_RasterFromImage( File_Read('" + UNIT_TEST_IMAGE +
+                        "'), 47.6443, -2.7766, 1, 1,0, 0, 4326))");
         // Check MetaData
-        rs = stat.executeQuery("SELECT data rasterdata FROM " +
+        ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
                 "TEST");
         // Read MetaData
         assertTrue(rs.next());
@@ -474,6 +471,37 @@ public class TestGeoRaster extends TestBase {
         assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[1].pixelType);
         assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[2].pixelType);
         assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[3].pixelType);
+        rs.close();
+        conn.close();
+    }
+
+    public void testImageIOWKBTranslation() throws SQLException, IOException {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        stat.execute("INSERT INTO TEST(data) VALUES (" +
+                "ST_RasterFromImage(File_Read('"+UNIT_TEST_IMAGE+"'), 47" +
+                ".6443,  -2.7766, 1, 1,0, 0, 4326))");
+
+        ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
+                "TEST");
+        assertTrue(rs.next());
+        Blob blob = rs.getBlob(1);
+        ImageInputStream inputStream = ImageIO.createImageInputStream(blob);
+        assertTrue(inputStream != null);
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
+        assertTrue(readers.hasNext());
+        ImageReader wkbReader = readers.next();
+        wkbReader.setInput(inputStream);
+        BufferedImage image = wkbReader.read(wkbReader.getMinIndex());
+        // Check Image
+        assertEquals(288, image.getHeight());
+        assertEquals(530, image.getWidth());
+        // Write to disk
+
+        rs.close();
+        conn.close();
     }
 
 }

@@ -1,5 +1,6 @@
 package org.h2.util.imageio;
 
+import org.h2.util.IOUtils;
 import org.h2.util.RasterUtils;
 
 import javax.imageio.stream.ImageInputStream;
@@ -13,6 +14,8 @@ import java.io.IOException;
 public class WKBRasterDataBuffer extends DataBuffer {
     private ImageInputStream inputStream;
     private RasterUtils.RasterMetaData metaData;
+    private RasterUtils.WKBByteDriver[] wkbByteDriver;
+    private byte[] buffer = new byte[8];
 
     /**
      * Constructor.
@@ -26,10 +29,16 @@ public class WKBRasterDataBuffer extends DataBuffer {
         super(dataType, size);
         this.inputStream = inputStream;
         this.metaData = metaData;
+        this.wkbByteDriver = new RasterUtils.WKBByteDriver[metaData.numBands];
+        for(int bandId = 0; bandId < wkbByteDriver.length; bandId++) {
+            this.wkbByteDriver[bandId] = RasterUtils.WKBByteDriver
+                    .fetchDriver(metaData.bands[bandId].pixelType, metaData
+                            .endian);
+        }
     }
 
     private void seek(int bank, int i) throws IOException {
-        long position = metaData.getStreamOffset(bank) + i * metaData
+        long position = metaData.bands[bank].offset + i * metaData
                 .bands[bank].pixelType.pixelSize;
         inputStream.seek(position);
     }
@@ -38,7 +47,9 @@ public class WKBRasterDataBuffer extends DataBuffer {
     public int getElem(int bank, int i) {
         try {
             seek(bank, i);
-            return inputStream.readInt();
+            IOUtils.readFully(inputStream, buffer, metaData.bands[bank]
+                    .pixelType.pixelSize);
+            return (int)wkbByteDriver[bank].readAsDouble(buffer, 0);
         } catch (IOException ex) {
             throw new IllegalStateException("Error while reading " +
                     "ImageInputStream in WKBRasterDataBuffer", ex);
@@ -49,7 +60,9 @@ public class WKBRasterDataBuffer extends DataBuffer {
     public double getElemDouble(int i) {
         try {
             seek(0, i);
-            return inputStream.readDouble();
+            IOUtils.readFully(inputStream, buffer,
+                    metaData.bands[0].pixelType.pixelSize);
+            return wkbByteDriver[0].readAsDouble(buffer, 0);
         } catch (IOException ex) {
             throw new IllegalStateException("Error while reading " +
                     "ImageInputStream in WKBRasterDataBuffer", ex);
@@ -60,7 +73,9 @@ public class WKBRasterDataBuffer extends DataBuffer {
     public double getElemDouble(int bank, int i) {
         try {
             seek(bank, i);
-            return inputStream.readDouble();
+            IOUtils.readFully(inputStream, buffer,
+                    metaData.bands[bank].pixelType.pixelSize);
+            return wkbByteDriver[bank].readAsDouble(buffer, 0);
         } catch (IOException ex) {
             throw new IllegalStateException("Error while reading " +
                     "ImageInputStream in WKBRasterDataBuffer", ex);
@@ -71,7 +86,9 @@ public class WKBRasterDataBuffer extends DataBuffer {
     public float getElemFloat(int i) {
         try {
             seek(0, i);
-            return inputStream.readFloat();
+            IOUtils.readFully(inputStream, buffer,
+                    metaData.bands[0].pixelType.pixelSize);
+            return (float)wkbByteDriver[0].readAsDouble(buffer, 0);
         } catch (IOException ex) {
             throw new IllegalStateException("Error while reading " +
                     "ImageInputStream in WKBRasterDataBuffer", ex);
@@ -82,7 +99,9 @@ public class WKBRasterDataBuffer extends DataBuffer {
     public float getElemFloat(int bank, int i) {
         try {
             seek(bank, i);
-            return inputStream.readFloat();
+            IOUtils.readFully(inputStream, buffer,
+                    metaData.bands[bank].pixelType.pixelSize);
+            return (float)wkbByteDriver[bank].readAsDouble(buffer, 0);
         } catch (IOException ex) {
             throw new IllegalStateException("Error while reading " +
                     "ImageInputStream in WKBRasterDataBuffer", ex);

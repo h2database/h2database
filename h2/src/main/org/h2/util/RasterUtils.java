@@ -241,6 +241,7 @@ public class RasterUtils {
      * Raster MetaData
      */
     public static class RasterMetaData {
+        public final ByteOrder endian;
         public final int version;
         public final int numBands;
         public final double scaleX;
@@ -265,6 +266,15 @@ public class RasterUtils {
                 double scaleY, double ipX, double ipY, double skewX,
                 double skewY, int srid, int width, int height,
                 RasterBandMetaData[] bands) {
+            this(ByteOrder.BIG_ENDIAN, version, numBands, scaleX, scaleY,
+                    ipX, ipY, skewX, skewY, srid, width, height, bands);
+        }
+
+        public RasterMetaData(ByteOrder byteOrder, int version, int numBands,
+                double scaleX, double scaleY, double ipX, double ipY,
+                double skewX, double skewY, int srid, int width, int height,
+                RasterBandMetaData[] bands) {
+            this.endian = byteOrder;
             this.version = version;
             this.numBands = numBands;
             this.scaleX = scaleX;
@@ -335,173 +345,141 @@ public class RasterUtils {
             return fetchMetaData(raster, true);
         }
 
+        /**
+         *
+         * @param raster InputStream. The caller is responsible for closing
+         *               the stream
+         * @param fetchBandsMetaData If true, each band metadata is read.
+         * @return Metadata of raster provided
+         * @throws IOException Throw an exception in case of wrong metadata
+         * format
+         */
         public static RasterMetaData fetchMetaData(InputStream raster,
-                boolean fetchBandsMetaData) throws IOException {
-            try {
-                byte[] buffer = new byte[RASTER_METADATA_SIZE];
-                AtomicLong cursor = new AtomicLong(0);
-                if (IOUtils.readFully(raster,buffer, buffer.length)
-                        != buffer
-                        .length) {
-                    throw new IOException(
-                            "H2 is unable to " + "read the raster. ");
-                }
-                ByteOrder endian = buffer[(int)cursor.getAndAdd(1)] == 1 ?
-                        ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
-                int version = Utils.readUnsignedShort(buffer,
-                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
-                if (version > LAST_WKB_VERSION) {
-                    throw new IOException("H2 " +
-                            "is does not " +
-                            "support raster version " + version + " raster.");
-                }
-                int numBands = Utils.readUnsignedShort(buffer,
-                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+            boolean fetchBandsMetaData) throws IOException {
+            byte[] buffer = new byte[RASTER_METADATA_SIZE];
+            AtomicLong cursor = new AtomicLong(0);
+            if (IOUtils.readFully(raster,buffer, buffer.length)
+                    != buffer
+                    .length) {
+                throw new IOException(
+                        "H2 is unable to " + "read the raster. ");
+            }
+            ByteOrder endian = buffer[(int)cursor.getAndAdd(1)] == 1 ?
+                    ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
+            int version = Utils.readUnsignedShort(buffer,
+                    (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+            if (version > LAST_WKB_VERSION) {
+                throw new IOException("H2 " +
+                        "is does not " +
+                        "support raster version " + version + " raster.");
+            }
+            int numBands = Utils.readUnsignedShort(buffer,
+                    (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
 
-                // Retrieve scale values
-                double scaleX = Utils.readDouble(buffer,
-                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-                double scaleY = Utils.readDouble(buffer,
-                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+            // Retrieve scale values
+            double scaleX = Utils.readDouble(buffer,
+                    (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+            double scaleY = Utils.readDouble(buffer,
+                    (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
 
-                // Retrieve insertion point values
-                double ipX = Utils.readDouble(buffer,
-                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-                double ipY = Utils.readDouble(buffer,
-                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+            // Retrieve insertion point values
+            double ipX = Utils.readDouble(buffer,
+                    (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+            double ipY = Utils.readDouble(buffer,
+                    (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
 
-                // Retrieve XY offset values
-                double skewX = Utils.readDouble(buffer,
-                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
-                double skewY = Utils.readDouble(buffer,
-                        (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+            // Retrieve XY offset values
+            double skewX = Utils.readDouble(buffer,
+                    (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
+            double skewY = Utils.readDouble(buffer,
+                    (int)cursor.getAndAdd(Double.SIZE / Byte.SIZE), endian);
 
-                // Retrieve the srid value
-                int srid = Utils.readInt(buffer,
-                        (int)cursor.getAndAdd(Integer.SIZE / Byte.SIZE), endian);
+            // Retrieve the srid value
+            int srid = Utils.readInt(buffer,
+                    (int)cursor.getAndAdd(Integer.SIZE / Byte.SIZE), endian);
 
-                // Retrieve width and height values
-                int width = Utils.readUnsignedShort(buffer,
-                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
-                int height = Utils.readUnsignedShort(buffer,
-                        (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+            // Retrieve width and height values
+            int width = Utils.readUnsignedShort(buffer,
+                    (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
+            int height = Utils.readUnsignedShort(buffer,
+                    (int)cursor.getAndAdd(Short.SIZE / Byte.SIZE), endian);
 
-                RasterBandMetaData[] bands = new RasterBandMetaData[numBands];
-                int idBand = 0;
-                if (numBands > 0 && fetchBandsMetaData) {
-                    while (idBand < numBands) {
-                        final long bandOffset = cursor.get();
-                        // Read Flag
+            RasterBandMetaData[] bands = new RasterBandMetaData[numBands];
+            int idBand = 0;
+            if (numBands > 0 && fetchBandsMetaData) {
+                while (idBand < numBands) {
+                    final long bandOffset = cursor.get();
+                    // Read Flag
+                    if (1 != raster.read(buffer, 0, 1)) {
+                        throw new IOException("H2 is " +
+                                "unable to read the " + "raster's band. ");
+                    }
+                    cursor.addAndGet(1);
+                    byte flag = buffer[0];
+                    final PixelType pixelType = PixelType.cast(flag &
+                            RasterBandMetaData.BANDTYPE_PIXTYPE_MASK);
+                    if (pixelType == null) {
+                        throw new IOException("H2 is " +
+                                "unable to read the " + "raster's band " +
+                                "pixel type. ");
+                    }
+                    final boolean hasNoData = (flag &
+                            RasterBandMetaData.BANDTYPE_FLAG_HASNODATA) !=
+                            0;
+                    final boolean offDB = (flag &
+                            RasterBandMetaData.BANDTYPE_FLAG_OFFDB) != 0;
+
+                    // Read NODATA value
+                    final double noData;
+                    cursor.addAndGet(pixelType.pixelSize);
+                    if (pixelType.pixelSize !=
+                            IOUtils.readFully(raster, buffer,
+                                    pixelType.pixelSize)) {
+                        throw new IOException("H2 is " +
+                                "unable to read the " + "raster's nodata." +
+                                " ");
+                    }
+                    cursor.getAndAdd(pixelType.pixelSize);
+                    WKBByteDriver pixelDriver = WKBByteDriver.fetchDriver
+                            (pixelType, endian);
+                    if(pixelDriver == null) {
+                        throw new IOException("H2 is " +
+                                "unable to read the " + "raster's " +
+                                "nodata. ");
+                    }
+                    noData = pixelDriver.readAsDouble(buffer, 0);
+                    if (offDB) {
+                        // Read external band id
                         if (1 != raster.read(buffer, 0, 1)) {
                             throw new IOException("H2 is " +
-                                    "unable to read the " + "raster's band. ");
+                                    "unable to read the " + "raster's " +
+                                    "band. ");
                         }
-                        cursor.addAndGet(1);
-                        byte flag = buffer[0];
-                        final PixelType pixelType = PixelType.cast(flag &
-                                RasterBandMetaData.BANDTYPE_PIXTYPE_MASK);
-                        if (pixelType == null) {
-                            throw new IOException("H2 is " +
-                                    "unable to read the " + "raster's band " +
-                                    "pixel type. ");
-                        }
-                        final boolean hasNoData = (flag &
-                                RasterBandMetaData.BANDTYPE_FLAG_HASNODATA) !=
-                                0;
-                        final boolean offDB = (flag &
-                                RasterBandMetaData.BANDTYPE_FLAG_OFFDB) != 0;
-
-                        // Read NODATA value
-                        final double noData;
-                        cursor.addAndGet(pixelType.pixelSize);
-                        if (pixelType.pixelSize !=
-                                IOUtils.readFully(raster, buffer,
-                                        pixelType.pixelSize)) {
-                            throw new IOException("H2 is " +
-                                    "unable to read the " + "raster's nodata." +
-                                    " ");
-                        }
-                        cursor.getAndAdd(pixelType.pixelSize);
-                        switch (pixelType) {
-                            case PT_1BB:
-                                noData = Utils.readUnsignedByte(buffer, 0) &
-                                        0x01;
-                                break;
-                            case PT_2BUI:
-                                noData = Utils.readUnsignedByte(buffer, 0) &
-                                        0x03;
-                                break;
-                            case PT_4BUI:
-                                noData = Utils.readUnsignedByte(buffer, 0) &
-                                        0x0F;
-                                break;
-                            case PT_8BSI:
-                                noData = buffer[0];
-                                break;
-                            case PT_8BUI:
-                                noData = Utils.readUnsignedByte(buffer, 0);
-                                break;
-                            case PT_16BSI:
-                                noData = Utils.readShort(buffer, 0, endian);
-                                break;
-                            case PT_16BUI:
-                                noData = Utils.readUnsignedShort(buffer, 0,
-                                        endian);
-                                break;
-                            case PT_32BSI:
-                                noData = Utils.readInt(buffer, 0, endian);
-                                break;
-                            case PT_32BUI:
-                                noData = Utils.readUnsignedInt32(buffer, 0,
-                                        endian);
-                                break;
-                            case PT_32BF:
-                                noData = Float.intBitsToFloat(
-                                        Utils.readInt(buffer, 0, endian));
-                                break;
-                            case PT_64BF:
-                                noData = Utils.readDouble(buffer, 0, endian);
-                                break;
-                            default:
-                                throw new IOException("H2 is " +
-                                        "unable to read the " + "raster's " +
-                                        "nodata. ");
-                        }
-                        if (offDB) {
-                            // Read external band id
-                            if (1 != raster.read(buffer, 0, 1)) {
-                                throw new IOException("H2 is " +
-                                        "unable to read the " + "raster's " +
-                                        "band. ");
-                            }
-                            int bandId = buffer[0];
-                            // read path
-                            Scanner scanner = new Scanner(raster);
-                            String path = scanner.next();
-                            cursor.addAndGet(1 + path.getBytes().length);
-                            RasterBandMetaData rasterBandMetaData =
-                                    new RasterBandMetaData(noData, pixelType,
-                                            hasNoData, bandId, path,
-                                            bandOffset);
-                            bands[idBand++] = rasterBandMetaData;
-                        } else {
-                            RasterBandMetaData rasterBandMetaData =
-                                    new RasterBandMetaData(noData, pixelType,
-                                            hasNoData, bandOffset);
-                            bands[idBand++] = rasterBandMetaData;
-                            // Skip remaining pixel until next band
-                            long skipLength =
-                                    width * height * pixelType.pixelSize;
-                            cursor.addAndGet(skipLength);
-                            IOUtils.skipFully(raster, skipLength);
-                        }
+                        int bandId = buffer[0];
+                        // read path
+                        Scanner scanner = new Scanner(raster);
+                        String path = scanner.next();
+                        cursor.addAndGet(1 + path.getBytes().length);
+                        RasterBandMetaData rasterBandMetaData =
+                                new RasterBandMetaData(noData, pixelType,
+                                        hasNoData, bandId, path,
+                                        bandOffset);
+                        bands[idBand++] = rasterBandMetaData;
+                    } else {
+                        RasterBandMetaData rasterBandMetaData =
+                                new RasterBandMetaData(noData, pixelType,
+                                        hasNoData, bandOffset);
+                        bands[idBand++] = rasterBandMetaData;
+                        // Skip remaining pixel until next band
+                        long skipLength =
+                                width * height * pixelType.pixelSize;
+                        cursor.addAndGet(skipLength - 1);
+                        IOUtils.skipFully(raster, skipLength);
                     }
                 }
-                return new RasterMetaData(version, numBands, scaleX, scaleY,
-                        ipX, ipY, skewX, skewY, srid, width, height, bands);
-            } finally {
-                raster.close();
             }
+            return new RasterMetaData(endian, version, numBands, scaleX, scaleY,
+                    ipX, ipY, skewX, skewY, srid, width, height, bands);
         }
 
         public void writeRasterHeader(OutputStream stream, ByteOrder endian)
@@ -639,6 +617,171 @@ public class RasterUtils {
             env.expandToInclude(getPixelCoordinate(width, height));
             env.expandToInclude(getPixelCoordinate(0, height));
             return env;
+        }
+    }
+
+    /**
+     * Define merged API for byte
+     */
+    public static abstract class WKBByteDriver {
+        protected PixelType pixelType;
+        protected ByteOrder endian;
+
+        private WKBByteDriver(PixelType pixelType, ByteOrder endian) {
+            this.pixelType = pixelType;
+            this.endian = endian;
+        }
+
+        public abstract double readAsDouble(byte[] buffer, int pos);
+
+        public static WKBByteDriver fetchDriver(PixelType pixelType, ByteOrder
+                endian) {
+            switch (pixelType) {
+                case PT_1BB:
+                    return new Driver1BB(pixelType, endian);
+                case PT_2BUI:
+                    return new Driver2BUI(pixelType, endian);
+                case PT_4BUI:
+                    return new Driver4BUI(pixelType, endian);
+                case PT_8BSI:
+                    return new Driver8BSI(pixelType, endian);
+                case PT_8BUI:
+                    return new Driver8BUI(pixelType, endian);
+                case PT_16BSI:
+                    return new Driver16BSI(pixelType, endian);
+                case PT_16BUI:
+                    return new Driver16BUI(pixelType, endian);
+                case PT_32BSI:
+                    return new Driver32BSI(pixelType, endian);
+                case PT_32BUI:
+                    return new Driver32BUI(pixelType, endian);
+                case PT_32BF:
+                    return new Driver32BF(pixelType, endian);
+                case PT_64BF:
+                    return new Driver64BF(pixelType, endian);
+                default:
+                    return null;
+            }
+        }
+    }
+
+    private static class Driver1BB  extends WKBByteDriver {
+        public Driver1BB(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readUnsignedByte(buffer, pos) &
+                    0x01;
+        }
+    }
+
+    private static class Driver2BUI  extends WKBByteDriver {
+        public Driver2BUI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readUnsignedByte(buffer, pos) &
+                    0x03;
+        }
+    }
+
+    private static class Driver4BUI  extends WKBByteDriver {
+        public Driver4BUI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readUnsignedByte(buffer, pos) &
+                    0x0F;
+        }
+    }
+    private static class Driver8BSI  extends WKBByteDriver {
+        public Driver8BSI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return buffer[pos];
+        }
+    }
+    private static class Driver8BUI  extends WKBByteDriver {
+        public Driver8BUI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readUnsignedByte(buffer, pos);
+        }
+    }
+    private static class Driver16BSI  extends WKBByteDriver {
+        public Driver16BSI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readShort(buffer, pos, endian);
+        }
+    }
+    private static class Driver16BUI  extends WKBByteDriver {
+        public Driver16BUI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readUnsignedShort(buffer, pos, endian);
+        }
+    }
+
+    private static class Driver32BSI  extends WKBByteDriver {
+        public Driver32BSI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readInt(buffer, pos, endian);
+        }
+    }
+
+    private static class Driver32BUI  extends WKBByteDriver {
+        public Driver32BUI(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readUnsignedInt32(buffer, pos, endian);
+        }
+    }
+
+    private static class Driver32BF  extends WKBByteDriver {
+        public Driver32BF(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Float.intBitsToFloat(Utils.readInt(buffer, pos, endian));
+        }
+    }
+
+    private static class Driver64BF  extends WKBByteDriver {
+        public Driver64BF(PixelType pixelType, ByteOrder endian) {
+            super(pixelType, endian);
+        }
+
+        @Override
+        public double readAsDouble(byte[] buffer, int pos) {
+            return Utils.readDouble(buffer, pos, endian);
         }
     }
 }

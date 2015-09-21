@@ -22,8 +22,10 @@ import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
 import org.h2.value.*;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
 
 
@@ -484,22 +486,39 @@ public class TestGeoRaster extends TestBase {
                 "ST_RasterFromImage(File_Read('"+UNIT_TEST_IMAGE+"'), 47" +
                 ".6443,  -2.7766, 1, 1,0, 0, 4326))");
 
+        // Query WKB Raster binary
         ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
                 "TEST");
         assertTrue(rs.next());
+        // Convert SQL Blob object into ImageInputStream
         Blob blob = rs.getBlob(1);
         ImageInputStream inputStream = ImageIO.createImageInputStream(blob);
         assertTrue(inputStream != null);
+        // Fetch WKB Raster Image reader
         Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
         assertTrue(readers.hasNext());
         ImageReader wkbReader = readers.next();
+        // Feed WKB Raster Reader with blob data
         wkbReader.setInput(inputStream);
+        // Retrieve data as a BufferedImage
         BufferedImage image = wkbReader.read(wkbReader.getMinIndex());
         // Check Image
         assertEquals(288, image.getHeight());
         assertEquals(530, image.getWidth());
-        // Write to disk
 
+        // Write to disk as BMP file
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersBySuffix("png");
+        assertTrue(writers.hasNext());
+        ImageWriter bmpWriter = writers.next();
+        File tmpFile = new File(getTestDir
+                ("georaster"), "testConv.png");
+        if(!tmpFile.getParentFile().exists()) {
+            assertTrue(tmpFile.getParentFile().mkdirs());
+        }
+        RandomAccessFile fileOutputStream = new RandomAccessFile(tmpFile,
+                "rw");
+        bmpWriter.setOutput(ImageIO.createImageOutputStream(fileOutputStream));
+        bmpWriter.write(new IIOImage(image, null, null));
         rs.close();
         conn.close();
     }

@@ -117,8 +117,8 @@ public class WKBRasterReader extends ImageReader {
         for(int i=0; i < meta.numBands; i++) {
             bankIndices[i] = i;
             // The offset is quite small. This is only the
-            bandOffset[i] = (int)(meta.bands[i].offsetPixel - meta.bands[i]
-                    .offset);
+            bandOffset[i] = 0; // ImageIO does not support well offset when
+            // it duplicate databuffer
         }
         return new BandedSampleModel(commonDataType,
                 meta.width, meta.height, meta.width, bankIndices, bandOffset);

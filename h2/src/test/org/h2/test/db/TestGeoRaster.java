@@ -26,6 +26,7 @@ import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
+import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 
 
@@ -503,13 +504,23 @@ public class TestGeoRaster extends TestBase {
         // Retrieve data as a BufferedImage
         BufferedImage image = wkbReader.read(wkbReader.getMinIndex());
         // Check Image
+        FileImageInputStream fis = new FileImageInputStream(new File
+                (UNIT_TEST_IMAGE));
+        ImageReader pngReader = ImageIO.getImageReaders(fis).next();
+        pngReader.setInput(fis);
+        BufferedImage sourceImage = pngReader.read(0);
         assertEquals(288, image.getHeight());
         assertEquals(530, image.getWidth());
-
+        int pixelsSource[] = sourceImage.getData()
+                .getPixels(0, 0, image.getWidth(), image.getHeight(),(int[])
+                        null);
+        int pixelsDest[] = image.getData().getPixels(0, 0, image.getWidth(),
+                image.getHeight(),(int[])null);
+        assertEquals(pixelsSource, pixelsDest);
         // Write to disk as BMP file
         Iterator<ImageWriter> writers = ImageIO.getImageWritersBySuffix("png");
         assertTrue(writers.hasNext());
-        ImageWriter bmpWriter = writers.next();
+        ImageWriter pngWriter = writers.next();
         File tmpFile = new File(getTestDir
                 ("georaster"), "testConv.png");
         if(!tmpFile.getParentFile().exists()) {
@@ -517,8 +528,9 @@ public class TestGeoRaster extends TestBase {
         }
         RandomAccessFile fileOutputStream = new RandomAccessFile(tmpFile,
                 "rw");
-        bmpWriter.setOutput(ImageIO.createImageOutputStream(fileOutputStream));
-        bmpWriter.write(new IIOImage(image, null, null));
+        pngWriter.setOutput(ImageIO.createImageOutputStream(fileOutputStream));
+        pngWriter.write(new IIOImage(image, null, null));
+        fileOutputStream.close();
         rs.close();
         conn.close();
     }

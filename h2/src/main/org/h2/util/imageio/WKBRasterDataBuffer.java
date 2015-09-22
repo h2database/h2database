@@ -38,8 +38,7 @@ public class WKBRasterDataBuffer extends DataBuffer {
     }
 
     private void seek(int bank, int i) throws IOException {
-        long position = metaData.bands[bank].offset + i * metaData
-                .bands[bank].pixelType.pixelSize;
+        long position = metaData.getStreamOffset(bank, i);
         inputStream.seek(position);
     }
 
@@ -113,4 +112,8 @@ public class WKBRasterDataBuffer extends DataBuffer {
         throw new UnsupportedOperationException("Read only data buffer");
     }
 
+    @Override
+    public int getSize() {
+        return super.getSize();
+    }
 }

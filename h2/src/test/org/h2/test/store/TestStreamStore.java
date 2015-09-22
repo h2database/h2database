@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.h2.mvstore.DataUtils;
@@ -41,6 +42,7 @@ public class TestStreamStore extends TestBase {
 
     @Override
     public void test() throws IOException {
+        testMaxBlockKey();
         testIOException();
         testSaveCount();
         testExceptionDuringStore();
@@ -52,6 +54,23 @@ public class TestStreamStore extends TestBase {
         testWithExistingData();
         testWithFullMap();
         testLoop();
+    }
+
+    private void testMaxBlockKey() throws IOException {
+        TreeMap<Long, byte[]> map = new TreeMap<Long, byte[]>();
+        StreamStore s = new StreamStore(map);
+        s.setMaxBlockSize(128);
+        s.setMinBlockSize(64);
+        map.clear();
+        for (int len = 1; len < 1024 * 1024; len *= 2) {
+            byte[] id = s.put(new ByteArrayInputStream(new byte[len]));
+            long max = s.getMaxBlockKey(id);
+            if (max == -1) {
+                assertTrue(map.isEmpty());
+            } else {
+                assertEquals(map.lastKey(), max);
+            }
+        }
     }
 
     private void testIOException() throws IOException {

@@ -36,15 +36,11 @@ public class TestNestedJoins extends TestBase {
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
         // test.config.traceTest = true;
-        test.config.nestedJoins = true;
         test.test();
     }
 
     @Override
     public void test() throws Exception {
-        if (!config.nestedJoins) {
-            return;
-        }
         deleteDb("nestedJoins");
         // testCases2();
         testCases();

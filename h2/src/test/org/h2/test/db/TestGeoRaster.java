@@ -8,6 +8,9 @@ package org.h2.test.db;
 import com.vividsolutions.jts.geom.Envelope;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.ByteOrder;
 import java.sql.*;
@@ -20,6 +23,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.ImageInputStreamWrapper;
 import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
+import org.h2.util.WKBRasterWrapper;
 import org.h2.value.*;
 
 import javax.imageio.IIOImage;
@@ -38,8 +42,8 @@ import javax.imageio.stream.ImageInputStream;
  * @author Nicolas Fortin
  */
 public class TestGeoRaster extends TestBase {
-    private static String UNIT_TEST_IMAGE = TestGeoRaster.class.getResource("h2-logo.png")
-    .getFile();
+    private static String UNIT_TEST_IMAGE = new File(TestGeoRaster.class
+    .getResource("h2-logo.png").getFile()).getAbsolutePath();
 
     public static void main(String... a) throws Exception {
         TestBase test = TestBase.createCaller().init();
@@ -68,6 +72,7 @@ public class TestGeoRaster extends TestBase {
         testPngLoading();
         testPngLoadingSQL();
         testImageIOWKBTranslation();
+        testWKBTranslationStream();
     }
 
 
@@ -470,10 +475,10 @@ public class TestGeoRaster extends TestBase {
         assertEquals(0, meta.skewX);
         assertEquals(0, meta.skewY);
         assertEquals(4326, meta.srid);
-        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[0].pixelType);
-        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[1].pixelType);
-        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[2].pixelType);
-        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[3].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[0].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[1].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[2].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[3].pixelType);
         rs.close();
         conn.close();
     }
@@ -503,7 +508,7 @@ public class TestGeoRaster extends TestBase {
         wkbReader.setInput(inputStream);
         // Retrieve data as a BufferedImage
         BufferedImage image = wkbReader.read(wkbReader.getMinIndex());
-        // Check Image
+        // Check Image by comparing all pixels
         FileImageInputStream fis = new FileImageInputStream(new File
                 (UNIT_TEST_IMAGE));
         ImageReader pngReader = ImageIO.getImageReaders(fis).next();
@@ -535,4 +540,26 @@ public class TestGeoRaster extends TestBase {
         conn.close();
     }
 
+    public void testWKBTranslationStream() throws SQLException, IOException {
+        // Create an image from scratch
+        final int width = 20, height = 20;
+        BufferedImage image =
+                new BufferedImage(width, height, BufferedImage.TYPE_USHORT_555_RGB);
+        WritableRaster raster = image.getRaster();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int red = x < height ? 255 : 0;
+                int green = y < image.getHeight() ? 255 : 0;
+                int blue = x * y < width * height ? 255 : 0;
+                raster.setPixel(x, y, new int[]{red, green, blue});
+            }
+        }
+        // Convert into WKB data
+        WKBRasterWrapper wrapper = WKBRasterWrapper.create(raster, 1, 1, 0,
+                0, 0, 0, 27572, 0);
+        InputStream wkbStream = wrapper.toWKBRasterStream();
+        Value rasterValue = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
+                .readBytesAndClose(wkbStream, -1));
+        RasterUtils.asImage(rasterValue, "png", null);
+    }
 }

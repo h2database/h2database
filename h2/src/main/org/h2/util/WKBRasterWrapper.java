@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.util;
 
 import java.awt.image.Raster;
@@ -14,10 +19,51 @@ public class WKBRasterWrapper {
     private final Raster raster;
     private final RasterUtils.RasterMetaData rasterMetaData;
 
-    public WKBRasterWrapper(Raster raster,
+    private WKBRasterWrapper(Raster raster,
             RasterUtils.RasterMetaData rasterMetaData) {
         this.raster = raster;
         this.rasterMetaData = rasterMetaData;
+    }
+
+    /**
+     * Wrap a Raster in order to make a WKBRaster of it.
+     * @param raster Raster
+     * @param scaleX Pixel x scale in current projection unit
+     * @param scaleY Pixel y scale in current projection unit
+     * @param ipX Insertion point X
+     * @param ipY Insertion point Y
+     * @param skewX Rotation X
+     * @param skewY Rotation Y
+     * @param srid Srid value
+     * @param noDataValue NoData value for all bands
+     * @return WKBRasterWrapper instance
+     */
+    public static WKBRasterWrapper create(Raster raster, double scaleX,
+            double scaleY, double ipX, double ipY, double skewX, double skewY,
+            int srid, double noDataValue) throws IOException {
+        RasterUtils.RasterBandMetaData[] bands = new RasterUtils.RasterBandMetaData[raster
+                .getNumBands()];
+        for(int idBand = 0; idBand < bands.length; idBand++) {
+            int sampleSize = raster.getSampleModel().getSampleSize(idBand);
+            RasterUtils.PixelType pixelType;
+            if (sampleSize <= Byte.SIZE) {
+                pixelType = RasterUtils.PixelType.PT_8BSI;
+            } else if (sampleSize <= Integer.SIZE) {
+                pixelType = RasterUtils.PixelType.PT_32BSI;
+            } else if(sampleSize <= Long.SIZE) {
+                pixelType = RasterUtils.PixelType.PT_64BF;
+            } else {
+                throw new IOException("Unsupported band size " +
+                        ":"+sampleSize);
+            }
+            bands[idBand] = new RasterUtils.RasterBandMetaData(noDataValue, pixelType, true, 0);
+        }
+        RasterUtils.RasterMetaData rasterMetaData =
+                new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
+                        bands.length, scaleX, scaleY, ipX, ipY, skewX,
+                        skewY, srid, raster.getWidth(), raster.getHeight(),
+                        bands);
+        return new WKBRasterWrapper(raster, rasterMetaData);
     }
 
     public InputStream toWKBRasterStream() {

@@ -23,6 +23,7 @@ import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.awt.image.SampleModel;
+import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,9 +54,16 @@ public class WKBRasterReader extends ImageReader {
     }
 
     private ColorModel getColorModel() throws IOException {
-        return new ComponentColorModel(ColorSpace
-                .getInstance(ColorSpace.CS_sRGB), true, false,
-                Transparency.OPAQUE,getCommonDataType(getMetaData()));
+        int colorSpaceIndex;
+        if(getMetaData().numBands >= 3) {
+            colorSpaceIndex = ColorSpace.CS_sRGB;
+        } else {
+            colorSpaceIndex = ColorSpace.CS_GRAY;
+        }
+        return new ComponentColorModel(
+                ColorSpace.getInstance( colorSpaceIndex),
+                getMetaData().numBands == 4, false, Transparency.OPAQUE,
+                getCommonDataType(getMetaData()));
     }
 
     @Override

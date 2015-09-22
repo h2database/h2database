@@ -5,21 +5,33 @@
  */
 package org.h2.util;
 
-import com.vividsolutions.jts.geom.*;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.PrecisionModel;
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
+import org.h2.util.imageio.WKBRasterReader;
+import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
+import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
-import java.awt.image.DataBuffer;
+import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -47,15 +59,77 @@ public class RasterUtils {
      * @param suffix Image suffix ex:png
      * @return Image stream
      */
-//    public static Value asImage(Value value, String suffix) {
-//        Iterator<ImageWriter> itWriter = ImageIO.getImageWritersBySuffix
-//                (suffix);
-//        if(itWriter != null && itWriter.hasNext()) {
-//            ImageWriter imageWriter = itWriter.next();
-//            IIOImage image;
-//            imageWriter.write(image);
-//        }
-//    }
+    public static Value asImage(Value value, String suffix,
+            Session session) throws
+            IOException {
+        Iterator<ImageWriter> itWriter = ImageIO.getImageWritersBySuffix
+                (suffix);
+        if(itWriter != null && itWriter.hasNext()) {
+            ImageWriter imageWriter = itWriter.next();
+            ImageReader wkbReader = new WKBRasterReader(new WKBRasterReaderSpi());
+            wkbReader.setInput(new ImageInputStreamWrapper(
+                    new ImageInputStreamWrapper.ValueStreamProvider(value)));
+            // Create pipe for streaming data between two thread
+            final PipedInputStream stream = new PipedInputStream();
+            final Task task = new TransferStreamTask(session, stream);
+            TaskPipedOutputStream outputStream = new TaskPipedOutputStream
+                    (task);
+            task.execute();
+            imageWriter.setOutput(new ImageOutputStreamWrapper(outputStream));
+            if(imageWriter.canWriteRasters()) {
+                imageWriter.write(new IIOImage(wkbReader.readRaster(wkbReader
+                        .getMinIndex(), null), new ArrayList<BufferedImage>()
+                        , null));
+            } else {
+                imageWriter.write(new IIOImage(wkbReader.read(
+                        wkbReader.getMinIndex()), new
+                        ArrayList<BufferedImage>(), null));
+            }
+            return (Value)task.get();
+        }
+        return null;
+    }
+
+    private static class TaskPipedOutputStream extends PipedOutputStream {
+        private Task task;
+
+        public TaskPipedOutputStream(Task task) {
+            this.task = task;
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
+            try {
+                task.get();
+            } catch (Exception e) {
+                throw DbException.convertToIOException(e);
+            }
+        }
+    }
+
+    private static class TransferStreamTask extends Task {
+        private Session session;
+        private InputStream inputStream;
+
+        public TransferStreamTask(Session session, InputStream inputStream) {
+            this.session = session;
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public void call() throws Exception {
+            if(session != null) {
+                Value v = session.getDataHandler().getLobStorage()
+                        .createRaster(inputStream, -1);
+                session.addTemporaryLob(v);
+                result = v;
+            } else {
+                result = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
+                        .readBytesAndClose(inputStream, -1));
+            }
+        }
+    }
 
     /**
      * Convert an Image stream into a Raster
@@ -71,67 +145,39 @@ public class RasterUtils {
      * @return The raster value
      * @throws IOException
      */
-    public static Value getFromImage(Value value,double upperLeftX,
-            double upperLeftY,double scaleX,double scaleY,double skewX,
-            double skewY,int srid, DataHandler dataHandler) throws IOException {
-        ImageInputStream imageInputStream = new ImageInputStreamWrapper(new
-                ImageInputStreamWrapper.ValueStreamProvider(value));
+    public static Value getFromImage(Value value, double upperLeftX,
+            double upperLeftY, double scaleX, double scaleY, double skewX,
+            double skewY, int srid, DataHandler dataHandler)
+            throws IOException {
+        ImageInputStream imageInputStream = new ImageInputStreamWrapper(
+                new ImageInputStreamWrapper.ValueStreamProvider(value));
         // Fetch ImageRead using ImageIO API
-        Iterator<ImageReader>
-                itReader = ImageIO.getImageReaders(imageInputStream);
-        if(itReader != null && itReader.hasNext()) {
+        Iterator<ImageReader> itReader =
+                ImageIO.getImageReaders(imageInputStream);
+        if (itReader != null && itReader.hasNext()) {
             ImageReader read = itReader.next();
             imageInputStream.seek(0);
             read.setInput(imageInputStream);
             Raster raster;
-            if(read.canReadRaster()) {
+            if (read.canReadRaster()) {
                 raster = read.readRaster(read.getMinIndex(), null);
             } else {
                 // Not memory efficient as creating BufferedImage will(may?)
                 // generate a copy of image data in memory
                 raster = read.read(read.getMinIndex()).getRaster();
             }
-            RasterBandMetaData[] bands = new RasterBandMetaData[raster
-                    .getNumBands()];
-            PixelType pixelType;
-            switch (raster.getDataBuffer().getDataType()) {
-                case DataBuffer.TYPE_BYTE:
-                    pixelType = PixelType.PT_8BUI;
-                    break;
-                case DataBuffer.TYPE_SHORT:
-                    pixelType = PixelType.PT_16BSI;
-                    break;
-                case DataBuffer.TYPE_USHORT:
-                    pixelType = PixelType.PT_16BUI;
-                    break;
-                case DataBuffer.TYPE_INT:
-                    pixelType = PixelType.PT_32BSI;
-                    break;
-                case DataBuffer.TYPE_FLOAT:
-                    pixelType = PixelType.PT_32BF;
-                    break;
-                case DataBuffer.TYPE_DOUBLE:
-                    pixelType = PixelType.PT_64BF;
-                    break;
-                default:
-                    pixelType = PixelType.PT_32BSI;
-            }
-            double noDataValue = Double.NaN;
-            for(int idBand = 0; idBand < bands.length; idBand++) {
-                bands[idBand] = new RasterBandMetaData(noDataValue, pixelType, true, 0);
-            }
-            RasterMetaData rasterMetaData = new RasterMetaData(LAST_WKB_VERSION, raster.getNumBands(), scaleX, scaleY,
-                    upperLeftX, upperLeftY, skewX, skewY, srid, raster
-                    .getWidth(), raster.getHeight(), bands);
-            if(dataHandler != null) {
-                return dataHandler.getLobStorage().createRaster(
-                        new WKBRasterWrapper(raster, rasterMetaData)
-                                .toWKBRasterStream(), -1);
+
+            if (dataHandler != null) {
+                return dataHandler.getLobStorage().createRaster(WKBRasterWrapper
+                                .create(raster, scaleX, scaleY, upperLeftX,
+                                        upperLeftY, skewX, skewY, srid,
+                                        Double.NaN).toWKBRasterStream(), -1);
             } else {
-                return ValueLobDb.createSmallLob(Value.RASTER, IOUtils
-                        .readBytesAndClose(
-                        new WKBRasterWrapper(raster, rasterMetaData)
-                        .toWKBRasterStream(), -1));
+                return ValueLobDb.createSmallLob(Value.RASTER,
+                        IOUtils.readBytesAndClose(WKBRasterWrapper
+                                .create(raster, scaleX, scaleY, upperLeftX,
+                                        upperLeftY, skewX, skewY, srid,
+                                        Double.NaN).toWKBRasterStream(), -1));
             }
         }
         return null;
@@ -254,6 +300,13 @@ public class RasterUtils {
         public final int width;
         public final int height;
         public final RasterBandMetaData[] bands;
+
+        public RasterMetaData(double scaleX,
+                double scaleY, double ipX, double ipY, double skewX,
+                double skewY, int srid) {
+            this(LAST_WKB_VERSION, 0, scaleX, scaleY, ipX, ipY, skewX, skewY,
+                    srid, 0, 0, new RasterBandMetaData[0]);
+        }
 
         public RasterMetaData(int version, int numBands, double scaleX,
                 double scaleY, double ipX, double ipY, double skewX,

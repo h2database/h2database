@@ -668,6 +668,18 @@ public class DataType {
                 }
                 return ValueGeometry.getFromGeometry(x);
             }
+            case Value.RASTER: {
+                if (session == null) {
+                    byte[] buff = rs.getBytes(columnIndex);
+                    return buff == null ? ValueNull.INSTANCE :
+                            ValueLobDb.createSmallLob(Value.RASTER, buff);
+                }
+                InputStream in = rs.getBinaryStream(columnIndex);
+                v = (in == null) ? ValueNull.INSTANCE :
+                        session.getDataHandler().getLobStorage()
+                                .createRaster(in, -1);
+                break;
+            }
             default:
                 throw DbException.throwInternalError("type="+type);
             }

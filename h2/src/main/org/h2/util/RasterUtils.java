@@ -10,9 +10,12 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathDisk;
 import org.h2.util.imageio.WKBRasterReader;
 import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
@@ -23,8 +26,11 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,20 +76,33 @@ public class RasterUtils {
             wkbReader.setInput(new ImageInputStreamWrapper(
                     new ImageInputStreamWrapper.ValueStreamProvider(value)));
             // Create pipe for streaming data between two thread
-            final PipedInputStream stream = new PipedInputStream();
-            final Task task = new TransferStreamTask(session, stream);
+            final PipedInputStream in = new PipedInputStream();
+            final Task task = new TransferStreamTask(session, in);
             TaskPipedOutputStream outputStream = new TaskPipedOutputStream
-                    (task);
-            task.execute();
-            imageWriter.setOutput(new ImageOutputStreamWrapper(outputStream));
-            if(imageWriter.canWriteRasters()) {
-                imageWriter.write(new IIOImage(wkbReader.readRaster(wkbReader
-                        .getMinIndex(), null), new ArrayList<BufferedImage>()
-                        , null));
-            } else {
-                imageWriter.write(new IIOImage(wkbReader.read(
-                        wkbReader.getMinIndex()), new
-                        ArrayList<BufferedImage>(), null));
+                    (in, task);
+            // Init ImageIO cache directory it does not exists
+            File cacheDir = ImageIO.getCacheDirectory();
+            if(cacheDir == null || !cacheDir.exists()) {
+                FilePath cacheFile = FilePathDisk.get("imageio").createTempFile
+                        ("imageio", true, true);
+                ImageIO.setCacheDirectory(new File(cacheFile.getParent().toString()));
+            }
+            ImageOutputStream imageOutputStream = ImageIO
+                    .createImageOutputStream(outputStream);
+            try {
+                imageWriter
+                        .setOutput(imageOutputStream);
+                task.execute();
+                if (imageWriter.canWriteRasters()) {
+                    imageWriter.write(new IIOImage(
+                            wkbReader.readRaster(wkbReader.getMinIndex(), null),
+                            null, null));
+                } else {
+                    imageWriter.write(new IIOImage(wkbReader.read(wkbReader.getMinIndex()),
+                            null, null));
+                }
+            } finally {
+                outputStream.close();
             }
             return (Value)task.get();
         }
@@ -93,7 +112,9 @@ public class RasterUtils {
     private static class TaskPipedOutputStream extends PipedOutputStream {
         private Task task;
 
-        public TaskPipedOutputStream(Task task) {
+        public TaskPipedOutputStream(PipedInputStream snk, Task task)
+                throws IOException {
+            super(snk);
             this.task = task;
         }
 
@@ -119,14 +140,18 @@ public class RasterUtils {
 
         @Override
         public void call() throws Exception {
-            if(session != null) {
-                Value v = session.getDataHandler().getLobStorage()
-                        .createRaster(inputStream, -1);
-                session.addTemporaryLob(v);
-                result = v;
-            } else {
-                result = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
-                        .readBytesAndClose(inputStream, -1));
+            try {
+                if(session != null) {
+                        Value v = session.getDataHandler().getLobStorage()
+                                .createBlob(inputStream, -1);
+                        session.addTemporaryLob(v);
+                        result = v;
+                } else {
+                    result = ValueLobDb.createSmallLob(Value.BLOB, IOUtils
+                            .readBytesAndClose(inputStream, -1));
+                }
+            } finally {
+                inputStream.close();
             }
         }
     }

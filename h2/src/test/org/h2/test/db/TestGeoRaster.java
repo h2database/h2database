@@ -560,6 +560,25 @@ public class TestGeoRaster extends TestBase {
         InputStream wkbStream = wrapper.toWKBRasterStream();
         Value rasterValue = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
                 .readBytesAndClose(wkbStream, -1));
-        RasterUtils.asImage(rasterValue, "png", null);
+        Value valueBlobPNG = RasterUtils.asImage(rasterValue, "png", null);
+        // Check png
+        ImageInputStreamWrapper imageInput = new ImageInputStreamWrapper
+                (new ImageInputStreamWrapper.ValueStreamProvider(valueBlobPNG));
+        ImageReader pngReader = ImageIO.getImageReaders(imageInput).next();
+        imageInput.seek(0);
+        pngReader.setInput(imageInput);
+        BufferedImage sourceImage = pngReader.read(0);
+        assertEquals(20, sourceImage.getHeight());
+        assertEquals(20, sourceImage.getWidth());
+        // write to temp dir
+        File tmpFile = new File(getTestDir
+                ("georaster"), "testConvFunction.png");
+        if(!tmpFile.getParentFile().exists()) {
+            assertTrue(tmpFile.getParentFile().mkdirs());
+        }
+        FileOutputStream outputStream = new FileOutputStream(tmpFile);
+        IOUtils.copyAndClose(valueBlobPNG.getInputStream(), outputStream);
     }
+
+
 }

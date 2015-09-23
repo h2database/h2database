@@ -127,7 +127,8 @@ public class Function extends Expression implements FunctionCall {
     /**
      * Raster functions
      */
-    public static final int ST_METADATA = 350, ST_RASTERFROMIMAGE =351;
+    public static final int ST_METADATA = 350, ST_RASTERFROMIMAGE = 351,
+            ST_IMAGEFROMRASTER = 352;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -474,6 +475,7 @@ public class Function extends Expression implements FunctionCall {
         // Raster function
         addFunction("ST_METADATA", ST_METADATA, 1, Value.ARRAY);
         addFunction("ST_RASTERFROMIMAGE", ST_RASTERFROMIMAGE, 8, Value.RASTER);
+        addFunction("ST_IMAGEFROMRASTER", ST_IMAGEFROMRASTER, 2, Value.BLOB);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -1657,6 +1659,16 @@ public class Function extends Expression implements FunctionCall {
                         session.getDataHandler());
             } catch (IOException ex) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
+            break;
+        }
+        case ST_IMAGEFROMRASTER: {
+            try {
+                result = RasterUtils.asImage(v0,
+                        v1.getString(), session);
+            } catch (IOException ex) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex,
+                        getSQL());
             }
             break;
         }

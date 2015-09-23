@@ -18,6 +18,8 @@ import java.util.Iterator;
 import java.util.Random;
 
 import com.vividsolutions.jts.geom.Geometry;
+import org.h2.store.fs.FilePath;
+import org.h2.store.fs.FilePathDisk;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.ImageInputStreamWrapper;
@@ -32,6 +34,7 @@ import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
+import javax.imageio.stream.ImageOutputStream;
 
 
 /**
@@ -73,6 +76,7 @@ public class TestGeoRaster extends TestBase {
         testPngLoadingSQL();
         testImageIOWKBTranslation();
         testWKBTranslationStream();
+        testImageFromRaster();
     }
 
 
@@ -540,26 +544,34 @@ public class TestGeoRaster extends TestBase {
         conn.close();
     }
 
-    public void testWKBTranslationStream() throws SQLException, IOException {
-        // Create an image from scratch
-        final int width = 20, height = 20;
-        BufferedImage image =
-                new BufferedImage(width, height, BufferedImage.TYPE_USHORT_555_RGB);
+    private static BufferedImage getTestImage(final int width,final int
+            height) {
+        BufferedImage image = new BufferedImage(width, height, BufferedImage
+                .TYPE_INT_RGB);
         WritableRaster raster = image.getRaster();
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                int red = x < height ? 255 : 0;
-                int green = y < image.getHeight() ? 255 : 0;
-                int blue = x * y < width * height ? 255 : 0;
+                int red = x < width / 2 ? 255 : 0;
+                int green = y < height / 2 ? 255 : 0;
+                int blue = x + y < (width + height) / 2 ? 255 : 0;
                 raster.setPixel(x, y, new int[]{red, green, blue});
             }
         }
+        return image;
+    }
+
+    public void testWKBTranslationStream() throws SQLException, IOException {
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        BufferedImage image = getTestImage(width, height);
+        WritableRaster raster = image.getRaster();
         // Convert into WKB data
         WKBRasterWrapper wrapper = WKBRasterWrapper.create(raster, 1, 1, 0,
                 0, 0, 0, 27572, 0);
         InputStream wkbStream = wrapper.toWKBRasterStream();
         Value rasterValue = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
                 .readBytesAndClose(wkbStream, -1));
+        // Convert WKB Raster into PNG ValueBlob
         Value valueBlobPNG = RasterUtils.asImage(rasterValue, "png", null);
         // Check png
         ImageInputStreamWrapper imageInput = new ImageInputStreamWrapper
@@ -568,8 +580,16 @@ public class TestGeoRaster extends TestBase {
         imageInput.seek(0);
         pngReader.setInput(imageInput);
         BufferedImage sourceImage = pngReader.read(0);
-        assertEquals(20, sourceImage.getHeight());
-        assertEquals(20, sourceImage.getWidth());
+        assertEquals(height, sourceImage.getHeight());
+        assertEquals(width, sourceImage.getWidth());
+        // Check pixels
+        int pixelsSource[] = sourceImage.getData()
+                .getPixels(0, 0, sourceImage.getWidth(), sourceImage.getHeight(),(int[])
+                        null);
+        int pixelsExpected[] = image.getData()
+                .getPixels(0, 0, image.getWidth(), image.getHeight(),(int[])
+                        null);
+        assertEquals(pixelsExpected, pixelsSource);
         // write to temp dir
         File tmpFile = new File(getTestDir
                 ("georaster"), "testConvFunction.png");
@@ -581,4 +601,51 @@ public class TestGeoRaster extends TestBase {
     }
 
 
+
+    public void testImageFromRaster() throws SQLException, IOException {
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        BufferedImage expectedImage = getTestImage(width, height);
+        WritableRaster raster = expectedImage.getRaster();
+        // Convert into WKB data
+        WKBRasterWrapper wrapper = WKBRasterWrapper.create(raster, 1, 1, 0,
+                0, 0, 0, 27572, 0);
+        InputStream wkbStream = wrapper.toWKBRasterStream();
+        // Transfer to database
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO TEST(data) VALUES(?)");
+        ps.setBlob(1, wkbStream);
+        ps.execute();
+        ps.close();
+        // Query H2, asking for conversion into PNG binary data
+        ResultSet rs = stat.executeQuery(
+                "SELECT ST_IMAGEFROMRASTER(data, 'png') pngdata FROM test");
+        assertTrue(rs.next());
+        // Write directly data to a file
+        File tmpFile = new File(getTestDir
+                ("georaster"), "testImageFromRaster.png");
+        if(!tmpFile.getParentFile().exists()) {
+            assertTrue(tmpFile.getParentFile().mkdirs());
+        }
+        FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
+        IOUtils.copyAndClose(rs.getBinaryStream("pngdata"), fileOutputStream);
+        // Read file
+        RandomAccessFile ras = new RandomAccessFile(tmpFile, "rw");
+        ImageInputStream inputStream = ImageIO.createImageInputStream(ras);
+        ImageReader pngReader =  ImageIO.getImageReaders(inputStream).next();
+        pngReader.setInput(inputStream);
+        BufferedImage resultImage = pngReader.read(pngReader.getMinIndex());
+        // Check pixels
+        int pixelsSource[] = resultImage.getData()
+                .getPixels(0, 0, resultImage.getWidth(),
+                        resultImage.getHeight(), (int[]) null);
+        int pixelsExpected[] = expectedImage.getData()
+                .getPixels(0, 0, expectedImage.getWidth(),
+                        expectedImage.getHeight(), (int[]) null);
+        assertEquals(pixelsExpected, pixelsSource);
+    }
 }

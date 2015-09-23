@@ -3661,6 +3661,15 @@ ST_RASTERFROMIMAGE(FILE_READ('/home/user/aerial.png'), 47.6443, -2.7766, 1, 1,
 4326)
 "
 
+"Functions (RASTER)","ST_IMAGEFROMRASTER","
+ST_IMAGEFROMRASTER(RASTER, VARCHAR)
+","
+Create an image stream extracted from a raster. Argument are Raster type and
+image driver suffix. ex: 'png', 'bmp', 'jpeg'.
+","
+ST_RASTERFROMIMAGE(RASTER, 'png')
+"
+
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

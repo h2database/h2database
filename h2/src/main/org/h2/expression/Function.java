@@ -128,7 +128,7 @@ public class Function extends Expression implements FunctionCall {
      * Raster functions
      */
     public static final int ST_METADATA = 350, ST_RASTERFROMIMAGE = 351,
-            ST_IMAGEFROMRASTER = 352;
+            ST_IMAGEFROMRASTER = 352, ST_MAKEEMPTYRASTER = 353;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -476,6 +476,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ST_METADATA", ST_METADATA, 1, Value.ARRAY);
         addFunction("ST_RASTERFROMIMAGE", ST_RASTERFROMIMAGE, 8, Value.RASTER);
         addFunction("ST_IMAGEFROMRASTER", ST_IMAGEFROMRASTER, 2, Value.BLOB);
+        addFunction("ST_MAKEEMPTYRASTER", ST_MAKEEMPTYRASTER, VAR_ARGS, Value
+                .RASTER);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -1672,6 +1674,32 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
+        case ST_MAKEEMPTYRASTER: {
+            try {
+                RasterUtils.RasterMetaData rasterMetaData;
+                if(v0 instanceof Value.ValueRasterMarker) {
+                    // Initialise for an existing raster
+                    rasterMetaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                } else {
+                    rasterMetaData = new RasterUtils.RasterMetaData(
+                            v0.getInt(),
+                            v1.getInt(),
+                            v4.getDouble(),
+                            v5.getDouble(),
+                            v2.getDouble(),
+                            v3.getDouble(),
+                            getNullOrValue(session, args, values, 6)
+                                    .getDouble(),
+                            getNullOrValue(session, args, values, 7)
+                                    .getDouble(),
+                            getNullOrValue(session, args, values, 8).getInt());
+                }
+                result = RasterUtils.makeEmptyRaster(rasterMetaData);
+            } catch (IOException ex) {
+                throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
+            break;
+        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -2202,6 +2230,10 @@ public class Function extends Expression implements FunctionCall {
         case CASE:
             min = 3;
             break;
+        case ST_MAKEEMPTYRASTER:
+            min = 1;
+            max = 9;
+            break;
         default:
             DbException.throwInternalError("type=" + info.type);
         }
@@ -2405,6 +2437,13 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
+        case ST_RASTERFROMIMAGE:
+        case ST_MAKEEMPTYRASTER:
+            t = Value.RASTER;
+            p = Integer.MAX_VALUE;
+            s = 0;
+            d = Integer.MAX_VALUE;
+            break;
         case FILE_READ: {
             if (args.length == 1) {
                 t = Value.BLOB;

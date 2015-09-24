@@ -77,6 +77,7 @@ public class TestGeoRaster extends TestBase {
         testImageIOWKBTranslation();
         testWKBTranslationStream();
         testImageFromRaster();
+        testMakeEmptyRaster();
     }
 
 
@@ -647,5 +648,50 @@ public class TestGeoRaster extends TestBase {
                 .getPixels(0, 0, expectedImage.getWidth(),
                         expectedImage.getHeight(), (int[]) null);
         assertEquals(pixelsExpected, pixelsSource);
+    }
+
+    public void testMakeEmptyRaster() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        // Check make with existing raster
+        PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
+                "values(ST_MAKEEMPTYRASTER(?::raster))");
+        st.setBinaryStream(1, WKBRasterWrapper.create(getTestImage(10,10)
+                .getRaster(), 1, -1, 0, 0, 0, 0,27572,0)
+                .toWKBRasterStream());
+        st.execute();
+        stat.execute("INSERT INTO TEST(DATA) VALUES(" +
+                "ST_MAKEEMPTYRASTER(33,33,0,0,1,-1,0,0,27572))");
+        // Check values
+        ResultSet rs = stat.executeQuery("SELECT data FROM test order by id");
+        assertTrue(rs.next());
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1));
+        assertEquals(10, metaData.width);
+        assertEquals(10, metaData.height);
+        assertEquals(0, metaData.numBands);
+        assertEquals(0, metaData.ipX);
+        assertEquals(0, metaData.ipY);
+        assertEquals(1, metaData.scaleX);
+        assertEquals(-1, metaData.scaleY);
+        assertEquals(0, metaData.skewX);
+        assertEquals(0, metaData.skewY);
+        assertEquals(27572, metaData.srid);
+        assertTrue(rs.next());
+       metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1));
+        assertEquals(33, metaData.width);
+        assertEquals(33, metaData.height);
+        assertEquals(0, metaData.numBands);
+        assertEquals(0, metaData.ipX);
+        assertEquals(0, metaData.ipY);
+        assertEquals(1, metaData.scaleX);
+        assertEquals(-1, metaData.scaleY);
+        assertEquals(0, metaData.skewX);
+        assertEquals(0, metaData.skewY);
+        assertEquals(27572, metaData.srid);
+        conn.close();
     }
 }

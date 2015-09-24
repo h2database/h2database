@@ -60,6 +60,24 @@ public class RasterUtils {
     }
 
     /**
+     * Create an empty raster without bands
+     * @param metaSource Copy metadata from this source (does not read band
+     *                   count)
+     * @return Raster value.
+     * @throws IOException An error occured while creating data.
+     */
+    public static Value makeEmptyRaster(RasterMetaData metaSource) throws IOException {
+        RasterMetaData meta =
+                new RasterMetaData(metaSource.width, metaSource.height,
+                        metaSource.scaleX, metaSource.scaleY, metaSource.ipX,
+                        metaSource.ipY, metaSource.skewX, metaSource.skewY,
+                        metaSource.srid);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        meta.writeRasterHeader(out, ByteOrder.BIG_ENDIAN);
+        return ValueLobDb.createSmallLob(Value.RASTER, out.toByteArray());
+    }
+
+    /**
      * Convert a raster into an Image using ImageIO ImageWriter.
      * @param value Raster
      * @param suffix Image suffix ex:png
@@ -326,11 +344,11 @@ public class RasterUtils {
         public final int height;
         public final RasterBandMetaData[] bands;
 
-        public RasterMetaData(double scaleX,
+        public RasterMetaData(int width, int height, double scaleX,
                 double scaleY, double ipX, double ipY, double skewX,
                 double skewY, int srid) {
             this(LAST_WKB_VERSION, 0, scaleX, scaleY, ipX, ipY, skewX, skewY,
-                    srid, 0, 0, new RasterBandMetaData[0]);
+                    srid, width, height, new RasterBandMetaData[0]);
         }
 
         public RasterMetaData(int version, int numBands, double scaleX,

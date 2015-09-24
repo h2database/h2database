@@ -105,9 +105,9 @@ ALTER TABLE tableName ALTER COLUMN columnName
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity."
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
+ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
 ","
-Removes a column from a table."
+Removes column(s) from a table."
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
 ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
@@ -1317,6 +1317,10 @@ ST_RASTERFROMIMAGE(BLOB, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE,
 DOUBLE, INTEGER)
 ","
 Create a raster from a non-geo-localised image."
+"Functions (RASTER)","ST_IMAGEFROMRASTER","
+ST_IMAGEFROMRASTER(RASTER, VARCHAR)
+","
+Create an image stream extracted from a raster."
 "Functions (System)","AUTOCOMMIT","
 AUTOCOMMIT()
 ","

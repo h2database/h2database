@@ -298,24 +298,38 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public String getString() {
-        int len = precision > Integer.MAX_VALUE || precision == 0 ?
-                Integer.MAX_VALUE : (int) precision;
-        try {
-            if (type == Value.CLOB) {
-                if (small != null) {
-                    return new String(small, Constants.UTF8);
+        if(type == Value.RASTER) {
+            try {
+                RasterUtils.RasterMetaData metaData = getMetaData();
+                return String.format("w:%d h:%d bands:%d srid:%d x:%g y:%g " +
+                                "scalex:%g scaley:%g skewx:%g skewy:%g",
+                        metaData.width, metaData.height, metaData.numBands,
+                        metaData.srid, metaData.ipX, metaData.ipY,
+                        metaData.scaleX, metaData.scaleY, metaData.skewX,
+                        metaData.skewY);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, toString());
+            }
+        } else {
+            int len = precision > Integer.MAX_VALUE || precision == 0 ?
+                    Integer.MAX_VALUE : (int) precision;
+            try {
+                if (type == Value.CLOB) {
+                    if (small != null) {
+                        return new String(small, Constants.UTF8);
+                    }
+                    return IOUtils.readStringAndClose(getReader(), len);
                 }
-                return IOUtils.readStringAndClose(getReader(), len);
+                byte[] buff;
+                if (small != null) {
+                    buff = small;
+                } else {
+                    buff = IOUtils.readBytesAndClose(getInputStream(), len);
+                }
+                return StringUtils.convertBytesToHex(buff);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, toString());
             }
-            byte[] buff;
-            if (small != null) {
-                buff = small;
-            } else {
-                buff = IOUtils.readBytesAndClose(getInputStream(), len);
-            }
-            return StringUtils.convertBytesToHex(buff);
-        } catch (IOException e) {
-            throw DbException.convertIOException(e, toString());
         }
     }
 

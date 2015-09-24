@@ -6,27 +6,16 @@
 package org.h2.test.db;
 
 import com.vividsolutions.jts.geom.Envelope;
-
-import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.IndexColorModel;
-import java.awt.image.WritableRaster;
-import java.io.*;
-import java.nio.ByteOrder;
-import java.sql.*;
-import java.util.Iterator;
-import java.util.Random;
-
 import com.vividsolutions.jts.geom.Geometry;
-import org.h2.store.fs.FilePath;
-import org.h2.store.fs.FilePathDisk;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.ImageInputStreamWrapper;
 import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
 import org.h2.util.WKBRasterWrapper;
-import org.h2.value.*;
+import org.h2.value.Value;
+import org.h2.value.ValueBytes;
+import org.h2.value.ValueLobDb;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -34,7 +23,24 @@ import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
-import javax.imageio.stream.ImageOutputStream;
+import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.ByteOrder;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Iterator;
 
 
 /**
@@ -64,7 +70,6 @@ public class TestGeoRaster extends TestBase {
         }
         testEmptyGeoRaster();
         testGeoRasterWithBands();
-        testReadRaster();
         testWriteRasterFromString();
         testSpatialIndex();
         testLittleEndian();
@@ -78,31 +83,7 @@ public class TestGeoRaster extends TestBase {
         testWKBTranslationStream();
         testImageFromRaster();
         testMakeEmptyRaster();
-    }
-
-
-    private void testReadRaster() throws Exception {
-        deleteDb("georaster");
-        Connection conn;
-        conn = getConnection("georaster");
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, data raster)");
-
-        PreparedStatement prep =
-                conn.prepareStatement("insert into test values(null, ?)");
-        byte[] data = new byte[256];
-        Random r = new Random(1);
-        for (int i = 0; i < 1000; i++) {
-            r.nextBytes(data);
-            prep.setBinaryStream(1, new ByteArrayInputStream(data), -1);
-            prep.execute();
-        }
-
-        ResultSet rs = stat.executeQuery("select * from test");
-        while (rs.next()) {
-            rs.getString(2);
-        }
-        conn.close();
+        testRasterToString();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -137,7 +118,7 @@ public class TestGeoRaster extends TestBase {
 
         ResultSet rs = stat.executeQuery("select * from test");
         rs.next();
-        assertTrue(bytesString.equalsIgnoreCase(rs.getString(2)));
+        assertEquals(bytes, rs.getBytes(2));
         conn.close();
     }
 
@@ -692,6 +673,27 @@ public class TestGeoRaster extends TestBase {
         assertEquals(0, metaData.skewX);
         assertEquals(0, metaData.skewY);
         assertEquals(27572, metaData.srid);
+        conn.close();
+    }
+
+
+    public void testRasterToString() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        // Check make with existing raster
+        PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
+                "values(?)");
+        st.setBinaryStream(1, WKBRasterWrapper
+                .create(getTestImage(10, 10).getRaster(), 1, -1, 0, 0, 0, 0,
+                        27572, 0).toWKBRasterStream());
+        st.execute();
+        ResultSet rs = stat.executeQuery("SELECT data FROM test order by id");
+        assertTrue(rs.next());
+        assertEquals("w:10 h:10 bands:3 srid:27572 x:0.00000 y:0.00000 " +
+                "scalex:1.00000 scaley:-1.00000 skewx:0.00000 skewy:0.00000",
+                rs.getString(1));
         conn.close();
     }
 }

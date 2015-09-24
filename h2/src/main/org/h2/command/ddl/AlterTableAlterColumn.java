@@ -285,8 +285,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
         if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
             for (Column removeCol : columnsToRemove) {
                 Column foundCol = null;
-                for (Iterator<Column> iter = newColumns.iterator(); iter.hasNext(); ) {
-                    Column newCol = iter.next();
+                for (Iterator<Column> it = newColumns.iterator(); it.hasNext();) {
+                    Column newCol = it.next();
                     if (newCol.getName() == removeCol.getName()) {
                         foundCol = newCol;
                         break;

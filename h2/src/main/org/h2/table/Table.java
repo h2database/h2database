@@ -535,15 +535,15 @@ public abstract class Table extends SchemaObjectBase {
      * references and indexes are dropped.
      *
      * @param session the session
-     * @param columsToDrop the columns to drop
+     * @param columnsToDrop the columns to drop
      * @throws DbException if the column is referenced by multi-column
      *             constraints or indexes
      */
     public void dropMultipleColumnsConstraintsAndIndexes(Session session,
-            ArrayList<Column> columsToDrop) {
+            ArrayList<Column> columnsToDrop) {
         HashSet<Constraint> constraintsToDrop = New.hashSet();
         if (constraints != null) {
-            for (Column col : columsToDrop) {
+            for (Column col : columnsToDrop) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
                     Constraint constraint = constraints.get(i);
                     HashSet<Column> columns = constraint.getReferencedColumns(this);
@@ -562,7 +562,7 @@ public abstract class Table extends SchemaObjectBase {
         HashSet<Index> indexesToDrop = New.hashSet();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
-            for (Column col : columsToDrop) {
+            for (Column col : columnsToDrop) {
                 for (int i = 0, size = indexes.size(); i < size; i++) {
                     Index index = indexes.get(i);
                     if (index.getCreateSQL() == null) {

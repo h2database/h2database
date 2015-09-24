@@ -557,7 +557,8 @@ public class TestGeoRaster extends TestBase {
         Value valueBlobPNG = RasterUtils.asImage(rasterValue, "png", null);
         // Check png
         ImageInputStreamWrapper imageInput = new ImageInputStreamWrapper
-                (new ImageInputStreamWrapper.ValueStreamProvider(valueBlobPNG));
+                (new ImageInputStreamWrapper.ValueStreamProvider
+                        (valueBlobPNG), null);
         ImageReader pngReader = ImageIO.getImageReaders(imageInput).next();
         imageInput.seek(0);
         pngReader.setInput(imageInput);

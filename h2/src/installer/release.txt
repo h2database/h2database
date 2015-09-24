@@ -30,8 +30,9 @@ Close bugs: https://github.com/h2database/h2database/issues
 Update statistics
 
 Sign files and publish files on Maven Central
+./build.sh compile jar mavenDeployCentral
+cd /data/h2database/m2-repo/com/h2database/h2/1...
+gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-* (each one separate)
+jar -cvf bundle.jar h2-*
 http://central.sonatype.org/pages/ossrh-guide.html
 http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab maven-*
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-*
-jar -cvf bundle.jar h2-*

@@ -7,7 +7,7 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
+import java.util.Iterator;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -57,6 +57,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private String addAfter;
     private boolean ifNotExists;
     private ArrayList<Column> columnsToAdd;
+    private ArrayList<Column> columnsToRemove;
 
     public AlterTableAlterColumn(Session session, Schema schema) {
         super(session, schema);
@@ -85,7 +86,6 @@ public class AlterTableAlterColumn extends SchemaCommand {
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
         table.lock(session, true, true);
-        Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
         if (newColumn != null) {
             checkDefaultReferencesTable(newColumn.getDefaultExpression());
         }
@@ -116,6 +116,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
+            Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
             checkDefaultReferencesTable(defaultExpression);
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
@@ -162,11 +163,11 @@ public class AlterTableAlterColumn extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
-            if (table.getColumns().length == 1) {
+            if (table.getColumns().length - columnsToRemove.size() < 1) {
                 throw DbException.get(ErrorCode.CANNOT_DROP_LAST_COLUMN,
-                        oldColumn.getSQL());
+                        columnsToRemove.get(0).getSQL());
             }
-            table.dropSingleColumnConstraintsAndIndexes(session, oldColumn);
+            table.dropMultipleColumnsConstraintsAndIndexes(session, columnsToRemove);
             copyData();
             break;
         }
@@ -282,8 +283,20 @@ public class AlterTableAlterColumn extends SchemaCommand {
             newColumns.add(col.getClone());
         }
         if (type == CommandInterface.ALTER_TABLE_DROP_COLUMN) {
-            int position = oldColumn.getColumnId();
-            newColumns.remove(position);
+            for (Column removeCol : columnsToRemove) {
+                Column foundCol = null;
+                for (Iterator<Column> iter = newColumns.iterator(); iter.hasNext(); ) {
+                    Column newCol = iter.next();
+                    if (newCol.getName() == removeCol.getName()) {
+                        foundCol = newCol;
+                        break;
+                    }
+                }
+                if (foundCol == null) {
+                    throw DbException.throwInternalError(removeCol.getCreateSQL());
+                }
+                newColumns.remove(foundCol);
+            }
         } else if (type == CommandInterface.ALTER_TABLE_ADD_COLUMN) {
             int position;
             if (addBefore != null) {
@@ -508,5 +521,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
 
     public void setNewColumns(ArrayList<Column> columnsToAdd) {
         this.columnsToAdd = columnsToAdd;
+    }
+
+    public void setColumnsToRemove(ArrayList<Column> columnsToRemove) {
+        this.columnsToRemove = columnsToRemove;
     }
 }

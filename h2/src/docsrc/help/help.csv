@@ -289,12 +289,13 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
+ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
 ","
-Removes a column from a table.
+Removes column(s) from a table.
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
+ALTER TABLE TEST DROP COLUMN NAME1, NAME2
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","

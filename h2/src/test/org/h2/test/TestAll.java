@@ -327,11 +327,6 @@ java org.h2.test.TestAll timer
     public boolean splitFileSystem;
 
     /**
-     * Support nested joins.
-     */
-    public boolean nestedJoins;
-
-    /**
      * If only fast tests should be run. If enabled, SSL is not tested.
      */
     public boolean fast;

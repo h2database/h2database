@@ -264,9 +264,13 @@ public class StreamStore {
                 // indirect: 2, total len (long), blockId (long)
                 DataUtils.readVarLong(idBuffer);
                 long k2 = DataUtils.readVarLong(idBuffer);
-                // recurse
+                maxKey = k2;
                 byte[] r = map.get(k2);
-                maxKey = Math.max(maxKey, getMaxBlockKey(r));
+                // recurse
+                long m = getMaxBlockKey(r);
+                if (m >= 0) {
+                    maxKey = Math.max(maxKey, m);
+                }
                 break;
             default:
                 throw DataUtils.newIllegalArgumentException(

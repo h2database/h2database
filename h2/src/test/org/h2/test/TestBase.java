@@ -323,9 +323,6 @@ public abstract class TestBase {
         if (config.defrag) {
             url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
         }
-        if (config.nestedJoins) {
-            url = addOption(url, "NESTED_JOINS", "TRUE");
-        }
         return "jdbc:h2:" + url;
     }
 

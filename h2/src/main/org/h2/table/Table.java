@@ -530,8 +530,8 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Check that these columns are not referenced by a multi-column constraint or
-     * multi-column index. If it is, an exception is thrown. Single-column
+     * Check that these columns are not referenced by a multi-column constraint
+     * or multi-column index. If it is, an exception is thrown. Single-column
      * references and indexes are dropped.
      *
      * @param session the session

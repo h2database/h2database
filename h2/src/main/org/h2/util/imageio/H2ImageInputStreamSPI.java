@@ -1,7 +1,9 @@
 package org.h2.util.imageio;
 
+import org.h2.engine.Session;
 import org.h2.util.*;
 import org.h2.util.ImageInputStreamWrapper;
+import org.h2.value.ValueLobDb;
 
 import javax.imageio.spi.ImageInputStreamSpi;
 import javax.imageio.stream.ImageInputStream;
@@ -27,7 +29,7 @@ public class H2ImageInputStreamSPI extends ImageInputStreamSpi {
     public ImageInputStream createInputStreamInstance(Object input,
             boolean useCache, File cacheDir) throws IOException {
         return new ImageInputStreamWrapper(new ImageInputStreamWrapper
-                .BlobStreamProvider((Blob)input));
+                .BlobStreamProvider((Blob)input), null);
     }
 
     @Override

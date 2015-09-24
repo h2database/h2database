@@ -1658,7 +1658,7 @@ public class Function extends Expression implements FunctionCall {
                         getNullOrValue(session, args, values, 5).getDouble(),
                         getNullOrValue(session, args, values, 6).getDouble(),
                         getNullOrValue(session, args, values, 7).getInt(),
-                        session.getDataHandler());
+                        session);
             } catch (IOException ex) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
             }

@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import org.h2.engine.Session;
 import org.h2.value.Value;
 
 import javax.imageio.stream.ImageInputStreamImpl;
@@ -23,10 +24,24 @@ public class ImageInputStreamWrapper extends ImageInputStreamImpl {
     private InputStreamProvider value;
     private InputStream inputStream;
     private long internalPos = 0;
+    private long lastPositionChecked = 0;
+    private long readBytes = 0;
+    private static final long CHECK_CANCEL_POSITION_SHIFT = 100000;
+    private Session session;
 
-    public ImageInputStreamWrapper(InputStreamProvider value) throws IOException{
+    /**
+     * Wrap a input stream provider using InputStream simulate a
+     * ImageInputStream. (Random access through skip)
+     * @param value
+     * @param session
+     * @throws IOException
+     */
+    public ImageInputStreamWrapper(InputStreamProvider value, Session session)
+            throws
+            IOException{
         this.value = value;
         this.inputStream = value.getInputStream();
+        this.session = session;
     }
 
     @Override
@@ -46,6 +61,13 @@ public class ImageInputStreamWrapper extends ImageInputStreamImpl {
         if(readOffset != -1) {
             streamPos += readOffset;
             internalPos += readOffset;
+        }
+        readBytes += len;
+        // Check for cancel
+        if(session != null && lastPositionChecked +
+                CHECK_CANCEL_POSITION_SHIFT < readBytes) {
+            session.checkCanceled();
+            lastPositionChecked = readBytes;
         }
         return readOffset;
     }

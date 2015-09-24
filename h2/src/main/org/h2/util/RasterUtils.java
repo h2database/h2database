@@ -92,12 +92,13 @@ public class RasterUtils {
             ImageWriter imageWriter = itWriter.next();
             ImageReader wkbReader = new WKBRasterReader(new WKBRasterReaderSpi());
             wkbReader.setInput(new ImageInputStreamWrapper(
-                    new ImageInputStreamWrapper.ValueStreamProvider(value)));
+                    new ImageInputStreamWrapper.ValueStreamProvider(value),
+                    session));
             // Create pipe for streaming data between two thread
             final PipedInputStream in = new PipedInputStream();
             final Task task = new TransferStreamTask(session, in);
             TaskPipedOutputStream outputStream = new TaskPipedOutputStream
-                    (in, task);
+                    (in, task, session);
             // Init ImageIO cache directory it does not exists
             File cacheDir = ImageIO.getCacheDirectory();
             if(cacheDir == null || !cacheDir.exists()) {
@@ -129,11 +130,29 @@ public class RasterUtils {
 
     private static class TaskPipedOutputStream extends PipedOutputStream {
         private Task task;
+        private Session session;
+        private long lastPositionChecked = 0;
+        private long position = 0;
+        private static final long CHECK_CANCEL_POSITION_SHIFT = 100000;
 
-        public TaskPipedOutputStream(PipedInputStream snk, Task task)
+        public TaskPipedOutputStream(PipedInputStream snk, Task task, Session
+                session)
                 throws IOException {
             super(snk);
+            this.session = session;
             this.task = task;
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            super.write(b, off, len);
+            position += len;
+            // Check for cancel
+            if(session != null && lastPositionChecked +
+                    CHECK_CANCEL_POSITION_SHIFT < position) {
+                session.checkCanceled();
+                lastPositionChecked = position;
+            }
         }
 
         @Override
@@ -190,10 +209,11 @@ public class RasterUtils {
      */
     public static Value getFromImage(Value value, double upperLeftX,
             double upperLeftY, double scaleX, double scaleY, double skewX,
-            double skewY, int srid, DataHandler dataHandler)
+            double skewY, int srid, Session session)
             throws IOException {
         ImageInputStream imageInputStream = new ImageInputStreamWrapper(
-                new ImageInputStreamWrapper.ValueStreamProvider(value));
+                new ImageInputStreamWrapper.ValueStreamProvider(value),
+                session);
         // Fetch ImageRead using ImageIO API
         Iterator<ImageReader> itReader =
                 ImageIO.getImageReaders(imageInputStream);
@@ -210,8 +230,9 @@ public class RasterUtils {
                 raster = read.read(read.getMinIndex()).getRaster();
             }
 
-            if (dataHandler != null) {
-                return dataHandler.getLobStorage().createRaster(WKBRasterWrapper
+            if (session != null) {
+                return session.getDataHandler().getLobStorage().createRaster
+                        (WKBRasterWrapper
                                 .create(raster, scaleX, scaleY, upperLeftX,
                                         upperLeftY, skewX, skewY, srid,
                                         Double.NaN).toWKBRasterStream(), -1);

@@ -1711,9 +1711,10 @@ public class Function extends Expression implements FunctionCall {
                     metaData = ((Value.ValueRasterMarker) (v0
                             .convertTo(Value.RASTER))).getMetaData();
                 }
+                // Extract 1 based band number argument
                 RasterUtils.RasterBandMetaData bandMetaData = metaData
                         .bands[Math.max(0,
-                        Math.min(v1.getInt(), metaData.numBands - 1))];
+                        Math.min(v1.getInt() - 1, metaData.numBands - 1))];
                 result = ValueArray
                         .get(new Value[]{ValueString.get(bandMetaData
                                 .pixelType.getPixeTypeName()),

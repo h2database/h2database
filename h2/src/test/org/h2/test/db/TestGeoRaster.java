@@ -723,5 +723,27 @@ public class TestGeoRaster extends TestBase {
         } finally {
             rs.close();
         }
+        rs =
+                stat.executeQuery("SELECT ST_BANDMETADATA(data, 2) meta FROM " +
+                        "TEST");
+        try {
+            assertTrue(rs.next());
+            assertEquals(
+                    new Object[]{"8BSI", 0.0, false, ""},
+                    (Object[]) rs.getObject(1));
+        } finally {
+            rs.close();
+        }
+        rs =
+                stat.executeQuery("SELECT ST_BANDMETADATA(data, 3) meta FROM " +
+                        "TEST");
+        try {
+            assertTrue(rs.next());
+            assertEquals(
+                    new Object[]{"8BSI", 0.0, false, ""},
+                    (Object[]) rs.getObject(1));
+        } finally {
+            rs.close();
+        }
     }
 }

@@ -128,7 +128,8 @@ public class Function extends Expression implements FunctionCall {
      * Raster functions
      */
     public static final int ST_METADATA = 350, ST_RASTERFROMIMAGE = 351,
-            ST_IMAGEFROMRASTER = 352, ST_MAKEEMPTYRASTER = 353;
+            ST_IMAGEFROMRASTER = 352, ST_MAKEEMPTYRASTER = 353,
+            ST_BANDMETADATA = 354;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -474,6 +475,7 @@ public class Function extends Expression implements FunctionCall {
 
         // Raster function
         addFunction("ST_METADATA", ST_METADATA, 1, Value.ARRAY);
+        addFunction("ST_BANDMETADATA", ST_BANDMETADATA, 2, Value.ARRAY);
         addFunction("ST_RASTERFROMIMAGE", ST_RASTERFROMIMAGE, 8, Value.RASTER);
         addFunction("ST_IMAGEFROMRASTER", ST_IMAGEFROMRASTER, 2, Value.BLOB);
         addFunction("ST_MAKEEMPTYRASTER", ST_MAKEEMPTYRASTER, VAR_ARGS, Value
@@ -1697,6 +1699,31 @@ public class Function extends Expression implements FunctionCall {
                 result = RasterUtils.makeEmptyRaster(rasterMetaData);
             } catch (IOException ex) {
                 throw DbException.get(ErrorCode.IO_EXCEPTION_1, ex, getSQL());
+            }
+            break;
+        }
+        case ST_BANDMETADATA: {
+            try {
+                RasterUtils.RasterMetaData metaData;
+                if (v0 instanceof Value.ValueRasterMarker) {
+                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                } else {
+                    metaData = ((Value.ValueRasterMarker) (v0
+                            .convertTo(Value.RASTER))).getMetaData();
+                }
+                RasterUtils.RasterBandMetaData bandMetaData = metaData
+                        .bands[Math.max(0,
+                        Math.min(v1.getInt(), metaData.numBands - 1))];
+                result = ValueArray
+                        .get(new Value[]{ValueString.get(bandMetaData
+                                .pixelType.getPixeTypeName()),
+                                bandMetaData.hasNoData ? ValueDouble.get
+                                (bandMetaData
+                                        .noDataValue) : ValueNull.INSTANCE,
+                                ValueBoolean.get(bandMetaData.offDB),
+                                ValueString.get(bandMetaData.externalPath)});
+            } catch (IOException ex) {
+                throw DbException.convertIOException(ex, getSQL());
             }
             break;
         }

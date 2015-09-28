@@ -84,6 +84,7 @@ public class TestGeoRaster extends TestBase {
         testImageFromRaster();
         testMakeEmptyRaster();
         testRasterToString();
+        testStBandMetaData();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -696,5 +697,31 @@ public class TestGeoRaster extends TestBase {
                 "scalex:1.00000 scaley:-1.00000 skewx:0.00000 skewy:0.00000",
                 rs.getString(1));
         conn.close();
+    }
+
+
+    public void testStBandMetaData() throws SQLException, IOException {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        // Check make with existing raster
+        PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
+                "values(?)");
+        st.setBinaryStream(1, WKBRasterWrapper
+                .create(getTestImage(10, 10).getRaster(), 1, -1, 0, 0, 0, 0,
+                        27572, 0).toWKBRasterStream());
+        st.execute();
+        ResultSet rs =
+                stat.executeQuery("SELECT ST_BANDMETADATA(data, 1) meta FROM " +
+                        "TEST");
+        try {
+            assertTrue(rs.next());
+            assertEquals(
+                    new Object[]{"8BSI", 0.0, false, ""},
+                    (Object[]) rs.getObject(1));
+        } finally {
+            rs.close();
+        }
     }
 }

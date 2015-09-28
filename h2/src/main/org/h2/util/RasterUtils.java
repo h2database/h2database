@@ -287,6 +287,13 @@ public class RasterUtils {
         }
 
         /**
+         * @return Pixel type string representation
+         */
+        public String getPixeTypeName() {
+            return toString().substring(3);
+        }
+
+        /**
          * Create PixelType from pixel type identifier
          *
          * @param pixelTypeIdentifier Pixel type identifier from WKB Raster

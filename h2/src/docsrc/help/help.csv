@@ -3647,6 +3647,16 @@ This method returns an array. (Coordinate X, Coordinate Y, Width, Height, ScaleX
 ST_METADATA(RASTER)
 "
 
+"Functions (RASTER)","ST_BANDMETADATA","
+ST_BANDMETADATA (RASTER, indexExpression)
+","
+Read the metadata of the raster's band.
+This method returns an array. (PixelType, NoDataValue, IsPixelsOutDatabase,
+ ExternalBandPath)
+","
+ST_BANDMETADATA(RASTER, 1)
+"
+
 "Functions (RASTER)","ST_RASTERFROMIMAGE","
 ST_RASTERFROMIMAGE(BLOB, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE,
 DOUBLE, INTEGER)

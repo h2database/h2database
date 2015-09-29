@@ -8,6 +8,7 @@ package org.h2.util;
 import org.h2.engine.Session;
 import org.h2.value.Value;
 
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageInputStreamImpl;
 import java.io.Closeable;
 import java.io.EOFException;
@@ -42,6 +43,46 @@ public class ImageInputStreamWrapper extends ImageInputStreamImpl {
         this.value = value;
         this.inputStream = value.getInputStream();
         this.session = session;
+    }
+
+    /**
+     * Helper method
+     * @param value H2 Value
+     * @return ImageInputStream
+     * @throws IOException
+     */
+    public static ImageInputStream create(Value value) throws IOException {
+        return new ImageInputStreamWrapper(new ValueStreamProvider(value), null);
+    }
+
+    /**
+     * Helper method
+     * @param value H2 Value
+     * @return ImageInputStream
+     * @throws IOException
+     */
+    public static ImageInputStream create(Value value, Session session) throws IOException {
+        return new ImageInputStreamWrapper(new ValueStreamProvider(value), session);
+    }
+
+    /**
+     * Helper method
+     * @param blob H2 JDBC Value
+     * @return ImageInputStream
+     * @throws IOException
+     */
+    public static ImageInputStream create(Blob blob) throws IOException  {
+        return new ImageInputStreamWrapper(new BlobStreamProvider(blob), null);
+    }
+
+    /**
+     * Helper method
+     * @param blob H2 JDBC Value
+     * @return ImageInputStream
+     * @throws IOException
+     */
+    public static ImageInputStream create(Blob blob, Session session) throws IOException  {
+        return new ImageInputStreamWrapper(new BlobStreamProvider(blob), session);
     }
 
     @Override

@@ -13,6 +13,7 @@ import org.h2.util.ImageInputStreamWrapper;
 import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
 import org.h2.util.WKBRasterWrapper;
+import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueLobDb;
@@ -23,7 +24,9 @@ import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -547,9 +550,8 @@ public class TestGeoRaster extends TestBase {
         // Create an image from scratch
         final int width = 50, height = 50;
         BufferedImage image = getTestImage(width, height);
-        WritableRaster raster = image.getRaster();
         // Convert into WKB data
-        WKBRasterWrapper wrapper = WKBRasterWrapper.create(raster, 1, 1, 0,
+        WKBRasterWrapper wrapper = WKBRasterWrapper.create(image, 1, 1, 0,
                 0, 0, 0, 27572, 0);
         InputStream wkbStream = wrapper.toWKBRasterStream();
         Value rasterValue = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
@@ -590,9 +592,8 @@ public class TestGeoRaster extends TestBase {
         // Create an image from scratch
         final int width = 50, height = 50;
         BufferedImage expectedImage = getTestImage(width, height);
-        WritableRaster raster = expectedImage.getRaster();
         // Convert into WKB data
-        WKBRasterWrapper wrapper = WKBRasterWrapper.create(raster, 1, 1, 0,
+        WKBRasterWrapper wrapper = WKBRasterWrapper.create(expectedImage, 1, 1, 0,
                 0, 0, 0, 27572, 0);
         InputStream wkbStream = wrapper.toWKBRasterStream();
         // Transfer to database
@@ -642,7 +643,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(ST_MAKEEMPTYRASTER(?::raster))");
         st.setBinaryStream(1, WKBRasterWrapper.create(getTestImage(10,10)
-                .getRaster(), 1, -1, 0, 0, 0, 0,27572,0)
+                , 1, -1, 0, 0, 0, 0,27572,0)
                 .toWKBRasterStream());
         st.execute();
         stat.execute("INSERT INTO TEST(DATA) VALUES(" +
@@ -688,7 +689,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(?)");
         st.setBinaryStream(1, WKBRasterWrapper
-                .create(getTestImage(10, 10).getRaster(), 1, -1, 0, 0, 0, 0,
+                .create(getTestImage(10, 10), 1, -1, 0, 0, 0, 0,
                         27572, 0).toWKBRasterStream());
         st.execute();
         ResultSet rs = stat.executeQuery("SELECT data FROM test order by id");
@@ -709,7 +710,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(?)");
         st.setBinaryStream(1, WKBRasterWrapper
-                .create(getTestImage(10, 10).getRaster(), 1, -1, 0, 0, 0, 0,
+                .create(getTestImage(10, 10), 1, -1, 0, 0, 0, 0,
                         27572, 0).toWKBRasterStream());
         st.execute();
         ResultSet rs =
@@ -745,5 +746,26 @@ public class TestGeoRaster extends TestBase {
         } finally {
             rs.close();
         }
+    }
+
+
+    /**
+     * Function test with RenderedImage as return value.
+     * @param value
+     * @param factor
+     * @return
+     * @throws IOException
+     */
+    public static RenderedImage rescale(Value value, double factor) throws IOException {
+        ImageInputStream iStream = ImageInputStreamWrapper.create(value);
+        ImageReader wkbReader = ImageIO.getImageReaders(iStream).next();
+        wkbReader.setInput(iStream);
+        BufferedImage source = wkbReader.read(wkbReader.getMinIndex());
+        BufferedImage resizedImage = new BufferedImage((int)(source.getWidth() * factor),
+                (int)(source.getHeight() * factor), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage(source, 0, 0, resizedImage.getWidth(), resizedImage.getHeight(), null);
+        g.dispose();
+        return resizedImage;
     }
 }

@@ -16,6 +16,7 @@ import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathDisk;
+import org.h2.util.imageio.RenderedImageReader;
 import org.h2.util.imageio.WKBRasterReader;
 import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
@@ -29,6 +30,7 @@ import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -203,7 +205,7 @@ public class RasterUtils {
      * @param skewX Pixel rotation X
      * @param skewY Pixel rotation Y
      * @param srid Raster coordinates projection system
-     * @param dataHandler Lob storage or null
+     * @param session Session or null
      * @return The raster value
      * @throws IOException
      */
@@ -221,25 +223,17 @@ public class RasterUtils {
             ImageReader read = itReader.next();
             imageInputStream.seek(0);
             read.setInput(imageInputStream);
-            Raster raster;
-            if (read.canReadRaster()) {
-                raster = read.readRaster(read.getMinIndex(), null);
-            } else {
-                // Not memory efficient as creating BufferedImage will(may?)
-                // generate a copy of image data in memory
-                raster = read.read(read.getMinIndex()).getRaster();
-            }
-
+            RenderedImage image = new RenderedImageReader(read);
             if (session != null) {
                 return session.getDataHandler().getLobStorage().createRaster
                         (WKBRasterWrapper
-                                .create(raster, scaleX, scaleY, upperLeftX,
+                                .create(image , scaleX, scaleY, upperLeftX,
                                         upperLeftY, skewX, skewY, srid,
                                         Double.NaN).toWKBRasterStream(), -1);
             } else {
                 return ValueLobDb.createSmallLob(Value.RASTER,
                         IOUtils.readBytesAndClose(WKBRasterWrapper
-                                .create(raster, scaleX, scaleY, upperLeftX,
+                                .create(image, scaleX, scaleY, upperLeftX,
                                         upperLeftY, skewX, skewY, srid,
                                         Double.NaN).toWKBRasterStream(), -1));
             }

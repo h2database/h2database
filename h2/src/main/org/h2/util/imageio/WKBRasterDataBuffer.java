@@ -35,6 +35,7 @@ public class WKBRasterDataBuffer extends DataBuffer {
                     .fetchDriver(metaData.bands[bandId].pixelType, metaData
                             .endian);
         }
+        // TODO prepare OffDB buffer
     }
 
     private void seek(int bank, int i) throws IOException {

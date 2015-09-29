@@ -6,6 +6,9 @@
 package org.h2.test.db;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -43,6 +46,7 @@ import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 import org.h2.value.Value;
 
 /**
@@ -96,6 +100,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testToCharFromText();
         testTranslate();
         testGenerateSeries();
+        testFileWrite();
 
         deleteDb("functions");
     }
@@ -621,6 +626,36 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
         FileUtils.delete(fileName);
     }
+
+
+    private void testFileWrite() throws Exception {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        // Copy data into clob table
+        stat.execute("DROP TABLE TEST IF EXISTS");
+        PreparedStatement pst = conn.prepareStatement(
+                "CREATE TABLE TEST(data clob) AS SELECT ? " + "data");
+        Properties prop = System.getProperties();
+        ByteArrayOutputStream os = new ByteArrayOutputStream(prop.size());
+        prop.store(os, "");
+        pst.setBinaryStream(1, new ByteArrayInputStream(os.toByteArray()));
+        pst.execute();
+        os.close();
+        String fileName = new File(getBaseDir(), "test.txt").getPath();
+        FileUtils.delete(fileName);
+        ResultSet rs = stat.executeQuery("SELECT FILE_WRITE(data, " +
+                StringUtils.quoteStringSQL(fileName) + ") len from test");
+        assertTrue(rs.next());
+        assertEquals(os.size(), rs.getInt(1));
+        InputStreamReader r = new InputStreamReader(FileUtils.newInputStream(fileName));
+        // Compare expected content with written file content
+        String ps2 = IOUtils.readStringAndClose(r, -1);
+        assertEquals(os.toString(), ps2);
+        conn.close();
+        FileUtils.delete(fileName);
+    }
+
+
 
     /**
      * This median implementation keeps all objects in memory.

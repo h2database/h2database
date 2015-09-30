@@ -3874,6 +3874,16 @@ SELECT LENGTH(FILE_READ('~/.h2.server.properties')) LEN;
 SELECT FILE_READ('http://localhost:8182/stylesheet.css', NULL) CSS;
 "
 
+"Functions (System)","FILE_WRITE","
+FILE_WRITE(Blob , fileNameString)
+","
+Write the supplied parameter into a file. Return the number of bytes written.
+
+Write access to folder, and admin rights are required to execute this command.
+","
+SELECT FILE_WRITE('Hello world', '/tmp/hello.txt')) LEN;
+"
+
 "Functions (System)","GREATEST","
 GREATEST(aValue, bValue [,...])
 ","

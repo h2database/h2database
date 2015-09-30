@@ -7,6 +7,7 @@ package org.h2.expression;
 
 import static org.h2.util.ToChar.toChar;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,7 +46,16 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.*;
+import org.h2.util.AutoCloseInputStream;
+import org.h2.util.DateTimeUtils;
+import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.New;
+import org.h2.util.RasterUtils;
+import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -109,7 +119,7 @@ public class Function extends Expression implements FunctionCall {
             ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
+            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
 
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
@@ -453,6 +463,8 @@ public class Function extends Expression implements FunctionCall {
                 2, Value.NULL, false, false, true);
         addFunction("FILE_READ", FILE_READ,
                 VAR_ARGS, Value.NULL, false, false, true);
+        addFunction("FILE_WRITE", FILE_WRITE,
+                2, Value.LONG, false, false, true);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE,
@@ -1605,6 +1617,24 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
+        case FILE_WRITE: {
+            session.getUser().checkAdmin();
+            result = ValueNull.INSTANCE;
+            String fileName = v1.getString();
+            try {
+                FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                InputStream in = v0.getInputStream();
+                try {
+                    result = ValueLong.get(IOUtils.copyAndClose(in,
+                            fileOutputStream));
+                } finally {
+                    in.close();
+                }
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, fileName);
+            }
+            break;
+        }
         case TRUNCATE_VALUE: {
             result = v0.convertPrecision(v1.getLong(), v2.getBoolean());
             break;
@@ -2035,7 +2065,7 @@ public class Function extends Expression implements FunctionCall {
         return s1.substring(0, start) + s2 + s1.substring(start + length);
     }
 
-    public static String hexToRaw(String s) {
+    private static String hexToRaw(String s) {
         // TODO function hextoraw compatibility with oracle
         int len = s.length();
         if (len % 4 != 0) {

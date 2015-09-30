@@ -21,6 +21,7 @@ import org.h2.util.imageio.WKBRasterReader;
 import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
+import org.h2.value.ValueNull;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -127,7 +128,7 @@ public class RasterUtils {
             }
             return (Value)task.get();
         }
-        return null;
+        throw DbException.throwInternalError("Unsupported format: "+suffix);
     }
 
     private static class TaskPipedOutputStream extends PipedOutputStream {
@@ -238,7 +239,7 @@ public class RasterUtils {
                                         Double.NaN).toWKBRasterStream(), -1));
             }
         }
-        return null;
+        throw DbException.throwInternalError("Unsupported image format");
     }
 
     /**

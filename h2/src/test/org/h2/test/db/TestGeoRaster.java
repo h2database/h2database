@@ -13,13 +13,13 @@ import org.h2.util.ImageInputStreamWrapper;
 import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
 import org.h2.util.WKBRasterWrapper;
-import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueLobDb;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
@@ -88,6 +88,7 @@ public class TestGeoRaster extends TestBase {
         testMakeEmptyRaster();
         testRasterToString();
         testStBandMetaData();
+        testImageIOReadParameters();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -451,8 +452,10 @@ public class TestGeoRaster extends TestBase {
                 "TEST");
         // Read MetaData
         assertTrue(rs.next());
+        InputStream is = rs.getBinaryStream(1);
+        assertFalse(rs.wasNull());
         RasterUtils.RasterMetaData meta = RasterUtils.RasterMetaData
-                .fetchMetaData(rs.getBinaryStream(1), true);
+                .fetchMetaData(is, true);
         assertTrue(meta != null);
         assertEquals(4, meta.numBands);
         assertEquals(4, meta.bands.length);
@@ -767,5 +770,47 @@ public class TestGeoRaster extends TestBase {
         g.drawImage(source, 0, 0, resizedImage.getWidth(), resizedImage.getHeight(), null);
         g.dispose();
         return resizedImage;
+    }
+
+    public void testImageIOReadParameters() throws SQLException, IOException {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        stat.execute("INSERT INTO TEST(data) VALUES (" +
+                "ST_RasterFromImage(File_Read('" + UNIT_TEST_IMAGE + "'), 47" +
+                ".6443,  -2.7766, 1, 1,0, 0, 4326))");
+
+        // Query WKB Raster binary
+        ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
+                "TEST");
+        assertTrue(rs.next());
+        // Convert SQL Blob object into ImageInputStream
+        Blob blob = rs.getBlob(1);
+        ImageInputStream inputStream = ImageIO.createImageInputStream(blob);
+        assertTrue(inputStream != null);
+        // Fetch WKB Raster Image reader
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
+        assertTrue(readers.hasNext());
+        ImageReader wkbReader = readers.next();
+        // Feed WKB Raster Reader with blob data
+        wkbReader.setInput(inputStream);
+        // Retrieve data as a BufferedImage
+        ImageReadParam param = wkbReader.getDefaultReadParam();
+        Rectangle rect = new Rectangle(5, 3, 10, 15);
+        param.setSourceRegion(rect);
+        BufferedImage image = wkbReader.read(wkbReader.getMinIndex(), param);
+        assertEquals(10, image.getWidth());
+        assertEquals(15, image.getHeight());
+        // Read source
+        ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(UNIT_TEST_IMAGE, "r"));
+        ImageReader ir = ImageIO.getImageReaders(is).next();
+        ImageReadParam srcParam = ir.getDefaultReadParam();
+        srcParam.setSourceRegion(rect);
+        ir.setInput(is);
+        BufferedImage srcImage = ir.read(ir.getMinIndex(), srcParam);
+        int[] pixelsSource = srcImage.getRGB(0, 0, srcImage.getWidth(), srcImage.getHeight(), null, 0, image.getWidth());
+        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+        assertEquals(pixelsSource, pixels);
     }
 }

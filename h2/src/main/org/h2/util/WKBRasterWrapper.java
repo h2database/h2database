@@ -81,6 +81,7 @@ public class WKBRasterWrapper {
         private int bufferCursor = 0;
         private RasterPixelDriver pixelDriver;
         private final boolean readTiles;
+        private static final int MAX_ROW_CACHE = 512;
 
 
         private enum BUFFER_STATE {
@@ -183,16 +184,17 @@ public class WKBRasterWrapper {
 
                             } else {
                                 rasterRow = raster.getData(
-                                        new Rectangle((int) (pixelCursor % rasterMetaData.width),
+                                        new Rectangle(0,
                                                 (int) (pixelCursor / rasterMetaData.width),
                                                 rasterMetaData.width,
-                                                1));
+                                                Math.min(MAX_ROW_CACHE, raster.getHeight() -
+                                                        (int)(pixelCursor / rasterMetaData.width))));
                             }
                             buffer = new byte[rasterRow.getWidth() * rasterRow.getHeight() *
                                     pixelDriver.getPixelType().pixelSize];
                             pixelDriver.setRaster(rasterRow);
                             pixelDriver.readSamples(buffer, 0, 0, 0,
-                                    rasterRow.getWidth() * rasterRow.getHeight(), currentBand);
+                                    rasterRow.getWidth() , rasterRow.getHeight(), currentBand);
                             pixelCursor += rasterRow.getWidth() * rasterRow.getHeight();
                             bufferCursor = 0;
                             return read();
@@ -224,32 +226,6 @@ public class WKBRasterWrapper {
 
         public RasterUtils.PixelType getPixelType() {
             return pixelType;
-        }
-
-        /**
-         * Read band data, copy into buffer. This function compute the
-         * maximum width
-         * @param buffer Pre-allocated, output buffer
-         * @param pos Position in output buffer to write samples
-         * @param x first pixel X
-         * @param y first pixel Y
-         * @param count Pixel count to read
-         * @param band band
-         */
-        public void readSamples(byte[] buffer, int pos, int x, int
-                y, int count,
-                int band) {
-            int countDone = 0;
-            while (countDone < count) {
-                int readWidth = Math.min(raster.getWidth() - x, count - countDone );
-                readSamples(buffer, pos, x, y, readWidth, 1, band);
-                countDone+=readWidth;
-                pos += readWidth * pixelType.pixelSize;
-                if(countDone < count) {
-                    y +=1;
-                    x = 0;
-                }
-            }
         }
 
         public static RasterPixelDriver getDriver(RasterUtils.PixelType
@@ -288,7 +264,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                int[] samples = new int[width];
+                int[] samples = new int[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
@@ -303,7 +279,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                int[] samples = new int[width];
+                int[] samples = new int[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
@@ -319,7 +295,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                int[] samples = new int[width];
+                int[] samples = new int[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
@@ -337,7 +313,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                float[] samples = new float[width];
+                float[] samples = new float[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
@@ -355,7 +331,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                double[] samples = new double[width];
+                double[] samples = new double[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
@@ -374,7 +350,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                int[] samples = new int[width];
+                int[] samples = new int[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
@@ -391,7 +367,7 @@ public class WKBRasterWrapper {
             @Override
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
-                double[] samples = new double[width];
+                double[] samples = new double[width * height];
                 raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {

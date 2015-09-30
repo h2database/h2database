@@ -13,8 +13,7 @@ import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.stream.ImageInputStream;
-import java.awt.Point;
-import java.awt.Transparency;
+import java.awt.*;
 import java.awt.color.ColorSpace;
 import java.awt.image.BandedSampleModel;
 import java.awt.image.BufferedImage;
@@ -85,7 +84,7 @@ public class WKBRasterReader extends ImageReader {
     public Iterator<ImageTypeSpecifier> getImageTypes(int imageIndex)
             throws IOException {
         List<ImageTypeSpecifier> typeList = new ArrayList<ImageTypeSpecifier>();
-        typeList.add(new ImageTypeSpecifier(getColorModel(), getSampleModel()));
+        typeList.add(new ImageTypeSpecifier(getColorModel(), getSampleModel(getDefaultReadParam())));
         return typeList.iterator();
     }
 
@@ -116,28 +115,48 @@ public class WKBRasterReader extends ImageReader {
         return true;
     }
 
-    protected SampleModel getSampleModel() throws IOException {
+    protected SampleModel getSampleModel(ImageReadParam param) throws IOException {
         RasterUtils.RasterMetaData meta = getMetaData();
+        int width = meta.width;
+        int height = meta.height;
+        boolean specialRegion = false;
+        if(param.getSourceRegion() != null && !param.getSourceRegion().isEmpty()) {
+            width = param.getSourceRegion().width;
+            height = param.getSourceRegion().height;
+            specialRegion = width != meta.width || height != meta.height;
+        }
         final int commonDataType = getCommonDataType(meta);
         int[] bankIndices = new int[meta.numBands];
         // Skip band metadata
         int[] bandOffset = new int[meta.numBands];
+        int offset = 0;
+        if(specialRegion) {
+            offset = param.getSourceRegion().y * meta.width + param.getSourceRegion().x;
+        }
         for(int i=0; i < meta.numBands; i++) {
             bankIndices[i] = i;
-            // The offset is quite small. This is only the
-            bandOffset[i] = 0; // ImageIO does not support well offset when
-            // it duplicate databuffer
+            bandOffset[i] = offset;
         }
         return new BandedSampleModel(commonDataType,
-                meta.width, meta.height, meta.width, bankIndices, bandOffset);
+                width, height, meta.width, bankIndices, bandOffset);
     }
 
     @Override
     public WritableRaster readRaster(int imageIndex, ImageReadParam param)
             throws IOException {
+        if(param == null) {
+            param = getDefaultReadParam();
+        }
         RasterUtils.RasterMetaData meta = getMetaData();
+
+        Rectangle destRegion = new Rectangle(0, 0, 0, 0);
+        Rectangle sourceRegion = new Rectangle(0, 0, 0, 0);
+        computeRegions(param, meta.width, meta.height, null, sourceRegion, destRegion);
+
+        //checkReadParamBandSettings(param, meta.numBands, dest.getSampleModel().getNumBands());
+
         final int commonDataType = getCommonDataType(meta);
-        SampleModel sampleModel = getSampleModel();
+        SampleModel sampleModel = getSampleModel(param);
         DataBuffer dataBuffer = new WKBRasterDataBuffer(commonDataType,
                 -1, (ImageInputStream)input, meta);
         return Raster.createWritableRaster(sampleModel, dataBuffer, new Point

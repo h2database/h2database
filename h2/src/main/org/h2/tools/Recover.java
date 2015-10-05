@@ -691,8 +691,7 @@ public class Recover extends Tool implements DataHandler {
         MVMap<Long, byte[]> lobData = mv.openMap("lobData");
         StreamStore streamStore = new StreamStore(lobData);
         MVMap<Long, Object[]> lobMap = mv.openMap("lobMap");
-        writer.println("-- LOB (lobMap.id=0x" + Integer.toHexString(lobMap.getId()) +
-                ", lobData.id=0x" + Integer.toHexString(lobData.getId()) + ")");
+        writer.println("-- LOB");
         writer.println("CREATE TABLE IF NOT EXISTS " +
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +
                 "LOB_ID BIGINT, SEQ INT, DATA BINARY, " +
@@ -722,6 +721,9 @@ public class Recover extends Tool implements DataHandler {
                 hasErrors = true;
             }
         }
+        writer.println("-- lobMap.size: " + lobMap.sizeAsLong());
+        writer.println("-- lobData.size: " + lobData.sizeAsLong());
+
         if (hasErrors) {
             writer.println("-- lobMap");
             for (Long k : lobMap.keyList()) {

@@ -1592,6 +1592,7 @@ public class Function extends Expression implements FunctionCall {
                     }
                     result = database.getLobStorage().createClob(reader, -1);
                 }
+                session.addTemporaryLob(result);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
             }

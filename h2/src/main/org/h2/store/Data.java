@@ -623,7 +623,7 @@ public class Data {
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     int t = -1;
-                    if (!lob.isLinked()) {
+                    if (!lob.isLinkedToTable()) {
                         t = -2;
                     }
                     writeVarInt(t);
@@ -1044,7 +1044,7 @@ public class Data {
                 byte[] small = lob.getSmall();
                 if (small == null) {
                     int t = -1;
-                    if (!lob.isLinked()) {
+                    if (!lob.isLinkedToTable()) {
                         t = -2;
                     }
                     len += getVarIntLen(t);

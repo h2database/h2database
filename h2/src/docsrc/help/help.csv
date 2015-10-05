@@ -3678,7 +3678,7 @@ ST_IMAGEFROMRASTER(RASTER, VARCHAR)
 Create an image stream extracted from a raster. Argument are Raster type and
 image driver suffix. ex: 'png', 'bmp', 'jpeg'.
 ","
-ST_RASTERFROMIMAGE(RASTER, 'png')
+ST_IMAGEFROMRASTER(RASTER, 'png')
 "
 
 "Functions (System)","AUTOCOMMIT","

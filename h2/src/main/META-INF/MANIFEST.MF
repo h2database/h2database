@@ -64,7 +64,7 @@ Export-Package: org.h2;version="${version}",
  org.h2.mvstore.rtree;version="${version}"
 Premain-Class: org.h2.util.Profiler
 Require-Capability: osgi.extender;
-  filter:="(osgi.extender=osgi.serviceloader.registrar)"
+  filter:="(osgi.extender=osgi.serviceloader.registrar)";resolution:=optional
 Provide-Capability: osgi.serviceloader;
   osgi.serviceloader=java.sql.Driver,
   osgi.serviceloader;

@@ -821,18 +821,39 @@ public class ArchiveTool {
         private long lastTime;
         private int pos;
 
+        /**
+         * Print an empty line.
+         */
         void println() {
             System.out.println();
         }
 
+        /**
+         * Print a message.
+         *
+         * @param msg the message
+         */
         void print(String msg) {
             System.out.print(msg);
         }
 
+        /**
+         * Print a message.
+         *
+         * @param msg the message
+         */
         void println(String msg) {
             System.out.println(msg);
         }
 
+        /**
+         * Print the progress.
+         *
+         * @param low the percent value if current = 0
+         * @param high the percent value if current = total
+         * @param current the current value
+         * @param total the maximum value
+         */
         void printProgress(int low, int high,
                 long current, long total) {
             long now = System.currentTimeMillis();

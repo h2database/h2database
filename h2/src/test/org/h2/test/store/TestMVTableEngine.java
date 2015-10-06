@@ -289,6 +289,7 @@ public class TestMVTableEngine extends TestBase {
         FileChannel fc = FileUtils.open(fileName, "rw");
         // undo all changes
         fc.truncate(fileSize);
+        fc.close();
 
         conn = getConnection(getTestName());
         stat = conn.createStatement();

@@ -62,6 +62,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        // Locale.setDefault(Locale.GERMANY);
+        // Locale.setDefault(Locale.US);
         TestBase.createCaller().init().test();
     }
 
@@ -1511,7 +1513,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(12345, '$99999999') FROM DUAL");
         assertResult("     " + cs + "12,345.35", stat,
                 "SELECT TO_CHAR(12345.345, '$99,999,999.99') FROM DUAL");
-        assertResult("     " + cs + "12,345", stat,
+        String expected = String.format("%,d", 12345);
+        assertResult("     " + cs + expected, stat,
                 "SELECT TO_CHAR(12345.345, '$99g999g999') FROM DUAL");
         assertResult("     12,345.35", stat,
                 "SELECT TO_CHAR(12345.345, '99,999,999.99') FROM DUAL");
@@ -1611,7 +1614,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(123.45, 'U999.99') FROM DUAL");
         assertResult("          " + cs + "123.45", stat,
                 "SELECT TO_CHAR(123.45, 'u999.99') FROM DUAL");
-        assertResult("   .33", stat,
+        expected = String.format("%.2f", 0.33f).substring(1);
+        assertResult("   " + expected, stat,
                 "SELECT TO_CHAR(0.326, '99D99') FROM DUAL");
         assertResult("  1.2E+02", stat,
                 "SELECT TO_CHAR(123.456, '9.9EEEE') FROM DUAL");
@@ -1626,9 +1630,10 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(123.456, '00.00000000EEEE') FROM DUAL");
         assertResult("1.23456000E+02", stat,
                 "SELECT TO_CHAR(123.456, 'fm00.00000000EEEE') FROM DUAL");
-        assertResult(" 1,234,567", stat,
+        expected = String.format("%,d", 1234567);
+        assertResult(" " + expected, stat,
                 "SELECT TO_CHAR(1234567, '9G999G999') FROM DUAL");
-        assertResult("-1,234,567", stat,
+        assertResult("-" + expected, stat,
                 "SELECT TO_CHAR(-1234567, '9G999G999') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99MI') FROM DUAL");
         assertResult("123.45-", stat, "SELECT TO_CHAR(-123.45, '999.99mi') FROM DUAL");

@@ -5,7 +5,6 @@
  */
 package org.h2.util;
 
-import static java.lang.Math.abs;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -134,7 +133,7 @@ public class ToChar {
             int pow = number.precision() - number.scale() - 1;
             number = number.movePointLeft(pow);
             return number.toPlainString() + "E" +
-                    (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
+                    (pow < 0 ? '-' : '+') + (Math.abs(pow) < 10 ? "0" : "") + Math.abs(pow);
         } else if (formatUp.equals("RN")) {
             boolean lowercase = format.startsWith("r");
             String rn = StringUtils.pad(toRomanNumeral(number.intValue()), 15, " ", false);

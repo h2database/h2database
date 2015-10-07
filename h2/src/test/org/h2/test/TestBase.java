@@ -299,7 +299,7 @@ public abstract class TestBase {
         } else if (config.throttle > 0) {
             url = addOption(url, "THROTTLE", "" + config.throttle);
         }
-        url = addOption(url, "LOCK_TIMEOUT", "50");
+        url = addOption(url, "LOCK_TIMEOUT", "" + config.lockTimeout);
         if (config.diskUndo && admin) {
             url = addOption(url, "MAX_MEMORY_UNDO", "3");
         }

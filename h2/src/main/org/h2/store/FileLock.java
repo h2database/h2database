@@ -365,6 +365,7 @@ public class FileLock implements Runnable {
             fileName = null;
             throw getExceptionFatal("Concurrent update", null);
         }
+        locked = true;
         watchdog = new Thread(this, "H2 File Lock Watchdog " + fileName);
         Driver.setThreadContextClassLoader(watchdog);
         watchdog.setDaemon(true);

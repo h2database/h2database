@@ -236,7 +236,7 @@ public class CommandRemote implements CommandInterface {
             for (ParameterInterface p : parameters) {
                 Value v = p.getParamValue();
                 if (v != null) {
-                    v.close();
+                    v.remove();
                 }
             }
         } catch (DbException e) {

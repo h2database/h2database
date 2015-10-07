@@ -182,11 +182,11 @@ public class RowList {
                 v = null;
             } else {
                 v = buff.readValue();
-                if (v.isLinked()) {
+                if (v.isLinkedToTable()) {
                     // the table id is 0 if it was linked when writing
                     // a temporary entry
                     if (v.getTableId() == 0) {
-                        session.unlinkAtCommit(v);
+                        session.removeAtCommit(v);
                     }
                 }
             }

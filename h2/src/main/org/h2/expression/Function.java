@@ -5,8 +5,6 @@
  */
 package org.h2.expression;
 
-import static org.h2.util.ToChar.toChar;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -55,6 +53,7 @@ import org.h2.util.New;
 import org.h2.util.RasterUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.ToChar;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -1425,7 +1424,7 @@ public class Function extends Expression implements FunctionCall {
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
-                result = ValueString.get(toChar(v0.getTimestamp(),
+                result = ValueString.get(ToChar.toChar(v0.getTimestamp(),
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1436,7 +1435,7 @@ public class Function extends Expression implements FunctionCall {
             case Value.DECIMAL:
             case Value.DOUBLE:
             case Value.FLOAT:
-                result = ValueString.get(toChar(v0.getBigDecimal(),
+                result = ValueString.get(ToChar.toChar(v0.getBigDecimal(),
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1612,6 +1611,7 @@ public class Function extends Expression implements FunctionCall {
                     }
                     result = database.getLobStorage().createClob(reader, -1);
                 }
+                session.addTemporaryLob(result);
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
             }

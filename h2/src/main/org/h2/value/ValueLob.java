@@ -483,7 +483,7 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public boolean isLinked() {
+    public boolean isLinkedToTable() {
         return linked;
     }
 
@@ -497,7 +497,7 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public void close() {
+    public void remove() {
         if (fileName != null) {
             if (tempFile != null) {
                 tempFile.stopAutoDelete();
@@ -508,26 +508,7 @@ public class ValueLob extends Value {
     }
 
     @Override
-    public void unlink(DataHandler handler) {
-        if (linked && fileName != null) {
-            String temp;
-            // synchronize on the database, to avoid concurrent temp file
-            // creation / deletion / backup
-            synchronized (handler) {
-                temp = getFileName(handler, -1, objectId);
-                deleteFile(handler, temp);
-                renameFile(handler, fileName, temp);
-                tempFile = FileStore.open(handler, temp, "rw");
-                tempFile.autoDelete();
-                tempFile.closeSilently();
-                fileName = temp;
-                linked = false;
-            }
-        }
-    }
-
-    @Override
-    public Value link(DataHandler h, int tabId) {
+    public Value copy(DataHandler h, int tabId) {
         if (fileName == null) {
             this.tableId = tabId;
             return this;
@@ -766,7 +747,7 @@ public class ValueLob extends Value {
                     createFromReader(
                             new char[len], 0, getReader(), Long.MAX_VALUE, h);
                 }
-                Value v2 = link(h, tabId);
+                Value v2 = copy(h, tabId);
                 if (SysProperties.CHECK && v2 != this) {
                     DbException.throwInternalError();
                 }

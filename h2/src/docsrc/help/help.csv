@@ -3875,7 +3875,7 @@ SELECT FILE_READ('http://localhost:8182/stylesheet.css', NULL) CSS;
 "
 
 "Functions (System)","FILE_WRITE","
-FILE_WRITE(Blob , fileNameString)
+FILE_WRITE(blobValue, fileNameString)
 ","
 Write the supplied parameter into a file. Return the number of bytes written.
 

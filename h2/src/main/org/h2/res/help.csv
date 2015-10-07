@@ -1377,6 +1377,10 @@ Returns the approximate amount of space used by the table specified."
 FILE_READ(fileNameString [,encodingString])
 ","
 Returns the contents of a file."
+"Functions (System)","FILE_WRITE","
+FILE_WRITE(blobValue, fileNameString)
+","
+Write the supplied parameter into a file."
 "Functions (System)","GREATEST","
 GREATEST(aValue, bValue [,...])
 ","

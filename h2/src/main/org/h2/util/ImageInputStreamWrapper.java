@@ -136,7 +136,7 @@ public class ImageInputStreamWrapper extends ImageInputStreamImpl {
         }
     }
 
-    public static interface InputStreamProvider extends Closeable {
+    public interface InputStreamProvider extends Closeable {
         InputStream getInputStream() throws IOException;
     }
 
@@ -154,7 +154,7 @@ public class ImageInputStreamWrapper extends ImageInputStreamImpl {
 
         @Override
         public void close() throws IOException {
-            value.close();
+
         }
     }
 

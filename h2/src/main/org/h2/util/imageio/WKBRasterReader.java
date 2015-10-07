@@ -61,7 +61,8 @@ public class WKBRasterReader extends ImageReader {
         }
         return new ComponentColorModel(
                 ColorSpace.getInstance( colorSpaceIndex),
-                getMetaData().numBands == 4, false, Transparency.OPAQUE,
+                getMetaData().numBands == 4, false, getMetaData().numBands == 4 ?
+                Transparency.TRANSLUCENT : Transparency.OPAQUE,
                 getCommonDataType(getMetaData()));
     }
 

@@ -127,10 +127,15 @@ public class ImageInputStreamWrapper extends ImageInputStreamImpl {
                 long skip = streamPos - internalPos;
                 IOUtils.skipFully(inputStream, skip);
             } else {
-                // If position is before stream, reopen, then skip data to pos.
-                inputStream.close();
-                inputStream = value.getInputStream();
-                IOUtils.skipFully(inputStream, streamPos);
+                if(!inputStream.markSupported()) {
+                    // If position is before stream, reopen, then skip data to pos.
+                    inputStream.close();
+                    inputStream = value.getInputStream();
+                    IOUtils.skipFully(inputStream, streamPos);
+                } else {
+                    inputStream.reset();
+                    IOUtils.skipFully(inputStream, streamPos);
+                }
             }
             internalPos = streamPos;
         }

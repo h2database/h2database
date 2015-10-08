@@ -7,6 +7,7 @@ import javax.imageio.ImageReadParam;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.DataBuffer;
 import java.awt.image.SampleModel;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 /**
@@ -18,12 +19,15 @@ public class WKBRasterDataBuffer extends DataBuffer {
     private RasterUtils.RasterMetaData metaData;
     private RasterUtils.WKBByteDriver[] wkbByteDriver;
     private byte[] buffer = new byte[8];
+    private ByteArrayInputStream[] cacheRow;
+    private int cacheRowId = -1;
     private final int pixelXSubSampling;
     private final int pixelYSubSampling;
     private final boolean specialSubSampling;
     private final int outWidth;
     private final int outHeight;
     private final int pixelOffset;
+    private final int cacheInterval;
 
 
     /**
@@ -50,9 +54,31 @@ public class WKBRasterDataBuffer extends DataBuffer {
         this.outHeight = sampleModel.getHeight();
         this.outWidth = sampleModel.getWidth();
         this.pixelOffset = imageReadParam.getSourceRegion() == null ? 0 : imageReadParam.getSourceRegion().y * metaData.width + imageReadParam.getSourceRegion().x;
-
+        this.cacheInterval = metaData.width;
         // TODO prepare OffDB buffer
         specialSubSampling = pixelXSubSampling != 1 || pixelYSubSampling != 1;
+    }
+
+    private int getRow(int i) {
+        return (i - pixelOffset) / metaData.width;
+    }
+
+    private int getColumn(int i) {
+        return (i - pixelOffset) % metaData.width;
+    }
+
+    private void cachePixels(int rowId) throws IOException {
+        if(cacheRow == null) {
+            cacheRow = new ByteArrayInputStream[metaData.numBands];
+        }
+        for(int idBand = 0; idBand < metaData.numBands; idBand++) {
+            long position = metaData.getStreamOffset(idBand, rowId  * cacheInterval);
+            inputStream.seek(position);
+            byte[] row = new byte[cacheInterval * metaData.bands[idBand].pixelType.pixelSize];
+            IOUtils.readFully(inputStream, row, row.length);
+            cacheRow[idBand] = new ByteArrayInputStream(row);
+        }
+        cacheRowId = rowId;
     }
 
     private void seek(int bank, int i) throws IOException {
@@ -64,41 +90,28 @@ public class WKBRasterDataBuffer extends DataBuffer {
             }
             i = pixelOffset + row * metaData.width + column;
         }
-        long position = metaData.getStreamOffset(bank, i);
-        inputStream.seek(position);
+        if(i / cacheInterval != cacheRowId) {
+            cachePixels(i / cacheInterval);
+        }
+        cacheRow[bank].reset();
+        cacheRow[bank].skip(i % cacheInterval);
     }
 
     @Override
     public int getElem(int bank, int i) {
-        try {
-            seek(bank, i);
-            IOUtils.readFully(inputStream, buffer, metaData.bands[bank]
-                    .pixelType.pixelSize);
-            return (int)wkbByteDriver[bank].readAsDouble(buffer, 0);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Error while reading " +
-                    "ImageInputStream in WKBRasterDataBuffer", ex);
-        }
+        return (int)getElemDouble(bank, i);
     }
 
     @Override
     public double getElemDouble(int i) {
-        try {
-            seek(0, i);
-            IOUtils.readFully(inputStream, buffer,
-                    metaData.bands[0].pixelType.pixelSize);
-            return wkbByteDriver[0].readAsDouble(buffer, 0);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Error while reading " +
-                    "ImageInputStream in WKBRasterDataBuffer", ex);
-        }
+        return getElemDouble(0, i);
     }
 
     @Override
     public double getElemDouble(int bank, int i) {
         try {
             seek(bank, i);
-            IOUtils.readFully(inputStream, buffer,
+            IOUtils.readFully(cacheRow[bank], buffer,
                     metaData.bands[bank].pixelType.pixelSize);
             return wkbByteDriver[bank].readAsDouble(buffer, 0);
         } catch (IOException ex) {
@@ -109,28 +122,12 @@ public class WKBRasterDataBuffer extends DataBuffer {
 
     @Override
     public float getElemFloat(int i) {
-        try {
-            seek(0, i);
-            IOUtils.readFully(inputStream, buffer,
-                    metaData.bands[0].pixelType.pixelSize);
-            return (float)wkbByteDriver[0].readAsDouble(buffer, 0);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Error while reading " +
-                    "ImageInputStream in WKBRasterDataBuffer", ex);
-        }
+        return (float)getElemDouble(i);
     }
 
     @Override
     public float getElemFloat(int bank, int i) {
-        try {
-            seek(bank, i);
-            IOUtils.readFully(inputStream, buffer,
-                    metaData.bands[bank].pixelType.pixelSize);
-            return (float)wkbByteDriver[bank].readAsDouble(buffer, 0);
-        } catch (IOException ex) {
-            throw new IllegalStateException("Error while reading " +
-                    "ImageInputStream in WKBRasterDataBuffer", ex);
-        }
+        return (float)getElemDouble(bank, i);
     }
 
     @Override

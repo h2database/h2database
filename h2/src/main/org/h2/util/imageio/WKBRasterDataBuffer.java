@@ -57,12 +57,12 @@ public class WKBRasterDataBuffer extends DataBuffer {
 
     private void seek(int bank, int i) throws IOException {
         if(specialSubSampling) {
-            final int column = (i % metaData.width) * pixelXSubSampling;
-            final int row = (i / metaData.width) * pixelYSubSampling;
+            final int column = ((i - pixelOffset) % metaData.width) * pixelXSubSampling;
+            final int row = ((i - pixelOffset) / metaData.width) * pixelYSubSampling;
             if(column >= metaData.width || row >= metaData.height) {
                 throw new IOException("Out of band exception");
             }
-            i = row * metaData.width + column;
+            i = pixelOffset + row * metaData.width + column;
         }
         long position = metaData.getStreamOffset(bank, i);
         inputStream.seek(position);

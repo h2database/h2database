@@ -844,18 +844,18 @@ public class TestGeoRaster extends TestBase {
         int subY = 3;
         int offsetX = 0;
         int offsetY = 0;
-        //Rectangle rect = new Rectangle(5, 5, 225, 288);
+        Rectangle rect = new Rectangle(5, 5, 225, 288);
         // Read source with standard driver
         ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(UNIT_TEST_IMAGE, "r"));
         ImageReader ir = ImageIO.getImageReaders(is).next();
         ImageReadParam srcParam = ir.getDefaultReadParam();
         srcParam.setSourceSubsampling(subX, subY, offsetX, offsetY);
-        //srcParam.setSourceRegion(rect);
+        srcParam.setSourceRegion(rect);
         ir.setInput(is);
         BufferedImage srcImage = ir.read(ir.getMinIndex(), srcParam);
         // Same with WKB Driver
         param.setSourceSubsampling(subX, subY, offsetX, offsetY);
-        //param.setSourceRegion(rect);
+        param.setSourceRegion(rect);
         BufferedImage image = wkbReader.read(wkbReader.getMinIndex(), param);
         assertEquals(srcImage.getWidth(), image.getWidth());
         assertEquals(srcImage.getHeight(), image.getHeight());

@@ -71,24 +71,24 @@ public class TestGeoRaster extends TestBase {
         if (config.memory && config.mvcc) {
             return;
         }
-//        testEmptyGeoRaster();
-//        testGeoRasterWithBands();
-//        testWriteRasterFromString();
-//        testSpatialIndex();
-//        testLittleEndian();
-//        testLittleEndianHexa();
-//        testExternalRaster();
-//        testStRasterMetaData();
-//        testRasterCastToGeometry();
-//        testPngLoading();
-//        testPngLoadingSQL();
-//        testImageIOWKBTranslation();
-//        testWKBTranslationStream();
-//        testImageFromRaster();
-//        testMakeEmptyRaster();
-//        testRasterToString();
-//        testStBandMetaData();
-//        testImageIOReadParametersRegion();
+        testEmptyGeoRaster();
+        testGeoRasterWithBands();
+        testWriteRasterFromString();
+        testSpatialIndex();
+        testLittleEndian();
+        testLittleEndianHexa();
+        testExternalRaster();
+        testStRasterMetaData();
+        testRasterCastToGeometry();
+        testPngLoading();
+        testPngLoadingSQL();
+        testImageIOWKBTranslation();
+        testWKBTranslationStream();
+        testImageFromRaster();
+        testMakeEmptyRaster();
+        testRasterToString();
+        testStBandMetaData();
+        testImageIOReadParametersRegion();
         testImageIOReadParametersSubSampling();
     }
 

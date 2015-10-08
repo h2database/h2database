@@ -463,7 +463,16 @@ public abstract class Table extends SchemaObjectBase {
             }
             Row o = rows.next();
             rows.next();
-            removeRow(session, o);
+            try {
+                removeRow(session, o);
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
+                    session.rollbackTo(rollback, false);
+                    session.startStatementWithinTransaction();
+                    rollback = session.setSavepoint();
+                }
+                throw e;
+            }
             session.log(this, UndoLogRecord.DELETE, o);
         }
         // add the new rows

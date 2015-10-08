@@ -3,8 +3,10 @@ package org.h2.util.imageio;
 import org.h2.util.IOUtils;
 import org.h2.util.RasterUtils;
 
+import javax.imageio.ImageReadParam;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.DataBuffer;
+import java.awt.image.SampleModel;
 import java.io.IOException;
 
 /**
@@ -16,6 +18,13 @@ public class WKBRasterDataBuffer extends DataBuffer {
     private RasterUtils.RasterMetaData metaData;
     private RasterUtils.WKBByteDriver[] wkbByteDriver;
     private byte[] buffer = new byte[8];
+    private final int pixelXSubSampling;
+    private final int pixelYSubSampling;
+    private final boolean specialSubSampling;
+    private final int outWidth;
+    private final int outHeight;
+    private final int pixelOffset;
+
 
     /**
      * Constructor.
@@ -25,7 +34,8 @@ public class WKBRasterDataBuffer extends DataBuffer {
      * @param metaData Raster metadata
      */
     public WKBRasterDataBuffer(int dataType, int size,
-            ImageInputStream inputStream, RasterUtils.RasterMetaData metaData) {
+            ImageInputStream inputStream, RasterUtils.RasterMetaData metaData, ImageReadParam imageReadParam,
+                               SampleModel sampleModel) {
         super(dataType, size);
         this.inputStream = inputStream;
         this.metaData = metaData;
@@ -35,10 +45,25 @@ public class WKBRasterDataBuffer extends DataBuffer {
                     .fetchDriver(metaData.bands[bandId].pixelType, metaData
                             .endian);
         }
+        this.pixelXSubSampling = imageReadParam.getSourceXSubsampling();
+        this.pixelYSubSampling = imageReadParam.getSourceYSubsampling();
+        this.outHeight = sampleModel.getHeight();
+        this.outWidth = sampleModel.getWidth();
+        this.pixelOffset = imageReadParam.getSourceRegion() == null ? 0 : imageReadParam.getSourceRegion().y * metaData.width + imageReadParam.getSourceRegion().x;
+
         // TODO prepare OffDB buffer
+        specialSubSampling = pixelXSubSampling != 1 || pixelYSubSampling != 1;
     }
 
     private void seek(int bank, int i) throws IOException {
+        if(specialSubSampling) {
+            final int column = (i % metaData.width) * pixelXSubSampling;
+            final int row = (i / metaData.width) * pixelYSubSampling;
+            if(column >= metaData.width || row >= metaData.height) {
+                throw new IOException("Out of band exception");
+            }
+            i = row * metaData.width + column;
+        }
         long position = metaData.getStreamOffset(bank, i);
         inputStream.seek(position);
     }

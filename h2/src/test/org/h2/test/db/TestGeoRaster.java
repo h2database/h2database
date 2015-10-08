@@ -71,24 +71,25 @@ public class TestGeoRaster extends TestBase {
         if (config.memory && config.mvcc) {
             return;
         }
-        testEmptyGeoRaster();
-        testGeoRasterWithBands();
-        testWriteRasterFromString();
-        testSpatialIndex();
-        testLittleEndian();
-        testLittleEndianHexa();
-        testExternalRaster();
-        testStRasterMetaData();
-        testRasterCastToGeometry();
-        testPngLoading();
-        testPngLoadingSQL();
-        testImageIOWKBTranslation();
-        testWKBTranslationStream();
-        testImageFromRaster();
-        testMakeEmptyRaster();
-        testRasterToString();
-        testStBandMetaData();
-        testImageIOReadParameters();
+//        testEmptyGeoRaster();
+//        testGeoRasterWithBands();
+//        testWriteRasterFromString();
+//        testSpatialIndex();
+//        testLittleEndian();
+//        testLittleEndianHexa();
+//        testExternalRaster();
+//        testStRasterMetaData();
+//        testRasterCastToGeometry();
+//        testPngLoading();
+//        testPngLoadingSQL();
+//        testImageIOWKBTranslation();
+//        testWKBTranslationStream();
+//        testImageFromRaster();
+//        testMakeEmptyRaster();
+//        testRasterToString();
+//        testStBandMetaData();
+//        testImageIOReadParametersRegion();
+        testImageIOReadParametersSubSampling();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -772,7 +773,7 @@ public class TestGeoRaster extends TestBase {
         return resizedImage;
     }
 
-    public void testImageIOReadParameters() throws SQLException, IOException {
+    public void testImageIOReadParametersRegion() throws SQLException, IOException {
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -809,6 +810,55 @@ public class TestGeoRaster extends TestBase {
         srcParam.setSourceRegion(rect);
         ir.setInput(is);
         BufferedImage srcImage = ir.read(ir.getMinIndex(), srcParam);
+        int[] pixelsSource = srcImage.getRGB(0, 0, srcImage.getWidth(), srcImage.getHeight(), null, 0, image.getWidth());
+        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
+        assertEquals(pixelsSource, pixels);
+    }
+
+    public void testImageIOReadParametersSubSampling() throws SQLException, IOException {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        stat.execute("INSERT INTO TEST(data) VALUES (" +
+                "ST_RasterFromImage(File_Read('" + UNIT_TEST_IMAGE + "'), 47" +
+                ".6443,  -2.7766, 1, 1,0, 0, 4326))");
+
+        // Query WKB Raster binary
+        ResultSet rs = stat.executeQuery("SELECT data rasterdata FROM " +
+                "TEST");
+        assertTrue(rs.next());
+        // Convert SQL Blob object into ImageInputStream
+        Blob blob = rs.getBlob(1);
+        ImageInputStream inputStream = ImageIO.createImageInputStream(blob);
+        assertTrue(inputStream != null);
+        // Fetch WKB Raster Image reader
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
+        assertTrue(readers.hasNext());
+        ImageReader wkbReader = readers.next();
+        // Feed WKB Raster Reader with blob data
+        wkbReader.setInput(inputStream);
+        // Retrieve data as a BufferedImage
+        ImageReadParam param = wkbReader.getDefaultReadParam();
+        int subX = 2;
+        int subY = 3;
+        int offsetX = 0;
+        int offsetY = 0;
+        //Rectangle rect = new Rectangle(5, 5, 225, 288);
+        // Read source with standard driver
+        ImageInputStream is = ImageIO.createImageInputStream(new RandomAccessFile(UNIT_TEST_IMAGE, "r"));
+        ImageReader ir = ImageIO.getImageReaders(is).next();
+        ImageReadParam srcParam = ir.getDefaultReadParam();
+        srcParam.setSourceSubsampling(subX, subY, offsetX, offsetY);
+        //srcParam.setSourceRegion(rect);
+        ir.setInput(is);
+        BufferedImage srcImage = ir.read(ir.getMinIndex(), srcParam);
+        // Same with WKB Driver
+        param.setSourceSubsampling(subX, subY, offsetX, offsetY);
+        //param.setSourceRegion(rect);
+        BufferedImage image = wkbReader.read(wkbReader.getMinIndex(), param);
+        assertEquals(srcImage.getWidth(), image.getWidth());
+        assertEquals(srcImage.getHeight(), image.getHeight());
         int[] pixelsSource = srcImage.getRGB(0, 0, srcImage.getWidth(), srcImage.getHeight(), null, 0, image.getWidth());
         int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
         assertEquals(pixelsSource, pixels);

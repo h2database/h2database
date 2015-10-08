@@ -118,20 +118,17 @@ public class WKBRasterReader extends ImageReader {
 
     protected SampleModel getSampleModel(ImageReadParam param) throws IOException {
         RasterUtils.RasterMetaData meta = getMetaData();
-        int width = meta.width;
-        int height = meta.height;
-        boolean specialRegion = false;
-        if(param.getSourceRegion() != null && !param.getSourceRegion().isEmpty()) {
-            width = param.getSourceRegion().width;
-            height = param.getSourceRegion().height;
-            specialRegion = width != meta.width || height != meta.height;
-        }
+        Rectangle srcRegion = new Rectangle();
+        Rectangle destRegion = new Rectangle();
+        computeRegions(param, meta.width, meta.height, null, srcRegion, destRegion);
+        int width = destRegion.width;
+        int height = destRegion.height;
         final int commonDataType = getCommonDataType(meta);
         int[] bankIndices = new int[meta.numBands];
         // Skip band metadata
         int[] bandOffset = new int[meta.numBands];
         int offset = 0;
-        if(specialRegion) {
+        if(param.getSourceRegion() != null) {
             offset = param.getSourceRegion().y * meta.width + param.getSourceRegion().x;
         }
         for(int i=0; i < meta.numBands; i++) {
@@ -159,9 +156,8 @@ public class WKBRasterReader extends ImageReader {
         final int commonDataType = getCommonDataType(meta);
         SampleModel sampleModel = getSampleModel(param);
         DataBuffer dataBuffer = new WKBRasterDataBuffer(commonDataType,
-                -1, (ImageInputStream)input, meta);
-        return Raster.createWritableRaster(sampleModel, dataBuffer, new Point
-                ());
+                -1, (ImageInputStream)input, meta, param, sampleModel);
+        return Raster.createWritableRaster(sampleModel, dataBuffer, new Point());
     }
 
 

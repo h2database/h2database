@@ -190,6 +190,9 @@ public class CheckTextFiles {
                     line++;
                     int lineLength = i - startLinePos;
                     if (file.getName().endsWith(".java")) {
+                        if (useCRLF) {
+                            lineLength--;
+                        }
                         if (lineLength > MAX_SOURCE_LINE_SIZE) {
                             fail(file, "line too long: " + lineLength, line);
                         }

@@ -2031,26 +2031,30 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore store = new MVStore.Builder().cacheSize(16).
                 fileName(fileName).open();
-        MVMap<Integer, String> map = store.openMap("test");
-        long last = System.currentTimeMillis();
-        String data = new String(new char[2500]).replace((char) 0, 'x');
-        for (int i = 0;; i++) {
-            map.put(i, data);
-            if (i % 10000 == 0) {
-                store.commit();
-                long time = System.currentTimeMillis();
-                if (time - last > 2000) {
-                    long mb = store.getFileStore().size() / 1024 / 1024;
-                    trace(mb + "/4500");
-                    if (mb > 4500) {
-                        break;
+        try {
+            MVMap<Integer, String> map = store.openMap("test");
+            long last = System.currentTimeMillis();
+            String data = new String(new char[2500]).replace((char) 0, 'x');
+            for (int i = 0;; i++) {
+                map.put(i, data);
+                if (i % 10000 == 0) {
+                    store.commit();
+                    long time = System.currentTimeMillis();
+                    if (time - last > 2000) {
+                        long mb = store.getFileStore().size() / 1024 / 1024;
+                        trace(mb + "/4500");
+                        if (mb > 4500) {
+                            break;
+                        }
+                        last = time;
                     }
-                    last = time;
                 }
             }
+            store.commit();
+            store.close();
+        } finally {
+            store.closeImmediately();
         }
-        store.commit();
-        store.close();
         FileUtils.delete(fileName);
     }
 

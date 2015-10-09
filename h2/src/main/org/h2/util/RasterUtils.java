@@ -10,10 +10,8 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
-import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.store.DataHandler;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathDisk;
 import org.h2.util.imageio.RenderedImageReader;
@@ -21,7 +19,6 @@ import org.h2.util.imageio.WKBRasterReader;
 import org.h2.util.imageio.WKBRasterReaderSpi;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
-import org.h2.value.ValueNull;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
@@ -29,8 +26,9 @@ import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
-import java.awt.image.BufferedImage;
-import java.awt.image.Raster;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,7 +38,6 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -448,17 +445,46 @@ public class RasterUtils {
         }
 
         /**
+         * @return The raster transformation matrix using awt API.
+         */
+        public AffineTransform getTransform() {
+            return new AffineTransform(scaleX, skewY, skewX, scaleY, ipX, ipY);
+        }
+
+        /**
+         * Compute row-column position from world coordinate
+         * @param coordinate world coordinate.
+         * @return raster row-column (0-based)
+         */
+        public int[] getPixelFromCoordinate(Coordinate coordinate) {
+            try {
+                AffineTransform inv = getTransform().createInverse();
+                Point2D pt = inv.transform(new Point2D.Double(coordinate.x, coordinate.y), null);
+                return new int[]{(int)pt.getX(), (int)pt.getY()};
+            } catch (NoninvertibleTransformException ex) {
+                return null;
+            }
+        }
+
+
+        /**
          * Translate the pixel row,column into map coordinate
          *
-         * @param x Column
-         * @param y Row
+         * @param x Column (0-based)
+         * @param y Row (0-based)
          * @return Pixel world coordinate
          */
         public Coordinate getPixelCoordinate(int x, int y) {
-            return new Coordinate(scaleX * x + skewX * y + ipX, scaleY * y +
-                    skewY * x + ipY);
+            AffineTransform pixelTransform = getTransform();
+            Point2D pt = pixelTransform.transform(new Point2D.Double(x, y), null);
+            return new Coordinate(pt.getX(), pt.getY());
         }
 
+        /**
+         * @param raster Raster binary data
+         * @return Complete raster and bands metadata.
+         * @throws IOException
+         */
         public static RasterMetaData fetchMetaData(InputStream raster)
                 throws IOException {
             return fetchMetaData(raster, true);

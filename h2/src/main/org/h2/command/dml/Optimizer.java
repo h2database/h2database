@@ -54,13 +54,15 @@ class Optimizer {
     }
 
     /**
-     * @return {@code true} If join reordering is enabled (it can be disabled by hint).
+     * Whether join reordering is enabled (it can be disabled by hint).
+     *
+     * @return {@code true} if yes
      */
     private static boolean isJoinReorderingEnabled() {
         OptimizerHints hints = OptimizerHints.get();
-        return hints == null || hints.joinReorderEnabled;
+        return hints == null || hints.getJoinReorderEnabled();
     }
-    
+
     /**
      * How many filter to calculate using brute force. The remaining filters are
      * selected using a greedy algorithm which has a runtime of (1 + 2 + ... +

@@ -49,7 +49,8 @@ public class TestMvcc4 extends TestBase {
                     + "entity_id VARCHAR(100) NOT NULL PRIMARY KEY, "
                     + "lastUpdated TIMESTAMP NOT NULL)");
 
-            PreparedStatement ps = setup.prepareStatement("INSERT INTO test (entity_id, lastUpdated) VALUES (?, ?)");
+            PreparedStatement ps = setup.prepareStatement(
+                    "INSERT INTO test (entity_id, lastUpdated) VALUES (?, ?)");
             for (int i = 0; i < 2; i++) {
                 String id = "" + i;
                 ps.setString(1, id);
@@ -72,7 +73,8 @@ public class TestMvcc4 extends TestBase {
                     Connection c2 = getConnection("mvcc4");
                     c2.setAutoCommit(false);
 
-                    PreparedStatement ps = c2.prepareStatement("SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
+                    PreparedStatement ps = c2.prepareStatement(
+                            "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
                     ps.setString(1, "1");
                     ps.executeQuery().next();
 
@@ -93,32 +95,32 @@ public class TestMvcc4 extends TestBase {
         } catch (InterruptedException e) {
         }
 
-        {
-            //Execute an update.  This should initially fail, and enter the waiting for lock case.
-            PreparedStatement ps = c1.prepareStatement("UPDATE test SET lastUpdated = ?");
-            ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
-            ps.executeUpdate();
-        }
+        // Execute an update. This should initially fail, and enter the waiting
+        // for lock case.
+        PreparedStatement ps = c1.prepareStatement("UPDATE test SET lastUpdated = ?");
+        ps.setTimestamp(1, new Timestamp(System.currentTimeMillis()));
+        ps.executeUpdate();
 
         c1.commit();
         c1.close();
 
         Connection verify = getConnection("mvcc4");
-        {
-            verify.setAutoCommit(false);
-            PreparedStatement ps = verify.prepareStatement("SELECT COUNT(*) FROM test");
-            ResultSet rs = ps.executeQuery();
-            assertTrue(rs.next());
-            assertTrue(rs.getInt(1) == 2);
-            verify.commit();
-            verify.close();
-        }
+
+        verify.setAutoCommit(false);
+        ps = verify.prepareStatement("SELECT COUNT(*) FROM test");
+        ResultSet rs = ps.executeQuery();
+        assertTrue(rs.next());
+        assertTrue(rs.getInt(1) == 2);
+        verify.commit();
+        verify.close();
 
         setup.close();
     }
 
     private static void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
+            // TODO must not use getAllStackTraces, as the method names are
+            // implementation details
             Map<Thread, StackTraceElement[]> threadMap = Thread.getAllStackTraces();
             StackTraceElement[] elements = threadMap.get(t);
             if (elements != null

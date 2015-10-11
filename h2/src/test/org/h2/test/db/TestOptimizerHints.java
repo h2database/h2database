@@ -13,8 +13,8 @@ import org.h2.command.dml.OptimizerHints;
 import org.h2.test.TestBase;
 
 /**
- * Test for optimizer hints. 
- * 
+ * Test for optimizer hints.
+ *
  * @author Sergi Vladykin
  */
 public class TestOptimizerHints extends TestBase {
@@ -36,34 +36,34 @@ public class TestOptimizerHints extends TestBase {
         deleteDb("testOptimizerHints");
         Connection conn = getConnection("testOptimizerHints");
         Statement s = conn.createStatement();
-        
+
         s.execute("create table t1(id int)");
         s.execute("create table t2(id int, ref_id int)");
-        
+
         s.execute("insert into t1 values(1),(2),(3)");
         s.execute("insert into t2 values(1,2),(2,3),(3,4),(4,6),(5,1),(6,4)");
-        
+
         s.execute("create unique index idx1_id on t1(id)");
         s.execute("create index idx2_id on t2(id)");
         s.execute("create index idx2_ref_id on t2(ref_id)");
-        
+
         enableJoinReordering(false);
-        
+
         try {
             String plan;
-            
+
             plan = plan(s, "select * from t1, t2 where t1.id = t2.ref_id");
             assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T2"));
-            
+
             plan = plan(s, "select * from t2, t1 where t1.id = t2.ref_id");
             assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T1"));
-            
+
             plan = plan(s, "select * from t2, t1 where t1.id = 1");
             assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T1"));
-            
+
             plan = plan(s, "select * from t2, t1 where t1.id = t2.ref_id and t2.id = 1");
             assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T1"));
-            
+
             plan = plan(s, "select * from t1, t2 where t1.id = t2.ref_id and t2.id = 1");
             assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T2"));
         } finally {
@@ -80,12 +80,12 @@ public class TestOptimizerHints extends TestBase {
         hints.setJoinReorderEnabled(enable);
         OptimizerHints.set(hints);
     }
-    
+
     /**
      * @param s Statement.
      * @param query Query.
      * @return Plan.
-     * @throws SQLException If failed. 
+     * @throws SQLException If failed.
      */
     private String plan(Statement s, String query) throws SQLException {
         ResultSet rs = s.executeQuery("explain " + query);

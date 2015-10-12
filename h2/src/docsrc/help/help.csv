@@ -3642,7 +3642,8 @@ CALL ARRAY_CONTAINS(('Hello', 'World'), 'Hello')
 ST_METADATA (RASTER)
 ","
 Read the metadata of the raster
-This method returns an array. (Coordinate X, Coordinate Y, Width, Height, ScaleX, ScaleY, SkewX, SkewY, SRID, bands count)
+This method returns an array. (Coordinate X, Coordinate Y, Width, Height,
+ScaleX, ScaleY, SkewX, SkewY, SRID, bands count)
 ","
 ST_METADATA(RASTER)
 "
@@ -3655,6 +3656,28 @@ This method returns an array. (PixelType, NoDataValue, IsPixelsOutDatabase,
  ExternalBandPath)
 ","
 ST_BANDMETADATA(RASTER, 1)
+"
+
+"Functions (RASTER)","ST_WORLDTORASTERCOORD","
+ST_WORLDTORASTERCOORD (RASTER, x, y)
+","
+Convert geometric coordinates into 1-based pixel coordinates. This function
+return an ARRAY with two elements, column and row. This function may return
+negative  pixel index as the output is not bounded to the raster height and
+width.
+","
+ST_WorldToRasterCoord(Raster, 1.561, -2.348)
+"
+
+"Functions (RASTER)","ST_RASTERTOWORLDCOORD","
+ST_RASTERTOWORLDCOORD (RASTER, indexExpression, indexExpression)
+","
+Convert 1-based pixel coordinates into geometric coordinates. This function
+return an ARRAY with two elements, x and y. This function accept zero and
+ negative  pixel index as the input is not bounded to the raster height and
+width.
+","
+ST_RasterToWorldCoord(Raster, 50, 64)
 "
 
 "Functions (RASTER)","ST_RASTERFROMIMAGE","

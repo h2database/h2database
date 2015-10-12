@@ -4,7 +4,7 @@ import org.h2.message.DbException;
 
 import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
-import java.awt.*;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;

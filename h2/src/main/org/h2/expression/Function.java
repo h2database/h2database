@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -138,7 +139,8 @@ public class Function extends Expression implements FunctionCall {
      */
     public static final int ST_METADATA = 350, ST_RASTERFROMIMAGE = 351,
             ST_IMAGEFROMRASTER = 352, ST_MAKEEMPTYRASTER = 353,
-            ST_BANDMETADATA = 354;
+            ST_BANDMETADATA = 354,  ST_WORLDTORASTERCOORD = 355,
+            ST_RASTERTOWORLDCOORD = 356;
 
     private static final int VAR_ARGS = -1;
     private static final long PRECISION_UNKNOWN = -1;
@@ -491,6 +493,8 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ST_IMAGEFROMRASTER", ST_IMAGEFROMRASTER, 2, Value.BLOB);
         addFunction("ST_MAKEEMPTYRASTER", ST_MAKEEMPTYRASTER, VAR_ARGS, Value
                 .RASTER);
+        addFunction("ST_RASTERTOWORLDCOORD", ST_RASTERTOWORLDCOORD, 3, Value.ARRAY);
+        addFunction("ST_WORLDTORASTERCOORD", ST_WORLDTORASTERCOORD, 3, Value.ARRAY);
     }
 
     protected Function(Database database, FunctionInfo info) {
@@ -1713,18 +1717,34 @@ public class Function extends Expression implements FunctionCall {
                     // Initialise for an existing raster
                     rasterMetaData = ((Value.ValueRasterMarker) v0).getMetaData();
                 } else {
-                    rasterMetaData = new RasterUtils.RasterMetaData(
-                            v0.getInt(),
-                            v1.getInt(),
-                            v4.getDouble(),
-                            v5.getDouble(),
-                            v2.getDouble(),
-                            v3.getDouble(),
-                            getNullOrValue(session, args, values, 6)
-                                    .getDouble(),
-                            getNullOrValue(session, args, values, 7)
-                                    .getDouble(),
-                            getNullOrValue(session, args, values, 8).getInt());
+                    if(args.length == 9) {
+                        rasterMetaData = new RasterUtils.RasterMetaData(
+                                v0.getInt(),
+                                v1.getInt(),
+                                v4.getDouble(),
+                                v5.getDouble(),
+                                v2.getDouble(),
+                                v3.getDouble(),
+                                getNullOrValue(session, args, values, 6)
+                                        .getDouble(),
+                                getNullOrValue(session, args, values, 7)
+                                        .getDouble(),
+                                getNullOrValue(session, args, values, 8).getInt());
+                    } else if(args.length == 5) {
+                        rasterMetaData = new RasterUtils.RasterMetaData(
+                                v0.getInt(),
+                                v1.getInt(),
+                                v4.getDouble(),
+                                -v4.getDouble(),
+                                v2.getDouble(),
+                                v3.getDouble(),
+                                0,
+                                0,
+                                0);
+                    } else {
+                        throw DbException.get(ErrorCode
+                                .INVALID_PARAMETER_COUNT_2);
+                    }
                 }
                 result = RasterUtils.makeEmptyRaster(rasterMetaData);
             } catch (IOException ex) {
@@ -1753,6 +1773,40 @@ public class Function extends Expression implements FunctionCall {
                                         .noDataValue) : ValueNull.INSTANCE,
                                 ValueBoolean.get(bandMetaData.offDB),
                                 ValueString.get(bandMetaData.externalPath)});
+            } catch (IOException ex) {
+                throw DbException.convertIOException(ex, getSQL());
+            }
+            break;
+        }
+        case ST_WORLDTORASTERCOORD: {
+            RasterUtils.RasterMetaData metaData;
+            try {
+                if (v0 instanceof Value.ValueRasterMarker) {
+                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                } else {
+                    metaData = ((Value.ValueRasterMarker) (v0
+                            .convertTo(Value.RASTER))).getMetaData();
+                }
+                int[] coords = metaData.getPixelFromCoordinate(new Coordinate(v1.getDouble(), v2.getDouble()));
+                // 1 based pixel index
+                result = ValueArray.get(new Value[] {ValueInt.get(coords[0] + 1), ValueInt.get(coords[1] + 1)});
+            } catch (IOException ex) {
+                throw DbException.convertIOException(ex, getSQL());
+            }
+            break;
+        }
+        case ST_RASTERTOWORLDCOORD: {
+            RasterUtils.RasterMetaData metaData;
+            try {
+                if (v0 instanceof Value.ValueRasterMarker) {
+                    metaData = ((Value.ValueRasterMarker) v0).getMetaData();
+                } else {
+                    metaData = ((Value.ValueRasterMarker) (v0
+                            .convertTo(Value.RASTER))).getMetaData();
+                }
+                // 1 based pixel index
+                Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
+                result = ValueArray.get(new Value[] {ValueDouble.get(coords.x), ValueDouble.get(coords.y)});
             } catch (IOException ex) {
                 throw DbException.convertIOException(ex, getSQL());
             }

@@ -86,10 +86,13 @@ public class TestGeoRaster extends TestBase {
         testWKBTranslationStream();
         testImageFromRaster();
         testMakeEmptyRaster();
+        testMakeEmptyRaster2();
         testRasterToString();
         testStBandMetaData();
         testImageIOReadParametersRegion();
         testImageIOReadParametersSubSampling();
+        testST_WorldToRasterCoord();
+        testST_RasterToWorldCoord();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -684,6 +687,31 @@ public class TestGeoRaster extends TestBase {
     }
 
 
+    public void testMakeEmptyRaster2() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        stat.execute("INSERT INTO TEST(DATA) VALUES(" +
+                "ST_MAKEEMPTYRASTER(33,33,0,0,1))");
+        // Check values
+        ResultSet rs = stat.executeQuery("SELECT data FROM test order by id");
+        assertTrue(rs.next());
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1));
+        assertEquals(33, metaData.width);
+        assertEquals(33, metaData.height);
+        assertEquals(0, metaData.numBands);
+        assertEquals(0, metaData.ipX);
+        assertEquals(0, metaData.ipY);
+        assertEquals(1, metaData.scaleX);
+        assertEquals(-1, metaData.scaleY);
+        assertEquals(0, metaData.skewX);
+        assertEquals(0, metaData.skewY);
+        assertEquals(0, metaData.srid);
+        conn.close();
+    }
+
     public void testRasterToString() throws Exception {
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
@@ -862,5 +890,48 @@ public class TestGeoRaster extends TestBase {
         int[] pixelsSource = srcImage.getRGB(0, 0, srcImage.getWidth(), srcImage.getHeight(), null, 0, image.getWidth());
         int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
         assertEquals(pixelsSource, pixels);
+    }
+
+
+    public void testST_WorldToRasterCoord() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT ST_WorldToRasterCoord(" +
+                "st_makeemptyraster(10, 10, 1.44754, -2.100, 0.001)," +
+                " 1.457, -2.101);");
+        assertTrue(rs.next());
+        assertEquals(new Object[]{10, 2}, (Object[])rs.getObject(1));
+        rs = stat.executeQuery("select st_worldtorastercoord( " +
+                "st_makeemptyraster(100, 100, 555, 256, 2.5), 570, 200);");
+        assertTrue(rs.next());
+        assertEquals(new Object[]{7, 23}, (Object[])rs.getObject(1));
+        rs = stat.executeQuery("select st_worldtorastercoord( " +
+                "st_makeemptyraster(256, 256, 6000000 , 300000, 2.5), " +
+                "6000200, 350000);");
+        assertTrue(rs.next());
+        assertEquals(new Object[]{81, -19999}, (Object[])rs.getObject(1));
+        conn.close();
+    }
+
+
+    public void testST_RasterToWorldCoord() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("SELECT ST_RasterToWorldCoord(" +
+                "st_makeemptyraster(10, 10, 1.44754, -2.100, 0.001)," +
+                " 10, 2);");
+        assertTrue(rs.next());
+        assertEquals(new Object[]{1.45653999999999995,-2.10099999999999998},
+                (Object[])rs.getObject(1));
+        rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
+                "st_makeemptyraster(100, 100, 555, 256, 2.5), 7, 23);");
+        assertTrue(rs.next());
+        assertEquals(new Object[]{570., 201.}, (Object[])rs.getObject(1));
+        rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
+                "st_makeemptyraster(256, 256, 6000000 , 300000, 2.5), 81, " +
+                "-19999);");
+        assertTrue(rs.next());
+        assertEquals(new Object[]{6000200.,350000.}, (Object[])rs.getObject(1));
+        conn.close();
     }
 }

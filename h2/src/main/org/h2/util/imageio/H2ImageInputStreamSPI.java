@@ -1,9 +1,6 @@
 package org.h2.util.imageio;
 
-import org.h2.engine.Session;
-import org.h2.util.*;
 import org.h2.util.ImageInputStreamWrapper;
-import org.h2.value.ValueLobDb;
 
 import javax.imageio.spi.ImageInputStreamSpi;
 import javax.imageio.stream.ImageInputStream;

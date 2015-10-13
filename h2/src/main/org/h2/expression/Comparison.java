@@ -294,8 +294,8 @@ public class Comparison extends Condition {
             result = database.compare(l, r) < 0;
             break;
         case SPATIAL_INTERSECTS: {
-            ValueSpatial lg = (ValueSpatial) l.convertToSpatial();
-            ValueSpatial rg = (ValueSpatial) r.convertToSpatial();
+            ValueGeometry lg = (ValueGeometry) l.convertTo(Value.GEOMETRY);
+            ValueGeometry rg = (ValueGeometry) r.convertTo(Value.GEOMETRY);
             result = lg.intersectsBoundingBox(rg);
             break;
         }

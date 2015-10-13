@@ -30,7 +30,7 @@ import com.vividsolutions.jts.io.WKTWriter;
  * @author Noel Grandin
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
-public class ValueGeometry extends Value implements ValueSpatial {
+public class ValueGeometry extends Value {
 
     /**
      * As conversion from/to WKB cost a significant amount of CPU cycles, WKB
@@ -161,7 +161,7 @@ public class ValueGeometry extends Value implements ValueSpatial {
      * @param r the other geometry
      * @return true if the two overlap
      */
-    public boolean intersectsBoundingBox(ValueSpatial r) {
+    public boolean intersectsBoundingBox(ValueGeometry r) {
         // the Geometry object caches the envelope
         return getGeometryNoCopy().getEnvelopeInternal().intersects(
                 r.getEnvelope());
@@ -180,7 +180,6 @@ public class ValueGeometry extends Value implements ValueSpatial {
         return get(gf.toGeometry(mergedEnvelope));
     }
 
-    @Override
     public Envelope getEnvelope() {
         return getGeometryNoCopy().getEnvelopeInternal();
     }

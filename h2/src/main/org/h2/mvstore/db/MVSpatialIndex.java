@@ -8,6 +8,7 @@ package org.h2.mvstore.db;
 import java.util.Iterator;
 import java.util.List;
 
+import com.vividsolutions.jts.geom.Geometry;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -30,12 +31,11 @@ import org.h2.result.SortOrder;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
 
 import com.vividsolutions.jts.geom.Envelope;
-
-import org.h2.value.ValueSpatial;
 
 /**
  * This is an index based on a MVRTreeMap.
@@ -214,17 +214,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         if (v == ValueNull.INSTANCE) {
             return new SpatialKey(row.getKey());
         }
-        ValueSpatial vs;
-        if(v instanceof ValueSpatial) {
-            vs = (ValueSpatial) v;
-        } else {
-            try {
-                vs = (ValueSpatial) v.convertTo(Value.GEOMETRY);
-            } catch (DbException ex) {
-                vs = (ValueSpatial) v.convertTo(Value.RASTER);
-            }
-        }
-        Envelope env = vs.getEnvelope();
+        Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
+        Envelope env = g.getEnvelopeInternal();
         return new SpatialKey(row.getKey(),
                 (float) env.getMinX(), (float) env.getMaxX(),
                 (float) env.getMinY(), (float) env.getMaxY());

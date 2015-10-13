@@ -794,8 +794,10 @@ public abstract class Value {
             }
             case JAVA_OBJECT: {
                 switch (getType()) {
+                    case RASTER:
+                        return new ValueJavaObject.GeoRasterObject(new
+                                GeoRasterBlob(this), getDataHandler());
                 case BYTES:
-                case RASTER:
                 case BLOB:
                     return ValueJavaObject.getNoCopy(
                             null, getBytesNoCopy(), getDataHandler());
@@ -923,23 +925,6 @@ public abstract class Value {
         } catch (NumberFormatException e) {
             throw DbException.get(
                     ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
-        }
-    }
-
-    /**
-     * Compare a value to the spatial types.
-     *
-     * @return the converted value
-     */
-    public Value convertToSpatial() {
-        if(this instanceof ValueSpatial) {
-            return this;
-        } else {
-            try {
-                return convertTo(GEOMETRY);
-            } catch (DbException e) {
-                return convertTo(RASTER);
-            }
         }
     }
 

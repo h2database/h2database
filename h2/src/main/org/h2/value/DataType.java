@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import org.h2.api.ErrorCode;
+import org.h2.api.GeoRaster;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
@@ -32,6 +33,8 @@ import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.GeoRasterBlob;
+import org.h2.util.GeoRasterRenderedImage;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.Utils;
@@ -967,6 +970,8 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
+        } else if (GeoRaster.class.isAssignableFrom(x)) {
+            return Value.JAVA_OBJECT;
         } else {
             return Value.JAVA_OBJECT;
         }
@@ -995,7 +1000,11 @@ public class DataType {
             return ValueNull.INSTANCE;
         }
         if (type == Value.JAVA_OBJECT) {
-            return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
+            if(x instanceof GeoRaster) {
+                new ValueJavaObject.GeoRasterObject((GeoRaster)x, session.getDataHandler());
+            } else {
+                return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
+            }
         }
         if (x instanceof String) {
             return ValueString.get((String) x);
@@ -1072,6 +1081,8 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
+        } else if(x instanceof GeoRaster) {
+            return new ValueJavaObject.GeoRasterObject((GeoRaster)x, session.getDataHandler());
         } else {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
@@ -1239,6 +1250,8 @@ public class DataType {
             return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {
             return new JdbcClob(conn, v, 0);
+        } else if (paramClass == GeoRaster.class) {
+            return new GeoRasterBlob(v);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),

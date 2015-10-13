@@ -5,10 +5,12 @@
  */
 package org.h2.value;
 
+import java.io.InputStream;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import org.h2.api.GeoRaster;
 import org.h2.engine.SysProperties;
 import org.h2.store.DataHandler;
 import org.h2.util.JdbcUtils;
@@ -199,6 +201,49 @@ public class ValueJavaObject extends ValueBytes {
         @Override
         public Value convertPrecision(long precision, boolean force) {
             return this;
+        }
+    }
+
+    /**
+     * Wrap GeoRaster object. It is serialised through ValueLobDB. The goal
+     * is not to create Lobs between each nested calls of methods (ex A(B(C())).
+     */
+    public static class GeoRasterObject extends ValueJavaObject {
+        private GeoRaster geoRaster;
+
+        /**
+         * Constructor
+         * @param geoRaster GeoRaster instance
+         * @param dataHandler DataHandler instance
+         */
+        public GeoRasterObject(GeoRaster geoRaster, DataHandler dataHandler) {
+            super(new byte[0], dataHandler);
+            this.geoRaster = geoRaster;
+        }
+
+        @Override
+        public byte[] getBytesNoCopy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Object getObject() {
+            return geoRaster;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return geoRaster.asWKBRaster();
+        }
+
+        @Override
+        public Value convertTo(int targetType) {
+            if(targetType == RASTER) {
+                return getDataHandler().getLobStorage().createRaster(
+                        getInputStream(), -1);
+            } else {
+                return super.convertTo(targetType);
+            }
         }
     }
 

@@ -5,27 +5,39 @@
  */
 package org.h2.util;
 
+import org.h2.api.GeoRaster;
+
 import java.awt.*;
+import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
+import java.awt.image.SampleModel;
+import java.awt.image.WritableRaster;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
+import java.util.Vector;
 
 /**
  * Convert RenderedImage into a WKB input stream.
- * This class is used when storing LobDB Raster from external image, BufferedImage or RenderedOp (JAI).
+ * This class is used when storing LobDB Raster from external image,
+ * BufferedImage or RenderedOp (JAI).
  * @author Nicolas Fortin
  */
-public class WKBRasterWrapper {
-    private final RenderedImage raster;
+public class GeoRasterRenderedImage implements GeoRaster {
+    private final RenderedImage image;
     private final RasterUtils.RasterMetaData rasterMetaData;
 
-    private WKBRasterWrapper(RenderedImage raster,
-            RasterUtils.RasterMetaData rasterMetaData) {
-        this.raster = raster;
+    private GeoRasterRenderedImage(RenderedImage image,
+                                   RasterUtils.RasterMetaData rasterMetaData) {
+        this.image = image;
         this.rasterMetaData = rasterMetaData;
+    }
+
+    public static GeoRasterRenderedImage create(RenderedImage image, RasterUtils
+            .RasterMetaData metaData) throws IllegalArgumentException {
+        return new GeoRasterRenderedImage(image, metaData);
     }
 
     /**
@@ -41,7 +53,7 @@ public class WKBRasterWrapper {
      * @param noDataValue NoData value for all bands
      * @return WKBRasterWrapper instance
      */
-    public static WKBRasterWrapper create(RenderedImage image, double scaleX,
+    public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
             double scaleY, double ipX, double ipY, double skewX, double skewY,
             int srid, double noDataValue) throws IOException {
         RasterUtils.RasterBandMetaData[] bands = new RasterUtils.RasterBandMetaData[image
@@ -66,11 +78,17 @@ public class WKBRasterWrapper {
                         bands.length, scaleX, scaleY, ipX, ipY, skewX,
                         skewY, srid, image.getWidth(), image.getHeight(),
                         bands);
-        return new WKBRasterWrapper(image, rasterMetaData);
+        return new GeoRasterRenderedImage(image, rasterMetaData);
     }
 
-    public InputStream toWKBRasterStream() {
-        return new WKBRasterStream(raster, rasterMetaData);
+    @Override
+    public RasterUtils.RasterMetaData getMetaData() {
+        return rasterMetaData;
+    }
+
+    @Override
+    public InputStream asWKBRaster() {
+        return new WKBRasterStream(image, rasterMetaData);
     }
 
     private static class WKBRasterStream extends InputStream {
@@ -377,5 +395,110 @@ public class WKBRasterWrapper {
                 }
             }
         }
+    }
+
+    @Override
+    public Vector<RenderedImage> getSources() {
+        return image.getSources();
+    }
+
+    @Override
+    public Object getProperty(String name) {
+        return image.getProperty(name);
+    }
+
+    @Override
+    public String[] getPropertyNames() {
+        return image.getPropertyNames();
+    }
+
+    @Override
+    public ColorModel getColorModel() {
+        return image.getColorModel();
+    }
+
+    @Override
+    public SampleModel getSampleModel() {
+        return image.getSampleModel();
+    }
+
+    @Override
+    public int getWidth() {
+        return image.getWidth();
+    }
+
+    @Override
+    public int getHeight() {
+        return image.getHeight();
+    }
+
+    @Override
+    public int getMinX() {
+        return image.getMinX();
+    }
+
+    @Override
+    public int getMinY() {
+        return image.getMinY();
+    }
+
+    @Override
+    public int getNumXTiles() {
+        return image.getNumXTiles();
+    }
+
+    @Override
+    public int getNumYTiles() {
+        return image.getNumYTiles();
+    }
+
+    @Override
+    public int getMinTileX() {
+        return image.getMinTileX();
+    }
+
+    @Override
+    public int getMinTileY() {
+        return image.getMinTileY();
+    }
+
+    @Override
+    public int getTileWidth() {
+        return image.getTileWidth();
+    }
+
+    @Override
+    public int getTileHeight() {
+        return image.getTileHeight();
+    }
+
+    @Override
+    public int getTileGridXOffset() {
+        return image.getTileGridXOffset();
+    }
+
+    @Override
+    public int getTileGridYOffset() {
+        return image.getTileGridYOffset();
+    }
+
+    @Override
+    public Raster getTile(int tileX, int tileY) {
+        return image.getTile(tileX, tileY);
+    }
+
+    @Override
+    public Raster getData() {
+        return image.getData();
+    }
+
+    @Override
+    public Raster getData(Rectangle rect) {
+        return image.getData(rect);
+    }
+
+    @Override
+    public WritableRaster copyData(WritableRaster raster) {
+        return this.image.copyData(raster);
     }
 }

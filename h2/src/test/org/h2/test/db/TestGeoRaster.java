@@ -7,12 +7,13 @@ package org.h2.test.db;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import org.h2.api.GeoRaster;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.ImageInputStreamWrapper;
 import org.h2.util.RasterUtils;
 import org.h2.util.Utils;
-import org.h2.util.WKBRasterWrapper;
+import org.h2.util.GeoRasterRenderedImage;
 import org.h2.value.Value;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueLobDb;
@@ -25,8 +26,8 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -93,6 +94,7 @@ public class TestGeoRaster extends TestBase {
         testImageIOReadParametersSubSampling();
         testST_WorldToRasterCoord();
         testST_RasterToWorldCoord();
+        testRasterProcessing();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -558,9 +560,9 @@ public class TestGeoRaster extends TestBase {
         final int width = 50, height = 50;
         BufferedImage image = getTestImage(width, height);
         // Convert into WKB data
-        WKBRasterWrapper wrapper = WKBRasterWrapper.create(image, 1, 1, 0,
+        GeoRasterRenderedImage wrapper = GeoRasterRenderedImage.create(image, 1, 1, 0,
                 0, 0, 0, 27572, 0);
-        InputStream wkbStream = wrapper.toWKBRasterStream();
+        InputStream wkbStream = wrapper.asWKBRaster();
         Value rasterValue = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
                 .readBytesAndClose(wkbStream, -1));
         // Convert WKB Raster into PNG ValueBlob
@@ -600,9 +602,9 @@ public class TestGeoRaster extends TestBase {
         final int width = 50, height = 50;
         BufferedImage expectedImage = getTestImage(width, height);
         // Convert into WKB data
-        WKBRasterWrapper wrapper = WKBRasterWrapper.create(expectedImage, 1, 1, 0,
+        GeoRasterRenderedImage wrapper = GeoRasterRenderedImage.create(expectedImage, 1, 1, 0,
                 0, 0, 0, 27572, 0);
-        InputStream wkbStream = wrapper.toWKBRasterStream();
+        InputStream wkbStream = wrapper.asWKBRaster();
         // Transfer to database
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
@@ -649,9 +651,9 @@ public class TestGeoRaster extends TestBase {
         // Check make with existing raster
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(ST_MAKEEMPTYRASTER(?::raster))");
-        st.setBinaryStream(1, WKBRasterWrapper.create(getTestImage(10,10)
-                , 1, -1, 0, 0, 0, 0,27572,0)
-                .toWKBRasterStream());
+        st.setBinaryStream(1, GeoRasterRenderedImage.create(getTestImage(10, 10)
+                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                .asWKBRaster());
         st.execute();
         stat.execute("INSERT INTO TEST(DATA) VALUES(" +
                 "ST_MAKEEMPTYRASTER(33,33,0,0,1,-1,0,0,27572))");
@@ -720,9 +722,9 @@ public class TestGeoRaster extends TestBase {
         // Check make with existing raster
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(?)");
-        st.setBinaryStream(1, WKBRasterWrapper
+        st.setBinaryStream(1, GeoRasterRenderedImage
                 .create(getTestImage(10, 10), 1, -1, 0, 0, 0, 0,
-                        27572, 0).toWKBRasterStream());
+                        27572, 0).asWKBRaster());
         st.execute();
         ResultSet rs = stat.executeQuery("SELECT data FROM test order by id");
         assertTrue(rs.next());
@@ -741,9 +743,9 @@ public class TestGeoRaster extends TestBase {
         // Check make with existing raster
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(?)");
-        st.setBinaryStream(1, WKBRasterWrapper
+        st.setBinaryStream(1, GeoRasterRenderedImage
                 .create(getTestImage(10, 10), 1, -1, 0, 0, 0, 0,
-                        27572, 0).toWKBRasterStream());
+                        27572, 0).asWKBRaster());
         st.execute();
         ResultSet rs =
                 stat.executeQuery("SELECT ST_BANDMETADATA(data, 1) meta FROM " +
@@ -781,25 +783,6 @@ public class TestGeoRaster extends TestBase {
     }
 
 
-    /**
-     * Function test with RenderedImage as return value.
-     * @param value
-     * @param factor
-     * @return
-     * @throws IOException
-     */
-    public static RenderedImage rescale(Value value, double factor) throws IOException {
-        ImageInputStream iStream = ImageInputStreamWrapper.create(value);
-        ImageReader wkbReader = ImageIO.getImageReaders(iStream).next();
-        wkbReader.setInput(iStream);
-        BufferedImage source = wkbReader.read(wkbReader.getMinIndex());
-        BufferedImage resizedImage = new BufferedImage((int)(source.getWidth() * factor),
-                (int)(source.getHeight() * factor), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = resizedImage.createGraphics();
-        g.drawImage(source, 0, 0, resizedImage.getWidth(), resizedImage.getHeight(), null);
-        g.dispose();
-        return resizedImage;
-    }
 
     public void testImageIOReadParametersRegion() throws SQLException, IOException {
         Connection conn = getConnection("georaster");
@@ -932,6 +915,71 @@ public class TestGeoRaster extends TestBase {
                 "-19999);");
         assertTrue(rs.next());
         assertEquals(new Object[]{6000200.,350000.}, (Object[])rs.getObject(1));
+        conn.close();
+    }
+
+    /**
+     * Function test with RenderedImage as return value.
+     * @param source Raster
+     * @param factor Factor of rescaling 0.5 for half-size
+     * @return resized raster
+     * @throws IOException
+     */
+    public static GeoRaster rescale(GeoRaster source, double factor)
+            throws IOException {
+        RasterUtils.RasterMetaData meta = source.getMetaData();
+        BufferedImage resizedImage = new BufferedImage((int)(source.getWidth() * factor),
+                (int)(source.getHeight() * factor), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawRenderedImage(source, AffineTransform.getScaleInstance(factor,
+                factor));
+        g.dispose();
+        return GeoRasterRenderedImage.create(resizedImage, meta.scaleX / factor, meta
+                        .scaleY / factor, meta.ipX, meta.ipY, meta.skewX / factor,
+                meta.skewY / factor, meta.srid, 0);
+    }
+
+    /**
+     * Check if a function having GeoRaster api as parameter and return value
+     * is working.
+     * @throws Exception
+     */
+    public void testRasterProcessing() throws Exception {
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Declare custom function for rescaling image
+        stat.execute("DROP ALIAS IF EXISTS ST_RESCALE");
+        stat.execute("CREATE ALIAS ST_RESCALE FOR \"" +
+                TestGeoRaster.class.getName() + ".rescale\"");
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id identity, data raster)");
+        // Create table with test image
+        PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
+                "values(?)");
+        st.setBinaryStream(1, GeoRasterRenderedImage.create(getTestImage(10, 10)
+                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                .asWKBRaster());
+        st.execute();
+        // Rescale the image twice
+        ResultSet rs = stat.executeQuery("SELECT ST_RESCALE(ST_RESCALE(DATA, " +
+                "2), 0.5) rast from test");
+        assertTrue(rs.next());
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1));
+        assertEquals(10, metaData.width);
+        assertEquals(10, metaData.height);
+        rs.close();
+        // Store the resized image in the table
+        stat.execute("DROP TABLE IF EXISTS RESIZED");
+        stat.execute("CREATE TABLE RESIZED(rast RASTER) AS SELECT ST_RESCALE" +
+                "(ST_RESCALE(DATA, 2), 0.5) rast from test");
+        rs = stat.executeQuery("SELECT * from resized");
+        assertTrue(rs.next());
+        metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1));
+        assertEquals(10, metaData.width);
+        assertEquals(10, metaData.height);
+        rs.close();
         conn.close();
     }
 }

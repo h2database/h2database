@@ -224,16 +224,16 @@ public class RasterUtils {
             RenderedImage image = new RenderedImageReader(read);
             if (session != null) {
                 return session.getDataHandler().getLobStorage().createRaster
-                        (WKBRasterWrapper
-                                .create(image , scaleX, scaleY, upperLeftX,
-                                        upperLeftY, skewX, skewY, srid,
-                                        Double.NaN).toWKBRasterStream(), -1);
-            } else {
-                return ValueLobDb.createSmallLob(Value.RASTER,
-                        IOUtils.readBytesAndClose(WKBRasterWrapper
+                        (GeoRasterRenderedImage
                                 .create(image, scaleX, scaleY, upperLeftX,
                                         upperLeftY, skewX, skewY, srid,
-                                        Double.NaN).toWKBRasterStream(), -1));
+                                        Double.NaN).asWKBRaster(), -1);
+            } else {
+                return ValueLobDb.createSmallLob(Value.RASTER,
+                        IOUtils.readBytesAndClose(GeoRasterRenderedImage
+                                .create(image, scaleX, scaleY, upperLeftX,
+                                        upperLeftY, skewX, skewY, srid,
+                                        Double.NaN).asWKBRaster(), -1));
             }
         }
         throw DbException.throwInternalError("Unsupported image format");

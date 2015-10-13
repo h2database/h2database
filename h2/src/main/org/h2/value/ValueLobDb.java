@@ -36,7 +36,7 @@ import org.h2.util.*;
  * Large objects are either stored in the database, or in temporary files.
  */
 public class ValueLobDb extends Value implements Value.ValueClob,
-        Value.ValueBlob, Value.ValueRasterMarker, ValueSpatial {
+        Value.ValueBlob, Value.ValueRasterMarker {
 
     private final int type;
     private final long lobId;
@@ -705,28 +705,6 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     public static ValueLobDb createSmallLob(int type, byte[] small,
             long precision) {
         return new ValueLobDb(type, small, precision);
-    }
-
-    @Override
-    public Envelope getEnvelope() {
-        if (getType() == Value.RASTER) {
-            InputStream input = getInputStream();
-            try {
-                RasterUtils.RasterMetaData metaData =
-                        RasterUtils.RasterMetaData.fetchMetaData(input);
-                return metaData.getEnvelope();
-            } catch (IOException ex) {
-                throw DbException.throwInternalError(
-                        "H2 is unable to read the raster. " + ex.getMessage());
-            }
-        }
-        throw DbException.throwInternalError(
-                "The envelope can be computed only for Raster type.");
-    }
-
-    @Override
-    public boolean intersectsBoundingBox(ValueSpatial vs) {
-        return getEnvelope().intersects(vs.getEnvelope());
     }
 
     /**

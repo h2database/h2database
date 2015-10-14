@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.h2.compress.CompressDeflate;
+import org.h2.compress.CompressLZF;
+import org.h2.compress.Compressor;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.mvstore.type.DataType;
@@ -149,6 +152,7 @@ public class MVStoreTool {
                         new TreeMap<Integer, Integer>();
                 int pageSizeSum = 0;
                 while (remaining > 0) {
+                    int start = p;
                     try {
                         chunk.position(p);
                     } catch (IllegalArgumentException e) {
@@ -162,7 +166,7 @@ public class MVStoreTool {
                     int mapId = DataUtils.readVarInt(chunk);
                     int entries = DataUtils.readVarInt(chunk);
                     int type = chunk.get();
-                    boolean compressed = (type & 2) != 0;
+                    boolean compressed = (type & DataUtils.PAGE_COMPRESSED) != 0;
                     boolean node = (type & 1) != 0;
                     if (details) {
                         pw.printf(
@@ -206,11 +210,24 @@ public class MVStoreTool {
                     }
                     String[] keys = new String[entries];
                     if (mapId == 0 && details) {
-                        if (!compressed) {
-                            for (int i = 0; i < entries; i++) {
-                                String k = StringDataType.INSTANCE.read(chunk);
-                                keys[i] = k;
-                            }
+                        ByteBuffer data;
+                        if (compressed) {
+                            boolean fast = !((type & DataUtils.PAGE_COMPRESSED_HIGH) ==
+                                    DataUtils.PAGE_COMPRESSED_HIGH);
+                            Compressor compressor = getCompressor(fast);
+                            int lenAdd = DataUtils.readVarInt(chunk);
+                            int compLen = pageSize + start - chunk.position();
+                            byte[] comp = DataUtils.newBytes(compLen);
+                            chunk.get(comp);
+                            int l = compLen + lenAdd;
+                            data = ByteBuffer.allocate(l);
+                            compressor.expand(comp, 0, compLen, data.array(), 0, l);
+                        } else {
+                            data = chunk;
+                        }
+                        for (int i = 0; i < entries; i++) {
+                            String k = StringDataType.INSTANCE.read(data);
+                            keys[i] = k;
                         }
                         if (node) {
                             // meta map node
@@ -231,11 +248,11 @@ public class MVStoreTool {
                                     keys.length >= entries ? null : keys[entries],
                                     DataUtils.getPageChunkId(cp),
                                     DataUtils.getPageOffset(cp));
-                        } else if (!compressed) {
+                        } else {
                             // meta map leaf
                             String[] values = new String[entries];
                             for (int i = 0; i < entries; i++) {
-                                String v = StringDataType.INSTANCE.read(chunk);
+                                String v = StringDataType.INSTANCE.read(data);
                                 values[i] = v;
                             }
                             for (int i = 0; i < entries; i++) {
@@ -297,6 +314,10 @@ public class MVStoreTool {
             }
         }
         pw.flush();
+    }
+
+    private static Compressor getCompressor(boolean fast) {
+        return fast ? new CompressLZF() : new CompressDeflate();
     }
 
     /**

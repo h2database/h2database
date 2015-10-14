@@ -71,11 +71,19 @@ public class TestTempTables extends TestBase {
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();
         stat.execute("create local temporary table test(id identity)");
+        ResultSet rs = stat.executeQuery("script");
+        boolean foundSequence = false;
+        while (rs.next()) {
+            if (rs.getString(1).startsWith("CREATE SEQUENCE")) {
+                foundSequence = true;
+            }
+        }
+        assertTrue(foundSequence);
         stat.execute("insert into test values(null)");
         stat.execute("shutdown");
         conn.close();
         conn = getConnection("tempTables");
-        ResultSet rs = conn.createStatement().executeQuery(
+        rs = conn.createStatement().executeQuery(
                 "select * from information_schema.sequences");
         assertFalse(rs.next());
         conn.close();

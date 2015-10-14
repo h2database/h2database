@@ -32,6 +32,7 @@ Update statistics
 Sign files and publish files on Maven Central
 ./build.sh compile jar mavenDeployCentral
 cd /data/h2database/m2-repo/com/h2database/h2/1...
+remove sha and md5 files
 gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-* (each one separate)
 jar -cvf bundle.jar h2-*
 http://central.sonatype.org/pages/ossrh-guide.html

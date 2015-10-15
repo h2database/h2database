@@ -384,11 +384,8 @@ public class Column {
             }
         }
         Sequence seq = new Sequence(schema, id, sequenceName, start, increment);
-        if (temporary) {
-            seq.setTemporary(true);
-        } else {
-            session.getDatabase().addSchemaObject(session, seq);
-        }
+        seq.setTemporary(temporary);
+        session.getDatabase().addSchemaObject(session, seq);
         setAutoIncrement(false, 0, 0);
         SequenceValue seqValue = new SequenceValue(seq);
         setDefaultExpression(session, seqValue);

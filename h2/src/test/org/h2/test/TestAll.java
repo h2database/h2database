@@ -108,6 +108,7 @@ import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
+import org.h2.test.mvcc.TestMvcc4;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
 import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.rowlock.TestRowLocks;
@@ -330,6 +331,11 @@ java org.h2.test.TestAll timer
      * If only fast tests should be run. If enabled, SSL is not tested.
      */
     public boolean fast;
+
+    /**
+     * The lock timeout to use
+     */
+    public int lockTimeout = 50;
 
     /**
      * If the transaction log should be kept small (that is, the log should be
@@ -741,6 +747,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMvcc1());
         addTest(new TestMvcc2());
         addTest(new TestMvcc3());
+        addTest(new TestMvcc4());
         addTest(new TestMvccMultiThreaded());
         addTest(new TestRowLocks());
 

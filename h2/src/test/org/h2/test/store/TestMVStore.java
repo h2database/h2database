@@ -434,16 +434,9 @@ public class TestMVStore extends TestBase {
         assertEquals("1", header.get("format").toString());
         header.put("formatRead", "1");
         header.put("format", "2");
+        forceWriteStoreHeader(s);
         MVMap<Integer, String> m = s.openMap("data");
-        // this is to ensure the file header is overwritten
-        // the header is written at least every 20 commits
-        for (int i = 0; i < 30; i++) {
-            m.put(0, "Hello World " + i);
-            s.commit();
-            if (i > 5) {
-                s.setRetentionTime(0);
-            }
-        }
+        forceWriteStoreHeader(s);
         m.put(0, "Hello World");
         s.close();
         try {
@@ -531,7 +524,7 @@ public class TestMVStore extends TestBase {
                 if (exRef.get() != null) {
                     break;
                 }
-                Thread.sleep(10);
+                sleep(10);
             }
             Throwable e = exRef.get();
             assertTrue(e != null);
@@ -627,7 +620,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
     }
 
-    private void testWriteDelay() throws InterruptedException {
+    private void testWriteDelay() {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         MVStore s;
@@ -678,7 +671,7 @@ public class TestMVStore extends TestBase {
             if (diff > 1000) {
                 fail();
             }
-            Thread.sleep(10);
+            sleep(10);
         }
         s.closeImmediately();
 
@@ -764,15 +757,7 @@ public class TestMVStore extends TestBase {
         int format = Integer.parseInt(header.get("format").toString());
         assertEquals(1, format);
         header.put("format", Integer.toString(format + 1));
-        // this is to ensure the file header is overwritten
-        // the header is written at least every 20 commits
-        for (int i = 0; i < 30; i++) {
-            if (i > 5) {
-                s.setRetentionTime(0);
-            }
-            m.put(10, 100 * i);
-            s.commit();
-        }
+        forceWriteStoreHeader(s);
         s.close();
         try {
             openStore(fileName).close();
@@ -904,23 +889,44 @@ public class TestMVStore extends TestBase {
         long creationTime = (Long) m.get("created");
         assertTrue(Math.abs(time - creationTime) < 100);
         m.put("test", "123");
-        MVMap<Integer, Integer> map = s.openMap("test");
-        map.put(10, 100);
-        // this is to ensure the file header is overwritten
-        // the header is written at least every 20 commits
-        for (int i = 0; i < 30; i++) {
-            if (i > 5) {
-                s.setRetentionTime(0);
-            }
-            map.put(10, 110);
-            s.commit();
-        }
+        forceWriteStoreHeader(s);
         s.close();
         s = openStore(fileName);
         Object test = s.getStoreHeader().get("test");
         assertFalse(test == null);
         assertEquals("123", test.toString());
         s.close();
+    }
+
+    private static void forceWriteStoreHeader(MVStore s) {
+        MVMap<Integer, Integer> map = s.openMap("dummy");
+        map.put(10, 100);
+        // this is to ensure the file header is overwritten
+        // the header is written at least every 20 commits
+        for (int i = 0; i < 30; i++) {
+            if (i > 5) {
+                s.setRetentionTime(0);
+                // ensure that the next save time is different,
+                // so that blocks can be reclaimed
+                // (on Windows, resolution is 10 ms)
+                sleep(1);
+            }
+            map.put(10, 110);
+            s.commit();
+        }
+        s.removeMap(map);
+        s.commit();
+    }
+
+    private static void sleep(long ms) {
+        // on Windows, need to sleep in some cases,
+        // mainly because the milliseconds resolution of
+        // System.currentTimeMillis is 10 ms.
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            // ignore
+        }
     }
 
     private void testFileHeaderCorruption() throws Exception {
@@ -939,7 +945,7 @@ public class TestMVStore extends TestBase {
         }
         FileStore fs = s.getFileStore();
         long size = fs.getFile().size();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             map = s.openMap("test" + i);
             s.removeMap(map);
             s.commit();
@@ -1387,10 +1393,11 @@ public class TestMVStore extends TestBase {
         m = s.openMap("data");
         for (int i = 0; i < 10; i++) {
             if (i % 4 != 0) {
+                sleep(2);
                 m.remove(i);
+                s.commit();
             }
         }
-        s.commit();
         assertTrue(s.compact(100, 50 * 1024));
         s.close();
         long len2 = FileUtils.size(fileName);
@@ -1762,6 +1769,7 @@ public class TestMVStore extends TestBase {
 
         m = s.openMap("data");
         for (int i = 0; i < 10; i++) {
+            sleep(1);
             boolean result = s.compact(50, 50 * 1024);
             if (!result) {
                 break;
@@ -1790,6 +1798,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 20; j++) {
+            sleep(2);
             MVStore s = openStore(fileName);
             s.setRetentionTime(0);
             MVMap<Integer, String> m = s.openMap("data");
@@ -1831,6 +1840,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         long initialLength = 0;
         for (int j = 0; j < 20; j++) {
+            sleep(2);
             MVStore s = openStore(fileName);
             s.setRetentionTime(0);
             MVMap<Integer, String> m = s.openMap("data");
@@ -1848,7 +1858,7 @@ public class TestMVStore extends TestBase {
                 initialLength = len;
             } else {
                 assertTrue("len: " + len + " initial: " + initialLength + " j: " + j,
-                        len <= initialLength * 2);
+                        len <= initialLength * 5);
             }
         }
     }
@@ -2021,26 +2031,30 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore store = new MVStore.Builder().cacheSize(16).
                 fileName(fileName).open();
-        MVMap<Integer, String> map = store.openMap("test");
-        long last = System.currentTimeMillis();
-        String data = new String(new char[2500]).replace((char) 0, 'x');
-        for (int i = 0;; i++) {
-            map.put(i, data);
-            if (i % 10000 == 0) {
-                store.commit();
-                long time = System.currentTimeMillis();
-                if (time - last > 2000) {
-                    long mb = store.getFileStore().size() / 1024 / 1024;
-                    trace(mb + "/4500");
-                    if (mb > 4500) {
-                        break;
+        try {
+            MVMap<Integer, String> map = store.openMap("test");
+            long last = System.currentTimeMillis();
+            String data = new String(new char[2500]).replace((char) 0, 'x');
+            for (int i = 0;; i++) {
+                map.put(i, data);
+                if (i % 10000 == 0) {
+                    store.commit();
+                    long time = System.currentTimeMillis();
+                    if (time - last > 2000) {
+                        long mb = store.getFileStore().size() / 1024 / 1024;
+                        trace(mb + "/4500");
+                        if (mb > 4500) {
+                            break;
+                        }
+                        last = time;
                     }
-                    last = time;
                 }
             }
+            store.commit();
+            store.close();
+        } finally {
+            store.closeImmediately();
         }
-        store.commit();
-        store.close();
         FileUtils.delete(fileName);
     }
 

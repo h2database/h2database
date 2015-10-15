@@ -364,6 +364,7 @@ public class TestRunscript extends TestBase implements Trigger {
         Thread.sleep(100);
         stat.cancel();
         e = (SQLException) task.getException();
+        assertTrue(e != null);
         assertEquals(ErrorCode.STATEMENT_WAS_CANCELED, e.getErrorCode());
 
         conn.close();

@@ -463,7 +463,16 @@ public abstract class Table extends SchemaObjectBase {
             }
             Row o = rows.next();
             rows.next();
-            removeRow(session, o);
+            try {
+                removeRow(session, o);
+            } catch (DbException e) {
+                if (e.getErrorCode() == ErrorCode.CONCURRENT_UPDATE_1) {
+                    session.rollbackTo(rollback, false);
+                    session.startStatementWithinTransaction();
+                    rollback = session.setSavepoint();
+                }
+                throw e;
+            }
             session.log(this, UndoLogRecord.DELETE, o);
         }
         // add the new rows
@@ -519,12 +528,10 @@ public abstract class Table extends SchemaObjectBase {
         while (sequences != null && sequences.size() > 0) {
             Sequence sequence = sequences.get(0);
             sequences.remove(0);
-            if (!isTemporary()) {
-                // only remove if no other table depends on this sequence
-                // this is possible when calling ALTER TABLE ALTER COLUMN
-                if (database.getDependentTable(sequence, this) == null) {
-                    database.removeSchemaObject(session, sequence);
-                }
+            // only remove if no other table depends on this sequence
+            // this is possible when calling ALTER TABLE ALTER COLUMN
+            if (database.getDependentTable(sequence, this) == null) {
+                database.removeSchemaObject(session, sequence);
             }
         }
     }

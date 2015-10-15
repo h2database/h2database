@@ -970,7 +970,11 @@ public class MVStore {
         for (MVMap<?, ?> map : maps.values()) {
             map.setWriteVersion(version);
         }
-        meta.setWriteVersion(version);
+        MVMap<String, String> m = meta;
+        if (m == null) {
+            checkOpen();
+        }
+        m.setWriteVersion(version);
     }
 
     /**

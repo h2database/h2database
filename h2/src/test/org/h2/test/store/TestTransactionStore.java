@@ -138,7 +138,7 @@ public class TestTransactionStore extends TestBase {
         };
         task.execute();
         Transaction tx = null;
-        int count = 10000;
+        int count = 100000;
         TransactionMap<Integer, Integer> map = null;
         for (int i = 0; i < count; i++) {
             int k = i;
@@ -152,6 +152,11 @@ public class TestTransactionStore extends TestBase {
                 // ignore and retry
             }
             tx.commit();
+            if (failCount.get() > 0 && i > 4000) {
+                // stop earlier, if possible
+                count = i;
+                break;
+            }
         }
         // we expect at least 10% the operations were successful
         assertTrue(failCount.toString() + " >= " + (count * 0.9),

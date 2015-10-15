@@ -117,6 +117,7 @@ public class TestConcurrentLinkedList extends TestBase {
             @Override
             public void call() {
                 while (!stop) {
+                    Thread.yield();
                     if (size.get() < 10) {
                         test.add(counter.getAndIncrement());
                         size.getAndIncrement();
@@ -126,6 +127,7 @@ public class TestConcurrentLinkedList extends TestBase {
         };
         task.execute();
         for (int i = 0; i < 1000000;) {
+            Thread.yield();
             Integer x = test.peekFirst();
             if (x == null) {
                 continue;

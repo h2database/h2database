@@ -58,6 +58,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             int srid, double noDataValue) throws IOException {
         RasterUtils.RasterBandMetaData[] bands = new RasterUtils.RasterBandMetaData[image
                 .getSampleModel().getNumBands()];
+        long offset = RasterUtils.RASTER_METADATA_SIZE;
         for(int idBand = 0; idBand < bands.length; idBand++) {
             int sampleSize = image.getSampleModel().getSampleSize(idBand);
             RasterUtils.PixelType pixelType;
@@ -71,7 +72,10 @@ public class GeoRasterRenderedImage implements GeoRaster {
                 throw new IOException("Unsupported band size " +
                         ":"+sampleSize);
             }
-            bands[idBand] = new RasterUtils.RasterBandMetaData(noDataValue, pixelType, true, 0);
+            bands[idBand] = new RasterUtils.RasterBandMetaData(noDataValue,
+                    pixelType, true, offset);
+            offset += (offset - bands[idBand].offsetPixel) + pixelType
+                    .pixelSize * image.getWidth() * image.getHeight();
         }
         RasterUtils.RasterMetaData rasterMetaData =
                 new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
@@ -124,6 +128,8 @@ public class GeoRasterRenderedImage implements GeoRaster {
 
         @Override
         public long skip(long n) throws IOException {
+            long newPos = streamPosition + n;
+
             // TODO, fast access to pixels, may not be required if this class
             // always store into a Blob (never skip)
             return super.skip(n);

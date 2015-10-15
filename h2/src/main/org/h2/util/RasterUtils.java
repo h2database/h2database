@@ -312,6 +312,12 @@ public class RasterUtils {
         public long offset;
         public long offsetPixel;
 
+        /**
+         * @param noDataValue Pixel value that represent nodata
+         * @param pixelType Pixel type
+         * @param hasNoData True if it has nodata
+         * @param offset Position of the first byte of this band
+         */
         public RasterBandMetaData(double noDataValue, PixelType pixelType,
                 boolean hasNoData, long offset) {
             this.noDataValue = noDataValue;

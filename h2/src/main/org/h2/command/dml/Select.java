@@ -143,6 +143,11 @@ public class Select extends Query {
         orderList = order;
     }
 
+    @Override
+    public boolean hasOrder() {
+        return orderList != null || sort != null;
+    }
+
     /**
      * Add a condition to the list of conditions.
      *

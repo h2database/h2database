@@ -131,6 +131,13 @@ public abstract class Query extends Prepared {
     public abstract void setOrder(ArrayList<SelectOrderBy> order);
 
     /**
+     * Whether the query has an order.
+     *
+     * @return true if it has
+     */
+    public abstract boolean hasOrder();
+
+    /**
      * Set the 'for update' flag.
      *
      * @param forUpdate the new setting

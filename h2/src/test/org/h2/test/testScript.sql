@@ -3,6 +3,18 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int) as select 1;
+> ok
+
+select * from test where id in (select id from test order by 'x');
+> ID
+> --
+> 1
+> rows (ordered): 1
+
+drop table test;
+> ok
+
 select abs(cast(0.0 as double)) x;
 > X
 > ---
@@ -62,7 +74,7 @@ LIMIT 2 )
 AND studentID = 2;
 > SUM(POINTS)
 > -----------
-> null
+> 30
 > rows (ordered): 1
 
 SELECT eventID X FROM RESULTS

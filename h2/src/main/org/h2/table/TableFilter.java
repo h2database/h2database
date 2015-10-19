@@ -6,6 +6,11 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.concurrent.Future;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
@@ -16,6 +21,7 @@ import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
+import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
@@ -23,6 +29,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.util.DoneFuture;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -40,6 +47,33 @@ public class TableFilter implements ColumnResolver {
     private static final int BEFORE_FIRST = 0, FOUND = 1, AFTER_LAST = 2,
             NULL_ROW = 3;
 
+    private static final Cursor EMPTY_CURSOR = new Cursor() {
+        @Override
+        public boolean previous() {
+            return false;
+        }
+        
+        @Override
+        public boolean next() {
+            return false;
+        }
+        
+        @Override
+        public SearchRow getSearchRow() {
+            return null;
+        }
+        
+        @Override
+        public Row get() {
+            return null;
+        }
+        
+        @Override
+        public String toString() {
+            return "EMPTY_CURSOR";
+        }
+    }; 
+    
     /**
      * Whether this is a direct or indirect (nested) outer join
      */
@@ -54,6 +88,12 @@ public class TableFilter implements ColumnResolver {
     private int scanCount;
     private boolean evaluatable;
 
+    /**
+     * Batched join support.
+     */
+    private JoinBatch jbatch;
+    private JoinFilter jfilter;
+    
     /**
      * Indicates that this filter is used in the plan.
      */
@@ -291,18 +331,34 @@ public class TableFilter implements ColumnResolver {
      * Start the query. This will reset the scan counts.
      *
      * @param s the session
+     * @return join batch if query runs over index which supports batched lookups, null otherwise
      */
-    public void startQuery(Session s) {
+    public JoinBatch startQuery(Session s) {
+        jbatch = null;
+        jfilter = null;
         this.session = s;
         scanCount = 0;
         if (nestedJoin != null) {
             nestedJoin.startQuery(s);
         }
+        JoinBatch batch = null;
         if (join != null) {
-            join.startQuery(s);
+            batch = join.startQuery(s);
         }
+        if (batch == null && index.getPreferedLookupBatchSize() != 0 && select != null && 
+                select.getTopTableFilter() != this) {
+            batch = new JoinBatch(join);
+        }
+        if (batch != null) {
+            if (nestedJoin != null) {
+                throw DbException.getUnsupportedException("nested join with batched index");
+            }
+            jbatch = batch;
+            jfilter = batch.register(this);
+        }
+        return batch;
     }
-
+    
     /**
      * Reset to the current position.
      */
@@ -323,6 +379,10 @@ public class TableFilter implements ColumnResolver {
      * @return true if there are
      */
     public boolean next() {
+        if (jbatch != null) {
+            // will happen only on topTableFilter since jbatch.next does not call join.next()
+            return jbatch.next();
+        }
         if (state == AFTER_LAST) {
             return false;
         } else if (state == BEFORE_FIRST) {
@@ -882,6 +942,9 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public Value getValue(Column column) {
+        if (jbatch != null) {
+            return jbatch.getValue(jfilter, column);
+        }
         if (currentSearchRow == null) {
             return null;
         }
@@ -1017,7 +1080,11 @@ public class TableFilter implements ColumnResolver {
     public Session getSession() {
         return session;
     }
-
+    
+    private static boolean isRow(Object x) {
+        return x instanceof Row;
+    }
+    
     /**
      * A visitor for table filters.
      */
@@ -1031,4 +1098,444 @@ public class TableFilter implements ColumnResolver {
         void accept(TableFilter f);
     }
 
+    /**
+     * Support for asynchronous batched index lookups on joins.
+     * 
+     * @see Index#findBatched(TableFilter, java.util.Collection)
+     * @see Index#getPreferedLookupBatchSize()
+     * 
+     * @author Sergi Vladykin
+     */
+    private static final class JoinBatch {
+        int filtersCount;
+        JoinFilter[] filters;
+        JoinFilter top;
+        
+        boolean started;
+        
+        JoinRow current;
+        boolean found;
+        
+        /**
+         * This filter joined after this batched join and can be used normally.
+         */
+        final TableFilter furtherFilter;
+        
+        /**
+         * @param furtherFilter table filter after this batched join.
+         */
+        private JoinBatch(TableFilter furtherFilter) {
+            this.furtherFilter = furtherFilter;
+        }
+        
+        /**
+         * @param filter table filter
+         */
+        private JoinFilter register(TableFilter filter) {
+            assert filter != null;
+            filtersCount++;
+            return top = new JoinFilter(filter, top);
+        }
+        
+        /**
+         * @param filterId table filter id
+         * @param column column
+         * @return column value for current row
+         */
+        private Value getValue(JoinFilter filter, Column column) {
+            Object x = current.row[filter.id];
+            assert x != null;
+            Row row = isRow(x) ? (Row) x : ((Cursor) x).get();
+            Value value = row.getValue(column.getColumnId());
+            if (value == null) {
+                throw DbException.throwInternalError("value is null: " + column + " " + row);
+            }
+            return value;
+        }
+        
+        private void start() {
+            // fill filters
+            filters = new JoinFilter[filtersCount];
+            JoinFilter jf = top;
+            for (int i = 0; i < filtersCount; i++) {
+                filters[jf.id = i] = jf;
+                jf = jf.join;
+            }
+            // initialize current row
+            current = new JoinRow(new Object[filtersCount]);
+            current.row[top.id] = top.filter.cursor;
+            // initialize top cursor
+            top.filter.cursor.find(top.filter.session, top.filter.indexConditions);
+            
+            // we need fake first row because batchedNext always will move to the next row
+            JoinRow fake = new JoinRow(null);
+            fake.next = current;
+            current = fake;
+        }
+        
+        private boolean next() {
+            if (!started) {
+                start();
+                started = true;
+            }
+            if (furtherFilter == null) {
+                if (batchedNext()) {
+                    assert current.isComplete();
+                    return true;
+                }
+                return false;
+            }
+            for (;;) {
+                if (!found) {
+                    if (!batchedNext()) {
+                        return false;
+                    }
+                    assert current.isComplete();
+                    found = true;
+                    furtherFilter.reset();
+                }
+                // we call furtherFilter in usual way outside of this batch because it is more effective
+                if (furtherFilter.next()) {
+                    return true;
+                }
+                found = false;
+            }
+        }
+        
+        private Cursor get(Future<Cursor> f) {
+            try {
+                return f.get();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+        }
+        
+        private boolean batchedNext() {
+            if (current == null) {
+                // after last
+                return false;
+            }
+            // go next
+            current = current.next;
+            if (current == null) {
+                return false;
+            }
+            current.prev = null;
+        
+            final int lastJfId = filtersCount - 1;
+            
+            int jfId = lastJfId;
+            while (current.row[jfId] == null) {
+                // lookup for the first non fetched filter for the current row
+                jfId--;
+            }
+            
+            for (;;) {
+                fetchCurrent(jfId);
+                
+                if (!current.isDropped()) {
+                    // if current was not dropped then it must be fetched successfully
+                    if (jfId == lastJfId) {
+                        // the whole join row is ready to be returned
+                        return true;
+                    }
+                    JoinFilter join = filters[jfId + 1];
+                    if (join.isBatchFull()) {
+                        // get future cursors for join and go right to fetch them
+                        current = join.find(current);
+                    }
+                    if (current.row[join.id] != null) {
+                        // either find called or outer join with null row
+                        jfId = join.id;
+                        continue;
+                    }
+                }
+                // we have to go down and fetch next cursors for jfId if it is possible
+                if (current.next == null) {
+                    // either dropped or null-row
+                    if (current.isDropped()) {
+                        current = current.prev;
+                        if (current == null) {
+                            return false;
+                        }
+                    }
+                    assert !current.isDropped();
+                    assert jfId != lastJfId;
+                    
+                    jfId = 0;
+                    while (current.row[jfId] != null) {
+                        jfId++;
+                    }
+                    // force find on half filled batch (there must be either searchRows 
+                    // or Cursor.EMPTY set for null-rows)
+                    current = filters[jfId].find(current);
+                } else {
+                    // here we don't care if the current was dropped
+                    current = current.next;
+                    assert !isRow(current.row[jfId]);
+                    while (current.row[jfId] == null) {
+                        assert jfId != top.id;
+                        // need to go left and fetch more search rows
+                        jfId--;
+                        assert !isRow(current.row[jfId]);
+                    }
+                }
+            }
+        }
+        
+        @SuppressWarnings("unchecked")
+        private void fetchCurrent(final int jfId) {
+            assert current.prev == null || isRow(current.prev.row[jfId]) : "prev must be already fetched";
+            assert jfId == 0 || isRow(current.row[jfId - 1]) : "left must be already fetched";
+            
+            Object x = current.row[jfId];
+            assert x != null : "x null";
+            assert !isRow(x) : "double fetching";
+            
+            final JoinFilter jf = filters[jfId];
+            // in case of outer join we don't have any future around empty cursor
+            boolean newCursor = x == EMPTY_CURSOR;
+
+            if (!newCursor && x instanceof Future) {
+                // get cursor from a future
+                current.row[jfId] = x = get((Future<Cursor>) x);
+                newCursor = true;
+            }
+            
+            Cursor c = (Cursor) x;
+            assert c != null;
+            JoinFilter join = jf.join;
+            
+            for (;;) {
+                if (c == null || !c.next()) {
+                    if (newCursor && jf.isOuterJoin()) {
+                        // replace cursor with null-row
+                        current.row[jfId] = jf.getNullRow();
+                        c = null;
+                        newCursor = false;
+                    } else {
+                        // cursor is done, drop it
+                        current.drop();
+                        return;
+                    }
+                }
+                if (!jf.isOk(c == null)) {
+                    // try another row from the cursor
+                    continue;
+                }
+                boolean joinEmpty = false;
+                if (join != null && !join.collectSearchRows()) {
+                    if (join.isOuterJoin()) {
+                        joinEmpty = true;
+                    } else {
+                        // join will fail, try next row in the cursor
+                        continue;
+                    }
+                }
+                if (c != null) {
+                    current = current.copyBehind(jf.id);
+                    // get current row from cursor
+                    current.row[jfId] = c.get();
+                }
+                if (joinEmpty) {
+                    current.row[join.id] = EMPTY_CURSOR;
+                }
+                return;
+            }
+        }
+        
+        @Override
+        public String toString() {
+            return "JoinBatch->\nprev->" + (current == null ? null : current.prev) +
+                    "\ncurr->" + current + 
+                    "\nnext->" + (current == null ? null : current.next);
+        }
+    }
+    
+    /**
+     * Table filter participating in batched join.
+     */
+    private static final class JoinFilter {
+        final TableFilter filter;
+        final int batchSize;
+        final JoinFilter join;
+        int id;
+        
+        /**
+         * Search rows batch.
+         */
+        final ArrayList<SearchRow> searchRows;
+        
+        private JoinFilter(TableFilter filter, JoinFilter join) {
+            this.filter = filter;
+            this.join = join;
+            batchSize = filter.getIndex().getPreferedLookupBatchSize();
+            if (batchSize < 0) {
+                throw DbException.throwInternalError("Index with negative preferred batch size.");
+            }
+            searchRows = New.arrayList(batchSize == 0 ? 2 : Math.min(batchSize * 2, 32));
+        }
+        
+        public Row getNullRow() {
+            return filter.table.getNullRow();
+        }
+
+        private boolean isOuterJoin() {
+            return filter.joinOuter;
+        }
+
+        private boolean isBatchFull() {
+            if (batchSize == 0) {
+                return searchRows.size() >= 2;
+            }
+            return searchRows.size() >= batchSize * 2;
+        }
+
+        private boolean isOk(boolean ignireJoinCondition) {
+            boolean filterOk = filter.isOk(filter.filterCondition);
+            boolean joinOk = filter.isOk(filter.joinCondition);
+
+            return filterOk && (ignireJoinCondition || joinOk);
+        }
+        
+        private boolean collectSearchRows() {
+            assert !isBatchFull();
+            filter.cursor.prepare(filter.session, filter.indexConditions);
+            if (filter.cursor.isAlwaysFalse()) {
+                return false;
+            }
+            searchRows.add(filter.cursor.getStart());
+            searchRows.add(filter.cursor.getEnd());
+            return true;
+        }
+        
+        private JoinRow find(JoinRow current) {
+            assert current != null;
+            assert (searchRows.size() & 1) == 0 : "searchRows & 1, " + searchRows.size();
+
+            // searchRows are allowed to be empty when we have some null-rows and forced find call
+            if (!searchRows.isEmpty()) {
+                assert searchRows.size() >= 2: "searchRows >= 2, " + searchRows.size(); 
+                
+                List<Future<Cursor>> result;
+                
+                if (batchSize == 0) {
+                    assert searchRows.size() == 2 : "2";
+                    Cursor c = filter.index.find(filter, searchRows.get(0), searchRows.get(1));
+                    result = Collections.<Future<Cursor>>singletonList(new DoneFuture<Cursor>(c));
+                } else {
+                    result = filter.index.findBatched(filter, searchRows);
+                    if (result == null) {
+                        throw DbException.throwInternalError("Index.findBatched returned null");
+                    }
+                }
+                
+                if (result.size() != searchRows.size() >>> 1) {
+                    throw DbException.throwInternalError("wrong number of futures");
+                }
+                searchRows.clear();
+                
+                // go backwards and assign futures
+                ListIterator<Future<Cursor>> iter = result.listIterator(result.size());
+                for (;;) {
+                    assert isRow(current.row[id - 1]);
+                    if (current.row[id] == EMPTY_CURSOR) {
+                        // outer join support - skip row with existing empty cursor
+                        current = current.prev;
+                        continue;
+                    }
+                    assert current.row[id] == null;
+                    Future<Cursor> future = iter.previous();
+                    current.row[id] = future == null ? EMPTY_CURSOR : future;
+                    if (current.prev == null || !iter.hasPrevious()) {
+                        break;
+                    } 
+                    current = current.prev;
+                }
+            }
+            
+            // handle empty cursors (because of outer joins) at the beginning
+            while (current.prev != null && current.prev.row[id] == EMPTY_CURSOR) {
+                current = current.prev;
+            }
+            assert current.prev == null || isRow(current.prev.row[id]);
+            assert current.row[id] != null;
+            assert !isRow(current.row[id]);
+            
+            // the last updated row
+            return current;
+        }
+        
+        @Override
+        public String toString() {
+            return "JoinFilter->" + filter;
+        }
+    }
+    
+    /**
+     * Linked row in batched join.
+     */
+    private static final class JoinRow {
+        /**
+         * May contain one of the following:
+         * <br/>- {@code null}: means that we need to get future cursor for this row
+         * <br/>- {@link Future}: means that we need to get a new {@link Cursor} from the {@link Future}
+         * <br/>- {@link Cursor}: means that we need to fetch {@link Row}s from the {@link Cursor}
+         * <br/>- {@link Row}: the {@link Row} is already fetched and is ready to be used
+         */
+        Object[] row;
+        
+        JoinRow prev;
+        JoinRow next;
+        
+        /**
+         * @param row Row.
+         */
+        private JoinRow(Object[] row) {
+            this.row = row;
+        }
+        
+        private boolean isComplete() {
+            return isRow(row[row.length - 1]);
+        }
+
+        private boolean isDropped() {
+            return row == null;
+        }
+
+        private void drop() {
+            if (prev != null) {
+                prev.next = next;
+            }
+            if (next != null) {
+                next.prev = prev;
+            }
+            row = null;
+        }
+        
+        private JoinRow copyBehind(int jfId) {
+            assert row[jfId] instanceof Cursor;
+            assert jfId + 1 == row.length || row[jfId + 1] == null;
+            
+            Object[] r = new Object[row.length];
+            if (jfId != 0) {
+                System.arraycopy(row, 0, r, 0, jfId);
+            }
+            JoinRow copy = new JoinRow(r);
+            
+            if (prev != null) {
+                copy.prev = prev;
+                prev.next = copy;
+            }
+            prev = copy;
+            copy.next = this;
+            
+            return copy;
+        }
+        
+        @Override
+        public String toString() {
+            return "JoinRow->" + Arrays.toString(row);
+        }
+    }
 }

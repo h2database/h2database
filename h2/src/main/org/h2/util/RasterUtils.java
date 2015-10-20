@@ -344,13 +344,13 @@ public class RasterUtils {
         /**
          * @return Band Bytes length
          */
-        public long getLength(RasterMetaData meta) {
+        public long getLength(int imageWith, int imageHeight) {
             if(offDB) {
                 return 1 + pixelType.pixelSize + 1 +
                         externalPath.getBytes().length;
             } else {
-                return 1 + pixelType.pixelSize + meta.width *
-                        meta.height * pixelType.pixelSize;
+                return 1 + pixelType.pixelSize + imageWith *
+                        imageHeight * pixelType.pixelSize;
             }
         }
 
@@ -430,7 +430,7 @@ public class RasterUtils {
         public long getTotalLength() {
             long length = RasterUtils.RASTER_METADATA_SIZE;
             for(int idBand = 0; idBand < numBands; idBand++) {
-                length += bands[idBand].getLength(this);
+                length += bands[idBand].getLength(width, height);
             }
             return length;
         }
@@ -645,11 +645,13 @@ public class RasterUtils {
                                 new RasterBandMetaData(noData, pixelType,
                                         hasNoData, bandOffset);
                         bands[idBand++] = rasterBandMetaData;
-                        // Skip remaining pixel until next band
-                        long skipLength =
-                                width * height * pixelType.pixelSize;
-                        cursor.addAndGet(skipLength - 1);
-                        IOUtils.skipFully(raster, skipLength);
+                        // Skip remaining pixel until next band if exists
+                        if(idBand < numBands) {
+                            long skipLength =
+                                    width * height * pixelType.pixelSize;
+                            cursor.addAndGet(skipLength - 1);
+                            IOUtils.skipFully(raster, skipLength);
+                        }
                     }
                 }
             }

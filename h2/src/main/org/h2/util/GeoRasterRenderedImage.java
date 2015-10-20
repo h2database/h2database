@@ -74,8 +74,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             }
             bands[idBand] = new RasterUtils.RasterBandMetaData(noDataValue,
                     pixelType, true, offset);
-            offset += (offset - bands[idBand].offsetPixel) + pixelType
-                    .pixelSize * image.getWidth() * image.getHeight();
+            offset += bands[idBand].getLength(image.getWidth(), image.getHeight());
         }
         RasterUtils.RasterMetaData rasterMetaData =
                 new RasterUtils.RasterMetaData(RasterUtils.LAST_WKB_VERSION,
@@ -103,7 +102,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
         private int bufferCursor = 0;
         private RasterPixelDriver pixelDriver;
         private final boolean readTiles;
-        private static final int MAX_ROW_CACHE = 512;
+        private static final int MAX_ROW_CACHE = 32;
 
 
         private enum BUFFER_STATE {
@@ -128,11 +127,84 @@ public class GeoRasterRenderedImage implements GeoRaster {
 
         @Override
         public long skip(long n) throws IOException {
-            long newPos = streamPosition + n;
+            if(bufferCursor + n  - 1 < buffer.length) {
+                // Skip in current buffer
+                streamPosition += n;
+                bufferCursor += n;
+                return n;
+            } else {
+                // Skip outside buffer
+                long newPos = streamPosition + n;
+                for (int bandId = rasterMetaData.numBands - 1; bandId >= 0; bandId--) {
+                    final RasterUtils.RasterBandMetaData bandMeta =
+                            rasterMetaData.bands[bandId];
+                    if (!bandMeta.offDB) {
+                        long bandBeginPos = bandMeta.offsetPixel;
+                        if(bandBeginPos <= newPos) {
+                            // Access to pixel in this band
+                            currentBand = bandId;
+                            state = BUFFER_STATE.WKB_BAND_DATA_ITERATE;
+                            pixelDriver = RasterPixelDriver.getDriver
+                                    (rasterMetaData.bands[currentBand]
+                                            .pixelType, null);
+                            long pixelTarget = (newPos - bandMeta.offsetPixel) /
+                                    bandMeta.pixelType.pixelSize;
+                            pixelCursor = (pixelTarget / rasterMetaData.width);
+                            loadRasterTile(pixelTarget);
+                            streamPosition += n;
+                            return n;
+                        }
+                    }
+                    if(bandMeta.offset <= newPos) {
+                        // Skip to band meta
+                        currentBand = bandId;
+                        loadBandMeta();
+                        long moved = bandMeta.offset - streamPosition;
+                        streamPosition += moved;
+                        return moved;
+                    }
+                }
+                return super.skip(n);
+            }
+        }
 
-            // TODO, fast access to pixels, may not be required if this class
-            // always store into a Blob (never skip)
-            return super.skip(n);
+        private void loadBandMeta() throws IOException {
+            ByteArrayOutputStream stream = new
+                    ByteArrayOutputStream();
+            rasterMetaData.writeRasterBandHeader(stream,
+                    currentBand, ByteOrder.BIG_ENDIAN);
+            buffer = stream.toByteArray();
+            bufferCursor = 0;
+            state = BUFFER_STATE.WKB_BAND_HEADER_END;
+        }
+
+        private void loadRasterTile(long pixelTarget) {
+            Raster rasterRow;
+            if(readTiles) {
+                rasterRow = raster.getData(
+                        new Rectangle(0,
+                                (int)(pixelTarget / rasterMetaData.width),
+                                rasterMetaData.width,
+                                Math.min(raster.getTileHeight(), raster.getHeight() -
+                                        (int)(pixelTarget / rasterMetaData.width))));
+
+            } else {
+                rasterRow = raster.getData(
+                        new Rectangle(0,
+                                (int) (pixelTarget / rasterMetaData.width),
+                                rasterMetaData.width,
+                                Math.min(MAX_ROW_CACHE, raster.getHeight() -
+                                        (int)(pixelTarget / rasterMetaData.width))));
+            }
+            int pixelSize = pixelDriver.getPixelType().pixelSize;
+            buffer = new byte[rasterRow.getWidth() * rasterRow.getHeight() *
+                    pixelSize];
+            pixelDriver.setRaster(rasterRow);
+            pixelDriver.readSamples(buffer, 0, 0, 0,
+                    rasterRow.getWidth() , rasterRow.getHeight(), currentBand);
+            pixelCursor += rasterRow
+                    .getWidth() * rasterRow.getHeight();
+            bufferCursor = (int)(pixelTarget % rasterMetaData.width)* pixelSize;
         }
 
         @Override
@@ -167,15 +239,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
                     case WKB_BAND_HEADER_BEGIN: {
                         currentBand+=1;
                         if (currentBand < rasterMetaData.numBands) {
-                            ByteArrayOutputStream stream = new
-                                    ByteArrayOutputStream();
-                            rasterMetaData.bands[currentBand].setOffset
-                                    (streamPosition);
-                            rasterMetaData.writeRasterBandHeader(stream,
-                                    currentBand, ByteOrder.BIG_ENDIAN);
-                            buffer = stream.toByteArray();
-                            bufferCursor = 0;
-                            state = BUFFER_STATE.WKB_BAND_HEADER_END;
+                            loadBandMeta();
                             return read();
                         } else {
                             return -1; // End of Stream
@@ -197,30 +261,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
                             state = BUFFER_STATE.WKB_BAND_HEADER_BEGIN;
                             return read();
                         } else {
-                            Raster rasterRow;
-                            if(readTiles) {
-                                rasterRow = raster.getData(
-                                        new Rectangle(0,
-                                                (int)(pixelCursor / rasterMetaData.width),
-                                                rasterMetaData.width,
-                                                Math.min(raster.getTileHeight(), raster.getHeight() -
-                                                        (int)(pixelCursor / rasterMetaData.width))));
-
-                            } else {
-                                rasterRow = raster.getData(
-                                        new Rectangle(0,
-                                                (int) (pixelCursor / rasterMetaData.width),
-                                                rasterMetaData.width,
-                                                Math.min(MAX_ROW_CACHE, raster.getHeight() -
-                                                        (int)(pixelCursor / rasterMetaData.width))));
-                            }
-                            buffer = new byte[rasterRow.getWidth() * rasterRow.getHeight() *
-                                    pixelDriver.getPixelType().pixelSize];
-                            pixelDriver.setRaster(rasterRow);
-                            pixelDriver.readSamples(buffer, 0, 0, 0,
-                                    rasterRow.getWidth() , rasterRow.getHeight(), currentBand);
-                            pixelCursor += rasterRow.getWidth() * rasterRow.getHeight();
-                            bufferCursor = 0;
+                            loadRasterTile(pixelCursor);
                             return read();
                         }
                     default:

@@ -1312,6 +1312,18 @@ ST_METADATA (RASTER)
 ","
 Read the metadata of the raster
 This method returns an array."
+"Functions (RASTER)","ST_BANDMETADATA","
+ST_BANDMETADATA (RASTER, indexExpression)
+","
+Read the metadata of the raster's band."
+"Functions (RASTER)","ST_WORLDTORASTERCOORD","
+ST_WORLDTORASTERCOORD (RASTER, x, y)
+","
+Convert geometric coordinates into 1-based pixel coordinates."
+"Functions (RASTER)","ST_RASTERTOWORLDCOORD","
+ST_RASTERTOWORLDCOORD (RASTER, indexExpression, indexExpression)
+","
+Convert 1-based pixel coordinates into geometric coordinates."
 "Functions (RASTER)","ST_RASTERFROMIMAGE","
 ST_RASTERFROMIMAGE(BLOB, DOUBLE, DOUBLE, DOUBLE, DOUBLE, DOUBLE,
 DOUBLE, INTEGER)

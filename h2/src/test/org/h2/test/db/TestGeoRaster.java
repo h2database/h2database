@@ -607,6 +607,7 @@ public class TestGeoRaster extends TestBase {
                 0, 0, 0, 27572, 0);
         InputStream wkbStream = wrapper.asWKBRaster();
         // Transfer to database
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -645,6 +646,7 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testMakeEmptyRaster() throws Exception {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -691,6 +693,7 @@ public class TestGeoRaster extends TestBase {
 
 
     public void testMakeEmptyRaster2() throws Exception {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -716,6 +719,7 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testRasterToString() throws Exception {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -737,6 +741,7 @@ public class TestGeoRaster extends TestBase {
 
 
     public void testStBandMetaData() throws SQLException, IOException {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -786,6 +791,7 @@ public class TestGeoRaster extends TestBase {
 
 
     public void testImageIOReadParametersRegion() throws SQLException, IOException {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -828,6 +834,7 @@ public class TestGeoRaster extends TestBase {
     }
 
     public void testImageIOReadParametersSubSampling() throws SQLException, IOException {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         stat.execute("drop table if exists test");
@@ -876,8 +883,23 @@ public class TestGeoRaster extends TestBase {
         assertEquals(pixelsSource, pixels);
     }
 
+    private static BufferedImage getImageRegion(Blob blob, Rectangle
+            rectangle) throws IOException {
+        ImageInputStream inputStream = ImageIO.createImageInputStream(blob);
+        // Fetch WKB Raster Image reader
+        Iterator<ImageReader> readers = ImageIO.getImageReaders(inputStream);
+        ImageReader wkbReader = readers.next();
+        // Feed WKB Raster Reader with blob data
+        wkbReader.setInput(inputStream);
+        // Retrieve data as a BufferedImage
+        ImageReadParam param = wkbReader.getDefaultReadParam();
+        param.setSourceRegion(rectangle);
+        return wkbReader.read(wkbReader.getMinIndex(), param);
+    }
+
 
     public void testST_WorldToRasterCoord() throws Exception {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT ST_WorldToRasterCoord(" +
@@ -899,6 +921,7 @@ public class TestGeoRaster extends TestBase {
 
 
     public void testST_RasterToWorldCoord() throws Exception {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("SELECT ST_RasterToWorldCoord(" +
@@ -946,6 +969,7 @@ public class TestGeoRaster extends TestBase {
      * @throws Exception
      */
     public void testRasterProcessing() throws Exception {
+        deleteDb("georaster");
         Connection conn = getConnection("georaster");
         Statement stat = conn.createStatement();
         // Declare custom function for rescaling image
@@ -970,6 +994,11 @@ public class TestGeoRaster extends TestBase {
                 .fetchMetaData(rs.getBinaryStream(1));
         assertEquals(10, metaData.width);
         assertEquals(10, metaData.height);
+        // Get image portion
+        BufferedImage image = getImageRegion(rs.getBlob(1), new Rectangle(3,3,3,
+                3));
+        assertEquals(new int[]{-1, -1, -16711681, -1, -1, -16711681, -65281,
+                -65281, -16777216}, image.getRGB(0,0,3,3,null,0,3));
         rs.close();
         // Store the resized image in the table
         stat.execute("DROP TABLE IF EXISTS RESIZED");

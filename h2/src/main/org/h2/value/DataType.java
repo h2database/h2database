@@ -971,7 +971,7 @@ public class DataType {
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
         } else if (GeoRaster.class.isAssignableFrom(x)) {
-            return Value.JAVA_OBJECT;
+            return Value.RASTER;
         } else {
             return Value.JAVA_OBJECT;
         }
@@ -1001,7 +1001,7 @@ public class DataType {
         }
         if (type == Value.JAVA_OBJECT) {
             if(x instanceof GeoRaster) {
-                new ValueJavaObject.GeoRasterObject((GeoRaster)x, session.getDataHandler());
+                return ValueLobDb.createFromGeoRaster((GeoRaster)x);
             } else {
                 return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
             }
@@ -1082,7 +1082,7 @@ public class DataType {
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
         } else if(x instanceof GeoRaster) {
-            return new ValueJavaObject.GeoRasterObject((GeoRaster)x, session.getDataHandler());
+            return ValueLobDb.createFromGeoRaster((GeoRaster)x);
         } else {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }

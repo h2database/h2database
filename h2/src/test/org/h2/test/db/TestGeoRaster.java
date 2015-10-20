@@ -130,6 +130,7 @@ public class TestGeoRaster extends TestBase {
         ResultSet rs = stat.executeQuery("select * from test");
         rs.next();
         assertEquals(bytes, rs.getBytes(2));
+        assertTrue(rs.getObject("DATA") instanceof GeoRaster);
         conn.close();
     }
 
@@ -963,6 +964,7 @@ public class TestGeoRaster extends TestBase {
         // Rescale the image twice
         ResultSet rs = stat.executeQuery("SELECT ST_RESCALE(ST_RESCALE(DATA, " +
                 "2), 0.5) rast from test");
+        assertEquals("RASTER", rs.getMetaData().getColumnTypeName(1));
         assertTrue(rs.next());
         RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
                 .fetchMetaData(rs.getBinaryStream(1));
@@ -979,6 +981,15 @@ public class TestGeoRaster extends TestBase {
                 .fetchMetaData(rs.getBinaryStream(1));
         assertEquals(10, metaData.width);
         assertEquals(10, metaData.height);
+        rs.close();
+        // Store the resized image in the table without casting
+        stat.execute("DROP TABLE IF EXISTS RESIZED");
+        stat.execute("CREATE VIEW RESIZED AS SELECT ST_RESCALE" +
+                "(ST_RESCALE(DATA, 2), 0.5) rast from test");
+        rs = stat.executeQuery("SELECT * from resized");
+        assertTrue(rs.next());
+        assertEquals("RASTER", rs.getMetaData().getColumnTypeName(1));
+        assertTrue(rs.getObject(1) instanceof GeoRaster);
         rs.close();
         conn.close();
     }

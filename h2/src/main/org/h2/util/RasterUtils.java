@@ -341,6 +341,19 @@ public class RasterUtils {
             setOffset(offset);
         }
 
+        /**
+         * @return Band Bytes length
+         */
+        public long getLength(RasterMetaData meta) {
+            if(offDB) {
+                return 1 + pixelType.pixelSize + 1 +
+                        externalPath.getBytes().length;
+            } else {
+                return 1 + pixelType.pixelSize + meta.width *
+                        meta.height * pixelType.pixelSize;
+            }
+        }
+
         public void setOffset(long offset) {
             this.offset = offset;
             if(offDB) {
@@ -409,6 +422,17 @@ public class RasterUtils {
             this.width = width;
             this.height = height;
             this.bands = bands;
+        }
+
+        /**
+         * @return Raster stream length
+         */
+        public long getTotalLength() {
+            long length = RasterUtils.RASTER_METADATA_SIZE;
+            for(int idBand = 0; idBand < numBands; idBand++) {
+                length += bands[idBand].getLength(this);
+            }
+            return length;
         }
 
         /**

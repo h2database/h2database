@@ -16,6 +16,7 @@ import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
+import org.h2.api.GeoRaster;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -386,6 +387,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     public Object getObject() {
         if (type == Value.CLOB) {
             return getReader();
+        } else if(type == Value.RASTER) {
+            return new GeoRasterBlob(this);
         }
         return getInputStream();
     }
@@ -707,6 +710,15 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         return new ValueLobDb(type, small, precision);
     }
 
+    public static ValueLobDb createFromGeoRaster(GeoRaster geoRaster) {
+        try {
+            return new ValueLobDbRaster(geoRaster);
+        } catch (IOException ex) {
+            throw DbException.convertIOException(ex, "Cannot create raster " +
+                    "value");
+        }
+    }
+
     /**
      * @return Raster metadata
      */
@@ -715,5 +727,47 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             cachedMetaData = RasterUtils.RasterMetaData.fetchMetaData(getInputStream(), true);
         }
         return cachedMetaData;
+    }
+
+    /**
+     * Temporary lob, used with GeoRaster API in order to reduce the creation
+     * of intermediate Lob when encapsulate raster processing method calls.
+     */
+    private static class ValueLobDbRaster extends ValueLobDb {
+
+        private GeoRaster geoRaster; // Reference to external content
+
+        private ValueLobDbRaster( GeoRaster geoRaster) throws IOException {
+            super(RASTER, null, geoRaster.getMetaData().getTotalLength());
+            this.geoRaster = geoRaster;
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return geoRaster.asWKBRaster();
+        }
+
+        @Override
+        public Object getObject() {
+            return geoRaster;
+        }
+
+        @Override
+        public RasterUtils.RasterMetaData getMetaData() throws IOException {
+            return geoRaster.getMetaData();
+        }
+
+        @Override
+        public Value copy(DataHandler database, int tableId) {
+            ValueLobDb val = (ValueLobDb)database.getLobStorage().createRaster
+                    (getInputStream
+                    (), -1);
+            return database.getLobStorage().copyLob(val, tableId, getPrecision());
+        }
+
+        @Override
+        public boolean isStored() {
+            return false;
+        }
     }
 }

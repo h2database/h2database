@@ -794,9 +794,6 @@ public abstract class Value {
             }
             case JAVA_OBJECT: {
                 switch (getType()) {
-                    case RASTER:
-                        return new ValueJavaObject.GeoRasterObject(new
-                                GeoRasterBlob(this), getDataHandler());
                 case BYTES:
                 case BLOB:
                     return ValueJavaObject.getNoCopy(

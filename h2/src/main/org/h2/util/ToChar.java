@@ -11,6 +11,7 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.GregorianCalendar;
@@ -219,7 +220,7 @@ public class ToChar {
         }
 
         StringBuilder output = new StringBuilder();
-        String unscaled = number.unscaledValue().abs().toString();
+        String unscaled = (number.abs().compareTo(BigDecimal.ONE) < 0 ? zeroesAfterDecimalSeparator(number) : "") + number.unscaledValue().abs().toString();
 
         // start at the decimal point and fill in the numbers to the left,
         // working our way from right to left
@@ -326,6 +327,26 @@ public class ToChar {
         }
 
         return output.toString();
+    }
+
+    private static String zeroesAfterDecimalSeparator(BigDecimal number) {
+        final String numberStr = number.toString();
+        final int idx = numberStr.indexOf('.');
+        if (idx >= 0 ) {
+            int i = idx + 1;
+            boolean allZeroes = true;
+            for (; i < numberStr.length(); i++) {
+                if (numberStr.charAt(i) != '0') {
+                    allZeroes = false;
+                    break;
+                }
+            }
+            final char[] zeroes = new char[allZeroes ? numberStr.length() - idx - 1: i - 1 - idx];
+            Arrays.fill(zeroes, '0');
+            return String.valueOf(zeroes);
+        } else {
+            return "";
+        }
     }
 
     private static void addSign(StringBuilder output, int signum,

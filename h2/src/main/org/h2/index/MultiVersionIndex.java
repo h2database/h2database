@@ -6,8 +6,6 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
@@ -394,7 +392,7 @@ public class MultiVersionIndex implements Index {
     public int getPreferedLookupBatchSize() {
         return 0;
     }
-    
+
     @Override
     public List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs) {
         throw DbException.throwInternalError("Must never be called.");

@@ -5,7 +5,6 @@
  */
 package org.h2.index;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Future;
 import org.h2.engine.Session;
@@ -258,16 +257,16 @@ public interface Index extends SchemaObject {
      * @param sortedInsertMode the new value
      */
     void setSortedInsertMode(boolean sortedInsertMode);
-    
+
     /**
      * If this index can do batched lookups, it may return it's preferred batch size,
      * otherwise it must return 0.
-     * 
+     *
      * @return preferred batch size or 0 if lookup batching is not supported
      * @see #findBatched(TableFilter, Collection)
      */
     int getPreferedLookupBatchSize();
-    
+
     /**
      * Do batched lookup over the given collection of {@link SearchRow} pairs as in
      * {@link #find(TableFilter, SearchRow, SearchRow)}.
@@ -275,9 +274,9 @@ public interface Index extends SchemaObject {
      * Correct implementation must always return number of future cursors equal to
      * {@code firstLastPairs.size() / 2}. Instead of {@link Future} containing empty
      * {@link Cursor} it is possible to put {@code null} in result list.
-     * 
+     *
      * @param filter the table filter
-     * @param firstLastPairs List of batched search row pairs as in 
+     * @param firstLastPairs List of batched search row pairs as in
      *          {@link #find(TableFilter, SearchRow, SearchRow)}, the collection will be reused by H2,
      *          thus it makes sense to defensively copy contents if needed.
      * @return batched cursors for respective search row pairs in the same order

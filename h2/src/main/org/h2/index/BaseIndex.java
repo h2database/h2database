@@ -5,6 +5,8 @@
  */
 package org.h2.index;
 
+import java.util.List;
+import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -424,4 +426,14 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         // ignore
     }
 
+    @Override
+    public int getPreferedLookupBatchSize() {
+        // No batched lookups supported by default.
+        return 0;
+    }
+
+    @Override
+    public List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs) {
+        throw DbException.throwInternalError("Must not be called if getPreferedLookupBatchSize() is 0.");
+    }
 }

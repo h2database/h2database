@@ -35,9 +35,43 @@ public class GeoRasterRenderedImage implements GeoRaster {
         this.rasterMetaData = rasterMetaData;
     }
 
+    /**
+     * Wrap a rendered image with the provided metadata.
+     * @param image RenderedImage instance (or PlanarImage)
+     * @param metaData MetaData. Width, height and band offset will be
+     *                 recomputed.
+     * @return Instance of GeoRaster
+     * @throws IllegalArgumentException
+     */
     public static GeoRasterRenderedImage create(RenderedImage image, RasterUtils
             .RasterMetaData metaData) throws IllegalArgumentException {
-        return new GeoRasterRenderedImage(image, metaData);
+        // Copy and fix metaData
+        RasterUtils.RasterBandMetaData[] bands = new RasterUtils
+                .RasterBandMetaData[metaData.bands.length];
+        long offset = RasterUtils.RASTER_METADATA_SIZE;
+        for(int idBand = 0; idBand < bands.length; idBand++) {
+            final RasterUtils.RasterBandMetaData extBand = metaData
+                    .bands[idBand];
+            RasterUtils.RasterBandMetaData band;
+            if(extBand.offDB) {
+                band = new RasterUtils
+                        .RasterBandMetaData(extBand.noDataValue, extBand
+                        .pixelType, extBand.hasNoData, extBand
+                        .externalBandId, extBand.externalPath, offset);
+            } else {
+                band = new RasterUtils
+                        .RasterBandMetaData(extBand.noDataValue, extBand
+                        .pixelType, extBand.hasNoData, offset);
+            }
+            bands[idBand] = band;
+            offset += band.getLength(image.getWidth(), image.getHeight());
+        }
+        RasterUtils.RasterMetaData fixedMetaData = new RasterUtils
+                .RasterMetaData(RasterUtils.LAST_WKB_VERSION, metaData.bands
+                .length,metaData.scaleX, metaData.scaleY, metaData.ipX,
+                metaData.ipY, metaData.skewX, metaData.skewY, metaData.srid,
+                image.getWidth(), image.getHeight(), bands);
+        return new GeoRasterRenderedImage(image, fixedMetaData);
     }
 
     /**

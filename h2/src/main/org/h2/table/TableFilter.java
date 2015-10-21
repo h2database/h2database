@@ -91,8 +91,8 @@ public class TableFilter implements ColumnResolver {
     /**
      * Batched join support.
      */
-    private JoinBatch jbatch;
-    private JoinFilter jfilter;
+    private JoinBatch joinBatch;
+    private JoinFilter joinFilter;
     
     /**
      * Indicates that this filter is used in the plan.
@@ -334,8 +334,8 @@ public class TableFilter implements ColumnResolver {
      * @return join batch if query runs over index which supports batched lookups, null otherwise
      */
     public JoinBatch startQuery(Session s) {
-        jbatch = null;
-        jfilter = null;
+        joinBatch = null;
+        joinFilter = null;
         this.session = s;
         scanCount = 0;
         if (nestedJoin != null) {
@@ -353,8 +353,8 @@ public class TableFilter implements ColumnResolver {
             if (nestedJoin != null) {
                 throw DbException.getUnsupportedException("nested join with batched index");
             }
-            jbatch = batch;
-            jfilter = batch.register(this);
+            joinBatch = batch;
+            joinFilter = batch.register(this);
         }
         return batch;
     }
@@ -379,9 +379,9 @@ public class TableFilter implements ColumnResolver {
      * @return true if there are
      */
     public boolean next() {
-        if (jbatch != null) {
+        if (joinBatch != null) {
             // will happen only on topTableFilter since jbatch.next does not call join.next()
-            return jbatch.next();
+            return joinBatch.next();
         }
         if (state == AFTER_LAST) {
             return false;
@@ -942,8 +942,8 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public Value getValue(Column column) {
-        if (jbatch != null) {
-            return jbatch.getValue(jfilter, column);
+        if (joinBatch != null) {
+            return joinBatch.getValue(joinFilter, column);
         }
         if (currentSearchRow == null) {
             return null;
@@ -1119,13 +1119,13 @@ public class TableFilter implements ColumnResolver {
         /**
          * This filter joined after this batched join and can be used normally.
          */
-        final TableFilter furtherFilter;
+        final TableFilter additionalFilter;
         
         /**
-         * @param furtherFilter table filter after this batched join.
+         * @param additionalFilter table filter after this batched join.
          */
-        private JoinBatch(TableFilter furtherFilter) {
-            this.furtherFilter = furtherFilter;
+        private JoinBatch(TableFilter additionalFilter) {
+            this.additionalFilter = additionalFilter;
         }
         
         /**
@@ -1178,7 +1178,7 @@ public class TableFilter implements ColumnResolver {
                 start();
                 started = true;
             }
-            if (furtherFilter == null) {
+            if (additionalFilter == null) {
                 if (batchedNext()) {
                     assert current.isComplete();
                     return true;
@@ -1192,10 +1192,10 @@ public class TableFilter implements ColumnResolver {
                     }
                     assert current.isComplete();
                     found = true;
-                    furtherFilter.reset();
+                    additionalFilter.reset();
                 }
                 // we call furtherFilter in usual way outside of this batch because it is more effective
-                if (furtherFilter.next()) {
+                if (additionalFilter.next()) {
                     return true;
                 }
                 found = false;
@@ -1391,11 +1391,11 @@ public class TableFilter implements ColumnResolver {
             return searchRows.size() >= batchSize * 2;
         }
 
-        private boolean isOk(boolean ignireJoinCondition) {
+        private boolean isOk(boolean ignoreJoinCondition) {
             boolean filterOk = filter.isOk(filter.filterCondition);
             boolean joinOk = filter.isOk(filter.joinCondition);
 
-            return filterOk && (ignireJoinCondition || joinOk);
+            return filterOk && (ignoreJoinCondition || joinOk);
         }
         
         private boolean collectSearchRows() {

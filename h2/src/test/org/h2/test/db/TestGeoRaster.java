@@ -475,10 +475,10 @@ public class TestGeoRaster extends TestBase {
         assertEquals(0, meta.skewX);
         assertEquals(0, meta.skewY);
         assertEquals(4326, meta.srid);
-        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[0].pixelType);
-        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[1].pixelType);
-        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[2].pixelType);
-        assertTrue(RasterUtils.PixelType.PT_8BSI == meta.bands[3].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[0].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[1].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[2].pixelType);
+        assertTrue(RasterUtils.PixelType.PT_8BUI == meta.bands[3].pixelType);
         rs.close();
         conn.close();
     }
@@ -759,7 +759,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(
-                    new Object[]{"8BSI", 0.0, false, ""},
+                    new Object[]{"8BUI", 0.0, false, ""},
                     (Object[]) rs.getObject(1));
         } finally {
             rs.close();
@@ -770,7 +770,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(
-                    new Object[]{"8BSI", 0.0, false, ""},
+                    new Object[]{"8BUI", 0.0, false, ""},
                     (Object[]) rs.getObject(1));
         } finally {
             rs.close();
@@ -781,7 +781,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(
-                    new Object[]{"8BSI", 0.0, false, ""},
+                    new Object[]{"8BUI", 0.0, false, ""},
                     (Object[]) rs.getObject(1));
         } finally {
             rs.close();

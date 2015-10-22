@@ -97,7 +97,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             int sampleSize = image.getSampleModel().getSampleSize(idBand);
             RasterUtils.PixelType pixelType;
             if (sampleSize <= Byte.SIZE) {
-                pixelType = RasterUtils.PixelType.PT_8BSI;
+                pixelType = RasterUtils.PixelType.PT_8BUI;
             } else if (sampleSize <= Integer.SIZE) {
                 pixelType = RasterUtils.PixelType.PT_32BSI;
             } else if(sampleSize <= Long.SIZE) {

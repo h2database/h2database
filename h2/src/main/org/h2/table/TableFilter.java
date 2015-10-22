@@ -1080,7 +1080,7 @@ public class TableFilter implements ColumnResolver {
     public Session getSession() {
         return session;
     }
-    
+
     /**
      * A visitor for table filters.
      */
@@ -1139,7 +1139,7 @@ public class TableFilter implements ColumnResolver {
          * @return column value for current row
          */
         private Value getValue(JoinFilter filter, Column column) {
-            Object x = current.row[filter.id];
+            Object x = current.row(filter.id);
             assert x != null;
             Row row = current.isRow(filter.id) ? (Row) x : ((Cursor) x).get();
             int columnId = column.getColumnId();
@@ -1156,7 +1156,7 @@ public class TableFilter implements ColumnResolver {
         private void start() {
             if (filtersCount > 32) {
                 // This is because we store state in a 64 bit field, 2 bits per joined table.
-                throw DbException.getUnsupportedException("To many tables in join (at most 32 supported).");
+                throw DbException.getUnsupportedException("Too many tables in join (at most 32 supported).");
             }
 
             // fill filters
@@ -1168,9 +1168,7 @@ public class TableFilter implements ColumnResolver {
             }
             // initialize current row
             current = new JoinRow(new Object[filtersCount]);
-            current.row[top.id] = top.filter.cursor;
-            current.incrementState(top.id, 2);
-            assert current.isCursor(top.id);
+            current.updateRow(top.id, top.filter.cursor, JoinRow.S_NULL, JoinRow.S_CURSOR);
 
             // initialize top cursor
             top.filter.cursor.find(top.filter.session, top.filter.indexConditions);
@@ -1180,7 +1178,7 @@ public class TableFilter implements ColumnResolver {
             fake.next = current;
             current = fake;
         }
-        
+
         private boolean next() {
             if (!started) {
                 start();
@@ -1233,7 +1231,7 @@ public class TableFilter implements ColumnResolver {
             final int lastJfId = filtersCount - 1;
             
             int jfId = lastJfId;
-            while (current.row[jfId] == null) {
+            while (current.row(jfId) == null) {
                 // lookup for the first non fetched filter for the current row
                 jfId--;
             }
@@ -1252,7 +1250,7 @@ public class TableFilter implements ColumnResolver {
                         // get future cursors for join and go right to fetch them
                         current = join.find(current);
                     }
-                    if (current.row[join.id] != null) {
+                    if (current.row(join.id) != null) {
                         // either find called or outer join with null row
                         jfId = join.id;
                         continue;
@@ -1271,7 +1269,7 @@ public class TableFilter implements ColumnResolver {
                     assert jfId != lastJfId;
                     
                     jfId = 0;
-                    while (current.row[jfId] != null) {
+                    while (current.row(jfId) != null) {
                         jfId++;
                     }
                     // force find on half filled batch (there must be either searchRows 
@@ -1281,7 +1279,7 @@ public class TableFilter implements ColumnResolver {
                     // here we don't care if the current was dropped
                     current = current.next;
                     assert !current.isRow(jfId);
-                    while (current.row[jfId] == null) {
+                    while (current.row(jfId) == null) {
                         assert jfId != top.id;
                         // need to go left and fetch more search rows
                         jfId--;
@@ -1298,7 +1296,7 @@ public class TableFilter implements ColumnResolver {
 
             assert !current.isRow(jfId) : "double fetching";
 
-            Object x = current.row[jfId];
+            Object x = current.row(jfId);
             assert x != null : "x null";
 
             final JoinFilter jf = filters[jfId];
@@ -1307,9 +1305,8 @@ public class TableFilter implements ColumnResolver {
 
             if (!newCursor && current.isFuture(jfId)) {
                 // get cursor from a future
-                current.row[jfId] = x = get((Future<Cursor>) x);
-                current.incrementState(jfId, 1);
-                assert current.isCursor(jfId);
+                x = get((Future<Cursor>) x);
+                current.updateRow(jfId, x, JoinRow.S_FUTURE, JoinRow.S_CURSOR);
                 newCursor = true;
             }
 
@@ -1321,9 +1318,7 @@ public class TableFilter implements ColumnResolver {
                 if (c == null || !c.next()) {
                     if (newCursor && jf.isOuterJoin()) {
                         // replace cursor with null-row
-                        current.row[jfId] = jf.getNullRow();
-                        current.incrementState(jfId, 1);
-                        assert current.isRow(jfId);
+                        current.updateRow(jfId, jf.getNullRow(), JoinRow.S_CURSOR, JoinRow.S_ROW);
                         c = null;
                         newCursor = false;
                     } else {
@@ -1348,15 +1343,10 @@ public class TableFilter implements ColumnResolver {
                 if (c != null) {
                     current = current.copyBehind(jf.id);
                     // get current row from cursor
-                    current.row[jfId] = c.get();
-                    current.incrementState(jfId, 1);
-                    assert current.isRow(jfId);
+                    current.updateRow(jfId, c.get(), JoinRow.S_CURSOR, JoinRow.S_ROW);
                 }
                 if (joinEmpty) {
-                    assert current.row[join.id] == null;
-                    current.row[join.id] = EMPTY_CURSOR;
-                    current.incrementState(join.id, 2);
-                    assert current.isCursor(join.id);
+                    current.updateRow(join.id, EMPTY_CURSOR, JoinRow.S_NULL, JoinRow.S_CURSOR);
                 }
                 return;
             }
@@ -1457,21 +1447,17 @@ public class TableFilter implements ColumnResolver {
                 ListIterator<Future<Cursor>> iter = result.listIterator(result.size());
                 for (;;) {
                     assert current.isRow(id - 1);
-                    if (current.row[id] == EMPTY_CURSOR) {
+                    if (current.row(id) == EMPTY_CURSOR) {
                         // outer join support - skip row with existing empty cursor
                         current = current.prev;
                         continue;
                     }
-                    assert current.row[id] == null;
+                    assert current.row(id) == null;
                     Future<Cursor> future = iter.previous();
                     if (future == null) {
-                        current.row[id] = EMPTY_CURSOR;
-                        current.incrementState(id, 2);
-                        assert current.isCursor(id);
+                        current.updateRow(id, EMPTY_CURSOR, JoinRow.S_NULL, JoinRow.S_CURSOR);
                     } else {
-                        current.row[id] = future;
-                        current.incrementState(id, 1);
-                        assert current.isFuture(id);
+                        current.updateRow(id, future, JoinRow.S_NULL, JoinRow.S_FUTURE);
                     }
                     if (current.prev == null || !iter.hasPrevious()) {
                         break;
@@ -1479,15 +1465,15 @@ public class TableFilter implements ColumnResolver {
                     current = current.prev;
                 }
             }
-            
+
             // handle empty cursors (because of outer joins) at the beginning
-            while (current.prev != null && current.prev.row[id] == EMPTY_CURSOR) {
+            while (current.prev != null && current.prev.row(id) == EMPTY_CURSOR) {
                 current = current.prev;
             }
             assert current.prev == null || current.prev.isRow(id);
-            assert current.row[id] != null;
+            assert current.row(id) != null;
             assert !current.isRow(id);
-            
+
             // the last updated row
             return current;
         }
@@ -1502,6 +1488,7 @@ public class TableFilter implements ColumnResolver {
      * Linked row in batched join.
      */
     private static final class JoinRow {
+        private static final long S_NULL = 0;
         private static final long S_FUTURE = 1;
         private static final long S_CURSOR = 2;
         private static final long S_ROW = 3;
@@ -1538,7 +1525,7 @@ public class TableFilter implements ColumnResolver {
 
         /**
          * Allows to do a state transition in the following order:
-         * 0. Slot contains {@code null} (no constant because simple null check is sufficient).
+         * 0. Slot contains {@code null} ({@link #S_NULL}).
          * 1. Slot contains {@link Future} ({@link #S_FUTURE}).
          * 2. Slot contains {@link Cursor} ({@link #S_CURSOR}).
          * 3. Slot contains {@link Row} ({@link #S_ROW}).
@@ -1547,7 +1534,19 @@ public class TableFilter implements ColumnResolver {
          * @param i Increment by this number of moves.
          */
         private void incrementState(int joinFilterId, long i) {
+            assert i > 0 : i;
             state += i << (joinFilterId << 1);
+        }
+
+        private void updateRow(int joinFilterId, Object x, long oldState, long newState) {
+            assert getState(joinFilterId) == oldState : "old state: " + getState(joinFilterId);
+            row[joinFilterId] = x;
+            incrementState(joinFilterId, newState - oldState);
+            assert getState(joinFilterId) == newState : "new state: " + getState(joinFilterId);
+        }
+
+        private Object row(int joinFilterId) {
+            return row[joinFilterId];
         }
 
         private boolean isRow(int joinFilterId) {

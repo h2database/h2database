@@ -234,7 +234,8 @@ public class GeoRasterRenderedImage implements GeoRaster {
             buffer = new byte[rasterRow.getWidth() * rasterRow.getHeight() *
                     pixelSize];
             pixelDriver.setRaster(rasterRow);
-            pixelDriver.readSamples(buffer, 0, 0, 0,
+            pixelDriver.readSamples(buffer, 0, rasterRow.getMinX(), rasterRow
+                            .getMinY(),
                     rasterRow.getWidth() , rasterRow.getHeight(), currentBand);
             pixelCursor += rasterRow
                     .getWidth() * rasterRow.getHeight();

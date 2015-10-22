@@ -296,6 +296,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
                             return read();
                         } else {
                             loadRasterTile(pixelCursor);
+                            bufferCursor = 0;
                             return read();
                         }
                     default:

@@ -69,7 +69,7 @@ public class IndexCursor implements Cursor {
 
     /**
      * Prepare this index cursor to make a lookup in index.
-     * 
+     *
      * @param s Session.
      * @param indexConditions Index conditions.
      */
@@ -261,19 +261,19 @@ public class IndexCursor implements Cursor {
     public boolean isAlwaysFalse() {
         return alwaysFalse;
     }
-    
+
     /**
      * Get start search row.
-     * 
+     *
      * @return search row
      */
     public SearchRow getStart() {
         return start;
     }
-    
+
     /**
      * Get end search row.
-     * 
+     *
      * @return search row
      */
     public SearchRow getEnd() {

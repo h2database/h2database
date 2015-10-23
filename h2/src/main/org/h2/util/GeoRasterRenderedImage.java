@@ -124,6 +124,11 @@ public class GeoRasterRenderedImage implements GeoRaster {
     }
 
     @Override
+    public String toString() {
+        return getMetaData().toString();
+    }
+
+    @Override
     public InputStream asWKBRaster() {
         return new WKBRasterStream(image, rasterMetaData);
     }

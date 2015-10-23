@@ -424,6 +424,16 @@ public class RasterUtils {
             this.bands = bands;
         }
 
+        @Override
+        public String toString() {
+            return String.format("w:%d h:%d bands:%d srid:%d x:%g y:%g " +
+                            "scalex:%g scaley:%g skewx:%g skewy:%g",
+                    width, height, numBands,
+                    srid, ipX, ipY,
+                    scaleX, scaleY, skewX,
+                    skewY);
+        }
+
         /**
          * @return Raster stream length
          */

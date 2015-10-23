@@ -290,12 +290,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         if(type == Value.RASTER) {
             try {
                 RasterUtils.RasterMetaData metaData = getMetaData();
-                return String.format("w:%d h:%d bands:%d srid:%d x:%g y:%g " +
-                                "scalex:%g scaley:%g skewx:%g skewy:%g",
-                        metaData.width, metaData.height, metaData.numBands,
-                        metaData.srid, metaData.ipX, metaData.ipY,
-                        metaData.scaleX, metaData.scaleY, metaData.skewX,
-                        metaData.skewY);
+                return metaData.toString();
             } catch (IOException e) {
                 throw DbException.convertIOException(e, toString());
             }

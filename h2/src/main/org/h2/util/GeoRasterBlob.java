@@ -50,6 +50,11 @@ public class GeoRasterBlob implements GeoRaster {
     }
 
     @Override
+    public String toString() {
+        return metaData.toString();
+    }
+
+    @Override
     public InputStream asWKBRaster() {
         return value.getInputStream();
     }

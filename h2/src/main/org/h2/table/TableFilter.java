@@ -358,7 +358,7 @@ public class TableFilter implements ColumnResolver {
         }
         return batch;
     }
-    
+
     /**
      * Reset to the current position.
      */
@@ -1341,7 +1341,7 @@ public class TableFilter implements ColumnResolver {
                     }
                 }
                 if (c != null) {
-                    current = current.copyBehind(jf.id);
+                    current = current.copyBehind(jfId);
                     // get current row from cursor
                     current.updateRow(jfId, c.get(), JoinRow.S_CURSOR, JoinRow.S_ROW);
                 }

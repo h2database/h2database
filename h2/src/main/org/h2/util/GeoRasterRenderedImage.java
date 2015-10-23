@@ -98,6 +98,8 @@ public class GeoRasterRenderedImage implements GeoRaster {
             RasterUtils.PixelType pixelType;
             if (sampleSize <= Byte.SIZE) {
                 pixelType = RasterUtils.PixelType.PT_8BUI;
+            } else if(sampleSize <= Short.SIZE) {
+                pixelType = RasterUtils.PixelType.PT_16BSI;
             } else if (sampleSize <= Integer.SIZE) {
                 pixelType = RasterUtils.PixelType.PT_32BSI;
             } else if(sampleSize <= Long.SIZE) {

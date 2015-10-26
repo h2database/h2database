@@ -960,7 +960,7 @@ public class TestGeoRaster extends TestBase {
         g.dispose();
         return GeoRasterRenderedImage.create(resizedImage, meta.scaleX / factor, meta
                         .scaleY / factor, meta.ipX, meta.ipY, meta.skewX / factor,
-                meta.skewY / factor, meta.srid, 0);
+                meta.skewY / factor, meta.srid, 0).setMaxRowCache(1);
     }
 
     /**

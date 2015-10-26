@@ -510,6 +510,11 @@ public class Constants {
      */
     public static final int QUERY_STATISTICS_MAX_ENTRIES = 100;
 
+    /**
+     * The maximum number of image row (y) cached in GeoRaster based on rendered image
+     */
+    public static final int DEFAULT_MAX_RASTER_ROW_CACHE = 256;
+
     private Constants() {
         // utility class
     }

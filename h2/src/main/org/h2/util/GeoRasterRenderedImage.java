@@ -6,6 +6,7 @@
 package org.h2.util;
 
 import org.h2.api.GeoRaster;
+import org.h2.engine.Constants;
 
 import java.awt.*;
 import java.awt.image.ColorModel;
@@ -28,11 +29,21 @@ import java.util.Vector;
 public class GeoRasterRenderedImage implements GeoRaster {
     private final RenderedImage image;
     private final RasterUtils.RasterMetaData rasterMetaData;
+    private int maxRowCache = Utils.getProperty("h2.maxRasterRowCache", Constants.DEFAULT_MAX_RASTER_ROW_CACHE);
 
     private GeoRasterRenderedImage(RenderedImage image,
                                    RasterUtils.RasterMetaData rasterMetaData) {
         this.image = image;
         this.rasterMetaData = rasterMetaData;
+    }
+
+    /**
+     * @param maxRowCache Maximum cached rows when converting into WKB Raster
+     * @return This
+     */
+    public GeoRasterRenderedImage setMaxRowCache(int maxRowCache) {
+        this.maxRowCache = maxRowCache;
+        return this;
     }
 
     /**
@@ -132,7 +143,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
 
     @Override
     public InputStream asWKBRaster() {
-        return new WKBRasterStream(image, rasterMetaData);
+        return new WKBRasterStream(image, rasterMetaData, maxRowCache);
     }
 
     private static class WKBRasterStream extends InputStream {
@@ -143,7 +154,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
         private int bufferCursor = 0;
         private RasterPixelDriver pixelDriver;
         private final boolean readTiles;
-        private static final int MAX_ROW_CACHE = 32;
+        private final int maxRowCache;
 
 
         private enum BUFFER_STATE {
@@ -157,9 +168,10 @@ public class GeoRasterRenderedImage implements GeoRaster {
         private long streamPosition = 0;
 
         public WKBRasterStream(RenderedImage raster,
-                RasterUtils.RasterMetaData rasterMetaData) {
+                RasterUtils.RasterMetaData rasterMetaData, int maxRowCache) {
             this.raster = raster;
             this.rasterMetaData = rasterMetaData;
+            this.maxRowCache = maxRowCache;
             // Compute rows to read (fit with Tiles)
             int numTileY = raster.getNumYTiles();
             // Cache a row
@@ -234,15 +246,14 @@ public class GeoRasterRenderedImage implements GeoRaster {
                         new Rectangle(0,
                                 (int) (pixelTarget / rasterMetaData.width),
                                 rasterMetaData.width,
-                                Math.min(MAX_ROW_CACHE, raster.getHeight() -
+                                Math.min(maxRowCache, raster.getHeight() -
                                         (int)(pixelTarget / rasterMetaData.width))));
             }
             int pixelSize = pixelDriver.getPixelType().pixelSize;
             buffer = new byte[rasterRow.getWidth() * rasterRow.getHeight() *
                     pixelSize];
             pixelDriver.setRaster(rasterRow);
-            pixelDriver.readSamples(buffer, 0, rasterRow.getMinX(), rasterRow
-                            .getMinY(),
+            pixelDriver.readSamples(buffer, 0, 0, 0,
                     rasterRow.getWidth() , rasterRow.getHeight(), currentBand);
             pixelCursor += rasterRow
                     .getWidth() * rasterRow.getHeight();
@@ -373,7 +384,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     buffer[pos + i] = (byte)samples[i];
@@ -388,7 +399,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeShort(buffer, pos + (i * pixelType.pixelSize),
@@ -404,7 +415,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeUnsignedShort(buffer,
@@ -422,7 +433,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 float[] samples = new float[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeInt(buffer,
@@ -440,7 +451,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 double[] samples = new double[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeUnsignedInt(buffer,
@@ -459,7 +470,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeInt(buffer, pos + (i * pixelType.pixelSize),
@@ -476,7 +487,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 double[] samples = new double[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeDouble(buffer,

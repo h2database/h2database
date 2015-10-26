@@ -51,7 +51,11 @@ public class GeoRasterBlob implements GeoRaster {
 
     @Override
     public String toString() {
-        return metaData.toString();
+        try {
+            return getMetaData().toString();
+        } catch (IOException ex) {
+            throw DbException.convertIOException(ex, "Cannot read raster metadata");
+        }
     }
 
     @Override

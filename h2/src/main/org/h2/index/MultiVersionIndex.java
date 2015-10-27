@@ -389,12 +389,8 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
-    public int getPreferedLookupBatchSize() {
-        return 0;
-    }
-
-    @Override
-    public List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs) {
-        throw DbException.throwInternalError("Must never be called.");
+    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+        // Lookup batching is not supported.
+        return null;
     }
 }

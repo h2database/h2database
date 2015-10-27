@@ -16,16 +16,24 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
+import org.h2.command.dml.OptimizerHints;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
+import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
 import org.h2.message.DbException;
@@ -37,6 +45,7 @@ import org.h2.table.Table;
 import org.h2.table.TableBase;
 import org.h2.table.TableFilter;
 import org.h2.test.TestBase;
+import org.h2.util.DoneFuture;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -65,6 +74,7 @@ public class TestTableEngines extends TestBase {
         testEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
+        testBatchedJoin();
     }
 
     private void testEarlyFilter() throws SQLException {
@@ -332,7 +342,181 @@ public class TestTableEngines extends TestBase {
 
         deleteDb("tableEngine");
     }
+    
+    private void testBatchedJoin() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine;OPTIMIZE_REUSE_RESULTS=0");
+        Statement stat = conn.createStatement();
+        
+        TreeSetIndex.exec = Executors.newFixedThreadPool(8, new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setDaemon(true);
+                return t;
+            }
+        });
+        
+        enableJoinReordering(false);
+        try {
+            doTestBatchedJoin(stat, 1, 0, 0);
+            doTestBatchedJoin(stat, 0, 1, 0);
+            doTestBatchedJoin(stat, 0, 0, 1);
+            
+            doTestBatchedJoin(stat, 0, 2, 0);
+            doTestBatchedJoin(stat, 0, 0, 2);
 
+            doTestBatchedJoin(stat, 0, 0, 3);
+            doTestBatchedJoin(stat, 0, 0, 4);
+            doTestBatchedJoin(stat, 0, 0, 5);
+            
+            doTestBatchedJoin(stat, 0, 3, 1);
+            doTestBatchedJoin(stat, 0, 3, 3);
+            doTestBatchedJoin(stat, 0, 3, 7);
+            
+            doTestBatchedJoin(stat, 0, 4, 1);
+            doTestBatchedJoin(stat, 0, 4, 6);
+            doTestBatchedJoin(stat, 0, 4, 20);
+            
+            doTestBatchedJoin(stat, 0, 10, 0);
+            doTestBatchedJoin(stat, 0, 0, 10);
+            
+            doTestBatchedJoin(stat, 0, 20, 0);
+            doTestBatchedJoin(stat, 0, 0, 20);
+            doTestBatchedJoin(stat, 0, 20, 20);
+            
+            doTestBatchedJoin(stat, 3, 7, 0);
+            doTestBatchedJoin(stat, 0, 0, 5);
+            doTestBatchedJoin(stat, 0, 8, 1);
+            doTestBatchedJoin(stat, 0, 2, 1);
+        } finally {
+            enableJoinReordering(true);
+            TreeSetIndex.exec.shutdownNow();
+        }
+        deleteDb("tableEngine");
+    }
+    
+    /**
+     * @param enable Enabled.
+     */
+    private void enableJoinReordering(boolean enable) {
+        OptimizerHints hints = null;
+        if (!enable) {
+            hints = new OptimizerHints();
+            hints.setJoinReorderEnabled(false);
+        }
+        OptimizerHints.set(hints);
+    }
+    
+    private void doTestBatchedJoin(Statement stat, int... batchSizes) throws SQLException {
+        ArrayList<TreeSetTable> tables = New.arrayList(batchSizes.length);
+        
+        for (int i = 0; i < batchSizes.length; i++) {
+            stat.executeUpdate("DROP TABLE IF EXISTS T" + i);
+            stat.executeUpdate("CREATE TABLE T" + i + "(A INT, B INT) ENGINE \"" +
+                    TreeSetIndexTableEngine.class.getName() + "\"");
+            tables.add(TreeSetIndexTableEngine.created);
+            
+            stat.executeUpdate("CREATE INDEX IDX_B ON T" + i + "(B)");
+            stat.executeUpdate("CREATE INDEX IDX_A ON T" + i + "(A)");
+            
+            PreparedStatement insert = stat.getConnection().prepareStatement(
+                    "INSERT INTO T"+ i + " VALUES (?,?)");
+            
+            for (int j = i, size = i + 10; j < size; j++) {
+                insert.setInt(1, j);
+                insert.setInt(2, j);
+                insert.executeUpdate();
+            }
+            
+            for (TreeSetTable table : tables) {
+                assertEquals(10, table.getRowCount(null));
+            }
+        }
+        
+        int[] zeroBatchSizes = new int[batchSizes.length];
+        int tests = 1 << (batchSizes.length * 4);
+        
+        for (int test = 0; test < tests; test++) {
+            String query = generateQuery(test, batchSizes.length);
+            
+//            System.out.println(Arrays.toString(batchSizes) + ": " + test + " -> " + query);
+            
+            setBatchSize(tables, batchSizes);
+            List<List<Object>> res1 = query(stat, query);
+            
+            setBatchSize(tables, zeroBatchSizes);
+            List<List<Object>> res2 = query(stat, query);
+            
+//            System.out.println(res1 + " " + res2);
+
+            if (!res2.equals(res1)) {
+                System.err.println(Arrays.toString(batchSizes) + ": " + res1 + " " + res2);
+                System.err.println("Test " + test);
+                System.err.println(query);
+                for (TreeSetTable table : tables) {
+                    System.err.println(table.getName() + " = " + 
+                            query(stat, "select * from " + table.getName()));
+                }
+                fail();
+            }
+        }
+    }
+    
+    private static void setBatchSize(ArrayList<TreeSetTable> tables, int... batchSizes) {
+        for (int i = 0; i < batchSizes.length; i++) {
+            int batchSize = batchSizes[i];
+            for (Index idx : tables.get(i).getIndexes()) {
+                ((TreeSetIndex) idx).preferedBatchSize = batchSize;
+            }
+        }
+    }
+    
+    private String generateQuery(int t, int tables) {
+        final int withLeft = 1;
+        final int withFalse = 2;
+        final int withWhere = 4;
+        final int withOnIsNull = 8;
+        
+        StringBuilder b = new StringBuilder();
+        b.append("select count(*) from ");
+        
+        StringBuilder where = new StringBuilder();
+        
+        for (int i = 0; i < tables; i++) {
+            if (i != 0) {
+                if ((t & withLeft) != 0) {
+                    b.append(" left ");
+                }
+                b.append(" join ");
+            }
+            b.append("\nT").append(i).append(' ');
+            if (i != 0) {
+                boolean even = (i & 1) == 0;
+                if ((t & withOnIsNull) != 0) {
+                    b.append(" on T").append(i - 1).append(even ? ".B" : ".A").append(" is null");
+                } else if ((t & withFalse) != 0) {
+                    b.append(" on false ");
+                } else {
+                    b.append(" on T").append(i - 1).append(even ? ".B = " : ".A = ");
+                    b.append("T").append(i).append(even ? ".B " : ".A ");
+                }
+            }
+            if ((t & withWhere) != 0) {
+                if (where.length() != 0) {
+                    where.append(" and ");
+                }
+                where.append(" T").append(i).append(".A > 5");
+            }
+            t >>>= 4; 
+        }
+        if (where.length() != 0) {
+            b.append("\nwhere ").append(where);
+        }
+        
+        return b.toString();
+    }
+    
     private void checkResultsNoOrder(Statement stat, int size, String query1, String query2)
             throws SQLException {
         List<List<Object>> res1 = query(stat, query1);
@@ -710,9 +894,12 @@ public class TestTableEngines extends TestBase {
      * A table engine that internally uses a tree set.
      */
     public static class TreeSetIndexTableEngine implements TableEngine {
+        
+        static TreeSetTable created;
+        
         @Override
         public Table createTable(CreateTableData data) {
-            return new TreeSetTable(data);
+            return created = new TreeSetTable(data);
         }
     }
 
@@ -881,8 +1068,15 @@ public class TestTableEngines extends TestBase {
      * An index that internally uses a tree set.
      */
     private static class TreeSetIndex extends BaseIndex implements Comparator<SearchRow> {
-        final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
-
+        /**
+         * Executor service to test batched joins.
+         */
+        private static ExecutorService exec;
+        
+        private final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
+        
+        private int preferedBatchSize;
+        
         TreeSetIndex(Table t, String name, IndexColumn[] cols, IndexType type) {
             initBaseIndex(t, 0, name, cols, type);
         }
@@ -890,12 +1084,73 @@ public class TestTableEngines extends TestBase {
         @Override
         public int compare(SearchRow o1, SearchRow o2) {
             int res = compareRows(o1, o2);
-            if (res == 0 && (o1.getKey() == Long.MAX_VALUE || o2.getKey() == Long.MAX_VALUE)) {
-                res = -1;
+            if (res == 0) {
+                if (o1.getKey() == Long.MAX_VALUE || o2.getKey() == Long.MIN_VALUE) {
+                    res = 1;
+                } else if (o1.getKey() == Long.MIN_VALUE || o2.getKey() == Long.MAX_VALUE) {
+                    res = -1;
+                }
             }
             return res;
         }
 
+        @Override
+        public IndexLookupBatch createLookupBatch(final TableFilter filter) {
+            final int preferedSize = preferedBatchSize; 
+            return preferedSize == 0 ? null : new IndexLookupBatch() {
+                List<SearchRow> searchRows = New.arrayList();
+
+                @Override public boolean isBatchFull() {
+                    return searchRows.size() >= preferedSize * 2;
+                }
+
+                @Override
+                public List<Future<Cursor>> find() {
+                    List<Future<Cursor>> res = findBatched(filter, searchRows);
+                    searchRows.clear();
+                    return res;
+                }
+
+                @Override
+                public void addSearchRows(SearchRow first, SearchRow last) {
+                    assert !isBatchFull();
+                    searchRows.add(first);
+                    searchRows.add(last);
+                }
+            };
+        }
+
+        public List<Future<Cursor>> findBatched(final TableFilter filter, List<SearchRow> firstLastPairs) {
+            ArrayList<Future<Cursor>> result = New.arrayList(firstLastPairs.size());
+            final Random rnd = new Random();
+            for (int i = 0; i < firstLastPairs.size(); i += 2) {
+                final SearchRow first = firstLastPairs.get(i);
+                final SearchRow last = firstLastPairs.get(i + 1);
+                Future<Cursor> future;
+                if (rnd.nextBoolean()) {
+                    IteratorCursor c = (IteratorCursor) find(filter, first, last);
+                    if (c.it.hasNext()) {
+                        future = new DoneFuture<Cursor>(c);
+                    } else {
+                        // we can return null instead of future of empty cursor
+                        future = null;
+                    }
+                } else {
+                    future = exec.submit(new Callable<Cursor>() {
+                        @Override
+                        public Cursor call() throws Exception {
+                            if (rnd.nextInt(50) == 0) {
+                                Thread.sleep(0, 500);
+                            }
+                            return find(filter, first, last);
+                        }
+                    });
+                }
+                result.add(future);
+            }
+            return result;
+        }
+        
         @Override
         public void close(Session session) {
             // No-op.
@@ -911,10 +1166,10 @@ public class TestTableEngines extends TestBase {
             set.remove(row);
         }
 
-        private static SearchRow mark(SearchRow row) {
+        private static SearchRow mark(SearchRow row, boolean first) {
             if (row != null) {
                 // Mark this row to be a search row.
-                row.setKey(Long.MAX_VALUE);
+                row.setKey(first ? Long.MIN_VALUE : Long.MAX_VALUE);
             }
             return row;
         }
@@ -926,19 +1181,23 @@ public class TestTableEngines extends TestBase {
                 subSet = Collections.emptySet();
             } else {
                 if (first != null) {
-                    first = set.floor(mark(first));
+                    first = set.floor(mark(first, true));
                 }
                 if (last != null) {
-                    last = set.ceiling(mark(last));
+                    last = set.ceiling(mark(last, false));
                 }
                 if (first == null && last == null) {
                     subSet = set;
                 } else if (first != null) {
-                    subSet = set.tailSet(first, true);
+                    if (last != null) {
+                        subSet = set.subSet(first,  true, last, true);
+                    } else { 
+                        subSet = set.tailSet(first, true);
+                    }
                 } else if (last != null) {
                     subSet = set.headSet(last, true);
                 } else {
-                    subSet = set.subSet(first,  true, last, true);
+                    throw new IllegalStateException();
                 }
             }
             return new IteratorCursor(subSet.iterator());
@@ -1030,6 +1289,11 @@ public class TestTableEngines extends TestBase {
         @Override
         public Row get() {
             return current;
+        }
+        
+        @Override
+        public String toString() {
+            return "IterCursor->" + current;
         }
     }
 

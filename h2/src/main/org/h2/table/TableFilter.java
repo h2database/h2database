@@ -5,6 +5,7 @@
  */
 package org.h2.table;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
+import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
 import org.h2.message.DbException;
@@ -345,16 +347,22 @@ public class TableFilter implements ColumnResolver {
         if (join != null) {
             batch = join.startQuery(s);
         }
-        if (batch == null && index.getPreferedLookupBatchSize() != 0 && select != null && 
-                select.getTopTableFilter() != this) {
-            batch = new JoinBatch(join);
+        IndexLookupBatch lookupBatch = null;
+        if (batch == null && select != null && select.getTopTableFilter() != this) {
+            lookupBatch = index.createLookupBatch(this);
+            if (lookupBatch != null) {
+                batch = new JoinBatch(join);
+            }
         }
         if (batch != null) {
             if (nestedJoin != null) {
                 throw DbException.getUnsupportedException("nested join with batched index");
             }
+            if (lookupBatch == null) {
+                lookupBatch = index.createLookupBatch(this);
+            }
             joinBatch = batch;
-            joinFilter = batch.register(this);
+            joinFilter = batch.register(this, lookupBatch);
         }
         return batch;
     }
@@ -1126,11 +1134,12 @@ public class TableFilter implements ColumnResolver {
         
         /**
          * @param filter table filter
+         * @param lookupBatch lookup batch
          */
-        private JoinFilter register(TableFilter filter) {
+        private JoinFilter register(TableFilter filter, IndexLookupBatch lookupBatch) {
             assert filter != null;
             filtersCount++;
-            return top = new JoinFilter(filter, top);
+            return top = new JoinFilter(lookupBatch, filter, top);
         }
         
         /**
@@ -1365,23 +1374,15 @@ public class TableFilter implements ColumnResolver {
      */
     private static final class JoinFilter {
         final TableFilter filter;
-        final int batchSize;
         final JoinFilter join;
         int id;
         
-        /**
-         * Search rows batch.
-         */
-        final ArrayList<SearchRow> searchRows;
+        IndexLookupBatch lookupBatch;
         
-        private JoinFilter(TableFilter filter, JoinFilter join) {
+        private JoinFilter(IndexLookupBatch lookupBatch, TableFilter filter, JoinFilter join) {
             this.filter = filter;
             this.join = join;
-            batchSize = filter.getIndex().getPreferedLookupBatchSize();
-            if (batchSize < 0) {
-                throw DbException.throwInternalError("Index with negative preferred batch size.");
-            }
-            searchRows = New.arrayList(batchSize == 0 ? 2 : Math.min(batchSize * 2, 32));
+            this.lookupBatch = lookupBatch != null ? lookupBatch : new FakeLookupBatch(filter);
         }
         
         public Row getNullRow() {
@@ -1393,10 +1394,7 @@ public class TableFilter implements ColumnResolver {
         }
 
         private boolean isBatchFull() {
-            if (batchSize == 0) {
-                return searchRows.size() >= 2;
-            }
-            return searchRows.size() >= batchSize * 2;
+            return lookupBatch.isBatchFull();
         }
 
         private boolean isOk(boolean ignoreJoinCondition) {
@@ -1408,62 +1406,40 @@ public class TableFilter implements ColumnResolver {
         
         private boolean collectSearchRows() {
             assert !isBatchFull();
-            filter.cursor.prepare(filter.session, filter.indexConditions);
-            if (filter.cursor.isAlwaysFalse()) {
+            IndexCursor c = filter.cursor;
+            c.prepare(filter.session, filter.indexConditions);
+            if (c.isAlwaysFalse()) {
                 return false;
             }
-            searchRows.add(filter.cursor.getStart());
-            searchRows.add(filter.cursor.getEnd());
+            lookupBatch.addSearchRows(c.getStart(), c.getEnd());
             return true;
         }
         
         private JoinRow find(JoinRow current) {
             assert current != null;
-            assert (searchRows.size() & 1) == 0 : "searchRows & 1, " + searchRows.size();
 
-            // searchRows are allowed to be empty when we have some null-rows and forced find call
-            if (!searchRows.isEmpty()) {
-                assert searchRows.size() >= 2: "searchRows >= 2, " + searchRows.size(); 
-                
-                List<Future<Cursor>> result;
-                
-                if (batchSize == 0) {
-                    assert searchRows.size() == 2 : "2";
-                    Cursor c = filter.index.find(filter, searchRows.get(0), searchRows.get(1));
-                    result = Collections.<Future<Cursor>>singletonList(new DoneFuture<Cursor>(c));
-                } else {
-                    result = filter.index.findBatched(filter, searchRows);
-                    if (result == null) {
-                        throw DbException.throwInternalError("Index.findBatched returned null");
-                    }
-                }
-                
-                if (result.size() != searchRows.size() >>> 1) {
-                    throw DbException.throwInternalError("wrong number of futures");
-                }
-                searchRows.clear();
-                
-                // go backwards and assign futures
-                ListIterator<Future<Cursor>> iter = result.listIterator(result.size());
-                for (;;) {
-                    assert current.isRow(id - 1);
-                    if (current.row(id) == EMPTY_CURSOR) {
-                        // outer join support - skip row with existing empty cursor
-                        current = current.prev;
-                        continue;
-                    }
-                    assert current.row(id) == null;
-                    Future<Cursor> future = iter.previous();
-                    if (future == null) {
-                        current.updateRow(id, EMPTY_CURSOR, JoinRow.S_NULL, JoinRow.S_CURSOR);
-                    } else {
-                        current.updateRow(id, future, JoinRow.S_NULL, JoinRow.S_FUTURE);
-                    }
-                    if (current.prev == null || !iter.hasPrevious()) {
-                        break;
-                    } 
+            // lookupBatch is allowed to be empty when we have some null-rows and forced find call
+            List<Future<Cursor>> result = lookupBatch.find();
+
+            // go backwards and assign futures
+            for (int i = result.size(); i > 0;) {
+                assert current.isRow(id - 1);
+                if (current.row(id) == EMPTY_CURSOR) {
+                    // outer join support - skip row with existing empty cursor
                     current = current.prev;
+                    continue;
                 }
+                assert current.row(id) == null;
+                Future<Cursor> future = result.get(--i);
+                if (future == null) {
+                    current.updateRow(id, EMPTY_CURSOR, JoinRow.S_NULL, JoinRow.S_CURSOR);
+                } else {
+                    current.updateRow(id, future, JoinRow.S_NULL, JoinRow.S_FUTURE);
+                }
+                if (current.prev == null || i == 0) {
+                    break;
+                }
+                current = current.prev;
             }
 
             // handle empty cursors (because of outer joins) at the beginning
@@ -1609,6 +1585,78 @@ public class TableFilter implements ColumnResolver {
         @Override
         public String toString() {
             return "JoinRow->" + Arrays.toString(row);
+        }
+    }
+
+    /**
+     * Fake Lookup batch for indexes which do not support batching but have to participate 
+     * in batched joins.
+     */
+    private static class FakeLookupBatch implements IndexLookupBatch {
+        final TableFilter filter;
+
+        SearchRow first;
+        SearchRow last;
+
+        boolean full;
+
+        final List<Future<Cursor>> result = new SingletonList<Future<Cursor>>();
+
+        /**
+         * @param index Index.
+         */
+        public FakeLookupBatch(TableFilter filter) {
+            this.filter = filter;
+        }
+
+        @Override
+        public void addSearchRows(SearchRow first, SearchRow last) {
+            assert !full;
+            this.first = first;
+            this.last = last;
+            full = true;
+        }
+
+        @Override
+        public boolean isBatchFull() {
+            return full;
+        }
+
+        @Override
+        public List<Future<Cursor>> find() {
+            if (!full) {
+                return Collections.emptyList();
+            }
+            Cursor c = filter.getIndex().find(filter, first, last);
+            result.set(0, new DoneFuture<Cursor>(c));
+            full = false;
+            first = last = null;
+            return result;
+        }
+    }
+
+    /**
+     * Simple singleton list.
+     */
+    private static class SingletonList<E> extends AbstractList<E> {
+        private E element;
+
+        @Override
+        public E get(int index) {
+            assert index == 0;
+            return element;
+        }
+
+        @Override
+        public E set(int index, E element) {
+            assert index == 0;
+            this.element = element;
+            return null;
+        }
+
+        @Override
+        public int size() {
+            return 1;
         }
     }
 }

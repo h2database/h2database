@@ -427,13 +427,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public int getPreferedLookupBatchSize() {
-        // No batched lookups supported by default.
-        return 0;
-    }
-
-    @Override
-    public List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs) {
-        throw DbException.throwInternalError("Must not be called if getPreferedLookupBatchSize() is 0.");
+    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+        // Lookup batching is not supported.
+        return null;
     }
 }

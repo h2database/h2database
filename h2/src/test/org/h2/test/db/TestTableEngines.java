@@ -33,6 +33,7 @@ import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
+import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexType;
 import org.h2.index.SingleRowCursor;
 import org.h2.message.DbException;
@@ -1094,11 +1095,31 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public int getPreferedLookupBatchSize() {
-            return preferedBatchSize;
+        public IndexLookupBatch createLookupBatch(final TableFilter filter) {
+            final int preferedSize = preferedBatchSize; 
+            return preferedSize == 0 ? null : new IndexLookupBatch() {
+                List<SearchRow> searchRows = New.arrayList();
+
+                @Override public boolean isBatchFull() {
+                    return searchRows.size() >= preferedSize * 2;
+                }
+
+                @Override
+                public List<Future<Cursor>> find() {
+                    List<Future<Cursor>> res = findBatched(filter, searchRows);
+                    searchRows.clear();
+                    return res;
+                }
+
+                @Override
+                public void addSearchRows(SearchRow first, SearchRow last) {
+                    assert !isBatchFull();
+                    searchRows.add(first);
+                    searchRows.add(last);
+                }
+            };
         }
-        
-        @Override
+
         public List<Future<Cursor>> findBatched(final TableFilter filter, List<SearchRow> firstLastPairs) {
             ArrayList<Future<Cursor>> result = New.arrayList(firstLastPairs.size());
             final Random rnd = new Random();

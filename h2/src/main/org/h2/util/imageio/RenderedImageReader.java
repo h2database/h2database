@@ -23,14 +23,18 @@ import java.util.Vector;
  */
 public class RenderedImageReader implements RenderedImage {
     private final ImageReader imageReader;
-    private final BufferedImage pixelSample;
+    private BufferedImage pixelSample;
 
 
-    public RenderedImageReader(ImageReader imageReader) throws IOException {
+    public RenderedImageReader(ImageReader imageReader) {
         this.imageReader = imageReader;
-        ImageReadParam param = imageReader.getDefaultReadParam();
-        param.setSourceRegion(new Rectangle(1, 1));
-        pixelSample = imageReader.read(imageReader.getMinIndex(), param);
+        try {
+            ImageReadParam param = imageReader.getDefaultReadParam();
+            param.setSourceRegion(new Rectangle(1, 1));
+            pixelSample = imageReader.read(imageReader.getMinIndex(), param);
+        } catch (IOException ex) {
+            pixelSample = null;
+        }
     }
 
     @Override
@@ -68,12 +72,20 @@ public class RenderedImageReader implements RenderedImage {
 
     @Override
     public ColorModel getColorModel() {
-        return pixelSample.getColorModel();
+        if(pixelSample != null) {
+            return pixelSample.getColorModel();
+        } else {
+            return null;
+        }
     }
 
     @Override
     public SampleModel getSampleModel() {
-        return pixelSample.getSampleModel();
+        if(pixelSample != null) {
+            return pixelSample.getSampleModel();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -153,11 +165,8 @@ public class RenderedImageReader implements RenderedImage {
     @Override
     public Raster getTile(int tileX, int tileY) {
         try {
-            if(imageReader.canReadRaster()) {
-                return imageReader.readTileRaster(imageReader.getMinIndex(), tileX, tileY);
-            } else {
-                return imageReader.readTile(imageReader.getMinIndex(), tileX, tileY).getRaster();
-            }
+            return imageReader.readAsRenderedImage(imageReader.getMinIndex(),
+                    null).getTile(tileX, tileY);
         } catch (IOException ex) {
             throw DbException.convertIOException(ex, "");
         }
@@ -166,11 +175,8 @@ public class RenderedImageReader implements RenderedImage {
     @Override
     public Raster getData() {
         try {
-            if(imageReader.canReadRaster()) {
-                return imageReader.readRaster(imageReader.getMinIndex(), null);
-            } else {
-                return imageReader.read(imageReader.getMinIndex(), null).getRaster();
-            }
+            return imageReader.readAsRenderedImage(imageReader.getMinIndex(),
+                    null).getData();
         } catch (IOException ex) {
             throw DbException.convertIOException(ex, "");
         }
@@ -181,11 +187,8 @@ public class RenderedImageReader implements RenderedImage {
         try {
             ImageReadParam param = imageReader.getDefaultReadParam();
             param.setSourceRegion(rect);
-            if(imageReader.canReadRaster()) {
-                return imageReader.readRaster(imageReader.getMinIndex(), param);
-            } else {
-                return imageReader.read(imageReader.getMinIndex(), param).getRaster();
-            }
+            return imageReader.readAsRenderedImage(imageReader.getMinIndex(),
+                    param).getData();
         } catch (IOException ex) {
             throw DbException.convertIOException(ex, "");
         }

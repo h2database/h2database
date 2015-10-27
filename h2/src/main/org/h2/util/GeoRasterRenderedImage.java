@@ -190,7 +190,6 @@ public class GeoRasterRenderedImage implements GeoRaster {
                                             .pixelType, null);
                             long pixelTarget = (newPos - bandMeta.offsetPixel) /
                                     bandMeta.pixelType.pixelSize;
-                            pixelCursor = (pixelTarget / rasterMetaData.width);
                             loadRasterTile(pixelTarget);
                             streamPosition += n;
                             return n;
@@ -241,11 +240,11 @@ public class GeoRasterRenderedImage implements GeoRaster {
             buffer = new byte[rasterRow.getWidth() * rasterRow.getHeight() *
                     pixelSize];
             pixelDriver.setRaster(rasterRow);
-            pixelDriver.readSamples(buffer, 0, rasterRow.getMinX(), rasterRow
-                            .getMinY(),
+            pixelDriver.readSamples(buffer, 0, 0, 0,
                     rasterRow.getWidth() , rasterRow.getHeight(), currentBand);
-            pixelCursor += rasterRow
-                    .getWidth() * rasterRow.getHeight();
+            pixelCursor = ((pixelTarget / rasterMetaData.width) *
+                    rasterMetaData.width) + rasterRow.getWidth() *
+                    rasterRow.getHeight();
             bufferCursor = (int)(pixelTarget % rasterMetaData.width)* pixelSize;
         }
 
@@ -304,7 +303,6 @@ public class GeoRasterRenderedImage implements GeoRaster {
                             return read();
                         } else {
                             loadRasterTile(pixelCursor);
-                            bufferCursor = 0;
                             return read();
                         }
                     default:
@@ -373,7 +371,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     buffer[pos + i] = (byte)samples[i];
@@ -388,7 +386,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeShort(buffer, pos + (i * pixelType.pixelSize),
@@ -404,7 +402,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeUnsignedShort(buffer,
@@ -422,7 +420,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 float[] samples = new float[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeInt(buffer,
@@ -440,7 +438,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 double[] samples = new double[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeUnsignedInt(buffer,
@@ -459,7 +457,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 int[] samples = new int[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeInt(buffer, pos + (i * pixelType.pixelSize),
@@ -476,7 +474,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
             public void readSamples(byte[] buffer, int pos, int x, int y,int
                     width,int height, int band) {
                 double[] samples = new double[width * height];
-                raster.getSamples(x + raster.getSampleModelTranslateX(), y + raster.getSampleModelTranslateY(),
+                raster.getSamples(x + raster.getMinX(), y + raster.getMinY(),
                         width, height, band, samples);
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeDouble(buffer,

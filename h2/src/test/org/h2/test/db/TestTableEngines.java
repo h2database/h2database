@@ -1096,6 +1096,7 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public IndexLookupBatch createLookupBatch(final TableFilter filter) {
+            assert filter.getMasks() != null || "scan".equals(getName());
             final int preferedSize = preferedBatchSize; 
             return preferedSize == 0 ? null : new IndexLookupBatch() {
                 List<SearchRow> searchRows = New.arrayList();

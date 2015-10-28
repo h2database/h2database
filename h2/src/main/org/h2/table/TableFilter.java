@@ -87,6 +87,7 @@ public class TableFilter implements ColumnResolver {
     private final Select select;
     private String alias;
     private Index index;
+    private int[] masks;
     private int scanCount;
     private boolean evaluatable;
 
@@ -225,6 +226,7 @@ public class TableFilter implements ColumnResolver {
                 sortOrder = select.getSortOrder();
             }
             item = table.getBestPlanItem(s, masks, this, sortOrder);
+            item.setMasks(masks);
             // The more index conditions, the earlier the table.
             // This is to ensure joins without indexes run quickly:
             // x (x.a=10); y (x.b=y.b) - see issue 113
@@ -267,7 +269,7 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
-     * Set what plan item (index, cost) to use use.
+     * Set what plan item (index, cost, masks) to use.
      *
      * @param item the plan item
      */
@@ -278,6 +280,7 @@ public class TableFilter implements ColumnResolver {
             return;
         }
         setIndex(item.getIndex());
+        masks = item.getMasks();
         if (nestedJoin != null) {
             if (item.getNestedJoinPlan() != null) {
                 nestedJoin.setPlanItem(item.getNestedJoinPlan());
@@ -794,6 +797,10 @@ public class TableFilter implements ColumnResolver {
                 indexConditions.remove(i--);
             }
         }
+    }
+
+    public int[] getMasks() {
+        return masks;
     }
 
     public Index getIndex() {

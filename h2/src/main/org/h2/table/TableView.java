@@ -225,9 +225,9 @@ public class TableView extends Table {
 
     @Override
     public PlanItem getBestPlanItem(Session session, int[] masks,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter filter, SortOrder sortOrder, int level) {
         PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks, filter, sortOrder);
+        item.cost = index.getCost(session, masks, filter, sortOrder, level);
         final CacheKey cacheKey = new CacheKey(masks, session);
 
         synchronized (this) {
@@ -434,7 +434,7 @@ public class TableView extends Table {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,
                     createException, getSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, null, null, null);
+        PlanItem item = getBestPlanItem(session, null, null, null, -1);
         return item.getIndex();
     }
 

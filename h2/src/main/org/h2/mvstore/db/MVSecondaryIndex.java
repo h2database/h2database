@@ -353,7 +353,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         try {
             return 10 * getCostRangeIndex(masks,
                     dataMap.sizeAsLongMax(), filter, sortOrder);

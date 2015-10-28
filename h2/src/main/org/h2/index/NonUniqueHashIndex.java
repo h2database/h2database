@@ -131,7 +131,7 @@ public class NonUniqueHashIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];

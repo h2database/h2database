@@ -680,18 +680,20 @@ public abstract class Table extends SchemaObjectBase {
      *              see constants in IndexCondition
      * @param filter the table filter
      * @param sortOrder the sort order
+     * @param level 1 for the first table in a join, 2 for the second, and so on
+     *        can be -1 in case when is not applicable
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter filter, SortOrder sortOrder, int level) {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
-        item.cost = item.getIndex().getCost(session, null, null, null);
+        item.cost = item.getIndex().getCost(session, null, null, null, level);
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                double cost = index.getCost(session, masks, filter, sortOrder);
+                double cost = index.getCost(session, masks, filter, sortOrder, level);
                 if (cost < item.cost) {
                     item.cost = cost;
                     item.setIndex(index);

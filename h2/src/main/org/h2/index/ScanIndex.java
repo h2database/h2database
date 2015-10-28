@@ -175,7 +175,7 @@ public class ScanIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         return tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
     }
 

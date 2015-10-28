@@ -85,10 +85,12 @@ public interface Index extends SchemaObject {
      *              see constants in IndexCondition
      * @param filter the table filter
      * @param sortOrder the sort order
+     * @param level 1 for the first table in a join, 2 for the second, and so on
+     *        can be -1 in case when is not applicable
      * @return the estimated cost
      */
     double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder);
+            SortOrder sortOrder, int level);
 
     /**
      * Remove the index.

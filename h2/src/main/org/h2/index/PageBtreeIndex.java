@@ -218,7 +218,7 @@ public class PageBtreeIndex extends PageIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session),
                 filter, sortOrder);
     }

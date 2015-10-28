@@ -209,7 +209,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         return getCostRangeIndex(masks, table.getRowCountApproximation(),
                 filter, sortOrder);
     }

@@ -90,7 +90,7 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         return 10 * getCostRangeIndex(masks,
                 mainIndex.getRowCountApproximation(), filter, sortOrder);
     }

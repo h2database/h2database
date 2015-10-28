@@ -311,7 +311,7 @@ public class PageDataIndex extends PageIndex {
 
     @Override
     public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+            SortOrder sortOrder, int level) {
         long cost = 10 * (tableData.getRowCountApproximation() +
                 Constants.COST_ROW_OFFSET);
         return cost;

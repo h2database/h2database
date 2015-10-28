@@ -115,7 +115,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public synchronized double getCost(Session session, int[] masks,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter filter, SortOrder sortOrder, int level) {
         if (recursive) {
             return 1000;
         }

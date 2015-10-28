@@ -357,6 +357,24 @@ public class IndexCondition {
     }
 
     /**
+     * Get expression list.
+     *
+     * @return Expression list.
+     */
+    public List<Expression> getExpressionList() {
+        return expressionList;
+    }
+
+    /**
+     * Get expression query.
+     *
+     * @return Expression query.
+     */
+    public Query getExpressionQuery() {
+        return expressionQuery;
+    }
+
+    /**
      * Check if the expression can be evaluated.
      *
      * @return true if it can be evaluated

@@ -1206,8 +1206,7 @@ public class TestTableEngines extends TestBase {
         @Override
         public double getCost(Session session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder) {
-            return getCostRangeIndex(masks, set.size(), filters == null ?
-                    null : filters[filter], sortOrder);
+            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
         }
 
         @Override

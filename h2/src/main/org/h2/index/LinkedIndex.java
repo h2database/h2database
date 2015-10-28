@@ -144,7 +144,7 @@ public class LinkedIndex extends BaseIndex {
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         return 100 + getCostRangeIndex(masks, rowCount +
-                Constants.COST_ROW_OFFSET, filters == null ? null : filters[filter], sortOrder);
+                Constants.COST_ROW_OFFSET, filters, filter, sortOrder);
     }
 
     @Override

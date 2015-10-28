@@ -58,7 +58,7 @@ public class MetaIndex extends BaseIndex {
             return 10 * MetaTable.ROW_COUNT_APPROXIMATION;
         }
         return getCostRangeIndex(masks, MetaTable.ROW_COUNT_APPROXIMATION,
-                filters == null ? null : filters[filter], sortOrder);
+                filters, filter, sortOrder);
     }
 
     @Override

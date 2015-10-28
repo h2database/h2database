@@ -7,7 +7,6 @@ package org.h2.mvstore.db;
 
 import java.util.Iterator;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -33,7 +32,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -239,10 +237,10 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         return getCostRangeIndex(masks, table.getRowCountApproximation(),
-                filter, sortOrder);
+                filters == null ? null : filters[filter], sortOrder);
     }
 
     @Override

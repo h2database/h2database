@@ -142,9 +142,9 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
-        return base.getCost(session, masks, filter, sortOrder);
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
+        return base.getCost(session, masks, filters, filter, sortOrder);
     }
 
     @Override

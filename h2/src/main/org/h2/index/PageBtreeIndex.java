@@ -217,10 +217,10 @@ public class PageBtreeIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session),
-                filter, sortOrder);
+                filters == null ? null : filters[filter], sortOrder);
     }
 
     @Override

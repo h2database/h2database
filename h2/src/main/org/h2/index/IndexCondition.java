@@ -348,6 +348,15 @@ public class IndexCondition {
     }
 
     /**
+     * Get expression.
+     *
+     * @return Expression.
+     */
+    public Expression getExpression() {
+        return expression;
+    }
+
+    /**
      * Check if the expression can be evaluated.
      *
      * @return true if it can be evaluated

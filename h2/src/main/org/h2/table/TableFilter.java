@@ -803,6 +803,10 @@ public class TableFilter implements ColumnResolver {
         return masks;
     }
 
+    public ArrayList<IndexCondition> getIndexConditions() {
+        return indexConditions;
+    }
+
     public Index getIndex() {
         return index;
     }

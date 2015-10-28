@@ -6,6 +6,7 @@
 package org.h2.util;
 
 import org.h2.api.GeoRaster;
+import org.h2.engine.Constants;
 
 import java.awt.*;
 import java.awt.image.ColorModel;
@@ -28,11 +29,21 @@ import java.util.Vector;
 public class GeoRasterRenderedImage implements GeoRaster {
     private final RenderedImage image;
     private final RasterUtils.RasterMetaData rasterMetaData;
+    private int maxRowCache = Utils.getProperty("h2.maxRasterRowCache", Constants.DEFAULT_MAX_RASTER_ROW_CACHE);
 
     private GeoRasterRenderedImage(RenderedImage image,
                                    RasterUtils.RasterMetaData rasterMetaData) {
         this.image = image;
         this.rasterMetaData = rasterMetaData;
+    }
+
+    /**
+     * @param maxRowCache Maximum cached rows when converting into WKB Raster
+     * @return This
+     */
+    public GeoRasterRenderedImage setMaxRowCache(int maxRowCache) {
+        this.maxRowCache = maxRowCache;
+        return this;
     }
 
     /**
@@ -132,7 +143,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
 
     @Override
     public InputStream asWKBRaster() {
-        return new WKBRasterStream(image, rasterMetaData);
+        return new WKBRasterStream(image, rasterMetaData, maxRowCache);
     }
 
     private static class WKBRasterStream extends InputStream {
@@ -143,7 +154,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
         private int bufferCursor = 0;
         private RasterPixelDriver pixelDriver;
         private final boolean readTiles;
-        private static final int MAX_ROW_CACHE = 32;
+        private final int maxRowCache;
 
 
         private enum BUFFER_STATE {
@@ -157,9 +168,10 @@ public class GeoRasterRenderedImage implements GeoRaster {
         private long streamPosition = 0;
 
         public WKBRasterStream(RenderedImage raster,
-                RasterUtils.RasterMetaData rasterMetaData) {
+                RasterUtils.RasterMetaData rasterMetaData, int maxRowCache) {
             this.raster = raster;
             this.rasterMetaData = rasterMetaData;
+            this.maxRowCache = maxRowCache;
             // Compute rows to read (fit with Tiles)
             int numTileY = raster.getNumYTiles();
             // Cache a row
@@ -233,7 +245,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
                         new Rectangle(0,
                                 (int) (pixelTarget / rasterMetaData.width),
                                 rasterMetaData.width,
-                                Math.min(MAX_ROW_CACHE, raster.getHeight() -
+                                Math.min(maxRowCache, raster.getHeight() -
                                         (int)(pixelTarget / rasterMetaData.width))));
             }
             int pixelSize = pixelDriver.getPixelType().pixelSize;

@@ -51,7 +51,11 @@ public class GeoRasterBlob implements GeoRaster {
 
     @Override
     public String toString() {
-        return metaData.toString();
+        try {
+            return getMetaData().toString();
+        } catch (IOException ex) {
+            throw DbException.convertIOException(ex, "Cannot read raster metadata");
+        }
     }
 
     @Override
@@ -108,13 +112,20 @@ public class GeoRasterBlob implements GeoRaster {
 
     @Override
     public int getWidth() {
-        initImage();
-        return image.getWidth();
+        try {
+            return getMetaData().width;
+        } catch (IOException ex) {
+            throw DbException.convertIOException(ex, "Cannot read raster metadata");
+        }
     }
 
     @Override
     public int getHeight() {
-        return metaData.height;
+        try {
+            return getMetaData().height;
+        } catch (IOException ex) {
+            throw DbException.convertIOException(ex, "Cannot read raster metadata");
+        }
     }
 
     @Override

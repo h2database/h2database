@@ -1,6 +1,6 @@
 package org.h2.util.imageio;
 
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
@@ -115,32 +115,42 @@ public class WKBRasterRenderedImage implements RenderedImage {
 
     @Override
     public WritableRaster getData() {
-        return raster;
+        // ImageIO is expecting an entire copy of the raster data
+        WritableRaster memoryRaster = Raster.createBandedRaster(getSampleModel()
+                .getDataType(), getWidth(), getHeight(), getSampleModel()
+                .getNumBands(), new Point());
+        copyData(memoryRaster);
+        return memoryRaster;
     }
 
     @Override
     public Raster getData(Rectangle rect) {
-        return getData().createChild(rect.x, rect.y, rect.width, rect.height,
-                rect.x, rect.y, null);
+        SampleModel compatibleSampleModel = getSampleModel()
+                .createCompatibleSampleModel(rect.width, rect.height);
+        WritableRaster memoryRaster = Raster.createBandedRaster(
+                compatibleSampleModel.getDataType(), rect.width, rect.height,
+                compatibleSampleModel.getNumBands(), rect.getLocation());
+        copyData(memoryRaster);
+        return memoryRaster;
     }
 
     @Override
-    public WritableRaster copyData(WritableRaster raster) {
-        if (raster == null) {
+    public WritableRaster copyData(WritableRaster rasterArg) {
+        if (rasterArg == null) {
             return getData();
         }
-        int width = raster.getWidth();
-        int height = raster.getHeight();
-        int startX = raster.getMinX();
-        int startY = raster.getMinY();
+        int width = rasterArg.getWidth();
+        int height = rasterArg.getHeight();
+        int startX = rasterArg.getMinX();
+        int startY = rasterArg.getMinY();
 
         Object tdata = null;
 
         for (int i = startY; i < startY+height; i++)  {
             tdata = raster.getDataElements(startX,i,width,1,tdata);
-            raster.setDataElements(startX,i,width,1, tdata);
+            rasterArg.setDataElements(startX,i,width,1, tdata);
         }
 
-        return raster;
+        return rasterArg;
     }
 }

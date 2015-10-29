@@ -28,6 +28,8 @@ import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
@@ -96,6 +98,7 @@ public class TestGeoRaster extends TestBase {
         testST_WorldToRasterCoord();
         testST_RasterToWorldCoord();
         testRasterProcessing();
+        testRenderedImageCopy();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -1045,5 +1048,36 @@ public class TestGeoRaster extends TestBase {
         assertTrue(rs.getObject(1) instanceof GeoRaster);
         rs.close();
         conn.close();
+    }
+
+
+    /**
+     * {@link RenderedImage#getData(Rectangle)} should return a copy of the
+     * content)
+     * @throws SQLException
+     * @throws IOException
+     */
+    public void testRenderedImageCopy() throws SQLException, IOException {
+        deleteDb("georaster");
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        BufferedImage image = getTestImage(width, height);
+        stat.execute("drop table if exists testcopy");
+        stat.execute("create table testcopy(id identity, the_raster raster)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
+                "(the_raster) values(?)");
+        st.setBinaryStream(1, GeoRasterRenderedImage.create(image
+                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                .asWKBRaster());
+        st.execute();
+        // Query
+        ResultSet rs = stat.executeQuery("SELECT the_raster from testcopy");
+        assertTrue(rs.next());
+        assertTrue(rs.getObject(1) instanceof RenderedImage);
+        RenderedImage wkbRasterImage = (RenderedImage)rs.getObject(1);
+        Raster rasterCopy = wkbRasterImage.getData();
+        assertTrue(rasterCopy.getDataBuffer() instanceof DataBufferByte);
     }
 }

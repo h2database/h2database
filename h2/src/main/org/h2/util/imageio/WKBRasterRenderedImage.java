@@ -121,7 +121,7 @@ public class WKBRasterRenderedImage implements RenderedImage {
     @Override
     public Raster getData(Rectangle rect) {
         return getData().createChild(rect.x, rect.y, rect.width, rect.height,
-                0, 0, null);
+                rect.x, rect.y, null);
     }
 
     @Override

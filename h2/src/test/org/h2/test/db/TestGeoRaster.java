@@ -26,9 +26,15 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
+import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
+import java.awt.image.BandedSampleModel;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferFloat;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
@@ -99,6 +105,7 @@ public class TestGeoRaster extends TestBase {
         testST_RasterToWorldCoord();
         testRasterProcessing();
         testRenderedImageCopy();
+        testWKBRasterFloat();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -558,6 +565,30 @@ public class TestGeoRaster extends TestBase {
             }
         }
         return image;
+    }
+
+    private static RenderedImage getFloatTestImage(final int width,final int
+            height) {
+        DataBufferFloat dataBufferFloat = new DataBufferFloat(width * height
+                , 3);
+        BandedSampleModel bandedSampleModel = new BandedSampleModel
+                (dataBufferFloat.getDataType(), width, height,
+                        dataBufferFloat.getNumBanks());
+        WritableRaster raster = WritableRaster.createWritableRaster
+                (bandedSampleModel, dataBufferFloat, new Point());
+        double div = Math.sqrt(width * width + height * height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                float normalizedDist = (float)(Math.sqrt(x*x+y*y) / div);
+                raster.setPixel(x, y, new float[]{normalizedDist * Float
+                        .MAX_VALUE,
+                        (1 - normalizedDist) * Float.MAX_VALUE, 0.f});
+            }
+        }
+        ColorModel colorModel = new ComponentColorModel(ColorSpace
+                .getInstance(ColorSpace.CS_sRGB), false, false, ColorModel
+                .OPAQUE, DataBuffer.TYPE_FLOAT);
+        return new BufferedImage(colorModel, raster, false, null);
     }
 
     public void testWKBTranslationStream() throws SQLException, IOException {
@@ -1079,5 +1110,38 @@ public class TestGeoRaster extends TestBase {
         RenderedImage wkbRasterImage = (RenderedImage)rs.getObject(1);
         Raster rasterCopy = wkbRasterImage.getData();
         assertTrue(rasterCopy.getDataBuffer() instanceof DataBufferByte);
+    }
+
+    /**
+     * Test WKBRaster created from banded float type image
+     * @throws SQLException
+     * @throws IOException
+     */
+    public void testWKBRasterFloat() throws SQLException, IOException {
+        deleteDb("georaster");
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        RenderedImage image = getFloatTestImage(width, height);
+        stat.execute("drop table if exists testcopy");
+        stat.execute("create table testcopy(id identity, the_raster raster)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
+                "(the_raster) values(?)");
+        st.setBinaryStream(1, GeoRasterRenderedImage.create(image
+                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                .asWKBRaster());
+        st.execute();
+        // Query
+        ResultSet rs = stat.executeQuery("SELECT the_raster from testcopy");
+        assertTrue(rs.next());
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1), true);
+        assertTrue(RasterUtils.PixelType.PT_32BF == metaData.bands[0]
+                .pixelType);
+        assertTrue(rs.getObject(1) instanceof RenderedImage);
+        RenderedImage wkbRasterImage = (RenderedImage)rs.getObject(1);
+        Raster rasterCopy = wkbRasterImage.getData();
+        assertTrue(rasterCopy.getDataBuffer() instanceof DataBufferFloat);
     }
 }

@@ -1,7 +1,17 @@
 package org.h2.util.imageio;
 
+import org.h2.message.DbException;
+
 import java.awt.*;
+import java.awt.image.BandedSampleModel;
 import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferDouble;
+import java.awt.image.DataBufferFloat;
+import java.awt.image.DataBufferInt;
+import java.awt.image.DataBufferShort;
+import java.awt.image.DataBufferUShort;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
@@ -115,21 +125,42 @@ public class WKBRasterRenderedImage implements RenderedImage {
 
     @Override
     public WritableRaster getData() {
-        // ImageIO is expecting an entire copy of the raster data
-        WritableRaster memoryRaster = Raster.createBandedRaster(getSampleModel()
-                .getDataType(), getWidth(), getHeight(), getSampleModel()
-                .getNumBands(), new Point());
-        copyData(memoryRaster);
-        return memoryRaster;
+        return getData(new Rectangle(getWidth(), getHeight()));
     }
 
+
     @Override
-    public Raster getData(Rectangle rect) {
+    public WritableRaster getData(Rectangle rect) {
+        DataBuffer dataBuffer;
+        int size = rect.height * rect.width;
+        switch (raster.getTransferType()) {
+            case DataBuffer.TYPE_BYTE:
+                dataBuffer = new DataBufferByte(size,raster.getNumBands());
+                break;
+            case DataBuffer.TYPE_SHORT:
+                dataBuffer = new DataBufferShort(size,raster.getNumBands());
+                break;
+            case DataBuffer.TYPE_USHORT:
+                dataBuffer = new DataBufferUShort(size,raster.getNumBands());
+                break;
+            case DataBuffer.TYPE_FLOAT:
+                dataBuffer = new DataBufferFloat(size,raster.getNumBands());
+                break;
+            case DataBuffer.TYPE_INT:
+                dataBuffer = new DataBufferInt(size,raster.getNumBands());
+                break;
+            case DataBuffer.TYPE_DOUBLE:
+                dataBuffer = new DataBufferDouble(size,raster.getNumBands());
+                break;
+            default:
+                // GeoRaster is not undefined data type
+                throw DbException.throwInternalError();
+
+        }
         SampleModel compatibleSampleModel = getSampleModel()
                 .createCompatibleSampleModel(rect.width, rect.height);
-        WritableRaster memoryRaster = Raster.createBandedRaster(
-                compatibleSampleModel.getDataType(), rect.width, rect.height,
-                compatibleSampleModel.getNumBands(), rect.getLocation());
+        WritableRaster memoryRaster = WritableRaster.createWritableRaster
+                (compatibleSampleModel, dataBuffer, rect.getLocation());
         copyData(memoryRaster);
         return memoryRaster;
     }

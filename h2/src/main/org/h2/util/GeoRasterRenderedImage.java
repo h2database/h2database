@@ -10,6 +10,7 @@ import org.h2.engine.Constants;
 
 import java.awt.*;
 import java.awt.image.ColorModel;
+import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
@@ -104,20 +105,53 @@ public class GeoRasterRenderedImage implements GeoRaster {
         RasterUtils.RasterBandMetaData[] bands = new RasterUtils.RasterBandMetaData[image
                 .getSampleModel().getNumBands()];
         long offset = RasterUtils.RASTER_METADATA_SIZE;
+        final int mainDataType = image.getSampleModel().getDataType();
+        final int mainTypeSize = DataBuffer.getDataTypeSize(mainDataType);
+        RasterUtils.PixelType mainPixelType;
+        switch (mainDataType) {
+            case DataBuffer.TYPE_BYTE:
+                mainPixelType = RasterUtils.PixelType.PT_8BUI;
+                break;
+            case DataBuffer.TYPE_SHORT:
+                mainPixelType = RasterUtils.PixelType.PT_16BSI;
+                break;
+            case DataBuffer.TYPE_USHORT:
+                mainPixelType = RasterUtils.PixelType.PT_16BUI;
+                break;
+            case DataBuffer.TYPE_FLOAT:
+                mainPixelType = RasterUtils.PixelType.PT_32BF;
+                break;
+            case DataBuffer.TYPE_INT:
+                mainPixelType = RasterUtils.PixelType.PT_32BSI;
+                break;
+            case DataBuffer.TYPE_DOUBLE:
+                mainPixelType = RasterUtils.PixelType.PT_64BF;
+                break;
+            default:
+                mainPixelType = null;
+
+        }
         for(int idBand = 0; idBand < bands.length; idBand++) {
             int sampleSize = image.getSampleModel().getSampleSize(idBand);
             RasterUtils.PixelType pixelType;
-            if (sampleSize <= Byte.SIZE) {
-                pixelType = RasterUtils.PixelType.PT_8BUI;
-            } else if(sampleSize <= Short.SIZE) {
-                pixelType = RasterUtils.PixelType.PT_16BSI;
-            } else if (sampleSize <= Integer.SIZE) {
-                pixelType = RasterUtils.PixelType.PT_32BSI;
-            } else if(sampleSize <= Long.SIZE) {
-                pixelType = RasterUtils.PixelType.PT_64BF;
+            if(sampleSize != mainTypeSize) {
+                // Pixel is unboxed from one bank
+                // Have to find appropriate wkb raster bank size for each
+                // unboxed bands
+                if (sampleSize <= Byte.SIZE) {
+                    pixelType = RasterUtils.PixelType.PT_8BUI;
+                } else if(sampleSize <= Short.SIZE) {
+                    pixelType = RasterUtils.PixelType.PT_16BSI;
+                } else if (sampleSize <= Integer.SIZE) {
+                    pixelType = RasterUtils.PixelType.PT_32BSI;
+                } else if(sampleSize <= Long.SIZE) {
+                    pixelType = RasterUtils.PixelType.PT_64BF;
+                } else {
+                    throw new IOException("Unsupported band size " +
+                            ":"+sampleSize);
+                }
             } else {
-                throw new IOException("Unsupported band size " +
-                        ":"+sampleSize);
+                pixelType = mainPixelType;
             }
             bands[idBand] = new RasterUtils.RasterBandMetaData(noDataValue,
                     pixelType, true, offset);

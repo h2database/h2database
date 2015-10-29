@@ -28,6 +28,7 @@ import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -833,6 +834,28 @@ public class TestGeoRaster extends TestBase {
         assertEquals(pixelsSource, pixels);
     }
 
+
+    /**
+     * Check that provided images are (visually) equals. Pixel are drawn on
+     * the same destination graphics then 8 bpp colors are read.
+     * @param expectedImage Expected result
+     * @param imageB Obtained image
+     */
+    public void assertImageEquals(RenderedImage expectedImage, RenderedImage imageB) {
+        BufferedImage expectedImageDest = new BufferedImage(expectedImage.getWidth(),expectedImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage destB = new BufferedImage(imageB.getWidth(),imageB.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = expectedImageDest.createGraphics();
+        g.drawRenderedImage(expectedImage, new AffineTransform());
+        g.dispose();
+        g = destB.createGraphics();
+        g.drawRenderedImage(imageB, new AffineTransform());
+        g.dispose();
+        int[] pixelsExpected = expectedImageDest.getData().getPixels(0,0,expectedImageDest.getWidth(),
+                expectedImageDest.getHeight(),(int[])null);
+        int[] pixelsSource = destB.getData().getPixels(0, 0, destB.getWidth(), destB.getHeight(), (int[]) null);
+        assertEquals(pixelsExpected, pixelsSource);
+    }
+
     public void testImageIOReadParametersSubSampling() throws SQLException, IOException {
         deleteDb("georaster");
         Connection conn = getConnection("georaster");
@@ -875,12 +898,13 @@ public class TestGeoRaster extends TestBase {
         // Same with WKB Driver
         param.setSourceSubsampling(subX, subY, offsetX, offsetY);
         param.setSourceRegion(rect);
-        BufferedImage image = wkbReader.read(wkbReader.getMinIndex(), param);
+        RenderedImage image = wkbReader.readAsRenderedImage(wkbReader.getMinIndex(),
+                param);
+        // WKBRaster images claims that there is tiling support. (using rows)
+        assertEquals(image.getHeight(), image.getNumYTiles());
         assertEquals(srcImage.getWidth(), image.getWidth());
         assertEquals(srcImage.getHeight(), image.getHeight());
-        int[] pixelsSource = srcImage.getRGB(0, 0, srcImage.getWidth(), srcImage.getHeight(), null, 0, image.getWidth());
-        int[] pixels = image.getRGB(0, 0, image.getWidth(), image.getHeight(), null, 0, image.getWidth());
-        assertEquals(pixelsSource, pixels);
+        assertImageEquals(srcImage, image);
     }
 
     private static BufferedImage getImageRegion(Blob blob, Rectangle

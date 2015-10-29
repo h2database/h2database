@@ -23,6 +23,7 @@ import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.Raster;
+import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
 import java.io.IOException;
@@ -161,6 +162,12 @@ public class WKBRasterReader extends ImageReader {
         return Raster.createWritableRaster(sampleModel, dataBuffer, new Point());
     }
 
+
+    @Override
+    public RenderedImage readAsRenderedImage(int imageIndex, ImageReadParam param) throws IOException {
+        return new WKBRasterRenderedImage(getColorModel(), readRaster
+                (imageIndex, param));
+    }
 
     /**
      * @param metaData Raster metadata

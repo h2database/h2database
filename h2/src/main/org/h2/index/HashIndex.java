@@ -113,8 +113,8 @@ public class HashIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         for (Column column : columns) {
             int index = column.getColumnId();
             int mask = masks[index];

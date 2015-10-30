@@ -6,7 +6,6 @@
 package org.h2.mvstore.db;
 
 import java.util.List;
-
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
@@ -89,10 +88,10 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
-        return 10 * getCostRangeIndex(masks,
-                mainIndex.getRowCountApproximation(), filter, sortOrder);
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
+        return 10 * getCostRangeIndex(masks, mainIndex.getRowCountApproximation(),
+                filters, filter, sortOrder);
     }
 
     @Override

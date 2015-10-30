@@ -660,7 +660,7 @@ public class TestTableEngines extends TestBase {
 
                 @Override
                 public double getCost(Session session, int[] masks,
-                        TableFilter filter, SortOrder sortOrder) {
+                        TableFilter[] filters, int filter, SortOrder sortOrder) {
                     return 0;
                 }
 
@@ -914,8 +914,8 @@ public class TestTableEngines extends TestBase {
         TreeSetIndex scan = new TreeSetIndex(this, "scan",
                 IndexColumn.wrap(getColumns()), IndexType.createScan(false)) {
             @Override
-            public double getCost(Session session, int[] masks, TableFilter filter,
-                SortOrder sortOrder) {
+            public double getCost(Session session, int[] masks,
+                    TableFilter[] filters, int filter, SortOrder sortOrder) {
                 return getRowCount(session) + Constants.COST_ROW_OFFSET;
             }
         };
@@ -1205,9 +1205,9 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public double getCost(Session session, int[] masks, TableFilter filter,
-                SortOrder sortOrder) {
-            return getCostRangeIndex(masks, set.size(), filter, sortOrder);
+        public double getCost(Session session, int[] masks,
+                TableFilter[] filters, int filter, SortOrder sortOrder) {
+            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
         }
 
         @Override

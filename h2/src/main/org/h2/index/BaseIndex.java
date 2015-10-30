@@ -5,8 +5,6 @@
  */
 package org.h2.index;
 
-import java.util.List;
-import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
@@ -152,12 +150,13 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *
      * @param masks the search mask
      * @param rowCount the number of rows in the index
-     * @param filter the table filter
+     * @param filters all joined table filters
+     * @param filter the current table filter index
      * @param sortOrder the sort order
      * @return the estimated cost
      */
     protected long getCostRangeIndex(int[] masks, long rowCount,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         rowCount += Constants.COST_ROW_OFFSET;
         long cost = rowCount;
         long rows = rowCount;
@@ -201,6 +200,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             boolean sortOrderMatches = true;
             int coveringCount = 0;
             int[] sortTypes = sortOrder.getSortTypes();
+            TableFilter tableFilter = filters == null ? null : filters[filter];
             for (int i = 0, len = sortTypes.length; i < len; i++) {
                 if (i >= indexColumns.length) {
                     // we can still use this index if we are sorting by more
@@ -209,7 +209,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                     // more of the order by columns
                     break;
                 }
-                Column col = sortOrder.getColumn(i, filter);
+                Column col = sortOrder.getColumn(i, tableFilter);
                 if (col == null) {
                     sortOrderMatches = false;
                     break;

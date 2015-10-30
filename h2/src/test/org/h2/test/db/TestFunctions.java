@@ -41,8 +41,10 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -103,6 +105,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testTranslate();
         testGenerateSeries();
         testFileWrite();
+        testAnnotationProcessorsOutput();
 
         deleteDb("functions");
     }
@@ -1163,7 +1166,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         call.execute();
         assertEquals(Integer[].class.getName(), call.getArray(1).getArray()
                 .getClass().getName());
-        assertEquals(new Integer[] { 2, 1 }, (Integer[]) call.getObject(1));
+        assertEquals(new Integer[]{2, 1}, (Integer[]) call.getObject(1));
 
         stat.execute("drop alias array_test");
 
@@ -1774,6 +1777,83 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(3, rs.getInt(1));
         assertTrue(rs.next());
         assertEquals(5, rs.getInt(1));
+
+        conn.close();
+    }
+
+    private void testAnnotationProcessorsOutput() throws SQLException {
+        testAnnotationProcessorsOutput_emptyKey();
+        testAnnotationProcessorsOutput_invalidKey();
+        testAnnotationProcessorsOutput_oneInvalidKey();
+        testAnnotationProcessorsOutput_warnAndError();
+    }
+
+    private void testAnnotationProcessorsOutput_emptyKey() throws SQLException {
+        try {
+            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "");
+            callCompiledFunction("test_atp_empty_key");
+        } finally {
+            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
+        }
+    }
+
+    private void testAnnotationProcessorsOutput_invalidKey() throws SQLException {
+        try {
+            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "invalid");
+            callCompiledFunction("test_atp_invalid_key");
+            fail();
+        } catch (JdbcSQLException e) {
+            assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
+            assertContains(e.getMessage(), "'invalid'");
+        } finally {
+            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
+        }
+    }
+
+    private void testAnnotationProcessorsOutput_oneInvalidKey() throws SQLException {
+        try {
+            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "invalid,foo");
+            callCompiledFunction("test_atp_one_invalid_key");
+            fail();
+        } catch (JdbcSQLException e) {
+            assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
+            assertContains(e.getMessage(), "enum");
+            assertContains(e.getMessage(), "Kind.invalid");
+        } finally {
+            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
+        }
+    }
+
+    private void testAnnotationProcessorsOutput_warnAndError() throws SQLException {
+        try {
+            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "WARNING,foo1|ERROR,foo2");
+            callCompiledFunction("test_atp_warn_and_error");
+            fail();
+        } catch (JdbcSQLException e) {
+            assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
+            assertContains(e.getMessage(), "foo1");
+            assertContains(e.getMessage(), "foo2");
+        } finally {
+            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
+        }
+    }
+
+    private void callCompiledFunction(String functionName) throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create alias " + functionName + " AS "
+                + "$$ boolean " + functionName + "() "
+                + "{ return true; } $$;");
+
+        PreparedStatement stmt = conn.prepareStatement(
+                "select " + functionName + "() from dual");
+        rs = stmt.executeQuery();
+        rs.next();
+        assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
+
+        stat.execute("drop alias " + functionName + "");
 
         conn.close();
     }

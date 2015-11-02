@@ -53,6 +53,7 @@ import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRecursiveQueries;
 import org.h2.test.db.TestRights;
+import org.h2.test.db.TestRowFactory;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
 import org.h2.test.db.TestScript;
@@ -696,6 +697,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSpatial());
         addTest(new TestSpeed());
         addTest(new TestTableEngines());
+        addTest(new TestRowFactory());
         addTest(new TestTempTables());
         addTest(new TestTransaction());
         addTest(new TestTriggersConstraints());

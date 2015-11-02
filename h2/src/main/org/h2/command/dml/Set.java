@@ -6,7 +6,6 @@
 package org.h2.command.dml;
 
 import java.text.Collator;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
@@ -20,9 +19,11 @@ import org.h2.expression.Expression;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
+import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
+import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.ValueInt;
@@ -481,6 +482,19 @@ public class Set extends Prepared {
             session.getUser().checkAdmin();
             database.setRetentionTime(getIntValue());
             addOrUpdateSetting(name, null, getIntValue());
+            break;
+        }
+        case SetTypes.ROW_FACTORY: {
+            session.getUser().checkAdmin();
+            String rowFactoryName = expression.getColumnName();
+            Class<RowFactory> rowFactoryClass = JdbcUtils.loadUserClass(rowFactoryName);
+            RowFactory rowFactory;
+            try {
+                rowFactory = rowFactoryClass.newInstance();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+            database.setRowFactory(rowFactory);
             break;
         }
         default:

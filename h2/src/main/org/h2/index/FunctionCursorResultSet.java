@@ -42,7 +42,7 @@ public class FunctionCursorResultSet implements Cursor {
             return null;
         }
         if (row == null) {
-            row =  session.createRow(values, 1);
+            row = session.createRow(values, 1);
         }
         return row;
     }

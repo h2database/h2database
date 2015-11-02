@@ -7,16 +7,11 @@ import org.h2.value.Value;
  *
  * @author Sergi Vladykin
  */
-public interface RowFactory {
+public abstract class RowFactory {
     /**
      * Default implementation of row factory.
      */
-    RowFactory DEFAULT = new RowFactory() {
-        @Override
-        public Row createRow(Value[] data, int memory) {
-            return new RowImpl(data, memory);
-        }
-    };
+    public static final RowFactory DEFAULT = new DefaultRowFactory();
 
     /**
      * Create new row.
@@ -25,5 +20,15 @@ public interface RowFactory {
      * @param memory memory
      * @return created row
      */
-    Row createRow(Value[] data, int memory);
+    public abstract Row createRow(Value[] data, int memory);
+
+    /**
+     * Default implementation of row factory.
+     */
+    private static final class DefaultRowFactory extends RowFactory {
+        @Override
+        public Row createRow(Value[] data, int memory) {
+            return new RowImpl(data, memory);
+        }
+    }
 }

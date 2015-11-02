@@ -192,7 +192,7 @@ public class Database implements DataHandler {
     private boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
-    private final RowFactory rowFactory;
+    private RowFactory rowFactory = RowFactory.DEFAULT;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -251,17 +251,6 @@ public class Database implements DataHandler {
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         this.multiThreaded =
                 ci.getProperty("MULTI_THREADED", false);
-        String rowFactoryClassName = ci.getProperty("ROW_FACTORY");
-        if (rowFactoryClassName != null) {
-            Class<RowFactory> rowFactoryClass = JdbcUtils.loadUserClass(rowFactoryClassName);
-            try {
-                rowFactory = rowFactoryClass.newInstance();
-            } catch (Exception e) {
-                throw DbException.convert(e);
-            }
-        } else {
-            rowFactory = RowFactory.DEFAULT;
-        }
         boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;
         int traceLevelFile =
@@ -319,6 +308,10 @@ public class Database implements DataHandler {
 
     public RowFactory getRowFactory() {
         return rowFactory;
+    }
+
+    public void setRowFactory(RowFactory rowFactory) {
+        this.rowFactory = rowFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {

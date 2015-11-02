@@ -836,7 +836,8 @@ public class TestTableEngines extends TestBase {
 
             EndlessTable(CreateTableData data) {
                 super(data);
-                row = new Row(new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
+                row = data.schema.getDatabase().createRow(
+                        new Value[] { ValueInt.get(1), ValueNull.INSTANCE }, 0);
                 scanIndex = new Auto(this);
             }
 

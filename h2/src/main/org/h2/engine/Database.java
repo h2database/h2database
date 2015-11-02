@@ -31,6 +31,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -191,6 +192,7 @@ public class Database implements DataHandler {
     private boolean queryStatistics;
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
+    private final RowFactory rowFactory;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -249,7 +251,17 @@ public class Database implements DataHandler {
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         this.multiThreaded =
                 ci.getProperty("MULTI_THREADED", false);
-
+        String rowFactoryClassName = ci.getProperty("ROW_FACTORY");
+        if (rowFactoryClassName != null) {
+            Class<RowFactory> rowFactoryClass = JdbcUtils.loadUserClass(rowFactoryClassName);
+            try {
+                rowFactory = rowFactoryClass.newInstance();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+        } else {
+            rowFactory = RowFactory.DEFAULT;
+        }
         boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;
         int traceLevelFile =
@@ -299,6 +311,14 @@ public class Database implements DataHandler {
             closeOpenFilesAndUnlock(false);
             throw DbException.convert(e);
         }
+    }
+
+    public Row createRow(Value[] data, int memory) {
+        return rowFactory.createRow(data, memory);
+    }
+
+    public RowFactory getRowFactory() {
+        return rowFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {

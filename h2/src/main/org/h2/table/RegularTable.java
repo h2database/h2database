@@ -682,16 +682,6 @@ public class RegularTable extends TableBase {
     }
 
     /**
-     * Create a row from the values.
-     *
-     * @param data the value list
-     * @return the row
-     */
-    public static Row createRow(Value[] data) {
-        return new Row(data, Row.MEMORY_CALCULATE);
-    }
-
-    /**
      * Set the row count of this table.
      *
      * @param count the row count

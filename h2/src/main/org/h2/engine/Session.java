@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -140,6 +139,10 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+    }
+
+    public Row createRow(Value[] data, int memory) {
+        return database.createRow(data, memory);
     }
 
     @Override
@@ -650,7 +653,7 @@ public class Session extends SessionWithState {
                         row = t.getRow(this, key);
                     } else {
                         op = UndoLogRecord.DELETE;
-                        row = new Row(value.getList(), Row.MEMORY_CALCULATE);
+                        row = createRow(value.getList(), Row.MEMORY_CALCULATE);
                     }
                     row.setKey(key);
                     UndoLogRecord log = new UndoLogRecord(t, op, row);

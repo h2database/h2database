@@ -471,7 +471,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeInt(buffer,
                             pos + (i * pixelType.pixelSize), Float
-                                    .floatToIntBits(samples[i]),
+                                    .floatToRawIntBits(samples[i]),
                             ByteOrder.BIG_ENDIAN);
                 }
             }
@@ -489,7 +489,7 @@ public class GeoRasterRenderedImage implements GeoRaster {
                 for(int i=0; i < samples.length; i++) {
                     Utils.writeUnsignedInt(buffer,
                             pos + (i * pixelType.pixelSize),
-                            Double.doubleToLongBits(samples[i]),
+                            Double.doubleToRawLongBits(samples[i]),
                             ByteOrder.BIG_ENDIAN);
                 }
             }

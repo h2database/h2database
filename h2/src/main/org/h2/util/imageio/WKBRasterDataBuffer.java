@@ -94,7 +94,8 @@ public class WKBRasterDataBuffer extends DataBuffer {
             cachePixels(i / cacheInterval);
         }
         cacheRow[bank].reset();
-        cacheRow[bank].skip(i % cacheInterval);
+        cacheRow[bank].skip((i % cacheInterval) * metaData.bands[bank]
+                .pixelType.pixelSize);
     }
 
     @Override

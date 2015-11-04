@@ -51,6 +51,7 @@ public class TestUtils extends TestBase {
         testGetNonPrimitiveClass();
         testGetNonPrimitiveClass();
         testReflectionUtils();
+        testReadWriteFloat();
     }
 
     private void testIOUtils() throws IOException {
@@ -218,6 +219,16 @@ public class TestUtils extends TestBase {
         assertFalse(Utils.haveCommonComparableSuperclass(
                 Integer.class,
                 ArrayList.class));
+    }
+
+    private void testReadWriteFloat() {
+        byte[] buffer = new byte[Float.SIZE / Byte.SIZE];
+        Utils.writeInt(buffer, 0, Float.floatToRawIntBits((float) Math.PI));
+        assertEquals((float)Math.PI, Float.intBitsToFloat(Utils.readInt
+                (buffer, 0)));
+        Utils.writeInt(buffer, 0, Float.floatToRawIntBits(-1.f));
+        assertEquals(-1.f, Float.intBitsToFloat(Utils.readInt
+                (buffer, 0)));
     }
 
 }

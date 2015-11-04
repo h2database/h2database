@@ -34,7 +34,9 @@ import java.awt.image.ColorModel;
 import java.awt.image.ComponentColorModel;
 import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferDouble;
 import java.awt.image.DataBufferFloat;
+import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.awt.image.RenderedImage;
 import java.awt.image.WritableRaster;
@@ -106,6 +108,8 @@ public class TestGeoRaster extends TestBase {
         testRasterProcessing();
         testRenderedImageCopy();
         testWKBRasterFloat();
+        testWKBRasterInt();
+        testWKBRasterDouble();
     }
 
     private void testWriteRasterFromString() throws Exception {
@@ -567,27 +571,69 @@ public class TestGeoRaster extends TestBase {
         return image;
     }
 
+    private static double getTestImagePixelValue(int x, int y, int width) {
+        return y * (width * 10) + x;
+    }
+
     private static RenderedImage getFloatTestImage(final int width,final int
             height) {
         DataBufferFloat dataBufferFloat = new DataBufferFloat(width * height
-                , 3);
+                , 1);
         BandedSampleModel bandedSampleModel = new BandedSampleModel
                 (dataBufferFloat.getDataType(), width, height,
                         dataBufferFloat.getNumBanks());
         WritableRaster raster = WritableRaster.createWritableRaster
                 (bandedSampleModel, dataBufferFloat, new Point());
-        double div = Math.sqrt(width * width + height * height);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                float normalizedDist = (float)(Math.sqrt(x*x+y*y) / div);
-                raster.setPixel(x, y, new float[]{normalizedDist * Float
-                        .MAX_VALUE,
-                        (1 - normalizedDist) * Float.MAX_VALUE, 0.f});
+                float pixelValue = (float)getTestImagePixelValue(x, y, width);
+                raster.setPixel(x, y, new float[]{pixelValue});
             }
         }
         ColorModel colorModel = new ComponentColorModel(ColorSpace
-                .getInstance(ColorSpace.CS_sRGB), false, false, ColorModel
+                .getInstance(ColorSpace.CS_GRAY), false, false, ColorModel
                 .OPAQUE, DataBuffer.TYPE_FLOAT);
+        return new BufferedImage(colorModel, raster, false, null);
+    }
+
+    private static RenderedImage getIntTestImage(final int width,final int
+            height) {
+        DataBufferInt dataBuffer = new DataBufferInt(width * height
+                , 1);
+        BandedSampleModel bandedSampleModel = new BandedSampleModel
+                (dataBuffer.getDataType(), width, height,
+                        dataBuffer.getNumBanks());
+        WritableRaster raster = WritableRaster.createWritableRaster
+                (bandedSampleModel, dataBuffer, new Point());
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixelValue = (int)getTestImagePixelValue(x, y, width);
+                raster.setPixel(x, y, new int[]{pixelValue});
+            }
+        }
+        ColorModel colorModel = new ComponentColorModel(ColorSpace
+                .getInstance(ColorSpace.CS_GRAY), false, false, ColorModel
+                .OPAQUE, DataBuffer.TYPE_INT);
+        return new BufferedImage(colorModel, raster, false, null);
+    }
+    private static RenderedImage getDoubleTestImage(final int width,final int
+            height) {
+        DataBufferDouble dataBuffer = new DataBufferDouble(width * height
+                , 1);
+        BandedSampleModel bandedSampleModel = new BandedSampleModel
+                (dataBuffer.getDataType(), width, height,
+                        dataBuffer.getNumBanks());
+        WritableRaster raster = WritableRaster.createWritableRaster
+                (bandedSampleModel, dataBuffer, new Point());
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                double pixelValue = getTestImagePixelValue(x, y, width);
+                raster.setPixel(x, y, new double[]{pixelValue});
+            }
+        }
+        ColorModel colorModel = new ComponentColorModel(ColorSpace
+                .getInstance(ColorSpace.CS_GRAY), false, false, ColorModel
+                .OPAQUE, DataBuffer.TYPE_DOUBLE);
         return new BufferedImage(colorModel, raster, false, null);
     }
 
@@ -1132,7 +1178,7 @@ public class TestGeoRaster extends TestBase {
                 , 1, -1, 0, 0, 0, 0, 27572, 0)
                 .asWKBRaster());
         st.execute();
-        // Query
+        // Query, and check if value are not altered
         ResultSet rs = stat.executeQuery("SELECT the_raster from testcopy");
         assertTrue(rs.next());
         RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
@@ -1143,5 +1189,99 @@ public class TestGeoRaster extends TestBase {
         RenderedImage wkbRasterImage = (RenderedImage)rs.getObject(1);
         Raster rasterCopy = wkbRasterImage.getData();
         assertTrue(rasterCopy.getDataBuffer() instanceof DataBufferFloat);
+        for(int y=0; y < wkbRasterImage.getHeight(); y++) {
+            for(int x=0; x < wkbRasterImage.getWidth(); x++) {
+                float[] val = rasterCopy.getPixel(x, y, (float[])null);
+                assertEquals(1, val.length);
+                assertEquals(getTestImagePixelValue(x, y, wkbRasterImage
+                        .getWidth()), val[0]);
+            }
+        }
+    }
+
+
+
+    /**
+     * Test WKBRaster created from banded int type image
+     * @throws SQLException
+     * @throws IOException
+     */
+    public void testWKBRasterInt() throws SQLException, IOException {
+        deleteDb("georaster");
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        RenderedImage image = getIntTestImage(width, height);
+        stat.execute("drop table if exists testcopy");
+        stat.execute("create table testcopy(id identity, the_raster raster)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
+                "(the_raster) values(?)");
+        st.setBinaryStream(1, GeoRasterRenderedImage.create(image
+                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                .asWKBRaster());
+        st.execute();
+        // Query, and check if value are not altered
+        ResultSet rs = stat.executeQuery("SELECT the_raster from testcopy");
+        assertTrue(rs.next());
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1), true);
+        assertTrue(RasterUtils.PixelType.PT_32BSI == metaData.bands[0]
+                .pixelType);
+        assertTrue(rs.getObject(1) instanceof RenderedImage);
+        RenderedImage wkbRasterImage = (RenderedImage)rs.getObject(1);
+        Raster rasterCopy = wkbRasterImage.getData();
+        assertTrue(rasterCopy.getDataBuffer() instanceof DataBufferInt);
+        for(int y=0; y < wkbRasterImage.getHeight(); y++) {
+            for(int x=0; x < wkbRasterImage.getWidth(); x++) {
+                float[] val = rasterCopy.getPixel(x, y, (float[])null);
+                assertEquals(1, val.length);
+                assertEquals(getTestImagePixelValue(x, y, wkbRasterImage
+                        .getWidth()), val[0]);
+            }
+        }
+    }
+
+
+
+    /**
+     * Test WKBRaster created from banded double type image
+     * @throws SQLException
+     * @throws IOException
+     */
+    public void testWKBRasterDouble() throws SQLException, IOException {
+        deleteDb("georaster");
+        Connection conn = getConnection("georaster");
+        Statement stat = conn.createStatement();
+        // Create an image from scratch
+        final int width = 50, height = 50;
+        RenderedImage image = getDoubleTestImage(width, height);
+        stat.execute("drop table if exists testcopy");
+        stat.execute("create table testcopy(id identity, the_raster raster)");
+        PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
+                "(the_raster) values(?)");
+        st.setBinaryStream(1, GeoRasterRenderedImage.create(image
+                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                .asWKBRaster());
+        st.execute();
+        // Query, and check if value are not altered
+        ResultSet rs = stat.executeQuery("SELECT the_raster from testcopy");
+        assertTrue(rs.next());
+        RasterUtils.RasterMetaData metaData = RasterUtils.RasterMetaData
+                .fetchMetaData(rs.getBinaryStream(1), true);
+        assertTrue(RasterUtils.PixelType.PT_64BF == metaData.bands[0]
+                .pixelType);
+        assertTrue(rs.getObject(1) instanceof RenderedImage);
+        RenderedImage wkbRasterImage = (RenderedImage)rs.getObject(1);
+        Raster rasterCopy = wkbRasterImage.getData();
+        assertTrue(rasterCopy.getDataBuffer() instanceof DataBufferDouble);
+        for(int y=0; y < wkbRasterImage.getHeight(); y++) {
+            for(int x=0; x < wkbRasterImage.getWidth(); x++) {
+                float[] val = rasterCopy.getPixel(x, y, (float[])null);
+                assertEquals(1, val.length);
+                assertEquals(getTestImagePixelValue(x, y, wkbRasterImage
+                        .getWidth()), val[0]);
+            }
+        }
     }
 }

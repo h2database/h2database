@@ -70,6 +70,7 @@ public class TestTableEngines extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testSubQueryInfo();
         testEarlyFilter();
         testEngineParams();
         testSimpleQuery();
@@ -342,7 +343,21 @@ public class TestTableEngines extends TestBase {
 
         deleteDb("tableEngine");
     }
-    
+
+    private void testSubQueryInfo() throws SQLException {
+        deleteDb("testSubQueryInfo");
+        Connection conn = getConnection("testSubQueryInfo");
+        Statement stat = conn.createStatement();
+        stat.execute("create table SUB_QUERY_TEST(id int primary key, name varchar) ENGINE \"" +
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.execute("create table t1(id int, birthday date)");
+        stat.executeQuery("select t1.birthday from t1, "
+                + "(select t2.id from sub_query_test t2, "
+                + "(select t3.id from sub_query_test t3 where t3.name = '') t4 "
+                + "where t2.id = t4.id) t5 where t1.id = t5.id");
+        deleteDb("testSubQueryInfo");
+    }
+
     private void testBatchedJoin() throws SQLException {
         deleteDb("tableEngine");
         Connection conn = getConnection("tableEngine;OPTIMIZE_REUSE_RESULTS=0");
@@ -1207,6 +1222,11 @@ public class TestTableEngines extends TestBase {
         @Override
         public double getCost(Session session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder) {
+            if (getTable().getName().equals("SUB_QUERY_TEST")) {
+                if (session.getSubQueryInfo() == null) {
+                    throw new IllegalStateException("No qubquery info found.");
+                }
+            }
             return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
         }
 

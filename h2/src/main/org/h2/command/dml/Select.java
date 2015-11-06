@@ -863,7 +863,7 @@ public class Select extends Query {
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
-        cost = preparePlan();
+        cost = preparePlan(session.isParsingView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
                 !isGroupQuery && filters.size() == 1 &&
                 expressions.size() == 1 && condition == null) {
@@ -967,7 +967,7 @@ public class Select extends Query {
         }
     }
 
-    private double preparePlan() {
+    private double preparePlan(boolean parse) {
         TableFilter[] topArray = topFilters.toArray(
                 new TableFilter[topFilters.size()]);
         for (TableFilter t : topArray) {
@@ -975,13 +975,15 @@ public class Select extends Query {
         }
 
         Optimizer optimizer = new Optimizer(topArray, condition, session);
-        optimizer.optimize();
+        optimizer.optimize(parse);
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
 
         setEvaluatableRecursive(topTableFilter);
 
-        topTableFilter.prepare();
+        if (!parse) {
+            topTableFilter.prepare();
+        }
         return planCost;
     }
 

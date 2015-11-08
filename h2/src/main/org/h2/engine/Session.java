@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -33,6 +32,7 @@ import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
+import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
@@ -109,6 +109,8 @@ public class Session extends SessionWithState {
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
+    private SubQueryInfo subQueryInfo;
+    private int parsingView;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -140,6 +142,25 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+    }
+
+    public void setSubQueryInfo(SubQueryInfo subQueryInfo) {
+        this.subQueryInfo = subQueryInfo;
+    }
+
+    public SubQueryInfo getSubQueryInfo() {
+        return subQueryInfo;
+    }
+
+    public void setParsingView(boolean parsingView) {
+        // It can be recursive, thus implemented as counter.
+        this.parsingView += parsingView ? 1 : -1;
+        assert this.parsingView >= 0;
+    }
+
+    public boolean isParsingView() {
+        assert parsingView >= 0;
+        return parsingView != 0;
     }
 
     @Override

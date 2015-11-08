@@ -103,7 +103,13 @@ public class TableView extends Table {
     }
 
     private static Query compileViewQuery(Session session, String sql) {
-        Prepared p = session.prepare(sql);
+        Prepared p;
+        session.setParsingView(true);
+        try {
+            p = session.prepare(sql);
+        } finally {
+            session.setParsingView(false);
+        }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
         }
@@ -241,7 +247,7 @@ public class TableView extends Table {
         // We cannot hold the lock during the ViewIndex creation or we risk ABBA
         // deadlocks if the view creation calls back into H2 via something like
         // a FunctionTable.
-        ViewIndex i2 = new ViewIndex(this, index, session, masks);
+        ViewIndex i2 = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
         synchronized (this) {
             // have to check again in case another session has beat us to it
             ViewIndex i3 = indexCache.get(cacheKey);

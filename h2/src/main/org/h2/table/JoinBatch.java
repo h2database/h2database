@@ -323,11 +323,11 @@ public final class JoinBatch {
      * Table filter participating in batched join.
      */
     private static final class JoinFilter {
-        final TableFilter filter;
-        final JoinFilter join;
-        int id;
+        private final TableFilter filter;
+        private final JoinFilter join;
+        private int id;
         
-        IndexLookupBatch lookupBatch;
+        private final IndexLookupBatch lookupBatch;
         
         private JoinFilter(IndexLookupBatch lookupBatch, TableFilter filter, JoinFilter join) {
             this.filter = filter;

@@ -60,7 +60,7 @@ public class TableFilter implements ColumnResolver {
      * Batched join support.
      */
     private JoinBatch joinBatch;
-    int joinFilterId = -1;
+    private int joinFilterId = -1;
 
     /**
      * Indicates that this filter is used in the plan.
@@ -308,44 +308,27 @@ public class TableFilter implements ColumnResolver {
      * Start the query. This will reset the scan counts.
      *
      * @param s the session
-     * @return join batch if query runs over index which supports batched lookups, null otherwise
      */
-    public JoinBatch startQuery(Session s) {
-        joinBatch = null;
-        joinFilterId = -1;
+    public void startQuery(Session s) {
         this.session = s;
         scanCount = 0;
         if (nestedJoin != null) {
             nestedJoin.startQuery(s);
         }
-        JoinBatch batch = null;
         if (join != null) {
-            batch = join.startQuery(s);
+            join.startQuery(s);
         }
-        IndexLookupBatch lookupBatch = null;
-        if (batch == null && select != null && select.getTopTableFilter() != this) {
-            lookupBatch = index.createLookupBatch(this);
-            if (lookupBatch != null) {
-                batch = new JoinBatch(join);
-            }
-        }
-        if (batch != null) {
-            if (nestedJoin != null) {
-                throw DbException.getUnsupportedException("nested join with batched index");
-            }
-            if (lookupBatch == null) {
-                lookupBatch = index.createLookupBatch(this);
-            }
-            joinBatch = batch;
-            batch.register(this, lookupBatch);
-        }
-        return batch;
     }
 
     /**
      * Reset to the current position.
      */
     public void reset() {
+        if (joinBatch != null && joinFilterId == 0) {
+            // reset join batch only on top table filter
+            joinBatch.reset();
+            return;
+        }
         if (nestedJoin != null) {
             nestedJoin.reset();
         }
@@ -357,13 +340,55 @@ public class TableFilter implements ColumnResolver {
     }
 
     /**
+     * Attempt to initialize batched join.
+     *
+     * @param id join filter id (index of this table filter in join list)
+     * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
+     */
+    public JoinBatch prepareBatch(int id) {
+        JoinBatch batch = null;
+        if (join != null) {
+            batch = join.prepareBatch(id + 1);
+        }
+        IndexLookupBatch lookupBatch = null;
+        if (batch == null && select != null && id != 0) {
+            // TODO session.getSubQueryInfo() instead of id != 0 + use upper level sub-query info
+            lookupBatch = index.createLookupBatch(this);
+            if (lookupBatch != null) {
+                batch = new JoinBatch(id + 1, join);
+            }
+        }
+        if (batch != null) {
+            if (nestedJoin != null) {
+                throw DbException.getUnsupportedException("nested join with batched index");
+            }
+            if (lookupBatch == null && id != 0) {
+                // TODO session.getSubQueryInfo() instead of id != 0 + use upper level sub-query info
+                lookupBatch = index.createLookupBatch(this);
+            }
+            joinBatch = batch;
+            joinFilterId = id;
+            batch.register(this, lookupBatch);
+        }
+        return batch;
+    }
+
+    public int getJoinFilterId() {
+        return joinFilterId;
+    }
+
+    public JoinBatch getJoinBatch() {
+        return joinBatch;
+    }
+
+    /**
      * Check if there are more rows to read.
      *
      * @return true if there are
      */
     public boolean next() {
         if (joinBatch != null) {
-            // will happen only on topTableFilter since jbatch.next does not call join.next()
+            // will happen only on topTableFilter since joinBatch.next() does not call join.next()
             return joinBatch.next();
         }
         if (state == AFTER_LAST) {
@@ -722,6 +747,14 @@ public class TableFilter implements ColumnResolver {
         if (index != null) {
             buff.append('\n');
             StatementBuilder planBuff = new StatementBuilder();
+            if (joinBatch != null) {
+                if (joinBatch.isBatchedIndex(joinFilterId)) {
+                    planBuff.append("batched:true ");
+                } else if (joinFilterId != 0) {
+                    // top table filter does not need to fake batching, it works as usual in this case
+                    planBuff.append("batched:fake ");
+                }
+            }
             planBuff.append(index.getPlanSQL());
             if (indexConditions.size() > 0) {
                 planBuff.append(": ");

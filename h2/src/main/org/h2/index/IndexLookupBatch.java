@@ -15,7 +15,8 @@ import org.h2.result.SearchRow;
  * method {@link #isBatchFull()}} will return {@code true} or there are no more
  * search rows to add. Then method {@link #find()} will be called to execute batched lookup.
  * Note that a single instance of {@link IndexLookupBatch} can be reused for multiple 
- * sequential batched lookups.
+ * sequential batched lookups, moreover it can be reused for multiple queries for
+ * the same prepared statement.
  * 
  * @see Index#createLookupBatch(org.h2.table.TableFilter)
  * @author Sergi Vladykin
@@ -47,4 +48,9 @@ public interface IndexLookupBatch {
      * @return List of future cursors for collected search rows.
      */
     List<Future<Cursor>> find();
+
+    /**
+     * Reset this batch to clear state. This method will be called before each query execution.
+     */
+    void reset();
 }

@@ -28,65 +28,93 @@ import org.h2.value.ValueLong;
  * @author Sergi Vladykin
  */
 public final class JoinBatch {
-    
+
     private static final Cursor EMPTY_CURSOR = new Cursor() {
         @Override
         public boolean previous() {
             return false;
         }
-        
+
         @Override
         public boolean next() {
             return false;
         }
-        
+
         @Override
         public SearchRow getSearchRow() {
             return null;
         }
-        
+
         @Override
         public Row get() {
             return null;
         }
-        
+
         @Override
         public String toString() {
             return "EMPTY_CURSOR";
         }
     }; 
-    
-    private int filtersCount;
+
     private JoinFilter[] filters;
     private JoinFilter top;
-    
+
     private boolean started;
-    
+
     private JoinRow current;
     private boolean found;
-    
+
     /**
      * This filter joined after this batched join and can be used normally.
      */
     private final TableFilter additionalFilter;
-    
+
     /**
+     * @param filtersCount number of filters participating in this batched join
      * @param additionalFilter table filter after this batched join.
      */
-    public JoinBatch(TableFilter additionalFilter) {
+    public JoinBatch(int filtersCount, TableFilter additionalFilter) {
+        if (filtersCount > 32) {
+            // This is because we store state in a 64 bit field, 2 bits per joined table.
+            throw DbException.getUnsupportedException("Too many tables in join (at most 32 supported).");
+        }
+        filters = new JoinFilter[filtersCount];
         this.additionalFilter = additionalFilter;
     }
-    
+
+    /**
+     * @param joinFilterId joined table filter id
+     * @return {@code true} if index really supports batching in this query
+     */
+    public boolean isBatchedIndex(int joinFilterId) {
+        return filters[joinFilterId].isBatched();
+    }
+
+    /**
+     * Reset state of this batch.
+     */
+    public void reset() {
+        current = null;
+        started = false;
+        found = false;
+        for (JoinFilter jf : filters) {
+            jf.reset();
+        }
+        if (additionalFilter != null) {
+            additionalFilter.reset();
+        }
+    }
+
     /**
      * @param filter table filter
      * @param lookupBatch lookup batch
      */
     public void register(TableFilter filter, IndexLookupBatch lookupBatch) {
         assert filter != null;
-        filtersCount++;
         top = new JoinFilter(lookupBatch, filter, top);
+        filters[top.id] = top;
     }
-    
+
     /**
      * @param filterId table filter id
      * @param column column
@@ -108,21 +136,9 @@ public final class JoinBatch {
     }
 
     private void start() {
-        if (filtersCount > 32) {
-            // This is because we store state in a 64 bit field, 2 bits per joined table.
-            throw DbException.getUnsupportedException("Too many tables in join (at most 32 supported).");
-        }
-
-        // fill filters
-        filters = new JoinFilter[filtersCount];
-        JoinFilter jf = top;
-        for (int i = 0; i < filtersCount; i++) {
-            jf.id = jf.filter.joinFilterId = i;
-            filters[i] = jf;
-            jf = jf.join;
-        }
+        // TODO if filters[0].isBatched() then use batching instead of top.filter.getIndexCursor()
         // initialize current row
-        current = new JoinRow(new Object[filtersCount]);
+        current = new JoinRow(new Object[filters.length]);
         current.updateRow(top.id, top.filter.getIndexCursor(), JoinRow.S_NULL, JoinRow.S_CURSOR);
 
         // initialize top cursor
@@ -188,7 +204,7 @@ public final class JoinBatch {
         }
         current.prev = null;
     
-        final int lastJfId = filtersCount - 1;
+        final int lastJfId = filters.length - 1;
         
         int jfId = lastJfId;
         while (current.row(jfId) == null) {
@@ -325,17 +341,28 @@ public final class JoinBatch {
     private static final class JoinFilter {
         private final TableFilter filter;
         private final JoinFilter join;
-        private int id;
-        
+        private final int id;
+        private final boolean fakeBatch;
+
         private final IndexLookupBatch lookupBatch;
-        
+
         private JoinFilter(IndexLookupBatch lookupBatch, TableFilter filter, JoinFilter join) {
             this.filter = filter;
+            this.id = filter.getJoinFilterId();
             this.join = join;
-            this.lookupBatch = lookupBatch != null ? lookupBatch : new FakeLookupBatch(filter);
+            fakeBatch = lookupBatch == null;
+            this.lookupBatch = fakeBatch ? new FakeLookupBatch(filter) : lookupBatch;
         }
-        
-        public Row getNullRow() {
+
+        private boolean isBatched() {
+            return !fakeBatch;
+        }
+
+        private void reset() {
+            lookupBatch.reset();
+        }
+
+        private Row getNullRow() {
             return filter.getTable().getNullRow();
         }
 
@@ -353,7 +380,7 @@ public final class JoinBatch {
 
             return filterOk && (ignoreJoinCondition || joinOk);
         }
-        
+
         private boolean collectSearchRows() {
             assert !isBatchFull();
             IndexCursor c = filter.getIndexCursor();
@@ -364,7 +391,7 @@ public final class JoinBatch {
             lookupBatch.addSearchRows(c.getStart(), c.getEnd());
             return true;
         }
-        
+
         private JoinRow find(JoinRow current) {
             assert current != null;
 
@@ -403,13 +430,13 @@ public final class JoinBatch {
             // the last updated row
             return current;
         }
-        
+
         @Override
         public String toString() {
             return "JoinFilter->" + filter;
         }
     }
-    
+
     /**
      * Linked row in batched join.
      */
@@ -504,7 +531,7 @@ public final class JoinBatch {
             }
             row = null;
         }
-        
+
         /**
          * Copy this JoinRow behind itself in linked list of all in progress rows.
          *
@@ -514,24 +541,24 @@ public final class JoinBatch {
         private JoinRow copyBehind(int jfId) {
             assert isCursor(jfId);
             assert jfId + 1 == row.length || row[jfId + 1] == null;
-            
+
             Object[] r = new Object[row.length];
             if (jfId != 0) {
                 System.arraycopy(row, 0, r, 0, jfId);
             }
             JoinRow copy = new JoinRow(r);
             copy.state = state;
-            
+
             if (prev != null) {
                 copy.prev = prev;
                 prev.next = copy;
             }
             prev = copy;
             copy.next = this;
-            
+
             return copy;
         }
-        
+
         @Override
         public String toString() {
             return "JoinRow->" + Arrays.toString(row);
@@ -557,6 +584,13 @@ public final class JoinBatch {
          */
         public FakeLookupBatch(TableFilter filter) {
             this.filter = filter;
+        }
+
+        @Override
+        public void reset() {
+            full = false;
+            first = last = null;
+            result.set(0, null);
         }
 
         @Override

@@ -1118,6 +1118,11 @@ public class TestTableEngines extends TestBase {
                     searchRows.add(first);
                     searchRows.add(last);
                 }
+
+                @Override
+                public void reset() {
+                    searchRows.clear();
+                }
             };
         }
 

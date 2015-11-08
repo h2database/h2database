@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -36,6 +35,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
+import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
@@ -942,7 +942,12 @@ public class Select extends Query {
         }
         expressionArray = new Expression[expressions.size()];
         expressions.toArray(expressionArray);
+        topTableFilter.prepareBatch(0);
         isPrepared = true;
+    }
+
+    public JoinBatch getJoinBatch() {
+        return getTopTableFilter().getJoinBatch();
     }
 
     @Override

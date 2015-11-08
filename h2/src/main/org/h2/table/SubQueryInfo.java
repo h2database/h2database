@@ -20,8 +20,10 @@ public class SubQueryInfo {
     private int filter;
     private SortOrder sortOrder;
     private boolean preliminary;
+    private SubQueryInfo upper;
 
     /**
+     * @param upper upper level sub-query if any
      * @param masks index conditions masks
      * @param filters table filters
      * @param filter current filter
@@ -29,13 +31,18 @@ public class SubQueryInfo {
      * @param preliminary if this is a preliminary query optimization 
      *          without global conditions
      */
-    public SubQueryInfo(int[] masks, TableFilter[] filters, int filter, 
+    public SubQueryInfo(SubQueryInfo upper, int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder, boolean preliminary) {
+        this.upper = upper;
         this.masks = masks;
         this.filters = filters;
         this.filter = filter;
         this.sortOrder = sortOrder;
         this.preliminary = preliminary;
+    }
+
+    public SubQueryInfo getUpper() {
+        return upper;
     }
 
     public int[] getMasks() {

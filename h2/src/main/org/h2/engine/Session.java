@@ -5,7 +5,6 @@
  */
 package org.h2.engine;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -110,7 +109,7 @@ public class Session extends SessionWithState {
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
-    private ArrayDeque<SubQueryInfo> subQueryInfoStack = new ArrayDeque<SubQueryInfo>();
+    private SubQueryInfo subQueryInfo;
     private int parsingView;
 
     /**
@@ -145,18 +144,12 @@ public class Session extends SessionWithState {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
-    public void pushSubQueryInfo(SubQueryInfo subQueryInfo) {
-        assert subQueryInfo != null;
-        subQueryInfoStack.addLast(subQueryInfo);
-    }
-
-    public void popSubQueryInfo(SubQueryInfo subQueryInfo) {
-        SubQueryInfo popped = subQueryInfoStack.pollLast();
-        assert popped == subQueryInfo;
+    public void setSubQueryInfo(SubQueryInfo subQueryInfo) {
+        this.subQueryInfo = subQueryInfo;
     }
 
     public SubQueryInfo getSubQueryInfo() {
-        return subQueryInfoStack.peekLast();
+        return subQueryInfo;
     }
 
     public void setParsingView(boolean parsingView) {

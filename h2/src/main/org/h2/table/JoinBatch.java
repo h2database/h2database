@@ -83,11 +83,23 @@ public final class JoinBatch {
     }
 
     /**
+     * Check if the index at the given table filter really supports batching in this query.
+     *
      * @param joinFilterId joined table filter id
      * @return {@code true} if index really supports batching in this query
      */
     public boolean isBatchedIndex(int joinFilterId) {
         return filters[joinFilterId].isBatched();
+    }
+
+    /**
+     * Get the lookup batch for the given table filter.
+     *
+     * @param joinFilterId joined table filter id
+     * @return lookup batch
+     */
+    public IndexLookupBatch getLookupBatch(int joinFilterId) {
+        return filters[joinFilterId].lookupBatch;
     }
 
     /**

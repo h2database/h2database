@@ -71,6 +71,8 @@ public abstract class Query extends Prepared {
         super(session);
     }
 
+    public abstract boolean isUnion();
+
     /**
      * Execute the query without checking the cache. If a target is specified,
      * the results are written to it, and the method returns null. If no target

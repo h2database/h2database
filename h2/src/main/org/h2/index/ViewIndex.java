@@ -6,9 +6,12 @@
 package org.h2.index;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
+import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -21,6 +24,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.JoinBatch;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
@@ -91,6 +95,46 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         if (!recursive) {
             query = getQuery(session, masks, filters, filter, sortOrder);
         }
+    }
+
+    @Override
+    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+        if (recursive) {
+            // we do not support batching for recursive queries
+            return null;
+        }
+        if (query.isUnion()) {
+            return createLookupBatchUnion((SelectUnion) query);
+        }
+        return createLookupBatchSimple((Select) query);
+    }
+
+    private IndexLookupBatch createLookupBatchSimple(Select select) {
+        // here we have already prepared plan for our sub-query,
+        // thus select already contains join batch for it (if it has to)
+        JoinBatch joinBatch = select.getJoinBatch();
+        if (joinBatch == null) {
+            // our sub-query itself is not batched, will run usual way
+            return null;
+        }
+        return joinBatch.getLookupBatch(0);
+    }
+
+    private IndexLookupBatch createLookupBatchUnion(SelectUnion union) {
+        Query left = union.getLeft();
+        IndexLookupBatch leftLookupBatch = left.isUnion() ?
+                createLookupBatchUnion((SelectUnion) left):
+                createLookupBatchSimple((Select) left);
+
+        Query right = union.getRight();
+        IndexLookupBatch rightLookupBatch = right.isUnion() ?
+                createLookupBatchUnion((SelectUnion) right) :
+                createLookupBatchSimple((Select) right);
+
+        if (leftLookupBatch == null && rightLookupBatch == null) {
+            return null;
+        }
+        return new UnionLookupBatch(leftLookupBatch, rightLookupBatch);
     }
 
     public Session getSession() {
@@ -221,7 +265,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             if (query == null) {
                 query = (Query) createSession.prepare(querySQL, true);
             }
-            if (!(query instanceof SelectUnion)) {
+            if (!query.isUnion()) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
                         "recursive queries without UNION ALL");
             }
@@ -454,4 +498,41 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return recursive;
     }
 
+    /**
+     * Lookup batch for unions.
+     */
+    private static final class UnionLookupBatch implements IndexLookupBatch {
+        private final IndexLookupBatch left;
+        private final IndexLookupBatch right;
+
+        private UnionLookupBatch(IndexLookupBatch left, IndexLookupBatch right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public void addSearchRows(SearchRow first, SearchRow last) {
+            assert !left.isBatchFull();
+            assert !right.isBatchFull();
+            left.addSearchRows(first, last);
+            right.addSearchRows(first, last);
+        }
+
+        @Override
+        public boolean isBatchFull() {
+            return left.isBatchFull() || right.isBatchFull();
+        }
+
+        @Override
+        public List<Future<Cursor>> find() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void reset() {
+            left.reset();
+            right.reset();
+        }
+    }
 }

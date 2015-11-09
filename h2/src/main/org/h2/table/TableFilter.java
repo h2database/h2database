@@ -339,6 +339,23 @@ public class TableFilter implements ColumnResolver {
         foundOne = false;
     }
 
+    private boolean isAlwaysTopTableFilter(int id) {
+        if (id != 0) {
+            return false;
+        }
+        // check if we are at the top table filters all the way up
+        SubQueryInfo info = session.getSubQueryInfo();
+        for (;;) {
+            if (info == null) {
+                return true;
+            }
+            if (info.getFilter() != 0) {
+                return false;
+            }
+            info = info.getUpper();
+        }
+    }
+
     /**
      * Attempt to initialize batched join.
      *
@@ -351,8 +368,7 @@ public class TableFilter implements ColumnResolver {
             batch = join.prepareBatch(id + 1);
         }
         IndexLookupBatch lookupBatch = null;
-        if (batch == null && select != null && id != 0) {
-            // TODO session.getSubQueryInfo() instead of id != 0 + use upper level sub-query info
+        if (batch == null && select != null && !isAlwaysTopTableFilter(id)) {
             lookupBatch = index.createLookupBatch(this);
             if (lookupBatch != null) {
                 batch = new JoinBatch(id + 1, join);
@@ -362,12 +378,11 @@ public class TableFilter implements ColumnResolver {
             if (nestedJoin != null) {
                 throw DbException.getUnsupportedException("nested join with batched index");
             }
-            if (lookupBatch == null && id != 0) {
-                // TODO session.getSubQueryInfo() instead of id != 0 + use upper level sub-query info
-                lookupBatch = index.createLookupBatch(this);
-            }
             joinBatch = batch;
             joinFilterId = id;
+            if (lookupBatch == null && !isAlwaysTopTableFilter(id)) {
+                lookupBatch = index.createLookupBatch(this);
+            }
             batch.register(this, lookupBatch);
         }
         return batch;

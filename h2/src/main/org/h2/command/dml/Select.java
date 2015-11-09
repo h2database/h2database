@@ -87,6 +87,11 @@ public class Select extends Query {
         super(session);
     }
 
+    @Override
+    public boolean isUnion() {
+        return false;
+    }
+
     /**
      * Add a table to the query.
      *
@@ -942,7 +947,9 @@ public class Select extends Query {
         }
         expressionArray = new Expression[expressions.size()];
         expressions.toArray(expressionArray);
-        topTableFilter.prepareBatch(0);
+        if (!session.isParsingView()) {
+            topTableFilter.prepareBatch(0);
+        }
         isPrepared = true;
     }
 

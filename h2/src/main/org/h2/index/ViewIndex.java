@@ -88,7 +88,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         this.indexMasks = masks;
         this.createSession = session;
         columns = new Column[0];
-        if (!recursive && filters != null) {
+        if (!recursive) {
             query = getQuery(session, masks, filters, filter, sortOrder);
         }
     }
@@ -136,7 +136,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     @Override
     public synchronized double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
-        if (recursive || filters == null) {
+        if (recursive) {
             return 1000;
         }
         IntArray masksArray = new IntArray(masks == null ?
@@ -177,10 +177,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             String sql = q.getPlanSQL();
             q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder, false);
         }
-        if (query == null) {
-            // this is possible when scan index has been taken and the cost was recalculated
-            query = q;
-        }
         double cost = q.getCost();
         cachedCost = new CostElement();
         cachedCost.evaluatedAt = System.currentTimeMillis();
@@ -201,6 +197,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private static Query prepareSubQuery(String sql, Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder, boolean preliminary) {
+        assert filters != null;
         Prepared p;
         SubQueryInfo upper = session.getSubQueryInfo();
         SubQueryInfo info = new SubQueryInfo(upper,

@@ -435,12 +435,18 @@ public class TableView extends Table {
 
     @Override
     public Index getScanIndex(Session session) {
+        return getBestPlanItem(session, null, null, -1, null).getIndex();
+    }
+
+    @Override
+    public Index getScanIndex(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         if (createException != null) {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,
                     createException, getSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, null, null, -1, null);
+        PlanItem item = getBestPlanItem(session, masks, filters, filter, sortOrder);
         return item.getIndex();
     }
 

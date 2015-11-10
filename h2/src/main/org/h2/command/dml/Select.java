@@ -900,8 +900,8 @@ public class Select extends Query {
         }
         if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
             Index index = getSortIndex();
-            if (index != null) {
-                Index current = topTableFilter.getIndex();
+            Index current = topTableFilter.getIndex();
+            if (index != null && current != null) {
                 if (current.getIndexType().isScan() || current == index) {
                     topTableFilter.setIndex(index);
                     if (!topTableFilter.hasInComparisons()) {
@@ -934,7 +934,7 @@ public class Select extends Query {
                 getGroupByExpressionCount() > 0) {
             Index index = getGroupSortedIndex();
             Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() ||
+            if (index != null && current != null && (current.getIndexType().isScan() ||
                     current == index)) {
                 topTableFilter.setIndex(index);
                 isGroupSortedQuery = true;

@@ -103,10 +103,12 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             // we do not support batching for recursive queries
             return null;
         }
-        if (query.isUnion()) {
-            return createLookupBatchUnion((SelectUnion) query);
-        }
-        return createLookupBatchSimple((Select) query);
+        IndexLookupBatch lookupBatch = query.isUnion() ?
+                createLookupBatchUnion((SelectUnion) query) :
+                createLookupBatchSimple((Select) query);
+        // TODO not initialize index cursor on the top table filter but work as usual batching
+        // TODO return wrapper which goes through all the joins an collects all the rows
+        return null;
     }
 
     private IndexLookupBatch createLookupBatchSimple(Select select) {
@@ -131,8 +133,13 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 createLookupBatchUnion((SelectUnion) right) :
                 createLookupBatchSimple((Select) right);
 
-        if (leftLookupBatch == null && rightLookupBatch == null) {
-            return null;
+        if (leftLookupBatch == null) {
+            if (rightLookupBatch == null) {
+                return null;
+            }
+            leftLookupBatch = null; // TODO
+        } else if (rightLookupBatch == null) {
+            rightLookupBatch = null; // TODO
         }
         return new UnionLookupBatch(leftLookupBatch, rightLookupBatch);
     }

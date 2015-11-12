@@ -83,11 +83,12 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param masks per-column comparison bit masks, null means 'always false',
      *              see constants in IndexCondition
-     * @param filter the table filter
+     * @param filters all joined table filters
+     * @param filter the current table filter index
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks, TableFilter filter,
+    double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder);
 
     /**
@@ -259,27 +260,11 @@ public interface Index extends SchemaObject {
     void setSortedInsertMode(boolean sortedInsertMode);
 
     /**
-     * If this index can do batched lookups, it may return it's preferred batch size,
-     * otherwise it must return 0.
+     * Creates new lookup batch. Note that returned {@link IndexLookupBatch} instance 
+     * can be used multiple times.
      *
-     * @return preferred batch size or 0 if lookup batching is not supported
-     * @see #findBatched(TableFilter, Collection)
+     * @param filter Table filter.
+     * @return Created batch or {@code null} if batched lookup is not supported by this index.
      */
-    int getPreferedLookupBatchSize();
-
-    /**
-     * Do batched lookup over the given collection of {@link SearchRow} pairs as in
-     * {@link #find(TableFilter, SearchRow, SearchRow)}.
-     * <br/><br/>
-     * Correct implementation must always return number of future cursors equal to
-     * {@code firstLastPairs.size() / 2}. Instead of {@link Future} containing empty
-     * {@link Cursor} it is possible to put {@code null} in result list.
-     *
-     * @param filter the table filter
-     * @param firstLastPairs List of batched search row pairs as in
-     *          {@link #find(TableFilter, SearchRow, SearchRow)}, the collection will be reused by H2,
-     *          thus it makes sense to defensively copy contents if needed.
-     * @return batched cursors for respective search row pairs in the same order
-     */
-    List<Future<Cursor>> findBatched(TableFilter filter, List<SearchRow> firstLastPairs);
+    IndexLookupBatch createLookupBatch(TableFilter filter);
 }

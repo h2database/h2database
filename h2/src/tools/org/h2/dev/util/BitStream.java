@@ -245,6 +245,17 @@ public class BitStream {
             return n.value;
         }
 
+        /**
+         * Get the number of bits of the Huffman code for this value.
+         *
+         * @param value the value
+         * @return the number of bits
+         */
+        public int getBitCount(int value) {
+            int code = codes[value];
+            return 30 - Integer.numberOfLeadingZeros(code);
+        }
+
     }
 
     /**

@@ -32,7 +32,6 @@ import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-import org.h2.util.SynchronizedVerifier;
 import org.h2.value.Value;
 
 /**
@@ -51,8 +50,6 @@ public class TableView extends Table {
     private ViewIndex index;
     private boolean recursive;
     private DbException createException;
-    private final SmallLRUCache<CacheKey, ViewIndex> indexCache =
-            SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private long lastModificationCheck;
     private long maxDataModificationId;
     private User owner;
@@ -97,8 +94,6 @@ public class TableView extends Table {
         this.columnNames = columnNames;
         this.recursive = recursive;
         index = new ViewIndex(this, querySQL, params, recursive);
-        SynchronizedVerifier.check(indexCache);
-        indexCache.clear();
         initColumnsAndTables(session);
     }
 
@@ -136,8 +131,6 @@ public class TableView extends Table {
         if (views != null) {
             views = New.arrayList(views);
         }
-        SynchronizedVerifier.check(indexCache);
-        indexCache.clear();
         initColumnsAndTables(session);
         if (views != null) {
             for (TableView v : views) {
@@ -234,30 +227,16 @@ public class TableView extends Table {
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, filters, filter, sortOrder);
-        final CacheKey cacheKey = new CacheKey(masks, session);
-
-        synchronized (this) {
-            SynchronizedVerifier.check(indexCache);
-            ViewIndex i2 = indexCache.get(cacheKey);
-            if (i2 != null) {
-                item.setIndex(i2);
-                return item;
-            }
+        final CacheKey cacheKey = new CacheKey(masks, this);
+        SmallLRUCache<Object, ViewIndex> indexCache = session.getViewIndexCache();
+        ViewIndex i = indexCache.get(cacheKey);
+        if (i != null) {
+            item.setIndex(i);
+            return item;
         }
-        // We cannot hold the lock during the ViewIndex creation or we risk ABBA
-        // deadlocks if the view creation calls back into H2 via something like
-        // a FunctionTable.
-        ViewIndex i2 = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
-        synchronized (this) {
-            // have to check again in case another session has beat us to it
-            ViewIndex i3 = indexCache.get(cacheKey);
-            if (i3 != null) {
-                item.setIndex(i3);
-                return item;
-            }
-            indexCache.put(cacheKey, i2);
-            item.setIndex(i2);
-        }
+        i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
+        indexCache.put(cacheKey, i);
+        item.setIndex(i);
         return item;
     }
 
@@ -596,11 +575,11 @@ public class TableView extends Table {
     private static final class CacheKey {
 
         private final int[] masks;
-        private final Session session;
+        private final TableView view;
 
-        public CacheKey(int[] masks, Session session) {
+        public CacheKey(int[] masks, TableView view) {
             this.masks = masks;
-            this.session = session;
+            this.view = view;
         }
 
         @Override
@@ -608,7 +587,7 @@ public class TableView extends Table {
             final int prime = 31;
             int result = 1;
             result = prime * result + Arrays.hashCode(masks);
-            result = prime * result + session.hashCode();
+            result = prime * result + view.hashCode();
             return result;
         }
 
@@ -624,7 +603,7 @@ public class TableView extends Table {
                 return false;
             }
             CacheKey other = (CacheKey) obj;
-            if (session != other.session) {
+            if (view != other.view) {
                 return false;
             }
             if (!Arrays.equals(masks, other.masks)) {

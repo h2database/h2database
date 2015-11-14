@@ -19,6 +19,7 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
+import org.h2.index.ViewIndex;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -111,6 +112,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private SmallLRUCache<Object, ViewIndex> viewIndexCache;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -1313,6 +1315,13 @@ public class Session extends SessionWithState {
         }
     }
 
+    public SmallLRUCache<Object, ViewIndex> getViewIndexCache() {
+        if (viewIndexCache == null) {
+            viewIndexCache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
+        }
+        return viewIndexCache;
+    }
+
     /**
      * Remember the result set and close it as soon as the transaction is
      * committed (if it needs to be closed). This is done to delete temporary
@@ -1549,5 +1558,4 @@ public class Session extends SessionWithState {
         }
 
     }
-
 }

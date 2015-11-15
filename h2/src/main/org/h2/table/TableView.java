@@ -8,6 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -29,7 +30,6 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.util.New;
-import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -228,14 +228,12 @@ public class TableView extends Table {
         PlanItem item = new PlanItem();
         item.cost = index.getCost(session, masks, filters, filter, sortOrder);
         final CacheKey cacheKey = new CacheKey(masks, this);
-        SmallLRUCache<Object, ViewIndex> indexCache = session.getViewIndexCache();
+        Map<Object, ViewIndex> indexCache = session.getViewIndexCache(topQuery != null);
         ViewIndex i = indexCache.get(cacheKey);
-        if (i != null) {
-            item.setIndex(i);
-            return item;
+        if (i == null) {
+            i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
+            indexCache.put(cacheKey, i);
         }
-        i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
-        indexCache.put(cacheKey, i);
         item.setIndex(i);
         return item;
     }
@@ -255,6 +253,10 @@ public class TableView extends Table {
             return false;
         }
         return true;
+    }
+
+    public Query getTopQuery() {
+        return topQuery;
     }
 
     @Override
@@ -397,6 +399,9 @@ public class TableView extends Table {
         database.removeMeta(session, getId());
         querySQL = null;
         index = null;
+        for (Session s : database.getSessions(true)) {
+            s.clearViewIndexCache();
+        }
         invalidate();
     }
 

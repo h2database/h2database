@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Random;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -19,6 +20,7 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
+import org.h2.index.ViewIndex;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -111,6 +113,8 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
+    private HashMap<Object, ViewIndex> subQueryIndexCache;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -1313,6 +1317,22 @@ public class Session extends SessionWithState {
         }
     }
 
+    public Map<Object, ViewIndex> getViewIndexCache(boolean subQuery) {
+        if (subQuery) {
+            // for sub-queries we don't need to use LRU because it should not grow too large
+            // for a single query and by the end of the statement we will drop the whole cache
+            if (subQueryIndexCache == null) {
+                subQueryIndexCache = New.hashMap();
+            }
+            return subQueryIndexCache;
+        }
+        SmallLRUCache<Object, ViewIndex> cache = viewIndexCache;
+        if (cache == null) {
+            viewIndexCache = cache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
+        }
+        return cache;
+    }
+
     /**
      * Remember the result set and close it as soon as the transaction is
      * committed (if it needs to be closed). This is done to delete temporary
@@ -1490,7 +1510,12 @@ public class Session extends SessionWithState {
      */
     public void endStatement() {
         startStatement = -1;
+        subQueryIndexCache = null;
         closeTemporaryResults();
+    }
+
+    public void clearViewIndexCache() {
+        viewIndexCache = null;
     }
 
     @Override
@@ -1549,5 +1574,4 @@ public class Session extends SessionWithState {
         }
 
     }
-
 }

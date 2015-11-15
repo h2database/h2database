@@ -248,6 +248,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private static Query prepareSubQuery(String sql, Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder, boolean preliminary) {
+        assert filters != null;
         Prepared p;
         SubQueryInfo upper = session.getSubQueryInfo();
         SubQueryInfo info = new SubQueryInfo(upper,

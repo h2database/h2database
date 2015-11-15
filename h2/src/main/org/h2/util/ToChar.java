@@ -332,21 +332,20 @@ public class ToChar {
     private static String zeroesAfterDecimalSeparator(BigDecimal number) {
         final String numberStr = number.toString();
         final int idx = numberStr.indexOf('.');
-        if (idx >= 0 ) {
-            int i = idx + 1;
-            boolean allZeroes = true;
-            for (; i < numberStr.length(); i++) {
-                if (numberStr.charAt(i) != '0') {
-                    allZeroes = false;
-                    break;
-                }
-            }
-            final char[] zeroes = new char[allZeroes ? numberStr.length() - idx - 1: i - 1 - idx];
-            Arrays.fill(zeroes, '0');
-            return String.valueOf(zeroes);
-        } else {
+        if (idx < 0) {
             return "";
         }
+        int i = idx + 1;
+        boolean allZeroes = true;
+        for (; i < numberStr.length(); i++) {
+            if (numberStr.charAt(i) != '0') {
+                allZeroes = false;
+                break;
+            }
+        }
+        final char[] zeroes = new char[allZeroes ? numberStr.length() - idx - 1: i - 1 - idx];
+        Arrays.fill(zeroes, '0');
+        return String.valueOf(zeroes);
     }
 
     private static void addSign(StringBuilder output, int signum,

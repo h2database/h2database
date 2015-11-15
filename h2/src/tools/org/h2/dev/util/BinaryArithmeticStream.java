@@ -203,8 +203,8 @@ public class BinaryArithmeticStream {
             Node n = tree;
             for (int i = bitCount; i >= 0; i--) {
                 boolean goRight = ((code >> i) & 1) == 1;
-                int prob = MAX_PROBABILITY *
-                        n.right.frequency / n.frequency;
+                int prob = (int) ((long) MAX_PROBABILITY *
+                        n.right.frequency / n.frequency);
                 out.writeBit(goRight, prob);
                 n = goRight ? n.right : n.left;
             }
@@ -219,8 +219,8 @@ public class BinaryArithmeticStream {
         public int read(In in) throws IOException {
             Node n = tree;
             while (n.left != null) {
-                int prob = MAX_PROBABILITY *
-                        n.right.frequency / n.frequency;
+                int prob = (int) ((long) MAX_PROBABILITY *
+                        n.right.frequency / n.frequency);
                 boolean goRight = in.readBit(prob);
                 n = goRight ? n.right : n.left;
             }

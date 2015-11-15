@@ -236,6 +236,11 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract Index getScanIndex(Session session);
 
+    public Index getScanIndex(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
+        return getScanIndex(session);
+    }
+
     /**
      * Get any unique index for this table if one exists.
      *

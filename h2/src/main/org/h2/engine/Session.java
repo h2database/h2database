@@ -483,6 +483,8 @@ public class Session extends SessionWithState {
         }
         Parser parser = new Parser(this);
         command = parser.prepareCommand(sql);
+        // we can't reuse view indexes from sub-queries, so just drop the cache
+        subQueryIndexCache = null;
         if (queryCache != null) {
             if (command.isCacheable()) {
                 queryCache.put(sql, command);
@@ -1319,8 +1321,8 @@ public class Session extends SessionWithState {
 
     public Map<Object, ViewIndex> getViewIndexCache(boolean subQuery) {
         if (subQuery) {
-            // for sub-queries we don't need to use LRU because it should not grow too large
-            // for a single query and by the end of the statement we will drop the whole cache
+            // for sub-queries we don't need to use LRU because the cache should not
+            // grow too large for a single query (we drop the whole cache in the end of prepareLocal)
             if (subQueryIndexCache == null) {
                 subQueryIndexCache = New.hashMap();
             }
@@ -1510,7 +1512,6 @@ public class Session extends SessionWithState {
      */
     public void endStatement() {
         startStatement = -1;
-        subQueryIndexCache = null;
         closeTemporaryResults();
     }
 

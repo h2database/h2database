@@ -31,7 +31,7 @@ public class AlterView extends DefineCommand {
     public int update() {
         session.commit(true);
         session.getUser().checkRight(view, Right.ALL);
-        DbException e = view.recompile(session, false);
+        DbException e = view.recompile(session, false, true);
         if (e != null) {
             throw e;
         }

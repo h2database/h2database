@@ -811,7 +811,7 @@ public class Database implements DataHandler {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
-                        view.recompile(session, true);
+                        view.recompile(session, true, false);
                         if (!view.isInvalid()) {
                             recompileSuccessful = true;
                         }
@@ -819,17 +819,7 @@ public class Database implements DataHandler {
                 }
             }
         } while (recompileSuccessful);
-        // when opening a database, views are initialized before indexes,
-        // so they may not have the optimal plan yet
-        // this is not a problem, it is just nice to see the newest plan
-        for (Table obj : getAllTablesAndViews(false)) {
-            if (obj instanceof TableView) {
-                TableView view = (TableView) obj;
-                if (!view.isInvalid()) {
-                    view.recompile(systemSession, true);
-                }
-            }
-        }
+        TableView.clearIndexCaches(session.getDatabase());
     }
 
     private void initMetaTables() {

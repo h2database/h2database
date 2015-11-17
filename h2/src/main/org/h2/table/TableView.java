@@ -13,6 +13,7 @@ import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -80,10 +81,10 @@ public class TableView extends Table {
         String[] oldColumnNames = this.columnNames;
         boolean oldRecursive = this.recursive;
         init(querySQL, null, columnNames, session, recursive);
-        DbException e = recompile(session, force);
+        DbException e = recompile(session, force, true);
         if (e != null) {
             init(oldQuerySQL, null, oldColumnNames, session, oldRecursive);
-            recompile(session, true);
+            recompile(session, true, false);
             throw e;
         }
     }
@@ -116,10 +117,11 @@ public class TableView extends Table {
      *
      * @param session the session
      * @param force if exceptions should be ignored
+     * @param clearIndexCache if we need to clear view index cache
      * @return the exception if re-compiling this or any dependent view failed
      *         (only when force is disabled)
      */
-    public synchronized DbException recompile(Session session, boolean force) {
+    public synchronized DbException recompile(Session session, boolean force, boolean clearIndexCache) {
         try {
             compileViewQuery(session, querySQL);
         } catch (DbException e) {
@@ -134,11 +136,14 @@ public class TableView extends Table {
         initColumnsAndTables(session);
         if (views != null) {
             for (TableView v : views) {
-                DbException e = v.recompile(session, force);
+                DbException e = v.recompile(session, force, false);
                 if (e != null && !force) {
                     return e;
                 }
             }
+        }
+        if (clearIndexCache) {
+            clearIndexCaches(database);
         }
         return force ? null : createException;
     }
@@ -399,10 +404,14 @@ public class TableView extends Table {
         database.removeMeta(session, getId());
         querySQL = null;
         index = null;
+        clearIndexCaches(database);
+        invalidate();
+    }
+
+    public static void clearIndexCaches(Database database) {
         for (Session s : database.getSessions(true)) {
             s.clearViewIndexCache();
         }
-        invalidate();
     }
 
     @Override

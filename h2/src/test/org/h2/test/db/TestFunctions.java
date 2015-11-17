@@ -1782,49 +1782,6 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private void testAnnotationProcessorsOutput() throws SQLException {
-        testAnnotationProcessorsOutput_emptyKey();
-        testAnnotationProcessorsOutput_invalidKey();
-        testAnnotationProcessorsOutput_oneInvalidKey();
-        testAnnotationProcessorsOutput_warnAndError();
-    }
-
-    private void testAnnotationProcessorsOutput_emptyKey() throws SQLException {
-        try {
-            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "");
-            callCompiledFunction("test_atp_empty_key");
-        } finally {
-            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
-        }
-    }
-
-    private void testAnnotationProcessorsOutput_invalidKey() throws SQLException {
-        try {
-            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "invalid");
-            callCompiledFunction("test_atp_invalid_key");
-            fail();
-        } catch (JdbcSQLException e) {
-            assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
-            assertContains(e.getMessage(), "'invalid'");
-        } finally {
-            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
-        }
-    }
-
-    private void testAnnotationProcessorsOutput_oneInvalidKey() throws SQLException {
-        try {
-            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "invalid,foo");
-            callCompiledFunction("test_atp_one_invalid_key");
-            fail();
-        } catch (JdbcSQLException e) {
-            assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
-            assertContains(e.getMessage(), "enum");
-            assertContains(e.getMessage(), "Kind.invalid");
-        } finally {
-            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
-        }
-    }
-
-    private void testAnnotationProcessorsOutput_warnAndError() throws SQLException {
         try {
             System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "WARNING,foo1|ERROR,foo2");
             callCompiledFunction("test_atp_warn_and_error");

@@ -482,9 +482,12 @@ public class Session extends SessionWithState {
             }
         }
         Parser parser = new Parser(this);
-        command = parser.prepareCommand(sql);
-        // we can't reuse view indexes from sub-queries, so just drop the cache
-        subQueryIndexCache = null;
+        try {
+            command = parser.prepareCommand(sql);
+        } finally {
+            // we can't reuse sub-query indexes, so just drop the whole cache
+            subQueryIndexCache = null;
+        }
         if (queryCache != null) {
             if (command.isCacheable()) {
                 queryCache.put(sql, command);

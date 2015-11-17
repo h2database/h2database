@@ -14,7 +14,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
-
 import org.h2.build.code.SwitchSource;
 import org.h2.build.doc.XMLParser;
 
@@ -401,6 +400,23 @@ public class Build extends BuildBase {
         writeFile(new File(fileName), checksums.getBytes());
     }
 
+    private static String canonicalPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private FileList excludeTestMetaInfFiles(FileList files) {
+        FileList testMetaInfFiles = files("src/test/META-INF");
+        int basePathLength = canonicalPath(new File("src/test")).length();
+        for (File file : testMetaInfFiles) {
+            files = files.exclude(canonicalPath(file).substring(basePathLength + 1));
+        }
+        return files;
+    }
+
     /**
      * Create the regular h2.jar file.
      */
@@ -424,6 +440,7 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt").
             exclude("*.DS_Store");
+        files = excludeTestMetaInfFiles(files);
         jar("bin/h2" + getJarSuffix(), files, "temp");
         filter("src/installer/h2.sh", "bin/h2.sh", "h2.jar", "h2" + getJarSuffix());
         filter("src/installer/h2.bat", "bin/h2.bat", "h2.jar", "h2" + getJarSuffix());
@@ -455,6 +472,7 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt").
             exclude("*.DS_Store");
+        files = excludeTestMetaInfFiles(files);
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2android" + getJarSuffix(), files, "temp");
@@ -479,6 +497,7 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt").
             exclude("*.DS_Store");
+        files = excludeTestMetaInfFiles(files);
         long kb = jar("bin/h2-client" + getJarSuffix(), files, "temp");
         if (kb < 350 || kb > 450) {
             throw new RuntimeException("Expected file size 350 - 450 KB, got: " + kb);
@@ -493,6 +512,7 @@ public class Build extends BuildBase {
         manifestMVStore();
         FileList files = files("temp");
         files.exclude("*.DS_Store");
+        files = excludeTestMetaInfFiles(files);
         jar("bin/h2-mvstore" + getJarSuffix(), files, "temp");
     }
 
@@ -525,6 +545,7 @@ public class Build extends BuildBase {
             exclude("*.sh").
             exclude("*.txt").
             exclude("*.DS_Store");
+        files = excludeTestMetaInfFiles(files);
         files.add(new File("temp/org/h2/tools/DeleteDbFiles.class"));
         files.add(new File("temp/org/h2/tools/CompressTool.class"));
         jar("bin/h2small" + getJarSuffix(), files, "temp");
@@ -540,6 +561,7 @@ public class Build extends BuildBase {
         FileList files = files("temp/org/h2/jaqu");
         files.addAll(files("temp/META-INF/MANIFEST.MF"));
         files.exclude("*.DS_Store");
+        files = excludeTestMetaInfFiles(files);
         jar("bin/h2jaqu" + getJarSuffix(), files, "temp");
     }
 

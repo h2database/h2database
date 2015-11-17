@@ -364,29 +364,33 @@ public class TableFilter implements ColumnResolver {
      * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
      */
     public JoinBatch prepareBatch(int id) {
-        JoinBatch batch = null;
+        joinBatch = null;
+        joinFilterId = -1;
+        JoinBatch jb = null;
         if (join != null) {
-            batch = join.prepareBatch(id + 1);
+            jb = join.prepareBatch(id + 1);
         }
         IndexLookupBatch lookupBatch = null;
-        if (batch == null && select != null && !isAlwaysTopTableFilter(id)) {
+        // TODO review the !isAlwaysTopTableFilter condition
+        if (jb == null && select != null && !isAlwaysTopTableFilter(id)) {
             lookupBatch = index.createLookupBatch(this);
             if (lookupBatch != null) {
-                batch = new JoinBatch(id + 1, join);
+                jb = new JoinBatch(id + 1, join);
             }
         }
-        if (batch != null) {
+        if (jb != null) {
             if (nestedJoin != null) {
                 throw DbException.getUnsupportedException("nested join with batched index");
             }
-            joinBatch = batch;
+            joinBatch = jb;
             joinFilterId = id;
+            // TODO review the !isAlwaysTopTableFilter condition
             if (lookupBatch == null && !isAlwaysTopTableFilter(id)) {
                 lookupBatch = index.createLookupBatch(this);
             }
-            batch.register(this, lookupBatch);
+            jb.register(this, lookupBatch);
         }
-        return batch;
+        return jb;
     }
 
     public int getJoinFilterId() {

@@ -119,7 +119,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             // our sub-query itself is not batched, will run usual way
             return null;
         }
-        return joinBatch.getLookupBatch(0);
+        // TODO wrap the join batch into lookup batch
+        return null;
     }
 
     private IndexLookupBatch createLookupBatchUnion(SelectUnion union) {

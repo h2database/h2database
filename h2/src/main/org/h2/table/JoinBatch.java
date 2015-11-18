@@ -60,7 +60,7 @@ public final class JoinBatch {
 
     private static final Future<Cursor> PLACEHOLDER = new DoneFuture<Cursor>(null);
 
-    private ViewIndexLookupBatch lookupBatchWrapper;
+    private ViewIndexLookupBatch viewIndexLookupBatch;
 
     private JoinFilter[] filters;
     private JoinFilter top;
@@ -156,7 +156,7 @@ public final class JoinBatch {
     private void start() {
         // initialize current row
         current = new JoinRow(new Object[filters.length]);
-        if (lookupBatchWrapper == null) {
+        if (viewIndexLookupBatch == null) {
             current.updateRow(top.id, top.filter.getIndexCursor(), JoinRow.S_NULL, JoinRow.S_CURSOR);
             // initialize top cursor
             top.filter.getIndexCursor().find(top.filter.getSession(), top.filter.getIndexConditions());
@@ -352,10 +352,10 @@ public final class JoinBatch {
      * @return Adapter to allow joining to this batch in sub-queries.
      */
     public IndexLookupBatch asViewIndexLookupBatch(ViewIndex viewIndex) {
-        if (lookupBatchWrapper == null) {
-            lookupBatchWrapper = new ViewIndexLookupBatch(viewIndex);
+        if (viewIndexLookupBatch == null) {
+            viewIndexLookupBatch = new ViewIndexLookupBatch(viewIndex);
         }
-        return lookupBatchWrapper;
+        return viewIndexLookupBatch;
     }
 
     @Override
@@ -685,6 +685,7 @@ public final class JoinBatch {
         private final ViewIndex viewIndex;
         private final ArrayList<Future<Cursor>> result = New.arrayList();
         private boolean findCalled;
+        private boolean full;
 
         private ViewIndexLookupBatch(ViewIndex viewIndex) {
             this.viewIndex = viewIndex;
@@ -706,6 +707,10 @@ public final class JoinBatch {
                 result.add(null);
             }
         }
+        
+        private void fetch() {
+            
+        }
 
         @Override
         public boolean isBatchFull() {
@@ -715,15 +720,6 @@ public final class JoinBatch {
 
         @Override
         public List<Future<Cursor>> find() {
-            JoinBatch jb = JoinBatch.this;
-            List<Future<Cursor>> topCursors = top.find();
-            for (int i = 0; i < topCursors.size(); i++) {
-//                jb.setCursor
-                
-                while (jb.next()) {
-                    // collect result
-                }
-            }
             findCalled = true;
             return result;
         }

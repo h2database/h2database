@@ -17,7 +17,7 @@ import org.h2.result.SearchRow;
  * Note that a single instance of {@link IndexLookupBatch} can be reused for multiple 
  * sequential batched lookups.
  * 
- * @see Index#createLookupBatch(TableFilter)
+ * @see Index#createLookupBatch(org.h2.table.TableFilter)
  * @author Sergi Vladykin
  */
 public interface IndexLookupBatch {

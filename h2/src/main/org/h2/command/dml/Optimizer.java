@@ -84,17 +84,24 @@ class Optimizer {
     }
 
     private void calculateBestPlan() {
-        start = System.currentTimeMillis();
         cost = -1;
         if (filters.length == 1 || !isJoinReorderingEnabled()) {
             testPlan(filters);
-        } else if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
-            calculateBruteForceAll();
         } else {
-            calculateBruteForceSome();
-            random = new Random(0);
-            calculateGenetic();
+            start = System.currentTimeMillis();
+            if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
+                calculateBruteForceAll();
+            } else {
+                calculateBruteForceSome();
+                random = new Random(0);
+                calculateGenetic();
+            }
         }
+    }
+
+    private void calculateFakePlan() {
+        cost = -1;
+        bestPlan = new Plan(filters, filters.length, condition);
     }
 
     private boolean canStop(int x) {
@@ -234,14 +241,23 @@ class Optimizer {
 
     /**
      * Calculate the best query plan to use.
+     *
+     * @param parse If we do not need to really get the best plan because it is view a parsing stage.
      */
-    void optimize() {
-        calculateBestPlan();
-        bestPlan.removeUnusableIndexConditions();
+    void optimize(boolean parse) {
+        if (parse) {
+            calculateFakePlan();
+        } else {
+            calculateBestPlan();
+            bestPlan.removeUnusableIndexConditions();
+        }
         TableFilter[] f2 = bestPlan.getFilters();
         topFilter = f2[0];
         for (int i = 0; i < f2.length - 1; i++) {
             f2[i].addJoin(f2[i + 1], false, false, null);
+        }
+        if (parse) {
+            return;
         }
         for (TableFilter f : f2) {
             PlanItem item = bestPlan.getItem(f);

@@ -4729,8 +4729,14 @@ public class Parser {
                 .substring(parseIndex));
         read("AS");
         try {
-            Query query = parseSelect();
-            query.prepare();
+            Query query;
+            session.setParsingView(true);
+            try {
+                query = parseSelect();
+                query.prepare();
+            } finally {
+                session.setParsingView(false);
+            }
             command.setSelect(query);
         } catch (DbException e) {
             if (force) {

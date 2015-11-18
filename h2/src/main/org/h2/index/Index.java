@@ -5,8 +5,6 @@
  */
 package org.h2.index;
 
-import java.util.List;
-import java.util.concurrent.Future;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;

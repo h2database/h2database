@@ -374,7 +374,7 @@ public class TestTableEngines extends TestBase {
         stat.execute("create table EXPR_TEST2(id int) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
         stat.executeQuery("select * from (select (select 1 from "
-                + "(select 2 from EXPR_TEST2) ZZ) from dual)").next();
+                + "(select (select 2 from EXPR_TEST) from EXPR_TEST2) ZZ) from dual)").next();
         // test select expression plan
         stat.execute("create table test_plan(id int primary key, name varchar)");
         stat.execute("create index MY_NAME_INDEX on test_plan(name)");

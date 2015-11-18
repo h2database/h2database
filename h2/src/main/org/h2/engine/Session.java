@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Random;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -19,6 +20,7 @@ import org.h2.command.Prepared;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
+import org.h2.index.ViewIndex;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -32,6 +34,7 @@ import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
+import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
@@ -108,6 +111,10 @@ public class Session extends SessionWithState {
     private final int queryCacheSize;
     private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
+    private SubQueryInfo subQueryInfo;
+    private int parsingView;
+    private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
+    private HashMap<Object, ViewIndex> subQueryIndexCache;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -143,6 +150,25 @@ public class Session extends SessionWithState {
 
     public Row createRow(Value[] data, int memory) {
         return database.createRow(data, memory);
+    }
+
+    public void setSubQueryInfo(SubQueryInfo subQueryInfo) {
+        this.subQueryInfo = subQueryInfo;
+    }
+
+    public SubQueryInfo getSubQueryInfo() {
+        return subQueryInfo;
+    }
+
+    public void setParsingView(boolean parsingView) {
+        // It can be recursive, thus implemented as counter.
+        this.parsingView += parsingView ? 1 : -1;
+        assert this.parsingView >= 0;
+    }
+
+    public boolean isParsingView() {
+        assert parsingView >= 0;
+        return parsingView != 0;
     }
 
     @Override
@@ -460,7 +486,12 @@ public class Session extends SessionWithState {
             }
         }
         Parser parser = new Parser(this);
-        command = parser.prepareCommand(sql);
+        try {
+            command = parser.prepareCommand(sql);
+        } finally {
+            // we can't reuse sub-query indexes, so just drop the whole cache
+            subQueryIndexCache = null;
+        }
         if (queryCache != null) {
             if (command.isCacheable()) {
                 queryCache.put(sql, command);
@@ -1295,6 +1326,22 @@ public class Session extends SessionWithState {
         }
     }
 
+    public Map<Object, ViewIndex> getViewIndexCache(boolean subQuery) {
+        if (subQuery) {
+            // for sub-queries we don't need to use LRU because the cache should not
+            // grow too large for a single query (we drop the whole cache in the end of prepareLocal)
+            if (subQueryIndexCache == null) {
+                subQueryIndexCache = New.hashMap();
+            }
+            return subQueryIndexCache;
+        }
+        SmallLRUCache<Object, ViewIndex> cache = viewIndexCache;
+        if (cache == null) {
+            viewIndexCache = cache = SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
+        }
+        return cache;
+    }
+
     /**
      * Remember the result set and close it as soon as the transaction is
      * committed (if it needs to be closed). This is done to delete temporary
@@ -1475,6 +1522,10 @@ public class Session extends SessionWithState {
         closeTemporaryResults();
     }
 
+    public void clearViewIndexCache() {
+        viewIndexCache = null;
+    }
+
     @Override
     public void addTemporaryLob(Value v) {
         if (v.getType() != Value.CLOB && v.getType() != Value.BLOB) {
@@ -1531,5 +1582,4 @@ public class Session extends SessionWithState {
         }
 
     }
-
 }

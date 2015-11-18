@@ -202,10 +202,14 @@ public class TableFilter implements ColumnResolver {
      */
     public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter) {
         PlanItem item;
+        SortOrder sortOrder = null;
+        if (select != null) {
+            sortOrder = select.getSortOrder();
+        }
         if (indexConditions.size() == 0) {
             item = new PlanItem();
-            item.setIndex(table.getScanIndex(s));
-            item.cost = item.getIndex().getCost(s, null, filters, filter, null);
+            item.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder));
+            item.cost = item.getIndex().getCost(s, null, filters, filter, sortOrder);
         } else {
             int len = table.getColumns().length;
             int[] masks = new int[len];
@@ -220,10 +224,6 @@ public class TableFilter implements ColumnResolver {
                         masks[id] |= condition.getMask(indexConditions);
                     }
                 }
-            }
-            SortOrder sortOrder = null;
-            if (select != null) {
-                sortOrder = select.getSortOrder();
             }
             item = table.getBestPlanItem(s, masks, filters, filter, sortOrder);
             item.setMasks(masks);
@@ -241,8 +241,9 @@ public class TableFilter implements ColumnResolver {
         }
         if (join != null) {
             setEvaluatable(join);
-            filter += nestedJoin == null ? 1 : 2;
-            assert filters[filter] == join;
+            do {
+                filter++;
+            } while (filters[filter] != join);
             item.setJoinPlan(join.getBestPlanItem(s, filters, filter));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost

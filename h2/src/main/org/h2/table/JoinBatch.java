@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,10 +14,12 @@ import java.util.concurrent.Future;
 import org.h2.index.Cursor;
 import org.h2.index.IndexCursor;
 import org.h2.index.IndexLookupBatch;
+import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.util.DoneFuture;
+import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
 
@@ -28,7 +31,6 @@ import org.h2.value.ValueLong;
  * @author Sergi Vladykin
  */
 public final class JoinBatch {
-
     private static final Cursor EMPTY_CURSOR = new Cursor() {
         @Override
         public boolean previous() {
@@ -54,7 +56,11 @@ public final class JoinBatch {
         public String toString() {
             return "EMPTY_CURSOR";
         }
-    }; 
+    };
+
+    private static final Future<Cursor> PLACEHOLDER = new DoneFuture<Cursor>(null);
+
+    private ViewIndexLookupBatch lookupBatchWrapper;
 
     private JoinFilter[] filters;
     private JoinFilter top;
@@ -148,14 +154,16 @@ public final class JoinBatch {
     }
 
     private void start() {
-        // TODO if filters[0].isBatched() then use batching instead of top.filter.getIndexCursor()
         // initialize current row
         current = new JoinRow(new Object[filters.length]);
-        current.updateRow(top.id, top.filter.getIndexCursor(), JoinRow.S_NULL, JoinRow.S_CURSOR);
-
-        // initialize top cursor
-        top.filter.getIndexCursor().find(top.filter.getSession(), top.filter.getIndexConditions());
-
+        if (lookupBatchWrapper == null) {
+            current.updateRow(top.id, top.filter.getIndexCursor(), JoinRow.S_NULL, JoinRow.S_CURSOR);
+            // initialize top cursor
+            top.filter.getIndexCursor().find(top.filter.getSession(), top.filter.getIndexConditions());
+        } else {
+            // we are sub-query and joined to upper level query
+            // TODO setup
+        }
         // we need fake first row because batchedNext always will move to the next row
         JoinRow fake = new JoinRow(null);
         fake.next = current;
@@ -239,7 +247,7 @@ public final class JoinBatch {
                     current = join.find(current);
                 }
                 if (current.row(join.id) != null) {
-                    // either find called or outer join with null row
+                    // either find called or outer join with null-row
                     jfId = join.id;
                     continue;
                 }
@@ -340,13 +348,23 @@ public final class JoinBatch {
         }
     }
 
+    /**
+     * @return Adapter to allow joining to this batch in sub-queries.
+     */
+    public IndexLookupBatch asViewIndexLookupBatch(ViewIndex viewIndex) {
+        if (lookupBatchWrapper == null) {
+            lookupBatchWrapper = new ViewIndexLookupBatch(viewIndex);
+        }
+        return lookupBatchWrapper;
+    }
+
     @Override
     public String toString() {
         return "JoinBatch->\nprev->" + (current == null ? null : current.prev) +
                 "\ncurr->" + current + 
                 "\nnext->" + (current == null ? null : current.next);
     }
-    
+
     /**
      * Table filter participating in batched join.
      */
@@ -402,6 +420,10 @@ public final class JoinBatch {
             }
             lookupBatch.addSearchRows(c.getStart(), c.getEnd());
             return true;
+        }
+
+        private List<Future<Cursor>> find() {
+            return lookupBatch.find();
         }
 
         private JoinRow find(JoinRow current) {
@@ -654,6 +676,71 @@ public final class JoinBatch {
         public int size() {
             return 1;
         }
+    }
+    
+    /**
+     * Lookup batch over this join batch for a sub-query or view.
+     */
+    private final class ViewIndexLookupBatch implements IndexLookupBatch {
+        private final ViewIndex viewIndex;
+        private final ArrayList<Future<Cursor>> result = New.arrayList();
+        private boolean findCalled;
+
+        private ViewIndexLookupBatch(ViewIndex viewIndex) {
+            this.viewIndex = viewIndex;
+        }
+
+        @Override
+        public void addSearchRows(SearchRow first, SearchRow last) {
+            if (findCalled) {
+                result.clear();
+                findCalled = false;
+            }
+            viewIndex.setupQueryParameters(viewIndex.getSession(), first, last, null);
+            if (top.collectSearchRows()) {
+                result.add(PLACEHOLDER);
+                if (top.isBatchFull()) {
+                    // TODO
+                }
+            } else {
+                result.add(null);
+            }
+        }
+
+        @Override
+        public boolean isBatchFull() {
+            assert !findCalled;
+            return top.isBatchFull();
+        }
+
+        @Override
+        public List<Future<Cursor>> find() {
+            JoinBatch jb = JoinBatch.this;
+            List<Future<Cursor>> topCursors = top.find();
+            for (int i = 0; i < topCursors.size(); i++) {
+//                jb.setCursor
+                
+                while (jb.next()) {
+                    // collect result
+                }
+            }
+            findCalled = true;
+            return result;
+        }
+
+        @Override
+        public void reset() {
+            findCalled = false;
+            result.clear();
+            JoinBatch.this.reset();
+        }
+    }
+    
+    /**
+     * State of the  
+     */
+    enum State {
+        
     }
 }
 

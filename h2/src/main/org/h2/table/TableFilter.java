@@ -371,7 +371,10 @@ public class TableFilter implements ColumnResolver {
             jb = join.prepareBatch(id + 1);
         }
         IndexLookupBatch lookupBatch = null;
-        // TODO review the !isAlwaysTopTableFilter condition
+        // the globally top table filter does not need batching, if isAlwaysTopTableFilter is false
+        // then we either not a top table filter or top table filter in a sub-query which is not
+        // top in outer query, thus we need to enable batching here to allow outer query run batched
+        // join against this sub-query
         if (jb == null && select != null && !isAlwaysTopTableFilter(id)) {
             lookupBatch = index.createLookupBatch(this);
             if (lookupBatch != null) {
@@ -384,8 +387,13 @@ public class TableFilter implements ColumnResolver {
             }
             joinBatch = jb;
             joinFilterId = id;
-            // TODO review the !isAlwaysTopTableFilter condition
+            // for globally top table filter we don't need to create lookup batch
+            // currently it will not be used, probably later on it will make sense
+            // to create it to better support X IN (...) conditions, but this needs
+            // to be implemented separately
             if (lookupBatch == null && !isAlwaysTopTableFilter(id)) {
+                // index.createLookupBatch will be called only once because jb can be created only if
+                // lookupBatch is not null from the first call above 
                 lookupBatch = index.createLookupBatch(this);
             }
             jb.register(this, lookupBatch);

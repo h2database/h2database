@@ -6,8 +6,6 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -103,12 +101,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             // we do not support batching for recursive queries
             return null;
         }
-        IndexLookupBatch lookupBatch = query.isUnion() ?
-                createLookupBatchUnion((SelectUnion) query) :
-                createLookupBatchSimple((Select) query);
-        // TODO not initialize index cursor on the top table filter but work as usual batching
-        // TODO return wrapper which goes through all the joins an collects all the rows
-        return null;
+        // currently do not support unions
+        return query.isUnion() ? null : createLookupBatchSimple((Select) query);
     }
 
     private IndexLookupBatch createLookupBatchSimple(Select select) {
@@ -119,30 +113,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             // our sub-query itself is not batched, will run usual way
             return null;
         }
-        // TODO wrap the join batch into lookup batch
-        return null;
-    }
-
-    private IndexLookupBatch createLookupBatchUnion(SelectUnion union) {
-        Query left = union.getLeft();
-        IndexLookupBatch leftLookupBatch = left.isUnion() ?
-                createLookupBatchUnion((SelectUnion) left):
-                createLookupBatchSimple((Select) left);
-
-        Query right = union.getRight();
-        IndexLookupBatch rightLookupBatch = right.isUnion() ?
-                createLookupBatchUnion((SelectUnion) right) :
-                createLookupBatchSimple((Select) right);
-
-        if (leftLookupBatch == null) {
-            if (rightLookupBatch == null) {
-                return null;
-            }
-            leftLookupBatch = null; // TODO
-        } else if (rightLookupBatch == null) {
-            rightLookupBatch = null; // TODO
-        }
-        return new UnionLookupBatch(leftLookupBatch, rightLookupBatch);
+        return joinBatch.asViewIndexLookupBatch(this);
     }
 
     public Session getSession() {
@@ -263,57 +234,60 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return (Query) p;
     }
 
-    private Cursor find(Session session, SearchRow first, SearchRow last,
+    private Cursor findRecursive(Session session, SearchRow first, SearchRow last,
             SearchRow intersection) {
-        if (recursive) {
-            LocalResult recResult = view.getRecursiveResult();
-            if (recResult != null) {
-                recResult.reset();
-                return new ViewCursor(this, recResult, first, last);
+        assert recursive;
+        LocalResult recResult = view.getRecursiveResult();
+        if (recResult != null) {
+            recResult.reset();
+            return new ViewCursor(this, recResult, first, last);
+        }
+        if (query == null) {
+            query = (Query) createSession.prepare(querySQL, true);
+        }
+        if (!query.isUnion()) {
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
+                    "recursive queries without UNION ALL");
+        }
+        SelectUnion union = (SelectUnion) query;
+        if (union.getUnionType() != SelectUnion.UNION_ALL) {
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
+                    "recursive queries without UNION ALL");
+        }
+        Query left = union.getLeft();
+        // to ensure the last result is not closed
+        left.disableCache();
+        LocalResult r = left.query(0);
+        LocalResult result = union.getEmptyResult();
+        // ensure it is not written to disk,
+        // because it is not closed normally
+        result.setMaxMemoryRows(Integer.MAX_VALUE);
+        while (r.next()) {
+            result.addRow(r.currentRow());
+        }
+        Query right = union.getRight();
+        r.reset();
+        view.setRecursiveResult(r);
+        // to ensure the last result is not closed
+        right.disableCache();
+        while (true) {
+            r = right.query(0);
+            if (r.getRowCount() == 0) {
+                break;
             }
-            if (query == null) {
-                query = (Query) createSession.prepare(querySQL, true);
-            }
-            if (!query.isUnion()) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
-                        "recursive queries without UNION ALL");
-            }
-            SelectUnion union = (SelectUnion) query;
-            if (union.getUnionType() != SelectUnion.UNION_ALL) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
-                        "recursive queries without UNION ALL");
-            }
-            Query left = union.getLeft();
-            // to ensure the last result is not closed
-            left.disableCache();
-            LocalResult r = left.query(0);
-            LocalResult result = union.getEmptyResult();
-            // ensure it is not written to disk,
-            // because it is not closed normally
-            result.setMaxMemoryRows(Integer.MAX_VALUE);
             while (r.next()) {
                 result.addRow(r.currentRow());
             }
-            Query right = union.getRight();
             r.reset();
             view.setRecursiveResult(r);
-            // to ensure the last result is not closed
-            right.disableCache();
-            while (true) {
-                r = right.query(0);
-                if (r.getRowCount() == 0) {
-                    break;
-                }
-                while (r.next()) {
-                    result.addRow(r.currentRow());
-                }
-                r.reset();
-                view.setRecursiveResult(r);
-            }
-            view.setRecursiveResult(null);
-            result.done();
-            return new ViewCursor(this, result, first, last);
         }
+        view.setRecursiveResult(null);
+        result.done();
+        return new ViewCursor(this, result, first, last);
+    }
+
+    public void setupQueryParameters(Session session, SearchRow first, SearchRow last,
+            SearchRow intersection) {
         ArrayList<Parameter> paramList = query.getParameters();
         if (originalParameters != null) {
             for (int i = 0, size = originalParameters.size(); i < size; i++) {
@@ -350,6 +324,14 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 setParameter(paramList, idx++, intersection.getValue(i));
             }
         }
+    }
+
+    private Cursor find(Session session, SearchRow first, SearchRow last,
+            SearchRow intersection) {
+        if (recursive) {
+            return findRecursive(session, first, last, intersection);
+        }
+        setupQueryParameters(session, first, last, intersection);
         LocalResult result = query.query(0);
         return new ViewCursor(this, result, first, last);
     }
@@ -505,43 +487,5 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     public boolean isRecursive() {
         return recursive;
-    }
-
-    /**
-     * Lookup batch for unions.
-     */
-    private static final class UnionLookupBatch implements IndexLookupBatch {
-        private final IndexLookupBatch left;
-        private final IndexLookupBatch right;
-
-        private UnionLookupBatch(IndexLookupBatch left, IndexLookupBatch right) {
-            this.left = left;
-            this.right = right;
-        }
-
-        @Override
-        public void addSearchRows(SearchRow first, SearchRow last) {
-            assert !left.isBatchFull();
-            assert !right.isBatchFull();
-            left.addSearchRows(first, last);
-            right.addSearchRows(first, last);
-        }
-
-        @Override
-        public boolean isBatchFull() {
-            return left.isBatchFull() || right.isBatchFull();
-        }
-
-        @Override
-        public List<Future<Cursor>> find() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public void reset() {
-            left.reset();
-            right.reset();
-        }
     }
 }

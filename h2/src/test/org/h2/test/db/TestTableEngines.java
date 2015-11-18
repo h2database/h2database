@@ -365,6 +365,21 @@ public class TestTableEngines extends TestBase {
         stat.execute("create view t5 as "
                 + "(select t2.id from t4, sub_query_test t2 where t2.id = t4.id)");
         stat.executeQuery("select * from t5").next();
+        // test select expressions
+        stat.execute("create table EXPR_TEST(id int) ENGINE \"" +
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.executeQuery("select * from (select (select id from EXPR_TEST x limit 1) a "
+                + "from dual where 1 = (select id from EXPR_TEST y limit 1)) z").next();
+        // test select expressions 2
+        stat.execute("create table EXPR_TEST2(id int) ENGINE \"" +
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.executeQuery("select * from (select (select 1 from "
+                + "(select 2 from EXPR_TEST2) ZZ) from dual)").next();
+        // test select expression plan
+        stat.execute("create table test_plan(id int primary key, name varchar)");
+        stat.execute("create index MY_NAME_INDEX on test_plan(name)");
+        checkPlan(stat, "select * from (select (select id from test_plan where name = 'z') from dual)",
+                "MY_NAME_INDEX");
         deleteDb("testSubQueryInfo");
     }
 
@@ -1235,16 +1250,20 @@ public class TestTableEngines extends TestBase {
             return new IteratorCursor(subSet.iterator());
         }
 
+        private static String alias(SubQueryInfo info) {
+            return info.getFilters()[info.getFilter()].getTableAlias();
+        }
+
         private void checkInfo(SubQueryInfo info) {
             if (info.getUpper() == null) {
                 // check 1st level info
                 assert0(info.getFilters().length == 1, "getFilters().length " + info.getFilters().length);
-                String alias = info.getFilters()[info.getFilter()].getTableAlias();
+                String alias = alias(info);
                 assert0("T5".equals(alias), "alias: " + alias);
             } else {
                 // check 2nd level info
                 assert0(info.getFilters().length == 2, "getFilters().length " + info.getFilters().length);
-                String alias = info.getFilters()[info.getFilter()].getTableAlias();
+                String alias = alias(info);
                 assert0("T4".equals(alias), "alias: " + alias);
                 checkInfo(info.getUpper());
             }
@@ -1255,6 +1274,12 @@ public class TestTableEngines extends TestBase {
                 TableFilter[] filters, int filter, SortOrder sortOrder) {
             if (getTable().getName().equals("SUB_QUERY_TEST")) {
                 checkInfo(session.getSubQueryInfo());
+            } else if (getTable().getName().equals("EXPR_TEST")) {
+                assert0(session.getSubQueryInfo() == null, "select expression");
+            }  else if (getTable().getName().equals("EXPR_TEST2")) {
+                String alias = alias(session.getSubQueryInfo());
+                assert0(alias.equals("ZZ"), "select expression sub-query: " + alias);
+                assert0(session.getSubQueryInfo().getUpper() == null, "upper");
             }
             return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
         }

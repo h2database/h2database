@@ -19,6 +19,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.util.DoneFuture;
+import org.h2.util.IntArray;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
@@ -157,12 +158,10 @@ public final class JoinBatch {
         // initialize current row
         current = new JoinRow(new Object[filters.length]);
         if (viewIndexLookupBatch == null) {
-            current.updateRow(top.id, top.filter.getIndexCursor(), JoinRow.S_NULL, JoinRow.S_CURSOR);
             // initialize top cursor
-            top.filter.getIndexCursor().find(top.filter.getSession(), top.filter.getIndexConditions());
-        } else {
-            // we are sub-query and joined to upper level query
-            // TODO setup
+            IndexCursor indexCursor = top.filter.getIndexCursor();
+            current.updateRow(top.id, indexCursor, JoinRow.S_NULL, JoinRow.S_CURSOR);
+            indexCursor.find(top.filter.getSession(), top.filter.getIndexConditions());
         }
         // we need fake first row because batchedNext always will move to the next row
         JoinRow fake = new JoinRow(null);
@@ -683,9 +682,7 @@ public final class JoinBatch {
      */
     private final class ViewIndexLookupBatch implements IndexLookupBatch {
         private final ViewIndex viewIndex;
-        private final ArrayList<Future<Cursor>> result = New.arrayList();
-        private boolean findCalled;
-        private boolean full;
+        private final IntArray counts = new IntArray();
 
         private ViewIndexLookupBatch(ViewIndex viewIndex) {
             this.viewIndex = viewIndex;
@@ -693,50 +690,46 @@ public final class JoinBatch {
 
         @Override
         public void addSearchRows(SearchRow first, SearchRow last) {
-            if (findCalled) {
-                result.clear();
-                findCalled = false;
-            }
             viewIndex.setupQueryParameters(viewIndex.getSession(), first, last, null);
             if (top.collectSearchRows()) {
-                result.add(PLACEHOLDER);
                 if (top.isBatchFull()) {
-                    // TODO
+                    fetch();
                 }
-            } else {
-                result.add(null);
             }
         }
-        
+
         private void fetch() {
+            // TODO
+        }
+
+        private void onNextCursorStart() {
+            
+        }
+        
+        @Override
+        public boolean isBatchFull() {
             
         }
 
         @Override
-        public boolean isBatchFull() {
-            assert !findCalled;
-            return top.isBatchFull();
-        }
-
-        @Override
         public List<Future<Cursor>> find() {
-            findCalled = true;
+            state = State.FIND_CALLED;
             return result;
         }
 
         @Override
         public void reset() {
-            findCalled = false;
+            state = State.COLLECTING;
             result.clear();
             JoinBatch.this.reset();
         }
     }
     
     /**
-     * State of the  
+     * State of the ViewIndexLookupBatch 
      */
     enum State {
-        
+        COLLECTING, FULL, FIND_CALLED
     }
 }
 

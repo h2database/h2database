@@ -104,7 +104,7 @@ public class LobStorageMap implements LobStorageInterface {
         }
         // search for the last block
         // (in theory, only the latest lob can have unreferenced blocks,
-        // but the latest lob could by a copy of another one, and
+        // but the latest lob could be a copy of another one, and
         // we don't know that, so we iterate over all lobs)
         long lastUsedKey = -1;
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {

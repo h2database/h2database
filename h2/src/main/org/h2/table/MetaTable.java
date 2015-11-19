@@ -1978,7 +1978,7 @@ public class MetaTable extends Table {
             v = col.convert(v);
             values[i] = v;
         }
-        Row row = new Row(values, 1);
+        Row row = database.createRow(values, 1);
         row.setKey(rows.size());
         rows.add(row);
     }

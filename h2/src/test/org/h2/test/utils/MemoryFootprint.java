@@ -9,7 +9,7 @@ import java.lang.instrument.Instrumentation;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.h2.engine.Constants;
-import org.h2.result.Row;
+import org.h2.result.RowImpl;
 import org.h2.store.Data;
 import org.h2.util.Profiler;
 import org.h2.value.Value;
@@ -34,7 +34,7 @@ public class MemoryFootprint {
         print("BigInteger", new BigInteger("0"));
         print("String", new String("Hello"));
         print("Data", Data.create(null, 10));
-        print("Row", new Row(new Value[0], 0));
+        print("Row", new RowImpl(new Value[0], 0));
         System.out.println();
         for (int i = 1; i < 128; i += i) {
 

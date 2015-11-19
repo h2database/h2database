@@ -148,6 +148,10 @@ public class Session extends SessionWithState {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
+    public Row createRow(Value[] data, int memory) {
+        return database.createRow(data, memory);
+    }
+
     public void setSubQueryInfo(SubQueryInfo subQueryInfo) {
         this.subQueryInfo = subQueryInfo;
     }
@@ -680,7 +684,7 @@ public class Session extends SessionWithState {
                         row = t.getRow(this, key);
                     } else {
                         op = UndoLogRecord.DELETE;
-                        row = new Row(value.getList(), Row.MEMORY_CALCULATE);
+                        row = createRow(value.getList(), Row.MEMORY_CALCULATE);
                     }
                     row.setKey(key);
                     UndoLogRecord log = new UndoLogRecord(t, op, row);
@@ -1163,6 +1167,10 @@ public class Session extends SessionWithState {
     public void removeAtCommit(Value v) {
         if (SysProperties.CHECK && !v.isLinkedToTable()) {
             DbException.throwInternalError();
+        }
+        if (removeLobMap == null) {
+            removeLobMap = New.hashMap();
+            removeLobMap.put(v.toString(), v);
         }
     }
 

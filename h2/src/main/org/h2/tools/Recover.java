@@ -44,6 +44,7 @@ import org.h2.mvstore.db.TransactionStore;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
@@ -948,7 +949,7 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.ADD) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
-                Row row = PageLog.readRow(in, s);
+                Row row = PageLog.readRow(RowFactory.DEFAULT, in, s);
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " + " + row.toString());

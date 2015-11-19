@@ -17,7 +17,6 @@ import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.Page;
 import org.h2.store.PageStore;
-import org.h2.table.RegularTable;
 import org.h2.value.Value;
 
 /**
@@ -617,7 +616,7 @@ public class PageDataLeaf extends PageData {
      * @param columnCount the number of columns
      * @return the row
      */
-    private static Row readRow(Data data, int pos, int columnCount) {
+    private Row readRow(Data data, int pos, int columnCount) {
         Value[] values = new Value[columnCount];
         synchronized (data) {
             data.setPos(pos);
@@ -625,7 +624,7 @@ public class PageDataLeaf extends PageData {
                 values[i] = data.readValue();
             }
         }
-        return RegularTable.createRow(values);
+        return index.getDatabase().createRow(values, Row.MEMORY_CALCULATE);
     }
 
 }

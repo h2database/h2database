@@ -288,7 +288,7 @@ public class ResultTempTable implements ResultExternal {
             }
             values = v2;
         }
-        return new Row(values, Row.MEMORY_CALCULATE);
+        return session.createRow(values, Row.MEMORY_CALCULATE);
     }
 
     private Cursor find(Row row) {

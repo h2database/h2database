@@ -58,7 +58,7 @@ public class RangeIndex extends BaseIndex {
         } catch (Exception e) {
             // error when converting the value - ignore
         }
-        return new RangeCursor(start, end, step);
+        return new RangeCursor(session, start, end, step);
     }
 
     @Override
@@ -100,7 +100,7 @@ public class RangeIndex extends BaseIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         long pos = first ? rangeTable.getMin(session) : rangeTable.getMax(session);
-        return new RangeCursor(pos, pos);
+        return new RangeCursor(session, pos, pos);
     }
 
     @Override

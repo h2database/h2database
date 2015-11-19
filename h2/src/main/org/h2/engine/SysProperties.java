@@ -122,7 +122,7 @@ public class SysProperties {
     //*/
 
     /**
-     * System property <code>h2.check2</code> (default: true).<br />
+     * System property <code>h2.check2</code> (default: false).<br />
      * Additional assertions in the database engine.
      */
     //## CHECK ##

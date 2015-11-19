@@ -17,7 +17,7 @@ import org.h2.value.ValueNull;
  * Represents a single SQL statements.
  * It wraps a prepared statement.
  */
-class CommandContainer extends Command {
+public class CommandContainer extends Command {
 
     private Prepared prepared;
     private boolean readOnlyKnown;

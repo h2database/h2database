@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
@@ -361,9 +363,22 @@ public class SourceCompiler {
     }
 
     private static void handleSyntaxError(String output) {
-        if (output.startsWith("Note:") || output.startsWith("warning:")) {
-            // just a warning (e.g. unchecked or unsafe operations)
-        } else if (output.length() > 0) {
+        boolean syntaxError = false;
+        final BufferedReader reader = new BufferedReader(new StringReader(output));
+        try {
+            for (String line; (line = reader.readLine()) != null; ) {
+                if (line.startsWith("Note:") || line.startsWith("warning:")) {
+                    // just a warning (e.g. unchecked or unsafe operations)
+                } else {
+                    syntaxError = true;
+                    break;
+                }
+            }
+        } catch (IOException ignored) {
+            // exception ignored
+        }
+
+        if (syntaxError) {
             output = StringUtils.replaceAll(output, COMPILE_DIR, "");
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1, output);
         }

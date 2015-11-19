@@ -3,6 +3,18 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+create table test(id int) as select 1;
+> ok
+
+select * from test where id in (select id from test order by 'x');
+> ID
+> --
+> 1
+> rows (ordered): 1
+
+drop table test;
+> ok
+
 select abs(cast(0.0 as double)) x;
 > X
 > ---
@@ -62,7 +74,7 @@ LIMIT 2 )
 AND studentID = 2;
 > SUM(POINTS)
 > -----------
-> null
+> 30
 > rows (ordered): 1
 
 SELECT eventID X FROM RESULTS
@@ -1793,8 +1805,8 @@ explain select * from (select dir_num, count(*) as cnt from multi_pages  t, b_ho
 where t.bh_id=bh.id and bh.site='Hello' group by dir_num) as x
 where cnt < 1000 order by dir_num asc;
 > PLAN
-> ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT X.DIR_NUM, X.CNT FROM ( SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /* PUBLIC.MULTI_PAGES.tableScan */ INNER JOIN PUBLIC.B_HOLDING BH /* PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID */ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM ) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
+> ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT X.DIR_NUM, X.CNT FROM ( SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T INNER JOIN PUBLIC.B_HOLDING BH ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM ) X /* SELECT DIR_NUM, COUNT(*) AS CNT FROM PUBLIC.MULTI_PAGES T /++ PUBLIC.MULTI_PAGES.tableScan ++/ INNER JOIN PUBLIC.B_HOLDING BH /++ PUBLIC.PRIMARY_KEY_3: ID = T.BH_ID ++/ ON 1=1 WHERE (BH.SITE = 'Hello') AND (T.BH_ID = BH.ID) GROUP BY DIR_NUM HAVING COUNT(*) <= ?1: CNT < 1000 */ WHERE CNT < 1000 ORDER BY 1
 > rows (ordered): 1
 
 select dir_num, count(*) as cnt from multi_pages  t, b_holding bh
@@ -6880,9 +6892,9 @@ CREATE VIEW TEST_A_SUB AS SELECT * FROM TEST_A WHERE ID < 2;
 
 SELECT TABLE_NAME, SQL FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='VIEW';
 > TABLE_NAME SQL
-> ---------- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AS AID, A.NAME AS A_NAME, B.ID AS BID, B.NAME AS B_NAME FROM PUBLIC.TEST_A A /* PUBLIC.TEST_A.tableScan */ INNER JOIN PUBLIC.TEST_B B /* PUBLIC.PRIMARY_KEY_93: ID = A.ID */ ON 1=1 WHERE A.ID = B.ID
-> TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT TEST_A.ID, TEST_A.NAME FROM PUBLIC.TEST_A /* PUBLIC.PRIMARY_KEY_9: ID < 2 */ WHERE ID < 2
+> ---------- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> TEST_ALL   CREATE FORCE VIEW PUBLIC.TEST_ALL(AID, A_NAME, BID, B_NAME) AS SELECT A.ID AS AID, A.NAME AS A_NAME, B.ID AS BID, B.NAME AS B_NAME FROM PUBLIC.TEST_A A INNER JOIN PUBLIC.TEST_B B ON 1=1 WHERE A.ID = B.ID
+> TEST_A_SUB CREATE FORCE VIEW PUBLIC.TEST_A_SUB(ID, NAME) AS SELECT TEST_A.ID, TEST_A.NAME FROM PUBLIC.TEST_A WHERE ID < 2
 > rows: 2
 
 SELECT * FROM TEST_A_SUB WHERE NAME IS NOT NULL;

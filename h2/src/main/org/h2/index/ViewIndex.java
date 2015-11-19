@@ -6,8 +6,8 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
+import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
@@ -21,6 +21,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
@@ -46,6 +47,14 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     private Query query;
     private final Session createSession;
 
+    /**
+     * Constructor for the original index in {@link TableView}.
+     *
+     * @param view the table view
+     * @param querySQL the query SQL
+     * @param originalParameters the original parameters
+     * @param recursive if the view is recursive
+     */
     public ViewIndex(TableView view, String querySQL,
             ArrayList<Parameter> originalParameters, boolean recursive) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
@@ -58,8 +67,19 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         this.indexMasks = null;
     }
 
+    /**
+     * Constructor for plan item generation. Over this index the query will be executed.
+     *
+     * @param view the table view
+     * @param index the view index
+     * @param session the session
+     * @param masks the masks
+     * @param filters table filters
+     * @param filter current filter
+     * @param sortOrder sort order
+     */
     public ViewIndex(TableView view, ViewIndex index, Session session,
-            int[] masks) {
+            int[] masks, TableFilter[] filters, int filter, SortOrder sortOrder) {
         initBaseIndex(view, 0, null, null, IndexType.createNonUnique(false));
         this.view = view;
         this.querySQL = index.querySQL;
@@ -69,7 +89,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         this.createSession = session;
         columns = new Column[0];
         if (!recursive) {
-            query = getQuery(session, masks);
+            query = getQuery(session, masks, filters, filter, sortOrder);
         }
     }
 
@@ -115,7 +135,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public synchronized double getCost(Session session, int[] masks,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         if (recursive) {
             return 1000;
         }
@@ -129,20 +149,13 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 return cachedCost.cost;
             }
         }
-        Query q = (Query) session.prepare(querySQL, true);
+        Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder, true);
         if (masks != null) {
-            IntArray paramIndex = new IntArray();
-            for (int i = 0; i < masks.length; i++) {
-                int mask = masks[i];
+            for (int idx = 0; idx < masks.length; idx++) {
+                int mask = masks[idx];
                 if (mask == 0) {
                     continue;
                 }
-                paramIndex.add(i);
-            }
-            int len = paramIndex.size();
-            for (int i = 0; i < len; i++) {
-                int idx = paramIndex.get(i);
-                int mask = masks[idx];
                 int nextParamIndex = q.getParameters().size() + view.getParameterOffset();
                 if ((mask & IndexCondition.EQUALITY) != 0) {
                     Parameter param = new Parameter(nextParamIndex);
@@ -162,7 +175,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 }
             }
             String sql = q.getPlanSQL();
-            q = (Query) session.prepare(sql, true);
+            q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder, false);
         }
         double cost = q.getCost();
         cachedCost = new CostElement();
@@ -180,6 +193,22 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     @Override
     public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
         return find(filter.getSession(), null, null, intersection);
+    }
+
+    private static Query prepareSubQuery(String sql, Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder, boolean preliminary) {
+        assert filters != null;
+        Prepared p;
+        SubQueryInfo upper = session.getSubQueryInfo();
+        SubQueryInfo info = new SubQueryInfo(upper,
+                masks, filters, filter, sortOrder, preliminary);
+        session.setSubQueryInfo(info);
+        try {
+            p = session.prepare(sql, true);
+        } finally {
+            session.setSubQueryInfo(upper);
+        }
+        return (Query) p;
     }
 
     private Cursor find(Session session, SearchRow first, SearchRow last,
@@ -284,8 +313,9 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         param.setValue(v);
     }
 
-    private Query getQuery(Session session, int[] masks) {
-        Query q = (Query) session.prepare(querySQL, true);
+    private Query getQuery(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
+        Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder, true);
         if (masks == null) {
             return q;
         }
@@ -368,7 +398,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         }
 
         String sql = q.getPlanSQL();
-        q = (Query) session.prepare(sql, true);
+        q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder, false);
         return q;
     }
 

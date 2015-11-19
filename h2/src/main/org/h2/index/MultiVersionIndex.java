@@ -6,7 +6,8 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-
+import java.util.List;
+import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
@@ -141,9 +142,9 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
-        return base.getCost(session, masks, filter, sortOrder);
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
+        return base.getCost(session, masks, filters, filter, sortOrder);
     }
 
     @Override
@@ -387,4 +388,9 @@ public class MultiVersionIndex implements Index {
         delta.setSortedInsertMode(sortedInsertMode);
     }
 
+    @Override
+    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+        // Lookup batching is not supported.
+        return null;
+    }
 }

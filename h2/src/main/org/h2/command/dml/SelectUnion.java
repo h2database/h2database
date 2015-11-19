@@ -102,6 +102,11 @@ public class SelectUnion extends Query {
         orderList = order;
     }
 
+    @Override
+    public boolean hasOrder() {
+        return orderList != null || sort != null;
+    }
+
     private Value[] convert(Value[] values, int columnCount) {
         Value[] newValues;
         if (columnCount == values.length) {

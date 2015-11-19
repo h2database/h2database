@@ -21,7 +21,15 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>The "script" command did not include sequences of temporary tables.
+<li>Server mode: executing "shutdown" left a thread on the server.
+</li>
+<li>The condition "in(select...)" did not work correctly in some cases if the subquery had an "order by".
+</li>
+<li>Issue #184: The Platform-independent zip had Windows line endings in Linux scripts.
+</li>
+<li>Issue #186: The "script" command did not include sequences of temporary tables.
+</li>
+<li>Issue #115: to_char fails with pattern FM0D099
 </li>
 </ul>
 
@@ -29,7 +37,7 @@ Change Log
 <ul>
 <li>Pull request #183: optimizer hints (so far without special SQL syntax).
 </li>
-<li>Issue #180: In MVCC mode, executing UPDATE and SELECT ... FOR UPDATE 
+<li>Issue #180: In MVCC mode, executing UPDATE and SELECT ... FOR UPDATE
     simultaneously silently can drop rows.
 </li>
 <li>PageStore storage: the cooperative file locking mechanism

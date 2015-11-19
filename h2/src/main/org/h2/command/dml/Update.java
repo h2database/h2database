@@ -187,7 +187,7 @@ public class Update extends Prepared {
             e.mapColumns(tableFilter, 0);
             expressionMap.put(c, e.optimize(session));
         }
-        PlanItem item = tableFilter.getBestPlanItem(session, 1);
+        PlanItem item = tableFilter.getBestPlanItem(session, new TableFilter[] {tableFilter}, 0);
         tableFilter.setPlanItem(item);
         tableFilter.prepare();
     }

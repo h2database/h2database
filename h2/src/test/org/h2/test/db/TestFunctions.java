@@ -41,8 +41,10 @@ import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -103,6 +105,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testTranslate();
         testGenerateSeries();
         testFileWrite();
+        testAnnotationProcessorsOutput();
 
         deleteDb("functions");
     }
@@ -1163,7 +1166,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         call.execute();
         assertEquals(Integer[].class.getName(), call.getArray(1).getArray()
                 .getClass().getName());
-        assertEquals(new Integer[] { 2, 1 }, (Integer[]) call.getObject(1));
+        assertEquals(new Integer[]{2, 1}, (Integer[]) call.getObject(1));
 
         stat.execute("drop alias array_test");
 
@@ -1699,6 +1702,24 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertThrows(ErrorCode.INVALID_TO_CHAR_FORMAT, stat,
                 "SELECT TO_CHAR(123.45, 'q999.99') FROM DUAL");
 
+        // ISSUE-115
+        assertResult("0.123", stat, "select to_char(0.123, 'FM0.099') from dual;");
+        assertResult("1.123", stat, "select to_char(1.1234, 'FM0.099') from dual;");
+        assertResult("1.1234", stat, "select to_char(1.1234, 'FM0.0999') from dual;");
+        assertResult("1.023", stat, "select to_char(1.023, 'FM0.099') from dual;");
+        assertResult("0.012", stat, "select to_char(0.012, 'FM0.099') from dual;");
+        assertResult("0.123", stat, "select to_char(0.123, 'FM0.099') from dual;");
+        assertResult("0.001", stat, "select to_char(0.001, 'FM0.099') from dual;");
+        assertResult("0.001", stat, "select to_char(0.0012, 'FM0.099') from dual;");
+        assertResult("0.002", stat, "select to_char(0.0019, 'FM0.099') from dual;");
+        assertResult("0.0", stat, "select to_char(0, 'FM0D099') from dual;");
+        assertResult("0.00", stat, "select to_char(0., 'FM0D009') from dual;");
+        assertResult("0.", stat, "select to_char(0, 'FM0D9') from dual;");
+        assertResult("0.0", stat, "select to_char(0.0, 'FM0D099') from dual;");
+        assertResult("0.00", stat, "select to_char(0.00, 'FM0D009') from dual;");
+        assertResult("0.00", stat, "select to_char(0, 'FM0D009') from dual;");
+        assertResult("0.0", stat, "select to_char(0, 'FM0D09') from dual;");
+        assertResult("0.0", stat, "select to_char(0, 'FM0D0') from dual;");
         conn.close();
     }
 
@@ -1756,6 +1777,40 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(3, rs.getInt(1));
         assertTrue(rs.next());
         assertEquals(5, rs.getInt(1));
+
+        conn.close();
+    }
+
+    private void testAnnotationProcessorsOutput() throws SQLException {
+        try {
+            System.setProperty(TestAnnotationProcessor.MESSAGES_KEY, "WARNING,foo1|ERROR,foo2");
+            callCompiledFunction("test_atp_warn_and_error");
+            fail();
+        } catch (JdbcSQLException e) {
+            assertEquals(ErrorCode.SYNTAX_ERROR_1, e.getErrorCode());
+            assertContains(e.getMessage(), "foo1");
+            assertContains(e.getMessage(), "foo2");
+        } finally {
+            System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
+        }
+    }
+
+    private void callCompiledFunction(String functionName) throws SQLException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+        ResultSet rs;
+        stat.execute("create alias " + functionName + " AS "
+                + "$$ boolean " + functionName + "() "
+                + "{ return true; } $$;");
+
+        PreparedStatement stmt = conn.prepareStatement(
+                "select " + functionName + "() from dual");
+        rs = stmt.executeQuery();
+        rs.next();
+        assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
+
+        stat.execute("drop alias " + functionName + "");
 
         conn.close();
     }

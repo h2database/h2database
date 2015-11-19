@@ -81,11 +81,12 @@ public interface Index extends SchemaObject {
      * @param session the session
      * @param masks per-column comparison bit masks, null means 'always false',
      *              see constants in IndexCondition
-     * @param filter the table filter
+     * @param filters all joined table filters
+     * @param filter the current table filter index
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    double getCost(Session session, int[] masks, TableFilter filter,
+    double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder);
 
     /**
@@ -256,4 +257,12 @@ public interface Index extends SchemaObject {
      */
     void setSortedInsertMode(boolean sortedInsertMode);
 
+    /**
+     * Creates new lookup batch. Note that returned {@link IndexLookupBatch} instance 
+     * can be used multiple times.
+     *
+     * @param filter Table filter.
+     * @return Created batch or {@code null} if batched lookup is not supported by this index.
+     */
+    IndexLookupBatch createLookupBatch(TableFilter filter);
 }

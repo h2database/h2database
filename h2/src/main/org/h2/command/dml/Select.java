@@ -143,6 +143,11 @@ public class Select extends Query {
         orderList = order;
     }
 
+    @Override
+    public boolean hasOrder() {
+        return orderList != null || sort != null;
+    }
+
     /**
      * Add a condition to the list of conditions.
      *
@@ -858,7 +863,7 @@ public class Select extends Query {
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
-        cost = preparePlan();
+        cost = preparePlan(session.isParsingView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
                 !isGroupQuery && filters.size() == 1 &&
                 expressions.size() == 1 && condition == null) {
@@ -895,8 +900,8 @@ public class Select extends Query {
         }
         if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
             Index index = getSortIndex();
-            if (index != null) {
-                Index current = topTableFilter.getIndex();
+            Index current = topTableFilter.getIndex();
+            if (index != null && current != null) {
                 if (current.getIndexType().isScan() || current == index) {
                     topTableFilter.setIndex(index);
                     if (!topTableFilter.hasInComparisons()) {
@@ -929,7 +934,7 @@ public class Select extends Query {
                 getGroupByExpressionCount() > 0) {
             Index index = getGroupSortedIndex();
             Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() ||
+            if (index != null && current != null && (current.getIndexType().isScan() ||
                     current == index)) {
                 topTableFilter.setIndex(index);
                 isGroupSortedQuery = true;
@@ -962,7 +967,7 @@ public class Select extends Query {
         }
     }
 
-    private double preparePlan() {
+    private double preparePlan(boolean parse) {
         TableFilter[] topArray = topFilters.toArray(
                 new TableFilter[topFilters.size()]);
         for (TableFilter t : topArray) {
@@ -970,13 +975,15 @@ public class Select extends Query {
         }
 
         Optimizer optimizer = new Optimizer(topArray, condition, session);
-        optimizer.optimize();
+        optimizer.optimize(parse);
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
 
         setEvaluatableRecursive(topTableFilter);
 
-        topTableFilter.prepare();
+        if (!parse) {
+            topTableFilter.prepare();
+        }
         return planCost;
     }
 

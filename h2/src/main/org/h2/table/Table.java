@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -104,7 +105,7 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TableView> views;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
-    private Row nullRow;
+    private volatile Row nullRow;
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -234,6 +235,11 @@ public abstract class Table extends SchemaObjectBase {
      * @return the index
      */
     public abstract Index getScanIndex(Session session);
+
+    public Index getScanIndex(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
+        return getScanIndex(session);
+    }
 
     /**
      * Get any unique index for this table if one exists.
@@ -616,14 +622,15 @@ public abstract class Table extends SchemaObjectBase {
         return new SimpleRow(new Value[columns.length]);
     }
 
-    synchronized Row getNullRow() {
-        if (nullRow == null) {
-            nullRow = new Row(new Value[columns.length], 1);
-            for (int i = 0; i < columns.length; i++) {
-                nullRow.setValue(i, ValueNull.INSTANCE);
-            }
+    Row getNullRow() {
+        Row row = nullRow;
+        if (row == null) {
+            // Here can be concurrently produced more than one row, but it must be ok.
+            Value[] values = new Value[columns.length];
+            Arrays.fill(values, ValueNull.INSTANCE);
+            nullRow = row = new Row(values, 1);
         }
-        return nullRow;
+        return row;
     }
 
     public Column[] getColumns() {
@@ -676,20 +683,21 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @param masks per-column comparison bit masks, null means 'always false',
      *              see constants in IndexCondition
-     * @param filter the table filter
+     * @param filters all joined table filters
+     * @param filter the current table filter index
      * @param sortOrder the sort order
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
-        item.cost = item.getIndex().getCost(session, null, null, null);
+        item.cost = item.getIndex().getCost(session, null, filters, filter, null);
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                double cost = index.getCost(session, masks, filter, sortOrder);
+                double cost = index.getCost(session, masks, filters, filter, sortOrder);
                 if (cost < item.cost) {
                     item.cost = cost;
                     item.setIndex(index);

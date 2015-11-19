@@ -8,10 +8,12 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.User;
@@ -29,10 +31,8 @@ import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.util.New;
-import org.h2.util.SmallLRUCache;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-import org.h2.util.SynchronizedVerifier;
 import org.h2.value.Value;
 
 /**
@@ -51,8 +51,6 @@ public class TableView extends Table {
     private ViewIndex index;
     private boolean recursive;
     private DbException createException;
-    private final SmallLRUCache<CacheKey, ViewIndex> indexCache =
-            SmallLRUCache.newInstance(Constants.VIEW_INDEX_CACHE_SIZE);
     private long lastModificationCheck;
     private long maxDataModificationId;
     private User owner;
@@ -83,10 +81,10 @@ public class TableView extends Table {
         String[] oldColumnNames = this.columnNames;
         boolean oldRecursive = this.recursive;
         init(querySQL, null, columnNames, session, recursive);
-        DbException e = recompile(session, force);
+        DbException e = recompile(session, force, true);
         if (e != null) {
             init(oldQuerySQL, null, oldColumnNames, session, oldRecursive);
-            recompile(session, true);
+            recompile(session, true, false);
             throw e;
         }
     }
@@ -97,13 +95,17 @@ public class TableView extends Table {
         this.columnNames = columnNames;
         this.recursive = recursive;
         index = new ViewIndex(this, querySQL, params, recursive);
-        SynchronizedVerifier.check(indexCache);
-        indexCache.clear();
         initColumnsAndTables(session);
     }
 
     private static Query compileViewQuery(Session session, String sql) {
-        Prepared p = session.prepare(sql);
+        Prepared p;
+        session.setParsingView(true);
+        try {
+            p = session.prepare(sql);
+        } finally {
+            session.setParsingView(false);
+        }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
         }
@@ -115,10 +117,11 @@ public class TableView extends Table {
      *
      * @param session the session
      * @param force if exceptions should be ignored
+     * @param clearIndexCache if we need to clear view index cache
      * @return the exception if re-compiling this or any dependent view failed
      *         (only when force is disabled)
      */
-    public synchronized DbException recompile(Session session, boolean force) {
+    public synchronized DbException recompile(Session session, boolean force, boolean clearIndexCache) {
         try {
             compileViewQuery(session, querySQL);
         } catch (DbException e) {
@@ -130,16 +133,17 @@ public class TableView extends Table {
         if (views != null) {
             views = New.arrayList(views);
         }
-        SynchronizedVerifier.check(indexCache);
-        indexCache.clear();
         initColumnsAndTables(session);
         if (views != null) {
             for (TableView v : views) {
-                DbException e = v.recompile(session, force);
+                DbException e = v.recompile(session, force, false);
                 if (e != null && !force) {
                     return e;
                 }
             }
+        }
+        if (clearIndexCache) {
+            clearIndexCaches(database);
         }
         return force ? null : createException;
     }
@@ -225,33 +229,17 @@ public class TableView extends Table {
 
     @Override
     public PlanItem getBestPlanItem(Session session, int[] masks,
-            TableFilter filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks, filter, sortOrder);
-        final CacheKey cacheKey = new CacheKey(masks, session);
-
-        synchronized (this) {
-            SynchronizedVerifier.check(indexCache);
-            ViewIndex i2 = indexCache.get(cacheKey);
-            if (i2 != null) {
-                item.setIndex(i2);
-                return item;
-            }
+        item.cost = index.getCost(session, masks, filters, filter, sortOrder);
+        final CacheKey cacheKey = new CacheKey(masks, this);
+        Map<Object, ViewIndex> indexCache = session.getViewIndexCache(topQuery != null);
+        ViewIndex i = indexCache.get(cacheKey);
+        if (i == null) {
+            i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
+            indexCache.put(cacheKey, i);
         }
-        // We cannot hold the lock during the ViewIndex creation or we risk ABBA
-        // deadlocks if the view creation calls back into H2 via something like
-        // a FunctionTable.
-        ViewIndex i2 = new ViewIndex(this, index, session, masks);
-        synchronized (this) {
-            // have to check again in case another session has beat us to it
-            ViewIndex i3 = indexCache.get(cacheKey);
-            if (i3 != null) {
-                item.setIndex(i3);
-                return item;
-            }
-            indexCache.put(cacheKey, i2);
-            item.setIndex(i2);
-        }
+        item.setIndex(i);
         return item;
     }
 
@@ -270,6 +258,10 @@ public class TableView extends Table {
             return false;
         }
         return true;
+    }
+
+    public Query getTopQuery() {
+        return topQuery;
     }
 
     @Override
@@ -412,7 +404,14 @@ public class TableView extends Table {
         database.removeMeta(session, getId());
         querySQL = null;
         index = null;
+        clearIndexCaches(database);
         invalidate();
+    }
+
+    public static void clearIndexCaches(Database database) {
+        for (Session s : database.getSessions(true)) {
+            s.clearViewIndexCache();
+        }
     }
 
     @Override
@@ -429,12 +428,18 @@ public class TableView extends Table {
 
     @Override
     public Index getScanIndex(Session session) {
+        return getBestPlanItem(session, null, null, -1, null).getIndex();
+    }
+
+    @Override
+    public Index getScanIndex(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         if (createException != null) {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,
                     createException, getSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, null, null, null);
+        PlanItem item = getBestPlanItem(session, masks, filters, filter, sortOrder);
         return item.getIndex();
     }
 
@@ -584,11 +589,11 @@ public class TableView extends Table {
     private static final class CacheKey {
 
         private final int[] masks;
-        private final Session session;
+        private final TableView view;
 
-        public CacheKey(int[] masks, Session session) {
+        public CacheKey(int[] masks, TableView view) {
             this.masks = masks;
-            this.session = session;
+            this.view = view;
         }
 
         @Override
@@ -596,7 +601,7 @@ public class TableView extends Table {
             final int prime = 31;
             int result = 1;
             result = prime * result + Arrays.hashCode(masks);
-            result = prime * result + session.hashCode();
+            result = prime * result + view.hashCode();
             return result;
         }
 
@@ -612,7 +617,7 @@ public class TableView extends Table {
                 return false;
             }
             CacheKey other = (CacheKey) obj;
-            if (session != other.session) {
+            if (view != other.view) {
                 return false;
             }
             if (!Arrays.equals(masks, other.masks)) {

@@ -1134,6 +1134,10 @@ public class Session extends SessionWithState {
         if (SysProperties.CHECK && !v.isLinkedToTable()) {
             DbException.throwInternalError();
         }
+        if (removeLobMap == null) {
+            removeLobMap = New.hashMap();
+            removeLobMap.put(v.toString(), v);
+        }
     }
 
     /**

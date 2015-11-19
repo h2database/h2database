@@ -28,7 +28,9 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -57,6 +59,7 @@ public class TestLob extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testRemoveAfterDeleteAndClose();
         testRemovedAfterTimeout();
         testConcurrentRemoveRead();
         testCloseLobTwice();
@@ -107,6 +110,33 @@ public class TestLob extends TestBase {
         testLob(true);
         testJavaObject();
         deleteDb("lob");
+    }
+
+    private void testRemoveAfterDeleteAndClose() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        deleteDb("lob");
+        Connection conn = getConnection("lob");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int primary key, data clob)");
+        for (int i = 0; i < 10; i++) {
+            stat.execute("insert into test values(1, space(100000))");
+            if (i > 5) {
+                ResultSet rs = stat.executeQuery("select * from test");
+                rs.next();
+                Clob c = rs.getClob(2);
+                stat.execute("delete from test where id = 1");
+                c.getSubString(1, 10);
+            } else {
+                stat.execute("delete from test where id = 1");
+            }
+        }
+        // some clobs are removed only here (those that were queries for)
+        conn.close();
+        Recover.execute(getBaseDir(), "lob");
+        long size = FileUtils.size(getBaseDir() + "/lob.h2.sql");
+        assertTrue("size: " + size, size > 1000 && size < 10000);
     }
 
     private void testLargeClob() throws Exception {

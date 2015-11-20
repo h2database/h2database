@@ -363,18 +363,21 @@ public class TableFilter implements ColumnResolver {
      * @param id join filter id (index of this table filter in join list)
      * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
      */
-    public JoinBatch prepareBatch(int id) {
+    public JoinBatch prepareJoinBatch(int id) {
         joinBatch = null;
         joinFilterId = -1;
         JoinBatch jb = null;
         if (join != null) {
-            jb = join.prepareBatch(id + 1);
+            jb = join.prepareJoinBatch(id + 1);
         }
         IndexLookupBatch lookupBatch = null;
-        // the globally top table filter does not need batching, if isAlwaysTopTableFilter is false
-        // then we either not a top table filter or top table filter in a sub-query which is not
-        // top in outer query, thus we need to enable batching here to allow outer query run batched
-        // join against this sub-query
+        // For globally top table filter we don't need to create lookup batch, because
+        // currently it will not be used (this will be shown in ViewIndex.getPlanSQL()). Probably
+        // later on it will make sense to create it to better support X IN (...) conditions,
+        // but this needs to be implemented separately. If isAlwaysTopTableFilter is false
+        // then we either not a top table filter or top table filter in a sub-query, which
+        // in turn is not top in outer query, thus we need to enable batching here to allow
+        // outer query run batched join against this sub-query.
         if (jb == null && select != null && !isAlwaysTopTableFilter(id)) {
             lookupBatch = index.createLookupBatch(this);
             if (lookupBatch != null) {
@@ -387,13 +390,9 @@ public class TableFilter implements ColumnResolver {
             }
             joinBatch = jb;
             joinFilterId = id;
-            // for globally top table filter we don't need to create lookup batch
-            // currently it will not be used, probably later on it will make sense
-            // to create it to better support X IN (...) conditions, but this needs
-            // to be implemented separately
             if (lookupBatch == null && !isAlwaysTopTableFilter(id)) {
-                // index.createLookupBatch will be called only once because jb can be created only if
-                // lookupBatch is not null from the first call above 
+                // index.createLookupBatch will be called at most once because jb can be
+                // created only if lookupBatch is already not null from the call above.
                 lookupBatch = index.createLookupBatch(this);
             }
             jb.register(this, lookupBatch);

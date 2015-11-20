@@ -27,9 +27,11 @@ public interface IndexLookupBatch {
      * 
      * @param first the first row, or null for no limit
      * @param last the last row, or null for no limit
+     * @return {@code false} if this search row pair is known to produce no results
+     *          and thus the given row pair was not added
      * @see Index#find(TableFilter, SearchRow, SearchRow)
      */
-    void addSearchRows(SearchRow first, SearchRow last);
+    boolean addSearchRows(SearchRow first, SearchRow last);
 
     /**
      * Check if this batch is full.

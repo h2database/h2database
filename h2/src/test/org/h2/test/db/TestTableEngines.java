@@ -1160,10 +1160,11 @@ public class TestTableEngines extends TestBase {
                 }
 
                 @Override
-                public void addSearchRows(SearchRow first, SearchRow last) {
+                public boolean addSearchRows(SearchRow first, SearchRow last) {
                     assert !isBatchFull();
                     searchRows.add(first);
                     searchRows.add(last);
+                    return true;
                 }
 
                 @Override

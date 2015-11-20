@@ -948,7 +948,7 @@ public class Select extends Query {
         expressionArray = new Expression[expressions.size()];
         expressions.toArray(expressionArray);
         if (!session.isParsingView()) {
-            topTableFilter.prepareBatch(0);
+            topTableFilter.prepareJoinBatch(0);
         }
         isPrepared = true;
     }

@@ -347,6 +347,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         param.setValue(v);
     }
 
+    public Query getQuery() {
+        return query;
+    }
+
     private Query getQuery(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder, true);

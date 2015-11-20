@@ -23,6 +23,7 @@ import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -63,6 +64,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDouble;
+import org.h2.value.ValueGeometry;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -1806,7 +1808,8 @@ public class Function extends Expression implements FunctionCall {
                 }
                 // 1 based pixel index
                 Coordinate coords = metaData.getPixelCoordinate(v1.getInt() - 1, v2.getInt() - 1);
-                result = ValueArray.get(new Value[] {ValueDouble.get(coords.x), ValueDouble.get(coords.y)});
+                result = ValueGeometry.getFromGeometry(new GeometryFactory()
+                        .createPoint(coords));
             } catch (IOException ex) {
                 throw DbException.convertIOException(ex, getSQL());
             }

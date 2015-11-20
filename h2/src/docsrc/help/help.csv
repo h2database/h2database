@@ -3673,7 +3673,7 @@ ST_WorldToRasterCoord(Raster, 1.561, -2.348)
 ST_RASTERTOWORLDCOORD (RASTER, indexExpression, indexExpression)
 ","
 Convert 1-based pixel coordinates into geometric coordinates. This function
-return an ARRAY with two elements, x and y. This function accept zero and
+return an Point with two elements, x and y. This function accept zero and
  negative  pixel index as the input is not bounded to the raster height and
 width.
 ","

@@ -11,6 +11,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
+import org.h2.command.dml.Query;
+import org.h2.command.dml.Select;
+import org.h2.command.dml.SelectUnion;
 import org.h2.index.Cursor;
 import org.h2.index.IndexCursor;
 import org.h2.index.IndexLookupBatch;
@@ -368,9 +371,28 @@ public final class JoinBatch {
     /**
      * @return Adapter to allow joining to this batch in sub-queries and views.
      */
-    public IndexLookupBatch asViewIndexLookupBatch(ViewIndex viewIndex) {
+    private IndexLookupBatch viewIndexLookupBatch(ViewIndex viewIndex) {
         assert viewIndexLookupBatch == null;
         return viewIndexLookupBatch = new ViewIndexLookupBatch(viewIndex);
+    }
+
+    public static IndexLookupBatch createViewIndexLookupBatch(ViewIndex viewIndex) {
+        Query query = viewIndex.getQuery();
+        if (query.isUnion()) {
+            SelectUnion union = (SelectUnion) query;
+            // TODO
+            return null;
+        } else {
+            Select select = (Select) query;
+            // here we have already prepared plan for our sub-query,
+            // thus select already contains join batch for it (if it has to)
+            JoinBatch joinBatch = select.getJoinBatch();
+            if (joinBatch == null) {
+                // our sub-query itself is not batched, will run usual way
+                return null;
+            }
+            return joinBatch.viewIndexLookupBatch(viewIndex);
+        }
     }
 
     @Override

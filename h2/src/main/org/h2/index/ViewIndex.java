@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
-import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectUnion;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -101,19 +100,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             // we do not support batching for recursive queries
             return null;
         }
-        // currently do not support unions
-        return query.isUnion() ? null : createLookupBatchSimple((Select) query);
-    }
-
-    private IndexLookupBatch createLookupBatchSimple(Select select) {
-        // here we have already prepared plan for our sub-query,
-        // thus select already contains join batch for it (if it has to)
-        JoinBatch joinBatch = select.getJoinBatch();
-        if (joinBatch == null) {
-            // our sub-query itself is not batched, will run usual way
-            return null;
-        }
-        return joinBatch.asViewIndexLookupBatch(this);
+        return JoinBatch.createViewIndexLookupBatch(this);
     }
 
     public Session getSession() {

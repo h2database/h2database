@@ -76,6 +76,12 @@ public class SelectUnion extends Query {
         return true;
     }
 
+    @Override
+    public void prepareJoinBatch() {
+        left.prepareJoinBatch();
+        right.prepareJoinBatch();
+    }
+
     public void setUnionType(int type) {
         this.unionType = type;
     }

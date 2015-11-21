@@ -22,7 +22,6 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
-import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
@@ -209,14 +208,11 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             TableFilter[] filters, int filter, SortOrder sortOrder, boolean preliminary) {
         assert filters != null;
         Prepared p;
-        SubQueryInfo upper = session.getSubQueryInfo();
-        SubQueryInfo info = new SubQueryInfo(upper,
-                masks, filters, filter, sortOrder, preliminary);
-        session.setSubQueryInfo(info);
+        session.pushSubQueryInfo(masks, filters, filter, sortOrder);
         try {
             p = session.prepare(sql, true);
         } finally {
-            session.setSubQueryInfo(upper);
+            session.popSubQueryInfo();
         }
         return (Query) p;
     }

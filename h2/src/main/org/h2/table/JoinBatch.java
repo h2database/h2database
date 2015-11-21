@@ -163,16 +163,16 @@ public final class JoinBatch {
         current = new JoinRow(new Object[filters.length]);
         // initialize top cursor
         Cursor cursor;
-        if (!batchedSubQuery) {
-            // it is a top level batched query
+        if (batchedSubQuery) {
+            // we are at the batched sub-query
+            assert viewTopFutureCursor != null;
+            cursor = get(viewTopFutureCursor);
+        } else {
+            // setup usual index cursor
             TableFilter f = top.filter;
             IndexCursor indexCursor = f.getIndexCursor();
             indexCursor.find(f.getSession(), f.getIndexConditions());
             cursor = indexCursor;
-        } else {
-            // we are at the batched sub-query
-            assert viewTopFutureCursor != null;
-            cursor = get(viewTopFutureCursor);
         }
         current.updateRow(top.id, cursor, JoinRow.S_NULL, JoinRow.S_CURSOR);
         // we need fake first row because batchedNext always will move to the next row
@@ -372,8 +372,6 @@ public final class JoinBatch {
      * @return Adapter to allow joining to this batch in sub-queries and views.
      */
     private IndexLookupBatch viewIndexLookupBatch(ViewIndex viewIndex) {
-        assert !batchedSubQuery;
-        batchedSubQuery = true;
         return new ViewIndexLookupBatch(viewIndex);
     }
 
@@ -385,20 +383,18 @@ public final class JoinBatch {
      */
     public static IndexLookupBatch createViewIndexLookupBatch(ViewIndex viewIndex) {
         Query query = viewIndex.getQuery();
+        query.prepareJoinBatch();
         if (query.isUnion()) {
-            ViewIndexLookupBatchUnion unionBatch = new ViewIndexLookupBatchUnion(viewIndex);
-            return unionBatch.initialize() ? unionBatch : null;
-        } else {
-            Select select = (Select) query;
-            // here we have already prepared plan for our sub-query,
-            // thus select already contains join batch for it (if it has to)
-            JoinBatch joinBatch = select.getJoinBatch();
-            if (joinBatch == null) {
-                // our sub-query itself is not batched, will run usual way
-                return null;
-            }
-            return joinBatch.viewIndexLookupBatch(viewIndex);
+            return new ViewIndexLookupBatchUnion(viewIndex);
         }
+        JoinBatch jb = ((Select) query).getJoinBatch();
+        if (jb == null) {
+            // our sub-query is not batched, will run usual way
+            return null;
+        }
+        assert !jb.batchedSubQuery;
+        jb.batchedSubQuery = true;
+        return jb.viewIndexLookupBatch(viewIndex);
     }
 
     @Override
@@ -851,12 +847,6 @@ public final class JoinBatch {
         }
 
         @Override
-        public void reset() {
-            super.reset();
-            JoinBatch.this.reset();
-        }
-        
-        @Override
         protected void startQueryRunners() {
             // we do batched find only for top table filter and then lazily run the ViewIndex query
             // for each received top future cursor
@@ -913,29 +903,24 @@ public final class JoinBatch {
 
         protected ViewIndexLookupBatchUnion(ViewIndex viewIndex) {
             super(viewIndex);
+            collectTopTableFilters(viewIndex.getQuery());
         }
 
-        /**
-         * @return {@code true} if initialized successfully
-         */
-        private boolean initialize() {
-            return collectTopTableFilters(viewIndex.getQuery());
-        }
-
-        private boolean collectTopTableFilters(Query query) {
+        private void collectTopTableFilters(Query query) {
             if (query.isUnion()) {
                 SelectUnion union = (SelectUnion) query;
-                return collectTopTableFilters(union.getLeft()) &&
-                        collectTopTableFilters(union.getRight());
-            } 
-            Select select = (Select) query;
-            JoinBatch jb = select.getJoinBatch();
-            if (jb == null) {
-                // if we've found non-batched select then we can't do batching at all here
-                return false;
+                collectTopTableFilters(union.getLeft());
+                collectTopTableFilters(union.getRight());
+            } else {
+                Select select = (Select) query;
+                JoinBatch jb = select.getJoinBatch();
+                if (jb == null) {
+                    // TODO need some wrapper for a non-batched query
+                }
+                assert !jb.batchedSubQuery;
+                jb.batchedSubQuery = true;
+                tops.add(jb.filters[0]);
             }
-            tops.add(jb.filters[0]);
-            return true;
         }
 
         @Override

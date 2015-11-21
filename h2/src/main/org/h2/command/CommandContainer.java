@@ -7,6 +7,7 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.dml.Query;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -44,6 +45,13 @@ public class CommandContainer extends Command {
         return prepared.isQuery();
     }
 
+    @Override
+    public void prepareJoinBatch() {
+        if (session.isJoinBatchEnabled() && prepared.isQuery()) {
+            ((Query) prepared).prepareJoinBatch();
+        }
+    }
+
     private void recompileIfRequired() {
         if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
@@ -65,6 +73,7 @@ public class CommandContainer extends Command {
             }
             prepared.prepare();
             prepared.setModificationMetaId(mod);
+            prepareJoinBatch();
         }
     }
 

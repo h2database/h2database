@@ -340,8 +340,8 @@ public class TableFilter implements ColumnResolver {
         foundOne = false;
     }
 
-    private boolean isAlwaysTopTableFilter(int id) {
-        if (id != 0) {
+    private boolean isAlwaysTopTableFilter(int filter) {
+        if (filter != 0) {
             return false;
         }
         // check if we are at the top table filters all the way up
@@ -361,15 +361,12 @@ public class TableFilter implements ColumnResolver {
      * Attempt to initialize batched join.
      *
      * @param id join filter id (index of this table filter in join list)
+     * @param jb join batch if it is already created
      * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
      */
-    public JoinBatch prepareJoinBatch(int id) {
+    public JoinBatch prepareJoinBatch(JoinBatch jb, TableFilter[] filters, int filter) {
         joinBatch = null;
         joinFilterId = -1;
-        JoinBatch jb = null;
-        if (join != null) {
-            jb = join.prepareJoinBatch(id + 1);
-        }
         IndexLookupBatch lookupBatch = null;
         // For globally top table filter we don't need to create lookup batch, because
         // currently it will not be used (this will be shown in ViewIndex.getPlanSQL()). Probably
@@ -378,26 +375,38 @@ public class TableFilter implements ColumnResolver {
         // then we either not a top table filter or top table filter in a sub-query, which
         // in turn is not top in outer query, thus we need to enable batching here to allow
         // outer query run batched join against this sub-query.
-        if (jb == null && select != null && !isAlwaysTopTableFilter(id)) {
-            lookupBatch = index.createLookupBatch(this);
+        if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
+            lookupBatch = createLookupBatch(filters, filter);
             if (lookupBatch != null) {
-                jb = new JoinBatch(id + 1, join);
+                jb = new JoinBatch(filter + 1, join);
             }
         }
         if (jb != null) {
             if (nestedJoin != null) {
-                throw DbException.getUnsupportedException("nested join with batched index");
+                throw DbException.throwInternalError();
             }
             joinBatch = jb;
-            joinFilterId = id;
-            if (lookupBatch == null && !isAlwaysTopTableFilter(id)) {
-                // index.createLookupBatch will be called at most once because jb can be
+            joinFilterId = filter;
+            if (lookupBatch == null && !isAlwaysTopTableFilter(filter)) {
+                // createLookupBatch will be called at most once because jb can be
                 // created only if lookupBatch is already not null from the call above.
-                lookupBatch = index.createLookupBatch(this);
+                lookupBatch = createLookupBatch(filters, filter);
             }
             jb.register(this, lookupBatch);
         }
         return jb;
+    }
+
+    private IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
+        if (getTable().isView()) {
+            session.pushSubQueryInfo(masks, filters, filter, select.getSortOrder());
+            try {
+                return index.createLookupBatch(this);
+            } finally {
+                session.popSubQueryInfo();
+            }
+        }
+        return index.createLookupBatch(this);
     }
 
     public int getJoinFilterId() {

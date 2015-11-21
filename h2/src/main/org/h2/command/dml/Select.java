@@ -947,10 +947,27 @@ public class Select extends Query {
         }
         expressionArray = new Expression[expressions.size()];
         expressions.toArray(expressionArray);
-        if (!session.isParsingView()) {
-            topTableFilter.prepareJoinBatch(0);
-        }
         isPrepared = true;
+    }
+
+    @Override
+    public void prepareJoinBatch() {
+        ArrayList<TableFilter> list = New.arrayList();
+        TableFilter f = getTopTableFilter();
+        do {
+            if (f.getNestedJoin() != null) {
+                // we do not support batching with nested joins 
+                return;
+            }
+            list.add(f);
+            f = f.getJoin();
+        } while (f != null);
+        TableFilter[] fs = list.toArray(new TableFilter[list.size()]);
+        // prepare join batch
+        JoinBatch jb = null;
+        for (int i = fs.length - 1; i >= 0; i--) {
+            jb = fs[i].prepareJoinBatch(jb, fs, i);
+        }
     }
 
     public JoinBatch getJoinBatch() {

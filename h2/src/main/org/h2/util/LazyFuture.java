@@ -101,6 +101,6 @@ public abstract class LazyFuture<T> implements Future<T> {
 
     @Override
     public boolean isDone() {
-        return state == S_DONE;
+        return state != S_READY;
     }
 }

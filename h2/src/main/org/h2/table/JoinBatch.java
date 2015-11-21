@@ -64,7 +64,7 @@ public final class JoinBatch {
         }
     };
 
-    private ViewIndexLookupBatch viewIndexLookupBatch;
+    private boolean batchedSubQuery;
     private Future<Cursor> viewTopFutureCursor;
 
     private JoinFilter[] filters;
@@ -112,7 +112,7 @@ public final class JoinBatch {
     public IndexLookupBatch getLookupBatch(int joinFilterId) {
         return filters[joinFilterId].lookupBatch;
     }
-
+    
     /**
      * Reset state of this batch.
      */
@@ -163,7 +163,7 @@ public final class JoinBatch {
         current = new JoinRow(new Object[filters.length]);
         // initialize top cursor
         Cursor cursor;
-        if (viewIndexLookupBatch == null) {
+        if (!batchedSubQuery) {
             // it is a top level batched query
             TableFilter f = top.filter;
             IndexCursor indexCursor = f.getIndexCursor();
@@ -372,16 +372,22 @@ public final class JoinBatch {
      * @return Adapter to allow joining to this batch in sub-queries and views.
      */
     private IndexLookupBatch viewIndexLookupBatch(ViewIndex viewIndex) {
-        assert viewIndexLookupBatch == null;
-        return viewIndexLookupBatch = new ViewIndexLookupBatch(viewIndex);
+        assert !batchedSubQuery;
+        batchedSubQuery = true;
+        return new ViewIndexLookupBatch(viewIndex);
     }
 
+    /**
+     * Create index lookup batch for a view index.
+     * 
+     * @param viewIndex view index
+     * @return index lookup batch or {@code null} if batching is not supported for this query
+     */
     public static IndexLookupBatch createViewIndexLookupBatch(ViewIndex viewIndex) {
         Query query = viewIndex.getQuery();
         if (query.isUnion()) {
-            SelectUnion union = (SelectUnion) query;
-            // TODO
-            return null;
+            ViewIndexLookupBatchUnion unionBatch = new ViewIndexLookupBatchUnion(viewIndex);
+            return unionBatch.initialize() ? unionBatch : null;
         } else {
             Select select = (Select) query;
             // here we have already prepared plan for our sub-query,
@@ -649,10 +655,7 @@ public final class JoinBatch {
 
         private final List<Future<Cursor>> result = new SingletonList<Future<Cursor>>();
 
-        /**
-         * @param index Index.
-         */
-        public FakeLookupBatch(TableFilter filter) {
+        private FakeLookupBatch(TableFilter filter) {
             this.filter = filter;
         }
 
@@ -716,22 +719,28 @@ public final class JoinBatch {
     }
     
     /**
-     * Index lookup batch over this join batch for a sub-query or view.
+     * Base class for SELECT and SELECT UNION view index lookup batches.
      */
-    private final class ViewIndexLookupBatch implements IndexLookupBatch {
-        private final ViewIndex viewIndex;
-        private final ArrayList<Future<Cursor>> result = New.arrayList();
-        private int resultSize;
-
-        private ViewIndexLookupBatch(ViewIndex viewIndex) {
+    private abstract static class ViewIndexLookupBatchBase implements IndexLookupBatch {
+        protected final ViewIndex viewIndex;
+        protected final ArrayList<Future<Cursor>> result = New.arrayList();
+        protected int resultSize;
+        
+        protected ViewIndexLookupBatchBase(ViewIndex viewIndex) {
             this.viewIndex = viewIndex;
         }
 
-        private boolean resetAfterFind() {
+        protected abstract boolean collectSearchRows();
+
+        protected abstract QueryRunnerBase newQueryRunner();
+
+        protected abstract void startQueryRunners();
+
+        protected final boolean resetAfterFind() {
             if (resultSize < 0) {
                 // method find was called, we need to reset futures to initial state for reuse
                 for (int i = 0, size = -resultSize; i < size; i++) {
-                    ((QueryRunner) result.get(i)).reset();
+                    ((QueryRunnerBase) result.get(i)).reset();
                 }
                 resultSize = 0;
                 return true;
@@ -740,24 +749,100 @@ public final class JoinBatch {
         }
 
         @Override
-        public boolean addSearchRows(SearchRow first, SearchRow last) {
+        public final boolean addSearchRows(SearchRow first, SearchRow last) {
             resetAfterFind();
             viewIndex.setupQueryParameters(viewIndex.getSession(), first, last, null);
-            if (!top.collectSearchRows()) {
+            if (!collectSearchRows()) {
                 return false;
             }
-            QueryRunner r;
+            QueryRunnerBase r;
             if (resultSize < result.size()) {
                 // get reused runner
-                r = (QueryRunner) result.get(resultSize);
+                r = (QueryRunnerBase) result.get(resultSize);
             } else {
                 // create new runner
-                result.add(r = new QueryRunner());
+                result.add(r = newQueryRunner());
             }
             r.first = first;
             r.last = last;
             resultSize++;
             return true;
+        }
+        
+        @Override
+        public void reset() {
+            if (resultSize != 0 && !resetAfterFind()) {
+                // find was not called, need to just clear runners
+                for (int i = 0; i < resultSize; i++) {
+                    ((QueryRunnerBase) result.get(i)).clear();
+                }
+                resultSize = 0;
+            }
+        }
+        
+        @Override
+        public final List<Future<Cursor>> find() {
+            if (resultSize == 0) {
+                return Collections.emptyList();
+            }
+            startQueryRunners();
+            List<Future<Cursor>> list  = resultSize == result.size() ?
+                    result : result.subList(0, resultSize);
+            // mark that method find was called
+            resultSize = -resultSize;
+            return list;
+        }
+    }
+    
+    /**
+     * Lazy query runner base.
+     */
+    private abstract static class QueryRunnerBase extends LazyFuture<Cursor> {
+        protected final ViewIndex viewIndex;
+        protected SearchRow first;
+        protected SearchRow last;
+
+        public QueryRunnerBase(ViewIndex viewIndex) {
+            this.viewIndex = viewIndex;
+        }
+
+        protected void clear() {
+            first = last = null;
+        }
+
+        @Override
+        public final boolean reset() {
+            if (super.reset()) {
+                return true;
+            }
+            // this query runner was never executed, need to clear manually
+            clear();
+            return false;
+        }
+        
+        protected final ViewCursor newCursor(LocalResult localResult) {
+            ViewCursor cursor = new ViewCursor(viewIndex, localResult, first, last);
+            clear();
+            return cursor;
+        }
+    }
+    
+    /**
+     * View index lookup batch for a simple SELECT.
+     */
+    private final class ViewIndexLookupBatch extends ViewIndexLookupBatchBase {
+        private ViewIndexLookupBatch(ViewIndex viewIndex) {
+            super(viewIndex);
+        }
+        
+        @Override
+        protected QueryRunnerBase newQueryRunner() {
+            return new QueryRunner(viewIndex);
+        }
+        
+        @Override
+        protected boolean collectSearchRows() {
+            return top.collectSearchRows();
         }
 
         @Override
@@ -766,10 +851,13 @@ public final class JoinBatch {
         }
 
         @Override
-        public List<Future<Cursor>> find() {
-            if (resultSize == 0) {
-                return Collections.emptyList();
-            }
+        public void reset() {
+            super.reset();
+            JoinBatch.this.reset();
+        }
+        
+        @Override
+        protected void startQueryRunners() {
             // we do batched find only for top table filter and then lazily run the ViewIndex query
             // for each received top future cursor
             List<Future<Cursor>> topFutureCursors = top.find();
@@ -781,48 +869,23 @@ public final class JoinBatch {
                 QueryRunner r = (QueryRunner) result.get(i);
                 r.topFutureCursor = topFutureCursors.get(i);
             }
-            List<Future<Cursor>> list  = resultSize == result.size() ?
-                    result : result.subList(0, resultSize);
-            // mark that method find was called
-            resultSize = -resultSize;
-            return list;
-        }
-
-        @Override
-        public void reset() {
-            if (resultSize != 0 && !resetAfterFind()) {
-                // find was not called, need to just clear runners
-                for (int i = 0; i < resultSize; i++) {
-                    ((QueryRunner) result.get(i)).clear();
-                }
-                resultSize = 0;
-            }
-            JoinBatch.this.reset();
         }
 
         /**
-         * Lazy query runner.
+         * Query runner.
          */
-        private class QueryRunner extends LazyFuture<Cursor> {
+        private final class QueryRunner extends QueryRunnerBase {
             private Future<Cursor> topFutureCursor;
-            private SearchRow first;
-            private SearchRow last;
 
-            private void clear() {
+            public QueryRunner(ViewIndex viewIndex) {
+                super(viewIndex);
+            }
+
+            protected void clear() {
                 topFutureCursor = null;
-                first = last = null;
+                super.clear();
             }
-
-            @Override
-            public boolean reset() {
-                if (super.reset()) {
-                    return true;
-                }
-                // this query runner was never executed, need to clear manually
-                clear();
-                return false;
-            }
-
+            
             @Override
             protected Cursor run() throws Exception {
                 if (topFutureCursor == null) {
@@ -836,9 +899,94 @@ public final class JoinBatch {
                 } finally {
                     JoinBatch.this.viewTopFutureCursor = null;
                 }
-                ViewCursor cursor = new ViewCursor(viewIndex, localResult, first, last);
-                clear();
-                return cursor;
+                return newCursor(localResult);
+            }
+        }
+    }
+
+    /**
+     * View index lookup batch for UNION queries.
+     */
+    private static final class ViewIndexLookupBatchUnion extends ViewIndexLookupBatchBase {
+        private ArrayList<JoinFilter> tops = New.arrayList();
+        private ArrayList<JoinBatch> joinBatches = New.arrayList();
+
+        protected ViewIndexLookupBatchUnion(ViewIndex viewIndex) {
+            super(viewIndex);
+        }
+
+        /**
+         * @return {@code true} if initialized successfully
+         */
+        private boolean initialize() {
+            return collectTopTableFilters(viewIndex.getQuery());
+        }
+
+        private boolean collectTopTableFilters(Query query) {
+            if (query.isUnion()) {
+                SelectUnion union = (SelectUnion) query;
+                return collectTopTableFilters(union.getLeft()) &&
+                        collectTopTableFilters(union.getRight());
+            } 
+            Select select = (Select) query;
+            JoinBatch jb = select.getJoinBatch();
+            if (jb == null) {
+                // if we've found non-batched select then we can't do batching at all here
+                return false;
+            }
+            tops.add(jb.filters[0]);
+            return true;
+        }
+
+        @Override
+        public boolean isBatchFull() {
+            // if at least one is full
+            for (int i = 0; i < tops.size(); i++) {
+                if (tops.get(i).isBatchFull()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        protected boolean collectSearchRows() {
+            for (int i = 0; i < tops.size(); i++) {
+                if (tops.get(i).collectSearchRows()) {
+                    // TODO
+                }
+            }
+            return true;
+        }
+
+        @Override
+        protected QueryRunnerBase newQueryRunner() {
+            return new QueryRunnerUnion();
+        }
+
+        @Override
+        protected void startQueryRunners() {
+            // TODO Auto-generated method stub
+        }
+
+        /**
+         * Query runner for UNION. 
+         */
+        private class QueryRunnerUnion extends QueryRunnerBase {
+            public QueryRunnerUnion() {
+                super(ViewIndexLookupBatchUnion.this.viewIndex);
+            }
+
+            @Override
+            protected void clear() {
+                super.clear();
+                // TODO
+            }
+            
+            @Override
+            protected Cursor run() throws Exception {
+                // TODO Auto-generated method stub
+                return null;
             }
         }
     }

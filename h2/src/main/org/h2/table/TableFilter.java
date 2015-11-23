@@ -269,8 +269,10 @@ public class TableFilter implements ColumnResolver {
     /**
      * Prepare reading rows. This method will remove all index conditions that
      * can not be used, and optimize the conditions.
+     * 
+     * @param parse if we are parsing sub-query
      */
-    public void prepare() {
+    public void prepare(boolean parse) {
         // forget all unused index conditions
         // the indexConditions list may be modified here
         for (int i = 0; i < indexConditions.size(); i++) {
@@ -289,19 +291,21 @@ public class TableFilter implements ColumnResolver {
             if (SysProperties.CHECK && nestedJoin == this) {
                 DbException.throwInternalError("self join");
             }
-            nestedJoin.prepare();
+            nestedJoin.prepare(parse);
         }
         if (join != null) {
             if (SysProperties.CHECK && join == this) {
                 DbException.throwInternalError("self join");
             }
-            join.prepare();
+            join.prepare(parse);
         }
-        if (filterCondition != null) {
-            filterCondition = filterCondition.optimize(session);
-        }
-        if (joinCondition != null) {
-            joinCondition = joinCondition.optimize(session);
+        if (!parse) {
+            if (filterCondition != null) {
+                filterCondition = filterCondition.optimize(session);
+            }
+            if (joinCondition != null) {
+                joinCondition = joinCondition.optimize(session);
+            }
         }
     }
 
@@ -784,11 +788,16 @@ public class TableFilter implements ColumnResolver {
             buff.append('\n');
             StatementBuilder planBuff = new StatementBuilder();
             if (joinBatch != null) {
-                if (joinBatch.isBatchedIndex(joinFilterId)) {
-                    planBuff.append("batched:true ");
-                } else if (joinFilterId != 0) {
-                    // top table filter does not need to fake batching, it works as usual in this case
-                    planBuff.append("batched:fake ");
+                IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
+                if (lookupBatch == null) {
+                    if (joinFilterId != 0) {
+                        throw DbException.throwInternalError();
+                    }
+                } else {
+                    planBuff.append("batched:");
+                    String batchPlan = lookupBatch.getPlanSQL();
+                    planBuff.append(batchPlan);
+                    planBuff.append(" ");
                 }
             }
             planBuff.append(index.getPlanSQL());

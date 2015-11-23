@@ -7,6 +7,7 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.dml.Explain;
 import org.h2.command.dml.Query;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
@@ -47,8 +48,18 @@ public class CommandContainer extends Command {
 
     @Override
     public void prepareJoinBatch() {
-        if (session.isJoinBatchEnabled() && prepared.isQuery()) {
-            ((Query) prepared).prepareJoinBatch();
+        if (session.isJoinBatchEnabled()) {
+            prepareJoinBatch(prepared);
+        }
+    }
+
+    private static void prepareJoinBatch(Prepared prepared) {
+        if (prepared.isQuery()) {
+            if (prepared.getType() == CommandInterface.SELECT) {
+                ((Query) prepared).prepareJoinBatch();
+            } else if (prepared.getType() == CommandInterface.EXPLAIN) {
+                prepareJoinBatch(((Explain) prepared).getCommand());
+            }
         }
     }
 

@@ -52,6 +52,13 @@ public interface IndexLookupBatch {
     List<Future<Cursor>> find();
 
     /**
+     * Get plan for EXPLAIN.
+     *
+     * @return plan
+     */
+    String getPlanSQL();
+
+    /**
      * Reset this batch to clear state. This method will be called before each query execution.
      */
     void reset();

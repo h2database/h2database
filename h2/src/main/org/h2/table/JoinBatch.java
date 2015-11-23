@@ -96,16 +96,6 @@ public final class JoinBatch {
     }
 
     /**
-     * Check if the index at the given table filter really supports batching in this query.
-     *
-     * @param joinFilterId joined table filter id
-     * @return {@code true} if index really supports batching in this query
-     */
-    public boolean isBatchedIndex(int joinFilterId) {
-        return filters[joinFilterId].isBatched();
-    }
-
-    /**
      * Get the lookup batch for the given table filter.
      *
      * @param joinFilterId joined table filter id
@@ -413,7 +403,6 @@ public final class JoinBatch {
         private final TableFilter filter;
         private final JoinFilter join;
         private final int id;
-        private final boolean fakeBatch;
 
         private final IndexLookupBatch lookupBatch;
 
@@ -421,16 +410,16 @@ public final class JoinBatch {
             this.filter = filter;
             this.id = filter.getJoinFilterId();
             this.join = join;
-            fakeBatch = lookupBatch == null;
-            this.lookupBatch = fakeBatch ? new FakeLookupBatch(filter) : lookupBatch;
-        }
-
-        private boolean isBatched() {
-            return !fakeBatch;
+            if (lookupBatch == null && id != 0) {
+                lookupBatch = new FakeLookupBatch(filter);
+            }
+            this.lookupBatch = lookupBatch;
         }
 
         private void reset() {
-            lookupBatch.reset();
+            if (lookupBatch != null) {
+                lookupBatch.reset();
+            }
         }
 
         private Row getNullRow() {
@@ -658,6 +647,11 @@ public final class JoinBatch {
         }
 
         @Override
+        public String getPlanSQL() {
+            return "fake";
+        }
+
+        @Override
         public void reset() {
             full = false;
             first = last = null;
@@ -722,29 +716,36 @@ public final class JoinBatch {
     private abstract static class ViewIndexLookupBatchBase<R extends QueryRunnerBase> 
             implements IndexLookupBatch {
         protected final ViewIndex viewIndex;
-        protected final ArrayList<Future<Cursor>> result = New.arrayList();
-        protected int resultSize;
-        
+        private final ArrayList<Future<Cursor>> result = New.arrayList();
+        private int resultSize;
+        private boolean findCalled;
+
         protected ViewIndexLookupBatchBase(ViewIndex viewIndex) {
             this.viewIndex = viewIndex;
+        }
+
+        @Override
+        public String getPlanSQL() {
+            return "view";
         }
 
         protected abstract boolean collectSearchRows(R r);
 
         protected abstract R newQueryRunner();
 
-        protected abstract void startQueryRunners();
+        protected abstract void startQueryRunners(int resultSize);
 
         protected final boolean resetAfterFind() {
-            if (resultSize < 0) {
-                // method find was called, we need to reset futures to initial state for reuse
-                for (int i = 0, size = -resultSize; i < size; i++) {
-                    queryRunner(i).reset();
-                }
-                resultSize = 0;
-                return true;
+            if (!findCalled) {
+                return false;
             }
-            return false;
+            findCalled = false;
+            // method find was called, we need to reset futures to initial state for reuse
+            for (int i = 0; i < resultSize; i++) {
+                queryRunner(i).reset();
+            }
+            resultSize = 0;
+            return true;
         }
 
         @SuppressWarnings("unchecked")
@@ -790,12 +791,9 @@ public final class JoinBatch {
             if (resultSize == 0) {
                 return Collections.emptyList();
             }
-            startQueryRunners();
-            List<Future<Cursor>> list  = resultSize == result.size() ?
-                    result : result.subList(0, resultSize);
-            // mark that method find was called
-            resultSize = -resultSize;
-            return list;
+            findCalled = true;
+            startQueryRunners(resultSize);
+            return resultSize == result.size() ? result : result.subList(0, resultSize);
         }
     }
     
@@ -852,17 +850,16 @@ public final class JoinBatch {
 
         @Override
         public boolean isBatchFull() {
-            assert resultSize >= 0;
             return top.isBatchFull();
         }
 
         @Override
-        protected void startQueryRunners() {
+        protected void startQueryRunners(int resultSize) {
             // we do batched find only for top table filter and then lazily run the ViewIndex query
             // for each received top future cursor
             List<Future<Cursor>> topFutureCursors = top.find();
             if (topFutureCursors.size() != resultSize) {
-                throw DbException.throwInternalError("Unexpected result size: " + result.size() +
+                throw DbException.throwInternalError("Unexpected result size: " + topFutureCursors.size() +
                         ", expected :" + resultSize);
             }
             for (int i = 0; i < resultSize; i++) {
@@ -976,15 +973,18 @@ public final class JoinBatch {
         }
 
         @Override
-        protected void startQueryRunners() {
-            for (int i = 0; i < filters.size(); i++) {
-                List<Future<Cursor>> topFutureCursors = filters.get(i).find();
-                for (int j = 0, k = 0; j < resultSize; j++) {
-                    Future<Cursor>[] cs = queryRunner(j).topFutureCursors;
-                    if (cs[j] == null) {
-                        cs[j] = topFutureCursors.get(k++);
+        protected void startQueryRunners(int resultSize) {
+            for (int f = 0; f < filters.size(); f++) {
+                List<Future<Cursor>> topFutureCursors = filters.get(f).find();
+                int r = 0, c = 0;
+                for (; r < resultSize; r++) {
+                    Future<Cursor>[] cs = queryRunner(r).topFutureCursors;
+                    if (cs[f] == null) {
+                        cs[f] = topFutureCursors.get(c++);
                     }
                 }
+                assert r == resultSize;
+                assert c == topFutureCursors.size();
             }
         }
     }

@@ -189,7 +189,7 @@ public class Update extends Prepared {
         }
         PlanItem item = tableFilter.getBestPlanItem(session, new TableFilter[] {tableFilter}, 0);
         tableFilter.setPlanItem(item);
-        tableFilter.prepare();
+        tableFilter.prepare(false);
     }
 
     @Override

@@ -269,10 +269,8 @@ public class TableFilter implements ColumnResolver {
     /**
      * Prepare reading rows. This method will remove all index conditions that
      * can not be used, and optimize the conditions.
-     * 
-     * @param parse if we are parsing sub-query
      */
-    public void prepare(boolean parse) {
+    public void prepare() {
         // forget all unused index conditions
         // the indexConditions list may be modified here
         for (int i = 0; i < indexConditions.size(); i++) {
@@ -291,21 +289,19 @@ public class TableFilter implements ColumnResolver {
             if (SysProperties.CHECK && nestedJoin == this) {
                 DbException.throwInternalError("self join");
             }
-            nestedJoin.prepare(parse);
+            nestedJoin.prepare();
         }
         if (join != null) {
             if (SysProperties.CHECK && join == this) {
                 DbException.throwInternalError("self join");
             }
-            join.prepare(parse);
+            join.prepare();
         }
-        if (!parse) {
-            if (filterCondition != null) {
-                filterCondition = filterCondition.optimize(session);
-            }
-            if (joinCondition != null) {
-                joinCondition = joinCondition.optimize(session);
-            }
+        if (filterCondition != null) {
+            filterCondition = filterCondition.optimize(session);
+        }
+        if (joinCondition != null) {
+            joinCondition = joinCondition.optimize(session);
         }
     }
 

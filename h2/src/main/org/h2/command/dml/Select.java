@@ -1010,7 +1010,9 @@ public class Select extends Query {
 
         setEvaluatableRecursive(topTableFilter);
 
-        topTableFilter.prepare(parse);
+        if (!parse) {
+            topTableFilter.prepare();
+        }
         return planCost;
     }
 

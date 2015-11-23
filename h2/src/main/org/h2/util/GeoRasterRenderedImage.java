@@ -96,12 +96,36 @@ public class GeoRasterRenderedImage implements GeoRaster {
      * @param skewX Rotation X
      * @param skewY Rotation Y
      * @param srid Srid value
-     * @param noDataValue NoData value for all bands
+     * @return WKBRasterWrapper instance
+     */
+    public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
+                                                double scaleY, double ipX, double ipY, double skewX, double skewY,
+                                                int srid) throws IOException {
+        return create(image, scaleX, scaleY, ipX, ipY, skewX, skewY, srid,
+                null);
+    }
+    /**
+     * Wrap a Raster in order to make a WKBRaster of it.
+     * @param image Raster
+     * @param scaleX Pixel x scale in current projection unit
+     * @param scaleY Pixel y scale in current projection unit
+     * @param ipX Insertion point X
+     * @param ipY Insertion point Y
+     * @param skewX Rotation X
+     * @param skewY Rotation Y
+     * @param srid Srid value
+     * @param noDataValue NoData value for all bands. Null if it has not nodata
      * @return WKBRasterWrapper instance
      */
     public static GeoRasterRenderedImage create(RenderedImage image, double scaleX,
             double scaleY, double ipX, double ipY, double skewX, double skewY,
-            int srid, double noDataValue) throws IOException {
+            int srid, Double noDataValue) throws IOException {
+        double noData;
+        if(noDataValue == null) {
+            noData = Double.NaN;
+        } else {
+            noData = noDataValue;
+        }
         RasterUtils.RasterBandMetaData[] bands = new RasterUtils.RasterBandMetaData[image
                 .getSampleModel().getNumBands()];
         long offset = RasterUtils.RASTER_METADATA_SIZE;
@@ -153,8 +177,8 @@ public class GeoRasterRenderedImage implements GeoRaster {
             } else {
                 pixelType = mainPixelType;
             }
-            bands[idBand] = new RasterUtils.RasterBandMetaData(noDataValue,
-                    pixelType, true, offset);
+            bands[idBand] = new RasterUtils.RasterBandMetaData(noData,
+                    pixelType, noDataValue != null, offset);
             offset += bands[idBand].getLength(image.getWidth(), image.getHeight());
         }
         RasterUtils.RasterMetaData rasterMetaData =

@@ -5,8 +5,7 @@
  */
 package org.h2.test.db;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.*;
 import org.h2.api.GeoRaster;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
@@ -26,6 +25,7 @@ import javax.imageio.ImageWriter;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
+import java.awt.Point;
 import java.awt.color.ColorSpace;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BandedSampleModel;
@@ -643,7 +643,7 @@ public class TestGeoRaster extends TestBase {
         BufferedImage image = getTestImage(width, height);
         // Convert into WKB data
         GeoRasterRenderedImage wrapper = GeoRasterRenderedImage.create(image, 1, 1, 0,
-                0, 0, 0, 27572, 0);
+                0, 0, 0, 27572, 0.d);
         InputStream wkbStream = wrapper.asWKBRaster();
         Value rasterValue = ValueLobDb.createSmallLob(Value.RASTER, IOUtils
                 .readBytesAndClose(wkbStream, -1));
@@ -685,7 +685,7 @@ public class TestGeoRaster extends TestBase {
         BufferedImage expectedImage = getTestImage(width, height);
         // Convert into WKB data
         GeoRasterRenderedImage wrapper = GeoRasterRenderedImage.create(expectedImage, 1, 1, 0,
-                0, 0, 0, 27572, 0);
+                0, 0, 0, 27572, 0.);
         InputStream wkbStream = wrapper.asWKBRaster();
         // Transfer to database
         deleteDb("georaster");
@@ -736,7 +736,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(ST_MAKEEMPTYRASTER(?::raster))");
         st.setBinaryStream(1, GeoRasterRenderedImage.create(getTestImage(10, 10)
-                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                , 1, -1, 0, 0, 0, 0, 27572)
                 .asWKBRaster());
         st.execute();
         stat.execute("INSERT INTO TEST(DATA) VALUES(" +
@@ -810,7 +810,7 @@ public class TestGeoRaster extends TestBase {
                 "values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage
                 .create(getTestImage(10, 10), 1, -1, 0, 0, 0, 0,
-                        27572, 0).asWKBRaster());
+                        27572).asWKBRaster());
         st.execute();
         ResultSet rs = stat.executeQuery("SELECT data FROM test order by id");
         assertTrue(rs.next());
@@ -832,7 +832,7 @@ public class TestGeoRaster extends TestBase {
                 "values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage
                 .create(getTestImage(10, 10), 1, -1, 0, 0, 0, 0,
-                        27572, 0).asWKBRaster());
+                        27572).asWKBRaster());
         st.execute();
         ResultSet rs =
                 stat.executeQuery("SELECT ST_BANDMETADATA(data, 1) meta FROM " +
@@ -840,7 +840,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(
-                    new Object[]{"8BUI", 0.0, false, ""},
+                    new Object[]{"8BUI", null, false, ""},
                     (Object[]) rs.getObject(1));
         } finally {
             rs.close();
@@ -851,7 +851,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(
-                    new Object[]{"8BUI", 0.0, false, ""},
+                    new Object[]{"8BUI", null, false, ""},
                     (Object[]) rs.getObject(1));
         } finally {
             rs.close();
@@ -862,7 +862,7 @@ public class TestGeoRaster extends TestBase {
         try {
             assertTrue(rs.next());
             assertEquals(
-                    new Object[]{"8BUI", 0.0, false, ""},
+                    new Object[]{"8BUI", null, false, ""},
                     (Object[]) rs.getObject(1));
         } finally {
             rs.close();
@@ -1032,17 +1032,25 @@ public class TestGeoRaster extends TestBase {
                 "st_makeemptyraster(10, 10, 1.44754, -2.100, 0.001)," +
                 " 10, 2);");
         assertTrue(rs.next());
-        assertEquals(new Object[]{1.45653999999999995,-2.10099999999999998},
-                (Object[])rs.getObject(1));
+        com.vividsolutions.jts.geom.Point pos =
+                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+        assertEquals(1.45653999999999995, pos.getX());
+        assertEquals(-2.10099999999999998, pos.getY());
         rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
                 "st_makeemptyraster(100, 100, 555, 256, 2.5), 7, 23);");
         assertTrue(rs.next());
-        assertEquals(new Object[]{570., 201.}, (Object[])rs.getObject(1));
+        pos =
+                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+        assertEquals(570., pos.getX());
+        assertEquals(201., pos.getY());
         rs = stat.executeQuery("SELECT ST_RasterToWorldCoord( " +
                 "st_makeemptyraster(256, 256, 6000000 , 300000, 2.5), 81, " +
                 "-19999);");
         assertTrue(rs.next());
-        assertEquals(new Object[]{6000200.,350000.}, (Object[])rs.getObject(1));
+        pos =
+                (com.vividsolutions.jts.geom.Point)rs.getObject(1);
+        assertEquals(6000200., pos.getX());
+        assertEquals(350000., pos.getY());
         conn.close();
     }
 
@@ -1064,7 +1072,7 @@ public class TestGeoRaster extends TestBase {
         g.dispose();
         return GeoRasterRenderedImage.create(resizedImage, meta.scaleX / factor, meta
                         .scaleY / factor, meta.ipX, meta.ipY, meta.skewX / factor,
-                meta.skewY / factor, meta.srid, 0).setMaxRowCache(1);
+                meta.skewY / factor, meta.srid).setMaxRowCache(1);
     }
 
     /**
@@ -1086,7 +1094,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO TEST(data) " +
                 "values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage.create(getTestImage(10, 10)
-                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                , 1, -1, 0, 0, 0, 0, 27572)
                 .asWKBRaster());
         st.execute();
         // Rescale the image twice
@@ -1146,7 +1154,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
                 "(the_raster) values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage.create(image
-                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                , 1, -1, 0, 0, 0, 0, 27572)
                 .asWKBRaster());
         st.execute();
         // Query
@@ -1175,7 +1183,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
                 "(the_raster) values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage.create(image
-                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                , 1, -1, 0, 0, 0, 0, 27572)
                 .asWKBRaster());
         st.execute();
         // Query, and check if value are not altered
@@ -1218,7 +1226,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
                 "(the_raster) values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage.create(image
-                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                , 1, -1, 0, 0, 0, 0, 27572)
                 .asWKBRaster());
         st.execute();
         // Query, and check if value are not altered
@@ -1261,7 +1269,7 @@ public class TestGeoRaster extends TestBase {
         PreparedStatement st = conn.prepareStatement("INSERT INTO testcopy" +
                 "(the_raster) values(?)");
         st.setBinaryStream(1, GeoRasterRenderedImage.create(image
-                , 1, -1, 0, 0, 0, 0, 27572, 0)
+                , 1, -1, 0, 0, 0, 0, 27572)
                 .asWKBRaster());
         st.execute();
         // Query, and check if value are not altered

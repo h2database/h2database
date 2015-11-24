@@ -374,19 +374,28 @@ public final class JoinBatch {
      */
     public static IndexLookupBatch createViewIndexLookupBatch(ViewIndex viewIndex) {
         Query query = viewIndex.getQuery();
-        query.prepareJoinBatch();
         if (query.isUnion()) {
             ViewIndexLookupBatchUnion unionBatch = new ViewIndexLookupBatchUnion(viewIndex);
-            return unionBatch.hasBatchedQueries() ? unionBatch : null;
+            return unionBatch.initialize() ? unionBatch : null;
         }
         JoinBatch jb = ((Select) query).getJoinBatch();
-        if (jb == null) {
-            // our sub-query is not batched, will run usual way
+        if (jb == null || jb.getLookupBatch(0) == null) {
+            // our sub-query is not batched or is top batched sub-query
             return null;
         }
         assert !jb.batchedSubQuery;
         jb.batchedSubQuery = true;
         return jb.viewIndexLookupBatch(viewIndex);
+    }
+
+    /**
+     * Create fake index lookup batch for non-batched table filter. 
+     *
+     * @param filter the table filter
+     * @return fake index lookup batch
+     */
+    public static IndexLookupBatch createFakeIndexLookupBatch(TableFilter filter) {
+        return new FakeLookupBatch(filter);
     }
 
     @Override
@@ -410,10 +419,8 @@ public final class JoinBatch {
             this.filter = filter;
             this.id = filter.getJoinFilterId();
             this.join = join;
-            if (lookupBatch == null && id != 0) {
-                lookupBatch = new FakeLookupBatch(filter);
-            }
             this.lookupBatch = lookupBatch;
+            assert lookupBatch != null || id == 0;
         }
 
         private void reset() {
@@ -913,34 +920,37 @@ public final class JoinBatch {
 
         protected ViewIndexLookupBatchUnion(ViewIndex viewIndex) {
             super(viewIndex);
-            collectJoinBatches(viewIndex.getQuery());
         }
 
-        private boolean hasBatchedQueries() {
-            return joinBatches != null;
+        private boolean initialize() {
+            return collectJoinBatches(viewIndex.getQuery()) && joinBatches != null;
         }
 
-        private void collectJoinBatches(Query query) {
+        private boolean collectJoinBatches(Query query) {
             if (query.isUnion()) {
                 SelectUnion union = (SelectUnion) query;
-                collectJoinBatches(union.getLeft());
-                collectJoinBatches(union.getRight());
-            } else {
-                Select select = (Select) query;
-                JoinBatch jb = select.getJoinBatch();
-                if (jb == null) {
-                    onlyBatchedQueries = false;
-                } else {
-                    assert !jb.batchedSubQuery;
-                    jb.batchedSubQuery = true;
-                    if (joinBatches == null) {
-                        joinBatches = New.arrayList();
-                        filters = New.arrayList();
-                    }
-                    filters.add(jb.filters[0]);
-                    joinBatches.add(jb);
-                }
+                return collectJoinBatches(union.getLeft()) &&
+                        collectJoinBatches(union.getRight());
             }
+            Select select = (Select) query;
+            JoinBatch jb = select.getJoinBatch();
+            if (jb == null) {
+                onlyBatchedQueries = false;
+            } else {
+                if (jb.getLookupBatch(0) == null) {
+                    // we are top sub-query
+                    return false;
+                }
+                assert !jb.batchedSubQuery;
+                jb.batchedSubQuery = true;
+                if (joinBatches == null) {
+                    joinBatches = New.arrayList();
+                    filters = New.arrayList();
+                }
+                filters.add(jb.filters[0]);
+                joinBatches.add(jb);
+            }
+            return true;
         }
 
         @Override

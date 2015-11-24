@@ -489,15 +489,15 @@ public class TestTableEngines extends TestBase {
         stat.execute("CREATE INDEX T_IDX_B ON t(b)");
         setBatchSize(t, 3);
         for (int i = 0; i < 20; i++) {
-            stat.execute("insert into t values (" + i + "," + i + ")");
+            stat.execute("insert into t values (" + i + "," + (i + 10) + ")");
         }
         stat.execute("CREATE TABLE u (a int, b int) ENGINE " + engine);
         TreeSetTable u = TreeSetIndexTableEngine.created;
         stat.execute("CREATE INDEX U_IDX_A ON u(a)");
         stat.execute("CREATE INDEX U_IDX_B ON u(b)");
         setBatchSize(u, 0);
-        for (int i = 0; i < 20; i++) {
-            stat.execute("insert into u values (" + i + "," + i + ")");
+        for (int i = 10; i < 25; i++) {
+            stat.execute("insert into u values (" + i + "," + (i - 15)+ ")");
         }
 
         checkPlan(stat, "SELECT 1 FROM PUBLIC.T T1 /* PUBLIC.\"scan\" */ "
@@ -521,11 +521,87 @@ public class TestTableEngines extends TestBase {
                 + "INNER JOIN ( SELECT A FROM PUBLIC.T ) Z "
                 + "/* batched:view SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = T.B */ ON 1=1 WHERE Z.A = T.B");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+                + "INNER JOIN ( ((SELECT A FROM PUBLIC.T) UNION ALL (SELECT B FROM PUBLIC.U)) "
+                + "UNION ALL (SELECT B FROM PUBLIC.T) ) Z /* batched:view "
+                + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ WHERE A IS ?1) "
+                + "UNION ALL "
+                + "(SELECT B FROM PUBLIC.U /++ PUBLIC.U_IDX_B: B IS ?1 ++/ WHERE B IS ?1)) "
+                + "UNION ALL "
+                + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ WHERE B IS ?1)"
+                + ": A = T.A */ ON 1=1 WHERE Z.A = T.A");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+                + "INNER JOIN ( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
+                + "/* batched:view SELECT U.A FROM PUBLIC.U /++ batched:fake PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "/++ WHERE U.A IS ?1 ++/ INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
+                + "ON 1=1 WHERE (U.A IS ?1) AND (U.B = T.B): A = T.A */ ON 1=1 WHERE Z.A = T.A");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+                + "INNER JOIN ( SELECT A FROM PUBLIC.U ) Z /* SELECT A FROM PUBLIC.U "
+                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ WHERE A IS ?1: A = T.A */ ON 1=1 WHERE T.A = Z.A");
+        checkPlan(stat, "SELECT 1 FROM "
+                + "( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
+                + "/* SELECT U.A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/ "
+                + "INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
+                + "ON 1=1 WHERE U.B = T.B */ "
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE T.A = Z.A");
+        checkPlan(stat, "SELECT 1 FROM "
+                + "( SELECT U.A FROM PUBLIC.T INNER JOIN PUBLIC.U ON 1=1 WHERE T.B = U.B ) Z "
+                + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/ "
+                + "INNER JOIN PUBLIC.U /++ PUBLIC.U_IDX_B: B = T.B ++/ "
+                + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
+                + "ON 1=1 WHERE Z.A = T.A");
+        checkPlan(stat, "SELECT 1 FROM ( (SELECT A FROM PUBLIC.T) UNION (SELECT A FROM PUBLIC.U) ) Z "
+                + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/) "
+                + "UNION "
+                + "(SELECT A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/) */ "
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE Z.A = T.A");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.\"scan\" */ "
+                + "INNER JOIN ( (SELECT A, B FROM PUBLIC.T) UNION (SELECT B, A FROM PUBLIC.U) ) Z "
+                + "/* batched:view (SELECT A, B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
+                + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "WHERE A IS ?1): B = U.B */ ON 1=1 /* WHERE U.B = Z.B */ "
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
+                + "WHERE (U.B = Z.B) AND (Z.A = T.A)"); 
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.\"scan\" */ "
+                + "INNER JOIN ( SELECT A, B FROM PUBLIC.U ) Z "
+                + "/* batched:fake SELECT A, B FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "WHERE A IS ?1: A = U.A */ ON 1=1 /* WHERE U.A = Z.A */ "
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_B: B = Z.B */ "
+                + "ON 1=1 WHERE (U.A = Z.A) AND (Z.B = T.B)");
+        
+        // t: a = [ 0..20), b = [10..30)
+        // u: a = [10..25), b = [-5..10)
+        checkBatchedQueryResult(stat, 10, 
+                "select t.a from t, (select t.b from u, t where u.a = t.a) z where t.b = z.b");
+        checkBatchedQueryResult(stat, 5,
+                "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t where t.b = z.b + 5");
+        checkBatchedQueryResult(stat, 1,
+                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z, t where t.b = z.b + 1");
+        checkBatchedQueryResult(stat, 15,
+                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z left join t on t.b = z.b");
+        checkBatchedQueryResult(stat, 15,
+                "select t.a from (select t1.b from t t1 left join t t2 on t1.a = t2.b) z, t "
+                + "where t.b = z.b + 5");
+        checkBatchedQueryResult(stat, 1, "select t.a from t,(select 5 as b from t union select 10 from u) z "
+                + "where t.b = z.b");
+        checkBatchedQueryResult(stat, 15, "select t.a from u,(select 5 as b, a from t "
+                + "union select 10, a from u) z, t where t.b = z.b and z.a = u.a");
 
         stat.execute("DROP TABLE T");
         stat.execute("DROP TABLE U");
     }
 
+    private void checkBatchedQueryResult(Statement stat, int size, String sql) throws SQLException {
+        setBatchingEnabled(stat, false);
+        List<List<Object>> expected = query(stat, sql);
+        assertEquals(size, expected.size());
+        setBatchingEnabled(stat, true);
+        List<List<Object>> actual = query(stat, sql);
+        if (!expected.equals(actual)) {
+            fail("\nexpected: " + expected + "\nactual:   " + actual);
+        }
+    }
+    
     private void doTestBatchedJoin(Statement stat, int... batchSizes) throws SQLException {
         ArrayList<TreeSetTable> tables = New.arrayList(batchSizes.length);
         

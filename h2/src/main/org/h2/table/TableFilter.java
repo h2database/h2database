@@ -20,6 +20,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
+import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -368,6 +369,14 @@ public class TableFilter implements ColumnResolver {
         joinBatch = null;
         joinFilterId = -1;
         IndexLookupBatch lookupBatch = null;
+        if (getTable().isView()) {
+            session.pushSubQueryInfo(masks, filters, filter, select.getSortOrder());
+            try {
+                ((ViewIndex) index).getQuery().prepareJoinBatch();
+            } finally {
+                session.popSubQueryInfo();
+            }
+        }
         // For globally top table filter we don't need to create lookup batch, because
         // currently it will not be used (this will be shown in ViewIndex.getPlanSQL()). Probably
         // later on it will make sense to create it to better support X IN (...) conditions,
@@ -376,7 +385,7 @@ public class TableFilter implements ColumnResolver {
         // in turn is not top in outer query, thus we need to enable batching here to allow
         // outer query run batched join against this sub-query.
         if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
-            lookupBatch = createLookupBatch(filters, filter);
+            lookupBatch = index.createLookupBatch(this);
             if (lookupBatch != null) {
                 jb = new JoinBatch(filter + 1, join);
             }
@@ -387,26 +396,21 @@ public class TableFilter implements ColumnResolver {
             }
             joinBatch = jb;
             joinFilterId = filter;
-            if (lookupBatch == null && !isAlwaysTopTableFilter(filter)) {
-                // createLookupBatch will be called at most once because jb can be
-                // created only if lookupBatch is already not null from the call above.
-                lookupBatch = createLookupBatch(filters, filter);
+            if (lookupBatch == null) {
+                boolean notTop = !isAlwaysTopTableFilter(filter);
+                if (notTop || getTable().isView()) {
+                    // createLookupBatch will be called at most once because jb can be
+                    // created only if lookupBatch is already not null from the call above.
+                    lookupBatch = index.createLookupBatch(this);
+                    if (lookupBatch == null && notTop) {
+                        // the index does not support lookup batching, need to fake it because we are not top
+                        lookupBatch = JoinBatch.createFakeIndexLookupBatch(this);
+                    }
+                }
             }
             jb.register(this, lookupBatch);
         }
         return jb;
-    }
-
-    private IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
-        if (getTable().isView()) {
-            session.pushSubQueryInfo(masks, filters, filter, select.getSortOrder());
-            try {
-                return index.createLookupBatch(this);
-            } finally {
-                session.popSubQueryInfo();
-            }
-        }
-        return index.createLookupBatch(this);
     }
 
     public int getJoinFilterId() {

@@ -368,7 +368,6 @@ public class TableFilter implements ColumnResolver {
     public JoinBatch prepareJoinBatch(JoinBatch jb, TableFilter[] filters, int filter) {
         joinBatch = null;
         joinFilterId = -1;
-        IndexLookupBatch lookupBatch = null;
         if (getTable().isView()) {
             session.pushSubQueryInfo(masks, filters, filter, select.getSortOrder());
             try {
@@ -384,6 +383,7 @@ public class TableFilter implements ColumnResolver {
         // then we either not a top table filter or top table filter in a sub-query, which
         // in turn is not top in outer query, thus we need to enable batching here to allow
         // outer query run batched join against this sub-query.
+        IndexLookupBatch lookupBatch = null;
         if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
             lookupBatch = index.createLookupBatch(this);
             if (lookupBatch != null) {
@@ -396,16 +396,13 @@ public class TableFilter implements ColumnResolver {
             }
             joinBatch = jb;
             joinFilterId = filter;
-            if (lookupBatch == null) {
-                boolean notTop = !isAlwaysTopTableFilter(filter);
-                if (notTop || getTable().isView()) {
-                    // createLookupBatch will be called at most once because jb can be
-                    // created only if lookupBatch is already not null from the call above.
-                    lookupBatch = index.createLookupBatch(this);
-                    if (lookupBatch == null && notTop) {
-                        // the index does not support lookup batching, need to fake it because we are not top
-                        lookupBatch = JoinBatch.createFakeIndexLookupBatch(this);
-                    }
+            if (lookupBatch == null && !isAlwaysTopTableFilter(filter)) {
+                // createLookupBatch will be called at most once because jb can be
+                // created only if lookupBatch is already not null from the call above.
+                lookupBatch = index.createLookupBatch(this);
+                if (lookupBatch == null) {
+                    // the index does not support lookup batching, need to fake it because we are not top
+                    lookupBatch = JoinBatch.createFakeIndexLookupBatch(this);
                 }
             }
             jb.register(this, lookupBatch);

@@ -127,6 +127,10 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    public boolean isView() {
+        return false;
+    }
+
     /**
      * Lock the table for the given session.
      * This method waits until the lock is granted.

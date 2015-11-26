@@ -218,6 +218,11 @@ public class TableView extends Table {
         }
     }
 
+    @Override
+    public boolean isView() {
+        return true;
+    }
+
     /**
      * Check if this view is currently invalid.
      *

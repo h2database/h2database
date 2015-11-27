@@ -21,7 +21,7 @@ import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.SubQueryInfo;
+import org.h2.table.JoinBatch;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.IntArray;
@@ -91,6 +91,15 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         if (!recursive) {
             query = getQuery(session, masks, filters, filter, sortOrder);
         }
+    }
+
+    @Override
+    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+        if (recursive) {
+            // we do not support batching for recursive queries
+            return null;
+        }
+        return JoinBatch.createViewIndexLookupBatch(this);
     }
 
     public Session getSession() {
@@ -199,69 +208,69 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             TableFilter[] filters, int filter, SortOrder sortOrder, boolean preliminary) {
         assert filters != null;
         Prepared p;
-        SubQueryInfo upper = session.getSubQueryInfo();
-        SubQueryInfo info = new SubQueryInfo(upper,
-                masks, filters, filter, sortOrder, preliminary);
-        session.setSubQueryInfo(info);
+        session.pushSubQueryInfo(masks, filters, filter, sortOrder);
         try {
             p = session.prepare(sql, true);
         } finally {
-            session.setSubQueryInfo(upper);
+            session.popSubQueryInfo();
         }
         return (Query) p;
     }
 
-    private Cursor find(Session session, SearchRow first, SearchRow last,
+    private Cursor findRecursive(Session session, SearchRow first, SearchRow last,
             SearchRow intersection) {
-        if (recursive) {
-            LocalResult recResult = view.getRecursiveResult();
-            if (recResult != null) {
-                recResult.reset();
-                return new ViewCursor(this, recResult, first, last);
+        assert recursive;
+        LocalResult recResult = view.getRecursiveResult();
+        if (recResult != null) {
+            recResult.reset();
+            return new ViewCursor(this, recResult, first, last);
+        }
+        if (query == null) {
+            query = (Query) createSession.prepare(querySQL, true);
+        }
+        if (!query.isUnion()) {
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
+                    "recursive queries without UNION ALL");
+        }
+        SelectUnion union = (SelectUnion) query;
+        if (union.getUnionType() != SelectUnion.UNION_ALL) {
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
+                    "recursive queries without UNION ALL");
+        }
+        Query left = union.getLeft();
+        // to ensure the last result is not closed
+        left.disableCache();
+        LocalResult r = left.query(0);
+        LocalResult result = union.getEmptyResult();
+        // ensure it is not written to disk,
+        // because it is not closed normally
+        result.setMaxMemoryRows(Integer.MAX_VALUE);
+        while (r.next()) {
+            result.addRow(r.currentRow());
+        }
+        Query right = union.getRight();
+        r.reset();
+        view.setRecursiveResult(r);
+        // to ensure the last result is not closed
+        right.disableCache();
+        while (true) {
+            r = right.query(0);
+            if (r.getRowCount() == 0) {
+                break;
             }
-            if (query == null) {
-                query = (Query) createSession.prepare(querySQL, true);
-            }
-            if (!(query instanceof SelectUnion)) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
-                        "recursive queries without UNION ALL");
-            }
-            SelectUnion union = (SelectUnion) query;
-            if (union.getUnionType() != SelectUnion.UNION_ALL) {
-                throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
-                        "recursive queries without UNION ALL");
-            }
-            Query left = union.getLeft();
-            // to ensure the last result is not closed
-            left.disableCache();
-            LocalResult r = left.query(0);
-            LocalResult result = union.getEmptyResult();
-            // ensure it is not written to disk,
-            // because it is not closed normally
-            result.setMaxMemoryRows(Integer.MAX_VALUE);
             while (r.next()) {
                 result.addRow(r.currentRow());
             }
-            Query right = union.getRight();
             r.reset();
             view.setRecursiveResult(r);
-            // to ensure the last result is not closed
-            right.disableCache();
-            while (true) {
-                r = right.query(0);
-                if (r.getRowCount() == 0) {
-                    break;
-                }
-                while (r.next()) {
-                    result.addRow(r.currentRow());
-                }
-                r.reset();
-                view.setRecursiveResult(r);
-            }
-            view.setRecursiveResult(null);
-            result.done();
-            return new ViewCursor(this, result, first, last);
         }
+        view.setRecursiveResult(null);
+        result.done();
+        return new ViewCursor(this, result, first, last);
+    }
+
+    public void setupQueryParameters(Session session, SearchRow first, SearchRow last,
+            SearchRow intersection) {
         ArrayList<Parameter> paramList = query.getParameters();
         if (originalParameters != null) {
             for (int i = 0, size = originalParameters.size(); i < size; i++) {
@@ -298,6 +307,14 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 setParameter(paramList, idx++, intersection.getValue(i));
             }
         }
+    }
+
+    private Cursor find(Session session, SearchRow first, SearchRow last,
+            SearchRow intersection) {
+        if (recursive) {
+            return findRecursive(session, first, last, intersection);
+        }
+        setupQueryParameters(session, first, last, intersection);
         LocalResult result = query.query(0);
         return new ViewCursor(this, result, first, last);
     }
@@ -311,6 +328,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         }
         Parameter param = paramList.get(x);
         param.setValue(v);
+    }
+
+    public Query getQuery() {
+        return query;
     }
 
     private Query getQuery(Session session, int[] masks,
@@ -454,5 +475,4 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     public boolean isRecursive() {
         return recursive;
     }
-
 }

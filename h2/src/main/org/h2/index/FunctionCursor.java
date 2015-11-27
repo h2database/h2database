@@ -5,6 +5,7 @@
  */
 package org.h2.index;
 
+import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -16,11 +17,13 @@ import org.h2.value.Value;
  */
 public class FunctionCursor implements Cursor {
 
+    private Session session;
     private final ResultInterface result;
     private Value[] values;
     private Row row;
 
-    FunctionCursor(ResultInterface result) {
+    FunctionCursor(Session session, ResultInterface result) {
+        this.session = session;
         this.result = result;
     }
 
@@ -30,7 +33,7 @@ public class FunctionCursor implements Cursor {
             return null;
         }
         if (row == null) {
-            row = new Row(values, 1);
+            row = session.createRow(values, 1);
         }
         return row;
     }

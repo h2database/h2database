@@ -19,10 +19,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
-
 import javax.naming.Context;
 import javax.sql.DataSource;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
@@ -129,7 +127,8 @@ public class JdbcUtils {
      * @param className the name of the class
      * @return the class object
      */
-    public static Class<?> loadUserClass(String className) {
+    @SuppressWarnings("unchecked")
+    public static <Z> Class<Z> loadUserClass(String className) {
         if (allowedClassNames == null) {
             // initialize the static fields
             String s = SysProperties.ALLOWED_CLASSES;
@@ -168,7 +167,7 @@ public class JdbcUtils {
                 try {
                     Class<?> userClass = classFactory.loadClass(className);
                     if (!(userClass == null)) {
-                        return userClass;
+                        return (Class<Z>) userClass;
                     }
                 } catch (Exception e) {
                     throw DbException.get(
@@ -178,10 +177,10 @@ public class JdbcUtils {
         }
         // Use local ClassLoader
         try {
-            return Class.forName(className);
+            return (Class<Z>) Class.forName(className);
         } catch (ClassNotFoundException e) {
             try {
-                return Class.forName(
+                return (Class<Z>) Class.forName(
                         className, true,
                         Thread.currentThread().getContextClassLoader());
             } catch (Exception e2) {

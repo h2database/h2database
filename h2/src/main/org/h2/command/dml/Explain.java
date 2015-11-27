@@ -40,6 +40,10 @@ public class Explain extends Prepared {
         this.command = command;
     }
 
+    public Prepared getCommand() {
+        return command;
+    }
+
     @Override
     public void prepare() {
         command.prepare();

@@ -223,6 +223,16 @@ public class SetTypes {
      */
     public static final int QUERY_STATISTICS_MAX_ENTRIES = 42;
 
+    /**
+     * The type of a SET ROW_FACTORY statement.
+     */
+    public static final int ROW_FACTORY = 43;
+
+    /**
+     * The type of SET BATCH_JOINS statement.
+     */
+    public static final int BATCH_JOINS = 44;
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
@@ -274,6 +284,8 @@ public class SetTypes {
         list.add(RETENTION_TIME, "RETENTION_TIME");
         list.add(QUERY_STATISTICS, "QUERY_STATISTICS");
         list.add(QUERY_STATISTICS_MAX_ENTRIES, "QUERY_STATISTICS_MAX_ENTRIES");
+        list.add(ROW_FACTORY, "ROW_FACTORY");
+        list.add(BATCH_JOINS, "BATCH_JOINS");
     }
 
     /**

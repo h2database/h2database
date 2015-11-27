@@ -127,6 +127,10 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    public boolean isView() {
+        return false;
+    }
+
     /**
      * Lock the table for the given session.
      * This method waits until the lock is granted.
@@ -606,7 +610,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getTemplateRow() {
-        return new Row(new Value[columns.length], Row.MEMORY_CALCULATE);
+        return database.createRow(new Value[columns.length], Row.MEMORY_CALCULATE);
     }
 
     /**
@@ -628,7 +632,7 @@ public abstract class Table extends SchemaObjectBase {
             // Here can be concurrently produced more than one row, but it must be ok.
             Value[] values = new Value[columns.length];
             Arrays.fill(values, ValueNull.INSTANCE);
-            nullRow = row = new Row(values, 1);
+            nullRow = row = database.createRow(values, 1);
         }
         return row;
     }

@@ -6,8 +6,6 @@
 package org.h2.index;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Future;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;

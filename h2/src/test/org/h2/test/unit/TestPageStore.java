@@ -20,6 +20,7 @@ import java.util.TreeSet;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.result.Row;
+import org.h2.result.RowImpl;
 import org.h2.store.Page;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -272,14 +273,14 @@ public class TestPageStore extends TestBase {
 
     private void testInsertDelete() {
         Row[] x = new Row[0];
-        Row r = new Row(null, 0);
+        Row r = new RowImpl(null, 0);
         x = Page.insert(x, 0, 0, r);
         assertTrue(x[0] == r);
-        Row r2 = new Row(null, 0);
+        Row r2 = new RowImpl(null, 0);
         x = Page.insert(x, 1, 0, r2);
         assertTrue(x[0] == r2);
         assertTrue(x[1] == r);
-        Row r3 = new Row(null, 0);
+        Row r3 = new RowImpl(null, 0);
         x = Page.insert(x, 2, 1, r3);
         assertTrue(x[0] == r2);
         assertTrue(x[1] == r3);

@@ -197,7 +197,7 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         }
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(map.entryIterator(min), max);
+        return new MVStoreCursor(session, map.entryIterator(min), max);
     }
 
     @Override
@@ -210,7 +210,7 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         Value v = map.get(ValueLong.get(key));
         ValueArray array = (ValueArray) v;
-        Row row = new Row(array.getList(), 0);
+        Row row = session.createRow(array.getList(), 0);
         row.setKey(key);
         return row;
     }
@@ -260,14 +260,14 @@ public class MVPrimaryIndex extends BaseIndex {
         TransactionMap<Value, Value> map = getMap(session);
         ValueLong v = (ValueLong) (first ? map.firstKey() : map.lastKey());
         if (v == null) {
-            return new MVStoreCursor(Collections
+            return new MVStoreCursor(session, Collections
                     .<Entry<Value, Value>> emptyList().iterator(), null);
         }
         Value value = map.get(v);
         Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
         @SuppressWarnings("unchecked")
         List<Entry<Value, Value>> list = Arrays.asList(e);
-        MVStoreCursor c = new MVStoreCursor(list.iterator(), v);
+        MVStoreCursor c = new MVStoreCursor(session, list.iterator(), v);
         c.next();
         return c;
     }
@@ -347,7 +347,7 @@ public class MVPrimaryIndex extends BaseIndex {
      */
     Cursor find(Session session, ValueLong first, ValueLong last) {
         TransactionMap<Value, Value> map = getMap(session);
-        return new MVStoreCursor(map.entryIterator(first), last);
+        return new MVStoreCursor(session, map.entryIterator(first), last);
     }
 
     @Override
@@ -374,12 +374,14 @@ public class MVPrimaryIndex extends BaseIndex {
      */
     class MVStoreCursor implements Cursor {
 
+        private final Session session;
         private final Iterator<Entry<Value, Value>> it;
         private final ValueLong last;
         private Entry<Value, Value> current;
         private Row row;
 
-        public MVStoreCursor(Iterator<Entry<Value, Value>> it, ValueLong last) {
+        public MVStoreCursor(Session session, Iterator<Entry<Value, Value>> it, ValueLong last) {
+            this.session = session;
             this.it = it;
             this.last = last;
         }
@@ -389,7 +391,7 @@ public class MVPrimaryIndex extends BaseIndex {
             if (row == null) {
                 if (current != null) {
                     ValueArray array = (ValueArray) current.getValue();
-                    row = new Row(array.getList(), 0);
+                    row = session.createRow(array.getList(), 0);
                     row.setKey(current.getKey().getLong());
                 }
             }

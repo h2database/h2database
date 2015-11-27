@@ -20,6 +20,7 @@ import java.util.Vector;
  * This help to reduce memory usage, with some random cost of cpu time and io
  * processing.
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class RenderedImageReader implements RenderedImage {
     private final ImageReader imageReader;

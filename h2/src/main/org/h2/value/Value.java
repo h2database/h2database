@@ -1181,6 +1181,8 @@ public abstract class Value {
 
     /**
      * A "large raster object"
+     * @author Erwan Bocher
+     * @author Nicolas Fortin
      */
     public interface ValueRasterMarker {
         // this is a marker interface

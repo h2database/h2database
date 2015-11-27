@@ -12,6 +12,7 @@ import java.io.InputStream;
 /**
  * Wrap an ImageInputStream in order to be used as a simple InputStream.
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class ImageInputStreamWrapper extends InputStream {
     private ImageInputStream imageInputStream;

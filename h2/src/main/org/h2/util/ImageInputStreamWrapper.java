@@ -20,6 +20,7 @@ import java.sql.SQLException;
 /**
  * Wrap a input stream provider using InputStream simulate a ImageInputStream.
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class ImageInputStreamWrapper extends ImageInputStreamImpl {
     private InputStreamProvider value;

@@ -22,6 +22,7 @@ import java.util.Vector;
  * This implementation of rendered image is necessary to give an hint about
  * tiling to JAI process.
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class WKBRasterRenderedImage implements RenderedImage {
     private ColorModel colorModel;

@@ -13,6 +13,7 @@ import java.io.IOException;
 /**
  * A DataBuffer backed by an ImageInputStream
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class WKBRasterDataBuffer extends DataBuffer {
     private ImageInputStream inputStream;

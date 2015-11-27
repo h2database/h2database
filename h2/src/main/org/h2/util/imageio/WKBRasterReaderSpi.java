@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.util.Locale;
 
 /**
+ * Declaration of ImageIO reader
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class WKBRasterReaderSpi extends ImageReaderSpi {
 

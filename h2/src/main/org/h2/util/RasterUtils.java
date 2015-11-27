@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Utility on Raster format
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class RasterUtils {
     public static final int RASTER_METADATA_SIZE = 61;

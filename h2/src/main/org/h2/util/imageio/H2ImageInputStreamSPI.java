@@ -12,6 +12,7 @@ import java.util.Locale;
 /**
  * ImageInputStream provider for ImageIO.
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class H2ImageInputStreamSPI extends ImageInputStreamSpi {
     public static final String VERSION = "1";

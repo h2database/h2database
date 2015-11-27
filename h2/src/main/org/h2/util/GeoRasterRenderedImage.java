@@ -26,6 +26,7 @@ import java.util.Vector;
  * This class is used when storing LobDB Raster from external image,
  * BufferedImage or RenderedOp (JAI).
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class GeoRasterRenderedImage implements GeoRaster {
     private final RenderedImage image;

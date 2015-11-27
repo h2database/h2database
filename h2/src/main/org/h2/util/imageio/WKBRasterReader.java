@@ -34,6 +34,7 @@ import java.util.List;
 /**
  * ImageIO reader for WKB Raster driver
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class WKBRasterReader extends ImageReader {
     private RasterUtils.RasterMetaData metaData;

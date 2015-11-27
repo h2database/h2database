@@ -727,6 +727,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     /**
      * Temporary lob, used with GeoRaster API in order to reduce the creation
      * of intermediate Lob when encapsulate raster processing method calls.
+     * @author Erwan Bocher
+     * @author Nicolas Fortin
      */
     private static class ValueLobDbRaster extends ValueLobDb {
 

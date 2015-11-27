@@ -25,6 +25,7 @@ import java.util.Vector;
 /**
  * Cast a Value into GeoRaster object.
  * @author Nicolas Fortin
+ * @author Erwan Bocher
  */
 public class GeoRasterBlob implements GeoRaster {
 

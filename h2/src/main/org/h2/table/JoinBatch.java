@@ -107,15 +107,17 @@ public final class JoinBatch {
     
     /**
      * Reset state of this batch.
+     *
+     * @param beforeQuery {@code true} if reset was called before the query run, {@code false} if after 
      */
-    public void reset() {
+    public void reset(boolean beforeQuery) {
         current = null;
         started = false;
         found = false;
         for (JoinFilter jf : filters) {
-            jf.reset();
+            jf.reset(beforeQuery);
         }
-        if (additionalFilter != null) {
+        if (beforeQuery && additionalFilter != null) {
             additionalFilter.reset();
         }
     }
@@ -423,9 +425,9 @@ public final class JoinBatch {
             assert lookupBatch != null || id == 0;
         }
 
-        private void reset() {
+        private void reset(boolean beforeQuery) {
             if (lookupBatch != null) {
-                lookupBatch.reset();
+                lookupBatch.reset(beforeQuery);
             }
         }
 
@@ -659,7 +661,7 @@ public final class JoinBatch {
         }
 
         @Override
-        public void reset() {
+        public void reset(boolean beforeQuery) {
             full = false;
             first = last = null;
             result.set(0, null);
@@ -783,11 +785,11 @@ public final class JoinBatch {
         }
         
         @Override
-        public void reset() {
+        public void reset(boolean beforeQuery) {
             if (resultSize != 0 && !resetAfterFind()) {
                 // find was not called, need to just clear runners
                 for (int i = 0; i < resultSize; i++) {
-                    ((QueryRunnerBase) result.get(i)).clear();
+                    queryRunner(i).clear();
                 }
                 resultSize = 0;
             }

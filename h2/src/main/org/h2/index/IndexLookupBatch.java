@@ -59,7 +59,9 @@ public interface IndexLookupBatch {
     String getPlanSQL();
 
     /**
-     * Reset this batch to clear state. This method will be called before each query execution.
+     * Reset this batch to clear state. This method will be called before and after each query execution.
+     *
+     * @param beforeQuery if it is being called before query execution
      */
-    void reset();
+    void reset(boolean beforeQuery);
 }

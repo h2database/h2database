@@ -1344,7 +1344,7 @@ public class TestTableEngines extends TestBase {
                 }
 
                 @Override
-                public void reset() {
+                public void reset(boolean beforeQuery) {
                     searchRows.clear();
                 }
             };

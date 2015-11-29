@@ -328,7 +328,7 @@ public class TableFilter implements ColumnResolver {
     public void reset() {
         if (joinBatch != null && joinFilterId == 0) {
             // reset join batch only on top table filter
-            joinBatch.reset();
+            joinBatch.reset(true);
             return;
         }
         if (nestedJoin != null) {

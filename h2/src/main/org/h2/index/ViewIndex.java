@@ -141,22 +141,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         throw DbException.getUnsupportedException("VIEW");
     }
 
-    /**
-     * A calculated cost value.
-     */
-    static class CostElement {
-
-        /**
-         * The time in milliseconds when this cost was calculated.
-         */
-        long evaluatedAt;
-
-        /**
-         * The cost.
-         */
-        double cost;
-    }
-
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {

@@ -158,7 +158,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 return cachedCost.cost;
             }
         }
-        Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder, true);
+        Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder);
         if (masks != null) {
             for (int idx = 0; idx < masks.length; idx++) {
                 int mask = masks[idx];
@@ -184,7 +184,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 }
             }
             String sql = q.getPlanSQL();
-            q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder, false);
+            q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder);
         }
         double cost = q.getCost();
         cachedCost = new CostElement();
@@ -205,7 +205,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     }
 
     private static Query prepareSubQuery(String sql, Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder, boolean preliminary) {
+            TableFilter[] filters, int filter, SortOrder sortOrder) {
         assert filters != null;
         Prepared p;
         session.pushSubQueryInfo(masks, filters, filter, sortOrder);
@@ -336,7 +336,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private Query getQuery(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
-        Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder, true);
+        Query q = prepareSubQuery(querySQL, session, masks, filters, filter, sortOrder);
         if (masks == null) {
             return q;
         }
@@ -419,7 +419,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         }
 
         String sql = q.getPlanSQL();
-        q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder, false);
+        q = prepareSubQuery(sql, session, masks, filters, filter, sortOrder);
         return q;
     }
 

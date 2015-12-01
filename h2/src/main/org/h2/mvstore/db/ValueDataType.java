@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Arrays;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -133,18 +132,11 @@ public class ValueDataType implements DataType {
         if (aNull || bNull) {
             return SortOrder.compareNull(aNull, sortType);
         }
-        int comp = compareTypeSafe(a, b);
+        int comp = a.compareTypeSafe(b, compareMode);
         if ((sortType & SortOrder.DESCENDING) != 0) {
             comp = -comp;
         }
         return comp;
-    }
-
-    private int compareTypeSafe(Value a, Value b) {
-        if (a == b) {
-            return 0;
-        }
-        return a.compareTypeSafe(b, compareMode);
     }
 
     @Override

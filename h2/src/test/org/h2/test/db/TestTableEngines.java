@@ -394,13 +394,15 @@ public class TestTableEngines extends TestBase {
     }
     
     private void testBatchedJoin() throws SQLException {
+        if (config.networked) {
+            // networked test is disabled because it relies on OptimizerHints which is ThreadLocal
+            return;
+        }
         deleteDb("testBatchedJoin");
         Connection conn = getConnection("testBatchedJoin;OPTIMIZE_REUSE_RESULTS=0;BATCH_JOINS=1");
         Statement stat = conn.createStatement();
-        if (!config.networked) {
-            Session s = (Session) ((JdbcConnection) conn).getSession();
-            assertTrue(s.isJoinBatchEnabled());
-        }
+        Session s = (Session) ((JdbcConnection) conn).getSession();
+        assertTrue(s.isJoinBatchEnabled());
         setBatchingEnabled(stat, false);
         setBatchingEnabled(stat, true);
         

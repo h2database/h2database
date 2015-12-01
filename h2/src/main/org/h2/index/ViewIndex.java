@@ -96,11 +96,11 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         columns = new Column[0];
         if (!recursive) {
             query = getQuery(session, masks, filters, filter, sortOrder);
-            evaluatedAt = System.nanoTime();
-        } else {
-            // we don't need eviction for recursive views since we can't calculate their cost
-            evaluatedAt = Long.MAX_VALUE;
         }
+        // we don't need eviction for recursive views since we can't calculate their cost
+        // if it is a sub-query we don't need eviction as well because the whole ViewIndex cache
+        // is getting dropped in Session.prepareLocal
+        evaluatedAt = recursive || view.getTopQuery() != null ? Long.MAX_VALUE : System.nanoTime();
     }
 
     @Override
@@ -118,7 +118,8 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     public boolean isExpired() {
         assert evaluatedAt != Long.MIN_VALUE : "must not be called for main index of TableView";
-        return !recursive && System.nanoTime() - evaluatedAt > MAX_AGE_NANOS;
+        return !recursive && view.getTopQuery() == null &&
+                System.nanoTime() - evaluatedAt > MAX_AGE_NANOS;
     }
 
     @Override

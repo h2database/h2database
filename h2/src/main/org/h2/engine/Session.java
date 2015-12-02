@@ -17,6 +17,7 @@ import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.dml.Query;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
@@ -115,6 +116,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
@@ -185,6 +187,24 @@ public class Session extends SessionWithState {
     public boolean isParsingView() {
         assert parsingView >= 0;
         return parsingView != 0;
+    }
+
+    public void optimizeQueryExpression(Query query) {
+        // we have to hide current subQueryInfo if we are going to optimize query expression
+        SubQueryInfo tmp = subQueryInfo;
+        subQueryInfo = null;
+        preparingQueryExpression++;
+        try {
+            query.prepare();
+        } finally {
+            subQueryInfo = tmp;
+            preparingQueryExpression--;
+        }
+    }
+
+    public boolean isPreparingQueryExpression() {
+        assert preparingQueryExpression >= 0;
+        return preparingQueryExpression != 0;
     }
 
     @Override

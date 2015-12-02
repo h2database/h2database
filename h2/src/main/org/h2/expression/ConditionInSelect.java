@@ -13,6 +13,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
+import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -117,7 +118,7 @@ public class ConditionInSelect extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         query.setRandomAccessResult(true);
-        query.prepare();
+        session.optimizeQueryExpression(query);
         if (query.getColumnCount() != 1) {
             throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }

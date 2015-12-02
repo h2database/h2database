@@ -73,6 +73,7 @@ public class TestTableEngines extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testQueryExpressionFlag();
         testSubQueryInfo();
         testEarlyFilter();
         testEngineParams();
@@ -345,6 +346,21 @@ public class TestTableEngines extends TestBase {
         }, null);
 
         deleteDb("tableEngine");
+    }
+
+    private void testQueryExpressionFlag() throws SQLException {
+        deleteDb("testQueryExpressionFlag");
+        Connection conn = getConnection("testQueryExpressionFlag");
+        Statement stat = conn.createStatement();
+        stat.execute("create table QRY_EXPR_TEST(id int) ENGINE \"" + 
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.execute("create table QRY_EXPR_TEST_NO(id int) ENGINE \"" + 
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.executeQuery("select 1 + (select 1 from QRY_EXPR_TEST)").next();
+        stat.executeQuery("select 1 from QRY_EXPR_TEST_NO where id in (select id from QRY_EXPR_TEST)");
+        stat.executeQuery("select 1 from QRY_EXPR_TEST_NO n "
+                + "where exists(select 1 from QRY_EXPR_TEST y where y.id = n.id)");
+        deleteDb("testQueryExpressionFlag");
     }
 
     private void testSubQueryInfo() throws SQLException {
@@ -1130,6 +1146,7 @@ public class TestTableEngines extends TestBase {
             @Override
             public double getCost(Session session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder) {
+                doTests(session);
                 return getRowCount(session) + Constants.COST_ROW_OFFSET;
             }
         };
@@ -1312,7 +1329,7 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public IndexLookupBatch createLookupBatch(final TableFilter filter) {
-            assert filter.getMasks() != null || "scan".equals(getName());
+            assert0(filter.getMasks() != null || "scan".equals(getName()), "masks");
             final int preferedSize = preferedBatchSize; 
             if (preferedSize == 0) {
                 return null;
@@ -1454,18 +1471,26 @@ public class TestTableEngines extends TestBase {
             }
         }
 
-        @Override
-        public double getCost(Session session, int[] masks,
-                TableFilter[] filters, int filter, SortOrder sortOrder) {
+        protected void doTests(Session session) {
             if (getTable().getName().equals("SUB_QUERY_TEST")) {
                 checkInfo(session.getSubQueryInfo());
             } else if (getTable().getName().equals("EXPR_TEST")) {
                 assert0(session.getSubQueryInfo() == null, "select expression");
-            }  else if (getTable().getName().equals("EXPR_TEST2")) {
+            } else if (getTable().getName().equals("EXPR_TEST2")) {
                 String alias = alias(session.getSubQueryInfo());
                 assert0(alias.equals("ZZ"), "select expression sub-query: " + alias);
                 assert0(session.getSubQueryInfo().getUpper() == null, "upper");
+            } else if (getTable().getName().equals("QRY_EXPR_TEST")) {
+                assert0(session.isPreparingQueryExpression(), "preparing query expression");
+            } else if (getTable().getName().equals("QRY_EXPR_TEST_NO")) {
+                assert0(!session.isPreparingQueryExpression(), "not preparing query expression");
             }
+        }
+
+        @Override
+        public double getCost(Session session, int[] masks,
+                TableFilter[] filters, int filter, SortOrder sortOrder) {
+            doTests(session);
             return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
         }
 

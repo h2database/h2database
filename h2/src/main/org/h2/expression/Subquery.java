@@ -6,13 +6,13 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
+import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -70,7 +70,7 @@ public class Subquery extends Expression {
 
     @Override
     public Expression optimize(Session session) {
-        query.prepare();
+        session.optimizeQueryExpression(query);
         return this;
     }
 

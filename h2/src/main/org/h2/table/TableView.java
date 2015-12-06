@@ -235,15 +235,15 @@ public class TableView extends Table {
     @Override
     public PlanItem getBestPlanItem(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
-        PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks, filters, filter, sortOrder);
         final CacheKey cacheKey = new CacheKey(masks, this);
         Map<Object, ViewIndex> indexCache = session.getViewIndexCache(topQuery != null);
         ViewIndex i = indexCache.get(cacheKey);
-        if (i == null) {
+        if (i == null || i.isExpired()) {
             i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
             indexCache.put(cacheKey, i);
         }
+        PlanItem item = new PlanItem();
+        item.cost = i.getCost(session, masks, filters, filter, sortOrder);
         item.setIndex(i);
         return item;
     }

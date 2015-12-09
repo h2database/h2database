@@ -113,7 +113,7 @@
 90084=Kann das letzte Feld nicht löschen {0}
 90085=Index {0} gehört zur Bedingung {1}
 90086=Klasse {0} nicht gefunden
-90087=Methode {0} nicht gefunden
+90087=Method {0} with matching arguments not found
 90088=Unbekannter Modus {0}
 90089=Textvergleich-Modus kann nicht geändert werden wenn eine Daten-Tabelle existiert : {0}
 90090=Schema {0} kann nicht gelöscht werden

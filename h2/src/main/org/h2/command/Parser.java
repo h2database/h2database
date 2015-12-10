@@ -1774,7 +1774,7 @@ public class Parser {
             if (readIf("OFFSET")) {
                 command.setOffset(readExpression().optimize(session));
                 if (!readIf("ROW")) {
-                    read("ROWS");
+                    readIf("ROWS");
                 }
             }
             if (readIf("FETCH")) {

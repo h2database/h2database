@@ -412,8 +412,6 @@ public class TestTableEngines extends TestBase {
         deleteDb("testBatchedJoin");
         Connection conn = getConnection("testBatchedJoin;OPTIMIZE_REUSE_RESULTS=0;BATCH_JOINS=1");
         Statement stat = conn.createStatement();
-        Session s = (Session) ((JdbcConnection) conn).getSession();
-        assertTrue(s.isJoinBatchEnabled());
         setBatchingEnabled(stat, false);
         setBatchingEnabled(stat, true);
         

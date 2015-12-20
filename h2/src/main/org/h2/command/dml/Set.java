@@ -506,6 +506,15 @@ public class Set extends Prepared {
             session.setJoinBatchEnabled(value == 1);
             break;
         }
+        case SetTypes.FORCE_JOIN_ORDER: {
+            int value = getIntValue();
+            if (value != 0 && value != 1) {
+                throw DbException.getInvalidValueException("FORCE_JOIN_ORDER",
+                        getIntValue());
+            }
+            session.setForceJoinOrder(value == 1);
+            break;
+        }
         default:
             DbException.throwInternalError("type="+type);
         }

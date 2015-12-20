@@ -120,6 +120,7 @@ public class Session extends SessionWithState {
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
+    private boolean forceJoinOrder;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -151,6 +152,14 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+    }
+
+    public void setForceJoinOrder(boolean forceJoinOrder) {
+        this.forceJoinOrder = forceJoinOrder;
+    }
+
+    public boolean isForceJoinOrder() {
+        return forceJoinOrder;
     }
 
     public void setJoinBatchEnabled(boolean joinBatchEnabled) {

@@ -175,7 +175,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
-            TableFilter filter = new TableFilter(session, table, null, false, null);
+            TableFilter filter = new TableFilter(session, table, null, false, null, 0);
             checkExpression.mapColumns(filter, 0);
             checkExpression = checkExpression.optimize(session);
             check.setExpression(checkExpression);

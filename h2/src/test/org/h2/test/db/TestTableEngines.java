@@ -27,7 +27,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.command.dml.OptimizerHints;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -410,15 +409,9 @@ public class TestTableEngines extends TestBase {
     }
     
     private void testBatchedJoin() throws SQLException {
-        if (config.networked) {
-            // networked test is disabled because it relies on OptimizerHints which is ThreadLocal
-            return;
-        }
         deleteDb("testBatchedJoin");
         Connection conn = getConnection("testBatchedJoin;OPTIMIZE_REUSE_RESULTS=0;BATCH_JOINS=1");
         Statement stat = conn.createStatement();
-        Session s = (Session) ((JdbcConnection) conn).getSession();
-        assertTrue(s.isJoinBatchEnabled());
         setBatchingEnabled(stat, false);
         setBatchingEnabled(stat, true);
         
@@ -431,7 +424,7 @@ public class TestTableEngines extends TestBase {
             }
         });
         
-        enableJoinReordering(false);
+        forceJoinOrder(stat, true);
         try {
             doTestBatchedJoinSubQueryUnion(stat);
             
@@ -469,22 +462,14 @@ public class TestTableEngines extends TestBase {
             
             assertTrue(TreeSetIndex.lookupBatches.get() > 0);
         } finally {
-            enableJoinReordering(true);
+            forceJoinOrder(stat, false);
             TreeSetIndex.exec.shutdownNow();
         }
         deleteDb("testBatchedJoin");
     }
     
-    /**
-     * @param enable Enabled.
-     */
-    private void enableJoinReordering(boolean enable) {
-        OptimizerHints hints = null;
-        if (!enable) {
-            hints = new OptimizerHints();
-            hints.setJoinReorderEnabled(false);
-        }
-        OptimizerHints.set(hints);
+    private void forceJoinOrder(Statement s, boolean force) throws SQLException {
+        s.executeUpdate("SET FORCE_JOIN_ORDER " + force);
     }
 
     private void checkPlan(Statement stat, String sql) throws SQLException {

@@ -233,6 +233,11 @@ public class SetTypes {
      */
     public static final int BATCH_JOINS = 44;
 
+    /**
+     * The type of SET FORCE_JOIN_ORDER statement.
+     */
+    public static final int FORCE_JOIN_ORDER = 45;
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
@@ -286,6 +291,7 @@ public class SetTypes {
         list.add(QUERY_STATISTICS_MAX_ENTRIES, "QUERY_STATISTICS_MAX_ENTRIES");
         list.add(ROW_FACTORY, "ROW_FACTORY");
         list.add(BATCH_JOINS, "BATCH_JOINS");
+        list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
     }
 
     /**

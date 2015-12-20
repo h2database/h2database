@@ -112,6 +112,7 @@ public class TableFilter implements ColumnResolver {
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
+    private final int orderInFrom;
 
     /**
      * Create a new table filter object.
@@ -121,9 +122,10 @@ public class TableFilter implements ColumnResolver {
      * @param alias the alias name
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
+     * @param orderInFrom Original order number of this table filter in FROM clause.
      */
     public TableFilter(Session session, Table table, String alias,
-            boolean rightsChecked, Select select) {
+            boolean rightsChecked, Select select, int orderInFrom) {
         this.session = session;
         this.table = table;
         this.alias = alias;
@@ -133,6 +135,11 @@ public class TableFilter implements ColumnResolver {
             session.getUser().checkRight(table, Right.SELECT);
         }
         hashCode = session.nextObjectId();
+        this.orderInFrom = orderInFrom;
+    }
+
+    public int getOrderInFrom() {
+        return orderInFrom;
     }
 
     public IndexCursor getIndexCursor() {

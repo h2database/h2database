@@ -697,11 +697,13 @@ public abstract class Table extends SchemaObjectBase {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
         item.cost = item.getIndex().getCost(session, null, filters, filter, null);
+        session.getTrace().debug("Table      :     potential plan item cost {0} index {1}", item.cost, item.getIndex().getPlanSQL());
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
                 double cost = index.getCost(session, masks, filters, filter, sortOrder);
+                session.getTrace().debug("Table      :     potential plan item cost {0} index {1}", cost, index.getPlanSQL());
                 if (cost < item.cost) {
                     item.cost = cost;
                     item.setIndex(index);

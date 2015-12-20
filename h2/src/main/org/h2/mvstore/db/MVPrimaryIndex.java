@@ -219,8 +219,10 @@ public class MVPrimaryIndex extends BaseIndex {
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         try {
-            long cost = 10 * (dataMap.sizeAsLongMax() + Constants.COST_ROW_OFFSET);
-            return cost;
+        	// we use 9 here and 10 in MVSecondaryIndex to biase the decision towards
+        	// using a table-scan when it has similar cost to an index
+            return 9 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
+                    filters, filter, sortOrder);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }

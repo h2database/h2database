@@ -6,7 +6,9 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -104,12 +106,17 @@ public class Plan {
      * @return the cost
      */
     public double calculateCost(Session session) {
+    	if (session.getTrace().isDebugEnabled()) {
+    		session.getTrace().debug("Plan       : calculate cost for plan {0}", Arrays.toString(allFilters));
+    	}
         double cost = 1;
         boolean invalidPlan = false;
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter tableFilter = allFilters[i];
+            session.getTrace().debug("Plan       :   for table filter {0}", tableFilter);
             PlanItem item = tableFilter.getBestPlanItem(session, allFilters, i);
             planItems.put(tableFilter, item);
+            session.getTrace().debug("Plan       :   best plan item cost {0} index {1}", (int)item.cost, item.getIndex().getPlanSQL());
             cost += cost * item.cost;
             setEvaluatable(tableFilter, true);
             Expression on = tableFilter.getJoinCondition();
@@ -123,6 +130,7 @@ public class Plan {
         if (invalidPlan) {
             cost = Double.POSITIVE_INFINITY;
         }
+        session.getTrace().debug("Plan       : plan cost {0}", (int)cost);
         for (TableFilter f : allFilters) {
             setEvaluatable(f, false);
         }

@@ -5,11 +5,15 @@
  */
 package org.h2.index;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Mode;
 import org.h2.engine.Session;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
@@ -21,6 +25,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -148,7 +153,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * b-tree range index. This is the estimated cost required to search one
      * row, and then iterate over the given number of rows.
      *
-     * @param masks the search mask
+     * @param masks the IndexCondition search masks, one for each Column in the table
      * @param rowCount the number of rows in the index
      * @param filters all joined table filters
      * @param filter the current table filter index
@@ -232,6 +237,26 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                 // that covers more
                 cost -= coveringCount;
             }
+        }
+        // If we have two indexes with the same cost, and one of the indexes can satisfy the query
+        // without needing to read from the primary table, make that one slightly lower cost
+		HashSet<Column> set1 = New.hashSet();
+        for (int i=0; i < filters.length; i++) {
+        	if (filters[i].getSelect() != null) {
+        		filters[i].getSelect().isEverything(ExpressionVisitor.getColumnsVisitor(set1));
+        	}
+        }
+        if (!set1.isEmpty()) {
+			HashSet<Column> set2 = New.hashSet();
+			for (Column c : set1) {
+				if (c.getTable() == getTable()) {
+					set2.add(c);
+				}
+			}
+	        set2.removeAll(Arrays.asList(getColumns()));
+			if (set2.isEmpty()) {
+				cost -= 1;
+			}
         }
         return cost;
     }

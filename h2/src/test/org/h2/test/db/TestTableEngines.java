@@ -228,7 +228,7 @@ public class TestTableEngines extends TestBase {
         checkPlan(stat, "select * from t where a > 0 and b > ''", "IDX_B_A");
         checkPlan(stat, "select * from t where b < ''", "IDX_B_A");
         checkPlan(stat, "select * from t where b < '' and c < 1", "IDX_C_B_A");
-        checkPlan(stat, "select * from t where a = 0", "scan");
+        checkPlan(stat, "select * from t where a = 0", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a > 0 order by c, b", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a = 0 and c > 0", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a = 0 and b < 0", "IDX_B_A");
@@ -535,11 +535,11 @@ public class TestTableEngines extends TestBase {
                 + "/* SELECT A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/ */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_B: B = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.B");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_B */ "
                 + "INNER JOIN ( SELECT A FROM PUBLIC.T ) Z "
                 + "/* batched:view SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = T.B */ ON 1=1 WHERE Z.A = T.B");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( ((SELECT A FROM PUBLIC.T) UNION ALL (SELECT B FROM PUBLIC.U)) "
                 + "UNION ALL (SELECT B FROM PUBLIC.T) ) Z /* batched:view "
                 + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ WHERE A IS ?1) "
@@ -548,12 +548,12 @@ public class TestTableEngines extends TestBase {
                 + "UNION ALL "
                 + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ WHERE B IS ?1)"
                 + ": A = T.A */ ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
                 + "/* batched:view SELECT U.A FROM PUBLIC.U /++ batched:fake PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "/++ WHERE U.A IS ?1 ++/ INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
                 + "ON 1=1 WHERE (U.A IS ?1) AND (U.B = T.B): A = T.A */ ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( SELECT A FROM PUBLIC.U ) Z /* SELECT A FROM PUBLIC.U "
                 + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ WHERE A IS ?1: A = T.A */ ON 1=1 WHERE T.A = Z.A");
         checkPlan(stat, "SELECT 1 FROM "
@@ -564,7 +564,7 @@ public class TestTableEngines extends TestBase {
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE T.A = Z.A");
         checkPlan(stat, "SELECT 1 FROM "
                 + "( SELECT U.A FROM PUBLIC.T INNER JOIN PUBLIC.U ON 1=1 WHERE T.B = U.B ) Z "
-                + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/ "
+                + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.T_IDX_B ++/ "
                 + "INNER JOIN PUBLIC.U /++ PUBLIC.U_IDX_B: B = T.B ++/ "
                 + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.A");
@@ -573,14 +573,14 @@ public class TestTableEngines extends TestBase {
                 + "UNION "
                 + "(SELECT A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/) */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_B */ "
                 + "INNER JOIN ( (SELECT A, B FROM PUBLIC.T) UNION (SELECT B, A FROM PUBLIC.U) ) Z "
                 + "/* batched:view (SELECT A, B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
                 + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1): B = U.B */ ON 1=1 /* WHERE U.B = Z.B */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
                 + "WHERE (U.B = Z.B) AND (Z.A = T.A)"); 
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_A */ "
                 + "INNER JOIN ( SELECT A, B FROM PUBLIC.U ) Z "
                 + "/* batched:fake SELECT A, B FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = U.A */ ON 1=1 /* WHERE U.A = Z.A */ "

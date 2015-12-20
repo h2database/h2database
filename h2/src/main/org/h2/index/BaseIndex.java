@@ -240,23 +240,23 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         }
         // If we have two indexes with the same cost, and one of the indexes can satisfy the query
         // without needing to read from the primary table, make that one slightly lower cost
-		HashSet<Column> set1 = New.hashSet();
-        for (int i=0; i < filters.length; i++) {
-        	if (filters[i].getSelect() != null) {
-        		filters[i].getSelect().isEverything(ExpressionVisitor.getColumnsVisitor(set1));
-        	}
+        HashSet<Column> set1 = New.hashSet();
+        for (int i = 0; i < filters.length; i++) {
+            if (filters[i].getSelect() != null) {
+                filters[i].getSelect().isEverything(ExpressionVisitor.getColumnsVisitor(set1));
+            }
         }
         if (!set1.isEmpty()) {
-			HashSet<Column> set2 = New.hashSet();
-			for (Column c : set1) {
-				if (c.getTable() == getTable()) {
-					set2.add(c);
-				}
-			}
-	        set2.removeAll(Arrays.asList(getColumns()));
-			if (set2.isEmpty()) {
-				cost -= 1;
-			}
+            HashSet<Column> set2 = New.hashSet();
+            for (Column c : set1) {
+                if (c.getTable() == getTable()) {
+                    set2.add(c);
+                }
+            }
+            set2.removeAll(Arrays.asList(getColumns()));
+            if (set2.isEmpty()) {
+                cost -= 1;
+            }
         }
         return cost;
     }

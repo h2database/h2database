@@ -16,64 +16,64 @@ import org.h2.message.DbException;
  * This class knows all about the TO_DATE-format conventions and how to parse the corresponding data
  */
 class ToDateTokenizer {
-    private static final Pattern PATTERN_Number = Pattern.compile("^([+-]?[0-9]+)");
-    private static final Pattern PATTERN_4_Digit = Pattern.compile("^([+-]?[0-9]{4})");
-    private static final Pattern PATTERN_3_Digit = Pattern.compile("^([+-]?[0-9]{3})");
-    private static final Pattern PATTERN_2_Digit = Pattern.compile("^([+-]?[0-9]{2})");
-    private static final Pattern PATTERN_2_DigitOrLess = Pattern.compile("^([+-]?[0-9][0-9]?)");
-    private static final Pattern PATTERN_1_Digit = Pattern.compile("^([+-]?[0-9])");
+    private static final Pattern PATTERN_NUMBER = Pattern.compile("^([+-]?[0-9]+)");
+    private static final Pattern PATTERN_FOUR_DIGITS = Pattern.compile("^([+-]?[0-9]{4})");
+    private static final Pattern PATTERN_THREE_DIGITS = Pattern.compile("^([+-]?[0-9]{3})");
+    private static final Pattern PATTERN_TWO_DIGITS = Pattern.compile("^([+-]?[0-9]{2})");
+    private static final Pattern PATTERN_TWO_DIGITS_OR_LESS = Pattern.compile("^([+-]?[0-9][0-9]?)");
+    private static final Pattern PATTERN_ONE_DIGIT = Pattern.compile("^([+-]?[0-9])");
     private static final Pattern PATTERN_FF = Pattern.compile("^(FF[0-9]?)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_AM_PM = Pattern.compile("^(AM|A\\.M\\.|PM|P\\.M\\.)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PATTERN_BC_AD = Pattern.compile("^(BC|B\\.C\\.|AD|A\\.D\\.)", Pattern.CASE_INSENSITIVE);
-    private static final YearParslet PARSLET_Year = new YearParslet();
-    private static final MonthParslet PARSLET_Month = new MonthParslet();
+    private static final YearParslet PARSLET_YEAR = new YearParslet();
+    private static final MonthParslet PARSLET_MONTH = new MonthParslet();
     //private static final WeekParslet PARSLET_Week = new WeekParslet();
-    private static final DayParslet PARSLET_Day = new DayParslet();
-    private static final TimeParslet PARSLET_Time = new TimeParslet();
+    private static final DayParslet PARSLET_DAY = new DayParslet();
+    private static final TimeParslet PARSLET_TIME = new TimeParslet();
 
     static enum FormatTokenEnum {
-        YYYY(PARSLET_Year) // 4-digit year
-        , SYYYY(PARSLET_Year) // 4-digit year with sign (- = B.C.)
-        , IYYY(PARSLET_Year) // 4-digit year based on the ISO standard (?)
-        , YYY(PARSLET_Year) //
-        , IYY(PARSLET_Year) //
-        , YY(PARSLET_Year) //
-        , IY(PARSLET_Year) //
-        , SCC(PARSLET_Year) // Two-digit century with with sign (- = B.C.)
-        , CC(PARSLET_Year) // Two-digit century.
-        , RRRR(PARSLET_Year) // 2-digit -> 4-digit year 0-49 -> 20xx , 50-99 -> 19xx
-        , RR(PARSLET_Year) // last 2-digit of the year using "current" century value.
-        , BC_AD(PARSLET_Year, PATTERN_BC_AD) // Meridian indicator
-        , MONTH(PARSLET_Month) // Full Name of month
-        , MON(PARSLET_Month) // Abbreviated name of month.
-        , MM(PARSLET_Month) // Month (01-12; JAN = 01).
-        , RM(PARSLET_Month) // Roman numeral month (I-XII; JAN = I).
+        YYYY(PARSLET_YEAR) // 4-digit year
+        , SYYYY(PARSLET_YEAR) // 4-digit year with sign (- = B.C.)
+        , IYYY(PARSLET_YEAR) // 4-digit year based on the ISO standard (?)
+        , YYY(PARSLET_YEAR) //
+        , IYY(PARSLET_YEAR) //
+        , YY(PARSLET_YEAR) //
+        , IY(PARSLET_YEAR) //
+        , SCC(PARSLET_YEAR) // Two-digit century with with sign (- = B.C.)
+        , CC(PARSLET_YEAR) // Two-digit century.
+        , RRRR(PARSLET_YEAR) // 2-digit -> 4-digit year 0-49 -> 20xx , 50-99 -> 19xx
+        , RR(PARSLET_YEAR) // last 2-digit of the year using "current" century value.
+        , BC_AD(PARSLET_YEAR, PATTERN_BC_AD) // Meridian indicator
+        , MONTH(PARSLET_MONTH) // Full Name of month
+        , MON(PARSLET_MONTH) // Abbreviated name of month.
+        , MM(PARSLET_MONTH) // Month (01-12; JAN = 01).
+        , RM(PARSLET_MONTH) // Roman numeral month (I-XII; JAN = I).
         //, WW(PARSLET_Week) // Week of year (1-53)
         //, IW(PARSLET_Week) // Week of year (1-52 or 1-53) based on the ISO standard.
-        , DDD(PARSLET_Day) // Day of year (1-366).
-        , DAY(PARSLET_Day) // Name of day.
-        , DD(PARSLET_Day) // Day of month (1-31).
-        , DY(PARSLET_Day) // Abbreviated name of day.
-        , HH24(PARSLET_Time) //
-        , HH12(PARSLET_Time) //
-        , HH(PARSLET_Time) // Hour of day (1-12).
-        , MI(PARSLET_Time) // Min
-        , SSSSS(PARSLET_Time) // Seconds past midnight (0-86399)
-        , SS(PARSLET_Time) //
-        , FF(PARSLET_Time, PATTERN_FF) // Fractional seconds
-        , TZH(PARSLET_Time) // Time zone hour.
-        , TZM(PARSLET_Time) // Time zone minute.
-        , TZR(PARSLET_Time) // Time zone region ID
-        , TZD(PARSLET_Time) // Daylight savings information. Example: PST (for US/Pacific standard time);
-        , AM_PM(PARSLET_Time, PATTERN_AM_PM) // Meridian indicator
-        , EE(PARSLET_Year) // NOT supported yet - Full era name (Japanese Imperial, ROC Official, and Thai Buddha calendars).
-        , E(PARSLET_Year) // NOT supported yet - Abbreviated era name (Japanese Imperial, ROC Official, and Thai Buddha calendars).
-        , Y(PARSLET_Year) //
-        , I(PARSLET_Year) //
-        , Q(PARSLET_Month) // Quarter of year (1, 2, 3, 4; JAN-MAR = 1).
+        , DDD(PARSLET_DAY) // Day of year (1-366).
+        , DAY(PARSLET_DAY) // Name of day.
+        , DD(PARSLET_DAY) // Day of month (1-31).
+        , DY(PARSLET_DAY) // Abbreviated name of day.
+        , HH24(PARSLET_TIME) //
+        , HH12(PARSLET_TIME) //
+        , HH(PARSLET_TIME) // Hour of day (1-12).
+        , MI(PARSLET_TIME) // Min
+        , SSSSS(PARSLET_TIME) // Seconds past midnight (0-86399)
+        , SS(PARSLET_TIME) //
+        , FF(PARSLET_TIME, PATTERN_FF) // Fractional seconds
+        , TZH(PARSLET_TIME) // Time zone hour.
+        , TZM(PARSLET_TIME) // Time zone minute.
+        , TZR(PARSLET_TIME) // Time zone region ID
+        , TZD(PARSLET_TIME) // Daylight savings information. Example: PST (for US/Pacific standard time);
+        , AM_PM(PARSLET_TIME, PATTERN_AM_PM) // Meridian indicator
+        , EE(PARSLET_YEAR) // NOT supported yet - Full era name (Japanese Imperial, ROC Official, and Thai Buddha calendars).
+        , E(PARSLET_YEAR) // NOT supported yet - Abbreviated era name (Japanese Imperial, ROC Official, and Thai Buddha calendars).
+        , Y(PARSLET_YEAR) //
+        , I(PARSLET_YEAR) //
+        , Q(PARSLET_MONTH) // Quarter of year (1, 2, 3, 4; JAN-MAR = 1).
         //, W(PARSLET_Week) // Week of month (1-5)
-        , D(PARSLET_Day) // Day of week (1-7).
-        , J(PARSLET_Day); // NOT supported yet - Julian day; the number of days since Jan 1, 4712 BC.
+        , D(PARSLET_DAY) // Day of week (1-7).
+        , J(PARSLET_DAY); // NOT supported yet - Julian day; the number of days since Jan 1, 4712 BC.
 
 
         private final static Map<Character, List<FormatTokenEnum>> cache = new HashMap<Character, List<FormatTokenEnum>>(FormatTokenEnum.values().length);
@@ -176,20 +176,20 @@ class ToDateTokenizer {
                 case SYYYY:
                 case YYYY:
                 case IYYY:
-                    inputFragmentStr = matchStringOrDie(PATTERN_4_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_FOUR_DIGITS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
                     break;
                 case YYY:
                 case IYY:
-                    inputFragmentStr = matchStringOrDie(PATTERN_3_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_THREE_DIGITS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
                     break;
                 case RRRR:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     dateNr += dateNr < 50 ? 2000 : 1900;
                     result.set(Calendar.YEAR, dateNr);
@@ -197,7 +197,7 @@ class ToDateTokenizer {
                 case RR:
                     Calendar calendar = Calendar.getInstance();
                     int cc = (calendar.get(Calendar.YEAR) / 100);
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr) + cc * 100;
                     result.set(Calendar.YEAR, dateNr);
                     break;
@@ -209,20 +209,20 @@ class ToDateTokenizer {
                     break;
                 case YY:
                 case IY:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
                     break;
                 case SCC:
                 case CC:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr) * 100;
                     result.set(Calendar.YEAR, dateNr);
                     break;
                 case Y:
                 case I:
-                    inputFragmentStr = matchStringOrDie(PATTERN_1_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_ONE_DIGIT, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
@@ -271,7 +271,7 @@ class ToDateTokenizer {
                     break;
                 case MM:
                     // Note: In Calendar Month go from 0 - 11
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.MONTH, dateNr - 1);
                     break;
@@ -313,14 +313,14 @@ class ToDateTokenizer {
             int dateNr = 0;
             switch (formatTokenEnum) {
                 case WW:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // The first week of the month, as defined by
                     // getFirstDayOfWeek() and getMinimalDaysInFirstWeek(),
                     result.set(Calendar.WEEK_OF_YEAR, dateNr);
                     break;
                 case IW:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // Build set the calendar to ISO8601 (see
                     // http://en.wikipedia.org/wiki/ISO_8601_week_number)
@@ -329,7 +329,7 @@ class ToDateTokenizer {
                     result.set(Calendar.WEEK_OF_YEAR, dateNr);
                     break;
                 case W:
-                    inputFragmentStr = matchStringOrDie(PATTERN_1_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_ONE_DIGIT, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     // The first week of the month, as defined by
                     // getFirstDayOfWeek() and getMinimalDaysInFirstWeek(),
@@ -357,17 +357,17 @@ class ToDateTokenizer {
             int dateNr = 0;
             switch (formatTokenEnum) {
                 case DDD:
-                    inputFragmentStr = matchStringOrDie(PATTERN_Number, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_NUMBER, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.DAY_OF_YEAR, dateNr);
                     break;
                 case DD:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.DAY_OF_MONTH, dateNr);
                     break;
                 case D:
-                    inputFragmentStr = matchStringOrDie(PATTERN_1_Digit, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_ONE_DIGIT, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.DAY_OF_MONTH, dateNr);
                     break;
@@ -378,7 +378,7 @@ class ToDateTokenizer {
                     inputFragmentStr = setByName(result, params, Calendar.DAY_OF_WEEK, Calendar.SHORT);
                     break;
                 case J:
-                    inputFragmentStr = matchStringOrDie(PATTERN_Number, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_NUMBER, params, formatTokenEnum);
                     try {
                         Date date = new SimpleDateFormat("Myydd").parse(inputFragmentStr);
                         result.setTime(date);
@@ -410,35 +410,35 @@ class ToDateTokenizer {
             int dateNr = 0;
             switch (formatTokenEnum) {
                 case HH24:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.HOUR_OF_DAY, dateNr);
                     break;
                 case HH12:
                 case HH:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.HOUR, dateNr);
                     break;
                 case MI:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.MINUTE, dateNr);
                     break;
                 case SS:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.SECOND, dateNr);
                     break;
                 case SSSSS:
-                    inputFragmentStr = matchStringOrDie(PATTERN_Number, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_NUMBER, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     result.set(Calendar.HOUR_OF_DAY, 0);
                     result.set(Calendar.MINUTE, 0);
                     result.set(Calendar.SECOND, dateNr);
                     break;
                 case FF: //
-                    inputFragmentStr = matchStringOrDie(PATTERN_Number, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_NUMBER, params, formatTokenEnum);
                     String paddedRightNrStr = format("%-9s", inputFragmentStr).replace(' ', '0');
                     paddedRightNrStr = paddedRightNrStr.substring(0, 9);
                     Double nineDigits = Double.parseDouble(paddedRightNrStr);
@@ -457,7 +457,7 @@ class ToDateTokenizer {
                     break;
 
                 case TZH:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     TimeZone tz = result.getTimeZone();
                     int offsetMillis = tz.getRawOffset();
@@ -466,7 +466,7 @@ class ToDateTokenizer {
                     result.setTimeZone(tz);
                     break;
                 case TZM:
-                    inputFragmentStr = matchStringOrDie(PATTERN_2_DigitOrLess, params, formatTokenEnum);
+                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
                     dateNr = parseInt(inputFragmentStr);
                     tz = result.getTimeZone();
                     offsetMillis = tz.getRawOffset();

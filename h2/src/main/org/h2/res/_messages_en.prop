@@ -83,6 +83,7 @@
 90053=Scalar subquery contains more than one row
 90054=Invalid use of aggregate function {0}
 90055=Unsupported cipher {0}
+90056=Function {0}: Invalid date format: {1}
 90057=Constraint {0} not found
 90058=Commit or rollback is not allowed within a trigger
 90059=Ambiguous column name {0}

@@ -83,6 +83,7 @@
 90053=SkalÃ¡rnÃ­ vnoÅ™enÃ½ dotaz obsahuje vÃ­ce neÅ¾ jeden Å™Ã¡dek
 90054=NeplatnÃ© pouÅ¾itÃ­ agregÃ¡tnÃ­ funkce {0}
 90055=NepodporovanÃ© Å¡ifrovÃ¡nÃ­ {0}
+90056=Function {0}: Invalid date format: {1}
 90057=OmezenÃ­ {0} nenalezeno
 90058=VklÃ¡dÃ¡nÃ­ nebo vrÃ¡cenÃ­ zmÄ›n nenÃ­ povoleno uvnitÅ™ triggeru
 90059=DvojsmyslnÃ½ nÃ¡zev sloupce {0}

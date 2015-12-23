@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -159,11 +158,15 @@ public abstract class Value {
      * The value type for string values with a fixed size.
      */
     public static final int GEOMETRY = 22;
+    /**
+     * The value type for TIMESTAMP UTC values.
+     */
+    public static final int TIMESTAMP_UTC = 23;
 
     /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = GEOMETRY + 1;
+    public static final int TYPE_COUNT = TIMESTAMP_UTC + 1;
 
     private static SoftReference<Value[]> softCache =
             new SoftReference<Value[]>(null);
@@ -299,6 +302,8 @@ public abstract class Value {
             return 31;
         case TIMESTAMP:
             return 32;
+        case TIMESTAMP_UTC:
+            return 33;
         case BYTES:
             return 40;
         case BLOB:
@@ -542,6 +547,7 @@ public abstract class Value {
                 case TIME:
                 case DATE:
                 case TIMESTAMP:
+                case TIMESTAMP_UTC:
                 case BYTES:
                 case JAVA_OBJECT:
                 case UUID:
@@ -559,6 +565,7 @@ public abstract class Value {
                 case INT:
                     return ValueByte.get(convertToByte(getInt()));
                 case LONG:
+                case TIMESTAMP_UTC:
                     return ValueByte.get(convertToByte(getLong()));
                 case DECIMAL:
                     return ValueByte.get(convertToByte(convertToLong(getBigDecimal())));
@@ -580,6 +587,7 @@ public abstract class Value {
                 case INT:
                     return ValueShort.get(convertToShort(getInt()));
                 case LONG:
+                case TIMESTAMP_UTC:
                     return ValueShort.get(convertToShort(getLong()));
                 case DECIMAL:
                     return ValueShort.get(convertToShort(convertToLong(getBigDecimal())));
@@ -601,6 +609,7 @@ public abstract class Value {
                 case SHORT:
                     return ValueInt.get(getShort());
                 case LONG:
+                case TIMESTAMP_UTC:
                     return ValueInt.get(convertToInt(getLong()));
                 case DECIMAL:
                     return ValueInt.get(convertToInt(convertToLong(getBigDecimal())));
@@ -637,6 +646,8 @@ public abstract class Value {
                     }
                     return ValueLong.get(Long.parseLong(getString(), 16));
                 }
+                case TIMESTAMP_UTC:
+                    return ValueLong.get(getLong());
                 }
                 break;
             }
@@ -652,6 +663,7 @@ public abstract class Value {
                 case INT:
                     return ValueDecimal.get(BigDecimal.valueOf(getInt()));
                 case LONG:
+                case TIMESTAMP_UTC:
                     return ValueDecimal.get(BigDecimal.valueOf(getLong()));
                 case DOUBLE: {
                     double d = getDouble();
@@ -684,6 +696,7 @@ public abstract class Value {
                 case INT:
                     return ValueDouble.get(getInt());
                 case LONG:
+                case TIMESTAMP_UTC:
                     return ValueDouble.get(getLong());
                 case DECIMAL:
                     return ValueDouble.get(getBigDecimal().doubleValue());
@@ -703,6 +716,7 @@ public abstract class Value {
                 case INT:
                     return ValueFloat.get(getInt());
                 case LONG:
+                case TIMESTAMP_UTC:
                     return ValueFloat.get(getLong());
                 case DECIMAL:
                     return ValueFloat.get(getBigDecimal().floatValue());
@@ -721,6 +735,9 @@ public abstract class Value {
                 case TIMESTAMP:
                     return ValueDate.fromDateValue(
                             ((ValueTimestamp) this).getDateValue());
+                case TIMESTAMP_UTC:
+                    return ValueDate.fromMillis(
+                            ((ValueTimestampUtc) this).getUtcDateTimeMillis());
                 }
                 break;
             }
@@ -733,6 +750,9 @@ public abstract class Value {
                 case TIMESTAMP:
                     return ValueTime.fromNanos(
                             ((ValueTimestamp) this).getTimeNanos());
+                case TIMESTAMP_UTC:
+                    return ValueTime.fromMillis(
+                            ((ValueTimestampUtc) this).getUtcDateTimeMillis());
                 }
                 break;
             }
@@ -744,6 +764,35 @@ public abstract class Value {
                 case DATE:
                     return ValueTimestamp.fromDateValueAndNanos(
                             ((ValueDate) this).getDateValue(), 0);
+                case TIMESTAMP_UTC:
+                    return ValueTimestamp.fromMillisNanos(
+                            ((ValueTimestampUtc) this).getUtcDateTimeMillis(),
+                            ((ValueTimestampUtc) this).getNanosSinceLastMilli());
+                }
+                break;
+            }
+            case TIMESTAMP_UTC: {
+                switch (getType()) {
+                case BOOLEAN:
+                    return ValueTimestampUtc.fromNanos(getBoolean().booleanValue() ? 1 : 0);
+                case BYTE:
+                    return ValueTimestampUtc.fromNanos(getByte());
+                case SHORT:
+                    return ValueTimestampUtc.fromNanos(getShort());
+                case INT:
+                    return ValueTimestampUtc.fromNanos(getInt());
+                case LONG:
+                    return ValueTimestampUtc.fromNanos(getLong());
+                case DECIMAL:
+                    return ValueTimestampUtc.fromNanos(getBigDecimal().longValue());
+                case FLOAT:
+                    return ValueTimestampUtc.fromNanos((long) getFloat());
+                case DOUBLE:
+                    return ValueTimestampUtc.fromNanos((long) getDouble());
+                case TIMESTAMP:
+                    return ValueTimestampUtc.fromMillisNanos(
+                            ((ValueTimestamp) this).getTimestamp().getTime(),
+                            ((ValueTimestamp) this).getTimestamp().getNanos());
                 }
                 break;
             }
@@ -860,6 +909,8 @@ public abstract class Value {
                 return ValueDate.parse(s.trim());
             case TIMESTAMP:
                 return ValueTimestamp.parse(s.trim());
+            case TIMESTAMP_UTC:
+                return ValueTimestampUtc.parse(s.trim());
             case BYTES:
                 return ValueBytes.getNoCopy(
                         StringUtils.convertHexToBytes(s.trim()));

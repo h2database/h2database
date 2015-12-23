@@ -22,7 +22,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
@@ -315,6 +314,13 @@ public class DataType {
                 // 24 for ValueTimestamp, 32 for java.sql.Timestamp
                 56
         );
+        add(Value.TIMESTAMP_UTC, Types.TIMESTAMP, "TimestampUtc",
+                createDate(ValueTimestamp.PRECISION, "TIMESTAMP_UTC",
+                        ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
+                new String[]{"TIMESTAMP_UTC"},
+                // 24 for ValueTimestampUtc, 32 for java.sql.Timestamp
+                56
+        );
         add(Value.BYTES, Types.VARBINARY, "Bytes",
                 createString(false),
                 new String[]{"VARBINARY"},
@@ -539,6 +545,12 @@ public class DataType {
                     ValueTimestamp.get(value);
                 break;
             }
+            case Value.TIMESTAMP_UTC: {
+                Timestamp value = rs.getTimestamp(columnIndex);
+                v = value == null ? (Value) ValueNull.INSTANCE :
+                    ValueTimestampUtc.fromMillisNanos(value.getTime(), value.getNanos());
+                break;
+            }
             case Value.DECIMAL: {
                 BigDecimal value = rs.getBigDecimal(columnIndex);
                 v = value == null ? (Value) ValueNull.INSTANCE :
@@ -711,6 +723,7 @@ public class DataType {
             // "java.sql.Date";
             return Date.class.getName();
         case Value.TIMESTAMP:
+        case Value.TIMESTAMP_UTC:
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
         case Value.BYTES:

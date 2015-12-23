@@ -45,6 +45,7 @@ import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -276,6 +277,12 @@ public class ValueDataType implements DataType {
                 putVarLong(nanos);
             break;
         }
+        case Value.TIMESTAMP_UTC: {
+            ValueTimestampUtc ts = (ValueTimestampUtc) v;
+            long dateTimeValue = ts.getUtcDateTimeNanos();
+            buff.put((byte) type).putVarLong(dateTimeValue);
+            break;
+        }
         case Value.JAVA_OBJECT: {
             byte[] b = v.getBytesNoCopy();
             buff.put((byte) type).
@@ -480,6 +487,10 @@ public class ValueDataType implements DataType {
             long dateValue = readVarLong(buff);
             long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
+        }
+        case Value.TIMESTAMP_UTC: {
+            long dateTimeValue = readVarLong(buff);
+            return ValueTimestampUtc.fromNanos(dateTimeValue);
         }
         case Value.BYTES: {
             int len = readVarInt(buff);

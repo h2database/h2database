@@ -18,7 +18,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
@@ -388,6 +387,11 @@ public class Transfer {
             }
             break;
         }
+        case Value.TIMESTAMP_UTC: {
+            ValueTimestampUtc ts = (ValueTimestampUtc) v;
+            writeLong(ts.getUtcDateTimeNanos());
+            break;
+        }
         case Value.DECIMAL:
             writeString(v.getString());
             break;
@@ -573,6 +577,9 @@ public class Transfer {
             }
             return ValueTimestamp.fromMillisNanos(readLong(),
                     readInt() % 1000000);
+        }
+        case Value.TIMESTAMP_UTC: {
+            return ValueTimestampUtc.fromNanos(readLong());
         }
         case Value.DECIMAL:
             return ValueDecimal.get(new BigDecimal(readString()));

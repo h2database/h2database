@@ -1588,6 +1588,8 @@ The following file systems are included:
     To work around this limitation, combine it with the split file system: <code>split:nioMapped:test</code>.
 </li><li><code>memFS:</code> in-memory file system (slower than mem; experimental; mainly used for testing the database engine itself).
 </li><li><code>memLZF:</code> compressing in-memory file system (slower than memFS but uses less memory; experimental; mainly used for testing the database engine itself).
+</li><li><code>nioMemFS:</code> stores data outside of the VM's heap - useful for large memory DBs without incurring GC costs.
+</li><li><code>nioMemLZF:</code> stores compressed data outside of the VM's heap - useful for large memory DBs without incurring GC costs.
 </li></ul>
 <p>
 As an example, to use the the <code>nio</code> file system, use the following database URL:

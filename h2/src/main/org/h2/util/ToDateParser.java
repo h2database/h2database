@@ -2,31 +2,53 @@ package org.h2.util;
 
 import static java.lang.String.format;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.Calendar;
-
-import org.h2.util.ToDate.ToDateFunctionName;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Emulates Oracle's TO_DATE function.<br>
  * This class holds and handles the input data form the TO_DATE-method
  */
-class ToDateParams {
+class ToDateParser {
     private final String unmodifiedInputStr;
     private final String unmodifiedFormatStr;
-    private final ToDateFunctionName functionName;
+    private final ConfigParam functionName;
     private String inputStr;
     private String formatStr;
     private final Calendar resultCalendar = (Calendar) Calendar.getInstance().clone();
     private Integer nanos = null;
+
+    private enum ConfigParam {
+        TO_DATE("DD MON YYYY"), TO_TIMESTAMP("DD MON YYYY HH:MI:SS");
+        private final String defaultFormatStr;
+        ConfigParam (final String defaultFormatStr) {
+            this.defaultFormatStr = defaultFormatStr;
+        }
+        String getDefaultFormatStr() {
+            return defaultFormatStr;
+        }
+    }
+
+    static ToDateParser toDate(final String input, final String format) {
+        ToDateParser result = new ToDateParser(ConfigParam.TO_DATE, input, format);
+        parse(result);
+        return result;
+    }
+
+    static ToDateParser toTimestamp(final String input, final String format) {
+        ToDateParser result = new ToDateParser(ConfigParam.TO_TIMESTAMP, input, format);
+        parse(result);
+        return result;
+    }
 
     /**
      * @param input the input date with the date-time info
      * @param format  the format of date-time info
      * @param functionName one of [TO_DATE, TO_TIMESTAMP] (both share the same code)
      */
-    ToDateParams(final ToDateFunctionName functionName, final String input, final String format) {
+    ToDateParser(final ConfigParam functionName, final String input, final String format) {
         // reset calendar - default oracle behaviour
         resultCalendar.set(Calendar.YEAR, 1970);
         resultCalendar.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
@@ -52,10 +74,6 @@ class ToDateParams {
         unmodifiedFormatStr = formatStr; // Keep a copy
     }
 
-    Date getResultingDate() {
-        return new Date(getResultCalendar().getTimeInMillis());
-    }
-
     Timestamp getResultingTimestamp() {
         Calendar cal = (Calendar) getResultCalendar().clone();
         int nanosToSet = nanos == null ? cal.get(Calendar.MILLISECOND) * 1000000 : nanos.intValue();
@@ -77,8 +95,8 @@ class ToDateParams {
         return formatStr;
     }
 
-    ToDateFunctionName getFunctionName() {
-        return functionName;
+    String getFunctionName() {
+        return functionName.name();
     }
 
     void setNanos(final int nanos) {
@@ -96,6 +114,28 @@ class ToDateParams {
         if (!inputStr.isEmpty()) {
             inputStr = inputStr.substring(1);
         }
+    }
+
+    private static ToDateParser parse(final ToDateParser p) {
+        while (p.hasToParseData()) {
+            List<ToDateTokenizer.FormatTokenEnum> tokenList = ToDateTokenizer.FormatTokenEnum.getTokensInQuestion(p.getFormatStr());
+            if (tokenList.isEmpty()) {
+                p.removeFirstChar();
+                continue;
+            }
+            boolean foundAnToken = false;
+            for (ToDateTokenizer.FormatTokenEnum token : tokenList) {
+                if (token.parseFormatStrWithToken(p)) {
+                    foundAnToken = true;
+                    break;
+                }
+            }
+            if (!foundAnToken) {
+                p.removeFirstChar();
+                continue;
+            }
+        }
+        return p;
     }
 
     void remove(final String toIgnore) {

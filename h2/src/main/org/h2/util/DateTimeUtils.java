@@ -10,7 +10,6 @@ package org.h2.util;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -578,59 +577,6 @@ public class DateTimeUtils {
         SimpleDateFormat dateFormat = getDateFormat(format, locale, timeZone);
         synchronized (dateFormat) {
             return dateFormat.format(date);
-        }
-    }
-
-    @SuppressWarnings("serial")
-    private static final Map<String, String> DATE_FORMAT_REGEXPS = new HashMap<String, String>() {
-        {
-            put("^\\d{8}[^\\d]*", "yyyyMMdd");
-            put("^\\d{1,2}\\.\\d{1,2}\\.\\d{4}[^\\d]*", "dd.MM.yyyy");
-            put("^\\d{4}\\.\\d{1,2}\\.\\d{1,2}[^\\d]*", "yyyy.MM.dd");
-            put("^\\d{4}-\\d{1,2}-\\d{1,2}[^\\d]*", "yyyy-MM-dd");
-            put("^\\d{1,2}-\\d{1,2}-\\d{4}[^\\d]*", "dd-MM-yyyy");
-            put("^\\d{1,2}/\\d{1,2}/\\d{4}[^\\d]*", "dd/MM/yyyy");
-            put("^\\d{4}/\\d{1,2}/\\d{1,2}[^\\d]*", "yyyy/MM/dd");
-            put("^\\d{1,2}/\\d{1,2}/\\d{4}[^\\d]*", "dd/MM/yyyy");
-            put("^\\d{1,2}-[^\\d]{3}-\\d{4}[^\\d]*", "dd-MMM-yyyy");
-            put("^\\d{4}-[^\\d]{3}-\\d{1,2}[^\\d]*", "yyyy-MMM-dd");
-            put("^.{2}\\s.{3}\\s\\d{1,2}\\s\\d{1,2}\\:\\d{1,2}\\:\\d{1,2}\\s.{3}\\s\\d{4}$",
-                    "EEE MMM dd hh:mm:ss z yyyy");
-        }
-    };
-
-    /**
-     * Determine SimpleDateFormat pattern matching with the given date string. Returns null if format is unknown. You can
-     * simply extend DateUtil with more formats if needed.
-     *
-     * @param dateString
-     *          The date string to determine the SimpleDateFormat pattern for.
-     * @return The matching SimpleDateFormat pattern, or null if format is unknown.
-     */
-    private static String determineDateFormat(final String dateString) {
-        for (String regexp : DATE_FORMAT_REGEXPS.keySet()) {
-            if (dateString.toLowerCase().matches(regexp)) {
-                return DATE_FORMAT_REGEXPS.get(regexp);
-            }
-        }
-        return null; // Unknown format.
-    }
-
-    /**
-     * Parse date-string in "Best Effort" (BE) manner.
-     * Uses a predefined list of date patterns to parse a string into a date.
-     */
-    public static java.util.Date parseDateBestEffort(final String dateStr) {
-        String dateFormat = determineDateFormat(dateStr);
-        if (dateFormat == null) {
-            // The source does not contain a date that can be parsed.
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, "Invalid date. " + dateStr);
-        }
-        SimpleDateFormat formatter = new SimpleDateFormat(dateFormat);
-        try {
-            return formatter.parse(dateStr);
-        } catch (ParseException e) {
-            throw DbException.get(ErrorCode.PARSE_ERROR_1, e, "Invalid date. " + dateStr);
         }
     }
 

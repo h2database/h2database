@@ -27,7 +27,6 @@ class ToDateTokenizer {
     private static final Pattern PATTERN_BC_AD = Pattern.compile("^(BC|B\\.C\\.|AD|A\\.D\\.)", Pattern.CASE_INSENSITIVE);
     private static final YearParslet PARSLET_YEAR = new YearParslet();
     private static final MonthParslet PARSLET_MONTH = new MonthParslet();
-    //private static final WeekParslet PARSLET_Week = new WeekParslet();
     private static final DayParslet PARSLET_DAY = new DayParslet();
     private static final TimeParslet PARSLET_TIME = new TimeParslet();
 
@@ -48,8 +47,6 @@ class ToDateTokenizer {
         , MON(PARSLET_MONTH) // Abbreviated name of month.
         , MM(PARSLET_MONTH) // Month (01-12; JAN = 01).
         , RM(PARSLET_MONTH) // Roman numeral month (I-XII; JAN = I).
-        //, WW(PARSLET_Week) // Week of year (1-53)
-        //, IW(PARSLET_Week) // Week of year (1-52 or 1-53) based on the ISO standard.
         , DDD(PARSLET_DAY) // Day of year (1-366).
         , DAY(PARSLET_DAY) // Name of day.
         , DD(PARSLET_DAY) // Day of month (1-31).
@@ -71,7 +68,6 @@ class ToDateTokenizer {
         , Y(PARSLET_YEAR) //
         , I(PARSLET_YEAR) //
         , Q(PARSLET_MONTH) // Quarter of year (1, 2, 3, 4; JAN-MAR = 1).
-        //, W(PARSLET_Week) // Week of month (1-5)
         , D(PARSLET_DAY) // Day of week (1-7).
         , J(PARSLET_DAY); // NOT supported yet - Julian day; the number of days since Jan 1, 4712 BC.
 
@@ -96,12 +92,11 @@ class ToDateTokenizer {
          * OPTIMISATION: Only return a list of {@link FormatTokenEnum} that share the same 1st char
          * using the 1st char of the 'to parse' formatStr. Or return empty list if no match.
          */
-        static List<FormatTokenEnum> getTokensInQuestion(final ToDateParams params) {
+        static List<FormatTokenEnum> getTokensInQuestion(String formatStr) {
             List<FormatTokenEnum> result = EMPTY_LIST;
             if (cache.size() <= 0) {
                 initCache();
             }
-            String formatStr = params.getFormatStr();
             if (formatStr != null && formatStr.length() > 0) {
                 Character key = Character.toUpperCase(formatStr.charAt(0));
                 result = cache.get(key);
@@ -142,9 +137,9 @@ class ToDateTokenizer {
 
         /**
          * Parse the format-string with passed token of {@link FormatTokenEnum}}.<br>
-         * if token matches return true otherwise false.
+         * If token matches return true, otherwise false.
          */
-        boolean parseFormatStrWithToken(final ToDateParams params) {
+        boolean parseFormatStrWithToken(final ToDateParser params) {
             Matcher matcher = patternToUse.matcher(params.getFormatStr());
             boolean foundToken = matcher.find();
             if (foundToken) {
@@ -159,16 +154,16 @@ class ToDateTokenizer {
      * Interface of the classes that can parse a specialized small bit of the TO_DATE format-string
      */
     interface ToDateParslet {
-        ToDateParams parse(ToDateParams params, FormatTokenEnum formatTokenEnum, String formatTokenStr);
+        void parse(ToDateParser params, FormatTokenEnum formatTokenEnum, String formatTokenStr);
     }
 
     /**
-     *
+     * Parslet responsible for parsing year parameter
      */
     private static final class YearParslet implements ToDateParslet {
         @Override
-        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
-                                  final String formatTokenStr) {
+        public void parse(final ToDateParser params, final FormatTokenEnum formatTokenEnum,
+                          final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String inputFragmentStr = null;
             int dateNr = 0;
@@ -241,20 +236,19 @@ class ToDateTokenizer {
                             .getSimpleName(), formatTokenEnum));
             }
             params.remove(inputFragmentStr, formatTokenStr);
-            return params;
         }
     }
 
     /**
-     *
+     * Parslet responsible for parsing month parameter
      */
     private static final class MonthParslet implements ToDateParslet {
-        private static String[] ROMAN_Month = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI",
-                "XII" };
+        private static final String[] ROMAN_Month = { "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
+                "XI", "XII" };
 
         @Override
-        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
-                                  final String formatTokenStr) {
+        public void parse(final ToDateParser params, final FormatTokenEnum formatTokenEnum,
+                          final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             final String s = params.getInputStr();
             String inputFragmentStr = null;
@@ -288,7 +282,7 @@ class ToDateTokenizer {
                     }
                     if (inputFragmentStr == null || inputFragmentStr.isEmpty()) {
                         throwException(params,
-                                format("Issue happend when parsing token '%s'. Expected one of: %s",
+                                format("Issue happened when parsing token '%s'. Expected one of: %s",
                                         formatTokenEnum.name(), Arrays.toString(ROMAN_Month)));
                     }
                     break;
@@ -297,61 +291,16 @@ class ToDateTokenizer {
                             .getSimpleName(), formatTokenEnum));
             }
             params.remove(inputFragmentStr, formatTokenStr);
-            return params;
         }
     }
 
     /**
-     * Week parsing can be used by TO_CHAR but not by TO_DATE
-     *
-    private static final class WeekParslet implements ToDateParslet {
-        @Override
-        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
-                                  final String formatTokenStr) {
-            final Calendar result = params.getResultCalendar();
-            String inputFragmentStr = null;
-            int dateNr = 0;
-            switch (formatTokenEnum) {
-                case WW:
-                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
-                    // The first week of the month, as defined by
-                    // getFirstDayOfWeek() and getMinimalDaysInFirstWeek(),
-                    result.set(Calendar.WEEK_OF_YEAR, dateNr);
-                    break;
-                case IW:
-                    inputFragmentStr = matchStringOrDie(PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
-                    // Build set the calendar to ISO8601 (see
-                    // http://en.wikipedia.org/wiki/ISO_8601_week_number)
-                    result.setMinimalDaysInFirstWeek(4);
-                    result.setFirstDayOfWeek(Calendar.MONDAY);
-                    result.set(Calendar.WEEK_OF_YEAR, dateNr);
-                    break;
-                case W:
-                    inputFragmentStr = matchStringOrDie(PATTERN_ONE_DIGIT, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
-                    // The first week of the month, as defined by
-                    // getFirstDayOfWeek() and getMinimalDaysInFirstWeek(),
-                    result.set(Calendar.WEEK_OF_MONTH, dateNr);
-                    break;
-                default:
-                    throw new IllegalArgumentException(format("%s: Internal Error. Unhandled case: %s", this.getClass()
-                            .getSimpleName(), formatTokenEnum));
-            }
-            params.remove(inputFragmentStr, formatTokenStr);
-            return params;
-        }
-    }
-    */
-
-    /**
-     *
+     * Parslet responsible for parsing day parameter
      */
     private static final class DayParslet implements ToDateParslet {
         @Override
-        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
-                                  final String formatTokenStr) {
+        public void parse(final ToDateParser params, final FormatTokenEnum formatTokenEnum,
+                          final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String inputFragmentStr = null;
             int dateNr = 0;
@@ -391,20 +340,19 @@ class ToDateTokenizer {
                             .getSimpleName(), formatTokenEnum));
             }
             params.remove(inputFragmentStr, formatTokenStr);
-            return params;
         }
     }
 
     private static int MILLIS_in_hour = 60 * 60 * 1000;
 
     /**
-     *
+     * Parslet responsible for parsing time parameter
      */
     private static final class TimeParslet implements ToDateParslet {
 
         @Override
-        public ToDateParams parse(final ToDateParams params, final FormatTokenEnum formatTokenEnum,
-                                  final String formatTokenStr) {
+        public void parse(final ToDateParser params, final FormatTokenEnum formatTokenEnum,
+                          final String formatTokenStr) {
             final Calendar result = params.getResultCalendar();
             String inputFragmentStr = null;
             int dateNr = 0;
@@ -495,11 +443,9 @@ class ToDateTokenizer {
                             .getSimpleName(), formatTokenEnum));
             }
             params.remove(inputFragmentStr, formatTokenStr);
-            return params;
         }
     }
 
-    // ========== PRIVATE ===================
     private static int parseInt(final String s) {
         int result = 0;
         if (s.length() > 0 && s.charAt(0) == '+') {
@@ -510,7 +456,7 @@ class ToDateTokenizer {
         return result;
     }
 
-    private static String matchStringOrDie(final Pattern p, final ToDateParams params, final Enum<?> aEnum) {
+    private static String matchStringOrDie(final Pattern p, final ToDateParser params, final Enum<?> aEnum) {
         final String s = params.getInputStr();
         Matcher matcher = p.matcher(s);
         if (!matcher.find()) {
@@ -519,7 +465,7 @@ class ToDateTokenizer {
         return matcher.group(1);
     }
 
-    private static String setByName(final Calendar c, final ToDateParams params, final int field, final int style) {
+    private static String setByName(final Calendar c, final ToDateParser params, final int field, final int style) {
         String inputFragmentStr = null;
         String s = params.getInputStr();
         Map<String, Integer> timeStringMap = c.getDisplayNames(field, style, Locale.getDefault());
@@ -532,16 +478,16 @@ class ToDateTokenizer {
             }
         }
         if (inputFragmentStr == null || inputFragmentStr.isEmpty()) {
-            throwException(params, format("Tryed to parse one of '%s' but failed (may be an internal error?)",
+            throwException(params, format("Tried to parse one of '%s' but failed (may be an internal error?)",
                     timeStringMap.keySet()));
         }
         return inputFragmentStr;
     }
 
-    private static void throwException(final ToDateParams params, final String errorStr) {
+    private static void throwException(final ToDateParser params, final String errorStr) {
         throw DbException.get(
                 ErrorCode.INVALID_TO_DATE_FORMAT,
-                params.getFunctionName().name(),
+                params.getFunctionName(),
                 format(" %s. Details: %s", errorStr, params));
     }
 

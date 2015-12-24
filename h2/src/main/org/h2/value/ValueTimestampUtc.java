@@ -102,7 +102,7 @@ public final class ValueTimestampUtc extends Value {
     }
 
     /**
-     * Time in milliseconds since 1 Jan 1970 i.e. samer format to
+     * Time in milliseconds since 1 Jan 1970 i.e. same format as
      * System.currentTimeMillis()
      */
     public long getUtcDateTimeMillis() {

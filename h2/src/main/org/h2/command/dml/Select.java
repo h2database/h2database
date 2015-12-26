@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -36,6 +35,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
+import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
@@ -85,6 +85,11 @@ public class Select extends Query {
 
     public Select(Session session) {
         super(session);
+    }
+
+    @Override
+    public boolean isUnion() {
+        return false;
     }
 
     /**
@@ -634,18 +639,25 @@ public class Select extends Query {
         topTableFilter.lock(session, exclusive, exclusive);
         ResultTarget to = result != null ? result : target;
         if (limitRows != 0) {
-            if (isQuickAggregateQuery) {
-                queryQuick(columnCount, to);
-            } else if (isGroupQuery) {
-                if (isGroupSortedQuery) {
-                    queryGroupSorted(columnCount, to);
+            try {
+                if (isQuickAggregateQuery) {
+                    queryQuick(columnCount, to);
+                } else if (isGroupQuery) {
+                    if (isGroupSortedQuery) {
+                        queryGroupSorted(columnCount, to);
+                    } else {
+                        queryGroup(columnCount, result);
+                    }
+                } else if (isDistinctQuery) {
+                    queryDistinct(to, limitRows);
                 } else {
-                    queryGroup(columnCount, result);
+                    queryFlat(columnCount, to, limitRows);
                 }
-            } else if (isDistinctQuery) {
-                queryDistinct(to, limitRows);
-            } else {
-                queryFlat(columnCount, to, limitRows);
+            } finally {
+                JoinBatch jb = getJoinBatch();
+                if (jb != null) {
+                    jb.reset(false);
+                }
             }
         }
         if (offsetExpr != null) {
@@ -943,6 +955,30 @@ public class Select extends Query {
         expressionArray = new Expression[expressions.size()];
         expressions.toArray(expressionArray);
         isPrepared = true;
+    }
+
+    @Override
+    public void prepareJoinBatch() {
+        ArrayList<TableFilter> list = New.arrayList();
+        TableFilter f = getTopTableFilter();
+        do {
+            if (f.getNestedJoin() != null) {
+                // we do not support batching with nested joins 
+                return;
+            }
+            list.add(f);
+            f = f.getJoin();
+        } while (f != null);
+        TableFilter[] fs = list.toArray(new TableFilter[list.size()]);
+        // prepare join batch
+        JoinBatch jb = null;
+        for (int i = fs.length - 1; i >= 0; i--) {
+            jb = fs[i].prepareJoinBatch(jb, fs, i);
+        }
+    }
+
+    public JoinBatch getJoinBatch() {
+        return getTopTableFilter().getJoinBatch();
     }
 
     @Override

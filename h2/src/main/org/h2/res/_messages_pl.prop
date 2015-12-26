@@ -113,7 +113,7 @@
 90084=Nie można skasować ostatniej kolumny {0}
 90085=Indeks {0} należy do ograniczenia {1}
 90086=Klasa {0} nie istnieje
-90087=Metoda {0} nie istnieje
+90087=Method {0} with matching arguments not found
 90088=Nieznany stan {0}
 90089=Metoda porównywania językowego nie może być zmieniona z powodu istnienia danych w tabeli {0}
 90090=Schemat {0} nie może zostać skasowany

@@ -355,7 +355,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         try {
             return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
-                    filters, filter, sortOrder);
+                    filters, filter, sortOrder, false);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }

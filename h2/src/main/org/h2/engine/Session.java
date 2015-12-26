@@ -17,6 +17,7 @@ import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.dml.Query;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
@@ -30,12 +31,14 @@ import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.LocalResult;
 import org.h2.result.Row;
+import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -113,8 +116,11 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
+    private boolean joinBatchEnabled;
+    private boolean forceJoinOrder;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -148,12 +154,33 @@ public class Session extends SessionWithState {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
+    public void setForceJoinOrder(boolean forceJoinOrder) {
+        this.forceJoinOrder = forceJoinOrder;
+    }
+
+    public boolean isForceJoinOrder() {
+        return forceJoinOrder;
+    }
+
+    public void setJoinBatchEnabled(boolean joinBatchEnabled) {
+        this.joinBatchEnabled = joinBatchEnabled;
+    }
+
+    public boolean isJoinBatchEnabled() {
+        return joinBatchEnabled;
+    }
+
     public Row createRow(Value[] data, int memory) {
         return database.createRow(data, memory);
     }
 
-    public void setSubQueryInfo(SubQueryInfo subQueryInfo) {
-        this.subQueryInfo = subQueryInfo;
+    public void pushSubQueryInfo(int[] masks, TableFilter[] filters, int filter,
+            SortOrder sortOrder) {
+        subQueryInfo = new SubQueryInfo(subQueryInfo, masks, filters, filter, sortOrder);
+    }
+
+    public void popSubQueryInfo() {
+        subQueryInfo = subQueryInfo.getUpper();
     }
 
     public SubQueryInfo getSubQueryInfo() {
@@ -169,6 +196,24 @@ public class Session extends SessionWithState {
     public boolean isParsingView() {
         assert parsingView >= 0;
         return parsingView != 0;
+    }
+
+    public void optimizeQueryExpression(Query query) {
+        // we have to hide current subQueryInfo if we are going to optimize query expression
+        SubQueryInfo tmp = subQueryInfo;
+        subQueryInfo = null;
+        preparingQueryExpression++;
+        try {
+            query.prepare();
+        } finally {
+            subQueryInfo = tmp;
+            preparingQueryExpression--;
+        }
+    }
+
+    public boolean isPreparingQueryExpression() {
+        assert preparingQueryExpression >= 0;
+        return preparingQueryExpression != 0;
     }
 
     @Override
@@ -492,6 +537,7 @@ public class Session extends SessionWithState {
             // we can't reuse sub-query indexes, so just drop the whole cache
             subQueryIndexCache = null;
         }
+        command.prepareJoinBatch();
         if (queryCache != null) {
             if (command.isCacheable()) {
                 queryCache.put(sql, command);

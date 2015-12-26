@@ -175,7 +175,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
-            TableFilter filter = new TableFilter(session, table, null, false, null);
+            TableFilter filter = new TableFilter(session, table, null, false, null, 0);
             checkExpression.mapColumns(filter, 0);
             checkExpression = checkExpression.optimize(session);
             check.setExpression(checkExpression);
@@ -294,6 +294,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
+        if (t.getIndexes() == null) {
+            return null;
+        }
         for (Index idx : t.getIndexes()) {
             if (canUseUniqueIndex(idx, t, cols)) {
                 return idx;
@@ -303,6 +306,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private static Index getIndex(Table t, IndexColumn[] cols, boolean moreColumnOk) {
+        if (t.getIndexes() == null) {
+            return null;
+        }
         for (Index idx : t.getIndexes()) {
             if (canUseIndex(idx, t, cols, moreColumnOk)) {
                 return idx;

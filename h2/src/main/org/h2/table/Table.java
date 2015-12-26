@@ -127,6 +127,10 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
+    public boolean isView() {
+        return false;
+    }
+
     /**
      * Lock the table for the given session.
      * This method waits until the lock is granted.
@@ -693,11 +697,20 @@ public abstract class Table extends SchemaObjectBase {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
         item.cost = item.getIndex().getCost(session, null, filters, filter, null);
+        Trace t = session.getTrace();
+        if (t.isDebugEnabled()) {
+            t.debug("Table      :     potential plan item cost {0} index {1}", 
+                    item.cost, item.getIndex().getPlanSQL());
+        }
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
                 double cost = index.getCost(session, masks, filters, filter, sortOrder);
+                if (t.isDebugEnabled()) {
+                    t.debug("Table      :     potential plan item cost {0} index {1}", 
+                            cost, index.getPlanSQL());
+                }
                 if (cost < item.cost) {
                     item.cost = cost;
                     item.setIndex(index);

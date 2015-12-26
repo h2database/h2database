@@ -47,6 +47,7 @@ import org.h2.test.db.TestMultiThreadedKernel;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestCompatibilityOracle;
+import org.h2.test.db.TestOptimizerHints;
 import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
@@ -683,6 +684,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMultiThreadedKernel());
         addTest(new TestOpenClose());
         addTest(new TestOptimizations());
+        addTest(new TestOptimizerHints());
         addTest(new TestOutOfMemory());
         addTest(new TestReadOnly());
         addTest(new TestRecursiveQueries());

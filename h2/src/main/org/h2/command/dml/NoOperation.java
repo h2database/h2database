@@ -25,11 +25,6 @@ public class NoOperation extends Prepared {
     }
 
     @Override
-    public boolean isQuery() {
-        return false;
-    }
-
-    @Override
     public boolean isTransactional() {
         return true;
     }

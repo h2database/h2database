@@ -1358,7 +1358,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90087</code> is thrown when
-     * the specified method was not found in the class.
+     * a method with matching number of arguments was not found in the class.
      * Example:
      * <pre>
      * CREATE ALIAS TO_BINARY FOR "java.lang.Long.toBinaryString(long)";

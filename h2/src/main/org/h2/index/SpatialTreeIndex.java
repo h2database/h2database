@@ -178,12 +178,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                 filter.getSession());
     }
 
-    @Override
-    protected long getCostRangeIndex(int[] masks, long rowCount,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, rowCount, columns);
-    }
-
     /**
      * Compute spatial index cost
      * @param masks Search mask
@@ -210,9 +204,9 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(),
-                filters, filter, sortOrder);
+        return getCostRangeIndex(masks, table.getRowCountApproximation(), columns);
     }
+
 
     @Override
     public void remove(Session session) {

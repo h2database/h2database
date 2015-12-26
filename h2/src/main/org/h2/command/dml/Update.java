@@ -171,6 +171,10 @@ public class Update extends Prepared {
         if (condition != null) {
             buff.append("\nWHERE ").append(StringUtils.unEnclose(condition.getSQL()));
         }
+        if (limitExpr != null) {
+            buff.append("\nLIMIT ").append(
+                    StringUtils.unEnclose(limitExpr.getSQL()));
+        }
         return buff.toString();
     }
 

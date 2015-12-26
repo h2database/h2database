@@ -13,6 +13,8 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -177,6 +179,14 @@ public class Parser {
             CURRENT_TIME = 23, ROWNUM = 24;
     private static final int SPATIAL_INTERSECTS = 25;
 
+    private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR =
+            new Comparator<TableFilter>() {
+        @Override
+        public int compare(TableFilter o1, TableFilter o2) {
+            return o1 == o2 ? 0 : compareTableFilters(o1, o2);
+        }
+    };
+
     private final Database database;
     private final Session session;
     /**
@@ -208,6 +218,7 @@ public class Parser {
     private boolean rightsChecked;
     private boolean recompileAlways;
     private ArrayList<Parameter> indexedParameterList;
+    private int orderInFrom;
 
     public Parser(Session session) {
         this.database = session.getDatabase();
@@ -704,7 +715,7 @@ public class Parser {
         Update command = new Update(session);
         currentPrepared = command;
         int start = lastParseIndex;
-        TableFilter filter = readSimpleTableFilter();
+        TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
         read("SET");
         if (readIf("(")) {
@@ -760,7 +771,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter readSimpleTableFilter() {
+    private TableFilter readSimpleTableFilter(int orderInFrom) {
         Table table = readTableOrView();
         String alias = null;
         if (readIf("AS")) {
@@ -772,7 +783,7 @@ public class Parser {
             }
         }
         return new TableFilter(session, table, alias, rightsChecked,
-                currentSelect);
+                currentSelect, orderInFrom);
     }
 
     private Delete parseDelete() {
@@ -784,7 +795,7 @@ public class Parser {
         currentPrepared = command;
         int start = lastParseIndex;
         readIf("FROM");
-        TableFilter filter = readSimpleTableFilter();
+        TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
         if (readIf("WHERE")) {
             Expression condition = readExpression();
@@ -1186,7 +1197,7 @@ public class Parser {
                 return top;
             }
         } else if (readIf("VALUES")) {
-            table = parseValuesTable().getTable();
+            table = parseValuesTable(0).getTable();
         } else {
             String tableName = readIdentifierWithSchema(null);
             Schema schema = getSchema();
@@ -1236,7 +1247,7 @@ public class Parser {
         }
         alias = readFromAlias(alias);
         return new TableFilter(session, table, alias, rightsChecked,
-                currentSelect);
+                currentSelect, orderInFrom++);
     }
 
     private String readFromAlias(String alias) {
@@ -1610,7 +1621,7 @@ public class Parser {
     private TableFilter getNested(TableFilter n) {
         String joinTable = Constants.PREFIX_JOIN + parseIndex;
         TableFilter top = new TableFilter(session, getDualTable(true),
-                joinTable, rightsChecked, currentSelect);
+                joinTable, rightsChecked, currentSelect, n.getOrderInFrom());
         top.addJoin(n, false, true, null);
         return top;
     }
@@ -1774,7 +1785,7 @@ public class Parser {
             if (readIf("OFFSET")) {
                 command.setOffset(readExpression().optimize(session));
                 if (!readIf("ROW")) {
-                    read("ROWS");
+                    readIf("ROWS");
                 }
             }
             if (readIf("FETCH")) {
@@ -1873,6 +1884,38 @@ public class Parser {
             TableFilter filter = readTableFilter(false);
             parseJoinTableFilter(filter, command);
         } while (readIf(","));
+
+        // Parser can reorder joined table filters, need to explicitly sort them to
+        // get the order as it was in the original query.
+        if (session.isForceJoinOrder()) {
+            sortTableFilters(command.getTopFilters());
+        }
+    }
+
+    private static void sortTableFilters(ArrayList<TableFilter> filters) {
+        if (filters.size() < 2) {
+            return;
+        }
+        // Most probably we are already sorted correctly.
+        boolean sorted = true;
+        TableFilter prev = filters.get(0);
+        for (int i = 1; i < filters.size(); i++) {
+            TableFilter next = filters.get(i);
+            if (compareTableFilters(prev, next) > 0) {
+                sorted = false;
+                break;
+            }
+            prev = next;
+        }
+        // If not, then sort manually.
+        if (!sorted) {
+            Collections.sort(filters, TABLE_FILTER_COMPARATOR);
+        }
+    }
+
+    private static int compareTableFilters(TableFilter o1, TableFilter o2) {
+        assert o1.getOrderInFrom() != o2.getOrderInFrom();
+        return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     }
 
     private void parseJoinTableFilter(TableFilter top, final Select command) {
@@ -1976,7 +2019,7 @@ public class Parser {
                 // SYSTEM_RANGE(1,1)
                 Table dual = getDualTable(false);
                 TableFilter filter = new TableFilter(session, dual, null,
-                        rightsChecked, currentSelect);
+                        rightsChecked, currentSelect, 0);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);
@@ -4312,7 +4355,7 @@ public class Parser {
     private Select parseValues() {
         Select command = new Select(session);
         currentSelect = command;
-        TableFilter filter = parseValuesTable();
+        TableFilter filter = parseValuesTable(0);
         ArrayList<Expression> list = New.arrayList();
         list.add(new Wildcard(null, null));
         command.setExpressions(list);
@@ -4321,7 +4364,7 @@ public class Parser {
         return command;
     }
 
-    private TableFilter parseValuesTable() {
+    private TableFilter parseValuesTable(int orderInFrom) {
         Schema mainSchema = database.getSchema(Constants.SCHEMA_MAIN);
         TableFunction tf = (TableFunction) Function.getFunction(database,
                 "TABLE");
@@ -4397,7 +4440,7 @@ public class Parser {
         tf.doneWithParameters();
         Table table = new FunctionTable(mainSchema, session, tf, tf);
         TableFilter filter = new TableFilter(session, table, null,
-                rightsChecked, currentSelect);
+                rightsChecked, currentSelect, orderInFrom);
         return filter;
     }
 

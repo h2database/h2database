@@ -19,7 +19,6 @@ public class SubQueryInfo {
     private TableFilter[] filters;
     private int filter;
     private SortOrder sortOrder;
-    private boolean preliminary;
     private SubQueryInfo upper;
 
     /**
@@ -28,17 +27,14 @@ public class SubQueryInfo {
      * @param filters table filters
      * @param filter current filter
      * @param sortOrder sort order
-     * @param preliminary if this is a preliminary query optimization 
-     *          without global conditions
      */
     public SubQueryInfo(SubQueryInfo upper, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder, boolean preliminary) {
+            SortOrder sortOrder) {
         this.upper = upper;
         this.masks = masks;
         this.filters = filters;
         this.filter = filter;
         this.sortOrder = sortOrder;
-        this.preliminary = preliminary;
     }
 
     public SubQueryInfo getUpper() {
@@ -59,9 +55,5 @@ public class SubQueryInfo {
 
     public SortOrder getSortOrder() {
         return sortOrder;
-    }
-
-    public boolean isPreliminary() {
-        return preliminary;
     }
 }

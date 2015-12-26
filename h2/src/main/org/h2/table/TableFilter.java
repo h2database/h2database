@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
@@ -17,9 +18,10 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Index;
-import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
+import org.h2.index.IndexLookupBatch;
+import org.h2.index.ScanIndex;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -179,37 +181,41 @@ public class TableFilter implements ColumnResolver {
      * @return the best plan item
      */
     public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter) {
-        PlanItem item;
+        PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {
             sortOrder = select.getSortOrder();
         }
         if (indexConditions.size() == 0) {
-            item = new PlanItem();
-            item.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder));
-            item.cost = item.getIndex().getCost(s, null, filters, filter, sortOrder);
-        } else {
-            int len = table.getColumns().length;
-            int[] masks = new int[len];
-            for (IndexCondition condition : indexConditions) {
-                if (condition.isEvaluatable()) {
-                    if (condition.isAlwaysFalse()) {
-                        masks = null;
-                        break;
-                    }
-                    int id = condition.getColumn().getColumnId();
-                    if (id >= 0) {
-                        masks[id] |= condition.getMask(indexConditions);
-                    }
+            item1 = new PlanItem();
+            item1.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder));
+            item1.cost = item1.getIndex().getCost(s, null, filters, filter, sortOrder);
+        }
+        int len = table.getColumns().length;
+        int[] masks = new int[len];
+        for (IndexCondition condition : indexConditions) {
+            if (condition.isEvaluatable()) {
+                if (condition.isAlwaysFalse()) {
+                    masks = null;
+                    break;
+                }
+                int id = condition.getColumn().getColumnId();
+                if (id >= 0) {
+                    masks[id] |= condition.getMask(indexConditions);
                 }
             }
-            item = table.getBestPlanItem(s, masks, filters, filter, sortOrder);
-            item.setMasks(masks);
-            // The more index conditions, the earlier the table.
-            // This is to ensure joins without indexes run quickly:
-            // x (x.a=10); y (x.b=y.b) - see issue 113
-            item.cost -= item.cost * indexConditions.size() / 100 / (filter + 1);
         }
+        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder);
+        item.setMasks(masks);
+        // The more index conditions, the earlier the table.
+        // This is to ensure joins without indexes run quickly:
+        // x (x.a=10); y (x.b=y.b) - see issue 113
+        item.cost -= item.cost * indexConditions.size() / 100 / (filter + 1);
+
+        if (item1 != null && item1.cost < item.cost) {
+        	item = item1;
+        }
+        
         if (nestedJoin != null) {
             setEvaluatable(nestedJoin);
             item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter));

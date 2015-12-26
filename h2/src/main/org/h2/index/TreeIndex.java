@@ -321,7 +321,7 @@ public class TreeIndex extends BaseIndex {
     public double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder) {
         return getCostRangeIndex(masks, tableData.getRowCountApproximation(),
-                filters, filter, sortOrder);
+                filters, filter, sortOrder, false);
     }
 
     @Override

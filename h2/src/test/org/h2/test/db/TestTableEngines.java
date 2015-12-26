@@ -185,7 +185,7 @@ public class TestTableEngines extends TestBase {
         Connection conn = getConnection("tableEngine");
         Statement stat = conn.createStatement();
 
-        stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT) ENGINE \"" +
+        stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT, D BIGINT DEFAULT 0) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
 
         stat.executeUpdate("CREATE INDEX IDX_C_B_A ON T(C, B, A)");
@@ -200,7 +200,7 @@ public class TestTableEngines extends TestBase {
         dataSet.add(Arrays.<Object>asList(0, "1", null));
         dataSet.add(Arrays.<Object>asList(2, null, 0L));
 
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO T VALUES(?,?,?)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO T(A,B,C) VALUES(?,?,?)");
         for (List<Object> row : dataSet) {
             for (int i = 0; i < row.size(); i++) {
                 prep.setObject(i + 1, row.get(i));
@@ -227,7 +227,7 @@ public class TestTableEngines extends TestBase {
         checkPlan(stat, "select * from t where a > 0 and b > ''", "IDX_B_A");
         checkPlan(stat, "select * from t where b < ''", "IDX_B_A");
         checkPlan(stat, "select * from t where b < '' and c < 1", "IDX_C_B_A");
-        checkPlan(stat, "select * from t where a = 0", "IDX_C_B_A");
+        checkPlan(stat, "select * from t where a = 0", "scan");
         checkPlan(stat, "select * from t where a > 0 order by c, b", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a = 0 and c > 0", "IDX_C_B_A");
         checkPlan(stat, "select * from t where a = 0 and b < 0", "IDX_B_A");
@@ -517,7 +517,7 @@ public class TestTableEngines extends TestBase {
                 + "INNER JOIN PUBLIC.T T2 /* batched:test PUBLIC.T_IDX_B: B = U.B */ "
                 + "ON 1=1 WHERE (T1.A = U.A) AND (U.B = T2.B)");
         checkPlan(stat, "SELECT 1 FROM ( SELECT A FROM PUBLIC.T ) Z "
-                + "/* SELECT A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/ */ "
+                + "/* SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/ */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_B: B = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.B");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_B */ "
@@ -554,9 +554,9 @@ public class TestTableEngines extends TestBase {
                 + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.A");
         checkPlan(stat, "SELECT 1 FROM ( (SELECT A FROM PUBLIC.T) UNION (SELECT A FROM PUBLIC.U) ) Z "
-                + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/) "
+                + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/) "
                 + "UNION "
-                + "(SELECT A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/) */ "
+                + "(SELECT A FROM PUBLIC.U /++ PUBLIC.U_IDX_A ++/) */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE Z.A = T.A");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_B */ "
                 + "INNER JOIN ( (SELECT A, B FROM PUBLIC.T) UNION (SELECT B, A FROM PUBLIC.U) ) Z "
@@ -1132,7 +1132,7 @@ public class TestTableEngines extends TestBase {
             public double getCost(Session session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder) {
                 doTests(session);
-                return getRowCount(session) + Constants.COST_ROW_OFFSET;
+                return getCostRangeIndex(masks, getRowCount(session), filters, filter, sortOrder, true);
             }
         };
 
@@ -1476,7 +1476,7 @@ public class TestTableEngines extends TestBase {
         public double getCost(Session session, int[] masks,
                 TableFilter[] filters, int filter, SortOrder sortOrder) {
             doTests(session);
-            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
+            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder, false);
         }
 
         @Override
@@ -1580,9 +1580,6 @@ public class TestTableEngines extends TestBase {
         @SuppressWarnings("unchecked")
         @Override
         public int compare(List<Object> row1, List<Object> row2) {
-            if (row1.size() != row2.size()) {
-                throw new IllegalStateException("Row size mismatch.");
-            }
             for (int i = 0; i < cols.length; i++) {
                 int col = cols[i];
                 Comparable<Object> o1 = (Comparable<Object>) row1.get(col);

@@ -1043,6 +1043,11 @@ public class TestOptimizations extends TestBase {
 	    ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(b.id) as id FROM tbl_b b JOIN tbl_a a ON b.tbl_a_id = a.id GROUP BY b.tbl_a_id HAVING A.ACTIVE = TRUE");
     	rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.TBL_B_IDX: TBL_A_ID = A.ID */");
+
+        rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(id) FROM tbl_b GROUP BY tbl_a_id");
+	    rs.next();
+        assertContains(rs.getString(1), "/* PUBLIC.TBL_B_IDX");
+
         conn.close();
     }
 }

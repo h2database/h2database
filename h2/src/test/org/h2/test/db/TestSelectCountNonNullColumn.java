@@ -80,10 +80,10 @@ public class TestSelectCountNonNullColumn extends TestBase {
         if (expect >= 0) {
             assertEquals(expect, rs.getLong(1));
         } else {
-            // System.out.println(rs.getString(1));
-            assertEquals("SELECT\n" + "    COUNT(KEY)\n"
+            assertEquals("SELECT\n"
+                    + "    COUNT(KEY)\n"
                     + "FROM PUBLIC.SIMPLE\n"
-                    + "    /* PUBLIC.SIMPLE.tableScan */\n"
+                    + "    /* PUBLIC.PRIMARY_KEY_9 */\n"
                     + "/* direct lookup */", rs.getString(1));
         }
     }

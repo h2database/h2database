@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.BaseIndex;
@@ -219,10 +218,8 @@ public class MVPrimaryIndex extends BaseIndex {
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         try {
-        	// we use 9 here and 10 in MVSecondaryIndex to biase the decision towards
-        	// using a table-scan when it has similar cost to an index
-            return 9 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
-                    filters, filter, sortOrder);
+            return 10 * getCostRangeIndex(masks, dataMap.sizeAsLongMax(),
+                    filters, filter, sortOrder, true);
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);
         }

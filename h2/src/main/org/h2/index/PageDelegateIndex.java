@@ -99,7 +99,7 @@ public class PageDelegateIndex extends PageIndex {
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder) {
         return 10 * getCostRangeIndex(masks, mainIndex.getRowCount(session),
-                filters, filter, sortOrder);
+                filters, filter, sortOrder, false);
     }
 
     @Override

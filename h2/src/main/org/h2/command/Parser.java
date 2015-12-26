@@ -1913,7 +1913,7 @@ public class Parser {
         }
     }
 
-    private static int compareTableFilters(TableFilter o1, TableFilter o2) {
+    static int compareTableFilters(TableFilter o1, TableFilter o2) {
         assert o1.getOrderInFrom() != o2.getOrderInFrom();
         return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;
     }

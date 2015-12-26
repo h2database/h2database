@@ -9,7 +9,6 @@ import org.h2.command.dml.Query;
 import org.h2.engine.Session;
 import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
-import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;

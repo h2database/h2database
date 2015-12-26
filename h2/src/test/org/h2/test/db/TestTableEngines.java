@@ -27,7 +27,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
@@ -351,9 +350,9 @@ public class TestTableEngines extends TestBase {
         deleteDb("testQueryExpressionFlag");
         Connection conn = getConnection("testQueryExpressionFlag");
         Statement stat = conn.createStatement();
-        stat.execute("create table QRY_EXPR_TEST(id int) ENGINE \"" + 
+        stat.execute("create table QRY_EXPR_TEST(id int) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
-        stat.execute("create table QRY_EXPR_TEST_NO(id int) ENGINE \"" + 
+        stat.execute("create table QRY_EXPR_TEST_NO(id int) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
         stat.executeQuery("select 1 + (select 1 from QRY_EXPR_TEST)").next();
         stat.executeQuery("select 1 from QRY_EXPR_TEST_NO where id in (select id from QRY_EXPR_TEST)");
@@ -407,14 +406,14 @@ public class TestTableEngines extends TestBase {
             assertEquals(enabled, s.isJoinBatchEnabled());
         }
     }
-    
+
     private void testBatchedJoin() throws SQLException {
         deleteDb("testBatchedJoin");
         Connection conn = getConnection("testBatchedJoin;OPTIMIZE_REUSE_RESULTS=0;BATCH_JOINS=1");
         Statement stat = conn.createStatement();
         setBatchingEnabled(stat, false);
         setBatchingEnabled(stat, true);
-        
+
         TreeSetIndex.exec = Executors.newFixedThreadPool(8, new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -423,43 +422,43 @@ public class TestTableEngines extends TestBase {
                 return t;
             }
         });
-        
+
         forceJoinOrder(stat, true);
         try {
             doTestBatchedJoinSubQueryUnion(stat);
-            
+
             TreeSetIndex.lookupBatches.set(0);
             doTestBatchedJoin(stat, 1, 0, 0);
             doTestBatchedJoin(stat, 0, 1, 0);
             doTestBatchedJoin(stat, 0, 0, 1);
-            
+
             doTestBatchedJoin(stat, 0, 2, 0);
             doTestBatchedJoin(stat, 0, 0, 2);
 
             doTestBatchedJoin(stat, 0, 0, 3);
             doTestBatchedJoin(stat, 0, 0, 4);
             doTestBatchedJoin(stat, 0, 0, 5);
-            
+
             doTestBatchedJoin(stat, 0, 3, 1);
             doTestBatchedJoin(stat, 0, 3, 3);
             doTestBatchedJoin(stat, 0, 3, 7);
-            
+
             doTestBatchedJoin(stat, 0, 4, 1);
             doTestBatchedJoin(stat, 0, 4, 6);
             doTestBatchedJoin(stat, 0, 4, 20);
-            
+
             doTestBatchedJoin(stat, 0, 10, 0);
             doTestBatchedJoin(stat, 0, 0, 10);
-            
+
             doTestBatchedJoin(stat, 0, 20, 0);
             doTestBatchedJoin(stat, 0, 0, 20);
             doTestBatchedJoin(stat, 0, 20, 20);
-            
+
             doTestBatchedJoin(stat, 3, 7, 0);
             doTestBatchedJoin(stat, 0, 0, 5);
             doTestBatchedJoin(stat, 0, 8, 1);
             doTestBatchedJoin(stat, 0, 2, 1);
-            
+
             assertTrue(TreeSetIndex.lookupBatches.get() > 0);
         } finally {
             forceJoinOrder(stat, false);
@@ -467,8 +466,8 @@ public class TestTableEngines extends TestBase {
         }
         deleteDb("testBatchedJoin");
     }
-    
-    private void forceJoinOrder(Statement s, boolean force) throws SQLException {
+
+    private static void forceJoinOrder(Statement s, boolean force) throws SQLException {
         s.executeUpdate("SET FORCE_JOIN_ORDER " + force);
     }
 
@@ -564,17 +563,17 @@ public class TestTableEngines extends TestBase {
                 + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1): B = U.B */ ON 1=1 /* WHERE U.B = Z.B */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
-                + "WHERE (U.B = Z.B) AND (Z.A = T.A)"); 
+                + "WHERE (U.B = Z.B) AND (Z.A = T.A)");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_A */ "
                 + "INNER JOIN ( SELECT A, B FROM PUBLIC.U ) Z "
                 + "/* batched:fake SELECT A, B FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = U.A */ ON 1=1 /* WHERE U.A = Z.A */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_B: B = Z.B */ "
                 + "ON 1=1 WHERE (U.A = Z.A) AND (Z.B = T.B)");
-        
+
         // t: a = [ 0..20), b = [10..30)
         // u: a = [10..25), b = [-5..10)
-        checkBatchedQueryResult(stat, 10, 
+        checkBatchedQueryResult(stat, 10,
                 "select t.a from t, (select t.b from u, t where u.a = t.a) z where t.b = z.b");
         checkBatchedQueryResult(stat, 5,
                 "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t where t.b = z.b + 5");
@@ -604,47 +603,47 @@ public class TestTableEngines extends TestBase {
             fail("\nexpected: " + expected + "\nactual:   " + actual);
         }
     }
-    
+
     private void doTestBatchedJoin(Statement stat, int... batchSizes) throws SQLException {
         ArrayList<TreeSetTable> tables = New.arrayList(batchSizes.length);
-        
+
         for (int i = 0; i < batchSizes.length; i++) {
             stat.executeUpdate("DROP TABLE IF EXISTS T" + i);
             stat.executeUpdate("CREATE TABLE T" + i + "(A INT, B INT) ENGINE \"" +
                     TreeSetIndexTableEngine.class.getName() + "\"");
             tables.add(TreeSetIndexTableEngine.created);
-            
+
             stat.executeUpdate("CREATE INDEX IDX_B ON T" + i + "(B)");
             stat.executeUpdate("CREATE INDEX IDX_A ON T" + i + "(A)");
-            
+
             PreparedStatement insert = stat.getConnection().prepareStatement(
                     "INSERT INTO T"+ i + " VALUES (?,?)");
-            
+
             for (int j = i, size = i + 10; j < size; j++) {
                 insert.setInt(1, j);
                 insert.setInt(2, j);
                 insert.executeUpdate();
             }
-            
+
             for (TreeSetTable table : tables) {
                 assertEquals(10, table.getRowCount(null));
             }
         }
-        
+
         int[] zeroBatchSizes = new int[batchSizes.length];
         int tests = 1 << (batchSizes.length * 4);
-        
+
         for (int test = 0; test < tests; test++) {
             String query = generateQuery(test, batchSizes.length);
-            
+
 //            System.out.println(Arrays.toString(batchSizes) + ": " + test + " -> " + query);
-            
+
             setBatchSize(tables, batchSizes);
             List<List<Object>> res1 = query(stat, query);
-            
+
             setBatchSize(tables, zeroBatchSizes);
             List<List<Object>> res2 = query(stat, query);
-            
+
 //            System.out.println(res1 + " " + res2);
 
             if (!res2.equals(res1)) {
@@ -652,7 +651,7 @@ public class TestTableEngines extends TestBase {
                 System.err.println("Test " + test);
                 System.err.println(query);
                 for (TreeSetTable table : tables) {
-                    System.err.println(table.getName() + " = " + 
+                    System.err.println(table.getName() + " = " +
                             query(stat, "select * from " + table.getName()));
                 }
                 fail();
@@ -663,7 +662,7 @@ public class TestTableEngines extends TestBase {
         }
     }
 
-    private static void assert0(boolean condition, String message) {
+    static void assert0(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);
         }
@@ -685,18 +684,18 @@ public class TestTableEngines extends TestBase {
             }
         }
     }
-    
-    private String generateQuery(int t, int tables) {
+
+    private static String generateQuery(int t, int tables) {
         final int withLeft = 1;
         final int withFalse = 2;
         final int withWhere = 4;
         final int withOnIsNull = 8;
-        
+
         StringBuilder b = new StringBuilder();
         b.append("select count(*) from ");
-        
+
         StringBuilder where = new StringBuilder();
-        
+
         for (int i = 0; i < tables; i++) {
             if (i != 0) {
                 if ((t & withLeft) != 0) {
@@ -722,15 +721,15 @@ public class TestTableEngines extends TestBase {
                 }
                 where.append(" T").append(i).append(".A > 5");
             }
-            t >>>= 4; 
+            t >>>= 4;
         }
         if (where.length() != 0) {
             b.append("\nwhere ").append(where);
         }
-        
+
         return b.toString();
     }
-    
+
     private void checkResultsNoOrder(Statement stat, int size, String query1, String query2)
             throws SQLException {
         List<List<Object>> res1 = query(stat, query1);
@@ -1109,9 +1108,9 @@ public class TestTableEngines extends TestBase {
      * A table engine that internally uses a tree set.
      */
     public static class TreeSetIndexTableEngine implements TableEngine {
-        
+
         static TreeSetTable created;
-        
+
         @Override
         public Table createTable(CreateTableData data) {
             return created = new TreeSetTable(data);
@@ -1284,17 +1283,17 @@ public class TestTableEngines extends TestBase {
      * An index that internally uses a tree set.
      */
     private static class TreeSetIndex extends BaseIndex implements Comparator<SearchRow> {
-        private static AtomicInteger lookupBatches = new AtomicInteger();
-        
         /**
          * Executor service to test batched joins.
          */
-        private static ExecutorService exec;
-        
-        private final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
-        
-        private int preferedBatchSize;
-        
+        static ExecutorService exec;
+
+        static AtomicInteger lookupBatches = new AtomicInteger();
+
+        int preferedBatchSize;
+
+        final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
+
         TreeSetIndex(Table t, String name, IndexColumn[] cols, IndexType type) {
             initBaseIndex(t, 0, name, cols, type);
         }
@@ -1315,7 +1314,7 @@ public class TestTableEngines extends TestBase {
         @Override
         public IndexLookupBatch createLookupBatch(final TableFilter filter) {
             assert0(filter.getMasks() != null || "scan".equals(getName()), "masks");
-            final int preferedSize = preferedBatchSize; 
+            final int preferedSize = preferedBatchSize;
             if (preferedSize == 0) {
                 return null;
             }
@@ -1327,7 +1326,7 @@ public class TestTableEngines extends TestBase {
                 public String getPlanSQL() {
                     return "test";
                 }
-                
+
                 @Override public boolean isBatchFull() {
                     return searchRows.size() >= preferedSize * 2;
                 }
@@ -1384,7 +1383,7 @@ public class TestTableEngines extends TestBase {
             }
             return result;
         }
-        
+
         @Override
         public void close(Session session) {
             // No-op.
@@ -1425,7 +1424,7 @@ public class TestTableEngines extends TestBase {
                 } else if (first != null) {
                     if (last != null) {
                         subSet = set.subSet(first,  true, last, true);
-                    } else { 
+                    } else {
                         subSet = set.tailSet(first, true);
                     }
                 } else if (last != null) {
@@ -1529,7 +1528,7 @@ public class TestTableEngines extends TestBase {
     /**
      */
     private static class IteratorCursor implements Cursor {
-        private Iterator<SearchRow> it;
+        Iterator<SearchRow> it;
         private Row current;
 
         public IteratorCursor(Iterator<SearchRow> it) {
@@ -1560,7 +1559,7 @@ public class TestTableEngines extends TestBase {
         public Row get() {
             return current;
         }
-        
+
         @Override
         public String toString() {
             return "IterCursor->" + current;

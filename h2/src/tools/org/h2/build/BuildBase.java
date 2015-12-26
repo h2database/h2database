@@ -315,9 +315,8 @@ public class BuildBase {
             newArgs.add(script);
             newArgs.addAll(args);
             return exec("cmd", newArgs);
-        } else {
-            return exec(script, args);
         }
+        return exec(script, args);
     }
 
     /**

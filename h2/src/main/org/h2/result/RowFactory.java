@@ -25,7 +25,7 @@ public abstract class RowFactory {
     /**
      * Default implementation of row factory.
      */
-    private static final class DefaultRowFactory extends RowFactory {
+    static final class DefaultRowFactory extends RowFactory {
         @Override
         public Row createRow(Value[] data, int memory) {
             return new RowImpl(data, memory);

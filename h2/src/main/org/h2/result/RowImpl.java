@@ -33,6 +33,7 @@ public class RowImpl extends Row {
      *
      * @return a new row with the same data
      */
+    @Override
     public Row getCopy() {
         Value[] d2 = new Value[data.length];
         System.arraycopy(data, 0, d2, 0, data.length);
@@ -54,6 +55,7 @@ public class RowImpl extends Row {
         return version;
     }
 
+    @Override
     public void setVersion(int version) {
         this.version = version;
     }
@@ -79,6 +81,7 @@ public class RowImpl extends Row {
      * @param dummy the template buffer
      * @return the number of bytes
      */
+    @Override
     public int getByteCount(Data dummy) {
         int size = 0;
         for (Value v : data) {
@@ -96,6 +99,7 @@ public class RowImpl extends Row {
         }
     }
 
+    @Override
     public boolean isEmpty() {
         return data == null;
     }
@@ -145,14 +149,17 @@ public class RowImpl extends Row {
         return buff.append(')').toString();
     }
 
+    @Override
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
 
+    @Override
     public void setSessionId(int sessionId) {
         this.sessionId = sessionId;
     }
 
+    @Override
     public int getSessionId() {
         return sessionId;
     }
@@ -160,14 +167,17 @@ public class RowImpl extends Row {
     /**
      * This record has been committed. The session id is reset.
      */
+    @Override
     public void commit() {
         this.sessionId = 0;
     }
 
+    @Override
     public boolean isDeleted() {
         return deleted;
     }
 
+    @Override
     public Value[] getValueList() {
         return data;
     }

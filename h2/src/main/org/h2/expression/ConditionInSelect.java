@@ -13,7 +13,6 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
 import org.h2.table.ColumnResolver;
-import org.h2.table.SubQueryInfo;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;

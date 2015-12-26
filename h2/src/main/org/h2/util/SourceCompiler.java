@@ -366,7 +366,7 @@ public class SourceCompiler {
         boolean syntaxError = false;
         final BufferedReader reader = new BufferedReader(new StringReader(output));
         try {
-            for (String line; (line = reader.readLine()) != null; ) {
+            for (String line; (line = reader.readLine()) != null;) {
                 if (line.startsWith("Note:") || line.startsWith("warning:")) {
                     // just a warning (e.g. unchecked or unsafe operations)
                 } else {

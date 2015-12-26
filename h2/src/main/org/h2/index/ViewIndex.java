@@ -69,7 +69,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         columns = new Column[0];
         this.createSession = null;
         this.indexMasks = null;
-        // this is a main index of TableView, it does not need eviction time stamp 
+        // this is a main index of TableView, it does not need eviction time stamp
         evaluatedAt = Long.MIN_VALUE;
     }
 
@@ -171,8 +171,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return (Query) p;
     }
 
-    private Cursor findRecursive(Session session, SearchRow first, SearchRow last,
-            SearchRow intersection) {
+    private Cursor findRecursive(SearchRow first, SearchRow last) {
         assert recursive;
         LocalResult recResult = view.getRecursiveResult();
         if (recResult != null) {
@@ -266,7 +265,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     private Cursor find(Session session, SearchRow first, SearchRow last,
             SearchRow intersection) {
         if (recursive) {
-            return findRecursive(session, first, last, intersection);
+            return findRecursive(first, last);
         }
         setupQueryParameters(session, first, last, intersection);
         LocalResult result = query.query(0);

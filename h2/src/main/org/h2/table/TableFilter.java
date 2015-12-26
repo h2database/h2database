@@ -21,7 +21,6 @@ import org.h2.index.Index;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
 import org.h2.index.IndexLookupBatch;
-import org.h2.index.ScanIndex;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -213,9 +212,9 @@ public class TableFilter implements ColumnResolver {
         item.cost -= item.cost * indexConditions.size() / 100 / (filter + 1);
 
         if (item1 != null && item1.cost < item.cost) {
-        	item = item1;
+            item = item1;
         }
-        
+
         if (nestedJoin != null) {
             setEvaluatable(nestedJoin);
             item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter));
@@ -374,7 +373,6 @@ public class TableFilter implements ColumnResolver {
     /**
      * Attempt to initialize batched join.
      *
-     * @param id join filter id (index of this table filter in join list)
      * @param jb join batch if it is already created
      * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
      */

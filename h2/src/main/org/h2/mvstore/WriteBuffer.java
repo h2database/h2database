@@ -13,7 +13,8 @@ import java.nio.ByteBuffer;
 public class WriteBuffer {
 
     /**
-     * The maximum size of the buffer in order to be re-used after a clear operation.
+     * The maximum size of the buffer in order to be re-used after a clear
+     * operation.
      */
     private static final int MAX_REUSE_CAPACITY = 4 * 1024 * 1024;
 

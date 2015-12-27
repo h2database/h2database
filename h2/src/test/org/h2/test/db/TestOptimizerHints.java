@@ -125,7 +125,8 @@ public class TestOptimizerHints extends TestBase {
         }
     }
 
-    private void checkPlanJoin(Statement s, boolean on, boolean left, String ... t) throws SQLException {
+    private void checkPlanJoin(Statement s, boolean on, boolean left,
+            String... t) throws SQLException {
         StatementBuilder from = new StatementBuilder();
         for (int i = 0; i < t.length; i++) {
             if (i != 0) {
@@ -145,7 +146,7 @@ public class TestOptimizerHints extends TestBase {
         int prev = plan.indexOf("FROM PUBLIC." + t[0].toUpperCase());
         for (int i = 1; i < t.length; i++) {
             int next = plan.indexOf(
-                    (!left ? "INNER JOIN PUBLIC." : on ? "LEFT OUTER JOIN PUBLIC." : "PUBLIC.") + 
+                    (!left ? "INNER JOIN PUBLIC." : on ? "LEFT OUTER JOIN PUBLIC." : "PUBLIC.") +
                     t[i].toUpperCase());
             if (prev > next) {
                 System.err.println(plan);

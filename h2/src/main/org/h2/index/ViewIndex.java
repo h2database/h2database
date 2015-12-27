@@ -69,12 +69,14 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         columns = new Column[0];
         this.createSession = null;
         this.indexMasks = null;
-        // this is a main index of TableView, it does not need eviction time stamp
+        // this is a main index of TableView, it does not need eviction time
+        // stamp
         evaluatedAt = Long.MIN_VALUE;
     }
 
     /**
-     * Constructor for plan item generation. Over this index the query will be executed.
+     * Constructor for plan item generation. Over this index the query will be
+     * executed.
      *
      * @param view the table view
      * @param index the view index
@@ -97,9 +99,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         if (!recursive) {
             query = getQuery(session, masks, filters, filter, sortOrder);
         }
-        // we don't need eviction for recursive views since we can't calculate their cost
-        // if it is a sub-query we don't need eviction as well because the whole ViewIndex cache
-        // is getting dropped in Session.prepareLocal
+        // we don't need eviction for recursive views since we can't calculate
+        // their cost if it is a sub-query we don't need eviction as well
+        // because the whole ViewIndex cache is getting dropped in
+        // Session.prepareLocal
         evaluatedAt = recursive || view.getTopQuery() != null ? Long.MAX_VALUE : System.nanoTime();
     }
 

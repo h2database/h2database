@@ -59,7 +59,8 @@ public class TestView extends TestBase {
         Connection conn = getConnection("view");
         Statement stat = conn.createStatement();
         stat.execute("drop table test if exists");
-        stat.execute("create table test(id int primary key, name varchar(25) unique, age int unique)");
+        stat.execute("create table test(id int primary key, " +
+                "name varchar(25) unique, age int unique)");
 
         // check that initial cache size is empty
         Session s = (Session) ((JdbcConnection) conn).getSession();

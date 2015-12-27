@@ -87,8 +87,10 @@ public final class JoinBatch {
      */
     public JoinBatch(int filtersCount, TableFilter additionalFilter) {
         if (filtersCount > 32) {
-            // This is because we store state in a 64 bit field, 2 bits per joined table.
-            throw DbException.getUnsupportedException("Too many tables in join (at most 32 supported).");
+            // This is because we store state in a 64 bit field, 2 bits per
+            // joined table.
+            throw DbException.getUnsupportedException(
+                    "Too many tables in join (at most 32 supported).");
         }
         filters = new JoinFilter[filtersCount];
         this.additionalFilter = additionalFilter;
@@ -107,7 +109,8 @@ public final class JoinBatch {
     /**
      * Reset state of this batch.
      *
-     * @param beforeQuery {@code true} if reset was called before the query run, {@code false} if after
+     * @param beforeQuery {@code true} if reset was called before the query run,
+     *            {@code false} if after
      */
     public void reset(boolean beforeQuery) {
         current = null;
@@ -167,7 +170,8 @@ public final class JoinBatch {
             cursor = indexCursor;
         }
         current.updateRow(top.id, cursor, JoinRow.S_NULL, JoinRow.S_CURSOR);
-        // we need fake first row because batchedNext always will move to the next row
+        // we need fake first row because batchedNext always will move to the
+        // next row
         JoinRow fake = new JoinRow(null);
         fake.next = current;
         current = fake;
@@ -199,7 +203,8 @@ public final class JoinBatch {
                 found = true;
                 additionalFilter.reset();
             }
-            // we call furtherFilter in usual way outside of this batch because it is more effective
+            // we call furtherFilter in usual way outside of this batch because
+            // it is more effective
             if (additionalFilter.next()) {
                 return true;
             }
@@ -241,7 +246,8 @@ public final class JoinBatch {
             fetchCurrent(jfId);
 
             if (!current.isDropped()) {
-                // if current was not dropped then it must be fetched successfully
+                // if current was not dropped then it must be fetched
+                // successfully
                 if (jfId == lastJfId) {
                     // the whole join row is ready to be returned
                     return true;
@@ -257,7 +263,8 @@ public final class JoinBatch {
                     continue;
                 }
             }
-            // we have to go down and fetch next cursors for jfId if it is possible
+            // we have to go down and fetch next cursors for jfId if it is
+            // possible
             if (current.next == null) {
                 // either dropped or null-row
                 if (current.isDropped()) {
@@ -273,8 +280,8 @@ public final class JoinBatch {
                 while (current.row(jfId) != null) {
                     jfId++;
                 }
-                // force find on half filled batch (there must be either searchRows
-                // or Cursor.EMPTY set for null-rows)
+                // force find on half filled batch (there must be either
+                // searchRows or Cursor.EMPTY set for null-rows)
                 current = filters[jfId].find(current);
             } else {
                 // here we don't care if the current was dropped
@@ -305,7 +312,8 @@ public final class JoinBatch {
 
         if (newCursor) {
             if (jfId == 0) {
-                // the top cursor is new and empty, then the whole select will not produce any rows
+                // the top cursor is new and empty, then the whole select will
+                // not produce any rows
                 current.drop();
                 return;
             }
@@ -371,7 +379,8 @@ public final class JoinBatch {
      * Create index lookup batch for a view index.
      *
      * @param viewIndex view index
-     * @return index lookup batch or {@code null} if batching is not supported for this query
+     * @return index lookup batch or {@code null} if batching is not supported
+     *         for this query
      */
     public static IndexLookupBatch createViewIndexLookupBatch(ViewIndex viewIndex) {
         Query query = viewIndex.getQuery();
@@ -465,7 +474,8 @@ public final class JoinBatch {
         JoinRow find(JoinRow current) {
             assert current != null;
 
-            // lookupBatch is allowed to be empty when we have some null-rows and forced find call
+            // lookupBatch is allowed to be empty when we have some null-rows
+            // and forced find call
             List<Future<Cursor>> result = lookupBatch.find();
 
             // go backwards and assign futures
@@ -523,10 +533,16 @@ public final class JoinBatch {
 
         /**
          * May contain one of the following:
-         * <br/>- {@code null}: means that we need to get future cursor for this row
-         * <br/>- {@link Future}: means that we need to get a new {@link Cursor} from the {@link Future}
-         * <br/>- {@link Cursor}: means that we need to fetch {@link Row}s from the {@link Cursor}
-         * <br/>- {@link Row}: the {@link Row} is already fetched and is ready to be used
+         * <ul>
+         * <li>{@code null}: means that we need to get future cursor
+         * for this row</li>
+         * <li>{@link Future}: means that we need to get a new {@link Cursor}
+         * from the {@link Future}</li>
+         * <li>{@link Cursor}: means that we need to fetch {@link Row}s from the
+         * {@link Cursor}</li>
+         * <li>{@link Row}: the {@link Row} is already fetched and is ready to
+         * be used</li>
+         * </ul>
          */
         private Object[] row;
         private long state;
@@ -603,7 +619,8 @@ public final class JoinBatch {
         }
 
         /**
-         * Copy this JoinRow behind itself in linked list of all in progress rows.
+         * Copy this JoinRow behind itself in linked list of all in progress
+         * rows.
          *
          * @param jfId The last fetched filter id.
          * @return The copy.
@@ -636,8 +653,8 @@ public final class JoinBatch {
     }
 
     /**
-     * Fake Lookup batch for indexes which do not support batching but have to participate
-     * in batched joins.
+     * Fake Lookup batch for indexes which do not support batching but have to
+     * participate in batched joins.
      */
     private static final class FakeLookupBatch implements IndexLookupBatch {
         private final TableFilter filter;
@@ -747,7 +764,8 @@ public final class JoinBatch {
                 return false;
             }
             findCalled = false;
-            // method find was called, we need to reset futures to initial state for reuse
+            // method find was called, we need to reset futures to initial state
+            // for reuse
             for (int i = 0; i < resultSize; i++) {
                 queryRunner(i).reset();
             }
@@ -862,12 +880,14 @@ public final class JoinBatch {
 
         @Override
         protected void startQueryRunners(int resultSize) {
-            // we do batched find only for top table filter and then lazily run the ViewIndex query
-            // for each received top future cursor
+            // we do batched find only for top table filter and then lazily run
+            // the ViewIndex query for each received top future cursor
             List<Future<Cursor>> topFutureCursors = top.find();
             if (topFutureCursors.size() != resultSize) {
-                throw DbException.throwInternalError("Unexpected result size: " + topFutureCursors.size() +
-                        ", expected :" + resultSize);
+                throw DbException
+                        .throwInternalError("Unexpected result size: " +
+                                topFutureCursors.size() + ", expected :" +
+                                resultSize);
             }
             for (int i = 0; i < resultSize; i++) {
                 QueryRunner r = queryRunner(i);
@@ -895,7 +915,8 @@ public final class JoinBatch {
         @Override
         protected Cursor run() throws Exception {
             if (topFutureCursor == null) {
-                // if the top cursor is empty then the whole query will produce empty result
+                // if the top cursor is empty then the whole query will produce
+                // empty result
                 return EMPTY_CURSOR;
             }
             viewIndex.setupQueryParameters(viewIndex.getSession(), first, last, null);

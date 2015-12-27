@@ -220,7 +220,9 @@ public class ToChar {
         }
 
         StringBuilder output = new StringBuilder();
-        String unscaled = (number.abs().compareTo(BigDecimal.ONE) < 0 ? zeroesAfterDecimalSeparator(number) : "") + number.unscaledValue().abs().toString();
+        String unscaled = (number.abs().compareTo(BigDecimal.ONE) < 0 ?
+                zeroesAfterDecimalSeparator(number) : "") +
+                number.unscaledValue().abs().toString();
 
         // start at the decimal point and fill in the numbers to the left,
         // working our way from right to left

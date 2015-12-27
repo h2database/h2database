@@ -200,14 +200,22 @@ public class UploadBuild {
             if (!ftp.exists("/httpdocs/m2-repo/com/h2database/h2-mvstore", "1.0-SNAPSHOT")) {
                 ftp.makeDirectory("/httpdocs/m2-repo/com/h2database/h2-mvstore/1.0-SNAPSHOT");
             }
-            ftp.store("/httpdocs/m2-repo/com/h2database/h2/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.pom",
-                    new FileInputStream(mavenRepoDir + "com/h2database/h2/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.pom"));
-            ftp.store("/httpdocs/m2-repo/com/h2database/h2/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.jar",
-                    new FileInputStream(mavenRepoDir + "com/h2database/h2/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.jar"));
-            ftp.store("/httpdocs/m2-repo/com/h2database/h2-mvstore/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.pom",
-                    new FileInputStream(mavenRepoDir + "com/h2database/h2-mvstore/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.pom"));
-            ftp.store("/httpdocs/m2-repo/com/h2database/h2-mvstore/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.jar",
-                    new FileInputStream(mavenRepoDir + "com/h2database/h2-mvstore/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.jar"));
+            ftp.store("/httpdocs/m2-repo/com/h2database/h2" +
+                    "/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.pom",
+                    new FileInputStream(mavenRepoDir +
+                            "com/h2database/h2/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.pom"));
+            ftp.store("/httpdocs/m2-repo/com/h2database/h2" +
+                            "/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.jar",
+                    new FileInputStream(mavenRepoDir +
+                            "com/h2database/h2/1.0-SNAPSHOT/h2-1.0-SNAPSHOT.jar"));
+            ftp.store("/httpdocs/m2-repo/com/h2database/h2-mvstore" +
+                            "/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.pom",
+                    new FileInputStream(mavenRepoDir +
+                            "com/h2database/h2-mvstore/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.pom"));
+            ftp.store("/httpdocs/m2-repo/com/h2database/h2-mvstore" +
+                            "/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.jar",
+                    new FileInputStream(mavenRepoDir +
+                            "com/h2database/h2-mvstore/1.0-SNAPSHOT/h2-mvstore-1.0-SNAPSHOT.jar"));
         }
         ftp.close();
     }

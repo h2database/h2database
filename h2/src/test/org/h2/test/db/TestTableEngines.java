@@ -184,7 +184,8 @@ public class TestTableEngines extends TestBase {
         Connection conn = getConnection("tableEngine");
         Statement stat = conn.createStatement();
 
-        stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT, D BIGINT DEFAULT 0) ENGINE \"" +
+        stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT, " +
+                "D BIGINT DEFAULT 0) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
 
         stat.executeUpdate("CREATE INDEX IDX_C_B_A ON T(C, B, A)");
@@ -355,7 +356,8 @@ public class TestTableEngines extends TestBase {
         stat.execute("create table QRY_EXPR_TEST_NO(id int) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
         stat.executeQuery("select 1 + (select 1 from QRY_EXPR_TEST)").next();
-        stat.executeQuery("select 1 from QRY_EXPR_TEST_NO where id in (select id from QRY_EXPR_TEST)");
+        stat.executeQuery("select 1 from QRY_EXPR_TEST_NO where id in "
+                + "(select id from QRY_EXPR_TEST)");
         stat.executeQuery("select 1 from QRY_EXPR_TEST_NO n "
                 + "where exists(select 1 from QRY_EXPR_TEST y where y.id = n.id)");
         deleteDb("testQueryExpressionFlag");
@@ -394,7 +396,8 @@ public class TestTableEngines extends TestBase {
         // test select expression plan
         stat.execute("create table test_plan(id int primary key, name varchar)");
         stat.execute("create index MY_NAME_INDEX on test_plan(name)");
-        checkPlan(stat, "select * from (select (select id from test_plan where name = 'z') from dual)",
+        checkPlan(stat, "select * from (select (select id from test_plan "
+                + "where name = 'z') from dual)",
                 "MY_NAME_INDEX");
         deleteDb("testSubQueryInfo");
     }
@@ -521,46 +524,58 @@ public class TestTableEngines extends TestBase {
                 + "ON 1=1 WHERE Z.A = T.B");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_B */ "
                 + "INNER JOIN ( SELECT A FROM PUBLIC.T ) Z "
-                + "/* batched:view SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
+                + "/* batched:view SELECT A FROM PUBLIC.T "
+                + "/++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = T.B */ ON 1=1 WHERE Z.A = T.B");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( ((SELECT A FROM PUBLIC.T) UNION ALL (SELECT B FROM PUBLIC.U)) "
                 + "UNION ALL (SELECT B FROM PUBLIC.T) ) Z /* batched:view "
-                + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ WHERE A IS ?1) "
+                + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
+                + "WHERE A IS ?1) "
                 + "UNION ALL "
                 + "(SELECT B FROM PUBLIC.U /++ PUBLIC.U_IDX_B: B IS ?1 ++/ WHERE B IS ?1)) "
                 + "UNION ALL "
-                + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ WHERE B IS ?1)"
-                + ": A = T.A */ ON 1=1 WHERE Z.A = T.A");
+                + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
+                + "WHERE B IS ?1): A = T.A */ ON 1=1 WHERE Z.A = T.A");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
-                + "INNER JOIN ( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
-                + "/* batched:view SELECT U.A FROM PUBLIC.U /++ batched:fake PUBLIC.U_IDX_A: A IS ?1 ++/ "
-                + "/++ WHERE U.A IS ?1 ++/ INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
+                + "INNER JOIN ( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 "
+                + "WHERE U.B = T.B ) Z "
+                + "/* batched:view SELECT U.A FROM PUBLIC.U "
+                + "/++ batched:fake PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "/++ WHERE U.A IS ?1 ++/ INNER JOIN PUBLIC.T "
+                + "/++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
                 + "ON 1=1 WHERE (U.A IS ?1) AND (U.B = T.B): A = T.A */ ON 1=1 WHERE Z.A = T.A");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( SELECT A FROM PUBLIC.U ) Z /* SELECT A FROM PUBLIC.U "
-                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ WHERE A IS ?1: A = T.A */ ON 1=1 WHERE T.A = Z.A");
+                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ WHERE A IS ?1: A = T.A */ "
+                + "ON 1=1 WHERE T.A = Z.A");
         checkPlan(stat, "SELECT 1 FROM "
                 + "( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
                 + "/* SELECT U.A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/ "
                 + "INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
                 + "ON 1=1 WHERE U.B = T.B */ "
-                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE T.A = Z.A");
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
+                + "WHERE T.A = Z.A");
         checkPlan(stat, "SELECT 1 FROM "
                 + "( SELECT U.A FROM PUBLIC.T INNER JOIN PUBLIC.U ON 1=1 WHERE T.B = U.B ) Z "
                 + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.T_IDX_B ++/ "
                 + "INNER JOIN PUBLIC.U /++ PUBLIC.U_IDX_B: B = T.B ++/ "
-                + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
+                + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T "
+                + "/* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM ( (SELECT A FROM PUBLIC.T) UNION (SELECT A FROM PUBLIC.U) ) Z "
+        checkPlan(stat, "SELECT 1 FROM ( (SELECT A FROM PUBLIC.T) UNION "
+                + "(SELECT A FROM PUBLIC.U) ) Z "
                 + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/) "
                 + "UNION "
                 + "(SELECT A FROM PUBLIC.U /++ PUBLIC.U_IDX_A ++/) */ "
-                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE Z.A = T.A");
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
+                + "WHERE Z.A = T.A");
         checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_B */ "
                 + "INNER JOIN ( (SELECT A, B FROM PUBLIC.T) UNION (SELECT B, A FROM PUBLIC.U) ) Z "
-                + "/* batched:view (SELECT A, B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
-                + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "/* batched:view (SELECT A, B FROM PUBLIC.T "
+                + "/++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
+                + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U "
+                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1): B = U.B */ ON 1=1 /* WHERE U.B = Z.B */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
                 + "WHERE (U.B = Z.B) AND (Z.A = T.A)");
@@ -574,17 +589,22 @@ public class TestTableEngines extends TestBase {
         // t: a = [ 0..20), b = [10..30)
         // u: a = [10..25), b = [-5..10)
         checkBatchedQueryResult(stat, 10,
-                "select t.a from t, (select t.b from u, t where u.a = t.a) z where t.b = z.b");
+                "select t.a from t, (select t.b from u, t where u.a = t.a) z " +
+                "where t.b = z.b");
         checkBatchedQueryResult(stat, 5,
-                "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t where t.b = z.b + 5");
+                "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t " +
+                "where t.b = z.b + 5");
         checkBatchedQueryResult(stat, 1,
-                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z, t where t.b = z.b + 1");
+                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z, t " +
+                "where t.b = z.b + 1");
         checkBatchedQueryResult(stat, 15,
-                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z left join t on t.b = z.b");
+                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z " +
+                "left join t on t.b = z.b");
         checkBatchedQueryResult(stat, 15,
                 "select t.a from (select t1.b from t t1 left join t t2 on t1.a = t2.b) z, t "
                 + "where t.b = z.b + 5");
-        checkBatchedQueryResult(stat, 1, "select t.a from t,(select 5 as b from t union select 10 from u) z "
+        checkBatchedQueryResult(stat, 1,
+                "select t.a from t,(select 5 as b from t union select 10 from u) z "
                 + "where t.b = z.b");
         checkBatchedQueryResult(stat, 15, "select t.a from u,(select 5 as b, a from t "
                 + "union select 10, a from u) z, t where t.b = z.b and z.a = u.a");
@@ -593,7 +613,8 @@ public class TestTableEngines extends TestBase {
         stat.execute("DROP TABLE U");
     }
 
-    private void checkBatchedQueryResult(Statement stat, int size, String sql) throws SQLException {
+    private void checkBatchedQueryResult(Statement stat, int size, String sql)
+            throws SQLException {
         setBatchingEnabled(stat, false);
         List<List<Object>> expected = query(stat, sql);
         assertEquals(size, expected.size());
@@ -636,7 +657,8 @@ public class TestTableEngines extends TestBase {
         for (int test = 0; test < tests; test++) {
             String query = generateQuery(test, batchSizes.length);
 
-//            System.out.println(Arrays.toString(batchSizes) + ": " + test + " -> " + query);
+            // System.out.println(Arrays.toString(batchSizes) +
+            //    ": " + test + " -> " + query);
 
             setBatchSize(tables, batchSizes);
             List<List<Object>> res1 = query(stat, query);
@@ -644,7 +666,7 @@ public class TestTableEngines extends TestBase {
             setBatchSize(tables, zeroBatchSizes);
             List<List<Object>> res2 = query(stat, query);
 
-//            System.out.println(res1 + " " + res2);
+            // System.out.println(res1 + " " + res2);
 
             if (!res2.equals(res1)) {
                 System.err.println(Arrays.toString(batchSizes) + ": " + res1 + " " + res2);
@@ -1131,7 +1153,8 @@ public class TestTableEngines extends TestBase {
             public double getCost(Session session, int[] masks,
                     TableFilter[] filters, int filter, SortOrder sortOrder) {
                 doTests(session);
-                return getCostRangeIndex(masks, getRowCount(session), filters, filter, sortOrder, true);
+                return getCostRangeIndex(masks, getRowCount(session), filters,
+                        filter, sortOrder, true);
             }
         };
 
@@ -1353,7 +1376,8 @@ public class TestTableEngines extends TestBase {
             };
         }
 
-        public List<Future<Cursor>> findBatched(final TableFilter filter, List<SearchRow> firstLastPairs) {
+        public List<Future<Cursor>> findBatched(final TableFilter filter,
+                List<SearchRow> firstLastPairs) {
             ArrayList<Future<Cursor>> result = New.arrayList(firstLastPairs.size());
             final Random rnd = new Random();
             for (int i = 0; i < firstLastPairs.size(); i += 2) {
@@ -1443,12 +1467,14 @@ public class TestTableEngines extends TestBase {
         private void checkInfo(SubQueryInfo info) {
             if (info.getUpper() == null) {
                 // check 1st level info
-                assert0(info.getFilters().length == 1, "getFilters().length " + info.getFilters().length);
+                assert0(info.getFilters().length == 1, "getFilters().length " +
+                        info.getFilters().length);
                 String alias = alias(info);
                 assert0("T5".equals(alias), "alias: " + alias);
             } else {
                 // check 2nd level info
-                assert0(info.getFilters().length == 2, "getFilters().length " + info.getFilters().length);
+                assert0(info.getFilters().length == 2, "getFilters().length " +
+                        info.getFilters().length);
                 String alias = alias(info);
                 assert0("T4".equals(alias), "alias: " + alias);
                 checkInfo(info.getUpper());

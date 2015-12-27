@@ -232,7 +232,8 @@ class Optimizer {
     /**
      * Calculate the best query plan to use.
      *
-     * @param parse If we do not need to really get the best plan because it is a view parsing stage.
+     * @param parse If we do not need to really get the best plan because it is
+     *            a view parsing stage.
      */
     void optimize(boolean parse) {
         if (parse) {

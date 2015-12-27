@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit;
 import org.h2.message.DbException;
 
 /**
- * Single threaded lazy future. 
- * 
+ * Single threaded lazy future.
+ *
  * @param <T>
  * @author Sergi Vladykin
  */
@@ -23,15 +23,15 @@ public abstract class LazyFuture<T> implements Future<T> {
     private static final int S_DONE = 1;
     private static final int S_ERROR = 2;
     private static final int S_CANCELED = 3;
-    
+
     private int state = S_READY;
     private T result;
     private Exception error;
 
     /**
      * Reset this future to the initial state.
-     * 
-     * @return {@code false} if it was already in initial state 
+     *
+     * @return {@code false} if it was already in initial state
      */
     public boolean reset() {
         if (state == S_READY) {
@@ -45,11 +45,11 @@ public abstract class LazyFuture<T> implements Future<T> {
 
     /**
      * Run computation and produce the result.
-     * 
+     *
      * @return the result of computation
      */
     protected abstract T run() throws Exception;
-    
+
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         if (state != S_READY) {

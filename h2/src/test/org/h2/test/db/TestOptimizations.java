@@ -1028,26 +1028,37 @@ public class TestOptimizations extends TestBase {
 
         conn.close();
     }
-    
+
     private void testUseCoveringIndex() throws SQLException {
         deleteDb("optimizations");
         Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
-        stat.execute("CREATE TABLE TBL_A(id IDENTITY PRIMARY KEY NOT NULL,  name VARCHAR NOT NULL, active BOOLEAN DEFAULT TRUE,  UNIQUE KEY TBL_A_UK (name) )");
-        stat.execute("CREATE TABLE TBL_B(id IDENTITY PRIMARY KEY NOT NULL,  tbl_a_id BIGINT NOT NULL,  createDate TIMESTAMP DEFAULT NOW(),  UNIQUE KEY TBL_B_UK (tbl_a_id, createDate),  FOREIGN KEY (tbl_a_id) REFERENCES TBL_A(id) )");
-        stat.execute("INSERT INTO TBL_A (name)  SELECT 'package_' || CAST(X as VARCHAR) FROM SYSTEM_RANGE(1, 100)  WHERE X <= 100");
-        stat.execute("INSERT INTO TBL_B (tbl_a_id, createDate)  SELECT CASE WHEN tbl_a_id = 0 THEN 1 ELSE tbl_a_id END, createDate  FROM ( SELECT ROUND((RAND() * 100)) AS tbl_a_id, DATEADD('SECOND', X, NOW()) as createDate FROM SYSTEM_RANGE(1, 50000) WHERE X < 50000  )");
+        stat.execute("CREATE TABLE TBL_A(id IDENTITY PRIMARY KEY NOT NULL, " +
+                "name VARCHAR NOT NULL, active BOOLEAN DEFAULT TRUE, " +
+                "UNIQUE KEY TBL_A_UK (name) )");
+        stat.execute("CREATE TABLE TBL_B(id IDENTITY PRIMARY KEY NOT NULL,  " +
+                "tbl_a_id BIGINT NOT NULL,  createDate TIMESTAMP DEFAULT NOW(), " +
+                "UNIQUE KEY TBL_B_UK (tbl_a_id, createDate), " +
+                "FOREIGN KEY (tbl_a_id) REFERENCES TBL_A(id) )");
+        stat.execute("INSERT INTO TBL_A (name)  SELECT 'package_' || CAST(X as VARCHAR) " +
+                "FROM SYSTEM_RANGE(1, 100)  WHERE X <= 100");
+        stat.execute("INSERT INTO TBL_B (tbl_a_id, createDate)  SELECT " +
+                "CASE WHEN tbl_a_id = 0 THEN 1 ELSE tbl_a_id END, createDate " +
+                "FROM ( SELECT ROUND((RAND() * 100)) AS tbl_a_id, " +
+                "DATEADD('SECOND', X, NOW()) as createDate FROM SYSTEM_RANGE(1, 50000) " +
+                "WHERE X < 50000  )");
         stat.execute("CREATE INDEX tbl_b_idx ON tbl_b(tbl_a_id, id)");
-	    stat.execute("ANALYZE");
+        stat.execute("ANALYZE");
 
-	    ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(b.id) as id FROM tbl_b b JOIN tbl_a a ON b.tbl_a_id = a.id GROUP BY b.tbl_a_id HAVING A.ACTIVE = TRUE");
-    	rs.next();
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(b.id) as id " +
+                "FROM tbl_b b JOIN tbl_a a ON b.tbl_a_id = a.id GROUP BY b.tbl_a_id " +
+                "HAVING A.ACTIVE = TRUE");
+        rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.TBL_B_IDX: TBL_A_ID = A.ID */");
 
         rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(id) FROM tbl_b GROUP BY tbl_a_id");
-	    rs.next();
+        rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.TBL_B_IDX");
-
         conn.close();
     }
 }

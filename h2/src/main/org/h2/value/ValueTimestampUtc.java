@@ -56,7 +56,8 @@ public final class ValueTimestampUtc extends Value {
         if (nanos < 0 || nanos >= 1000 * 1000) {
             throw new IllegalArgumentException("nanos out of range " + nanos);
         }
-        return (ValueTimestampUtc) Value.cache(new ValueTimestampUtc(utcDateTimeMillis * 1000 * 1000 + nanos));
+        return (ValueTimestampUtc) Value.cache(new ValueTimestampUtc(
+                utcDateTimeMillis * 1000 * 1000 + nanos));
     }
 
     /**
@@ -189,12 +190,17 @@ public final class ValueTimestampUtc extends Value {
         }
         if (targetScale < 0) {
             throw DbException.getInvalidValueException("scale", targetScale);
-        } /*
-           * TODO long n = timeNanos; BigDecimal bd = BigDecimal.valueOf(n); bd
-           * = bd.movePointLeft(9); bd = ValueDecimal.setScale(bd, targetScale);
-           * bd = bd.movePointRight(9); long n2 = bd.longValue(); if (n2 == n) {
-           * return this; }
-           */
+        }
+        // TODO
+        // long n = timeNanos;
+        // BigDecimal bd = BigDecimal.valueOf(n);
+        // bd = bd.movePointLeft(9);
+        // bd = ValueDecimal.setScale(bd, targetScale);
+        // bd = bd.movePointRight(9);
+        // long n2 = bd.longValue();
+        // if (n2 == n) {
+        //     return this;
+        // }
         return this;
     }
 

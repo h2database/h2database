@@ -963,7 +963,7 @@ public class Select extends Query {
         TableFilter f = getTopTableFilter();
         do {
             if (f.getNestedJoin() != null) {
-                // we do not support batching with nested joins 
+                // we do not support batching with nested joins
                 return;
             }
             list.add(f);

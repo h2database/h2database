@@ -639,7 +639,8 @@ public abstract class Table extends SchemaObjectBase {
     Row getNullRow() {
         Row row = nullRow;
         if (row == null) {
-            // Here can be concurrently produced more than one row, but it must be ok.
+            // Here can be concurrently produced more than one row, but it must
+            // be ok.
             Value[] values = new Value[columns.length];
             Arrays.fill(values, ValueNull.INSTANCE);
             nullRow = row = database.createRow(values, 1);

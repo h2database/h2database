@@ -21,7 +21,8 @@ import javax.tools.Diagnostic;
  */
 public class TestAnnotationProcessor extends AbstractProcessor {
 
-    public static final String MESSAGES_KEY = TestAnnotationProcessor.class.getName() + "-messages";
+    public static final String MESSAGES_KEY =
+            TestAnnotationProcessor.class.getName() + "-messages";
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -45,7 +46,9 @@ public class TestAnnotationProcessor extends AbstractProcessor {
             if (split.length == 2) {
                 outputMessages.add(new OutputMessage(Diagnostic.Kind.valueOf(split[0]), split[1]));
             } else {
-                throw new IllegalStateException("Unable to parse messages definition for: '" + messagesStr + "'");
+                throw new IllegalStateException(
+                        "Unable to parse messages definition for: '" +
+                                messagesStr + "'");
             }
         }
 

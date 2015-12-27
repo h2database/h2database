@@ -120,7 +120,7 @@ public class Plan {
             PlanItem item = tableFilter.getBestPlanItem(session, allFilters, i);
             planItems.put(tableFilter, item);
             if (t.isDebugEnabled()) {
-                t.debug("Plan       :   best plan item cost {0} index {1}", 
+                t.debug("Plan       :   best plan item cost {0} index {1}",
                         item.cost, item.getIndex().getPlanSQL());
             }
             cost += cost * item.cost;

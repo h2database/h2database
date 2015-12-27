@@ -1885,8 +1885,8 @@ public class Parser {
             parseJoinTableFilter(filter, command);
         } while (readIf(","));
 
-        // Parser can reorder joined table filters, need to explicitly sort them to
-        // get the order as it was in the original query.
+        // Parser can reorder joined table filters, need to explicitly sort them
+        // to get the order as it was in the original query.
         if (session.isForceJoinOrder()) {
             sortTableFilters(command.getTopFilters());
         }

@@ -123,7 +123,8 @@ public class TableFilter implements ColumnResolver {
      * @param alias the alias name
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
-     * @param orderInFrom Original order number of this table filter in FROM clause.
+     * @param orderInFrom Original order number of this table filter in FROM
+     *            clause.
      */
     public TableFilter(Session session, Table table, String alias,
             boolean rightsChecked, Select select, int orderInFrom) {
@@ -374,7 +375,8 @@ public class TableFilter implements ColumnResolver {
      * Attempt to initialize batched join.
      *
      * @param jb join batch if it is already created
-     * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
+     * @return join batch if query runs over index which supports batched
+     *         lookups, {@code null} otherwise
      */
     public JoinBatch prepareJoinBatch(JoinBatch jb, TableFilter[] filters, int filter) {
         joinBatch = null;
@@ -387,13 +389,15 @@ public class TableFilter implements ColumnResolver {
                 session.popSubQueryInfo();
             }
         }
-        // For globally top table filter we don't need to create lookup batch, because
-        // currently it will not be used (this will be shown in ViewIndex.getPlanSQL()). Probably
-        // later on it will make sense to create it to better support X IN (...) conditions,
-        // but this needs to be implemented separately. If isAlwaysTopTableFilter is false
-        // then we either not a top table filter or top table filter in a sub-query, which
-        // in turn is not top in outer query, thus we need to enable batching here to allow
-        // outer query run batched join against this sub-query.
+        // For globally top table filter we don't need to create lookup batch,
+        // because currently it will not be used (this will be shown in
+        // ViewIndex.getPlanSQL()). Probably later on it will make sense to
+        // create it to better support X IN (...) conditions, but this needs to
+        // be implemented separately. If isAlwaysTopTableFilter is false then we
+        // either not a top table filter or top table filter in a sub-query,
+        // which in turn is not top in outer query, thus we need to enable
+        // batching here to allow outer query run batched join against this
+        // sub-query.
         IndexLookupBatch lookupBatch = null;
         if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
             lookupBatch = index.createLookupBatch(this);
@@ -408,11 +412,13 @@ public class TableFilter implements ColumnResolver {
             joinBatch = jb;
             joinFilterId = filter;
             if (lookupBatch == null && !isAlwaysTopTableFilter(filter)) {
-                // createLookupBatch will be called at most once because jb can be
-                // created only if lookupBatch is already not null from the call above.
+                // createLookupBatch will be called at most once because jb can
+                // be created only if lookupBatch is already not null from the
+                // call above.
                 lookupBatch = index.createLookupBatch(this);
                 if (lookupBatch == null) {
-                    // the index does not support lookup batching, need to fake it because we are not top
+                    // the index does not support lookup batching, need to fake
+                    // it because we are not top
                     lookupBatch = JoinBatch.createFakeIndexLookupBatch(this);
                 }
             }
@@ -436,7 +442,8 @@ public class TableFilter implements ColumnResolver {
      */
     public boolean next() {
         if (joinBatch != null) {
-            // will happen only on topTableFilter since joinBatch.next() does not call join.next()
+            // will happen only on topTableFilter since joinBatch.next() does
+            // not call join.next()
             return joinBatch.next();
         }
         if (state == AFTER_LAST) {

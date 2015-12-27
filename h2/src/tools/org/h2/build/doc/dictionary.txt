@@ -778,3 +778,10 @@ dance schedule hitting reverted youngest footers inliner deadlocked reorder nger
 nullid syspublic sysibmts sysibminternal syscat sysfun sysstat systools sysibmadm
 sysproc jcc expecting gpg showed unreferenced activating cvf stephane lacoin
 centrale umr ecole nantes sticc lab reordering preferable simultaneously
+
+--- todo
+
+timestamputc lazily satisfy nexpected messager participating eviction milli globally
+futures atp lookups batches slot nnext forced tbl diagnostic filer stamp turn going
+nwhere hardcode cancellation qry nprev fetched produced nactual incurring interpreter
+batching ncurr prefered fewer runners iter

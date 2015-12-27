@@ -73,7 +73,7 @@ public abstract class Query extends Prepared {
 
     /**
      * Check if this is a UNION query.
-     * 
+     *
      * @return {@code true} if this is a UNION query
      */
     public abstract boolean isUnion();

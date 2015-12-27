@@ -237,9 +237,10 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return SpatialTreeIndex.getCostRangeIndex(masks, table.getRowCountApproximation(), columns);
+    public double getCost(Session session, int[] masks, TableFilter[] filters,
+            int filter, SortOrder sortOrder) {
+        return SpatialTreeIndex.getCostRangeIndex(masks,
+                table.getRowCountApproximation(), columns);
     }
 
     @Override

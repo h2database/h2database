@@ -121,7 +121,8 @@ public class TableView extends Table {
      * @return the exception if re-compiling this or any dependent view failed
      *         (only when force is disabled)
      */
-    public synchronized DbException recompile(Session session, boolean force, boolean clearIndexCache) {
+    public synchronized DbException recompile(Session session, boolean force,
+            boolean clearIndexCache) {
         try {
             compileViewQuery(session, querySQL);
         } catch (DbException e) {

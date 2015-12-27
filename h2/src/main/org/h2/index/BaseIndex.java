@@ -153,15 +153,17 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * b-tree range index. This is the estimated cost required to search one
      * row, and then iterate over the given number of rows.
      *
-     * @param masks the IndexCondition search masks, one for each Column in the table
+     * @param masks the IndexCondition search masks, one for each column in the
+     *            table
      * @param rowCount the number of rows in the index
      * @param filters all joined table filters
      * @param filter the current table filter index
      * @param sortOrder the sort order
      * @return the estimated cost
      */
-    protected final long getCostRangeIndex(int[] masks, long rowCount, TableFilter[] filters, int filter,
-            SortOrder sortOrder, boolean isScanIndex) {
+    protected final long getCostRangeIndex(int[] masks, long rowCount,
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            boolean isScanIndex) {
         rowCount += Constants.COST_ROW_OFFSET;
         int totalSelectivity = 0;
         long rowsCost = rowCount;
@@ -175,7 +177,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
                         rowsCost = 3;
                         break;
                     }
-                    totalSelectivity = 100 - ((100 - totalSelectivity) * (100 - column.getSelectivity()) / 100);
+                    totalSelectivity = 100 - ((100 - totalSelectivity) *
+                            (100 - column.getSelectivity()) / 100);
                     long distinctRows = rowCount * totalSelectivity / 100;
                     if (distinctRows <= 0) {
                         distinctRows = 1;
@@ -279,7 +282,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         }
         return rc;
     }
-    
+
     @Override
     public int compareRows(SearchRow rowData, SearchRow compare) {
         if (rowData == compare) {

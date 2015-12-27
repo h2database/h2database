@@ -501,9 +501,12 @@ public class DateTimeUtils {
      * @return the number of milliseconds in UTC
      */
     public static long getTimeUTCWithoutDst(long millis) {
-        return millis - getCalendar().get(Calendar.ZONE_OFFSET);
+        Calendar calendar = getCalendar();
+        // clearing calendar is work-around for bug with "Europe/Moscow" timezone with Java 1.8.0_60
+        // if calendar is not cleared, then subsequent calls to this method with the same input return different values.
+        calendar.clear();
+        return millis - calendar.get(Calendar.ZONE_OFFSET);
     }
-
     /**
      * Return the day of week according to the ISO 8601 specification. Week
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601

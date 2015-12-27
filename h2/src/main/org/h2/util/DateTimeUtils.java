@@ -91,6 +91,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance();
             CACHED_CALENDAR.set(c);
         }
+        c.clear();
         return c;
     }
 
@@ -106,6 +107,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
+        c.clear();
         return c;
     }
 
@@ -423,7 +425,6 @@ public class DateTimeUtils {
         } else {
             c = getCalendar(tz);
         }
-        c.clear();
         c.setLenient(lenient);
         setCalendarFields(c, year, month, day, hour, minute, second, millis);
         return c.getTime().getTime();
@@ -490,7 +491,8 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + getCalendar().get(Calendar.ZONE_OFFSET);
+        Calendar calendar = getCalendar();
+        return d.getTime() + calendar.get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -501,11 +503,7 @@ public class DateTimeUtils {
      * @return the number of milliseconds in UTC
      */
     public static long getTimeUTCWithoutDst(long millis) {
-        Calendar calendar = getCalendar();
-        // clearing calendar is work-around for bug with "Europe/Moscow" timezone with Java 1.8.0_60
-        // if calendar is not cleared, then subsequent calls to this method with the same input return different values.
-        calendar.clear();
-        return millis - calendar.get(Calendar.ZONE_OFFSET);
+        return millis - getCalendar().get(Calendar.ZONE_OFFSET);
     }
     /**
      * Return the day of week according to the ISO 8601 specification. Week
@@ -775,7 +773,6 @@ public class DateTimeUtils {
      */
     public static long dateValueFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return dateValueFromCalendar(cal);
     }
@@ -803,7 +800,6 @@ public class DateTimeUtils {
      */
     public static long nanosFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return nanosFromCalendar(cal);
     }

@@ -91,6 +91,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance();
             CACHED_CALENDAR.set(c);
         }
+        c.clear();
         return c;
     }
 
@@ -106,6 +107,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
+        c.clear();
         return c;
     }
 
@@ -423,7 +425,6 @@ public class DateTimeUtils {
         } else {
             c = getCalendar(tz);
         }
-        c.clear();
         c.setLenient(lenient);
         setCalendarFields(c, year, month, day, hour, minute, second, millis);
         return c.getTime().getTime();
@@ -490,7 +491,8 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + getCalendar().get(Calendar.ZONE_OFFSET);
+        Calendar calendar = getCalendar();
+        return d.getTime() + calendar.get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -503,7 +505,6 @@ public class DateTimeUtils {
     public static long getTimeUTCWithoutDst(long millis) {
         return millis - getCalendar().get(Calendar.ZONE_OFFSET);
     }
-
     /**
      * Return the day of week according to the ISO 8601 specification. Week
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
@@ -772,7 +773,6 @@ public class DateTimeUtils {
      */
     public static long dateValueFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return dateValueFromCalendar(cal);
     }
@@ -800,7 +800,6 @@ public class DateTimeUtils {
      */
     public static long nanosFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return nanosFromCalendar(cal);
     }

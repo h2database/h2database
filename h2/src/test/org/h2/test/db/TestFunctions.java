@@ -27,6 +27,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Currency;
@@ -42,6 +44,7 @@ import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.ap.TestAnnotationProcessor;
@@ -49,6 +52,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.ToDate;
 import org.h2.value.Value;
 
 /**
@@ -72,6 +76,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testToDate();
+        testToDateException();
         testDataType();
         testVersion();
         testFunctionTable();
@@ -1273,6 +1279,123 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+    }
+
+    private void testToDateException() {
+        try {
+            ToDate.TO_DATE("1979-ThisWillFail-12", "YYYY-MM-DD");
+        } catch (Exception e) {
+            assertEquals(DbException.class.getSimpleName(), e.getClass().getSimpleName());
+        }
+    }
+
+    private void testToDate() throws SQLException, ParseException {
+
+        final int curMonth = Calendar.getInstance().get(Calendar.MONTH);
+
+        Date date = null;
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-12");
+        assertEquals(date, ToDate.TO_DATE("1979-11-12", "YYYY-MM-DD"));
+        assertEquals(date, ToDate.TO_DATE("1979/11/12", "YYYY/MM/DD"));
+        assertEquals(date, ToDate.TO_DATE("1979,11,12", "YYYY,MM,DD"));
+        assertEquals(date, ToDate.TO_DATE("1979.11.12", "YYYY.MM.DD"));
+        assertEquals(date, ToDate.TO_DATE("1979;11;12", "YYYY;MM;DD"));
+        assertEquals(date, ToDate.TO_DATE("1979:11:12", "YYYY:MM:DD"));
+
+        date = new SimpleDateFormat("yyyy").parse("1979");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("1979", "YYYY"));
+        assertEquals(date, ToDate.TO_DATE("1979 AD", "YYYY AD"));
+        assertEquals(date, ToDate.TO_DATE("1979 A.D.", "YYYY A.D."));
+        assertEquals(date, ToDate.TO_DATE("1979 A.D.", "YYYY BC"));
+        assertEquals(date, ToDate.TO_DATE("1979", "IYYY"));
+        assertEquals(date, ToDate.TO_DATE("+1979", "SYYYY"));
+        assertEquals(date, ToDate.TO_DATE("79", "RRRR"));
+
+        date = new SimpleDateFormat("yyyy-mm").parse("1970-12");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("12", "MI"));
+
+        date = new SimpleDateFormat("yyyy-MM").parse("1970-11");
+        assertEquals(date, ToDate.TO_DATE("11", "MM"));
+        assertEquals(date, ToDate.TO_DATE("11", "Mm"));
+        assertEquals(date, ToDate.TO_DATE("11", "mM"));
+        assertEquals(date, ToDate.TO_DATE("11", "mm"));
+        assertEquals(date, ToDate.TO_DATE("XI", "RM"));
+
+        date = new SimpleDateFormat("yyyy").parse("9");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("9", "Y"));
+        assertEquals(date, ToDate.TO_DATE("9", "I"));
+        date = new SimpleDateFormat("yyyy").parse("79");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("79", "YY"));
+        assertEquals(date, ToDate.TO_DATE("79", "IY"));
+
+        date = new SimpleDateFormat("yyyy").parse("979");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("979", "YYY"));
+        assertEquals(date, ToDate.TO_DATE("979", "IYY"));
+
+        // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+        date = new SimpleDateFormat("yyy").parse("-99");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("0100 BC", "YYYY BC"));
+        assertEquals(date, ToDate.TO_DATE("0100 B.C.", "YYYY B.C."));
+        assertEquals(date, ToDate.TO_DATE("100 BC", "YYY BC"));
+        assertEquals(date, ToDate.TO_DATE("-0100", "SYYYY"));
+        assertEquals(date, ToDate.TO_DATE("-0100", "YYYY"));
+
+        // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+        date = new SimpleDateFormat("y").parse("0");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("01 BC", "YY BC"));
+        assertEquals(date, ToDate.TO_DATE("1 BC", "Y BC"));
+
+        date = new SimpleDateFormat("hh:mm:ss").parse("08:12:00");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("08:12 AM", "HH:MI AM"));
+        assertEquals(date, ToDate.TO_DATE("08:12 A.M.", "HH:MI A.M."));
+        assertEquals(date, ToDate.TO_DATE("08:12", "HH24:MI"));
+
+        date = new SimpleDateFormat("hh:mm:ss").parse("08:12:00");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("08:12", "HH:MI"));
+        assertEquals(date, ToDate.TO_DATE("08:12", "HH12:MI"));
+
+        date = new SimpleDateFormat("hh:mm:ss").parse("08:12:34");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("08:12:34", "HH:MI:SS"));
+
+        date = new SimpleDateFormat("ss").parse("34");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("34", "SS"));
+
+        date = new SimpleDateFormat("yyyy hh:mm:ss").parse("1970 08:12:34");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("29554", "SSSSS"));
+
+        date = new SimpleDateFormat("yyyy hh:mm:ss SSS").parse("1970 08:12:34 550");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("08:12:34 550", "HH:MI:SS FF"));
+        assertEquals(date, ToDate.TO_DATE("08:12:34 55", "HH:MI:SS FF2"));
+
+        date = new SimpleDateFormat("hh:mm:ss").parse("14:04:00");
+        date.setMonth(curMonth);
+        assertEquals(date, ToDate.TO_DATE("02:04 P.M.", "HH:MI p.M."));
+        assertEquals(date, ToDate.TO_DATE("02:04 PM", "HH:MI PM"));
+
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-12-12");
+        assertEquals(date, ToDate.TO_DATE("12", "DD"));
+
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-11-12");
+        assertEquals(date, ToDate.TO_DATE("316", "DDD"));
+        assertEquals(date, ToDate.TO_DATE("316", "DdD"));
+        assertEquals(date, ToDate.TO_DATE("316", "dDD"));
+        assertEquals(date, ToDate.TO_DATE("316", "ddd"));
+
+        date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
+        assertEquals(date, ToDate.TO_DATE("113029", "J"));
     }
 
     private void testToCharFromDateTime() throws SQLException {

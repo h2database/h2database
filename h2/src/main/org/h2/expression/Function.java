@@ -44,16 +44,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.AutoCloseInputStream;
-import org.h2.util.DateTimeUtils;
-import org.h2.util.IOUtils;
-import org.h2.util.JdbcUtils;
-import org.h2.util.MathUtils;
-import org.h2.util.New;
-import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
-import org.h2.util.ToChar;
-import org.h2.util.Utils;
+import org.h2.util.*;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -93,7 +84,8 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
+            TO_DATE = 96, TO_TIMESTAMP = 97;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -306,6 +298,8 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunctionNotDeterministic("CURDATE", CURDATE,
                 0, Value.DATE);
+        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
+        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -1429,6 +1423,14 @@ public class Function extends Expression implements FunctionCall {
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
+        case TO_DATE:
+            result = ValueTimestamp.get(ToDate.TO_DATE(v0.getString(),
+                    v1 == null ? null : v1.getString()));
+            break;
+        case TO_TIMESTAMP:
+            result = ValueTimestamp.get(ToDate.TO_TIMESTAMP(v0.getString(),
+                    v1 == null ? null : v1.getString()));
+            break;
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
@@ -2123,10 +2125,12 @@ public class Function extends Expression implements FunctionCall {
         case ROUND:
         case XMLTEXT:
         case TRUNCATE:
+        case TO_TIMESTAMP:
             min = 1;
             max = 2;
             break;
         case TO_CHAR:
+        case TO_DATE:
             min = 1;
             max = 3;
             break;

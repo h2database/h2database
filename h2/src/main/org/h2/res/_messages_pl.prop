@@ -83,6 +83,7 @@
 90053=Skalarna pod-kwerenda zawiera więcej niż jeden wiersz
 90054=Nieprawidłowe użycie funkcji agregującej {0}
 90055=Nieobsługiwany szyfr {0}
+90056=Function {0}: Invalid date format: {1}
 90057=Ograniczenie {0} nie istnieje
 90058=Zatwierdzenie lub wycofanie transakcji nie jest dozwolone w wyzwalaczu
 90059=Niejednoznaczna nazwa kolumny {0}

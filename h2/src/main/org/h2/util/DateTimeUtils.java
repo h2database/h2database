@@ -902,4 +902,9 @@ public class DateTimeUtils {
         return dateValue(y, m + 3, (int) d);
     }
 
+    public static Timestamp addMonths(final Timestamp timestamp, final int numberMonths) {
+        timestamp.setMonth(timestamp.getMonth() + numberMonths);
+        return timestamp;
+    }
+
 }

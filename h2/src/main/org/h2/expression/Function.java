@@ -85,7 +85,7 @@ public class Function extends Expression implements FunctionCall {
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
-            TO_DATE = 96, TO_TIMESTAMP = 97;
+            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -300,6 +300,7 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
+        addFunction("ADD_MONTHS", ADD_MONTHS, VAR_ARGS, Value.TIMESTAMP);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -1431,6 +1432,9 @@ public class Function extends Expression implements FunctionCall {
             result = ValueTimestamp.get(ToDate.TO_TIMESTAMP(v0.getString(),
                     v1 == null ? null : v1.getString()));
             break;
+        case ADD_MONTHS:
+            result = ValueTimestamp.get(DateTimeUtils.addMonths(v0.getTimestamp(), v1.getInt()));
+            break;
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
@@ -2106,6 +2110,10 @@ public class Function extends Expression implements FunctionCall {
     protected void checkParameterCount(int len) {
         int min = 0, max = Integer.MAX_VALUE;
         switch (info.type) {
+        case ADD_MONTHS:
+            min = 2;
+            max = 2;
+            break;
         case COALESCE:
         case CSVREAD:
         case LEAST:

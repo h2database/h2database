@@ -49,10 +49,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.ap.TestAnnotationProcessor;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.IOUtils;
-import org.h2.util.New;
-import org.h2.util.StringUtils;
-import org.h2.util.ToDate;
+import org.h2.util.*;
 import org.h2.value.Value;
 
 /**
@@ -78,6 +75,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         deleteDb("functions");
         testToDate();
         testToDateException();
+        testAddMonths();
         testDataType();
         testVersion();
         testFunctionTable();
@@ -1386,6 +1384,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(date, ToDate.TO_DATE("02:04 PM", "HH:MI PM"));
 
         date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-12-12");
+        date.setMonth(curMonth);
         assertEquals(date, ToDate.TO_DATE("12", "DD"));
 
         date = new SimpleDateFormat("yyyy-MM-dd").parse("1970-11-12");
@@ -1396,6 +1395,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
         assertEquals(date, ToDate.TO_DATE("113029", "J"));
+    }
+
+    private void testAddMonths() throws ParseException {
+        Date date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
+
+        Date expected = new SimpleDateFormat("yyyy-MM-dd").parse("2013-02-29");
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), 1));
+
+        expected = new SimpleDateFormat("yyyy-MM-dd").parse("2014-01-29");
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), 12));
+
+        expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-11-29");
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -2));
+
+        expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-29");
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -12));
     }
 
     private void testToCharFromDateTime() throws SQLException {

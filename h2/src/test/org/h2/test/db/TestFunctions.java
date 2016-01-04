@@ -1415,6 +1415,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         date = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-08-21").getTime());
         expected = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-05-21").getTime());
         assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -3));
+
+        // 21-Aug-2003 00:00:00:333 - 3 months = 21-May-2003 00:00:00:333
+        date = new Timestamp(new SimpleDateFormat("yyyy-MM-dd SSS").parse("2003-08-21 333").getTime());
+        expected = new Timestamp(new SimpleDateFormat("yyyy-MM-dd SSS").parse("2003-05-21 333").getTime());
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -3));
     }
 
     private void testToCharFromDateTime() throws SQLException {

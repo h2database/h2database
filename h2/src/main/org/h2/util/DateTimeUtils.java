@@ -912,7 +912,10 @@ public class DateTimeUtils {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(refDate);
         calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
-        return new Timestamp(calendar.getTime().getTime());
+
+        Timestamp resultDate = new Timestamp(calendar.getTimeInMillis());
+        resultDate.setNanos(refDate.getNanos());
+        return resultDate;
     }
 
 }

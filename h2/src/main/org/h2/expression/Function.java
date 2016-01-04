@@ -300,7 +300,7 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
-        addFunction("ADD_MONTHS", ADD_MONTHS, VAR_ARGS, Value.TIMESTAMP);
+        addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -2110,10 +2110,6 @@ public class Function extends Expression implements FunctionCall {
     protected void checkParameterCount(int len) {
         int min = 0, max = Integer.MAX_VALUE;
         switch (info.type) {
-        case ADD_MONTHS:
-            min = 2;
-            max = 2;
-            break;
         case COALESCE:
         case CSVREAD:
         case LEAST:

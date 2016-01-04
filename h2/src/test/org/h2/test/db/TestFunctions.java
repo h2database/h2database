@@ -1398,19 +1398,23 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private void testAddMonths() throws ParseException {
-        Date date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
+        Timestamp date;
+        Timestamp expected;
 
-        Date expected = new SimpleDateFormat("yyyy-MM-dd").parse("2013-02-29");
+        // 01-Aug-03 + 3 months = 01-Nov-03
+        date = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-08-01").getTime());
+        expected = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-11-01").getTime());
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), 3));
+
+        // 31-Jan-03 + 1 month = 28-Feb-2003
+        date = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-01-31").getTime());
+        expected = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-02-28").getTime());
         assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), 1));
 
-        expected = new SimpleDateFormat("yyyy-MM-dd").parse("2014-01-29");
-        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), 12));
-
-        expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-11-29");
-        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -2));
-
-        expected = new SimpleDateFormat("yyyy-MM-dd").parse("2012-01-29");
-        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -12));
+        // 21-Aug-2003 - 3 months = 21-May-2003
+        date = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-08-21").getTime());
+        expected = new Timestamp(new SimpleDateFormat("yyyy-MM-dd").parse("2003-05-21").getTime());
+        assertEquals(expected, DateTimeUtils.addMonths(new Timestamp(date.getTime()), -3));
     }
 
     private void testToCharFromDateTime() throws SQLException {

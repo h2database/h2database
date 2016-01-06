@@ -125,7 +125,7 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
             File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-            File.pathSeparator + "ext/jts-1.13.jar" +
+            File.pathSeparator + "ext/jts-core-1.14.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
             File.pathSeparator + System.getProperty("java.home") +
@@ -203,7 +203,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-1.13.jar" +
+                File.pathSeparator + "ext/jts-core-1.14.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
         FileList files;
         if (clientOnly) {
@@ -302,8 +302,8 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/org.osgi.enterprise-4.2.0.jar",
                 "org/osgi", "org.osgi.enterprise", "4.2.0",
                 "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
-        downloadOrVerify("ext/jts-1.13.jar",
-                "com/vividsolutions", "jts", "1.13",
+        downloadOrVerify("ext/jts-core-1.14.0.jar",
+                "com/vividsolutions", "jts-core", "1.14.0",
                 "3ccfb9b60f04d71add996a666ceb8902904fd805", offline);
     }
 
@@ -576,7 +576,7 @@ public class Build extends BuildBase {
                 "org.h2.tools", "org.h2.api", "org.h2.engine", "org.h2.fulltext",
                 "-classpath",
                 "ext/lucene-core-3.0.2.jar" +
-                File.pathSeparator + "ext/jts-1.13.jar",
+                File.pathSeparator + "ext/jts-core-1.14.0.jar",
                 "-docletpath", "bin" + File.pathSeparator + "temp",
                 "-doclet", "org.h2.build.doclet.Doclet");
         copy("docs/javadoc", files("src/docsrc/javadoc"), "src/docsrc/javadoc");
@@ -601,7 +601,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-1.13.jar",
+                File.pathSeparator + "ext/jts-core-1.14.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu");
 
@@ -617,7 +617,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-1.13.jar",
+                File.pathSeparator + "ext/jts-core-1.14.0.jar",
                 "-subpackages", "org.h2.mvstore",
                 "-exclude", "org.h2.mvstore.db");
 
@@ -633,7 +633,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-1.13.jar",
+                File.pathSeparator + "ext/jts-core-1.14.0.jar",
                 "-subpackages", "org.h2",
                 "-exclude", "org.h2.test.jaqu:org.h2.jaqu",
                 "-package",
@@ -847,7 +847,7 @@ public class Build extends BuildBase {
             javadoc("-sourcepath", "src/main", "org.h2.tools", "org.h2.jmx",
                     "-classpath",
                     "ext/lucene-core-3.0.2.jar" +
-                    File.pathSeparator + "ext/jts-1.13.jar",
+                    File.pathSeparator + "ext/jts-core-1.14.0.jar",
                     "-docletpath", "bin" + File.pathSeparator + "temp",
                     "-doclet", "org.h2.build.doclet.ResourceDoclet");
         }
@@ -897,7 +897,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
-                File.pathSeparator + "ext/jts-1.13.jar" +
+                File.pathSeparator + "ext/jts-core-1.14.0.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + System.getProperty("java.home") +

@@ -5,17 +5,14 @@
  */
 package org.h2.samples;
 
-import org.h2.tools.DeleteDbFiles;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
+
+import org.h2.tools.DeleteDbFiles;
 
 /**
  * A very simple class that shows how to load the driver, create a database,
@@ -37,11 +34,20 @@ public class ToDate {
         Connection conn = DriverManager.getConnection("jdbc:h2:~/test");
         Statement stat = conn.createStatement();
 
-        stat.execute("create table ToDateTest(id int primary key, start_date datetime, end_date datetime)");
-        stat.execute("insert into ToDateTest values(1, TO_DATE('2015-11-13', 'yyyy-MM-DD'), TO_DATE('2015-12-15', 'YYYY-MM-DD'))");
-        stat.execute("insert into ToDateTest values(2, TO_DATE('2015-12-12 00:00:00', 'yyyy-MM-DD HH24:MI:ss'), TO_DATE('2015-12-16 15:00:00', 'YYYY-MM-DD HH24:MI:ss'))");
-        stat.execute("insert into ToDateTest values(3, TO_DATE('2015-12-12 08:00 A.M.', 'yyyy-MM-DD HH:MI AM'), TO_DATE('2015-12-17 08:00 P.M.', 'YYYY-MM-DD HH:MI AM'))");
-        stat.execute("insert into ToDateTest values(4, TO_DATE(substr('2015-12-12 08:00 A.M.', 1, 10), 'yyyy-MM-DD'), TO_DATE('2015-12-17 08:00 P.M.', 'YYYY-MM-DD HH:MI AM'))");
+        stat.execute("create table ToDateTest(id int primary key, " +
+                "start_date datetime, end_date datetime)");
+        stat.execute("insert into ToDateTest values(1, " +
+                "TO_DATE('2015-11-13', 'yyyy-MM-DD'), " +
+                "TO_DATE('2015-12-15', 'YYYY-MM-DD'))");
+        stat.execute("insert into ToDateTest values(2, " +
+                "TO_DATE('2015-12-12 00:00:00', 'yyyy-MM-DD HH24:MI:ss'), " +
+                "TO_DATE('2015-12-16 15:00:00', 'YYYY-MM-DD HH24:MI:ss'))");
+        stat.execute("insert into ToDateTest values(3, " +
+                "TO_DATE('2015-12-12 08:00 A.M.', 'yyyy-MM-DD HH:MI AM'), " +
+                "TO_DATE('2015-12-17 08:00 P.M.', 'YYYY-MM-DD HH:MI AM'))");
+        stat.execute("insert into ToDateTest values(4, " +
+                "TO_DATE(substr('2015-12-12 08:00 A.M.', 1, 10), 'yyyy-MM-DD'), " +
+                "TO_DATE('2015-12-17 08:00 P.M.', 'YYYY-MM-DD HH:MI AM'))");
 
         ResultSet rs = stat.executeQuery("select * from ToDateTest");
         while (rs.next()) {

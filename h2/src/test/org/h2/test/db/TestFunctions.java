@@ -1337,7 +1337,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(date, ToDateParser.toDate("979", "YYY"));
         assertEquals(date, ToDateParser.toDate("979", "IYY"));
 
-        // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+        // Gregorian calendar does not have a year 0.
+        // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
         date = new SimpleDateFormat("yyy").parse("-99");
         setMonth(date, month);
         assertEquals(date, ToDateParser.toDate("0100 BC", "YYYY BC"));
@@ -1346,7 +1347,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(date, ToDateParser.toDate("-0100", "SYYYY"));
         assertEquals(date, ToDateParser.toDate("-0100", "YYYY"));
 
-        // Gregorian calendar does not have a year 0. 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+        // Gregorian calendar does not have a year 0.
+        // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
         date = new SimpleDateFormat("y").parse("0");
         setMonth(date, month);
         assertEquals(date, ToDateParser.toDate("01 BC", "YY BC"));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2016 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
@@ -26,8 +26,9 @@ public class ToDateParser {
 
     /**
      * @param input the input date with the date-time info
-     * @param format  the format of date-time info
-     * @param functionName one of [TO_DATE, TO_TIMESTAMP] (both share the same code)
+     * @param format the format of date-time info
+     * @param functionName one of [TO_DATE, TO_TIMESTAMP] (both share the same
+     *            code)
      */
     private ToDateParser(ConfigParam functionName, String input, String format) {
         // reset calendar - default oracle behaviour
@@ -72,7 +73,8 @@ public class ToDateParser {
 
     private Timestamp getResultingTimestamp() {
         Calendar cal = (Calendar) getResultCalendar().clone();
-        int nanosToSet = nanos == null ? cal.get(Calendar.MILLISECOND) * 1000000 : nanos.intValue();
+        int nanosToSet = nanos == null ?
+                cal.get(Calendar.MILLISECOND) * 1000000 : nanos.intValue();
         cal.set(Calendar.MILLISECOND, 0);
         Timestamp ts = new Timestamp(cal.getTimeInMillis());
         ts.setNanos(nanosToSet);
@@ -114,7 +116,8 @@ public class ToDateParser {
 
     private static ToDateParser parse(ToDateParser p) {
         while (p.hasToParseData()) {
-            List<ToDateTokenizer.FormatTokenEnum> tokenList = ToDateTokenizer.FormatTokenEnum.getTokensInQuestion(p.getFormatStr());
+            List<ToDateTokenizer.FormatTokenEnum> tokenList =
+                    ToDateTokenizer.FormatTokenEnum.getTokensInQuestion(p.getFormatStr());
             if (tokenList.isEmpty()) {
                 p.removeFirstChar();
                 continue;
@@ -154,7 +157,8 @@ public class ToDateParser {
         int currentFormatPos = orgFormatLen - formatStr.length();
 
         StringBuilder sb = new StringBuilder();
-        sb.append(format("\n    %s('%s', '%s')", functionName, unmodifiedInputStr, unmodifiedFormatStr));
+        sb.append(format("\n    %s('%s', '%s')", functionName,
+                unmodifiedInputStr, unmodifiedFormatStr));
         sb.append(format("\n      %s^%s ,  %s^ <-- Parsing failed at this point",
                 format("%" + (functionName.name().length() + currentInputPos) + "s", ""),
                 restInputLen <= 0 ? "" : format("%" + restInputLen + "s", ""),

@@ -474,7 +474,8 @@ public class TestDate extends TestBase {
         assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
         assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
 
-        // test for bug on Java 1.8.0_60 in "Europe/Moscow" timezone. Doesn't affect most other timezones
+        // test for bug on Java 1.8.0_60 in "Europe/Moscow" timezone.
+        // Doesn't affect most other timezones
         long millis = 1407437460000L;
         long result1 = DateTimeUtils.nanosFromDate(DateTimeUtils.getTimeUTCWithoutDst(millis));
         long result2 = DateTimeUtils.nanosFromDate(DateTimeUtils.getTimeUTCWithoutDst(millis));

@@ -110,14 +110,14 @@ public final class ValueTimestampUtc extends Value {
         return utcDateTimeNanos / 1000 / 1000;
     }
 
-    public int getNanosSinceLastMilli() {
+    int getNanosSinceLastMillis() {
         return (int) (utcDateTimeNanos % (1000 * 1000));
     }
 
     @Override
     public java.sql.Timestamp getTimestamp() {
         java.sql.Timestamp ts = new java.sql.Timestamp(getUtcDateTimeMillis());
-        ts.setNanos(getNanosSinceLastMilli());
+        ts.setNanos(getNanosSinceLastMillis());
         return ts;
     }
 
@@ -157,7 +157,7 @@ public final class ValueTimestampUtc extends Value {
         timeNanos *= 60;
         timeNanos += cal.get(Calendar.MILLISECOND);
         timeNanos *= 1000 * 1000;
-        timeNanos += getNanosSinceLastMilli();
+        timeNanos += getNanosSinceLastMillis();
         ValueTime.appendTime(buff, timeNanos, true);
         buff.append(" UTC");
         return buff.toString();

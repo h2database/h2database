@@ -26,13 +26,13 @@ public class TestTimeStampUtc extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        deleteDb("timestamputc");
+        deleteDb("timestamp_utc");
         test1();
-        deleteDb("timestamputc");
+        deleteDb("timestamp_utc");
     }
 
     private void test1() throws SQLException {
-        Connection conn = getConnection("timestamputc");
+        Connection conn = getConnection("timestamp_utc");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, t1 timestamp_utc)");
         stat.execute("insert into test(t1) values(0)");

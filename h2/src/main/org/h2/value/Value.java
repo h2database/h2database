@@ -767,7 +767,7 @@ public abstract class Value {
                 case TIMESTAMP_UTC:
                     return ValueTimestamp.fromMillisNanos(
                             ((ValueTimestampUtc) this).getUtcDateTimeMillis(),
-                            ((ValueTimestampUtc) this).getNanosSinceLastMilli());
+                            ((ValueTimestampUtc) this).getNanosSinceLastMillis());
                 }
                 break;
             }

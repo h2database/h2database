@@ -1,54 +1,35 @@
+/*
+ * Copyright 2004-2016 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: Daniel Gredler
+ */
 package org.h2.util;
 
 import static java.lang.String.format;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
  * Emulates Oracle's TO_DATE function.<br>
  * This class holds and handles the input data form the TO_DATE-method
  */
-class ToDateParser {
+public class ToDateParser {
     private final String unmodifiedInputStr;
     private final String unmodifiedFormatStr;
     private final ConfigParam functionName;
     private String inputStr;
     private String formatStr;
     private final Calendar resultCalendar = (Calendar) Calendar.getInstance().clone();
-    private Integer nanos = null;
-
-    private enum ConfigParam {
-        TO_DATE("DD MON YYYY"), TO_TIMESTAMP("DD MON YYYY HH:MI:SS");
-        private final String defaultFormatStr;
-        ConfigParam (final String defaultFormatStr) {
-            this.defaultFormatStr = defaultFormatStr;
-        }
-        String getDefaultFormatStr() {
-            return defaultFormatStr;
-        }
-    }
-
-    static ToDateParser toDate(final String input, final String format) {
-        ToDateParser result = new ToDateParser(ConfigParam.TO_DATE, input, format);
-        parse(result);
-        return result;
-    }
-
-    static ToDateParser toTimestamp(final String input, final String format) {
-        ToDateParser result = new ToDateParser(ConfigParam.TO_TIMESTAMP, input, format);
-        parse(result);
-        return result;
-    }
+    private Integer nanos;
 
     /**
      * @param input the input date with the date-time info
      * @param format  the format of date-time info
      * @param functionName one of [TO_DATE, TO_TIMESTAMP] (both share the same code)
      */
-    ToDateParser(final ConfigParam functionName, final String input, final String format) {
+    private ToDateParser(ConfigParam functionName, String input, String format) {
         // reset calendar - default oracle behaviour
         resultCalendar.set(Calendar.YEAR, 1970);
         resultCalendar.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
@@ -65,16 +46,31 @@ class ToDateParser {
 
         this.functionName = functionName;
         inputStr = input.trim();
-        unmodifiedInputStr = inputStr; // Keep a copy
+        // Keep a copy
+        unmodifiedInputStr = inputStr;
         if (format == null || format.isEmpty()) {
-            formatStr = functionName.getDefaultFormatStr(); // default Oracle format.
+            // default Oracle format.
+            formatStr = functionName.getDefaultFormatStr();
         } else {
             formatStr = format.trim();
         }
-        unmodifiedFormatStr = formatStr; // Keep a copy
+        // Keep a copy
+        unmodifiedFormatStr = formatStr;
     }
 
-    Timestamp getResultingTimestamp() {
+    private static ToDateParser getDateParser(String input, String format) {
+        ToDateParser result = new ToDateParser(ConfigParam.TO_DATE, input, format);
+        parse(result);
+        return result;
+    }
+
+    private static ToDateParser getTimestampParser(String input, String format) {
+        ToDateParser result = new ToDateParser(ConfigParam.TO_TIMESTAMP, input, format);
+        parse(result);
+        return result;
+    }
+
+    private Timestamp getResultingTimestamp() {
         Calendar cal = (Calendar) getResultCalendar().clone();
         int nanosToSet = nanos == null ? cal.get(Calendar.MILLISECOND) * 1000000 : nanos.intValue();
         cal.set(Calendar.MILLISECOND, 0);
@@ -99,15 +95,15 @@ class ToDateParser {
         return functionName.name();
     }
 
-    void setNanos(final int nanos) {
+    void setNanos(int nanos) {
         this.nanos = nanos;
     }
 
-    boolean hasToParseData() {
+    private boolean hasToParseData() {
         return formatStr.length() > 0;
     }
 
-    void removeFirstChar() {
+    private void removeFirstChar() {
         if (!formatStr.isEmpty()) {
             formatStr = formatStr.substring(1);
         }
@@ -116,7 +112,7 @@ class ToDateParser {
         }
     }
 
-    private static ToDateParser parse(final ToDateParser p) {
+    private static ToDateParser parse(ToDateParser p) {
         while (p.hasToParseData()) {
             List<ToDateTokenizer.FormatTokenEnum> tokenList = ToDateTokenizer.FormatTokenEnum.getTokensInQuestion(p.getFormatStr());
             if (tokenList.isEmpty()) {
@@ -138,19 +134,9 @@ class ToDateParser {
         return p;
     }
 
-    void remove(final String toIgnore) {
-        if (toIgnore != null) {
-            int trimLeng = toIgnore.length();
-            formatStr = formatStr.substring(trimLeng);
-            if (inputStr.length() >= trimLeng) {
-                inputStr = inputStr.substring(trimLeng);
-            }
-        }
-    }
-
-    void remove(final String intputFragmentStr, final String formatFragment) {
-        if (intputFragmentStr != null && inputStr.length() >= intputFragmentStr.length()) {
-            inputStr = inputStr.substring(intputFragmentStr.length());
+    void remove(String inputFragmentStr, String formatFragment) {
+        if (inputFragmentStr != null && inputStr.length() >= inputFragmentStr.length()) {
+            inputStr = inputStr.substring(inputFragmentStr.length());
         }
         if (formatFragment != null && formatStr.length() >= formatFragment.length()) {
             formatStr = formatStr.substring(formatFragment.length());
@@ -159,21 +145,49 @@ class ToDateParser {
 
     @Override
     public String toString() {
-        int inputStrLeng = inputStr.length();
-        int orgInputLeng = unmodifiedInputStr.length();
-        int currentInputPos = orgInputLeng - inputStrLeng;
-        int restInputLeng = inputStrLeng <= 0 ? inputStrLeng : inputStrLeng - 1;
+        int inputStrLen = inputStr.length();
+        int orgInputLen = unmodifiedInputStr.length();
+        int currentInputPos = orgInputLen - inputStrLen;
+        int restInputLen = inputStrLen <= 0 ? inputStrLen : inputStrLen - 1;
 
-        int orgFormatLeng = unmodifiedFormatStr.length();
-        int currentFormatPos = orgFormatLeng - formatStr.length();
+        int orgFormatLen = unmodifiedFormatStr.length();
+        int currentFormatPos = orgFormatLen - formatStr.length();
 
         StringBuilder sb = new StringBuilder();
         sb.append(format("\n    %s('%s', '%s')", functionName, unmodifiedInputStr, unmodifiedFormatStr));
-        sb.append(format("\n      %s^%s ,  %s^ <-- Parsing failed at this point", //
+        sb.append(format("\n      %s^%s ,  %s^ <-- Parsing failed at this point",
                 format("%" + (functionName.name().length() + currentInputPos) + "s", ""),
-                restInputLeng <= 0 ? "" : format("%" + restInputLeng + "s", ""),
+                restInputLen <= 0 ? "" : format("%" + restInputLen + "s", ""),
                 currentFormatPos <= 0 ? "" : format("%" + currentFormatPos + "s", "")));
 
         return sb.toString();
     }
+
+    public static Timestamp toTimestamp(String input, String format) {
+        ToDateParser parser = getTimestampParser(input, format);
+        return parser.getResultingTimestamp();
+    }
+
+    public static Timestamp toDate(String input, String format) {
+        ToDateParser parser = getDateParser(input, format);
+        return parser.getResultingTimestamp();
+    }
+
+    /**
+     * The configuration of the date parser.
+     */
+    private enum ConfigParam {
+        TO_DATE("DD MON YYYY"),
+        TO_TIMESTAMP("DD MON YYYY HH:MI:SS");
+
+        private final String defaultFormatStr;
+        ConfigParam(String defaultFormatStr) {
+            this.defaultFormatStr = defaultFormatStr;
+        }
+        String getDefaultFormatStr() {
+            return defaultFormatStr;
+        }
+
+    }
+
 }

@@ -44,7 +44,17 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.*;
+import org.h2.util.AutoCloseInputStream;
+import org.h2.util.DateTimeUtils;
+import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.New;
+import org.h2.util.StatementBuilder;
+import org.h2.util.StringUtils;
+import org.h2.util.ToChar;
+import org.h2.util.ToDateParser;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -1424,11 +1434,11 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         case TO_DATE:
-            result = ValueTimestamp.get(ToDate.TO_DATE(v0.getString(),
+            result = ValueTimestamp.get(ToDateParser.toDate(v0.getString(),
                     v1 == null ? null : v1.getString()));
             break;
         case TO_TIMESTAMP:
-            result = ValueTimestamp.get(ToDate.TO_TIMESTAMP(v0.getString(),
+            result = ValueTimestamp.get(ToDateParser.toTimestamp(v0.getString(),
                     v1 == null ? null : v1.getString()));
             break;
         case TRANSLATE: {

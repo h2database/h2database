@@ -308,9 +308,9 @@ public class BuildBase {
     protected int execScript(String script, StringList args) {
         if (isWindows()) {
             // Under windows, we use the "cmd" command interpreter since it will
-            // search the path for us without us having to hardcode an extension
-            // for the script we want. (Sometimes we don't know if the extension
-            // will be .bat or .cmd)
+            // search the path for us without us having to hard-code an
+            // extension for the script we want. (Sometimes we don't know if the
+            // extension will be .bat or .cmd)
             StringList newArgs = new StringList();
             newArgs.add("/C");
             newArgs.add(script);

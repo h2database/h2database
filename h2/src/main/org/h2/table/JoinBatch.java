@@ -410,9 +410,9 @@ public final class JoinBatch {
 
     @Override
     public String toString() {
-        return "JoinBatch->\nprev->" + (current == null ? null : current.prev) +
-                "\ncurr->" + current +
-                "\nnext->" + (current == null ? null : current.next);
+        return "JoinBatch->\n" + "prev->" + (current == null ? null : current.prev) +
+                "\n" + "curr->" + current +
+                "\n" + "next->" + (current == null ? null : current.next);
     }
 
     /**

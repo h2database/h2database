@@ -351,15 +351,15 @@ public class TestTableEngines extends TestBase {
         deleteDb("testQueryExpressionFlag");
         Connection conn = getConnection("testQueryExpressionFlag");
         Statement stat = conn.createStatement();
-        stat.execute("create table QRY_EXPR_TEST(id int) ENGINE \"" +
+        stat.execute("create table QUERY_EXPR_TEST(id int) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
-        stat.execute("create table QRY_EXPR_TEST_NO(id int) ENGINE \"" +
+        stat.execute("create table QUERY_EXPR_TEST_NO(id int) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
-        stat.executeQuery("select 1 + (select 1 from QRY_EXPR_TEST)").next();
-        stat.executeQuery("select 1 from QRY_EXPR_TEST_NO where id in "
-                + "(select id from QRY_EXPR_TEST)");
-        stat.executeQuery("select 1 from QRY_EXPR_TEST_NO n "
-                + "where exists(select 1 from QRY_EXPR_TEST y where y.id = n.id)");
+        stat.executeQuery("select 1 + (select 1 from QUERY_EXPR_TEST)").next();
+        stat.executeQuery("select 1 from QUERY_EXPR_TEST_NO where id in "
+                + "(select id from QUERY_EXPR_TEST)");
+        stat.executeQuery("select 1 from QUERY_EXPR_TEST_NO n "
+                + "where exists(select 1 from QUERY_EXPR_TEST y where y.id = n.id)");
         deleteDb("testQueryExpressionFlag");
     }
 
@@ -621,7 +621,7 @@ public class TestTableEngines extends TestBase {
         setBatchingEnabled(stat, true);
         List<List<Object>> actual = query(stat, sql);
         if (!expected.equals(actual)) {
-            fail("\nexpected: " + expected + "\nactual:   " + actual);
+            fail("\n" + "expected: " + expected + "\n" + "actual:   " + actual);
         }
     }
 
@@ -699,10 +699,10 @@ public class TestTableEngines extends TestBase {
 
     private static void setBatchSize(TreeSetTable t, int batchSize) {
         if (t.getIndexes() == null) {
-            t.scan.preferedBatchSize = batchSize;
+            t.scan.preferredBatchSize = batchSize;
         } else {
             for (Index idx : t.getIndexes()) {
-                ((TreeSetIndex) idx).preferedBatchSize = batchSize;
+                ((TreeSetIndex) idx).preferredBatchSize = batchSize;
             }
         }
     }
@@ -746,7 +746,7 @@ public class TestTableEngines extends TestBase {
             t >>>= 4;
         }
         if (where.length() != 0) {
-            b.append("\nwhere ").append(where);
+            b.append("\n" + "where ").append(where);
         }
 
         return b.toString();
@@ -1313,7 +1313,7 @@ public class TestTableEngines extends TestBase {
 
         static AtomicInteger lookupBatches = new AtomicInteger();
 
-        int preferedBatchSize;
+        int preferredBatchSize;
 
         final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
 
@@ -1337,8 +1337,8 @@ public class TestTableEngines extends TestBase {
         @Override
         public IndexLookupBatch createLookupBatch(final TableFilter filter) {
             assert0(filter.getMasks() != null || "scan".equals(getName()), "masks");
-            final int preferedSize = preferedBatchSize;
-            if (preferedSize == 0) {
+            final int preferredSize = preferredBatchSize;
+            if (preferredSize == 0) {
                 return null;
             }
             lookupBatches.incrementAndGet();
@@ -1351,7 +1351,7 @@ public class TestTableEngines extends TestBase {
                 }
 
                 @Override public boolean isBatchFull() {
-                    return searchRows.size() >= preferedSize * 2;
+                    return searchRows.size() >= preferredSize * 2;
                 }
 
                 @Override
@@ -1490,9 +1490,9 @@ public class TestTableEngines extends TestBase {
                 String alias = alias(session.getSubQueryInfo());
                 assert0(alias.equals("ZZ"), "select expression sub-query: " + alias);
                 assert0(session.getSubQueryInfo().getUpper() == null, "upper");
-            } else if (getTable().getName().equals("QRY_EXPR_TEST")) {
+            } else if (getTable().getName().equals("QUERY_EXPR_TEST")) {
                 assert0(session.isPreparingQueryExpression(), "preparing query expression");
-            } else if (getTable().getName().equals("QRY_EXPR_TEST_NO")) {
+            } else if (getTable().getName().equals("QUERY_EXPR_TEST_NO")) {
                 assert0(!session.isPreparingQueryExpression(), "not preparing query expression");
             }
         }
@@ -1588,7 +1588,7 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public String toString() {
-            return "IterCursor->" + current;
+            return "IteratorCursor->" + current;
         }
     }
 

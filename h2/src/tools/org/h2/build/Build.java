@@ -304,7 +304,7 @@ public class Build extends BuildBase {
                 "8634dcb0fc62196e820ed0f1062993c377f74972", offline);
         downloadOrVerify("ext/jts-core-1.14.0.jar",
                 "com/vividsolutions", "jts-core", "1.14.0",
-                "3ccfb9b60f04d71add996a666ceb8902904fd805", offline);
+                "ff63492fba33a395f0da17720dd1716aba0d8c84", offline);
     }
 
     private void downloadOrVerify(String target, String group, String artifact,

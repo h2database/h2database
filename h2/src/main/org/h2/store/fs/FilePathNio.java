@@ -5,9 +5,12 @@
  */
 package org.h2.store.fs;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
@@ -36,51 +39,127 @@ public class FilePathNio extends FilePathWrapper {
 class FileNio extends FileBase {
 
     private final String name;
-    private final FileChannel channel;
+    private final String mode;
+    private volatile FileChannel channel;
 
     FileNio(String fileName, String mode) throws IOException {
         this.name = fileName;
-        channel = new RandomAccessFile(fileName, mode).getChannel();
+		this.mode = mode;
+		
+        allocateChannel();
     }
+
+	private void allocateChannel() throws FileNotFoundException {
+		channel = new RandomAccessFile(name, mode).getChannel();
+	}
 
     @Override
     public void implCloseChannel() throws IOException {
-        channel.close();
+    	while (true) {
+    		try {
+    			channel.close();
+    			return;
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public long position() throws IOException {
-        return channel.position();
+    	while (true) {
+    		try {
+    			return channel.position();
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
-    @Override
+	@Override
     public long size() throws IOException {
-        return channel.size();
+    	while (true) {
+    		try {
+    			return channel.size();
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public int read(ByteBuffer dst) throws IOException {
-        return channel.read(dst);
+    	while (true) {
+    		try {
+    			return channel.read(dst);
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public FileChannel position(long pos) throws IOException {
-        channel.position(pos);
-        return this;
+    	while (true) {
+    		try {
+    			channel.position(pos);
+    			return this;
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public int read(ByteBuffer dst, long position) throws IOException {
-        return channel.read(dst, position);
+    	while (true) {
+    		try {
+    			return channel.read(dst, position);
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        return channel.write(src, position);
+    	while (true) {
+    		try {
+    			return channel.write(src, position);
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public FileChannel truncate(long newLength) throws IOException {
+    	while (true) {
+    		try {
+    			return tryTruncate(newLength);
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
+    }
+    
+    private FileChannel tryTruncate(long newLength) throws IOException {
         long size = channel.size();
         if (newLength < size) {
             long pos = channel.position();
@@ -103,23 +182,56 @@ class FileNio extends FileBase {
 
     @Override
     public void force(boolean metaData) throws IOException {
-        channel.force(metaData);
+    	while (true) {
+    		try {
+    			channel.force(metaData);
+    			return;
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        try {
-            return channel.write(src);
-        } catch (NonWritableChannelException e) {
-            throw new IOException("read only");
-        }
+    	while (true) {
+    		try {
+    			try {
+    				return channel.write(src);
+    			} catch (NonWritableChannelException e) {
+    				throw new IOException("read only");
+    			}
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
 
     @Override
     public synchronized FileLock tryLock(long position, long size,
             boolean shared) throws IOException {
-        return channel.tryLock(position, size, shared);
+    	while (true) {
+    		try {
+    			return channel.tryLock(position, size, shared);
+    		} catch (ClosedByInterruptException ex) {
+    			interrupted(ex);
+    		} catch (ClosedChannelException ex) {
+    			retry();
+    		}
+    	}
     }
+
+    private void interrupted(ClosedByInterruptException ex) {
+    	throw new AccessInterruptedException(ex);
+    }
+    
+    private void retry() throws FileNotFoundException {
+    	allocateChannel();
+	}
 
     @Override
     public String toString() {

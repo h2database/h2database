@@ -905,4 +905,20 @@ public class DateTimeUtils {
         return dateValue(y, m + 3, (int) d);
     }
 
+    /**
+     * Adds the number of months to the date. If the resulting month's number of days is less than the original's day-of-month, the resulting
+     * day-of-months gets adjusted accordingly:
+     *
+     * 30.04.2007 - 2 months = 28.02.2007
+     */
+    public static Timestamp addMonths(final Timestamp refDate, final int nrOfMonthsToAdd) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(refDate);
+        calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
+
+        Timestamp resultDate = new Timestamp(calendar.getTimeInMillis());
+        resultDate.setNanos(refDate.getNanos());
+        return resultDate;
+    }
+
 }

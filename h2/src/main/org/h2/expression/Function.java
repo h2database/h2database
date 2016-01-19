@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -1819,7 +1818,9 @@ public class Function extends Expression implements FunctionCall {
             return t2 - t1;
         case Calendar.SECOND:
         case Calendar.MINUTE:
-        case Calendar.HOUR_OF_DAY: {
+        case Calendar.HOUR_OF_DAY:
+        case Calendar.DAY_OF_YEAR:
+        case Calendar.WEEK_OF_YEAR: {
             // first 'normalize' the numbers so both are not negative
             long hour = 60 * 60 * 1000;
             long add = Math.min(t1 / hour * hour, t2 / hour * hour);
@@ -1832,6 +1833,10 @@ public class Function extends Expression implements FunctionCall {
                 return t2 / (60 * 1000) - t1 / (60 * 1000);
             case Calendar.HOUR_OF_DAY:
                 return t2 / hour - t1 / hour;
+            case Calendar.DAY_OF_YEAR:
+                return t2 / (hour * 24) - t1 / (hour * 24);
+            case Calendar.WEEK_OF_YEAR:
+                return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
             default:
                 throw DbException.throwInternalError("field:" + field);
             }
@@ -1849,9 +1854,12 @@ public class Function extends Expression implements FunctionCall {
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;
         if (field == Calendar.MONTH) {
-            result = 12 * result + (month2 - month1);
+            return 12 * result + (month2 - month1);
+        } else if (field == Calendar.YEAR) {
+            return result;
+        } else {
+            throw DbException.getUnsupportedException("DATEDIFF " + part);
         }
-        return result;
     }
 
     private static String substring(String s, int start, int length) {

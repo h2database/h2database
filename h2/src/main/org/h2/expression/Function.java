@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -95,7 +94,7 @@ public class Function extends Expression implements FunctionCall {
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
             LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
-            TO_DATE = 96, TO_TIMESTAMP = 97;
+            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -310,6 +309,7 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
+        addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -1441,6 +1441,9 @@ public class Function extends Expression implements FunctionCall {
             result = ValueTimestamp.get(ToDateParser.toTimestamp(v0.getString(),
                     v1 == null ? null : v1.getString()));
             break;
+        case ADD_MONTHS:
+            result = ValueTimestamp.get(DateTimeUtils.addMonths(v0.getTimestamp(), v1.getInt()));
+            break;
         case TRANSLATE: {
             String matching = v1.getString();
             String replacement = v2.getString();
@@ -1815,7 +1818,9 @@ public class Function extends Expression implements FunctionCall {
             return t2 - t1;
         case Calendar.SECOND:
         case Calendar.MINUTE:
-        case Calendar.HOUR_OF_DAY: {
+        case Calendar.HOUR_OF_DAY:
+        case Calendar.DAY_OF_YEAR:
+        case Calendar.WEEK_OF_YEAR: {
             // first 'normalize' the numbers so both are not negative
             long hour = 60 * 60 * 1000;
             long add = Math.min(t1 / hour * hour, t2 / hour * hour);
@@ -1828,6 +1833,10 @@ public class Function extends Expression implements FunctionCall {
                 return t2 / (60 * 1000) - t1 / (60 * 1000);
             case Calendar.HOUR_OF_DAY:
                 return t2 / hour - t1 / hour;
+            case Calendar.DAY_OF_YEAR:
+                return t2 / (hour * 24) - t1 / (hour * 24);
+            case Calendar.WEEK_OF_YEAR:
+                return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
             default:
                 throw DbException.throwInternalError("field:" + field);
             }
@@ -1845,9 +1854,12 @@ public class Function extends Expression implements FunctionCall {
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;
         if (field == Calendar.MONTH) {
-            result = 12 * result + (month2 - month1);
+            return 12 * result + (month2 - month1);
+        } else if (field == Calendar.YEAR) {
+            return result;
+        } else {
+            throw DbException.getUnsupportedException("DATEDIFF " + part);
         }
-        return result;
     }
 
     private static String substring(String s, int start, int length) {

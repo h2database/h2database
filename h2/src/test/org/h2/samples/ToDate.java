@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -36,6 +35,9 @@ public class ToDate {
 
         stat.execute("create table ToDateTest(id int primary key, " +
                 "start_date datetime, end_date datetime)");
+        stat.execute("insert into ToDateTest values(1, "
+                + "ADD_MONTHS(TO_DATE('2015-11-13', 'yyyy-MM-DD'), 1), "
+                + "TO_DATE('2015-12-15', 'YYYY-MM-DD'))");
         stat.execute("insert into ToDateTest values(1, " +
                 "TO_DATE('2015-11-13', 'yyyy-MM-DD'), " +
                 "TO_DATE('2015-12-15', 'YYYY-MM-DD'))");

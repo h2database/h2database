@@ -114,7 +114,7 @@
 90084=Imposible eliminar la ultima columna {0}
 90085=Index {0} pertenece a un constraint {1}
 90086=Class {0} no encontrada
-90087=Method {0} with matching arguments not found
+90087=#Method {0} not found
 90088=Modo desconocido {0}
 90089=Collation no puede ser cambiado debido a que existe una tabla de datos: {0}
 90090=Schema {0} no puede ser eliminado

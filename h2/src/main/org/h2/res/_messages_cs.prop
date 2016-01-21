@@ -114,7 +114,7 @@
 90084=Nelze odstranit poslednÃ­ sloupec {0}
 90085=Index {0} patÅ™Ã­ k omezenÃ­ {1}
 90086=TÅ™Ã­da {0} nenalezena
-90087=Method {0} with matching arguments not found
+90087=#Method {0} not found
 90088=NeznÃ¡mÃ½ reÅ¾im {0}
 90089=PorovnÃ¡nÃ­ nemÅ¯Å¾e bÃ½t zmÄ›nÄ›no, protoÅ¾e jde o datovou tabulku: {0}
 90090=SchÃ©ma {0} nemÅ¯Å¾e bÃ½t odstranÄ›no

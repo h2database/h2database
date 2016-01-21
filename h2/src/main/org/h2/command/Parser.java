@@ -1913,6 +1913,13 @@ public class Parser {
         }
     }
 
+    /**
+     * Find out which of the table filters appears first in the "from" clause.
+     *
+     * @param o1 the first table filter
+     * @param o2 the second table filter
+     * @return -1 if o1 appears first, and 1 if o2 appears first
+     */
     static int compareTableFilters(TableFilter o1, TableFilter o2) {
         assert o1.getOrderInFrom() != o2.getOrderInFrom();
         return o1.getOrderInFrom() > o2.getOrderInFrom() ? 1 : -1;

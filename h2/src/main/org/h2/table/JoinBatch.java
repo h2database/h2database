@@ -37,6 +37,10 @@ import org.h2.value.ValueLong;
  * @author Sergi Vladykin
  */
 public final class JoinBatch {
+
+    /**
+     * An empty cursor.
+     */
     static final Cursor EMPTY_CURSOR = new Cursor() {
         @Override
         public boolean previous() {
@@ -64,11 +68,29 @@ public final class JoinBatch {
         }
     };
 
+    /**
+     * An empty future cursor.
+     */
     static final Future<Cursor> EMPTY_FUTURE_CURSOR = new DoneFuture<Cursor>(EMPTY_CURSOR);
 
+    /**
+     * The top cursor.
+     */
     Future<Cursor> viewTopFutureCursor;
+
+    /**
+     * The top filter.
+     */
     JoinFilter top;
+
+    /**
+     * The filters.
+     */
     JoinFilter[] filters;
+
+    /**
+     * Whether this is a batched subquery.
+     */
     boolean batchedSubQuery;
 
     private boolean started;
@@ -125,6 +147,8 @@ public final class JoinBatch {
     }
 
     /**
+     * Register the table filter and lookup batch.
+     *
      * @param filter table filter
      * @param lookupBatch lookup batch
      */
@@ -135,8 +159,10 @@ public final class JoinBatch {
     }
 
     /**
+     * Get the value for the given column.
+     *
      * @param filterId table filter id
-     * @param column column
+     * @param column the column
      * @return column value for current row
      */
     public Value getValue(int filterId, Column column) {

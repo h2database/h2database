@@ -225,6 +225,14 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         return new ViewCursor(this, result, first, last);
     }
 
+    /**
+     * Set the query parameters.
+     *
+     * @param session the session
+     * @param first the lower bound
+     * @param last the upper bound
+     * @param intersection the intersection
+     */
     public void setupQueryParameters(Session session, SearchRow first, SearchRow last,
             SearchRow intersection) {
         ArrayList<Parameter> paramList = query.getParameters();

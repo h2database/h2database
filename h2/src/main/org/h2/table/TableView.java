@@ -414,6 +414,11 @@ public class TableView extends Table {
         invalidate();
     }
 
+    /**
+     * Clear the cached indexes for all sessions.
+     *
+     * @param database the database
+     */
     public static void clearIndexCaches(Database database) {
         for (Session s : database.getSessions(true)) {
             s.clearViewIndexCache();

@@ -906,12 +906,17 @@ public class DateTimeUtils {
     }
 
     /**
-     * Adds the number of months to the date. If the resulting month's number of days is less than the original's day-of-month, the resulting
+     * Adds the number of months to the date. If the resulting month's number of
+     * days is less than the original's day-of-month, the resulting
      * day-of-months gets adjusted accordingly:
-     *
+     * <br>
      * 30.04.2007 - 2 months = 28.02.2007
+     *
+     * @param refDate the original date
+     * @param nrOfMonthsToAdd the number of months to add
+     * @return the new timestamp
      */
-    public static Timestamp addMonths(final Timestamp refDate, final int nrOfMonthsToAdd) {
+    public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(refDate);
         calendar.add(Calendar.MONTH, nrOfMonthsToAdd);

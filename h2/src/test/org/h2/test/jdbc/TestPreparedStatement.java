@@ -1055,7 +1055,8 @@ public class TestPreparedStatement extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SEQUENCE SEQ");
         stat.execute("CREATE TABLE TEST(ID INT)");
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
         prep.addBatch();
         prep.addBatch();
         prep.addBatch();

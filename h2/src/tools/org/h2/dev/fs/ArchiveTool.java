@@ -530,7 +530,7 @@ public class ArchiveTool {
         dataOut.flush();
     }
 
-    static long openSegments(List<Long> segmentStart, TreeSet<ChunkStream> segmentIn,
+    private static long openSegments(List<Long> segmentStart, TreeSet<ChunkStream> segmentIn,
             String tempFileName, boolean readKey) throws IOException {
         long inPos = 0;
         int bufferTotal = 64 * 1024 * 1024;
@@ -549,7 +549,7 @@ public class ArchiveTool {
         return inPos;
     }
 
-    static Iterator<Chunk> merge(final TreeSet<ChunkStream> segmentIn, final Log log) {
+    private static Iterator<Chunk> merge(final TreeSet<ChunkStream> segmentIn, final Log log) {
         return new Iterator<Chunk>() {
 
             @Override

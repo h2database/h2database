@@ -21,6 +21,9 @@ import javax.tools.Diagnostic;
  */
 public class TestAnnotationProcessor extends AbstractProcessor {
 
+    /**
+     * The message key.
+     */
     public static final String MESSAGES_KEY =
             TestAnnotationProcessor.class.getName() + "-messages";
 

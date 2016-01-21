@@ -49,6 +49,9 @@ public class TestRowFactory extends TestBase {
      */
     public static class MyTestRowFactory extends RowFactory {
 
+        /**
+         * A simple counter.
+         */
         static final AtomicInteger COUNTER = new AtomicInteger();
 
         @Override

@@ -30,31 +30,95 @@ import org.h2.message.DbException;
  * TO_DATE-format conventions and how to parse the corresponding data.
  */
 class ToDateTokenizer {
+
+    /**
+     * The pattern for a number.
+     */
     static final Pattern PATTERN_NUMBER = Pattern.compile("^([+-]?[0-9]+)");
+
+    /**
+     * The pattern for for digits (typically a year).
+     */
     static final Pattern PATTERN_FOUR_DIGITS = Pattern.compile("^([+-]?[0-9]{4})");
+
+    /**
+     * The pattern for three digits.
+     */
     static final Pattern PATTERN_THREE_DIGITS = Pattern.compile("^([+-]?[0-9]{3})");
+
+    /**
+     * The pattern for two digits.
+     */
     static final Pattern PATTERN_TWO_DIGITS = Pattern.compile("^([+-]?[0-9]{2})");
+
+    /**
+     * The pattern for one or two digits.
+     */
     static final Pattern PATTERN_TWO_DIGITS_OR_LESS =
             Pattern.compile("^([+-]?[0-9][0-9]?)");
+
+    /**
+     * The pattern for one digit.
+     */
     static final Pattern PATTERN_ONE_DIGIT =
             Pattern.compile("^([+-]?[0-9])");
+
+    /**
+     * The pattern for a fraction (of a second for example).
+     */
     static final Pattern PATTERN_FF =
             Pattern.compile("^(FF[0-9]?)", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * The pattern for "am" or "pm".
+     */
     static final Pattern PATTERN_AM_PM =
             Pattern.compile("^(AM|A\\.M\\.|PM|P\\.M\\.)", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * The pattern for "bc" or "ad".
+     */
     static final Pattern PATTERN_BC_AD =
             Pattern.compile("^(BC|B\\.C\\.|AD|A\\.D\\.)", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * The parslet for a year.
+     */
     static final YearParslet PARSLET_YEAR = new YearParslet();
+
+    /**
+     * The parslet for a month.
+     */
     static final MonthParslet PARSLET_MONTH = new MonthParslet();
+
+    /**
+     * The parslet for a day.
+     */
     static final DayParslet PARSLET_DAY = new DayParslet();
+
+    /**
+     * The parslet for time.
+     */
     static final TimeParslet PARSLET_TIME = new TimeParslet();
+
+    /**
+     * The number of milliseconds in a day.
+     */
     static final int MILLIS_IN_HOUR = 60 * 60 * 1000;
 
     /**
      * Interface of the classes that can parse a specialized small bit of the
-     * TO_DATE format-string
+     * TO_DATE format-string.
      */
     interface ToDateParslet {
+
+        /**
+         * Parse a date part.
+         *
+         * @param params the parameters that contains the string
+         * @param formatTokenEnum the format
+         * @param formatTokenStr the format string
+         */
         void parse(ToDateParser params, FormatTokenEnum formatTokenEnum,
                 String formatTokenStr);
     }
@@ -75,7 +139,7 @@ class ToDateTokenizer {
                 case IYYY:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_FOUR_DIGITS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0.
                     // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
@@ -84,7 +148,7 @@ class ToDateTokenizer {
                 case IYY:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_THREE_DIGITS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0.
                     // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
@@ -92,7 +156,7 @@ class ToDateTokenizer {
                 case RRRR:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     dateNr += dateNr < 50 ? 2000 : 1900;
                     result.set(Calendar.YEAR, dateNr);
                     break;
@@ -101,7 +165,7 @@ class ToDateTokenizer {
                     int cc = calendar.get(Calendar.YEAR) / 100;
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr) + cc * 100;
+                    dateNr = Integer.parseInt(inputFragmentStr) + cc * 100;
                     result.set(Calendar.YEAR, dateNr);
                     break;
                 case EE /*NOT supported yet*/:
@@ -116,7 +180,7 @@ class ToDateTokenizer {
                 case IY:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0.
                     // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
@@ -125,14 +189,14 @@ class ToDateTokenizer {
                 case CC:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr) * 100;
+                    dateNr = Integer.parseInt(inputFragmentStr) * 100;
                     result.set(Calendar.YEAR, dateNr);
                     break;
                 case Y:
                 case I:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_ONE_DIGIT, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0.
                     // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
@@ -186,7 +250,7 @@ class ToDateTokenizer {
                     // Note: In Calendar Month go from 0 - 11
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.MONTH, dateNr - 1);
                     break;
                 case RM:
@@ -231,19 +295,19 @@ class ToDateTokenizer {
                 case DDD:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_NUMBER, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.DAY_OF_YEAR, dateNr);
                     break;
                 case DD:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.DAY_OF_MONTH, dateNr);
                     break;
                 case D:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_ONE_DIGIT, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.DAY_OF_MONTH, dateNr);
                     break;
                 case DAY:
@@ -289,32 +353,32 @@ class ToDateTokenizer {
                 case HH24:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.HOUR_OF_DAY, dateNr);
                     break;
                 case HH12:
                 case HH:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.HOUR, dateNr);
                     break;
                 case MI:
                     inputFragmentStr = matchStringOrThrow(
                         PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.MINUTE, dateNr);
                     break;
                 case SS:
                 inputFragmentStr = matchStringOrThrow(
                         PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.SECOND, dateNr);
                     break;
                 case SSSSS:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_NUMBER, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     result.set(Calendar.HOUR_OF_DAY, 0);
                     result.set(Calendar.MINUTE, 0);
                     result.set(Calendar.SECOND, dateNr);
@@ -341,7 +405,7 @@ class ToDateTokenizer {
                 case TZH:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     TimeZone tz = result.getTimeZone();
                     int offsetMillis = tz.getRawOffset();
                     // purge min and sec
@@ -352,7 +416,7 @@ class ToDateTokenizer {
                 case TZM:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_TWO_DIGITS_OR_LESS, params, formatTokenEnum);
-                    dateNr = parseInt(inputFragmentStr);
+                    dateNr = Integer.parseInt(inputFragmentStr);
                     tz = result.getTimeZone();
                     offsetMillis = tz.getRawOffset();
                     // purge hour
@@ -390,16 +454,14 @@ class ToDateTokenizer {
         }
     }
 
-    static int parseInt(String s) {
-        int result = 0;
-        if (s.length() > 0 && s.charAt(0) == '+') {
-            result = Integer.parseInt(s.substring(1));
-        } else {
-            result = Integer.parseInt(s);
-        }
-        return result;
-    }
-
+    /**
+     * Match the pattern, or if not possible throw an exception.
+     *
+     * @param p the pattern
+     * @param params the parameters with the input string
+     * @param aEnum the pattern name
+     * @return the matched value
+     */
     static String matchStringOrThrow(Pattern p, ToDateParser params, Enum<?> aEnum) {
         String s = params.getInputStr();
         Matcher matcher = p.matcher(s);
@@ -409,6 +471,15 @@ class ToDateTokenizer {
         return matcher.group(1);
     }
 
+    /**
+     * Set the given field in the calendar.
+     *
+     * @param c the calendar
+     * @param params the parameters with the input string
+     * @param field the field to set
+     * @param style the data type
+     * @return the matched value
+     */
     static String setByName(Calendar c, ToDateParser params, int field, int style) {
         String inputFragmentStr = null;
         String s = params.getInputStr();
@@ -430,6 +501,12 @@ class ToDateTokenizer {
         return inputFragmentStr;
     }
 
+    /**
+     * Throw a parse exception.
+     *
+     * @param params the parameters with the input string
+     * @param errorStr the error string
+     */
     static void throwException(ToDateParser params, String errorStr) {
         throw DbException.get(
                 ErrorCode.INVALID_TO_DATE_FORMAT,
@@ -440,7 +517,7 @@ class ToDateTokenizer {
     /**
      * The format tokens.
      */
-    static enum FormatTokenEnum {
+    public static enum FormatTokenEnum {
         // 4-digit year
         YYYY(PARSLET_YEAR),
         // 4-digit year with sign (- = B.C.)
@@ -525,11 +602,22 @@ class ToDateTokenizer {
         private final ToDateParslet toDateParslet;
         private final Pattern patternToUse;
 
+        /**
+         * Construct a format token.
+         *
+         * @param toDateParslet the date parslet
+         * @param patternToUse the pattern
+         */
         FormatTokenEnum(ToDateParslet toDateParslet, Pattern patternToUse) {
             this.toDateParslet = toDateParslet;
             this.patternToUse = patternToUse;
         }
 
+        /**
+         * Construct a format token.
+         *
+         * @param toDateParslet the date parslet
+         */
         FormatTokenEnum(ToDateParslet toDateParslet) {
             this.toDateParslet = toDateParslet;
             patternToUse = Pattern.compile(format("^(%s)", name()), Pattern.CASE_INSENSITIVE);
@@ -539,6 +627,9 @@ class ToDateTokenizer {
          * Optimization: Only return a list of {@link FormatTokenEnum} that
          * share the same 1st char using the 1st char of the 'to parse'
          * formatStr. Or return empty list if no match.
+         *
+         * @param formatStr the format string
+         * @return the list of tokens
          */
         static List<FormatTokenEnum> getTokensInQuestion(String formatStr) {
             List<FormatTokenEnum> result = EMPTY_LIST;
@@ -586,6 +677,9 @@ class ToDateTokenizer {
         /**
          * Parse the format-string with passed token of {@link FormatTokenEnum}.
          * If token matches return true, otherwise false.
+         *
+         * @param params the parameters
+         * @return true if it matches
          */
         boolean parseFormatStrWithToken(ToDateParser params) {
             Matcher matcher = patternToUse.matcher(params.getFormatStr());

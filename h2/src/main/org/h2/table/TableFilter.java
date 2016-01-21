@@ -123,8 +123,8 @@ public class TableFilter implements ColumnResolver {
      * @param alias the alias name
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
-     * @param orderInFrom Original order number of this table filter in FROM
-     *            clause.
+     * @param orderInFrom original order number (index) of this table filter in
+     *            FROM clause (0, 1, 2,...)
      */
     public TableFilter(Session session, Table table, String alias,
             boolean rightsChecked, Select select, int orderInFrom) {
@@ -140,6 +140,12 @@ public class TableFilter implements ColumnResolver {
         this.orderInFrom = orderInFrom;
     }
 
+    /**
+     * Get the order number (index) of this table filter in the "from" clause of
+     * the query.
+     *
+     * @return the index (0, 1, 2,...)
+     */
     public int getOrderInFrom() {
         return orderInFrom;
     }
@@ -375,6 +381,8 @@ public class TableFilter implements ColumnResolver {
      * Attempt to initialize batched join.
      *
      * @param jb join batch if it is already created
+     * @param filters the table filters
+     * @param filter the filter index (0, 1,...)
      * @return join batch if query runs over index which supports batched
      *         lookups, {@code null} otherwise
      */
@@ -555,6 +563,13 @@ public class TableFilter implements ColumnResolver {
         // scanCount);
     }
 
+    /**
+     * Whether the current value of the condition is true, or there is no
+     * condition.
+     *
+     * @param condition the condition (null for no condition)
+     * @return true if yes
+     */
     boolean isOk(Expression condition) {
         if (condition == null) {
             return true;

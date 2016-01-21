@@ -96,7 +96,9 @@ public final class ValueTimestampUtc extends Value {
 
     /**
      * Time in nanoseconds since 1 Jan 1970 i.e. similar format to
-     * System.currentTimeMillis()
+     * System.currentTimeMillis().
+     *
+     * @return the number of milliseconds
      */
     public long getUtcDateTimeNanos() {
         return utcDateTimeNanos;
@@ -105,11 +107,18 @@ public final class ValueTimestampUtc extends Value {
     /**
      * Time in milliseconds since 1 Jan 1970 i.e. same format as
      * System.currentTimeMillis()
+     *
+     * @return the number of milliseconds
      */
     public long getUtcDateTimeMillis() {
         return utcDateTimeNanos / 1000 / 1000;
     }
 
+    /**
+     * Get the number of nanoseconds since the last full millisecond.
+     *
+     * @return the number of nanoseconds
+     */
     int getNanosSinceLastMillis() {
         return (int) (utcDateTimeNanos % (1000 * 1000));
     }

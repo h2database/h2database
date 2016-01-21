@@ -159,6 +159,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param filters all joined table filters
      * @param filter the current table filter index
      * @param sortOrder the sort order
+     * @param isScanIndex whether this is a "table scan" index
      * @return the estimated cost
      */
     protected final long getCostRangeIndex(int[] masks, long rowCount,

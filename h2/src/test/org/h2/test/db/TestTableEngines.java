@@ -684,6 +684,12 @@ public class TestTableEngines extends TestBase {
         }
     }
 
+    /**
+     * A static assertion method.
+     *
+     * @param condition the condition
+     * @param message the error message
+     */
     static void assert0(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);

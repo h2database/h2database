@@ -122,6 +122,12 @@ public class TestMvcc4 extends TestBase {
         setup.close();
     }
 
+    /**
+     * Wait for the given thread to block on synchronizing on the database
+     * object.
+     *
+     * @param t the thread
+     */
     static void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
             // TODO must not use getAllStackTraces, as the method names are

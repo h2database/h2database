@@ -137,6 +137,12 @@ public class ToDateParser {
         return p;
     }
 
+    /**
+     * Remove a token from a string.
+     *
+     * @param inputFragmentStr the input fragment
+     * @param formatFragment the format fragment
+     */
     void remove(String inputFragmentStr, String formatFragment) {
         if (inputFragmentStr != null && inputStr.length() >= inputFragmentStr.length()) {
             inputStr = inputStr.substring(inputFragmentStr.length());
@@ -167,11 +173,25 @@ public class ToDateParser {
         return sb.toString();
     }
 
+    /**
+     * Parse a string as a timestamp with the given format.
+     *
+     * @param input the input
+     * @param format the format
+     * @return the timestamp
+     */
     public static Timestamp toTimestamp(String input, String format) {
         ToDateParser parser = getTimestampParser(input, format);
         return parser.getResultingTimestamp();
     }
 
+    /**
+     * Parse a string as a date with the given format.
+     *
+     * @param input the input
+     * @param format the format
+     * @return the date as a timestamp
+     */
     public static Timestamp toDate(String input, String format) {
         ToDateParser parser = getDateParser(input, format);
         return parser.getResultingTimestamp();

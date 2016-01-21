@@ -52,7 +52,7 @@ public class TestView extends TestBase {
         deleteDb("view");
     }
 
-    public void testSubQueryViewIndexCache() throws SQLException {
+    private void testSubQueryViewIndexCache() throws SQLException {
         if (config.networked) {
             return;
         }

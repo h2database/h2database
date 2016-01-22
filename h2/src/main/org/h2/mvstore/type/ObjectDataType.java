@@ -332,8 +332,13 @@ public class ObjectDataType implements DataType {
         HashMap<Class<?>, Integer> map = COMMON_CLASSES_MAP;
         if (map.size() == 0) {
             // lazy initialization
-            for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
-                COMMON_CLASSES_MAP.put(COMMON_CLASSES[i], i);
+            // synchronized, because the COMMON_CLASSES_MAP is not
+            synchronized (map) {
+                if (map.size() == 0) {
+                    for (int i = 0, size = COMMON_CLASSES.length; i < size; i++) {
+                        map.put(COMMON_CLASSES[i], i);
+                    }
+                }
             }
         }
         return map.get(clazz);

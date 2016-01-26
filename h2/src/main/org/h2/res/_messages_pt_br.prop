@@ -114,7 +114,7 @@
 90084=Não pode apagar a última coluna {0}
 90085=índice {0} pertence a uma restrição {1}
 90086=Classe {0} não foi encontrada
-90087=Method {0} with matching arguments not found
+90087=#Method {0} not found
 90088=Modo {0} desconhecido
 90089=A coleção não pode ser alterada, porque existe uma tabela de dados: {0}
 90090=Esquema {0} não pode ser apagado

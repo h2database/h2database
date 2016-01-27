@@ -12,8 +12,9 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+
 import org.h2.build.code.SwitchSource;
 import org.h2.build.doc.XMLParser;
 
@@ -69,14 +70,14 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
         StringList args = args("-Xmx128m",
                 "-cp", cp, "org.h2.test.bench.TestPerformance");
-        exec("java", args.plus("-init", "-db", "1"));
-        exec("java", args.plus("-db", "2"));
-        exec("java", args.plus("-db", "3", "-out", "pe.html"));
-        exec("java", args.plus("-init", "-db", "4"));
-        exec("java", args.plus("-db", "5", "-exit"));
-        exec("java", args.plus("-db", "6"));
-        exec("java", args.plus("-db", "7"));
-        exec("java", args.plus("-db", "8", "-out", "ps.html"));
+        execJava(args.plus("-init", "-db", "1"));
+        execJava(args.plus("-db", "2"));
+        execJava(args.plus("-db", "3", "-out", "pe.html"));
+        execJava(args.plus("-init", "-db", "4"));
+        execJava(args.plus("-db", "5", "-exit"));
+        execJava(args.plus("-db", "6"));
+        execJava(args.plus("-db", "7"));
+        execJava(args.plus("-db", "8", "-out", "ps.html"));
     }
 
     /**
@@ -132,10 +133,9 @@ public class Build extends BuildBase {
             File.pathSeparator + "ext/jts-core-1.14.0.jar" +
             File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
             File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
-            File.pathSeparator + System.getProperty("java.home") +
-            "/../lib/tools.jar";
+            File.pathSeparator + javaToolsJar;
         // -XX:-UseSplitVerifier is for Java 7 compatibility
-        exec("java", args(
+        execJava(args(
                 "-Xmx128m",
                 "-XX:-UseSplitVerifier",
                 "-cp", cp, "emma", "run",
@@ -209,7 +209,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.14.0.jar" +
-                File.pathSeparator + System.getProperty("java.home") + "/../lib/tools.jar";
+                File.pathSeparator + javaToolsJar;
         FileList files;
         if (clientOnly) {
             files = files("src/main/org/h2/Driver.java");
@@ -610,8 +610,7 @@ public class Build extends BuildBase {
                 "-noindex",
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl2",
-                "-classpath", System.getProperty("java.home") +
-                "/../lib/tools.jar" +
+                "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
@@ -626,8 +625,7 @@ public class Build extends BuildBase {
                 "-noindex",
                 "-tag", "h2.resource",
                 "-d", "docs/javadocImpl3",
-                "-classpath", System.getProperty("java.home") +
-                "/../lib/tools.jar" +
+                "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
@@ -642,8 +640,7 @@ public class Build extends BuildBase {
         javadoc("-sourcepath", "src/main" +
                 File.pathSeparator + "src/test" +
                 File.pathSeparator + "src/tools",
-                "-classpath",
-                System.getProperty("java.home") + "/../lib/tools.jar" +
+                "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
                 File.pathSeparator + "ext/lucene-core-3.0.2.jar" +
@@ -922,15 +919,14 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/jts-core-1.14.0.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
-                File.pathSeparator + System.getProperty("java.home") +
-                "/../lib/tools.jar";
+                File.pathSeparator + javaToolsJar;
         if (fast) {
-            exec("java", args(
+            execJava(args(
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll", "fast"));
         } else {
-            exec("java", args(
+            execJava(args(
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll"));
@@ -1077,7 +1073,7 @@ public class Build extends BuildBase {
         javac(args, files);
         String cp = "bin" + File.pathSeparator + "temp" +
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar";
-        exec("java", args("-Xmx512m", "-cp", cp,
+        execJava(args("-Xmx512m", "-cp", cp,
                 "-Dh2.ftpPassword=" + password,
                 "org.h2.build.doc.UploadBuild"));
     }

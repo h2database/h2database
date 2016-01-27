@@ -41,6 +41,7 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+
 /**
  * This class is a complete pure Java build tool. It allows to build this
  * project without any external dependencies except a JDK.
@@ -172,6 +173,18 @@ public class BuildBase {
      * If output should be disabled.
      */
     protected boolean quiet;
+
+    /**
+     * The full path to the executable of the current JRE.
+     */
+    protected String javaExecutable = System.getProperty("java.home") +
+            File.separator + "bin" + File.separator + "java";
+
+    /**
+     * The full path to the tools jar of the current JDK.
+     */
+    protected String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
+            File.separator + "lib" + File.separator + "tools.jar";
 
     /**
      * This method should be called by the main method.
@@ -339,6 +352,16 @@ public class BuildBase {
             return exec("cmd", newArgs);
         }
         return exec(script, args);
+    }
+
+    /**
+     * Execute java in a separate process, but using the java executable of the current JRE.
+     *
+     * @param args the command line parameters for the java command
+     * @return the exit value
+     */
+    protected int execJava(StringList args) {
+        return exec(javaExecutable, args);
     }
 
     /**

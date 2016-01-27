@@ -36,6 +36,7 @@ public class Build extends BuildBase {
     /**
      * Run the benchmarks.
      */
+    @Description(summary="Run the benchmarks.")
     public void benchmark() {
         downloadUsingMaven("ext/hsqldb-2.3.2.jar",
                 "org/hsqldb", "hsqldb", "2.3.2",
@@ -81,6 +82,7 @@ public class Build extends BuildBase {
     /**
      * Clean all jar files, classes, and generated documentation.
      */
+    @Description(summary="Clean all jar files, classes, and generated documentation.")
     public void clean() {
         delete("temp");
         delete("docs");
@@ -90,8 +92,9 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Compile all classes
+     * Compile all classes.
      */
+    @Description(summary="Compile all classes.")
     public void compile() {
         compile(true, false, false);
     }
@@ -112,6 +115,7 @@ public class Build extends BuildBase {
     /**
      * Run the Emma code coverage.
      */
+    @Description(summary="Run the Emma code coverage.")
     public void coverage() {
         downloadTest();
         downloadUsingMaven("ext/emma-2.0.5312.jar",
@@ -146,6 +150,7 @@ public class Build extends BuildBase {
     /**
      * Switch the source code to the current JDK.
      */
+    @Description(summary="Switch the source code to match the current JDK.")
     public void switchSource() {
         switchSource(true);
     }
@@ -259,6 +264,7 @@ public class Build extends BuildBase {
      * Create the documentation from the documentation sources. API Javadocs are
      * created as well.
      */
+    @Description(summary="Create the documentation from sources (incl. API Javadocs).")
     public void docs() {
         javadoc();
         copy("docs", files("src/docsrc/index.html"), "src/docsrc");
@@ -282,6 +288,7 @@ public class Build extends BuildBase {
      * Download all required jar files. Actually those are only compile time
      * dependencies. The database can be used without any dependencies.
      */
+    @Description(summary="Download all required jar files.")
     public void download() {
         downloadOrVerify(false);
     }
@@ -352,6 +359,7 @@ public class Build extends BuildBase {
     /**
      * Create the h2.zip file and the Windows installer.
      */
+    @Description(summary="Create the h2.zip file and the Windows installer.")
     public void installer() {
         delete(files("bin").keep("*.jar"));
         jar();
@@ -420,6 +428,7 @@ public class Build extends BuildBase {
     /**
      * Create the regular h2.jar file.
      */
+    @Description(summary="Create the regular h2.jar file.")
     public void jar() {
         compile();
         manifest("H2 Database Engine", "org.h2.tools.Console");
@@ -451,6 +460,7 @@ public class Build extends BuildBase {
      * Create the file h2android.jar. This only contains the embedded database,
      * plus the H2 Android API. Debug information is disabled.
      */
+    @Description(summary="Create h2android.jar with only the embedded DB and H2 Android API.")
     public void jarAndroid() {
         compile(false, false, true);
         FileList files = files("temp").
@@ -482,6 +492,7 @@ public class Build extends BuildBase {
      * Create the h2client.jar. This only contains the remote JDBC
      * implementation.
      */
+    @Description(summary="Create h2client.jar with only the remote JDBC implementation.")
     public void jarClient() {
         compile(true, true, false);
         FileList files = files("temp").
@@ -507,6 +518,7 @@ public class Build extends BuildBase {
     /**
      * Create the file h2mvstore.jar. This only contains the MVStore.
      */
+    @Description(summary="Create h2mvstore.jar containing only the MVStore.")
     public void jarMVStore() {
         compileMVStore(true);
         manifestMVStore();
@@ -520,6 +532,7 @@ public class Build extends BuildBase {
      * Create the file h2small.jar. This only contains the embedded database.
      * Debug information is disabled.
      */
+    @Description(summary="Create h2small.jar containing only the embedded database.")
     public void jarSmall() {
         compile(false, false, true);
         FileList files = files("temp").
@@ -555,6 +568,7 @@ public class Build extends BuildBase {
      * Create the file h2jaqu.jar. This only contains the JaQu (Java Query)
      * implementation. All other jar files do not include JaQu.
      */
+    @Description(summary="Create jaqu.jar with only the Java Query implementation.")
     public void jarJaqu() {
         compile(true, false, true);
         manifest("H2 JaQu", "");
@@ -566,8 +580,9 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Create the Javadocs of the API (including the JDBC API) and tools.
+     * Create the Javadocs of the API (incl. the JDBC API) and tools.
      */
+    @Description(summary="Create the API Javadocs (incl. JDBC API and tools).")
     public void javadoc() {
         compileTools();
         delete("docs");
@@ -585,6 +600,7 @@ public class Build extends BuildBase {
     /**
      * Create the Javadocs of the implementation.
      */
+    @Description(summary="Create the Javadocs of the implementation.")
     public void javadocImpl() {
         compileTools();
         mkdir("docs/javadocImpl2");
@@ -673,6 +689,7 @@ public class Build extends BuildBase {
      * file:///data/h2database/m2-repo. This is only required when
      * a new H2 version is made.
      */
+    @Description(summary="Build H2 release jars and upload to file:///data/h2database/m2-repo.")
     public void mavenDeployCentral() {
         // generate and deploy h2*-sources.jar file
         FileList files = files("src/main");
@@ -794,9 +811,10 @@ public class Build extends BuildBase {
     }
 
     /**
-     * This will build a 'snapshot' H2 .jar file and upload it the to the local
+     * This will build a 'snapshot' H2 .jar file and upload it to the local
      * Maven 2 repository.
      */
+    @Description(summary="Build a snapshot H2 jar and upload to local Maven 2 repo.")
     public void mavenInstallLocal() {
         // MVStore
         jarMVStore();
@@ -831,6 +849,7 @@ public class Build extends BuildBase {
      * required files are missing, they are are listed, and the jar file is not
      * built.
      */
+    @Description(summary="Build H2 jar avoiding downloads (list missing files).")
     public void offline() {
         downloadOrVerify(true);
         if (filesMissing) {
@@ -870,6 +889,7 @@ public class Build extends BuildBase {
     /**
      * Just run the spellchecker.
      */
+    @Description(summary="Run the spellchecker.")
     public void spellcheck() {
         java("org.h2.build.doc.SpellChecker", null);
     }
@@ -877,6 +897,7 @@ public class Build extends BuildBase {
     /**
      * Compile and run all tests. This does not include the compile step.
      */
+    @Description(summary="Compile and run all tests (excluding the compile step).")
     public void test() {
         test(false);
     }
@@ -884,6 +905,7 @@ public class Build extends BuildBase {
     /**
      * Compile and run all fast tests. This does not include the compile step.
      */
+    @Description(summary="Compile and run all fast tests (excl. the compile step).")
     public void testFast() {
         test(true);
     }
@@ -916,8 +938,9 @@ public class Build extends BuildBase {
     }
 
     /**
-     * Print the system properties
+     * Print the system properties.
      */
+    @Description(summary="Print the system properties.")
     public void testSysProperties() {
         System.out.println("environment settings:");
         for (Entry<Object, Object> e : new TreeMap<Object, Object>(
@@ -929,6 +952,7 @@ public class Build extends BuildBase {
     /**
      * Test the local network of this machine.
      */
+    @Description(summary="Test the local network of this machine.")
     public void testNetwork() {
         try {
             long start = System.currentTimeMillis();
@@ -1035,6 +1059,7 @@ public class Build extends BuildBase {
      * of the automated build (including test results, newsfeed, code coverage)
      * to the public web site.
      */
+    @Description(summary="Upload all build results to the public website.")
     public void uploadBuild() {
         String password = System.getProperty("h2.ftpPassword");
         if (password == null) {
@@ -1060,6 +1085,7 @@ public class Build extends BuildBase {
     /**
      * Build the h2console.war file.
      */
+    @Description(summary="Build the h2console.war file.")
     public void warConsole() {
         jar();
         copy("temp/WEB-INF", files("src/tools/WEB-INF/web.xml"), "src/tools/WEB-INF");

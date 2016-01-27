@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -40,6 +41,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
@@ -901,7 +903,8 @@ public class TestTableEngines extends TestBase {
 
                 @Override
                 public double getCost(Session session, int[] masks,
-                        TableFilter[] filters, int filter, SortOrder sortOrder) {
+                        TableFilter[] filters, int filter, SortOrder sortOrder,
+                        HashSet<Column> allColumnsSet) {
                     return 0;
                 }
 
@@ -1157,10 +1160,11 @@ public class TestTableEngines extends TestBase {
                 IndexColumn.wrap(getColumns()), IndexType.createScan(false)) {
             @Override
             public double getCost(Session session, int[] masks,
-                    TableFilter[] filters, int filter, SortOrder sortOrder) {
+                    TableFilter[] filters, int filter, SortOrder sortOrder,
+                    HashSet<Column> allColumnsSet) {
                 doTests(session);
                 return getCostRangeIndex(masks, getRowCount(session), filters,
-                        filter, sortOrder, true);
+                        filter, sortOrder, true, allColumnsSet);
             }
         };
 
@@ -1505,9 +1509,9 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public double getCost(Session session, int[] masks,
-                TableFilter[] filters, int filter, SortOrder sortOrder) {
+                TableFilter[] filters, int filter, SortOrder sortOrder, HashSet<Column> allColumnsSet) {
             doTests(session);
-            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder, false);
+            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder, false, allColumnsSet);
         }
 
         @Override

@@ -8,6 +8,7 @@ package org.h2.index;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -142,9 +143,10 @@ public class LinkedIndex extends BaseIndex {
 
     @Override
     public double getCost(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         return 100 + getCostRangeIndex(masks, rowCount +
-                Constants.COST_ROW_OFFSET, filters, filter, sortOrder, false);
+                Constants.COST_ROW_OFFSET, filters, filter, sortOrder, false, allColumnsSet);
     }
 
     @Override

@@ -5,6 +5,7 @@
  */
 package org.h2.index;
 
+import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -218,9 +219,10 @@ public class PageBtreeIndex extends PageIndex {
 
     @Override
     public double getCost(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         return 10 * getCostRangeIndex(masks, tableData.getRowCount(session),
-                filters, filter, sortOrder, false);
+                filters, filter, sortOrder, false, allColumnsSet);
     }
 
     @Override

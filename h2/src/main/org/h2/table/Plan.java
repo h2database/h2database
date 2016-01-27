@@ -8,6 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
@@ -112,12 +113,13 @@ public class Plan {
         }
         double cost = 1;
         boolean invalidPlan = false;
+        final HashSet<Column> allColumnsSet = ExpressionVisitor.allColumnsForTableFilters(allFilters);
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter tableFilter = allFilters[i];
             if (t.isDebugEnabled()) {
                 t.debug("Plan       :   for table filter {0}", tableFilter);
             }
-            PlanItem item = tableFilter.getBestPlanItem(session, allFilters, i);
+            PlanItem item = tableFilter.getBestPlanItem(session, allFilters, i, allColumnsSet);
             planItems.put(tableFilter, item);
             if (t.isDebugEnabled()) {
                 t.debug("Plan       :   best plan item cost {0} index {1}",

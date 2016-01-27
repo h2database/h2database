@@ -12,6 +12,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
@@ -130,7 +131,9 @@ public class Delete extends Prepared {
             condition = condition.optimize(session);
             condition.createIndexConditions(session, tableFilter);
         }
-        PlanItem item = tableFilter.getBestPlanItem(session, new TableFilter[]{tableFilter}, 0);
+        TableFilter[] filters = new TableFilter[] { tableFilter };
+        PlanItem item = tableFilter.getBestPlanItem(session, filters, 0,
+                ExpressionVisitor.allColumnsForTableFilters(filters));
         tableFilter.setPlanItem(item);
         tableFilter.prepare();
     }

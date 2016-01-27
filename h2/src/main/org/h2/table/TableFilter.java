@@ -6,7 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
-
+import java.util.HashSet;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
@@ -186,7 +186,8 @@ public class TableFilter implements ColumnResolver {
      * @param filter the current table filter index
      * @return the best plan item
      */
-    public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter) {
+    public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter,
+            HashSet<Column> allColumnsSet) {
         PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {
@@ -194,8 +195,8 @@ public class TableFilter implements ColumnResolver {
         }
         if (indexConditions.size() == 0) {
             item1 = new PlanItem();
-            item1.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder));
-            item1.cost = item1.getIndex().getCost(s, null, filters, filter, sortOrder);
+            item1.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder, allColumnsSet));
+            item1.cost = item1.getIndex().getCost(s, null, filters, filter, sortOrder, allColumnsSet);
         }
         int len = table.getColumns().length;
         int[] masks = new int[len];
@@ -211,7 +212,7 @@ public class TableFilter implements ColumnResolver {
                 }
             }
         }
-        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder);
+        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet);
         item.setMasks(masks);
         // The more index conditions, the earlier the table.
         // This is to ensure joins without indexes run quickly:
@@ -224,7 +225,7 @@ public class TableFilter implements ColumnResolver {
 
         if (nestedJoin != null) {
             setEvaluatable(nestedJoin);
-            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter));
+            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
@@ -234,7 +235,7 @@ public class TableFilter implements ColumnResolver {
             do {
                 filter++;
             } while (filters[filter] != join);
-            item.setJoinPlan(join.getBestPlanItem(s, filters, filter));
+            item.setJoinPlan(join.getBestPlanItem(s, filters, filter, allColumnsSet));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getJoinPlan().cost;

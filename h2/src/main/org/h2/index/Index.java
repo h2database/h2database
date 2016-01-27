@@ -5,6 +5,7 @@
  */
 package org.h2.index;
 
+import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
@@ -87,7 +88,7 @@ public interface Index extends SchemaObject {
      * @return the estimated cost
      */
     double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
-            SortOrder sortOrder);
+            SortOrder sortOrder, HashSet<Column> allColumnsSet);
 
     /**
      * Remove the index.

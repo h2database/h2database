@@ -809,6 +809,7 @@ public class Session extends SessionWithState {
         if (!closed) {
             try {
                 database.checkPowerOff();
+                rollback();
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();

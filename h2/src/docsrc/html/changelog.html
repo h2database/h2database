@@ -21,6 +21,8 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Fix bug where table locks were not dropped when the connection closed
+</li>
 <li>Fix extra CPU usage caused by query planner enhancement in 1.4.191
 </li>
 <li>improve performance of queries that use LIKE 'foo%' - 10x in the case of one of my queries

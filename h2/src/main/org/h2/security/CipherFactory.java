@@ -23,6 +23,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Properties;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
@@ -270,16 +271,16 @@ public class CipherFactory {
     }
 
     private static String[] enableAnonymous(String[] enabled, String[] supported) {
-        HashSet<String> set = new HashSet<String>();
-        Collections.addAll(set, enabled);
+        LinkedHashSet<String> set = new LinkedHashSet<String>();
         for (String x : supported) {
             if (!x.startsWith("SSL") &&
                     x.indexOf("_anon_") >= 0 &&
-                    x.indexOf("_AES_") >= 0 &&
+                    (x.indexOf("_AES_") >= 0 || x.indexOf("_3DES_") >= 0) &&
                     x.indexOf("_SHA") >= 0) {
                 set.add(x);
             }
         }
+        Collections.addAll(set, enabled);
         return set.toArray(new String[0]);
     }
 

@@ -928,11 +928,13 @@ public class Session extends SessionWithState {
     private void cleanTempTables(boolean closeSession) {
         if (localTempTables != null && localTempTables.size() > 0) {
             synchronized (database) {
-                for (Table table : New.arrayList(localTempTables.values())) {
+                Iterator<Table> itr = localTempTables.values().iterator();
+                while (itr.hasNext()) {
+                    Table table = itr.next();
                     if (closeSession || table.getOnCommitDrop()) {
                         modificationId++;
                         table.setModified();
-                        localTempTables.remove(table.getName());
+                        itr.remove();
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might

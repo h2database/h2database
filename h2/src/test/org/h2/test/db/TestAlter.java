@@ -35,6 +35,7 @@ public class TestAlter extends TestBase {
         deleteDb(getTestName());
         conn = getConnection(getTestName());
         stat = conn.createStatement();
+        testAlterTableRenameConstraint();
         testAlterTableAlterColumnAsSelfColumn();
         testAlterTableDropColumnWithReferences();
         testAlterTableDropMultipleColumns();
@@ -137,6 +138,13 @@ public class TestAlter extends TestBase {
         stat.execute("insert into test values(1)");
         assertThrows(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1, stat).
             execute("insert into test values(3)");
+        stat.execute("drop table test");
+    }
+
+    private void testAlterTableRenameConstraint() throws SQLException {
+        stat.execute("create table test(id int, name varchar(255))");
+        stat.execute("alter table test add constraint x check (id > name)");
+        stat.execute("alter table test rename constraint x to x2");
         stat.execute("drop table test");
     }
 

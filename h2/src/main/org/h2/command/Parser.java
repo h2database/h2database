@@ -25,6 +25,7 @@ import org.h2.command.ddl.AlterTableAlterColumn;
 import org.h2.command.ddl.AlterTableDropConstraint;
 import org.h2.command.ddl.AlterTableRename;
 import org.h2.command.ddl.AlterTableRenameColumn;
+import org.h2.command.ddl.AlterTableRenameConstraint;
 import org.h2.command.ddl.AlterUser;
 import org.h2.command.ddl.AlterView;
 import org.h2.command.ddl.Analyze;
@@ -5433,6 +5434,17 @@ public class Parser {
                 command.setColumn(column);
                 String newName = readColumnIdentifier();
                 command.setNewColumnName(newName);
+                return command;
+            } else if (readIf("CONSTRAINT")) {
+                String constraintName = readIdentifierWithSchema(table
+                        .getSchema().getName());
+                checkSchema(table.getSchema());
+                read("TO");
+                AlterTableRenameConstraint command = new AlterTableRenameConstraint(
+                        session, table.getSchema());
+                command.setConstraintName(constraintName);
+                String newName = readColumnIdentifier();
+                command.setNewConstraintName(newName);
                 return command;
             } else {
                 read("TO");

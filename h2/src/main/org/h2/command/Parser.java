@@ -5422,16 +5422,30 @@ public class Parser {
             }
             return command;
         } else if (readIf("RENAME")) {
-            read("TO");
-            String newName = readIdentifierWithSchema(table.getSchema()
-                    .getName());
-            checkSchema(table.getSchema());
-            AlterTableRename command = new AlterTableRename(session,
-                    getSchema());
-            command.setOldTable(table);
-            command.setNewTableName(newName);
-            command.setHidden(readIf("HIDDEN"));
-            return command;
+            if (readIf("COLUMN")) {
+                // PostgreSQL syntax
+                String columnName = readColumnIdentifier();
+                Column column = table.getColumn(columnName);
+                read("TO");
+                AlterTableRenameColumn command = new AlterTableRenameColumn(
+                        session);
+                command.setTable(table);
+                command.setColumn(column);
+                String newName = readColumnIdentifier();
+                command.setNewColumnName(newName);
+                return command;
+            } else {
+                read("TO");
+                String newName = readIdentifierWithSchema(table.getSchema()
+                        .getName());
+                checkSchema(table.getSchema());
+                AlterTableRename command = new AlterTableRename(session,
+                        getSchema());
+                command.setOldTable(table);
+                command.setNewTableName(newName);
+                command.setHidden(readIf("HIDDEN"));
+                return command;
+            }
         } else if (readIf("DROP")) {
             if (readIf("CONSTRAINT")) {
                 boolean ifExists = readIfExists(false);

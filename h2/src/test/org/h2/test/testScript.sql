@@ -4514,7 +4514,7 @@ create index idx_n_id on test(name, id);
 alter table test add constraint abc foreign key(id) references (id);
 > ok
 
-alter table test alter column id rename to i;
+alter table test rename column id to i;
 > ok
 
 script NOPASSWORDS NOSETTINGS drop;

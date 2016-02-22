@@ -4033,6 +4033,11 @@ public class Parser {
             if (readIf("VARYING")) {
                 original += " VARYING";
             }
+        } else if (readIf("TIMESTAMP")) {
+            if (readIf("WITH")) {
+                read("TIMEZONE");
+                original += " WITH TIMEZONE";
+            }
         } else {
             regular = true;
         }

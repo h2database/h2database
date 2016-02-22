@@ -31,6 +31,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
@@ -296,6 +297,8 @@ public class Column {
                         value = ValueTimestamp.fromMillis(session.getTransactionStart());
                     } else if (dt.type == Value.TIMESTAMP_UTC) {
                         value = ValueTimestampUtc.fromMillis(session.getTransactionStart());
+                    } else if (dt.type == Value.TIMESTAMP_TZ) {
+                        value = ValueTimestampTimeZone.fromMillis(session.getTransactionStart(), (short)0);
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {

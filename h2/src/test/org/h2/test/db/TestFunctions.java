@@ -1288,6 +1288,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         } catch (Exception e) {
             assertEquals(DbException.class.getSimpleName(), e.getClass().getSimpleName());
         }
+
+        try {
+            ToDateParser.toDate("1-DEC-0000","DD-MON-RRRR");
+            fail("Oracle to_date should reject year 0 (ORA-01841)");
+        } catch (Exception e) { }
     }
 
     private void testToDate() throws ParseException {
@@ -1400,6 +1405,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
         assertEquals(date, ToDateParser.toDate("113029", "J"));
+
+        date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse("9999-12-31T23:59:59");
+        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59","DD-MON-YYYY HH24:MI:SS"));
+        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59","DD-MON-RRRR HH24:MI:SS"));
+
+
+        SimpleDateFormat ymd = new SimpleDateFormat("yyyy-MM-dd");
+        assertEquals(ymd.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001","DD-MON-RRRR"));
+        assertEquals(ymd.parse("9999-03-01"), ToDateParser.toDate("1-MAR-9999","DD-MON-RRRR"));
+        assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-000","DD-MON-RRRR"));
+        assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-099","DD-MON-RRRR"));
+        assertEquals(ymd.parse("0100-03-01"), ToDateParser.toDate("1-MAR-100","DD-MON-RRRR"));
+        assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-00","DD-MON-RRRR"));
+        assertEquals(ymd.parse("2049-03-01"), ToDateParser.toDate("1-MAR-49","DD-MON-RRRR"));
+        assertEquals(ymd.parse("1950-03-01"), ToDateParser.toDate("1-MAR-50","DD-MON-RRRR"));
+        assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-99","DD-MON-RRRR"));
     }
 
     private static void setMonth(Date date, int month) {

@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
@@ -35,6 +36,7 @@ public class TestCompatibilityOracle extends TestBase {
         testTreatEmptyStringsAsNull();
         testDecimalScale();
         testPoundSymbolInColumnName();
+        testToDate();
     }
 
     private void testTreatEmptyStringsAsNull() throws SQLException {
@@ -138,6 +140,31 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult("1", stat, "SELECT ID FROM TEST where U##NAME ='Hello'");
 
         conn.close();
+    }
+
+    private void testToDate() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE DATETABLE (ID NUMBER PRIMARY KEY, TESTVAL TIMESTAMP)");
+        stat.execute("INSERT INTO DATETABLE VALUES (1, to_date('31-DEC-9999 23:59:59','DD-MON-RRRR HH24:MI:SS'))");
+        stat.execute("INSERT INTO DATETABLE VALUES (2, to_date('01-JAN-0001 00:00:00','DD-MON-RRRR HH24:MI:SS'))");
+
+        assertResultDate("9999-12-31T23:59:59", stat, "SELECT TESTVAL FROM DATETABLE WHERE ID=1");
+        assertResultDate("0001-01-01T00:00:00", stat, "SELECT TESTVAL FROM DATETABLE WHERE ID=2");
+
+        conn.close();
+    }
+
+    private void assertResultDate(String expected, Statement stat, String sql) throws SQLException {
+        SimpleDateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+        ResultSet rs = stat.executeQuery(sql);
+        if (rs.next()) {
+            assertEquals(expected, iso8601.format(rs.getTimestamp(1)));
+        } else {
+            assertEquals(expected, null);
+        }
     }
 
     private void assertResult(Object[][] expectedRowsOfValues, Statement stat,

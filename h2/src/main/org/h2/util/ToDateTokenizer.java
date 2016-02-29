@@ -37,10 +37,14 @@ class ToDateTokenizer {
     static final Pattern PATTERN_NUMBER = Pattern.compile("^([+-]?[0-9]+)");
 
     /**
-     * The pattern for for digits (typically a year).
+     * The pattern for four digits (typically a year).
      */
     static final Pattern PATTERN_FOUR_DIGITS = Pattern.compile("^([+-]?[0-9]{4})");
 
+    /**
+     * The pattern 2-4 digits (e.g. for RRRR).
+     */
+    static final Pattern PATTERN_TWO_TO_FOUR_DIGITS = Pattern.compile("^([+-]?[0-9]{2,4})");
     /**
      * The pattern for three digits.
      */
@@ -142,6 +146,8 @@ class ToDateTokenizer {
                     dateNr = Integer.parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0.
                     // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
+                    if (dateNr==0)
+                        throwException(params, "Year may not be zero");
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
                     break;
                 case YYY:
@@ -155,9 +161,16 @@ class ToDateTokenizer {
                     break;
                 case RRRR:
                     inputFragmentStr = matchStringOrThrow(
-                            PATTERN_TWO_DIGITS, params, formatTokenEnum);
+                            PATTERN_TWO_TO_FOUR_DIGITS, params, formatTokenEnum);
                     dateNr = Integer.parseInt(inputFragmentStr);
-                    dateNr += dateNr < 50 ? 2000 : 1900;
+                    if (inputFragmentStr.length() < 4) {
+                        if (dateNr < 50)
+                            dateNr += 2000;
+                        else if (dateNr < 100)
+                            dateNr += 1900;
+                    }
+                    if (dateNr==0)
+                        throwException(params, "Year may not be zero");
                     result.set(Calendar.YEAR, dateNr);
                     break;
                 case RR:

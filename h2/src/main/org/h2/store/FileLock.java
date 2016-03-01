@@ -439,6 +439,7 @@ public class FileLock implements Runnable {
             return;
         }
         save();
+        locked = true;
         watchdog = new Thread(this,
                 "H2 File Lock Watchdog (Socket) " + fileName);
         watchdog.setDaemon(true);

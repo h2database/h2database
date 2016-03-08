@@ -128,6 +128,18 @@ Initial Developer: H2 Group
                         <option value="2">
                             ${text.toolbar.autoComplete.full}
                         </option>
+                    </select>&nbsp;
+                </td>
+                <td class="toolbar">
+                    ${text.toolbar.autoSelect}&nbsp;
+                    <select name="autoSelect" size="1"
+                        onchange="javascript:parent.h2query.setAutoSelect(this.value)">
+                        <option value="0">
+                            ${text.toolbar.autoSelect.off}
+                        </option>
+                        <option selected="selected" value="1">
+                            ${text.toolbar.autoSelect.on}
+                        </option>
                     </select>
                 </td>
                 <td class="toolbar">

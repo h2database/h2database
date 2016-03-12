@@ -123,6 +123,21 @@ public class TestRecursiveQueries extends TestBase {
         assertEquals(103, rs.getInt(1));
         assertFalse(rs.next());
 
+        prep = conn.prepareStatement("with recursive t(n) as " +
+                "(select ? union all select n+? from t where n<?) " +
+                "select * from t");
+        prep.setInt(1, 10);
+        prep.setInt(2, 2);
+        prep.setInt(3, 14);
+        rs = prep.executeQuery();
+        assertResultSetOrdered(rs, new String[][]{{"10"}, {"12"}, {"14"}});
+
+        prep.setInt(1, 100);
+        prep.setInt(2, 3);
+        prep.setInt(3, 103);
+        rs = prep.executeQuery();
+        assertResultSetOrdered(rs, new String[][]{{"100"}, {"103"}});
+
         conn.close();
         deleteDb("recursiveQueries");
     }

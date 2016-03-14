@@ -220,6 +220,7 @@ public class Parser {
     private boolean recompileAlways;
     private ArrayList<Parameter> indexedParameterList;
     private int orderInFrom;
+    private ArrayList<Parameter> suppliedParameterList;
 
     public Parser(Session session) {
         this.database = session.getDatabase();
@@ -311,7 +312,7 @@ public class Parser {
         currentPrepared = null;
         createView = null;
         recompileAlways = false;
-        indexedParameterList = null;
+        indexedParameterList = suppliedParameterList;
         read();
         return parsePrepared();
     }
@@ -4757,7 +4758,7 @@ public class Parser {
         }
         int id = database.allocateObjectId();
         TableView view = new TableView(schema, id, tempViewName, querySQL,
-                null, cols, session, true);
+                parameters, cols, session, true);
         view.setTableExpression(true);
         view.setTemporary(true);
         session.addLocalTempTable(view);
@@ -6097,6 +6098,10 @@ public class Parser {
 
     public void setRightsChecked(boolean rightsChecked) {
         this.rightsChecked = rightsChecked;
+    }
+
+    public void setSuppliedParameterList(ArrayList<Parameter> suppliedParameterList) {
+        this.suppliedParameterList = suppliedParameterList;
     }
 
     /**

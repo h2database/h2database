@@ -15,6 +15,7 @@ Initial Developer: H2 Group
 var agent=navigator.userAgent.toLowerCase();
 var is_opera = agent.indexOf("opera") >= 0;
 var autoComplete = 0; // 0: off, 1: normal, 2: full
+var autoSelect = 1; // 0: off, 1: on
 var selectedRow = -1;
 var lastList = '';
 var lastQuery = null;
@@ -294,6 +295,10 @@ function setAutoComplete(value) {
     }
 }
 
+function setAutoSelect(value) {
+    autoSelect = value;
+}
+
 function manualAutoComplete() {
     autoCompleteManual = true;
     lastQuery = null;
@@ -471,13 +476,33 @@ function submitSelected() {
     var field = document.h2query.sql;
     //alert('contents ' + field.selectionStart + '  ' + field.selectionEnd);
     if (field.selectionStart == field.selectionEnd) {
-        return;
+        if (autoSelect == 0) {
+            return;
+        }
+        doAutoSelect();
+        if (field.selectionStart == field.selectionEnd) {
+            return;
+        }
     }
     var startPos = field.selectionStart;
     var endPos = field.selectionEnd;
     var selectedText = field.value.substring(startPos, endPos);
     document.h2querysubmit.sql.value = selectedText;
     document.h2querysubmit.submit();
+}
+
+function doAutoSelect() {
+    var field = document.h2query.sql;
+    var position = field.selectionStart;
+    try {
+        var prevDoubleLine = field.value.lastIndexOf('\n\n',position - 1) + 2;
+        if (prevDoubleLine == 1) prevDoubleLine = 0;
+        var nextDoubleLine = field.value.indexOf('\n\n',position);
+        if (nextDoubleLine == -1) nextDoubleLine = field.value.length;
+        field.setSelectionRange(prevDoubleLine,nextDoubleLine);
+    } catch (e) {
+        field.selectionStart = field.selectionEnd = position;
+    }
 }
 
 //-->

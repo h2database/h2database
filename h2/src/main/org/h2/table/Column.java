@@ -95,7 +95,7 @@ public class Column {
             int displaySize) {
         this.name = name;
         this.type = type;
-        if (precision == -1 && scale == -1 && displaySize == -1) {
+        if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
             DataType dt = DataType.getDataType(type);
             precision = dt.defaultPrecision;
             scale = dt.defaultScale;

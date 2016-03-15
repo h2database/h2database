@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
 import org.h2.test.TestBase;
 
 /**
@@ -137,6 +138,14 @@ public class TestRecursiveQueries extends TestBase {
         prep.setInt(3, 103);
         rs = prep.executeQuery();
         assertResultSetOrdered(rs, new String[][]{{"100"}, {"103"}});
+
+        rs = stat.executeQuery("with recursive t(i, s, d) as "
+                + "(select 1, '.', now() union all"
+                + " select i+1, s||'.', d from t where i<3)"
+                + " select * from t");
+        assertResultSetMeta(rs, 3, new String[]{ "I", "S", "D" },
+                new int[]{ Types.INTEGER, Types.VARCHAR, Types.TIMESTAMP },
+                null, null);
 
         conn.close();
         deleteDb("recursiveQueries");

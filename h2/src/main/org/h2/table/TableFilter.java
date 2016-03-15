@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
@@ -17,9 +18,9 @@ import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionColumn;
 import org.h2.index.Index;
-import org.h2.index.IndexLookupBatch;
 import org.h2.index.IndexCondition;
 import org.h2.index.IndexCursor;
+import org.h2.index.IndexLookupBatch;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -112,6 +113,7 @@ public class TableFilter implements ColumnResolver {
     private boolean foundOne;
     private Expression fullCondition;
     private final int hashCode;
+    private final int orderInFrom;
 
     /**
      * Create a new table filter object.
@@ -121,9 +123,11 @@ public class TableFilter implements ColumnResolver {
      * @param alias the alias name
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
+     * @param orderInFrom original order number (index) of this table filter in
+     *            FROM clause (0, 1, 2,...)
      */
     public TableFilter(Session session, Table table, String alias,
-            boolean rightsChecked, Select select) {
+            boolean rightsChecked, Select select, int orderInFrom) {
         this.session = session;
         this.table = table;
         this.alias = alias;
@@ -133,6 +137,17 @@ public class TableFilter implements ColumnResolver {
             session.getUser().checkRight(table, Right.SELECT);
         }
         hashCode = session.nextObjectId();
+        this.orderInFrom = orderInFrom;
+    }
+
+    /**
+     * Get the order number (index) of this table filter in the "from" clause of
+     * the query.
+     *
+     * @return the index (0, 1, 2,...)
+     */
+    public int getOrderInFrom() {
+        return orderInFrom;
     }
 
     public IndexCursor getIndexCursor() {
@@ -171,41 +186,46 @@ public class TableFilter implements ColumnResolver {
      * @param filter the current table filter index
      * @return the best plan item
      */
-    public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter) {
-        PlanItem item;
+    public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter,
+            HashSet<Column> allColumnsSet) {
+        PlanItem item1 = null;
         SortOrder sortOrder = null;
         if (select != null) {
             sortOrder = select.getSortOrder();
         }
         if (indexConditions.size() == 0) {
-            item = new PlanItem();
-            item.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder));
-            item.cost = item.getIndex().getCost(s, null, filters, filter, sortOrder);
-        } else {
-            int len = table.getColumns().length;
-            int[] masks = new int[len];
-            for (IndexCondition condition : indexConditions) {
-                if (condition.isEvaluatable()) {
-                    if (condition.isAlwaysFalse()) {
-                        masks = null;
-                        break;
-                    }
-                    int id = condition.getColumn().getColumnId();
-                    if (id >= 0) {
-                        masks[id] |= condition.getMask(indexConditions);
-                    }
+            item1 = new PlanItem();
+            item1.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder, allColumnsSet));
+            item1.cost = item1.getIndex().getCost(s, null, filters, filter, sortOrder, allColumnsSet);
+        }
+        int len = table.getColumns().length;
+        int[] masks = new int[len];
+        for (IndexCondition condition : indexConditions) {
+            if (condition.isEvaluatable()) {
+                if (condition.isAlwaysFalse()) {
+                    masks = null;
+                    break;
+                }
+                int id = condition.getColumn().getColumnId();
+                if (id >= 0) {
+                    masks[id] |= condition.getMask(indexConditions);
                 }
             }
-            item = table.getBestPlanItem(s, masks, filters, filter, sortOrder);
-            item.setMasks(masks);
-            // The more index conditions, the earlier the table.
-            // This is to ensure joins without indexes run quickly:
-            // x (x.a=10); y (x.b=y.b) - see issue 113
-            item.cost -= item.cost * indexConditions.size() / 100 / (filter + 1);
         }
+        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet);
+        item.setMasks(masks);
+        // The more index conditions, the earlier the table.
+        // This is to ensure joins without indexes run quickly:
+        // x (x.a=10); y (x.b=y.b) - see issue 113
+        item.cost -= item.cost * indexConditions.size() / 100 / (filter + 1);
+
+        if (item1 != null && item1.cost < item.cost) {
+            item = item1;
+        }
+
         if (nestedJoin != null) {
             setEvaluatable(nestedJoin);
-            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter));
+            item.setNestedJoinPlan(nestedJoin.getBestPlanItem(s, filters, filter, allColumnsSet));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getNestedJoinPlan().cost;
@@ -215,7 +235,7 @@ public class TableFilter implements ColumnResolver {
             do {
                 filter++;
             } while (filters[filter] != join);
-            item.setJoinPlan(join.getBestPlanItem(s, filters, filter));
+            item.setJoinPlan(join.getBestPlanItem(s, filters, filter, allColumnsSet));
             // TODO optimizer: calculate cost of a join: should use separate
             // expected row number and lookup cost
             item.cost += item.cost * item.getJoinPlan().cost;
@@ -328,7 +348,7 @@ public class TableFilter implements ColumnResolver {
     public void reset() {
         if (joinBatch != null && joinFilterId == 0) {
             // reset join batch only on top table filter
-            joinBatch.reset();
+            joinBatch.reset(true);
             return;
         }
         if (nestedJoin != null) {
@@ -361,9 +381,11 @@ public class TableFilter implements ColumnResolver {
     /**
      * Attempt to initialize batched join.
      *
-     * @param id join filter id (index of this table filter in join list)
      * @param jb join batch if it is already created
-     * @return join batch if query runs over index which supports batched lookups, {@code null} otherwise
+     * @param filters the table filters
+     * @param filter the filter index (0, 1,...)
+     * @return join batch if query runs over index which supports batched
+     *         lookups, {@code null} otherwise
      */
     public JoinBatch prepareJoinBatch(JoinBatch jb, TableFilter[] filters, int filter) {
         joinBatch = null;
@@ -376,13 +398,15 @@ public class TableFilter implements ColumnResolver {
                 session.popSubQueryInfo();
             }
         }
-        // For globally top table filter we don't need to create lookup batch, because
-        // currently it will not be used (this will be shown in ViewIndex.getPlanSQL()). Probably
-        // later on it will make sense to create it to better support X IN (...) conditions,
-        // but this needs to be implemented separately. If isAlwaysTopTableFilter is false
-        // then we either not a top table filter or top table filter in a sub-query, which
-        // in turn is not top in outer query, thus we need to enable batching here to allow
-        // outer query run batched join against this sub-query.
+        // For globally top table filter we don't need to create lookup batch,
+        // because currently it will not be used (this will be shown in
+        // ViewIndex.getPlanSQL()). Probably later on it will make sense to
+        // create it to better support X IN (...) conditions, but this needs to
+        // be implemented separately. If isAlwaysTopTableFilter is false then we
+        // either not a top table filter or top table filter in a sub-query,
+        // which in turn is not top in outer query, thus we need to enable
+        // batching here to allow outer query run batched join against this
+        // sub-query.
         IndexLookupBatch lookupBatch = null;
         if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
             lookupBatch = index.createLookupBatch(this);
@@ -397,11 +421,13 @@ public class TableFilter implements ColumnResolver {
             joinBatch = jb;
             joinFilterId = filter;
             if (lookupBatch == null && !isAlwaysTopTableFilter(filter)) {
-                // createLookupBatch will be called at most once because jb can be
-                // created only if lookupBatch is already not null from the call above.
+                // createLookupBatch will be called at most once because jb can
+                // be created only if lookupBatch is already not null from the
+                // call above.
                 lookupBatch = index.createLookupBatch(this);
                 if (lookupBatch == null) {
-                    // the index does not support lookup batching, need to fake it because we are not top
+                    // the index does not support lookup batching, need to fake
+                    // it because we are not top
                     lookupBatch = JoinBatch.createFakeIndexLookupBatch(this);
                 }
             }
@@ -425,7 +451,8 @@ public class TableFilter implements ColumnResolver {
      */
     public boolean next() {
         if (joinBatch != null) {
-            // will happen only on topTableFilter since joinBatch.next() does not call join.next()
+            // will happen only on topTableFilter since joinBatch.next() does
+            // not call join.next()
             return joinBatch.next();
         }
         if (state == AFTER_LAST) {
@@ -537,6 +564,13 @@ public class TableFilter implements ColumnResolver {
         // scanCount);
     }
 
+    /**
+     * Whether the current value of the condition is true, or there is no
+     * condition.
+     *
+     * @param condition the condition (null for no condition)
+     * @return true if yes
+     */
     boolean isOk(Expression condition) {
         if (condition == null) {
             return true;

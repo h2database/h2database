@@ -33,6 +33,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 import org.h2.api.ErrorCode;
@@ -64,6 +65,7 @@ public class TestTools extends TestBase {
 
     private static String lastUrl;
     private Server server;
+    private List<Server> remainingServers = new ArrayList<Server>(3);
 
     /**
      * Run just this test.
@@ -171,7 +173,6 @@ public class TestTools extends TestBase {
             assertThrows(ErrorCode.EXCEPTION_OPENING_PORT_2, c).runTool("-web",
                     "-webPort", "9002", "-tcp", "-tcpPort", "9002");
             c.runTool("-web", "-webPort", "9002");
-            c.shutdown();
 
         } finally {
             if (old != null) {
@@ -179,6 +180,7 @@ public class TestTools extends TestBase {
             } else {
                 System.clearProperty(SysProperties.H2_BROWSER);
             }
+            c.shutdown();
         }
     }
 
@@ -486,16 +488,19 @@ public class TestTools extends TestBase {
                 }
             }
         };
-        task.execute();
-        Thread.sleep(100);
         try {
-            getConnection("jdbc:h2:tcp://localhost:9001/test");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
+            task.execute();
+            Thread.sleep(100);
+            try {
+                getConnection("jdbc:h2:tcp://localhost:9001/test");
+                fail();
+            } catch (SQLException e) {
+                assertEquals(ErrorCode.CONNECTION_BROKEN_1, e.getErrorCode());
+            }
+        } finally {
+            serverSocket.close();
+            task.getException();
         }
-        serverSocket.close();
-        task.getException();
     }
 
     private void testDeleteFiles() throws SQLException {
@@ -527,73 +532,84 @@ public class TestTools extends TestBase {
         String result;
         Connection conn;
 
-        result = runServer(0, new String[]{"-?"});
-        assertTrue(result.contains("Starts the H2 Console"));
-        assertTrue(result.indexOf("Unknown option") < 0);
+        try {
+            result = runServer(0, new String[]{"-?"});
+            assertTrue(result.contains("Starts the H2 Console"));
+            assertTrue(result.indexOf("Unknown option") < 0);
 
-        result = runServer(1, new String[]{"-xy"});
-        assertTrue(result.contains("Starts the H2 Console"));
-        assertTrue(result.contains("Feature not supported"));
-        result = runServer(0, new String[]{"-tcp",
-                "-tcpPort", "9001", "-tcpPassword", "abc"});
-        assertTrue(result.contains("tcp://"));
-        assertTrue(result.contains(":9001"));
-        assertTrue(result.contains("only local"));
-        assertTrue(result.indexOf("Starts the H2 Console") < 0);
-        conn = getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
-        conn.close();
-        result = runServer(0, new String[]{"-tcpShutdown",
-                "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
-        assertTrue(result.contains("Shutting down"));
+            result = runServer(1, new String[]{"-xy"});
+            assertTrue(result.contains("Starts the H2 Console"));
+            assertTrue(result.contains("Feature not supported"));
+            result = runServer(0, new String[]{"-tcp",
+                    "-tcpPort", "9001", "-tcpPassword", "abc"});
+            assertTrue(result.contains("tcp://"));
+            assertTrue(result.contains(":9001"));
+            assertTrue(result.contains("only local"));
+            assertTrue(result.indexOf("Starts the H2 Console") < 0);
+            conn = getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
+            conn.close();
+            result = runServer(0, new String[]{"-tcpShutdown",
+                    "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
+            assertTrue(result.contains("Shutting down"));
+        } finally {
+            shutdownServers();
+        }
     }
 
     private void testSSL() throws SQLException {
         String result;
         Connection conn;
 
-        result = runServer(0, new String[]{"-tcp",
-                "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
-        assertTrue(result.contains("ssl://"));
-        assertTrue(result.contains(":9001"));
-        assertTrue(result.contains("others can"));
-        assertTrue(result.indexOf("Starts the H2 Console") < 0);
-        conn = getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
-        conn.close();
+        try {
+            result = runServer(0, new String[]{"-tcp",
+                    "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
+            assertTrue(result.contains("ssl://"));
+            assertTrue(result.contains(":9001"));
+            assertTrue(result.contains("others can"));
+            assertTrue(result.indexOf("Starts the H2 Console") < 0);
+            conn = getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
+            conn.close();
 
-        result = runServer(0, new String[]{"-tcpShutdown",
-                "ssl://localhost:9001", "-tcpPassword", "abcdef"});
-        assertTrue(result.contains("Shutting down"));
-        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
-                getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
+            result = runServer(0, new String[]{"-tcpShutdown",
+                    "ssl://localhost:9001", "-tcpPassword", "abcdef"});
+            assertTrue(result.contains("Shutting down"));
+            assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+            getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
 
-        result = runServer(0, new String[]{
-                        "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
-                        "-pg", "-pgAllowOthers", "-pgPort", "9003",
-                        "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"});
-        Server stop = server;
-        assertTrue(result.contains("https://"));
-        assertTrue(result.contains(":9002"));
-        assertTrue(result.contains("pg://"));
-        assertTrue(result.contains(":9003"));
-        assertTrue(result.contains("others can"));
-        assertTrue(result.indexOf("only local") < 0);
-        assertTrue(result.contains("tcp://"));
-        assertTrue(result.contains(":9006"));
+            result = runServer(0, new String[]{
+                    "-web", "-webPort", "9002", "-webAllowOthers", "-webSSL",
+                    "-pg", "-pgAllowOthers", "-pgPort", "9003",
+                    "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"});
+            Server stop = server;
+            assertTrue(result.contains("https://"));
+            assertTrue(result.contains(":9002"));
+            assertTrue(result.contains("pg://"));
+            assertTrue(result.contains(":9003"));
+            assertTrue(result.contains("others can"));
+            assertTrue(result.indexOf("only local") < 0);
+            assertTrue(result.contains("tcp://"));
+            assertTrue(result.contains(":9006"));
 
-        conn = getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
-        conn.close();
+            conn = getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
+            conn.close();
 
-        result = runServer(0, new String[]{"-tcpShutdown",
-                "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
-        assertTrue(result.contains("Shutting down"));
-        stop.shutdown();
-        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
-                getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
+            result = runServer(0, new String[]{"-tcpShutdown",
+                    "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
+            assertTrue(result.contains("Shutting down"));
+            stop.shutdown();
+            assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+            getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
+        } finally {
+            shutdownServers();
+        }
     }
 
     private String runServer(int exitCode, String... args) {
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(buff);
+        if (server != null) {
+            remainingServers.add(server);
+        }
         server = new Server();
         server.setOut(ps);
         int result = 0;
@@ -607,6 +623,18 @@ public class TestTools extends TestBase {
         ps.flush();
         String s = new String(buff.toByteArray());
         return s;
+    }
+
+    private void shutdownServers() {
+        for (Server remainingServer : remainingServers) {
+            if (remainingServer != null) {
+                remainingServer.shutdown();
+            }
+        }
+        remainingServers.clear();
+        if (server != null) {
+            server.shutdown();
+        }
     }
 
     private void testConvertTraceFile() throws Exception {
@@ -1018,71 +1046,77 @@ public class TestTools extends TestBase {
 
     private void testServer() throws SQLException {
         Connection conn;
-        deleteDb("test");
-        Server tcpServer = Server.createTcpServer(
-                        "-baseDir", getBaseDir(),
-                        "-tcpPort", "9192",
-                        "-tcpAllowOthers").start();
-        conn = getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-        conn.close();
-        // must not be able to use a different base dir
-        new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
-            @Override
-            public void test() throws SQLException {
-                getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
-        }};
-        new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
-            @Override
-            public void test() throws SQLException {
-                getConnection("jdbc:h2:tcp://localhost:9192/../test2/test", "sa", "");
-        }};
-        tcpServer.stop();
-        Server.createTcpServer(
-                        "-ifExists",
-                        "-tcpPassword", "abc",
-                        "-baseDir", getBaseDir(),
-                        "-tcpPort", "9192").start();
-        // must not be able to create new db
-        new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
-            @Override
-            public void test() throws SQLException {
-                getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
-        }};
-        new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
-            @Override
-            public void test() throws SQLException {
-                getConnection("jdbc:h2:tcp://localhost:9192/test2;ifexists=false", "sa", "");
-        }};
-        conn = getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-        conn.close();
-        new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {
-            @Override
-            public void test() throws SQLException {
-                Server.shutdownTcpServer("tcp://localhost:9192", "", true, false);
-        }};
-        conn = getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-        // conn.close();
-        Server.shutdownTcpServer("tcp://localhost:9192", "abc", true, false);
-        // check that the database is closed
-        deleteDb("test");
-        // server must have been closed
-        assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
-                getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
-        JdbcUtils.closeSilently(conn);
-        // Test filesystem prefix and escape from baseDir
-        deleteDb("testSplit");
-        server = Server.createTcpServer(
-                        "-baseDir", getBaseDir(),
-                        "-tcpPort", "9192",
-                        "-tcpAllowOthers").start();
-        conn = getConnection("jdbc:h2:tcp://localhost:9192/split:testSplit", "sa", "");
-        conn.close();
+        try {
+            deleteDb("test");
+            Server tcpServer = Server.createTcpServer(
+                            "-baseDir", getBaseDir(),
+                            "-tcpPort", "9192",
+                            "-tcpAllowOthers").start();
+            remainingServers.add(tcpServer);
+            conn = getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+            conn.close();
+            // must not be able to use a different base dir
+            new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
+                @Override
+                public void test() throws SQLException {
+                    getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
+            }};
+            new AssertThrows(ErrorCode.IO_EXCEPTION_1) {
+                @Override
+                public void test() throws SQLException {
+                    getConnection("jdbc:h2:tcp://localhost:9192/../test2/test", "sa", "");
+            }};
+            tcpServer.stop();
+            Server tcpServerWithPassword = Server.createTcpServer(
+                            "-ifExists",
+                            "-tcpPassword", "abc",
+                            "-baseDir", getBaseDir(),
+                            "-tcpPort", "9192").start();
+            remainingServers.add(tcpServerWithPassword);
+            // must not be able to create new db
+            new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
+                @Override
+                public void test() throws SQLException {
+                    getConnection("jdbc:h2:tcp://localhost:9192/test2", "sa", "");
+            }};
+            new AssertThrows(ErrorCode.DATABASE_NOT_FOUND_1) {
+                @Override
+                public void test() throws SQLException {
+                    getConnection("jdbc:h2:tcp://localhost:9192/test2;ifexists=false", "sa", "");
+            }};
+            conn = getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+            conn.close();
+            new AssertThrows(ErrorCode.WRONG_USER_OR_PASSWORD) {
+                @Override
+                public void test() throws SQLException {
+                    Server.shutdownTcpServer("tcp://localhost:9192", "", true, false);
+            }};
+            conn = getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+            // conn.close();
+            Server.shutdownTcpServer("tcp://localhost:9192", "abc", true, false);
+            // check that the database is closed
+            deleteDb("test");
+            // server must have been closed
+            assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
+                    getConnection("jdbc:h2:tcp://localhost:9192/test", "sa", "");
+            JdbcUtils.closeSilently(conn);
+            // Test filesystem prefix and escape from baseDir
+            deleteDb("testSplit");
+            server = Server.createTcpServer(
+                            "-baseDir", getBaseDir(),
+                            "-tcpPort", "9192",
+                            "-tcpAllowOthers").start();
+            conn = getConnection("jdbc:h2:tcp://localhost:9192/split:testSplit", "sa", "");
+            conn.close();
 
-        assertThrows(ErrorCode.IO_EXCEPTION_1, this).
-                getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
+            assertThrows(ErrorCode.IO_EXCEPTION_1, this).
+                    getConnection("jdbc:h2:tcp://localhost:9192/../test", "sa", "");
 
-        server.stop();
-        deleteDb("testSplit");
+            server.stop();
+            deleteDb("testSplit");
+        } finally {
+            shutdownServers();
+        }
     }
 
     /**

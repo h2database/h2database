@@ -21,6 +21,43 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #235: Anonymous SSL connections fail in many situations
+</li>
+<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running  
+</li>
+<li>Experimental support for datatype TIMESTAMP WITH TIMEZONE
+</li>
+<li>Add support for ALTER TABLE ... RENAME CONSTRAINT .. TO ...
+</li>
+<li>Add support for PostgreSQL ALTER TABLE ... RENAME COLUMN .. TO ...
+</li>
+<li>Improve performance of cleaning up temp tables - patch from Eric Faulhaber.
+</li>
+<li>Fix bug where table locks were not dropped when the connection closed
+</li>
+<li>Fix extra CPU usage caused by query planner enhancement in 1.4.191
+</li>
+<li>improve performance of queries that use LIKE 'foo%' - 10x in the case of one of my queries
+</li>
+<li>Issue #231: Possible infinite loop when initializing the ObjectDataType class
+    when concurrently writing into MVStore.
+</li>
+</ul>
+
+<h2>Version 1.4.191 Beta (2016-01-21)</h2>
+<ul>
+<li>Issue #229: DATEDIFF does not work for 'WEEK'.
+</li>
+<li>Issue #156: Add support for getGeneratedKeys() when executing commands via PreparedStatement#executeBatch.
+</li>
+<li>Issue #195: The new Maven uses a .cmd file instead of a .bat file.
+</li>
+<li>Issue #212: EXPLAIN PLAN for UPDATE statement did not display LIMIT expression.
+</li>
+<li>Support OFFSET without LIMIT in SELECT.
+</li>
+<li>Improve error message for METHOD_NOT_FOUND_1/90087.
+</li>
 <li>CLOB and BLOB objects of removed rows were sometimes kept in the database file.
 </li>
 <li>Server mode: executing "shutdown" left a thread on the server.
@@ -31,7 +68,7 @@ Change Log
 </li>
 <li>Issue #186: The "script" command did not include sequences of temporary tables.
 </li>
-<li>Issue #115: to_char fails with pattern FM0D099
+<li>Issue #115: to_char fails with pattern FM0D099.
 </li>
 </ul>
 

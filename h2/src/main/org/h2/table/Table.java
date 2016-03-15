@@ -240,8 +240,19 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract Index getScanIndex(Session session);
 
+    /**
+     * Get the scan index for this table.
+     *
+     * @param session the session
+     * @param masks the search mask
+     * @param filters the table filters
+     * @param filter the filter index
+     * @param sortOrder the sort order
+     * @return the scan index
+     */
     public Index getScanIndex(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         return getScanIndex(session);
     }
 
@@ -629,7 +640,8 @@ public abstract class Table extends SchemaObjectBase {
     Row getNullRow() {
         Row row = nullRow;
         if (row == null) {
-            // Here can be concurrently produced more than one row, but it must be ok.
+            // Here can be concurrently produced more than one row, but it must
+            // be ok.
             Value[] values = new Value[columns.length];
             Arrays.fill(values, ValueNull.INSTANCE);
             nullRow = row = database.createRow(values, 1);
@@ -693,15 +705,25 @@ public abstract class Table extends SchemaObjectBase {
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         PlanItem item = new PlanItem();
         item.setIndex(getScanIndex(session));
-        item.cost = item.getIndex().getCost(session, null, filters, filter, null);
+        item.cost = item.getIndex().getCost(session, null, filters, filter, null, allColumnsSet);
+        Trace t = session.getTrace();
+        if (t.isDebugEnabled()) {
+            t.debug("Table      :     potential plan item cost {0} index {1}",
+                    item.cost, item.getIndex().getPlanSQL());
+        }
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                double cost = index.getCost(session, masks, filters, filter, sortOrder);
+                double cost = index.getCost(session, masks, filters, filter, sortOrder, allColumnsSet);
+                if (t.isDebugEnabled()) {
+                    t.debug("Table      :     potential plan item cost {0} index {1}",
+                            cost, index.getPlanSQL());
+                }
                 if (cost < item.cost) {
                     item.cost = cost;
                     item.setIndex(index);

@@ -5,6 +5,7 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import org.h2.api.ErrorCode;
@@ -26,6 +27,7 @@ import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
@@ -237,16 +239,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(),
-                filters, filter, sortOrder);
-    }
-
-    @Override
-    protected long getCostRangeIndex(int[] masks, long rowCount,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return SpatialTreeIndex.getCostRangeIndex(masks, rowCount, columns);
+    public double getCost(Session session, int[] masks, TableFilter[] filters,
+            int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
+        return SpatialTreeIndex.getCostRangeIndex(masks,
+                table.getRowCountApproximation(), columns);
     }
 
     @Override

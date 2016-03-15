@@ -484,7 +484,8 @@ public class Doclet {
                         && method.parameters().length == 0
                         && returnType != null
                         && returnType.toString().equals("boolean");
-                if (!setterOrGetter) {
+                boolean enumValueMethod = name.equals("values") || name.equals("valueOf");
+                if (!setterOrGetter && !enumValueMethod) {
                     addError("Undocumented method " + " ("
                             + getLink(clazz, method.position().line()) + ") "
                             + clazz + "." + name + " " + raw);

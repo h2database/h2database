@@ -18,6 +18,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -36,6 +41,7 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+
 /**
  * This class is a complete pure Java build tool. It allows to build this
  * project without any external dependencies except a JDK.
@@ -43,6 +49,16 @@ import java.util.zip.ZipOutputStream;
  * no XML, a bit faster.
  */
 public class BuildBase {
+
+    /**
+     * Stores descriptions for methods which can be invoked as build targets.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @Documented
+    public static @interface Description {
+      String summary() default "";
+    }
 
     /**
      * A list of strings.
@@ -157,6 +173,18 @@ public class BuildBase {
      * If output should be disabled.
      */
     protected boolean quiet;
+
+    /**
+     * The full path to the executable of the current JRE.
+     */
+    protected String javaExecutable = System.getProperty("java.home") +
+            File.separator + "bin" + File.separator + "java";
+
+    /**
+     * The full path to the tools jar of the current JDK.
+     */
+    protected String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
+            File.separator + "lib" + File.separator + "tools.jar";
 
     /**
      * This method should be called by the main method.
@@ -283,11 +311,17 @@ public class BuildBase {
             }
         });
         sysOut.println("Targets:");
+        String description;
         for (Method m : methods) {
             int mod = m.getModifiers();
             if (!Modifier.isStatic(mod) && Modifier.isPublic(mod)
                     && m.getParameterTypes().length == 0) {
-                sysOut.println(m.getName());
+                if (m.isAnnotationPresent(Description.class)) {
+                    description = String.format("%1$-20s %2$s", m.getName(), m.getAnnotation(Description.class).summary());
+                } else {
+                    description = m.getName();
+                }
+                sysOut.println(description);
             }
         }
         sysOut.println();
@@ -307,9 +341,27 @@ public class BuildBase {
      */
     protected int execScript(String script, StringList args) {
         if (isWindows()) {
-            script = script + ".bat";
+            // Under windows, we use the "cmd" command interpreter since it will
+            // search the path for us without us having to hard-code an
+            // extension for the script we want. (Sometimes we don't know if the
+            // extension will be .bat or .cmd)
+            StringList newArgs = new StringList();
+            newArgs.add("/C");
+            newArgs.add(script);
+            newArgs.addAll(args);
+            return exec("cmd", newArgs);
         }
         return exec(script, args);
+    }
+
+    /**
+     * Execute java in a separate process, but using the java executable of the current JRE.
+     *
+     * @param args the command line parameters for the java command
+     * @return the exit value
+     */
+    protected int execJava(StringList args) {
+        return exec(javaExecutable, args);
     }
 
     /**

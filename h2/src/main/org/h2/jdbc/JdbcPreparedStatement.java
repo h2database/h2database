@@ -25,13 +25,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
@@ -61,6 +61,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     protected CommandInterface command;
     private final String sqlStatement;
     private ArrayList<Value[]> batchParameters;
+    private ArrayList<Object> batchIdentities;
     private HashMap<String, Integer> cachedColumnLabelMap;
 
     JdbcPreparedStatement(JdbcConnection conn, String sql, int id,
@@ -97,6 +98,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCodeAssign("ResultSet", TraceObject.RESULT_SET, id, "executeQuery()");
             }
+            batchIdentities = null;
             synchronized (session) {
                 checkClosed();
                 closeOldResultSet();
@@ -139,6 +141,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         try {
             debugCodeCall("executeUpdate");
             checkClosedForWrite();
+            batchIdentities = null;
             try {
                 return executeUpdateInternal();
             } finally {
@@ -724,6 +727,7 @@ public class JdbcPreparedStatement extends JdbcStatement implements
      *
      * @deprecated since JDBC 2.0, use setCharacterStream
      */
+    @Deprecated
     @Override
     public void setUnicodeStream(int parameterIndex, InputStream x, int length)
             throws SQLException {
@@ -1158,12 +1162,14 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     @Override
     public int[] executeBatch() throws SQLException {
         try {
+            int id = getNextId(TraceObject.PREPARED_STATEMENT);
             debugCodeCall("executeBatch");
             if (batchParameters == null) {
                 // TODO batch: check what other database do if no parameters are
                 // set
                 batchParameters = New.arrayList();
             }
+            batchIdentities = New.arrayList();
             int size = batchParameters.size();
             int[] result = new int[size];
             boolean error = false;
@@ -1181,6 +1187,10 @@ public class JdbcPreparedStatement extends JdbcStatement implements
                     }
                     try {
                         result[i] = executeUpdateInternal();
+                        ResultSet rs = conn.getGeneratedKeys(this, id);
+                        while (rs.next()) {
+                            batchIdentities.add(rs.getObject(1));
+                        }
                     } catch (Exception re) {
                         SQLException e = logAndConvert(re);
                         if (next == null) {
@@ -1205,6 +1215,20 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    @Override
+    public ResultSet getGeneratedKeys() throws SQLException {
+        if (batchIdentities != null && !batchIdentities.isEmpty()) {
+            SimpleResultSet rs = new SimpleResultSet();
+            rs.addColumn("identity", java.sql.Types.INTEGER,
+                    10, 0);
+            for (Object o : batchIdentities) {
+                rs.addRow(o);
+            }
+            return rs;
+        }
+        return super.getGeneratedKeys();
     }
 
     /**

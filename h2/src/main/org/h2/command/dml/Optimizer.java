@@ -54,16 +54,6 @@ class Optimizer {
     }
 
     /**
-     * Whether join reordering is enabled (it can be disabled by hint).
-     *
-     * @return {@code true} if yes
-     */
-    private static boolean isJoinReorderingEnabled() {
-        OptimizerHints hints = OptimizerHints.get();
-        return hints == null || hints.getJoinReorderEnabled();
-    }
-
-    /**
      * How many filter to calculate using brute force. The remaining filters are
      * selected using a greedy algorithm which has a runtime of (1 + 2 + ... +
      * n) = (n * (n-1) / 2) for n filters. The brute force algorithm has a
@@ -85,7 +75,7 @@ class Optimizer {
 
     private void calculateBestPlan() {
         cost = -1;
-        if (filters.length == 1 || !isJoinReorderingEnabled()) {
+        if (filters.length == 1 || session.isForceJoinOrder()) {
             testPlan(filters);
         } else {
             start = System.currentTimeMillis();
@@ -242,7 +232,8 @@ class Optimizer {
     /**
      * Calculate the best query plan to use.
      *
-     * @param parse If we do not need to really get the best plan because it is view a parsing stage.
+     * @param parse If we do not need to really get the best plan because it is
+     *            a view parsing stage.
      */
     void optimize(boolean parse) {
         if (parse) {

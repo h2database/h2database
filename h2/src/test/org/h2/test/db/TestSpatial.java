@@ -864,7 +864,7 @@ public class TestSpatial extends TestBase {
             stat.execute("create spatial index spatial on test(the_geom)");
             ResultSet rs = stat.executeQuery("explain select * from test where _ROWID_ = 5");
             assertTrue(rs.next());
-            assertContains(rs.getString(1), "tableScan");
+            assertContains(rs.getString(1), "/* PUBLIC.SPATIAL: _ROWID_ = 5 */");
         } finally {
             // Close the database
             conn.close();

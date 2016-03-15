@@ -23,7 +23,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
@@ -79,6 +78,7 @@ public class TestPreparedStatement extends TestBase {
         testSubquery(conn);
         testObject(conn);
         testIdentity(conn);
+        testBatchGeneratedKeys(conn);
         testDataTypes(conn);
         testGetMoreResults(conn);
         testBlob(conn);
@@ -504,11 +504,10 @@ public class TestPreparedStatement extends TestBase {
 
     private void testScopedGeneratedKey(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        Trigger t = new SequenceTrigger();
         stat.execute("create table test(id identity)");
         stat.execute("create sequence seq start with 1000");
         stat.execute("create trigger test_ins after insert on test call \"" +
-                t.getClass().getName() + "\"");
+                SequenceTrigger.class.getName() + "\"");
         stat.execute("insert into test values(null)");
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
@@ -1049,6 +1048,29 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");
+        stat.execute("DROP SEQUENCE SEQ");
+    }
+
+    private void testBatchGeneratedKeys(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SEQUENCE SEQ");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
+        prep.addBatch();
+        prep.addBatch();
+        prep.addBatch();
+        prep.executeBatch();
+        ResultSet keys = prep.getGeneratedKeys();
+        keys.next();
+        assertEquals(1, keys.getLong(1));
+        keys.next();
+        assertEquals(2, keys.getLong(1));
+        keys.next();
+        assertEquals(3, keys.getLong(1));
+        assertFalse(keys.next());
+        stat.execute("DROP TABLE TEST");
+        stat.execute("DROP SEQUENCE SEQ");
     }
 
     private int getLength() {

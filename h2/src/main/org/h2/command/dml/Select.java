@@ -639,18 +639,25 @@ public class Select extends Query {
         topTableFilter.lock(session, exclusive, exclusive);
         ResultTarget to = result != null ? result : target;
         if (limitRows != 0) {
-            if (isQuickAggregateQuery) {
-                queryQuick(columnCount, to);
-            } else if (isGroupQuery) {
-                if (isGroupSortedQuery) {
-                    queryGroupSorted(columnCount, to);
+            try {
+                if (isQuickAggregateQuery) {
+                    queryQuick(columnCount, to);
+                } else if (isGroupQuery) {
+                    if (isGroupSortedQuery) {
+                        queryGroupSorted(columnCount, to);
+                    } else {
+                        queryGroup(columnCount, result);
+                    }
+                } else if (isDistinctQuery) {
+                    queryDistinct(to, limitRows);
                 } else {
-                    queryGroup(columnCount, result);
+                    queryFlat(columnCount, to, limitRows);
                 }
-            } else if (isDistinctQuery) {
-                queryDistinct(to, limitRows);
-            } else {
-                queryFlat(columnCount, to, limitRows);
+            } finally {
+                JoinBatch jb = getJoinBatch();
+                if (jb != null) {
+                    jb.reset(false);
+                }
             }
         }
         if (offsetExpr != null) {
@@ -956,7 +963,7 @@ public class Select extends Query {
         TableFilter f = getTopTableFilter();
         do {
             if (f.getNestedJoin() != null) {
-                // we do not support batching with nested joins 
+                // we do not support batching with nested joins
                 return;
             }
             list.add(f);

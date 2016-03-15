@@ -91,6 +91,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance();
             CACHED_CALENDAR.set(c);
         }
+        c.clear();
         return c;
     }
 
@@ -106,6 +107,7 @@ public class DateTimeUtils {
             c = Calendar.getInstance(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
+        c.clear();
         return c;
     }
 
@@ -423,7 +425,6 @@ public class DateTimeUtils {
         } else {
             c = getCalendar(tz);
         }
-        c.clear();
         c.setLenient(lenient);
         setCalendarFields(c, year, month, day, hour, minute, second, millis);
         return c.getTime().getTime();
@@ -490,7 +491,8 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + getCalendar().get(Calendar.ZONE_OFFSET);
+        Calendar calendar = getCalendar();
+        return d.getTime() + calendar.get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -503,7 +505,6 @@ public class DateTimeUtils {
     public static long getTimeUTCWithoutDst(long millis) {
         return millis - getCalendar().get(Calendar.ZONE_OFFSET);
     }
-
     /**
      * Return the day of week according to the ISO 8601 specification. Week
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
@@ -772,7 +773,6 @@ public class DateTimeUtils {
      */
     public static long dateValueFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return dateValueFromCalendar(cal);
     }
@@ -800,7 +800,6 @@ public class DateTimeUtils {
      */
     public static long nanosFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return nanosFromCalendar(cal);
     }
@@ -904,6 +903,27 @@ public class DateTimeUtils {
             m -= 12;
         }
         return dateValue(y, m + 3, (int) d);
+    }
+
+    /**
+     * Adds the number of months to the date. If the resulting month's number of
+     * days is less than the original's day-of-month, the resulting
+     * day-of-months gets adjusted accordingly:
+     * <br>
+     * 30.04.2007 - 2 months = 28.02.2007
+     *
+     * @param refDate the original date
+     * @param nrOfMonthsToAdd the number of months to add
+     * @return the new timestamp
+     */
+    public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(refDate);
+        calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
+
+        Timestamp resultDate = new Timestamp(calendar.getTimeInMillis());
+        resultDate.setNanos(refDate.getNanos());
+        return resultDate;
     }
 
 }

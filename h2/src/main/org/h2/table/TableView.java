@@ -121,7 +121,8 @@ public class TableView extends Table {
      * @return the exception if re-compiling this or any dependent view failed
      *         (only when force is disabled)
      */
-    public synchronized DbException recompile(Session session, boolean force, boolean clearIndexCache) {
+    public synchronized DbException recompile(Session session, boolean force,
+            boolean clearIndexCache) {
         try {
             compileViewQuery(session, querySQL);
         } catch (DbException e) {
@@ -234,16 +235,17 @@ public class TableView extends Table {
 
     @Override
     public PlanItem getBestPlanItem(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        PlanItem item = new PlanItem();
-        item.cost = index.getCost(session, masks, filters, filter, sortOrder);
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         final CacheKey cacheKey = new CacheKey(masks, this);
         Map<Object, ViewIndex> indexCache = session.getViewIndexCache(topQuery != null);
         ViewIndex i = indexCache.get(cacheKey);
-        if (i == null) {
+        if (i == null || i.isExpired()) {
             i = new ViewIndex(this, index, session, masks, filters, filter, sortOrder);
             indexCache.put(cacheKey, i);
         }
+        PlanItem item = new PlanItem();
+        item.cost = i.getCost(session, masks, filters, filter, sortOrder, allColumnsSet);
         item.setIndex(i);
         return item;
     }
@@ -413,6 +415,11 @@ public class TableView extends Table {
         invalidate();
     }
 
+    /**
+     * Clear the cached indexes for all sessions.
+     *
+     * @param database the database
+     */
     public static void clearIndexCaches(Database database) {
         for (Session s : database.getSessions(true)) {
             s.clearViewIndexCache();
@@ -433,18 +440,19 @@ public class TableView extends Table {
 
     @Override
     public Index getScanIndex(Session session) {
-        return getBestPlanItem(session, null, null, -1, null).getIndex();
+        return getBestPlanItem(session, null, null, -1, null, null).getIndex();
     }
 
     @Override
     public Index getScanIndex(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         if (createException != null) {
             String msg = createException.getMessage();
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2,
                     createException, getSQL(), msg);
         }
-        PlanItem item = getBestPlanItem(session, masks, filters, filter, sortOrder);
+        PlanItem item = getBestPlanItem(session, masks, filters, filter, sortOrder, allColumnsSet);
         return item.getIndex();
     }
 

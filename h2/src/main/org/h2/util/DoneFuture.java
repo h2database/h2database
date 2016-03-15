@@ -12,24 +12,25 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Future which is already done.
- * 
+ *
  * @param <T> Result value.
  * @author Sergi Vladykin
  */
 public class DoneFuture<T> implements Future<T> {
     final T x;
-    
+
     public DoneFuture(T x) {
         this.x = x;
     }
-    
+
     @Override
     public T get() throws InterruptedException, ExecutionException {
         return x;
     }
 
     @Override
-    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public T get(long timeout, TimeUnit unit) throws InterruptedException,
+            ExecutionException, TimeoutException {
         return x;
     }
 
@@ -37,17 +38,17 @@ public class DoneFuture<T> implements Future<T> {
     public boolean isDone() {
         return true;
     }
-    
+
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         return false;
     }
-    
+
     @Override
     public boolean isCancelled() {
         return false;
     }
-    
+
     @Override
     public String toString() {
         return "DoneFuture->" + x;

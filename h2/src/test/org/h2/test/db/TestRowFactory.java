@@ -33,7 +33,7 @@ public class TestRowFactory extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("rowFactory");
-        Connection conn = getConnection("rowFactory;ROW_FACTORY=\"" + 
+        Connection conn = getConnection("rowFactory;ROW_FACTORY=\"" +
                 MyTestRowFactory.class.getName() + '"');
         Statement stat = conn.createStatement();
         stat.execute("create table t1(id int, name varchar)");
@@ -49,7 +49,10 @@ public class TestRowFactory extends TestBase {
      */
     public static class MyTestRowFactory extends RowFactory {
 
-        private static final AtomicInteger COUNTER = new AtomicInteger();
+        /**
+         * A simple counter.
+         */
+        static final AtomicInteger COUNTER = new AtomicInteger();
 
         @Override
         public Row createRow(Value[] data, int memory) {

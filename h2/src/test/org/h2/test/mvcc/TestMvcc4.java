@@ -71,6 +71,7 @@ public class TestMvcc4 extends TestBase {
         final Thread mainThread = Thread.currentThread();
         final CountDownLatch executedUpdate = new CountDownLatch(1);
         new Thread() {
+            @Override
             public void run() {
                 try {
                     Connection c2 = getConnection("mvcc4");
@@ -96,6 +97,7 @@ public class TestMvcc4 extends TestBase {
         try {
             executedUpdate.await();
         } catch (InterruptedException e) {
+            // ignore
         }
 
         // Execute an update. This should initially fail, and enter the waiting
@@ -120,7 +122,13 @@ public class TestMvcc4 extends TestBase {
         setup.close();
     }
 
-    private static void waitForThreadToBlockOnDB(Thread t) {
+    /**
+     * Wait for the given thread to block on synchronizing on the database
+     * object.
+     *
+     * @param t the thread
+     */
+    static void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
             // TODO must not use getAllStackTraces, as the method names are
             // implementation details
@@ -135,6 +143,7 @@ public class TestMvcc4 extends TestBase {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e1) {
+                // ignore
             }
         }
     }

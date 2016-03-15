@@ -23,7 +23,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -56,6 +55,8 @@ import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -544,6 +545,19 @@ public class Data {
             }
             break;
         }
+        case Value.TIMESTAMP_UTC: {
+            ValueTimestampUtc ts = (ValueTimestampUtc) v;
+            writeByte((byte) type);
+            writeVarLong(ts.getUtcDateTimeNanos());
+            break;
+        }
+        case Value.TIMESTAMP_TZ: {
+            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
+            writeByte((byte) type);
+            writeVarLong(ts.getDateValue());
+            writeVarLong(ts.getTimeNanos());
+            writeVarInt(ts.getTimeZoneOffsetMins());
+        }
         case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {
             writeByte((byte) type);
@@ -778,6 +792,15 @@ public class Data {
             return ValueTimestamp.fromMillisNanos(
                     DateTimeUtils.getTimeUTCWithoutDst(readVarLong()),
                     readVarInt());
+        }
+        case Value.TIMESTAMP_UTC: {
+            return ValueTimestampUtc.fromNanos(readVarLong());
+        }
+        case Value.TIMESTAMP_TZ: {
+            long dateValue = readVarLong();
+            long nanos = readVarLong();
+            short tz = (short)readVarInt();
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
         case Value.BYTES: {
             int len = readVarInt();
@@ -1027,6 +1050,18 @@ public class Data {
             Timestamp ts = v.getTimestamp();
             return 1 + getVarLongLen(DateTimeUtils.getTimeLocalWithoutDst(ts)) +
                     getVarIntLen(ts.getNanos() % 1000000);
+        }
+        case Value.TIMESTAMP_UTC: {
+            ValueTimestampUtc ts = (ValueTimestampUtc) v;
+            return 1 + getVarLongLen(ts.getUtcDateTimeNanos());
+        }
+        case Value.TIMESTAMP_TZ: {
+            ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
+            long dateValue = ts.getDateValue();
+            long nanos = ts.getTimeNanos();
+            short tz = ts.getTimeZoneOffsetMins();
+            return 1 + getVarLongLen(dateValue) + getVarLongLen(nanos) +
+                    getVarIntLen(tz);
         }
         case Value.GEOMETRY:
         case Value.JAVA_OBJECT: {

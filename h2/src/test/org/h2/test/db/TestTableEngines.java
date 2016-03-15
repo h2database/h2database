@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -27,8 +28,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.TableEngine;
 import org.h2.command.ddl.CreateTableData;
-import org.h2.command.dml.OptimizerHints;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.index.BaseIndex;
@@ -42,6 +41,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
@@ -73,6 +73,7 @@ public class TestTableEngines extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testQueryExpressionFlag();
         testSubQueryInfo();
         testEarlyFilter();
         testEngineParams();
@@ -185,7 +186,8 @@ public class TestTableEngines extends TestBase {
         Connection conn = getConnection("tableEngine");
         Statement stat = conn.createStatement();
 
-        stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT) ENGINE \"" +
+        stat.executeUpdate("CREATE TABLE T(A INT, B VARCHAR, C BIGINT, " +
+                "D BIGINT DEFAULT 0) ENGINE \"" +
                 TreeSetIndexTableEngine.class.getName() + "\"");
 
         stat.executeUpdate("CREATE INDEX IDX_C_B_A ON T(C, B, A)");
@@ -200,7 +202,7 @@ public class TestTableEngines extends TestBase {
         dataSet.add(Arrays.<Object>asList(0, "1", null));
         dataSet.add(Arrays.<Object>asList(2, null, 0L));
 
-        PreparedStatement prep = conn.prepareStatement("INSERT INTO T VALUES(?,?,?)");
+        PreparedStatement prep = conn.prepareStatement("INSERT INTO T(A,B,C) VALUES(?,?,?)");
         for (List<Object> row : dataSet) {
             for (int i = 0; i < row.size(); i++) {
                 prep.setObject(i + 1, row.get(i));
@@ -347,6 +349,22 @@ public class TestTableEngines extends TestBase {
         deleteDb("tableEngine");
     }
 
+    private void testQueryExpressionFlag() throws SQLException {
+        deleteDb("testQueryExpressionFlag");
+        Connection conn = getConnection("testQueryExpressionFlag");
+        Statement stat = conn.createStatement();
+        stat.execute("create table QUERY_EXPR_TEST(id int) ENGINE \"" +
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.execute("create table QUERY_EXPR_TEST_NO(id int) ENGINE \"" +
+                TreeSetIndexTableEngine.class.getName() + "\"");
+        stat.executeQuery("select 1 + (select 1 from QUERY_EXPR_TEST)").next();
+        stat.executeQuery("select 1 from QUERY_EXPR_TEST_NO where id in "
+                + "(select id from QUERY_EXPR_TEST)");
+        stat.executeQuery("select 1 from QUERY_EXPR_TEST_NO n "
+                + "where exists(select 1 from QUERY_EXPR_TEST y where y.id = n.id)");
+        deleteDb("testQueryExpressionFlag");
+    }
+
     private void testSubQueryInfo() throws SQLException {
         deleteDb("testSubQueryInfo");
         Connection conn = getConnection("testSubQueryInfo");
@@ -380,7 +398,8 @@ public class TestTableEngines extends TestBase {
         // test select expression plan
         stat.execute("create table test_plan(id int primary key, name varchar)");
         stat.execute("create index MY_NAME_INDEX on test_plan(name)");
-        checkPlan(stat, "select * from (select (select id from test_plan where name = 'z') from dual)",
+        checkPlan(stat, "select * from (select (select id from test_plan "
+                + "where name = 'z') from dual)",
                 "MY_NAME_INDEX");
         deleteDb("testSubQueryInfo");
     }
@@ -392,18 +411,14 @@ public class TestTableEngines extends TestBase {
             assertEquals(enabled, s.isJoinBatchEnabled());
         }
     }
-    
+
     private void testBatchedJoin() throws SQLException {
         deleteDb("testBatchedJoin");
         Connection conn = getConnection("testBatchedJoin;OPTIMIZE_REUSE_RESULTS=0;BATCH_JOINS=1");
         Statement stat = conn.createStatement();
-        if (!config.networked) {
-            Session s = (Session) ((JdbcConnection) conn).getSession();
-            assertTrue(s.isJoinBatchEnabled());
-        }
         setBatchingEnabled(stat, false);
         setBatchingEnabled(stat, true);
-        
+
         TreeSetIndex.exec = Executors.newFixedThreadPool(8, new ThreadFactory() {
             @Override
             public Thread newThread(Runnable r) {
@@ -412,61 +427,53 @@ public class TestTableEngines extends TestBase {
                 return t;
             }
         });
-        
-        enableJoinReordering(false);
+
+        forceJoinOrder(stat, true);
         try {
             doTestBatchedJoinSubQueryUnion(stat);
-            
+
             TreeSetIndex.lookupBatches.set(0);
             doTestBatchedJoin(stat, 1, 0, 0);
             doTestBatchedJoin(stat, 0, 1, 0);
             doTestBatchedJoin(stat, 0, 0, 1);
-            
+
             doTestBatchedJoin(stat, 0, 2, 0);
             doTestBatchedJoin(stat, 0, 0, 2);
 
             doTestBatchedJoin(stat, 0, 0, 3);
             doTestBatchedJoin(stat, 0, 0, 4);
             doTestBatchedJoin(stat, 0, 0, 5);
-            
+
             doTestBatchedJoin(stat, 0, 3, 1);
             doTestBatchedJoin(stat, 0, 3, 3);
             doTestBatchedJoin(stat, 0, 3, 7);
-            
+
             doTestBatchedJoin(stat, 0, 4, 1);
             doTestBatchedJoin(stat, 0, 4, 6);
             doTestBatchedJoin(stat, 0, 4, 20);
-            
+
             doTestBatchedJoin(stat, 0, 10, 0);
             doTestBatchedJoin(stat, 0, 0, 10);
-            
+
             doTestBatchedJoin(stat, 0, 20, 0);
             doTestBatchedJoin(stat, 0, 0, 20);
             doTestBatchedJoin(stat, 0, 20, 20);
-            
+
             doTestBatchedJoin(stat, 3, 7, 0);
             doTestBatchedJoin(stat, 0, 0, 5);
             doTestBatchedJoin(stat, 0, 8, 1);
             doTestBatchedJoin(stat, 0, 2, 1);
-            
+
             assertTrue(TreeSetIndex.lookupBatches.get() > 0);
         } finally {
-            enableJoinReordering(true);
+            forceJoinOrder(stat, false);
             TreeSetIndex.exec.shutdownNow();
         }
         deleteDb("testBatchedJoin");
     }
-    
-    /**
-     * @param enable Enabled.
-     */
-    private void enableJoinReordering(boolean enable) {
-        OptimizerHints hints = null;
-        if (!enable) {
-            hints = new OptimizerHints();
-            hints.setJoinReorderEnabled(false);
-        }
-        OptimizerHints.set(hints);
+
+    private static void forceJoinOrder(Statement s, boolean force) throws SQLException {
+        s.executeUpdate("SET FORCE_JOIN_ORDER " + force);
     }
 
     private void checkPlan(Statement stat, String sql) throws SQLException {
@@ -514,75 +521,92 @@ public class TestTableEngines extends TestBase {
                 + "INNER JOIN PUBLIC.T T2 /* batched:test PUBLIC.T_IDX_B: B = U.B */ "
                 + "ON 1=1 WHERE (T1.A = U.A) AND (U.B = T2.B)");
         checkPlan(stat, "SELECT 1 FROM ( SELECT A FROM PUBLIC.T ) Z "
-                + "/* SELECT A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/ */ "
+                + "/* SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/ */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_B: B = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.B");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_B */ "
                 + "INNER JOIN ( SELECT A FROM PUBLIC.T ) Z "
-                + "/* batched:view SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
+                + "/* batched:view SELECT A FROM PUBLIC.T "
+                + "/++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = T.B */ ON 1=1 WHERE Z.A = T.B");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( ((SELECT A FROM PUBLIC.T) UNION ALL (SELECT B FROM PUBLIC.U)) "
                 + "UNION ALL (SELECT B FROM PUBLIC.T) ) Z /* batched:view "
-                + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ WHERE A IS ?1) "
+                + "((SELECT A FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_A: A IS ?1 ++/ "
+                + "WHERE A IS ?1) "
                 + "UNION ALL "
                 + "(SELECT B FROM PUBLIC.U /++ PUBLIC.U_IDX_B: B IS ?1 ++/ WHERE B IS ?1)) "
                 + "UNION ALL "
-                + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ WHERE B IS ?1)"
-                + ": A = T.A */ ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
-                + "INNER JOIN ( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
-                + "/* batched:view SELECT U.A FROM PUBLIC.U /++ batched:fake PUBLIC.U_IDX_A: A IS ?1 ++/ "
-                + "/++ WHERE U.A IS ?1 ++/ INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
+                + "(SELECT B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
+                + "WHERE B IS ?1): A = T.A */ ON 1=1 WHERE Z.A = T.A");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
+                + "INNER JOIN ( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 "
+                + "WHERE U.B = T.B ) Z "
+                + "/* batched:view SELECT U.A FROM PUBLIC.U "
+                + "/++ batched:fake PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "/++ WHERE U.A IS ?1 ++/ INNER JOIN PUBLIC.T "
+                + "/++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
                 + "ON 1=1 WHERE (U.A IS ?1) AND (U.B = T.B): A = T.A */ ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.\"scan\" */ "
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.T /* PUBLIC.T_IDX_A */ "
                 + "INNER JOIN ( SELECT A FROM PUBLIC.U ) Z /* SELECT A FROM PUBLIC.U "
-                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ WHERE A IS ?1: A = T.A */ ON 1=1 WHERE T.A = Z.A");
+                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ WHERE A IS ?1: A = T.A */ "
+                + "ON 1=1 WHERE T.A = Z.A");
         checkPlan(stat, "SELECT 1 FROM "
                 + "( SELECT U.A FROM PUBLIC.U INNER JOIN PUBLIC.T ON 1=1 WHERE U.B = T.B ) Z "
                 + "/* SELECT U.A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/ "
                 + "INNER JOIN PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B = U.B ++/ "
                 + "ON 1=1 WHERE U.B = T.B */ "
-                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE T.A = Z.A");
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
+                + "WHERE T.A = Z.A");
         checkPlan(stat, "SELECT 1 FROM "
                 + "( SELECT U.A FROM PUBLIC.T INNER JOIN PUBLIC.U ON 1=1 WHERE T.B = U.B ) Z "
-                + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/ "
+                + "/* SELECT U.A FROM PUBLIC.T /++ PUBLIC.T_IDX_B ++/ "
                 + "INNER JOIN PUBLIC.U /++ PUBLIC.U_IDX_B: B = T.B ++/ "
-                + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
+                + "ON 1=1 WHERE T.B = U.B */ INNER JOIN PUBLIC.T "
+                + "/* batched:test PUBLIC.T_IDX_A: A = Z.A */ "
                 + "ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM ( (SELECT A FROM PUBLIC.T) UNION (SELECT A FROM PUBLIC.U) ) Z "
-                + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.\"scan\" ++/) "
+        checkPlan(stat, "SELECT 1 FROM ( (SELECT A FROM PUBLIC.T) UNION "
+                + "(SELECT A FROM PUBLIC.U) ) Z "
+                + "/* (SELECT A FROM PUBLIC.T /++ PUBLIC.T_IDX_A ++/) "
                 + "UNION "
-                + "(SELECT A FROM PUBLIC.U /++ PUBLIC.\"scan\" ++/) */ "
-                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 WHERE Z.A = T.A");
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.\"scan\" */ "
+                + "(SELECT A FROM PUBLIC.U /++ PUBLIC.U_IDX_A ++/) */ "
+                + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
+                + "WHERE Z.A = T.A");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_B */ "
                 + "INNER JOIN ( (SELECT A, B FROM PUBLIC.T) UNION (SELECT B, A FROM PUBLIC.U) ) Z "
-                + "/* batched:view (SELECT A, B FROM PUBLIC.T /++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
-                + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
+                + "/* batched:view (SELECT A, B FROM PUBLIC.T "
+                + "/++ batched:test PUBLIC.T_IDX_B: B IS ?1 ++/ "
+                + "WHERE B IS ?1) UNION (SELECT B, A FROM PUBLIC.U "
+                + "/++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1): B = U.B */ ON 1=1 /* WHERE U.B = Z.B */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_A: A = Z.A */ ON 1=1 "
-                + "WHERE (U.B = Z.B) AND (Z.A = T.A)"); 
-        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.\"scan\" */ "
+                + "WHERE (U.B = Z.B) AND (Z.A = T.A)");
+        checkPlan(stat, "SELECT 1 FROM PUBLIC.U /* PUBLIC.U_IDX_A */ "
                 + "INNER JOIN ( SELECT A, B FROM PUBLIC.U ) Z "
                 + "/* batched:fake SELECT A, B FROM PUBLIC.U /++ PUBLIC.U_IDX_A: A IS ?1 ++/ "
                 + "WHERE A IS ?1: A = U.A */ ON 1=1 /* WHERE U.A = Z.A */ "
                 + "INNER JOIN PUBLIC.T /* batched:test PUBLIC.T_IDX_B: B = Z.B */ "
                 + "ON 1=1 WHERE (U.A = Z.A) AND (Z.B = T.B)");
-        
+
         // t: a = [ 0..20), b = [10..30)
         // u: a = [10..25), b = [-5..10)
-        checkBatchedQueryResult(stat, 10, 
-                "select t.a from t, (select t.b from u, t where u.a = t.a) z where t.b = z.b");
+        checkBatchedQueryResult(stat, 10,
+                "select t.a from t, (select t.b from u, t where u.a = t.a) z " +
+                "where t.b = z.b");
         checkBatchedQueryResult(stat, 5,
-                "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t where t.b = z.b + 5");
+                "select t.a from (select t1.b from t t1, t t2 where t1.a = t2.b) z, t " +
+                "where t.b = z.b + 5");
         checkBatchedQueryResult(stat, 1,
-                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z, t where t.b = z.b + 1");
+                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z, t " +
+                "where t.b = z.b + 1");
         checkBatchedQueryResult(stat, 15,
-                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z left join t on t.b = z.b");
+                "select t.a from (select u.b from u, t t2 where u.a = t2.b) z " +
+                "left join t on t.b = z.b");
         checkBatchedQueryResult(stat, 15,
                 "select t.a from (select t1.b from t t1 left join t t2 on t1.a = t2.b) z, t "
                 + "where t.b = z.b + 5");
-        checkBatchedQueryResult(stat, 1, "select t.a from t,(select 5 as b from t union select 10 from u) z "
+        checkBatchedQueryResult(stat, 1,
+                "select t.a from t,(select 5 as b from t union select 10 from u) z "
                 + "where t.b = z.b");
         checkBatchedQueryResult(stat, 15, "select t.a from u,(select 5 as b, a from t "
                 + "union select 10, a from u) z, t where t.b = z.b and z.a = u.a");
@@ -591,65 +615,67 @@ public class TestTableEngines extends TestBase {
         stat.execute("DROP TABLE U");
     }
 
-    private void checkBatchedQueryResult(Statement stat, int size, String sql) throws SQLException {
+    private void checkBatchedQueryResult(Statement stat, int size, String sql)
+            throws SQLException {
         setBatchingEnabled(stat, false);
         List<List<Object>> expected = query(stat, sql);
         assertEquals(size, expected.size());
         setBatchingEnabled(stat, true);
         List<List<Object>> actual = query(stat, sql);
         if (!expected.equals(actual)) {
-            fail("\nexpected: " + expected + "\nactual:   " + actual);
+            fail("\n" + "expected: " + expected + "\n" + "actual:   " + actual);
         }
     }
-    
+
     private void doTestBatchedJoin(Statement stat, int... batchSizes) throws SQLException {
         ArrayList<TreeSetTable> tables = New.arrayList(batchSizes.length);
-        
+
         for (int i = 0; i < batchSizes.length; i++) {
             stat.executeUpdate("DROP TABLE IF EXISTS T" + i);
             stat.executeUpdate("CREATE TABLE T" + i + "(A INT, B INT) ENGINE \"" +
                     TreeSetIndexTableEngine.class.getName() + "\"");
             tables.add(TreeSetIndexTableEngine.created);
-            
+
             stat.executeUpdate("CREATE INDEX IDX_B ON T" + i + "(B)");
             stat.executeUpdate("CREATE INDEX IDX_A ON T" + i + "(A)");
-            
+
             PreparedStatement insert = stat.getConnection().prepareStatement(
                     "INSERT INTO T"+ i + " VALUES (?,?)");
-            
+
             for (int j = i, size = i + 10; j < size; j++) {
                 insert.setInt(1, j);
                 insert.setInt(2, j);
                 insert.executeUpdate();
             }
-            
+
             for (TreeSetTable table : tables) {
                 assertEquals(10, table.getRowCount(null));
             }
         }
-        
+
         int[] zeroBatchSizes = new int[batchSizes.length];
         int tests = 1 << (batchSizes.length * 4);
-        
+
         for (int test = 0; test < tests; test++) {
             String query = generateQuery(test, batchSizes.length);
-            
-//            System.out.println(Arrays.toString(batchSizes) + ": " + test + " -> " + query);
-            
+
+            // System.out.println(Arrays.toString(batchSizes) +
+            //    ": " + test + " -> " + query);
+
             setBatchSize(tables, batchSizes);
             List<List<Object>> res1 = query(stat, query);
-            
+
             setBatchSize(tables, zeroBatchSizes);
             List<List<Object>> res2 = query(stat, query);
-            
-//            System.out.println(res1 + " " + res2);
+
+            // System.out.println(res1 + " " + res2);
 
             if (!res2.equals(res1)) {
                 System.err.println(Arrays.toString(batchSizes) + ": " + res1 + " " + res2);
                 System.err.println("Test " + test);
                 System.err.println(query);
                 for (TreeSetTable table : tables) {
-                    System.err.println(table.getName() + " = " + 
+                    System.err.println(table.getName() + " = " +
                             query(stat, "select * from " + table.getName()));
                 }
                 fail();
@@ -660,7 +686,13 @@ public class TestTableEngines extends TestBase {
         }
     }
 
-    private static void assert0(boolean condition, String message) {
+    /**
+     * A static assertion method.
+     *
+     * @param condition the condition
+     * @param message the error message
+     */
+    static void assert0(boolean condition, String message) {
         if (!condition) {
             throw new AssertionError(message);
         }
@@ -675,25 +707,25 @@ public class TestTableEngines extends TestBase {
 
     private static void setBatchSize(TreeSetTable t, int batchSize) {
         if (t.getIndexes() == null) {
-            t.scan.preferedBatchSize = batchSize;
+            t.scan.preferredBatchSize = batchSize;
         } else {
             for (Index idx : t.getIndexes()) {
-                ((TreeSetIndex) idx).preferedBatchSize = batchSize;
+                ((TreeSetIndex) idx).preferredBatchSize = batchSize;
             }
         }
     }
-    
-    private String generateQuery(int t, int tables) {
+
+    private static String generateQuery(int t, int tables) {
         final int withLeft = 1;
         final int withFalse = 2;
         final int withWhere = 4;
         final int withOnIsNull = 8;
-        
+
         StringBuilder b = new StringBuilder();
         b.append("select count(*) from ");
-        
+
         StringBuilder where = new StringBuilder();
-        
+
         for (int i = 0; i < tables; i++) {
             if (i != 0) {
                 if ((t & withLeft) != 0) {
@@ -719,15 +751,15 @@ public class TestTableEngines extends TestBase {
                 }
                 where.append(" T").append(i).append(".A > 5");
             }
-            t >>>= 4; 
+            t >>>= 4;
         }
         if (where.length() != 0) {
-            b.append("\nwhere ").append(where);
+            b.append("\n" + "where ").append(where);
         }
-        
+
         return b.toString();
     }
-    
+
     private void checkResultsNoOrder(Statement stat, int size, String query1, String query2)
             throws SQLException {
         List<List<Object>> res1 = query(stat, query1);
@@ -871,7 +903,8 @@ public class TestTableEngines extends TestBase {
 
                 @Override
                 public double getCost(Session session, int[] masks,
-                        TableFilter[] filters, int filter, SortOrder sortOrder) {
+                        TableFilter[] filters, int filter, SortOrder sortOrder,
+                        HashSet<Column> allColumnsSet) {
                     return 0;
                 }
 
@@ -1106,9 +1139,9 @@ public class TestTableEngines extends TestBase {
      * A table engine that internally uses a tree set.
      */
     public static class TreeSetIndexTableEngine implements TableEngine {
-        
+
         static TreeSetTable created;
-        
+
         @Override
         public Table createTable(CreateTableData data) {
             return created = new TreeSetTable(data);
@@ -1127,8 +1160,11 @@ public class TestTableEngines extends TestBase {
                 IndexColumn.wrap(getColumns()), IndexType.createScan(false)) {
             @Override
             public double getCost(Session session, int[] masks,
-                    TableFilter[] filters, int filter, SortOrder sortOrder) {
-                return getRowCount(session) + Constants.COST_ROW_OFFSET;
+                    TableFilter[] filters, int filter, SortOrder sortOrder,
+                    HashSet<Column> allColumnsSet) {
+                doTests(session);
+                return getCostRangeIndex(masks, getRowCount(session), filters,
+                        filter, sortOrder, true, allColumnsSet);
             }
         };
 
@@ -1280,17 +1316,17 @@ public class TestTableEngines extends TestBase {
      * An index that internally uses a tree set.
      */
     private static class TreeSetIndex extends BaseIndex implements Comparator<SearchRow> {
-        private static AtomicInteger lookupBatches = new AtomicInteger();
-        
         /**
          * Executor service to test batched joins.
          */
-        private static ExecutorService exec;
-        
-        private final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
-        
-        private int preferedBatchSize;
-        
+        static ExecutorService exec;
+
+        static AtomicInteger lookupBatches = new AtomicInteger();
+
+        int preferredBatchSize;
+
+        final TreeSet<SearchRow> set = new TreeSet<SearchRow>(this);
+
         TreeSetIndex(Table t, String name, IndexColumn[] cols, IndexType type) {
             initBaseIndex(t, 0, name, cols, type);
         }
@@ -1310,9 +1346,9 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public IndexLookupBatch createLookupBatch(final TableFilter filter) {
-            assert filter.getMasks() != null || "scan".equals(getName());
-            final int preferedSize = preferedBatchSize; 
-            if (preferedSize == 0) {
+            assert0(filter.getMasks() != null || "scan".equals(getName()), "masks");
+            final int preferredSize = preferredBatchSize;
+            if (preferredSize == 0) {
                 return null;
             }
             lookupBatches.incrementAndGet();
@@ -1323,9 +1359,9 @@ public class TestTableEngines extends TestBase {
                 public String getPlanSQL() {
                     return "test";
                 }
-                
+
                 @Override public boolean isBatchFull() {
-                    return searchRows.size() >= preferedSize * 2;
+                    return searchRows.size() >= preferredSize * 2;
                 }
 
                 @Override
@@ -1344,13 +1380,14 @@ public class TestTableEngines extends TestBase {
                 }
 
                 @Override
-                public void reset() {
+                public void reset(boolean beforeQuery) {
                     searchRows.clear();
                 }
             };
         }
 
-        public List<Future<Cursor>> findBatched(final TableFilter filter, List<SearchRow> firstLastPairs) {
+        public List<Future<Cursor>> findBatched(final TableFilter filter,
+                List<SearchRow> firstLastPairs) {
             ArrayList<Future<Cursor>> result = New.arrayList(firstLastPairs.size());
             final Random rnd = new Random();
             for (int i = 0; i < firstLastPairs.size(); i += 2) {
@@ -1380,7 +1417,7 @@ public class TestTableEngines extends TestBase {
             }
             return result;
         }
-        
+
         @Override
         public void close(Session session) {
             // No-op.
@@ -1421,7 +1458,7 @@ public class TestTableEngines extends TestBase {
                 } else if (first != null) {
                     if (last != null) {
                         subSet = set.subSet(first,  true, last, true);
-                    } else { 
+                    } else {
                         subSet = set.tailSet(first, true);
                     }
                 } else if (last != null) {
@@ -1440,31 +1477,41 @@ public class TestTableEngines extends TestBase {
         private void checkInfo(SubQueryInfo info) {
             if (info.getUpper() == null) {
                 // check 1st level info
-                assert0(info.getFilters().length == 1, "getFilters().length " + info.getFilters().length);
+                assert0(info.getFilters().length == 1, "getFilters().length " +
+                        info.getFilters().length);
                 String alias = alias(info);
                 assert0("T5".equals(alias), "alias: " + alias);
             } else {
                 // check 2nd level info
-                assert0(info.getFilters().length == 2, "getFilters().length " + info.getFilters().length);
+                assert0(info.getFilters().length == 2, "getFilters().length " +
+                        info.getFilters().length);
                 String alias = alias(info);
                 assert0("T4".equals(alias), "alias: " + alias);
                 checkInfo(info.getUpper());
             }
         }
 
-        @Override
-        public double getCost(Session session, int[] masks,
-                TableFilter[] filters, int filter, SortOrder sortOrder) {
+        protected void doTests(Session session) {
             if (getTable().getName().equals("SUB_QUERY_TEST")) {
                 checkInfo(session.getSubQueryInfo());
             } else if (getTable().getName().equals("EXPR_TEST")) {
                 assert0(session.getSubQueryInfo() == null, "select expression");
-            }  else if (getTable().getName().equals("EXPR_TEST2")) {
+            } else if (getTable().getName().equals("EXPR_TEST2")) {
                 String alias = alias(session.getSubQueryInfo());
                 assert0(alias.equals("ZZ"), "select expression sub-query: " + alias);
                 assert0(session.getSubQueryInfo().getUpper() == null, "upper");
+            } else if (getTable().getName().equals("QUERY_EXPR_TEST")) {
+                assert0(session.isPreparingQueryExpression(), "preparing query expression");
+            } else if (getTable().getName().equals("QUERY_EXPR_TEST_NO")) {
+                assert0(!session.isPreparingQueryExpression(), "not preparing query expression");
             }
-            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder);
+        }
+
+        @Override
+        public double getCost(Session session, int[] masks,
+                TableFilter[] filters, int filter, SortOrder sortOrder, HashSet<Column> allColumnsSet) {
+            doTests(session);
+            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder, false, allColumnsSet);
         }
 
         @Override
@@ -1517,7 +1564,7 @@ public class TestTableEngines extends TestBase {
     /**
      */
     private static class IteratorCursor implements Cursor {
-        private Iterator<SearchRow> it;
+        Iterator<SearchRow> it;
         private Row current;
 
         public IteratorCursor(Iterator<SearchRow> it) {
@@ -1548,10 +1595,10 @@ public class TestTableEngines extends TestBase {
         public Row get() {
             return current;
         }
-        
+
         @Override
         public String toString() {
-            return "IterCursor->" + current;
+            return "IteratorCursor->" + current;
         }
     }
 
@@ -1568,9 +1615,6 @@ public class TestTableEngines extends TestBase {
         @SuppressWarnings("unchecked")
         @Override
         public int compare(List<Object> row1, List<Object> row2) {
-            if (row1.size() != row2.size()) {
-                throw new IllegalStateException("Row size mismatch.");
-            }
             for (int i = 0; i < cols.length; i++) {
                 int col = cols[i];
                 Comparable<Object> o1 = (Comparable<Object>) row1.get(col);

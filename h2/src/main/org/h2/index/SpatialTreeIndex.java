@@ -11,8 +11,8 @@
  */
 package org.h2.index;
 
+import java.util.HashSet;
 import java.util.Iterator;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -30,7 +30,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -184,12 +183,6 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
                 filter.getSession());
     }
 
-    @Override
-    protected long getCostRangeIndex(int[] masks, long rowCount,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, rowCount, columns);
-    }
-
     /**
      * Compute spatial index cost
      * @param masks Search mask
@@ -215,10 +208,11 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
 
     @Override
     public double getCost(Session session, int[] masks,
-            TableFilter[] filters, int filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(),
-                filters, filter, sortOrder);
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
+        return getCostRangeIndex(masks, table.getRowCountApproximation(), columns);
     }
+
 
     @Override
     public void remove(Session session) {

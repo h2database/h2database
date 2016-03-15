@@ -113,7 +113,7 @@ public class TestLob extends TestBase {
     }
 
     private void testRemoveAfterDeleteAndClose() throws Exception {
-        if (config.memory) {
+        if (config.memory || config.cipher != null) {
             return;
         }
         deleteDb("lob");

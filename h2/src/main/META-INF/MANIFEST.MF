@@ -3,7 +3,7 @@ Implementation-Title: ${title}
 Implementation-URL: http://www.h2database.com
 Implementation-Version: ${version}
 Build-Jdk: ${buildJdk}
-Class-Path: jts-1.13.jar lucene-core-3.0.2.jar postgresql-8.3-603.jdbc3.jar
+Class-Path: jts-core-1.14.0.jar lucene-core-3.0.2.jar postgresql-8.3-603.jdbc3.jar
 Created-By: ${createdBy}
 ${mainClassTag}
 Bundle-Activator: org.h2.util.DbDriverActivator
@@ -24,20 +24,16 @@ Import-Package: javax.management,
  javax.sql,
  javax.tools;resolution:=optional,
  javax.transaction.xa;resolution:=optional,
- javax.imageio;resolution:=optional,
- javax.imageio.spi;resolution:=optional,
- javax.imageio.metadata;resolution:=optional,
- javax.imageio.stream;resolution:=optional,
- org.apache.lucene.analysis;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.analysis.standard;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.document;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.index;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.queryParser;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.search;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.store;version="[3.0.0,3.1.0)";resolution:=optional,
- org.apache.lucene.util;version="[3.0.0,3.1.0)";resolution:=optional,
- com.vividsolutions.jts.geom;version="1.13";resolution:=optional,
- com.vividsolutions.jts.io;version="1.13";resolution:=optional,
+ org.apache.lucene.analysis;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.analysis.standard;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.document;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.index;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.queryParser;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.search;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.store;version="[3.6.2,4.0.0)";resolution:=optional,
+ org.apache.lucene.util;version="[3.6.2,4.0.0)";resolution:=optional,
+ com.vividsolutions.jts.geom;version="1.14.0";resolution:=optional,
+ com.vividsolutions.jts.io;version="1.14.0";resolution:=optional,
  org.h2;version="[${version},1.5.0)",
  org.h2.api;version="[${version},1.5.0)",
  org.h2.fulltext;version="[${version},1.5.0)",

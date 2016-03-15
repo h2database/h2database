@@ -17,6 +17,7 @@ import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.dml.Query;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
 import org.h2.index.Index;
@@ -115,9 +116,11 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
+    private boolean forceJoinOrder;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -151,6 +154,14 @@ public class Session extends SessionWithState {
         this.currentSchemaName = Constants.SCHEMA_MAIN;
     }
 
+    public void setForceJoinOrder(boolean forceJoinOrder) {
+        this.forceJoinOrder = forceJoinOrder;
+    }
+
+    public boolean isForceJoinOrder() {
+        return forceJoinOrder;
+    }
+
     public void setJoinBatchEnabled(boolean joinBatchEnabled) {
         this.joinBatchEnabled = joinBatchEnabled;
     }
@@ -159,15 +170,33 @@ public class Session extends SessionWithState {
         return joinBatchEnabled;
     }
 
+    /**
+     * Create a new row for a table.
+     *
+     * @param data the values
+     * @param memory whether the row is in memory
+     * @return the created row
+     */
     public Row createRow(Value[] data, int memory) {
         return database.createRow(data, memory);
     }
 
+    /**
+     * Add a subquery info on top of the subquery info stack.
+     *
+     * @param masks the mask
+     * @param filters the filters
+     * @param filter the filter index
+     * @param sortOrder the sort order
+     */
     public void pushSubQueryInfo(int[] masks, TableFilter[] filters, int filter,
             SortOrder sortOrder) {
         subQueryInfo = new SubQueryInfo(subQueryInfo, masks, filters, filter, sortOrder);
     }
 
+    /**
+     * Remove the current subquery info from the stack.
+     */
     public void popSubQueryInfo() {
         subQueryInfo = subQueryInfo.getUpper();
     }
@@ -185,6 +214,31 @@ public class Session extends SessionWithState {
     public boolean isParsingView() {
         assert parsingView >= 0;
         return parsingView != 0;
+    }
+
+    /**
+     * Optimize a query. This will remember the subquery info, clear it, prepare
+     * the query, and reset the subquery info.
+     *
+     * @param query the query to prepare
+     */
+    public void optimizeQueryExpression(Query query) {
+        // we have to hide current subQueryInfo if we are going to optimize
+        // query expression
+        SubQueryInfo tmp = subQueryInfo;
+        subQueryInfo = null;
+        preparingQueryExpression++;
+        try {
+            query.prepare();
+        } finally {
+            subQueryInfo = tmp;
+            preparingQueryExpression--;
+        }
+    }
+
+    public boolean isPreparingQueryExpression() {
+        assert preparingQueryExpression >= 0;
+        return preparingQueryExpression != 0;
     }
 
     @Override
@@ -755,6 +809,7 @@ public class Session extends SessionWithState {
         if (!closed) {
             try {
                 database.checkPowerOff();
+                rollback();
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();
@@ -873,11 +928,13 @@ public class Session extends SessionWithState {
     private void cleanTempTables(boolean closeSession) {
         if (localTempTables != null && localTempTables.size() > 0) {
             synchronized (database) {
-                for (Table table : New.arrayList(localTempTables.values())) {
+                Iterator<Table> itr = localTempTables.values().iterator();
+                while (itr.hasNext()) {
+                    Table table = itr.next();
                     if (closeSession || table.getOnCommitDrop()) {
                         modificationId++;
                         table.setModified();
-                        localTempTables.remove(table.getName());
+                        itr.remove();
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might
@@ -1347,10 +1404,19 @@ public class Session extends SessionWithState {
         }
     }
 
+    /**
+     * Get the view cache for this session. There are two caches: the subquery
+     * cache (which is only use for a single query, has no bounds, and is
+     * cleared after use), and the cache for regular views.
+     *
+     * @param subQuery true to get the subquery cache
+     * @return the view cache
+     */
     public Map<Object, ViewIndex> getViewIndexCache(boolean subQuery) {
         if (subQuery) {
-            // for sub-queries we don't need to use LRU because the cache should not
-            // grow too large for a single query (we drop the whole cache in the end of prepareLocal)
+            // for sub-queries we don't need to use LRU because the cache should
+            // not grow too large for a single query (we drop the whole cache in
+            // the end of prepareLocal)
             if (subQueryIndexCache == null) {
                 subQueryIndexCache = New.hashMap();
             }
@@ -1543,6 +1609,9 @@ public class Session extends SessionWithState {
         closeTemporaryResults();
     }
 
+    /**
+     * Clear the view cache for this session.
+     */
     public void clearViewIndexCache() {
         viewIndexCache = null;
     }

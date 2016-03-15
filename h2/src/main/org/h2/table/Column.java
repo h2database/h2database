@@ -6,7 +6,6 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -32,6 +31,8 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -294,6 +295,10 @@ public class Column {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
                         value = ValueTimestamp.fromMillis(session.getTransactionStart());
+                    } else if (dt.type == Value.TIMESTAMP_UTC) {
+                        value = ValueTimestampUtc.fromMillis(session.getTransactionStart());
+                    } else if (dt.type == Value.TIMESTAMP_TZ) {
+                        value = ValueTimestampTimeZone.fromMillis(session.getTransactionStart(), (short)0);
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
@@ -399,7 +404,7 @@ public class Column {
      */
     public void prepareExpression(Session session) {
         if (defaultExpression != null) {
-            computeTableFilter = new TableFilter(session, table, null, false, null);
+            computeTableFilter = new TableFilter(session, table, null, false, null, 0);
             defaultExpression.mapColumns(computeTableFilter, 0);
             defaultExpression = defaultExpression.optimize(session);
         }

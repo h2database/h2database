@@ -83,6 +83,7 @@
 90053=El Subquery escalar contiene mas de una fila
 90054=Uso Invalido de la función de columna agregada {0}
 90055=Cipher No soportado {0}
+90056=Function {0}: Invalid date format: {1}
 90057=Constraint {0} no encontrado
 90058=Commit ó rollback no permitido dentro de un trigger
 90059=Nombre de columna ambigua {0}
@@ -113,7 +114,7 @@
 90084=Imposible eliminar la ultima columna {0}
 90085=Index {0} pertenece a un constraint {1}
 90086=Class {0} no encontrada
-90087=Method {0} no encontrado
+90087=#Method {0} not found
 90088=Modo desconocido {0}
 90089=Collation no puede ser cambiado debido a que existe una tabla de datos: {0}
 90090=Schema {0} no puede ser eliminado

@@ -1064,7 +1064,7 @@ Probability of Duplicates
 Spatial Features
 
 @advanced_1355_p
- H2 supports the geometry data type and spatial indexes if the <a href="http://tsusiatsoftware.net/jts/main.html">JTS Topology Suite</a> is in the classpath. To run the H2 Console tool with the JTS tool, you need to download the <a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts/1.13/jts-1.13.jar">JTS 1.13 jar file</a> and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows: 
+ H2 supports the geometry data type and spatial indexes if the <a href="http://tsusiatsoftware.net/x/main.html">JTS Topology Suite</a> is in the classpath. To run the H2 Console tool with the JTS tool, you need to download the <a href="http://search.maven.org/remotecontent?filepath=com/vividsolutions/jts-core/1.14.0/jts-core-1.14.0.jar">JTS-CORE 1.14.0 jar file</a> and place it in the h2 bin directory. Then edit the <code>h2.sh</code> file as follows: 
 
 @advanced_1356_p
  Here is an example SQL script to create a table with a spatial column and index: 
@@ -1682,7 +1682,7 @@ javadocImpl
 Using Apache Lucene
 
 @build_1046_p
- Apache Lucene 3.0.2 is used for testing. Newer versions may work, however they are not tested. 
+ Apache Lucene 3.6.2 is used for testing. Newer versions may work, however they are not tested. 
 
 @build_1047_h2
 Using Maven 2
@@ -11966,7 +11966,7 @@ Using the Native Fulltext Search
 Using the Apache Lucene Fulltext Search
 
 @tutorial_1311_p
- To use the Apache Lucene full text search, you need the Lucene library in the classpath. Currently, Apache Lucene 3.0.2 is used for testing. Newer versions may work, however they are not tested. How to do that depends on the application; if you use the H2 Console, you can add the Lucene jar file to the environment variables <code>H2DRIVERS</code> or <code>CLASSPATH</code>. To initialize the Lucene fulltext search in a database, call: 
+ To use the Apache Lucene full text search, you need the Lucene library in the classpath. Currently, Apache Lucene 3.6.2 is used for testing. Newer versions may work, however they are not tested. How to do that depends on the application; if you use the H2 Console, you can add the Lucene jar file to the environment variables <code>H2DRIVERS</code> or <code>CLASSPATH</code>. To initialize the Lucene fulltext search in a database, call: 
 
 @tutorial_1312_p
  You need to initialize it in each database where you want to use it. Afterwards, you can create a full text index for a table using: 

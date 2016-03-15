@@ -83,6 +83,7 @@
 90053=Skalar-Unterabfrage enthält mehr als eine Zeile
 90054=Ungültige Verwendung der Aggregat Funktion {0}
 90055=Chiffre nicht unterstützt: {0}
+90056=Funktion {0}: Ungültiges Datums-Format: {1}
 90057=Bedingung {0} nicht gefunden
 90058=Innerhalb eines Triggers sind Commit und Rollback ist nicht erlaubt
 90059=Mehrdeutiger Feldname {0}

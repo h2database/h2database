@@ -14,7 +14,6 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -36,6 +35,7 @@ public class TestTransaction extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();
         testCommitOnAutoCommitChange();
         testConcurrentSelectForUpdate();
@@ -331,6 +331,26 @@ public class TestTransaction extends TestBase {
         c2.commit();
         c1.rollback();
         c1.close();
+        c2.close();
+    }
+
+    private void testClosingConnectionWithLockedTable() throws SQLException {
+        deleteDb("transaction");
+        Connection c1 = getConnection("transaction");
+        Connection c2 = getConnection("transaction");
+        c1.setAutoCommit(false);
+        c2.setAutoCommit(false);
+
+        Statement s1 = c1.createStatement();
+        s1.execute("create table a (id integer identity not null, " +
+                "code varchar(10) not null, primary key(id))");
+        s1.executeUpdate("insert into a(code) values('one')");
+        c1.commit();
+        s1.executeQuery("select * from a for update");
+        c1.close();
+
+        Statement s2 = c2.createStatement();
+        s2.executeQuery("select * from a for update");
         c2.close();
     }
 

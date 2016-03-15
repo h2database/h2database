@@ -10,7 +10,7 @@ import org.h2.result.SortOrder;
 
 /**
  * Information about current sub-query being prepared.
- * 
+ *
  * @author Sergi Vladykin
  */
 public class SubQueryInfo {

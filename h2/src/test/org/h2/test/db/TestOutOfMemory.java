@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
+import java.util.Random;
 
 import org.h2.api.ErrorCode;
 import org.h2.mvstore.MVStore;
@@ -45,19 +46,20 @@ public class TestOutOfMemory extends TestBase {
 
     private void testMVStoreUsingInMemoryFileSystem() {
         FilePath.register(new FilePathMem());
-        String fileName = "memLZF:" + getTestName();
+        String fileName = "memFS:" + getTestName();
         MVStore store = MVStore.open(fileName);
         Map<Integer, byte[]> map = store.openMap("test");
-        byte[] data = new byte[10 * 1024 * 1024];
+        Random r = new Random(1);
         try {
             for (int i = 0; i < 100; i++) {
+                byte[] data = new byte[10 * 1024 * 1024];
+                r.nextBytes(data);
                 map.put(i, data);
             }
             fail();
         } catch (OutOfMemoryError e) {
             // expected
         }
-        data = null;
         try {
             store.close();
             fail();
@@ -72,7 +74,7 @@ public class TestOutOfMemory extends TestBase {
     }
 
     private void testDatabaseUsingInMemoryFileSystem() throws SQLException {
-        String url = "jdbc:h2:memLZF:" + getTestName();
+        String url = "jdbc:h2:memFS:" + getTestName();
         Connection conn = DriverManager.getConnection(url);
         Statement stat = conn.createStatement();
         try {

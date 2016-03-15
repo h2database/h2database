@@ -3825,8 +3825,8 @@ inner join test2 on test1.id=test2.id left
 outer join test3 on test2.id=test3.id
 where test3.id is null;
 > PLAN
-> -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST1 /* PUBLIC.TEST1.tableScan */ INNER JOIN PUBLIC.TEST2 /* PUBLIC.PRIMARY_KEY_4C: ID = TEST1.ID AND ID = TEST1.ID */ ON 1=1 /* WHERE TEST1.ID = TEST2.ID */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
+> --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+> SELECT TEST1.ID, TEST2.ID, TEST3.ID FROM PUBLIC.TEST2 /* PUBLIC.TEST2.tableScan */ LEFT OUTER JOIN PUBLIC.TEST3 /* PUBLIC.PRIMARY_KEY_4C0: ID = TEST2.ID */ ON TEST2.ID = TEST3.ID INNER JOIN PUBLIC.TEST1 /* PUBLIC.PRIMARY_KEY_4: ID = TEST2.ID */ ON 1=1 WHERE (TEST3.ID IS NULL) AND (TEST1.ID = TEST2.ID)
 > rows: 1
 
 insert into test1 select x from system_range(2, 1000);
@@ -3962,6 +3962,12 @@ SELECT DATEDIFF('HOUR', '1900-01-01 01:00:00.001', '1900-01-01 01:00:01.000'), D
 > 0 0
 > - -
 > 0 0
+> rows: 1
+
+select datediff(day, '2015-12-09 23:59:00.0', '2016-01-16 23:59:00.0'), datediff(wk, '2015-12-09 23:59:00.0', '2016-01-16 23:59:00.0');
+> 38 5
+> -- -
+> 38 5
 > rows: 1
 
 create table test(id int);
@@ -4508,7 +4514,7 @@ create index idx_n_id on test(name, id);
 alter table test add constraint abc foreign key(id) references (id);
 > ok
 
-alter table test alter column id rename to i;
+alter table test rename column id to i;
 > ok
 
 script NOPASSWORDS NOSETTINGS drop;
@@ -6202,6 +6208,12 @@ SELECT * FROM TEST UNION ALL SELECT * FROM TEST ORDER BY ID LIMIT 2+0 OFFSET 1+0
 > 1  Hello
 > 2  World
 > rows (ordered): 2
+
+SELECT * FROM TEST ORDER BY ID OFFSET 4;
+> ID NAME
+> -- ---------
+> 5  resources
+> rows (ordered): 1
 
 SELECT ID FROM TEST GROUP BY ID UNION ALL SELECT ID FROM TEST GROUP BY ID;
 > ID

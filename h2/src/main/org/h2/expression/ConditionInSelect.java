@@ -117,7 +117,7 @@ public class ConditionInSelect extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         query.setRandomAccessResult(true);
-        query.prepare();
+        session.optimizeQueryExpression(query);
         if (query.getColumnCount() != 1) {
             throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }

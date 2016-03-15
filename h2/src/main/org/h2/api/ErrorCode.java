@@ -1002,6 +1002,12 @@ public class ErrorCode {
     public static final int UNSUPPORTED_CIPHER = 90055;
 
     /**
+    * The error with code <code>90056</code> is thrown when trying to format a
+    * timestamp using TO_DATE and TO_TIMESTAMP  with an invalid format.
+    */
+    public static final int INVALID_TO_DATE_FORMAT = 90056;
+
+    /**
      * The error with code <code>90057</code> is thrown when
      * trying to drop a constraint that does not exist.
      * Example:
@@ -1358,7 +1364,7 @@ public class ErrorCode {
 
     /**
      * The error with code <code>90087</code> is thrown when
-     * the specified method was not found in the class.
+     * a method with matching number of arguments was not found in the class.
      * Example:
      * <pre>
      * CREATE ALIAS TO_BINARY FOR "java.lang.Long.toBinaryString(long)";
@@ -1923,7 +1929,7 @@ public class ErrorCode {
     public static final int STEP_SIZE_MUST_NOT_BE_ZERO = 90142;
 
 
-    // next are 90056, 90110, 90122, 90143
+    // next are 90110, 90122, 90143
 
     private ErrorCode() {
         // utility class

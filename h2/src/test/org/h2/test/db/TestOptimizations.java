@@ -62,6 +62,7 @@ public class TestOptimizations extends TestBase {
         testNestedInSelect();
         testInSelectJoin();
         testMinMaxNullOptimization();
+        testUseCoveringIndex();
         // testUseIndexWhenAllColumnsNotInOrderBy();
         if (config.networked) {
             return;
@@ -1025,6 +1026,39 @@ public class TestOptimizations extends TestBase {
         rs.next();
         assertEquals(5, rs.getInt(1));
 
+        conn.close();
+    }
+
+    private void testUseCoveringIndex() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE TABLE_A(id IDENTITY PRIMARY KEY NOT NULL, " +
+                "name VARCHAR NOT NULL, active BOOLEAN DEFAULT TRUE, " +
+                "UNIQUE KEY TABLE_A_UK (name) )");
+        stat.execute("CREATE TABLE TABLE_B(id IDENTITY PRIMARY KEY NOT NULL,  " +
+                "TABLE_a_id BIGINT NOT NULL,  createDate TIMESTAMP DEFAULT NOW(), " +
+                "UNIQUE KEY TABLE_B_UK (table_a_id, createDate), " +
+                "FOREIGN KEY (table_a_id) REFERENCES TABLE_A(id) )");
+        stat.execute("INSERT INTO TABLE_A (name)  SELECT 'package_' || CAST(X as VARCHAR) " +
+                "FROM SYSTEM_RANGE(1, 100)  WHERE X <= 100");
+        stat.execute("INSERT INTO TABLE_B (table_a_id, createDate)  SELECT " +
+                "CASE WHEN table_a_id = 0 THEN 1 ELSE table_a_id END, createDate " +
+                "FROM ( SELECT ROUND((RAND() * 100)) AS table_a_id, " +
+                "DATEADD('SECOND', X, NOW()) as createDate FROM SYSTEM_RANGE(1, 50000) " +
+                "WHERE X < 50000  )");
+        stat.execute("CREATE INDEX table_b_idx ON table_b(table_a_id, id)");
+        stat.execute("ANALYZE");
+
+        ResultSet rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(b.id) as id " +
+                "FROM table_b b JOIN table_a a ON b.table_a_id = a.id GROUP BY b.table_a_id " +
+                "HAVING A.ACTIVE = TRUE");
+        rs.next();
+        assertContains(rs.getString(1), "/* PUBLIC.TABLE_B_IDX: TABLE_A_ID = A.ID */");
+
+        rs = stat.executeQuery("EXPLAIN ANALYZE SELECT MAX(id) FROM table_b GROUP BY table_a_id");
+        rs.next();
+        assertContains(rs.getString(1), "/* PUBLIC.TABLE_B_IDX");
         conn.close();
     }
 }

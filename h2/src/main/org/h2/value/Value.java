@@ -5,7 +5,11 @@
  */
 package org.h2.value;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -15,9 +19,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.PrecisionModel;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -27,6 +28,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
+import org.h2.util.RasterUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 
@@ -907,7 +909,6 @@ public abstract class Value {
                 switch (getType()) {
                 case BYTES:
                     return ValueLobDb.createSmallLob(
-                            targetType, getBytesNoCopy());
                             Value.BLOB, getBytesNoCopy());
                 case TIMESTAMP_TZ:
                     throw DbException.get(
@@ -947,16 +948,9 @@ public abstract class Value {
                             throw throwUnsupportedExceptionForType(
                                     "Failed to cast raster to geometry");
                         }
-                case BYTES:
-                    return ValueGeometry.get(getBytesNoCopy());
-                case JAVA_OBJECT:
-                    Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
-                    if (DataType.isGeometry(object)) {
-                        return ValueGeometry.getFromGeometry(object);
-                    }
-                case TIMESTAMP_TZ:
-                    throw DbException.get(
-                            ErrorCode.DATA_CONVERSION_ERROR_1, getString());
+                    case TIMESTAMP_TZ:
+                        throw DbException.get(
+                                ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 }
                 break;
             }

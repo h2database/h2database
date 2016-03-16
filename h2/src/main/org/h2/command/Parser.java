@@ -2765,6 +2765,9 @@ public class Parser {
             if (isToken("SELECT") || isToken("FROM")) {
                 Query query = parseSelect();
                 r = new Subquery(query);
+            } else if (readIf("WITH")) {
+                Query query = parseWith();
+                r = new Subquery(query);
             } else {
                 throw getSyntaxError();
             }

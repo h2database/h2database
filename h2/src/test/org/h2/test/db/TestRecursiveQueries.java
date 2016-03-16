@@ -147,6 +147,10 @@ public class TestRecursiveQueries extends TestBase {
                 new int[]{ Types.INTEGER, Types.VARCHAR, Types.TIMESTAMP },
                 null, null);
 
+        rs = stat.executeQuery("select x from system_range(1,5) "
+                + "where x not in (with w(x) as (select 1 union all select x+1 from w where x<3) select x from w)");
+        assertResultSetOrdered(rs, new String[][]{{"4"}, {"5"}});
+
         conn.close();
         deleteDb("recursiveQueries");
     }

@@ -4746,6 +4746,7 @@ public class Parser {
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
         String querySQL;
+        Column[] columnTemplates = new Column[cols.length];
         try {
             read("AS");
             read("(");
@@ -4753,12 +4754,16 @@ public class Parser {
             read(")");
             withQuery.prepare();
             querySQL = StringUtils.fromCacheOrNew(withQuery.getPlanSQL());
+            ArrayList<Expression> withExpressions = withQuery.getExpressions();
+            for (int i = 0; i < cols.length; ++i) {
+                columnTemplates[i] = new Column(cols[i], withExpressions.get(i).getType());
+            }
         } finally {
             session.removeLocalTempTable(recursiveTable);
         }
         int id = database.allocateObjectId();
         TableView view = new TableView(schema, id, tempViewName, querySQL,
-                parameters, cols, session, true);
+                parameters, columnTemplates, session, true);
         view.setTableExpression(true);
         view.setTemporary(true);
         session.addLocalTempTable(view);

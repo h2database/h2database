@@ -6,7 +6,6 @@
 package org.h2.engine;
 
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -189,46 +188,48 @@ public class Engine implements SessionFactory {
                 // ignore
             }
         }
-        session.setAllowLiterals(true);
-        DbSettings defaultSettings = DbSettings.getDefaultSettings();
-        for (String setting : ci.getKeys()) {
-            if (defaultSettings.containsKey(setting)) {
-                // database setting are only used when opening the database
-                continue;
-            }
-            String value = ci.getProperty(setting);
-            try {
-                CommandInterface command = session.prepareCommand(
-                        "SET " + Parser.quoteIdentifier(setting) + " " + value,
-                        Integer.MAX_VALUE);
-                command.executeUpdate();
-            } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
-                    session.getTrace().error(e, "admin rights required; user: \"" +
-                            ci.getUserName() + "\"");
-                } else {
-                    session.getTrace().error(e, "");
+        synchronized (session) {
+            session.setAllowLiterals(true);
+            DbSettings defaultSettings = DbSettings.getDefaultSettings();
+            for (String setting : ci.getKeys()) {
+                if (defaultSettings.containsKey(setting)) {
+                    // database setting are only used when opening the database
+                    continue;
                 }
-                if (!ignoreUnknownSetting) {
-                    session.close();
-                    throw e;
+                String value = ci.getProperty(setting);
+                try {
+                    CommandInterface command = session.prepareCommand(
+                            "SET " + Parser.quoteIdentifier(setting) + " " + value,
+                            Integer.MAX_VALUE);
+                    command.executeUpdate();
+                } catch (DbException e) {
+                    if (e.getErrorCode() == ErrorCode.ADMIN_RIGHTS_REQUIRED) {
+                        session.getTrace().error(e, "admin rights required; user: \"" +
+                                ci.getUserName() + "\"");
+                    } else {
+                        session.getTrace().error(e, "");
+                    }
+                    if (!ignoreUnknownSetting) {
+                        session.close();
+                        throw e;
+                    }
                 }
             }
+            if (init != null) {
+                try {
+                    CommandInterface command = session.prepareCommand(init,
+                            Integer.MAX_VALUE);
+                    command.executeUpdate();
+                } catch (DbException e) {
+                    if (!ignoreUnknownSetting) {
+                        session.close();
+                        throw e;
+                    }
+                }
+            }
+            session.setAllowLiterals(false);
+            session.commit(true);
         }
-        if (init != null) {
-            try {
-                CommandInterface command = session.prepareCommand(init,
-                        Integer.MAX_VALUE);
-                command.executeUpdate();
-            } catch (DbException e) {
-                if (!ignoreUnknownSetting) {
-                    session.close();
-                    throw e;
-                }
-            }
-        }
-        session.setAllowLiterals(false);
-        session.commit(true);
         return session;
     }
 

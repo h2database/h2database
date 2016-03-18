@@ -649,6 +649,11 @@ public class Session extends SessionWithState {
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
+        if (SysProperties.CHECK2) {
+            if (!Thread.holdsLock(this) && !Thread.holdsLock(getDatabase())) {
+                throw DbException.throwInternalError();
+            }
+        }
         if (temporaryLobs != null) {
             for (Value v : temporaryLobs) {
                 if (!v.isLinkedToTable()) {

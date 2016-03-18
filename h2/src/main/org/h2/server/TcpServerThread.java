@@ -14,7 +14,6 @@ import java.io.StringWriter;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.engine.ConnectionInfo;
@@ -182,7 +181,9 @@ public class TcpServerThread implements Runnable {
                 server.traceError(e);
             }
             try {
-                session.close();
+                synchronized (session) {
+                    session.close();
+                }
                 server.removeConnection(threadId);
             } catch (RuntimeException e) {
                 if (closeError == null) {

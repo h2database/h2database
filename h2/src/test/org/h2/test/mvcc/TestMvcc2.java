@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -151,6 +150,7 @@ public class TestMvcc2 extends TestBase {
         assertThrows(ErrorCode.LOCK_TIMEOUT_1, conn2.createStatement()).
                 execute("select * from test where id = 3 for update");
         conn.close();
+        conn2.close();
     }
 
     private void testInsertUpdateRollback() throws SQLException {

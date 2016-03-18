@@ -41,6 +41,7 @@ public class TestRowFactory extends TestBase {
             stat.execute("insert into t1 values(" + i + ", 'name')");
         }
         assertTrue(MyTestRowFactory.COUNTER.get() >= 1000);
+        conn.close();
         deleteDb("rowFactory");
     }
 

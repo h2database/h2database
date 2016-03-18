@@ -345,7 +345,7 @@ public class TestTableEngines extends TestBase {
                 return "0".equals(b) && a != null && a < 2;
             }
         }, null);
-
+        conn.close();
         deleteDb("tableEngine");
     }
 
@@ -362,6 +362,7 @@ public class TestTableEngines extends TestBase {
                 + "(select id from QUERY_EXPR_TEST)");
         stat.executeQuery("select 1 from QUERY_EXPR_TEST_NO n "
                 + "where exists(select 1 from QUERY_EXPR_TEST y where y.id = n.id)");
+        conn.close();
         deleteDb("testQueryExpressionFlag");
     }
 
@@ -401,6 +402,7 @@ public class TestTableEngines extends TestBase {
         checkPlan(stat, "select * from (select (select id from test_plan "
                 + "where name = 'z') from dual)",
                 "MY_NAME_INDEX");
+        conn.close();
         deleteDb("testSubQueryInfo");
     }
 
@@ -469,6 +471,7 @@ public class TestTableEngines extends TestBase {
             forceJoinOrder(stat, false);
             TreeSetIndex.exec.shutdownNow();
         }
+        conn.close();
         deleteDb("testBatchedJoin");
     }
 

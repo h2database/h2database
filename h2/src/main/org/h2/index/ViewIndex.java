@@ -260,8 +260,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         } else {
             len = 0;
         }
-        int idx = originalParameters == null ? 0 : originalParameters.size();
-        idx += view.getParameterOffset();
+        int idx = view.getParameterOffset(originalParameters);
         for (int i = 0; i < len; i++) {
             int mask = indexMasks[i];
             if ((mask & IndexCondition.EQUALITY) != 0) {
@@ -313,9 +312,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         if (!q.allowGlobalConditions()) {
             return q;
         }
-        int firstIndexParam = originalParameters == null ?
-                0 : originalParameters.size();
-        firstIndexParam += view.getParameterOffset();
+        int firstIndexParam = view.getParameterOffset(originalParameters);
         IntArray paramIndex = new IntArray();
         int indexColumnCount = 0;
         for (int i = 0; i < masks.length; i++) {

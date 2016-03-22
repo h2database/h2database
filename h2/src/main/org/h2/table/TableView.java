@@ -557,8 +557,20 @@ public class TableView extends Table {
         return 0;
     }
 
-    public int getParameterOffset() {
-        return topQuery == null ? 0 : topQuery.getParameters().size();
+    public int getParameterOffset(ArrayList<Parameter> additionalParameters) {
+        int result = topQuery == null ? -1 : getMaxParameterIndex(topQuery.getParameters());
+        if (additionalParameters != null) {
+            result = Math.max(result, getMaxParameterIndex(additionalParameters));
+        }
+        return result + 1;
+    }
+
+    private int getMaxParameterIndex(ArrayList<Parameter> parameters) {
+        int result = -1;
+        for (Parameter p : parameters) {
+            result = Math.max(result, p.getIndex());
+        }
+        return result;
     }
 
     @Override

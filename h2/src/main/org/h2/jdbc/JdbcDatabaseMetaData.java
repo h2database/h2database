@@ -3163,7 +3163,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         return getTraceObjectName() + ": " + conn;
     }
 
-    private String getMode() throws SQLException {
+    protected String getMode() throws SQLException {
         if (mode == null) {
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");

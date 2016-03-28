@@ -22,11 +22,14 @@ import java.sql.RowId;
 import java.sql.SQLException;
 import java.sql.SQLXML;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.engine.Mode;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -51,6 +54,7 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueUuid;
 
 /**
  * Represents a prepared statement.
@@ -485,6 +489,15 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             if (isDebugEnabled()) {
                 debugCode("setObject("+parameterIndex+", x, "+targetSqlType+");");
             }
+            if (targetSqlType == Types.OTHER) {
+                if (x instanceof UUID) {
+                    setParameter(parameterIndex, ValueUuid.get((UUID) x));
+                    return;
+                } else if (x instanceof String && isPostgreSQL()) {
+                    setParameter(parameterIndex, ValueString.get((String) x));
+                    return;
+                }
+            }
             int type = DataType.convertSQLTypeToValueType(targetSqlType);
             if (x == null) {
                 setParameter(parameterIndex, ValueNull.INSTANCE);
@@ -495,6 +508,11 @@ public class JdbcPreparedStatement extends JdbcStatement implements
         } catch (Exception e) {
             throw logAndConvert(e);
         }
+    }
+
+    private boolean isPostgreSQL() throws SQLException {
+        final String mode = ((JdbcDatabaseMetaData) conn.getMetaData()).getMode();
+        return Mode.POSTGRESQL.equals(mode);
     }
 
     /**

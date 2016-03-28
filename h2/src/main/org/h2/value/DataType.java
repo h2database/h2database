@@ -1066,8 +1066,7 @@ public class DataType {
             }
             return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
-            UUID u = (UUID) x;
-            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+            return ValueUuid.get((UUID) x);
         } else if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());

@@ -20,6 +20,8 @@ public class Mode {
      */
     static final String REGULAR = "REGULAR";
 
+    public static final String POSTGRESQL = "PostgreSQL";
+
     private static final HashMap<String, Mode> MODES = New.hashMap();
 
     // Modes are also documented in the features section
@@ -196,7 +198,7 @@ public class Mode {
         mode.supportPoundSymbolForColumnNames = true;
         add(mode);
 
-        mode = new Mode("PostgreSQL");
+        mode = new Mode(POSTGRESQL);
         mode.aliasColumnName = true;
         mode.nullConcatIsNull = true;
         mode.supportOffsetFetch = true;

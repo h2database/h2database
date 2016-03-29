@@ -35,6 +35,7 @@ public class TestTransaction extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testClosingConnectionWithSessionTempTable();
         testClosingConnectionWithLockedTable();
         testConstraintCreationRollback();
         testCommitOnAutoCommitChange();
@@ -351,6 +352,23 @@ public class TestTransaction extends TestBase {
 
         Statement s2 = c2.createStatement();
         s2.executeQuery("select * from a for update");
+        c2.close();
+    }
+
+    private void testClosingConnectionWithSessionTempTable() throws SQLException {
+        deleteDb("transaction");
+        Connection c1 = getConnection("transaction");
+        Connection c2 = getConnection("transaction");
+        c1.setAutoCommit(false);
+        c2.setAutoCommit(false);
+
+        Statement s1 = c1.createStatement();
+        s1.execute("create local temporary table a (id int, x BLOB)");
+        c1.commit();
+        c1.close();
+
+        Statement s2 = c2.createStatement();
+        s2.execute("create table c (id int)");
         c2.close();
     }
 

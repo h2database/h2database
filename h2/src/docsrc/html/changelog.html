@@ -21,6 +21,9 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Fix bug where a lock on the SYS table was not released when closing a session that contained a temp
+table with an LOB column.
+</li>
 <li>Issue #255: ConcurrentModificationException with multiple threads in embedded mode and temporary LOBs
 </li>
 <li>Issue #235: Anonymous SSL connections fail in many situations

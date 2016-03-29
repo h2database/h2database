@@ -814,7 +814,7 @@ public class Session extends SessionWithState {
         if (!closed) {
             try {
                 database.checkPowerOff();
-                rollback();
+                rollback(); // release any open table locks
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();
@@ -949,6 +949,10 @@ public class Session extends SessionWithState {
                     } else if (table.getOnCommitTruncate()) {
                         table.truncate(this);
                     }
+                }
+                // sometimes Table#removeChildrenAndResources will take the meta lock
+                if (closeSession) {
+                    database.unlockMeta(this);
                 }
             }
         }

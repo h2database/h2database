@@ -24,6 +24,6 @@ public interface SpatialIndex extends Index {
      *            null for anything
      * @return the cursor to iterate over the results
      */
-    Cursor findByGeometry(TableFilter filter, SearchRow intersection);
+    Cursor findByGeometry(TableFilter filter, SearchRow first, SearchRow last, SearchRow intersection);
 
 }

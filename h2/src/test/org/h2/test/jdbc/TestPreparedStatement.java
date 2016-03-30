@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Connection;
@@ -785,6 +786,8 @@ public class TestPreparedStatement extends TestBase {
                 "(ID INT PRIMARY KEY,VALUE DECIMAL(20,10))");
         stat.execute("CREATE TABLE T_DATETIME" +
                 "(ID INT PRIMARY KEY,VALUE DATETIME)");
+        stat.execute("CREATE TABLE T_BIGINT" +
+                "(ID INT PRIMARY KEY,VALUE DECIMAL(30,0))");
         prep = conn.prepareStatement("INSERT INTO T_INT VALUES(?,?)",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         prep.setInt(1, 1);
@@ -881,6 +884,32 @@ public class TestPreparedStatement extends TestBase {
         rs = stat.executeQuery("SELECT VALUE FROM T_DECIMAL_0 ORDER BY ID");
         checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE,
                 "" + Long.MIN_VALUE, "10", "-20", "30", "-40" });
+        prep = conn.prepareStatement("INSERT INTO T_BIGINT VALUES(?,?)");
+        prep.setInt(1, 1);
+        prep.setObject(2, new BigInteger("" + Long.MAX_VALUE));
+        prep.executeUpdate();
+        prep.setInt(1, 2);
+        prep.setObject(2, Long.MIN_VALUE);
+        prep.executeUpdate();
+        prep.setInt(1, 3);
+        prep.setObject(2, 10);
+        prep.executeUpdate();
+        prep.setInt(1, 4);
+        prep.setObject(2, -20);
+        prep.executeUpdate();
+        prep.setInt(1, 5);
+        prep.setObject(2, 30);
+        prep.executeUpdate();
+        prep.setInt(1, 6);
+        prep.setObject(2, -40);
+        prep.executeUpdate();
+        prep.setInt(1, 7);
+        prep.setObject(2, new BigInteger("-60"));
+        prep.executeUpdate();
+
+        rs = stat.executeQuery("SELECT VALUE FROM T_BIGINT ORDER BY ID");
+        checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE,
+                "" + Long.MIN_VALUE, "10", "-20", "30", "-40", "-60" });
     }
 
     private void testGetMoreResults(Connection conn) throws SQLException {

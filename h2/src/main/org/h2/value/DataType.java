@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -1015,6 +1016,8 @@ public class DataType {
             return ValueLong.get(((Long) x).longValue());
         } else if (x instanceof Integer) {
             return ValueInt.get(((Integer) x).intValue());
+        } else if (x instanceof BigInteger) {
+            return ValueDecimal.get(new BigDecimal((BigInteger) x));
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {

@@ -9,7 +9,7 @@
     <description>H2 MVStore</description>
     <licenses>
         <license>
-            <name>MPL 2.0, and EPL 1.0</name>
+            <name>MPL 2.0 or EPL 1.0</name>
             <url>http://h2database.com/html/license.html</url>
             <distribution>repo</distribution>
         </license>

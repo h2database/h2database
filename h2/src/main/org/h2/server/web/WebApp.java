@@ -813,7 +813,7 @@ public class WebApp {
                 if (isH2) {
                     int code = se.getErrorCode();
                     error += " <a href=\"http://h2database.com/javadoc/" +
-                            "org/h2/constant/ErrorCode.html#c" + code +
+                            "org/h2/api/ErrorCode.html#c" + code +
                             "\">(${text.a.help})</a>";
                 }
             }

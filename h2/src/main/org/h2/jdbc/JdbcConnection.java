@@ -9,32 +9,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.CallableStatement;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.NClob;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLClientInfoException;
-import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.SQLXML;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.sql.Struct;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Properties;
+import java.sql.*;
+import java.util.*;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.ConnectionInfo;
-import org.h2.engine.Constants;
-import org.h2.engine.SessionInterface;
-import org.h2.engine.SessionRemote;
-import org.h2.engine.SysProperties;
+import org.h2.engine.*;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
@@ -50,6 +30,8 @@ import org.h2.value.ValueString;
 /*## Java 1.7 ##
 import java.util.concurrent.Executor;
 //*/
+
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -82,6 +64,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     private Statement executingStatement;
     private final CloseWatcher watcher;
     private int queryTimeoutCache = -1;
+
+    private Map<String, String> clientInfo;
 
     /**
      * INTERNAL
@@ -116,6 +100,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             this.url = ci.getURL();
             closeOld();
             watcher = CloseWatcher.register(this, session, keepOpenStackTrace);
+            this.clientInfo = new HashMap<String, String> ();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -139,6 +124,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
         this.watcher = null;
+        this.clientInfo = new HashMap<String, String> (clone.clientInfo);
     }
 
     /**
@@ -1661,10 +1647,20 @@ public class JdbcConnection extends TraceObject implements Connection {
 
     /**
      * Set a client property.
-     * This method always throws a SQLClientInfoException.
+     * This method always throws a SQLClientInfoException in standard mode.
+     * In compatibility mode the following properties are supported:
+     * <p><ul>
+     * <li>DB2: The properties: ApplicationName, ClientAccountingInformation, ClientUser and ClientCorrelationToken
+     * are supported.
+     * <li>MySQL: All property names are supported.
+     * <li>Oracle: All properties in the form <namespace>.<key name> are supported.
+     * <li>PostgreSQL: The ApplicationName property is supported.
+     * </ul><p>
      *
-     * @param name the name of the property (ignored)
-     * @param value the value (ignored)
+     * For unsupported properties a SQLClientInfoException is thrown.
+     *
+     * @param name the name of the property
+     * @param value the value
      */
     @Override
     public void setClientInfo(String name, String value)
@@ -1676,11 +1672,22 @@ public class JdbcConnection extends TraceObject implements Connection {
                         +quote(value)+");");
             }
             checkClosed();
-            // we don't have any client properties, so just throw
-            throw new SQLClientInfoException();
+
+            Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
+
+            if (clientInfoNameRegEx != null && clientInfoNameRegEx.matcher(name).matches()) {
+                clientInfo.put(name, value);
+            } else {
+                throw new SQLClientInfoException("Client info name '" + name + "' not supported.",
+                        Collections.<String, ClientInfoStatus> emptyMap());
+            }
         } catch (Exception e) {
             throw convertToClientInfoException(logAndConvert(e));
         }
+    }
+
+    private Mode getMode() throws SQLException {
+        return Mode.getInstance(((JdbcDatabaseMetaData) getMetaData()).getMode());
     }
 
     private static SQLClientInfoException convertToClientInfoException(
@@ -1693,8 +1700,10 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Set the client properties.
-     * This method always throws a SQLClientInfoException.
+     * Set the client properties. This replaces all existing properties.
+     *
+     * This method always throws a SQLClientInfoException in standard mode. In compatibility mode
+     * some properties may be supported (see setProperty(String, String) for details).
      *
      * @param properties the properties (ignored)
      */
@@ -1705,8 +1714,10 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("setClientInfo(properties);");
             }
             checkClosed();
-            // we don't have any client properties, so just throw
-            throw new SQLClientInfoException();
+            clientInfo.clear();
+            for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                setClientInfo((String) entry.getKey(), (String) entry.getValue());
+            }
         } catch (Exception e) {
             throw convertToClientInfoException(logAndConvert(e));
         }
@@ -1731,6 +1742,11 @@ public class JdbcConnection extends TraceObject implements Connection {
             for (int i = 0; i < serverList.size(); i++) {
                 p.setProperty("server" + String.valueOf(i), serverList.get(i));
             }
+
+            for (Map.Entry<String, String> entry : clientInfo.entrySet()) {
+                p.setProperty(entry.getKey(), entry.getValue());
+            }
+
             return p;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1740,8 +1756,8 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Get a client property.
      *
-     * @param name the client info name (ignored)
-     * @return the property value
+     * @param name the client info name
+     * @return the property value or null if the property is not found or not supported.
      */
     @Override
     public String getClientInfo(String name) throws SQLException {
@@ -1750,12 +1766,7 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCodeCall("getClientInfo", name);
             }
             checkClosed();
-            Properties p = getClientInfo();
-            String s = p.getProperty(name);
-            if (s == null) {
-                throw new SQLClientInfoException();
-            }
-            return s;
+            return getClientInfo().getProperty(name);
         } catch (Exception e) {
             throw logAndConvert(e);
         }

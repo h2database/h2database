@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
+import java.util.Properties;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -3077,6 +3079,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      */
     @Override
     public ResultSet getClientInfoProperties() throws SQLException {
+        Properties clientInfo = conn.getClientInfo();
         // we don't have any client properties, so return an empty result set
         return new SimpleResultSet();
     }
@@ -3163,7 +3166,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         return getTraceObjectName() + ": " + conn;
     }
 
-    private String getMode() throws SQLException {
+    String getMode() throws SQLException {
         if (mode == null) {
             PreparedStatement prep = conn.prepareStatement(
                     "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");

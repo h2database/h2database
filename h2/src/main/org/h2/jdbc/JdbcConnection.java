@@ -128,7 +128,7 @@ public class JdbcConnection extends TraceObject implements Connection {
             this.url = ci.getURL();
             closeOld();
             watcher = CloseWatcher.register(this, session, keepOpenStackTrace);
-            this.clientInfo = new HashMap<String, String> ();
+            this.clientInfo = new HashMap<String, String>();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -152,7 +152,7 @@ public class JdbcConnection extends TraceObject implements Connection {
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
         this.watcher = null;
-        this.clientInfo = new HashMap<String, String> (clone.clientInfo);
+        this.clientInfo = new HashMap<String, String>(clone.clientInfo);
     }
 
     /**

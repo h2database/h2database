@@ -28,6 +28,14 @@ public class TestConnection extends TestBase {
         testGetUnsupportedClientInfo();
         testSetSupportedClientInfoProperties();
         testSetUnsupportedClientInfoProperties();
+        testSetInternalProperty();
+    }
+
+    private void testSetInternalProperty() throws SQLException {
+        Connection conn = getConnection("clientInfoMySQL");
+
+        assertThrows(SQLClientInfoException.class, conn).setClientInfo("numServers", "SomeValue");
+        assertThrows(SQLClientInfoException.class, conn).setClientInfo("server23", "SomeValue");
     }
 
     private void testSetUnsupportedClientInfoProperties() throws SQLException {

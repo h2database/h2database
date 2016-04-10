@@ -70,6 +70,9 @@ import java.util.regex.Pattern;
  */
 public class JdbcConnection extends TraceObject implements Connection {
 
+    private static final String NUM_SERVERS = "numServers";
+    private static final String PREFIX_SERVER = "server";
+
     private static boolean keepOpenStackTrace;
 
     private final String url;
@@ -1698,6 +1701,10 @@ public class JdbcConnection extends TraceObject implements Connection {
             }
             checkClosed();
 
+            if (isInternalProperty(name)) {
+                throw new SQLClientInfoException("Property name '" + name + " is used internally by H2.",
+                    Collections.<String, ClientInfoStatus> emptyMap());
+            }
             Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
 
             if (clientInfoNameRegEx != null && clientInfoNameRegEx.matcher(name).matches()) {
@@ -1709,6 +1716,10 @@ public class JdbcConnection extends TraceObject implements Connection {
         } catch (Exception e) {
             throw convertToClientInfoException(logAndConvert(e));
         }
+    }
+
+    private boolean isInternalProperty(String name) {
+        return NUM_SERVERS.equals(name) || name.startsWith(PREFIX_SERVER);
     }
 
     private Mode getMode() throws SQLException {
@@ -1763,14 +1774,15 @@ public class JdbcConnection extends TraceObject implements Connection {
             ArrayList<String> serverList = session.getClusterServers();
             Properties p = new Properties();
 
-            p.setProperty("numServers", String.valueOf(serverList.size()));
-            for (int i = 0; i < serverList.size(); i++) {
-                p.setProperty("server" + String.valueOf(i), serverList.get(i));
-            }
-
             for (Map.Entry<String, String> entry : clientInfo.entrySet()) {
                 p.setProperty(entry.getKey(), entry.getValue());
             }
+
+            p.setProperty(NUM_SERVERS, String.valueOf(serverList.size()));
+            for (int i = 0; i < serverList.size(); i++) {
+                p.setProperty(PREFIX_SERVER + String.valueOf(i), serverList.get(i));
+            }
+
 
             return p;
         } catch (Exception e) {

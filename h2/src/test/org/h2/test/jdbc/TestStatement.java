@@ -73,11 +73,6 @@ public class TestStatement extends TestBase {
         map.put("x", Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
             setTypeMap(map);
-
-        assertThrows(SQLClientInfoException.class, conn).
-            setClientInfo("X", "Y");
-        assertThrows(SQLClientInfoException.class, conn).
-            setClientInfo(new Properties());
     }
 
     private void testTraceError() throws Exception {

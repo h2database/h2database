@@ -82,6 +82,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private Statement executingStatement;
     private final CloseWatcher watcher;
     private int queryTimeoutCache = -1;
+    private volatile JdbcDatabaseMetaData metaData;
 
     /**
      * INTERNAL
@@ -313,6 +314,19 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     @Override
     public DatabaseMetaData getMetaData() throws SQLException {
+        JdbcDatabaseMetaData result = this.metaData;
+        if (result == null) {
+            synchronized (this) {
+                result = this.metaData;
+                if (result == null) {
+                    this.metaData = result = createMetaData();
+                }
+            }
+        }
+        return result;
+    }
+
+    private JdbcDatabaseMetaData createMetaData() throws SQLException {
         try {
             int id = getNextId(TraceObject.DATABASE_META_DATA);
             if (isDebugEnabled()) {

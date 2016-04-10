@@ -12,7 +12,10 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -240,6 +243,39 @@ public class TestCompatibility extends TestBase {
 
         assertResult("ABC", stat, "SELECT SUBSTRING('ABCDEF' FOR 3)");
         assertResult("ABCD", stat, "SELECT SUBSTRING('0ABCDEF' FROM 2 FOR 4)");
+        // setObject(parameterIndex, UUID, Types.OTHER)
+        {
+            stat.execute("DROP TABLE IF EXISTS test");
+            stat.execute("create table test(k uuid)");
+            final PreparedStatement ps = conn.prepareStatement("insert into test (k) values (?)");
+            ps.setObject(1, new UUID(0, 1));
+            ps.execute();
+            ps.setObject(1, new UUID(0, 2), Types.OTHER);
+            ps.execute();
+            final List<String> results = new ArrayList<String>();
+            final ResultSet rs = stat.executeQuery("select k from test order by k");
+            while (rs.next()) {
+                results.add(rs.getString(1));
+            }
+            assertEquals("[00000000-0000-0000-0000-000000000001, 00000000-0000-0000-0000-000000000002]",
+                    results.toString());
+        }
+        // setObject(parameterIndex, String, Types.OTHER)
+        {
+            stat.execute("DROP TABLE IF EXISTS test");
+            stat.execute("create table test(k varchar(100))");
+            final PreparedStatement ps = conn.prepareStatement("insert into test (k) values (?)");
+            ps.setObject(1, "a");
+            ps.execute();
+            ps.setObject(1, "b", Types.OTHER);
+            ps.execute();
+            final List<String> results = new ArrayList<String>();
+            final ResultSet rs = stat.executeQuery("select k from test order by k");
+            while (rs.next()) {
+                results.add(rs.getString(1));
+            }
+            assertEquals("[a, b]", results.toString());
+        }
     }
 
     private void testMySQL() throws SQLException {

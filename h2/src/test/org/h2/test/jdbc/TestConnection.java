@@ -37,7 +37,8 @@ public class TestConnection extends TestBase {
     }
 
     private void testSetInternalProperty() throws SQLException {
-        Connection conn = getConnection("clientInfoMySQL");
+        // Use MySQL-mode since this allows all property names (apart from h2 internal names).
+        Connection conn = getConnection("clientInfoMySQL;MODE=MySQL");
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("numServers", "SomeValue");
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("server23", "SomeValue");

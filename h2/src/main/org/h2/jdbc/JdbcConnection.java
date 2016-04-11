@@ -27,6 +27,16 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
 
+/*## Java 1.7 ##
+import java.util.concurrent.Executor;
+//*/
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.regex.Pattern;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
@@ -46,17 +56,6 @@ import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
-
-/*## Java 1.7 ##
-import java.util.concurrent.Executor;
-//*/
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -94,6 +93,7 @@ public class JdbcConnection extends TraceObject implements Connection {
     private int queryTimeoutCache = -1;
 
     private Map<String, String> clientInfo;
+    private String mode;
 
     /**
      * INTERNAL
@@ -128,7 +128,6 @@ public class JdbcConnection extends TraceObject implements Connection {
             this.url = ci.getURL();
             closeOld();
             watcher = CloseWatcher.register(this, session, keepOpenStackTrace);
-            this.clientInfo = new HashMap<String, String>();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -152,7 +151,9 @@ public class JdbcConnection extends TraceObject implements Connection {
         this.getReadOnly = clone.getReadOnly;
         this.rollback = clone.rollback;
         this.watcher = null;
-        this.clientInfo = new HashMap<String, String>(clone.clientInfo);
+        if (clone.clientInfo != null) {
+            this.clientInfo = new HashMap<String, String>(clone.clientInfo);
+        }
     }
 
     /**
@@ -1705,9 +1706,13 @@ public class JdbcConnection extends TraceObject implements Connection {
                 throw new SQLClientInfoException("Property name '" + name + " is used internally by H2.",
                     Collections.<String, ClientInfoStatus> emptyMap());
             }
-            Pattern clientInfoNameRegEx = getMode().supportedClientInfoPropertiesRegEx;
+
+            Pattern clientInfoNameRegEx = Mode.getInstance(getMode()).supportedClientInfoPropertiesRegEx;
 
             if (clientInfoNameRegEx != null && clientInfoNameRegEx.matcher(name).matches()) {
+                if (clientInfo == null) {
+                    clientInfo = new HashMap<String, String>();
+                }
                 clientInfo.put(name, value);
             } else {
                 throw new SQLClientInfoException("Client info name '" + name + "' not supported.",
@@ -1718,12 +1723,8 @@ public class JdbcConnection extends TraceObject implements Connection {
         }
     }
 
-    private boolean isInternalProperty(String name) {
+    private static boolean isInternalProperty(String name) {
         return NUM_SERVERS.equals(name) || name.startsWith(PREFIX_SERVER);
-    }
-
-    private Mode getMode() throws SQLException {
-        return Mode.getInstance(((JdbcDatabaseMetaData) getMetaData()).getMode());
     }
 
     private static SQLClientInfoException convertToClientInfoException(
@@ -1750,7 +1751,11 @@ public class JdbcConnection extends TraceObject implements Connection {
                 debugCode("setClientInfo(properties);");
             }
             checkClosed();
-            clientInfo.clear();
+            if (clientInfo == null) {
+                clientInfo = new HashMap<String, String>();
+            } else {
+                clientInfo.clear();
+            }
             for (Map.Entry<Object, Object> entry : properties.entrySet()) {
                 setClientInfo((String) entry.getKey(), (String) entry.getValue());
             }
@@ -1774,8 +1779,10 @@ public class JdbcConnection extends TraceObject implements Connection {
             ArrayList<String> serverList = session.getClusterServers();
             Properties p = new Properties();
 
-            for (Map.Entry<String, String> entry : clientInfo.entrySet()) {
-                p.setProperty(entry.getKey(), entry.getValue());
+            if (clientInfo != null) {
+                for (Map.Entry<String, String> entry : clientInfo.entrySet()) {
+                    p.setProperty(entry.getKey(), entry.getValue());
+                }
             }
 
             p.setProperty(NUM_SERVERS, String.valueOf(serverList.size()));
@@ -1992,6 +1999,19 @@ public class JdbcConnection extends TraceObject implements Connection {
      */
     public void setTraceLevel(int level) {
         trace.setLevel(level);
+    }
+
+    String getMode() throws SQLException {
+        if (mode == null) {
+            PreparedStatement prep = prepareStatement(
+                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
+            prep.setString(1, "MODE");
+            ResultSet rs = prep.executeQuery();
+            rs.next();
+            mode = rs.getString(1);
+            prep.close();
+        }
+        return mode;
     }
 
 }

@@ -11,8 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Properties;
-
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -29,7 +29,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         DatabaseMetaData {
 
     private final JdbcConnection conn;
-    private String mode;
 
     JdbcDatabaseMetaData(JdbcConnection conn, Trace trace, int id) {
         setTrace(trace, TraceObject.DATABASE_META_DATA, id);
@@ -2452,7 +2451,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean supportsMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("supportsMixedCaseQuotedIdentifiers");
-        String m = getMode();
+        String m = conn.getMode();
         if (m.equals("MySQL")) {
             return false;
         }
@@ -2468,7 +2467,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesUpperCaseIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseIdentifiers");
-        String m = getMode();
+        String m = conn.getMode();
         if (m.equals("MySQL")) {
             return false;
         }
@@ -2484,7 +2483,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesLowerCaseIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseIdentifiers");
-        String m = getMode();
+        String m = conn.getMode();
         if (m.equals("MySQL")) {
             return true;
         }
@@ -2512,7 +2511,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesUpperCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesUpperCaseQuotedIdentifiers");
-        String m = getMode();
+        String m = conn.getMode();
         if (m.equals("MySQL")) {
             return true;
         }
@@ -2528,7 +2527,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesLowerCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesLowerCaseQuotedIdentifiers");
-        String m = getMode();
+        String m = conn.getMode();
         if (m.equals("MySQL")) {
             return true;
         }
@@ -2544,7 +2543,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public boolean storesMixedCaseQuotedIdentifiers() throws SQLException {
         debugCodeCall("storesMixedCaseQuotedIdentifiers");
-        String m = getMode();
+        String m = conn.getMode();
         if (m.equals("MySQL")) {
             return false;
         }
@@ -3074,14 +3073,16 @@ public class JdbcDatabaseMetaData extends TraceObject implements
         return false;
     }
 
-    /**
-     * [Not supported] Returns the client info properties.
-     */
     @Override
     public ResultSet getClientInfoProperties() throws SQLException {
         Properties clientInfo = conn.getClientInfo();
-        // we don't have any client properties, so return an empty result set
-        return new SimpleResultSet();
+        SimpleResultSet result = new SimpleResultSet();
+        result.addColumn("Name", Types.VARCHAR, 0, 0);
+        result.addColumn("Value", Types.VARCHAR, 0, 0);
+        for (Object key : clientInfo.keySet()) {
+            result.addRow(key, clientInfo.get(key));
+        }
+        return result;
     }
 
     /**
@@ -3164,19 +3165,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String toString() {
         return getTraceObjectName() + ": " + conn;
-    }
-
-    String getMode() throws SQLException {
-        if (mode == null) {
-            PreparedStatement prep = conn.prepareStatement(
-                    "SELECT VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE NAME=?");
-            prep.setString(1, "MODE");
-            ResultSet rs = prep.executeQuery();
-            rs.next();
-            mode = rs.getString(1);
-            prep.close();
-        }
-        return mode;
     }
 
 }

@@ -13,7 +13,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.test.TestBase;
@@ -1201,6 +1200,7 @@ public class TestMetaData extends TestBase {
         assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
+        assertTrue(rs.next());
         assertFalse(rs.next());
         conn.close();
         deleteDb("metaData");

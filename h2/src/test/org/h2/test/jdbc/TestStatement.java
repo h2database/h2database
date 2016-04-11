@@ -7,12 +7,10 @@ package org.h2.test.jdbc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.HashMap;
-import java.util.Properties;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -73,11 +71,6 @@ public class TestStatement extends TestBase {
         map.put("x", Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
             setTypeMap(map);
-
-        assertThrows(SQLClientInfoException.class, conn).
-            setClientInfo("X", "Y");
-        assertThrows(SQLClientInfoException.class, conn).
-            setClientInfo(new Properties());
     }
 
     private void testTraceError() throws Exception {

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import org.h2.api.ErrorCode;
+import org.h2.command.ddl.CreateSynonymData;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
@@ -24,6 +25,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.table.RegularTable;
+import org.h2.table.TableSynonym;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.util.New;
@@ -214,12 +216,12 @@ public class Schema extends DbObjectBase {
      */
     public void add(SchemaObject obj) {
         if (SysProperties.CHECK && obj.getSchema() != this) {
-            DbException.throwInternalError("wrong schema");
+            throw DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();
         HashMap<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && map.get(name) != null) {
-            DbException.throwInternalError("object already exists: " + name);
+            throw DbException.throwInternalError("object already exists: " + name);
         }
         map.put(name, obj);
         freeUniqueName(name);
@@ -236,10 +238,10 @@ public class Schema extends DbObjectBase {
         HashMap<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
-                DbException.throwInternalError("not found: " + obj.getName());
+                throw DbException.throwInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                DbException.throwInternalError("object already exists: " + newName);
+                throw DbException.throwInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();
@@ -589,6 +591,14 @@ public class Schema extends DbObjectBase {
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);
+        }
+    }
+
+    public TableSynonym createSynonym(CreateSynonymData data) {
+        synchronized (database) {
+            database.lockMeta(data.session);
+            data.schema = this;
+            return new TableSynonym(data);
         }
     }
 

@@ -76,6 +76,11 @@ public abstract class Table extends SchemaObjectBase {
     public static final String VIEW = "VIEW";
 
     /**
+     * The table type name for synonyms.
+     */
+    public static final String SYNONYM = "SYNONYM";
+
+    /**
      * The table type name for external table engines.
      */
     public static final String EXTERNAL_TABLE_ENGINE = "EXTERNAL";
@@ -621,7 +626,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public Row getTemplateRow() {
-        return database.createRow(new Value[columns.length], Row.MEMORY_CALCULATE);
+        return database.createRow(new Value[getColumns().length], Row.MEMORY_CALCULATE);
     }
 
     /**
@@ -632,9 +637,9 @@ public abstract class Table extends SchemaObjectBase {
      */
     public SearchRow getTemplateSimpleRow(boolean singleColumn) {
         if (singleColumn) {
-            return new SimpleRowValue(columns.length);
+            return new SimpleRowValue(getColumns().length);
         }
-        return new SimpleRow(new Value[columns.length]);
+        return new SimpleRow(new Value[getColumns().length]);
     }
 
     Row getNullRow() {
@@ -642,7 +647,7 @@ public abstract class Table extends SchemaObjectBase {
         if (row == null) {
             // Here can be concurrently produced more than one row, but it must
             // be ok.
-            Value[] values = new Value[columns.length];
+            Value[] values = new Value[getColumns().length];
             Arrays.fill(values, ValueNull.INSTANCE);
             nullRow = row = database.createRow(values, 1);
         }
@@ -665,7 +670,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return the column
      */
     public Column getColumn(int index) {
-        return columns[index];
+        return getColumns()[index];
     }
 
     /**
@@ -769,9 +774,9 @@ public abstract class Table extends SchemaObjectBase {
      * @param row the row
      */
     public void validateConvertUpdateSequence(Session session, Row row) {
-        for (int i = 0; i < columns.length; i++) {
+        for (int i = 0; i < getColumns().length; i++) {
             Value value = row.getValue(i);
-            Column column = columns[i];
+            Column column = getColumns()[i];
             Value v2;
             if (column.getComputed()) {
                 // force updating the value

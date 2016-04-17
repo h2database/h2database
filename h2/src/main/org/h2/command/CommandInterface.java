@@ -457,6 +457,12 @@ public interface CommandInterface {
     int ALTER_TABLE_RENAME_CONSTRAINT = 85;
 
     /**
+     * The type of a CREATE SYNONYM statement.
+     */
+    int CREATE_SYNONYM = 86;
+
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

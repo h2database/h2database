@@ -37,6 +37,7 @@ import org.h2.command.ddl.CreateLinkedTable;
 import org.h2.command.ddl.CreateRole;
 import org.h2.command.ddl.CreateSchema;
 import org.h2.command.ddl.CreateSequence;
+import org.h2.command.ddl.CreateSynonym;
 import org.h2.command.ddl.CreateTable;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.ddl.CreateTrigger;
@@ -4225,6 +4226,8 @@ public class Parser {
                 cached = database.getDefaultTableType() == Table.TYPE_CACHED;
             }
             return parseCreateTable(false, false, cached);
+        } else if (readIf("SYNONYM")) {
+            return parseCreateSynonym();
         } else {
             boolean hash = false, primaryKey = false;
             boolean unique = false, spatial = false;
@@ -6052,6 +6055,22 @@ public class Parser {
                 readColumnIdentifier();
             }
         }
+        return command;
+    }
+
+    private CreateSynonym parseCreateSynonym() {
+        boolean ifNotExists = readIfNoExists();
+        String name = readIdentifierWithSchema();
+        read("FOR");
+        String tableName = readIdentifierWithSchema();
+
+        Schema schema = getSchema();
+        CreateSynonym command = new CreateSynonym(session, schema);
+        command.setName(name);
+        command.setSynonymFor(tableName);
+        command.setComment(readCommentIf());
+        command.setIfNotExists(ifNotExists);
+        
         return command;
     }
 

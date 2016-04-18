@@ -170,6 +170,7 @@ import org.h2.test.unit.TestConnectionInfo;
 import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestDate;
 import org.h2.test.unit.TestDateIso8601;
+import org.h2.test.unit.TestDateTimeUtils;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
@@ -871,6 +872,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // serial
         addTest(new TestDate());
+        addTest(new TestDateTimeUtils());
         addTest(new TestCluster());
         addTest(new TestConcurrent());
         addTest(new TestFileLockSerialized());

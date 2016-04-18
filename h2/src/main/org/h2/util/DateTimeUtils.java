@@ -314,7 +314,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parse a time string. The format is: [-]hour:minute:second[.nanos]
+     * Parse a time string. The format is: [-]hour:minute:second[.nanos] or alternatively [-]hour.minute.second[.nanos].
      *
      * @param s the string to parse
      * @param start the parse index start
@@ -332,7 +332,14 @@ public class DateTimeUtils {
         int s2 = s.indexOf(':', s1 + 1);
         int s3 = s.indexOf('.', s2 + 1);
         if (s1 <= 0 || s2 <= s1) {
-            throw new IllegalArgumentException(s);
+            // if first try fails try to use IBM DB2 time format [-]hour.minute.second[.nanos]
+            s1 = s.indexOf('.', start);
+            s2 = s.indexOf('.', s1 + 1);
+            s3 = s.indexOf('.', s2 + 1);
+
+            if (s1 <= 0 || s2 <= s1) {
+                throw new IllegalArgumentException(s);
+            }
         }
         boolean negative;
         hour = Integer.parseInt(s.substring(start, s1));

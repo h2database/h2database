@@ -181,9 +181,7 @@ public class TcpServerThread implements Runnable {
                 server.traceError(e);
             }
             try {
-                synchronized (session) {
-                    session.close();
-                }
+                session.close();
                 server.removeConnection(threadId);
             } catch (RuntimeException e) {
                 if (closeError == null) {

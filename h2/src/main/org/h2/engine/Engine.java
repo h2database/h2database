@@ -76,52 +76,50 @@ public class Engine implements SessionFactory {
                 DATABASES.put(name, database);
             }
         }
-        synchronized (database) {
-            if (opened) {
-                // start the thread when already synchronizing on the database
-                // otherwise a deadlock can occur when the writer thread
-                // opens a new database (as in recovery testing)
-                database.opened();
-            }
-            if (database.isClosing()) {
-                return null;
-            }
-            if (user == null) {
-                if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
-                    user = database.findUser(ci.getUserName());
-                    if (user != null) {
-                        if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
-                            user = null;
-                        }
+        if (opened) {
+            // start the thread when already synchronizing on the database
+            // otherwise a deadlock can occur when the writer thread
+            // opens a new database (as in recovery testing)
+            database.opened();
+        }
+        if (database.isClosing()) {
+            return null;
+        }
+        if (user == null) {
+            if (database.validateFilePasswordHash(cipher, ci.getFilePasswordHash())) {
+                user = database.findUser(ci.getUserName());
+                if (user != null) {
+                    if (!user.validateUserPasswordHash(ci.getUserPasswordHash())) {
+                        user = null;
                     }
                 }
-                if (opened && (user == null || !user.isAdmin())) {
-                    // reset - because the user is not an admin, and has no
-                    // right to listen to exceptions
-                    database.setEventListener(null);
-                }
             }
-            if (user == null) {
-                DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
-                database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +
-                        ci.getUserName() + "\"");
-                database.removeSession(null);
-                throw er;
+            if (opened && (user == null || !user.isAdmin())) {
+                // reset - because the user is not an admin, and has no
+                // right to listen to exceptions
+                database.setEventListener(null);
             }
-            checkClustering(ci, database);
-            Session session = database.createSession(user);
-            if (ci.getProperty("JMX", false)) {
-                try {
-                    Utils.callStaticMethod(
-                            "org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
-                } catch (Exception e) {
-                    database.removeSession(session);
-                    throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
-                }
-                jmx = true;
-            }
-            return session;
         }
+        if (user == null) {
+            DbException er = DbException.get(ErrorCode.WRONG_USER_OR_PASSWORD);
+            database.getTrace(Trace.DATABASE).error(er, "wrong user or password; user: \"" +
+                    ci.getUserName() + "\"");
+            database.removeSession(null);
+            throw er;
+        }
+        checkClustering(ci, database);
+        Session session = database.createSession(user);
+        if (ci.getProperty("JMX", false)) {
+            try {
+                Utils.callStaticMethod(
+                        "org.h2.jmx.DatabaseInfo.registerMBean", ci, database);
+            } catch (Exception e) {
+                database.removeSession(session);
+                throw DbException.get(ErrorCode.FEATURE_NOT_SUPPORTED_1, e, "JMX");
+            }
+            jmx = true;
+        }
+        return session;
     }
 
     /**

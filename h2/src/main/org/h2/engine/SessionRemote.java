@@ -581,9 +581,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         }
         traceSystem.close();
         if (embedded != null) {
-            synchronized (embedded) {
-                embedded.close();
-            }
+            embedded.close();
             embedded = null;
         }
         if (closeError != null) {

@@ -17,36 +17,45 @@ import java.util.HashSet;
  */
 public class TableSynonym extends Table {
 
-    private final Table synonymFor;
+    private CreateSynonymData data;
 
     public TableSynonym(CreateSynonymData data) {
         super(data.schema, data.id, data.synonymName, false, false);
-        this.synonymFor = data.schema.getTableOrView(data.session, data.synonymFor);
+        this.data = data;
+    }
+
+    public void updateData(CreateSynonymData data) {
+        this.data = data;
+    }
+
+    private Table getSynonymFor() {
+        return data.synonymForSchema.getTableOrView(data.session, data.synonymFor);
     }
 
     @Override
     public void addDependencies(HashSet<DbObject> dependencies) {
-        dependencies.add(synonymFor);
+        // no dependency. A table synonym will not prevent the backing table from being dropped, but
+        // will become invalid instead.
     }
 
     @Override
     public Column[] getColumns() {
-        return synonymFor.getColumns();
+        return getSynonymFor().getColumns();
     }
 
     @Override
     public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
-        return synonymFor.lock(session, exclusive, forceLockEvenInMvcc);
+        return getSynonymFor().lock(session, exclusive, forceLockEvenInMvcc);
     }
 
     @Override
     public void close(Session session) {
-        synonymFor.close(session);
+        getSynonymFor().close(session);
     }
 
     @Override
     public void unlock(Session s) {
-        synonymFor.unlock(s);
+        getSynonymFor().unlock(s);
     }
 
     @Override
@@ -56,17 +65,17 @@ public class TableSynonym extends Table {
 
     @Override
     public void removeRow(Session session, Row row) {
-        synonymFor.removeRow(session, row);
+        getSynonymFor().removeRow(session, row);
     }
 
     @Override
     public void truncate(Session session) {
-        synonymFor.truncate(session);
+        getSynonymFor().truncate(session);
     }
 
     @Override
     public void addRow(Session session, Row row) {
-        synonymFor.addRow(session, row);
+        getSynonymFor().addRow(session, row);
     }
 
     @Override
@@ -81,37 +90,37 @@ public class TableSynonym extends Table {
 
     @Override
     public Index getScanIndex(Session session) {
-        return synonymFor.getScanIndex(session);
+        return getSynonymFor().getScanIndex(session);
     }
 
     @Override
     public Index getUniqueIndex() {
-        return synonymFor.getUniqueIndex();
+        return getSynonymFor().getUniqueIndex();
     }
 
     @Override
     public ArrayList<Index> getIndexes() {
-        return synonymFor.getIndexes();
+        return getSynonymFor().getIndexes();
     }
 
     @Override
     public boolean isLockedExclusively() {
-        return synonymFor.isLockedExclusively();
+        return getSynonymFor().isLockedExclusively();
     }
 
     @Override
     public long getMaxDataModificationId() {
-        return synonymFor.getMaxDataModificationId();
+        return getSynonymFor().getMaxDataModificationId();
     }
 
     @Override
     public boolean isDeterministic() {
-        return synonymFor.isDeterministic();
+        return getSynonymFor().isDeterministic();
     }
 
     @Override
     public boolean canGetRowCount() {
-        return synonymFor.canGetRowCount();
+        return getSynonymFor().canGetRowCount();
     }
 
     @Override
@@ -121,27 +130,27 @@ public class TableSynonym extends Table {
 
     @Override
     public long getRowCount(Session session) {
-        return synonymFor.getRowCount(session);
+        return getSynonymFor().getRowCount(session);
     }
 
     @Override
     public long getRowCountApproximation() {
-        return synonymFor.getRowCountApproximation();
+        return getSynonymFor().getRowCountApproximation();
     }
 
     @Override
     public long getDiskSpaceUsed() {
-        return synonymFor.getDiskSpaceUsed();
+        return getSynonymFor().getDiskSpaceUsed();
     }
 
     @Override
     public String getCreateSQL() {
-        return "CREATE SYNONYM " + getName() + " FOR " + synonymFor;
+        return "CREATE SYNONYM " + getName() + " FOR " + data.synonymForSchema.getName() + "." + data.synonymFor;
     }
 
     @Override
     public String getDropSQL() {
-        return "DROP SYNONYM " + getName() + " FOR " + synonymFor;
+        return "DROP SYNONYM " + getName();
     }
 
     @Override
@@ -150,6 +159,20 @@ public class TableSynonym extends Table {
     }
 
     public boolean canTruncate() {
-        return synonymFor.canTruncate();
+        return getSynonymFor().canTruncate();
     }
+
+    public String getSynonymForName() {
+        return data.synonymFor;
+    }
+
+    public boolean isInvalid() {
+        try {
+            getSynonymFor();
+            return false;
+        } catch (DbException e) {
+            return true;
+        }
+    }
+
 }

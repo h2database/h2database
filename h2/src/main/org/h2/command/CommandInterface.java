@@ -461,6 +461,11 @@ public interface CommandInterface {
      */
     int CREATE_SYNONYM = 86;
 
+    /**
+     * The type of a DROP SYNONYM statement.
+     */
+    int DROP_SYNONYM = 87;
+
 
     /**
      * Get command type.

@@ -1469,6 +1469,14 @@ public class Parser {
             return parseDropUserDataType();
         } else if (readIf("AGGREGATE")) {
             return parseDropAggregate();
+        } else if (readIf("SYNONYM")) {
+            boolean ifExists = readIfExists(false);
+            String synonymName = readIdentifierWithSchema();
+            DropSynonym command = new DropSynonym(session, getSchema());
+            command.setSynonymName(synonymName);
+            ifExists = readIfExists(ifExists);
+            command.setIfExists(ifExists);
+            return command;
         }
         throw getSyntaxError();
     }
@@ -4227,7 +4235,7 @@ public class Parser {
             }
             return parseCreateTable(false, false, cached);
         } else if (readIf("SYNONYM")) {
-            return parseCreateSynonym();
+            return parseCreateSynonym(orReplace);
         } else {
             boolean hash = false, primaryKey = false;
             boolean unique = false, spatial = false;
@@ -6058,19 +6066,21 @@ public class Parser {
         return command;
     }
 
-    private CreateSynonym parseCreateSynonym() {
+    private CreateSynonym parseCreateSynonym(boolean orReplace) {
         boolean ifNotExists = readIfNoExists();
         String name = readIdentifierWithSchema();
+        Schema synonymSchema = getSchema();
         read("FOR");
         String tableName = readIdentifierWithSchema();
 
-        Schema schema = getSchema();
-        CreateSynonym command = new CreateSynonym(session, schema);
+        Schema targetSchema = getSchema();
+        CreateSynonym command = new CreateSynonym(session, synonymSchema);
         command.setName(name);
         command.setSynonymFor(tableName);
+        command.setSynonymForSchema(targetSchema);
         command.setComment(readCommentIf());
         command.setIfNotExists(ifNotExists);
-        
+        command.setOrReplace(orReplace);
         return command;
     }
 

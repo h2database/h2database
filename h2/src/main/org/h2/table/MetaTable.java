@@ -108,7 +108,8 @@ public class MetaTable extends Table {
     private static final int LOCKS = 26;
     private static final int SESSION_STATE = 27;
     private static final int QUERY_STATISTICS = 28;
-    private static final int META_TABLE_TYPE_COUNT = QUERY_STATISTICS + 1;
+    private static final int SYNONYMS = 29;
+    private static final int META_TABLE_TYPE_COUNT = SYNONYMS + 1;
 
     private final int type;
     private final int indexColumn;
@@ -536,6 +537,20 @@ public class MetaTable extends Table {
                     "STD_DEV_ROW_COUNT DOUBLE"
             );
             break;
+        }
+        case SYNONYMS: {
+                setObjectName("SYNONYMS");
+                cols = createColumns(
+                        "SYNONYM_CATALOG",
+                        "SYNONYM_SCHEMA",
+                        "SYNONYM_NAME",
+                        "SYNONYM_FOR",
+                        "STATUS",
+                        "REMARKS",
+                        "ID INT"
+                );
+                indexColumnName = "SYNONYM_NAME";
+                break;
         }
         default:
             throw DbException.throwInternalError("type="+type);
@@ -1858,6 +1873,32 @@ public class MetaTable extends Table {
             }
             break;
         }
+        case SYNONYMS: {
+                for (Table table : getAllTables(session)) {
+                    if (!table.getTableType().equals(Table.SYNONYM)) {
+                        continue;
+                    }
+                    String synonymName = identifier(table.getName());
+                    TableSynonym synonym = (TableSynonym) table;
+                    add(rows,
+                            // SYNONYM_CATALOG
+                            catalog,
+                            // SYNONYM_SCHEMA
+                            identifier(table.getSchema().getName()),
+                            // SYNONYM_NAME
+                            synonymName,
+                            // SYNONYM_FOR
+                            synonym.getSynonymForName(),
+                            // STATUS
+                            synonym.isInvalid() ? "INVALID" : "VALID",
+                            // REMARKS
+                            replaceNullWithEmpty(synonym.getComment()),
+                            // ID
+                            "" + synonym.getId()
+                    );
+                }
+                break;
+            }
         default:
             DbException.throwInternalError("type="+type);
         }

@@ -5,9 +5,15 @@
  */
 package org.h2.test.db;
 
+import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Test for the read-only database feature.
@@ -24,18 +30,158 @@ public class TestSynonymForTable extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {
+    public void test() throws SQLException {
         testSelectFromSynonym();
         testInsertIntoSynonym();
         testDeleteFromSynonym();
         testTruncateSynonym();
-        // TODO: check create existing tablename
-        // TODO: check create for non existing table
-        // TODO: Test Meta Data
-        // TODO: CREATE OR REPLACE TableSynonym.
-        // TODO: Check schema name in synonym and table
+        testExistingTableName();
+        testCreateForUnknownTable();
+        testMetaData();
+        testCreateOrReplace();
+        testCreateOrReplaceExistingTable();
+        testSynonymInDifferentSchema();
         testReopenDatabase();
-        // TODO: test drop synonym.
+        testDropSynonym();
+        testDropTable();
+        testDropSchema();
+    }
+
+    private void testDropSchema() throws SQLException {
+        Connection conn = getConnection("synonym");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE SCHEMA IF NOT EXISTS s1");
+        stat.execute("CREATE TABLE IF NOT EXISTS s1.backingtable(id INT PRIMARY KEY)");
+        stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR s1.backingtable");
+        stat.execute("DROP SCHEMA s1");
+
+        assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
+    }
+
+    private void testDropTable() throws SQLException  {
+        Connection conn = getConnection("synonym");
+        createTableWithSynonym(conn);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE backingtable");
+
+        // Backing table does not exist anymore.
+        assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
+
+        // Meta data should show INVALID
+        ResultSet synonyms = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYNONYMS WHERE SYNONYM_NAME='TESTSYNONYM'");
+        assertTrue(synonyms.next());
+        assertEquals("TESTSYNONYM", synonyms.getString("SYNONYM_NAME"));
+        assertEquals("INVALID", synonyms.getString("STATUS"));
+        conn.close();
+
+        // Reopending should work with invalid synonym
+        Connection conn2 = getConnection("synonym");
+        assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
+        conn2.close();
+    }
+
+    private void testDropSynonym() throws SQLException {
+        Connection conn = getConnection("synonym");
+        createTableWithSynonym(conn);
+        Statement stat = conn.createStatement();
+
+        stat.execute("DROP SYNONYM testsynonym");
+
+        // Synonym does not exist anymore.
+        assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
+
+        // Dropping with "if exists" should succeed even if the synonym does not exist anymore.
+        stat.execute("DROP SYNONYM IF EXISTS testsynonym");
+
+        // Without "if exists" the command should fail.
+        assertThrows(JdbcSQLException.class, stat).execute("DROP SYNONYM testsynonym");
+    }
+
+    private void testSynonymInDifferentSchema() throws SQLException {
+        Connection conn = getConnection("synonym");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE SCHEMA IF NOT EXISTS s1");
+        stat.execute("CREATE TABLE IF NOT EXISTS s1.backingtable(id INT PRIMARY KEY)");
+        stat.execute("TRUNCATE TABLE s1.backingtable");
+        stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR s1.backingtable");
+        stat.execute("INSERT INTO s1.backingtable VALUES(15)");
+        assertSynonymContains(conn, 15);
+    }
+
+    private void testCreateOrReplaceExistingTable() throws SQLException {
+        Connection conn = getConnection("synonym");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS backingtable(id INT PRIMARY KEY)");
+
+        assertThrows(JdbcSQLException.class, stat).execute("CREATE OR REPLACE SYNONYM backingtable FOR backingtable");
+        conn.close();
+    }
+
+    private void testCreateOrReplace() throws SQLException {
+        // start with a fresh db so the first create or replace has to actually create the synonym.
+        deleteDb("synonym");
+        Connection conn = getConnection("synonym");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS backingtable(id INT PRIMARY KEY)");
+        stat.execute("CREATE TABLE IF NOT EXISTS backingtable2(id INT PRIMARY KEY)");
+        stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR backingtable");
+        insertIntoBackingTable(conn, 17);
+
+        ResultSet rs = stat.executeQuery("SELECT id FROM testsynonym");
+        assertTrue(rs.next());
+        assertEquals(17, rs.getInt(1));
+
+        stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR backingtable2");
+
+        // Should not return a result, since backingtable2 is empty.
+        ResultSet rs2 = stat.executeQuery("SELECT id FROM testsynonym");
+        assertFalse(rs2.next());
+        conn.close();
+
+        deleteDb("synonym");
+    }
+
+    private void testMetaData() throws SQLException {
+        Connection conn = getConnection("synonym");
+        createTableWithSynonym(conn);
+
+        ResultSet tables = conn.getMetaData().getTables(null, Constants.SCHEMA_MAIN, null,
+                new String[]{"SYNONYM"});
+        assertTrue(tables.next());
+        assertEquals(tables.getString("TABLE_NAME"), "TESTSYNONYM");
+        assertEquals(tables.getString("TABLE_TYPE"), "SYNONYM");
+        assertFalse(tables.next());
+
+        ResultSet synonyms = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYNONYMS");
+        assertTrue(synonyms.next());
+        assertEquals("SYNONYM", synonyms.getString("SYNONYM_CATALOG"));
+        assertEquals("PUBLIC", synonyms.getString("SYNONYM_SCHEMA"));
+        assertEquals("TESTSYNONYM", synonyms.getString("SYNONYM_NAME"));
+        assertEquals("BACKINGTABLE", synonyms.getString("SYNONYM_FOR"));
+        assertEquals("VALID", synonyms.getString("STATUS"));
+        assertEquals("", synonyms.getString("REMARKS"));
+        assertTrue(synonyms.getString("ID") != null);
+        assertFalse(synonyms.next());
+        conn.close();
+    }
+
+    private void testCreateForUnknownTable() throws SQLException {
+        Connection conn = getConnection("synonym");
+        Statement stat = conn.createStatement();
+
+        assertThrows(JdbcSQLException.class, stat).execute("CREATE SYNONYM someSynonym FOR nonexistingTable");
+        conn.close();
+    }
+
+    private void testExistingTableName() throws SQLException {
+        Connection conn = getConnection("synonym");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS backingtable(id INT PRIMARY KEY)");
+
+        assertThrows(JdbcSQLException.class, stat).execute("CREATE SYNONYM backingtable FOR backingtable");
+        conn.close();
     }
 
     /**
@@ -125,14 +271,14 @@ public class TestSynonymForTable extends TestBase {
 
     private void insertIntoSynonym(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement(
-                "insert into testsynonym values(?)");
+                "INSERT INTO testsynonym VALUES(?)");
         prep.setInt(1, id);
         prep.execute();
     }
 
     private void insertIntoBackingTable(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement(
-                "insert into backingtable values(?)");
+                "INSERT INTO backingtable VALUES(?)");
         prep.setInt(1, id);
         prep.execute();
     }
@@ -140,7 +286,7 @@ public class TestSynonymForTable extends TestBase {
     private void createTableWithSynonym(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS backingtable(id INT PRIMARY KEY)");
-        stat.execute("CREATE SYNONYM IF NOT EXISTS testsynonym FOR backingtable");
+        stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR backingtable");
         stat.execute("TRUNCATE TABLE backingtable");
     }
 

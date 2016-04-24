@@ -28,6 +28,9 @@ public class CreateSynonymData {
      */
     public String synonymFor;
 
+    /** Schema synonymFor is located in. */
+    public Schema synonymForSchema;
+
     /**
      * The object id.
      */
@@ -37,6 +40,5 @@ public class CreateSynonymData {
      * The session.
      */
     public Session session;
-
 
 }

@@ -26,6 +26,7 @@ public class CreateSynonym extends SchemaCommand {
 
     private final CreateSynonymData data = new CreateSynonymData();
     private boolean ifNotExists;
+    private boolean orReplace;
     private String comment;
 
     public CreateSynonym(Session session, Schema schema) {
@@ -40,9 +41,15 @@ public class CreateSynonym extends SchemaCommand {
         data.synonymFor = tableName;
     }
 
+    public void setSynonymForSchema(Schema synonymForSchema) {
+        data.synonymForSchema = synonymForSchema;
+    }
+
     public void setIfNotExists(boolean ifNotExists) {
         this.ifNotExists = ifNotExists;
     }
+
+    public void setOrReplace(boolean orReplace) { this.orReplace = orReplace; }
 
     @Override
     public int update() {
@@ -50,56 +57,46 @@ public class CreateSynonym extends SchemaCommand {
             session.commit(true);
         }
         Database db = session.getDatabase();
-
+        data.session = session;
         // TODO: Check when/if meta data is unlocked...
         db.lockMeta(session);
 
-        if (getSchema().findTableOrView(session, data.synonymName) != null) {
-            if (ifNotExists) {
+        Table old = getSchema().findTableOrView(session, data.synonymName);
+        if (old != null) {
+            if (orReplace && old instanceof TableSynonym) {
+                // ok, we replacing the existing synonym
+            } else if (ifNotExists && old instanceof TableSynonym) {
                 return 0;
+            } else {
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
             }
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
         }
 
-        data.id = getObjectId();
-        data.session = session;
-        TableSynonym table = getSchema().createSynonym(data);
-        table.setComment(comment);
+        validateBackingTableExists();
 
-        db.addSchemaObject(session, table);
+        TableSynonym table;
 
-        try {
-            HashSet<DbObject> set = New.hashSet();
-            set.clear();
-            table.addDependencies(set);
-            for (DbObject obj : set) {
-                if (obj == table) {
-                    continue;
-                }
-                if (obj.getType() == DbObject.TABLE_OR_VIEW) {
-                    if (obj instanceof Table) {
-                        Table t = (Table) obj;
-                        if (t.getId() > table.getId()) {
-                            throw DbException.get(
-                                    ErrorCode.FEATURE_NOT_SUPPORTED_1,
-                                    "TableSynonym depends on another table " +
-                                    "with a higher ID: " + t +
-                                    ", this is currently not supported, " +
-                                    "as it would prevent the database from " +
-                                    "being re-opened");
-                        }
-                    }
-                }
-            }
-        } catch (DbException e) {
-            db.checkPowerOff();
-            db.removeSchemaObject(session, table);
-            if (!transactional) {
-                session.commit(true);
-            }
-            throw e;
+        if (old != null) {
+            table = (TableSynonym) old;
+            data.schema = table.getSchema();
+            table.updateData(data);
+            table.setModified();
+        } else {
+            data.id = getObjectId();
+            table = getSchema().createSynonym(data);
+            table.setComment(comment);
+
+            db.addSchemaObject(session, table);
         }
         return 0;
+    }
+
+    private void validateBackingTableExists() {
+        // This call throws an exception if the table does not exist.
+        if (data.synonymForSchema.findTableOrView(session, data.synonymFor) == null) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
+                    data.synonymForSchema.getName() + "." + data.synonymFor);
+        }
     }
 
     public void setComment(String comment) {
@@ -110,5 +107,6 @@ public class CreateSynonym extends SchemaCommand {
     public int getType() {
         return CommandInterface.CREATE_SYNONYM;
     }
+
 
 }

@@ -8,15 +8,11 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.TableSynonym;
 import org.h2.table.Table;
-import org.h2.util.New;
-
-import java.util.HashSet;
 
 /**
  * This class represents the statement
@@ -61,6 +57,21 @@ public class CreateSynonym extends SchemaCommand {
         // TODO: Check when/if meta data is unlocked...
         db.lockMeta(session);
 
+        // This call throws an exception if the table does not exist.
+        if (data.synonymForSchema.findTableOrView(session, data.synonymFor) != null) {
+            return createTableSynonym(db);
+        } else if (data.synonymForSchema.findFunction(data.synonymFor) != null) {
+            // TODO Implement function synonym
+        } else if (data.synonymForSchema.findSequence(data.synonymFor) != null) {
+            // TODO Implement sequence synonym
+        }
+
+        throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
+                data.synonymForSchema.getName() + "." + data.synonymFor);
+
+    }
+
+    private int createTableSynonym(Database db) {
         Table old = getSchema().findTableOrView(session, data.synonymName);
         if (old != null) {
             if (orReplace && old instanceof TableSynonym) {
@@ -71,8 +82,6 @@ public class CreateSynonym extends SchemaCommand {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
             }
         }
-
-        validateBackingTableExists();
 
         TableSynonym table;
 
@@ -88,15 +97,8 @@ public class CreateSynonym extends SchemaCommand {
 
             db.addSchemaObject(session, table);
         }
-        return 0;
-    }
 
-    private void validateBackingTableExists() {
-        // This call throws an exception if the table does not exist.
-        if (data.synonymForSchema.findTableOrView(session, data.synonymFor) == null) {
-            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
-                    data.synonymForSchema.getName() + "." + data.synonymFor);
-        }
+        return 0;
     }
 
     public void setComment(String comment) {

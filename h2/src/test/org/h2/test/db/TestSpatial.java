@@ -93,6 +93,7 @@ public class TestSpatial extends TestBase {
         testNullableGeometryDelete();
         testNullableGeometryInsert();
         testNullableGeometryUpdate();
+        testIndexUpdateNullGeometry();
     }
     
     private void testBug1() throws SQLException {
@@ -1074,4 +1075,41 @@ public class TestSpatial extends TestBase {
         deleteDb("spatial");
     }
 
+    public void testIndexUpdateNullGeometry() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(url);
+        Statement stat = conn.createStatement();
+        stat.execute("drop table if exists DUMMY_11;");
+        stat.execute("CREATE TABLE PUBLIC.DUMMY_11 (fid serial,  GEOM GEOMETRY);");
+        stat.execute("CREATE SPATIAL INDEX PUBLIC_DUMMY_11_SPATIAL_INDEX on" +
+                " PUBLIC.DUMMY_11(GEOM);");
+        stat.execute("insert into PUBLIC.DUMMY_11(geom) values(null);");
+        stat.execute("update PUBLIC.DUMMY_11 set geom =" +
+                " 'POLYGON ((1 1, 5 1, 5 5, 1 5, 1 1))';");
+        ResultSet rs = stat.executeQuery("select fid, GEOM from DUMMY_11 " +
+                "where  GEOM && " +
+                "'POLYGON" +
+                "((1 1,5 1,5 5,1 5,1 1))';");
+        try {
+            assertTrue(rs.next());
+            assertEquals("POLYGON ((1 1, 5 1, 5 5, 1 5, 1 1))", rs.getString(2));
+        } finally {
+            rs.close();
+        }
+        // Update again the geometry elsewhere
+        stat.execute("update PUBLIC.DUMMY_11 set geom =" +
+                " 'POLYGON ((10 10, 50 10, 50 50, 10 50, 10 10))';");
+
+        rs = stat.executeQuery("select fid, GEOM from DUMMY_11 " +
+                "where  GEOM && " +
+                "'POLYGON ((10 10, 50 10, 50 50, 10 50, 10 10))';");
+        try {
+            assertTrue(rs.next());
+            assertEquals("POLYGON ((10 10, 50 10, 50 50, 10 50, 10 10))", rs.getString(2));
+        } finally {
+            rs.close();
+        }
+        conn.close();
+        deleteDb("spatial");
+    }
 }

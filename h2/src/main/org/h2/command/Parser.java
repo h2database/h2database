@@ -54,6 +54,7 @@ import org.h2.command.ddl.DropIndex;
 import org.h2.command.ddl.DropRole;
 import org.h2.command.ddl.DropSchema;
 import org.h2.command.ddl.DropSequence;
+import org.h2.command.ddl.DropSynonym;
 import org.h2.command.ddl.DropTable;
 import org.h2.command.ddl.DropTrigger;
 import org.h2.command.ddl.DropUser;

@@ -16,7 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Test for the read-only database feature.
+ * Tests for table synonyms.
  */
 public class TestSynonymForTable extends TestBase {
 
@@ -33,6 +33,7 @@ public class TestSynonymForTable extends TestBase {
     public void test() throws SQLException {
         testSelectFromSynonym();
         testInsertIntoSynonym();
+        testInsertWithColumnNameIntoSynonym();
         testDeleteFromSynonym();
         testTruncateSynonym();
         testExistingTableName();
@@ -241,6 +242,18 @@ public class TestSynonymForTable extends TestBase {
 
         insertIntoSynonym(conn, 5);
         assertBackingTableContains(conn, 5);
+        conn.close();
+    }
+
+    private void testInsertWithColumnNameIntoSynonym() throws SQLException {
+        Connection conn = getConnection("synonym");
+        createTableWithSynonym(conn);
+
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO testsynonym (id) VALUES(?)");
+        prep.setInt(1, 55);
+        prep.execute();
+        assertBackingTableContains(conn, 55);
         conn.close();
     }
 

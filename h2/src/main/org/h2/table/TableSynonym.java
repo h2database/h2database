@@ -44,6 +44,16 @@ public class TableSynonym extends Table {
     }
 
     @Override
+    public Column getColumn(String columnName) {
+        return getSynonymFor().getColumn(columnName);
+    }
+
+    @Override
+    public Column getColumn(int index) {
+        return getSynonymFor().getColumn(index);
+    }
+
+    @Override
     public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
         return getSynonymFor().lock(session, exclusive, forceLockEvenInMvcc);
     }

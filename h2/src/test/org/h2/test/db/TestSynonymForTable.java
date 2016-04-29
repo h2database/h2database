@@ -34,6 +34,7 @@ public class TestSynonymForTable extends TestBase {
         testSelectFromSynonym();
         testInsertIntoSynonym();
         testInsertWithColumnNameIntoSynonym();
+        testUpdate();
         testDeleteFromSynonym();
         testTruncateSynonym();
         testExistingTableName();
@@ -48,6 +49,19 @@ public class TestSynonymForTable extends TestBase {
         testDropSchema();
     }
 
+    private void testUpdate() throws SQLException {
+        Connection conn = getConnection("synonym");
+        createTableWithSynonym(conn);
+        insertIntoSynonym(conn, 25);
+
+        Statement stmnt = conn.createStatement();
+        assertEquals(1, stmnt.executeUpdate("UPDATE testsynonym set id = 30 WHERE id = 25"));
+
+        assertSynonymContains(conn, 30);
+
+        conn.close();
+    }
+
     private void testDropSchema() throws SQLException {
         Connection conn = getConnection("synonym");
         Statement stat = conn.createStatement();
@@ -58,6 +72,7 @@ public class TestSynonymForTable extends TestBase {
         stat.execute("DROP SCHEMA s1");
 
         assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
+        conn.close();
     }
 
     private void testDropTable() throws SQLException  {

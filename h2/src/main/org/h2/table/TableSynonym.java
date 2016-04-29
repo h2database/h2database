@@ -54,6 +54,11 @@ public class TableSynonym extends Table {
     }
 
     @Override
+    public Row getTemplateRow() {
+        return getSynonymFor().getTemplateRow();
+    }
+
+    @Override
     public boolean lock(Session session, boolean exclusive, boolean forceLockEvenInMvcc) {
         return getSynonymFor().lock(session, exclusive, forceLockEvenInMvcc);
     }

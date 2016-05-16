@@ -14,6 +14,7 @@ import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
+import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
@@ -88,10 +89,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
         table.lock(session, true, true);
         if (newColumn != null) {
             checkDefaultReferencesTable(newColumn.getDefaultExpression());
+            checkClustering(newColumn);
         }
         if (columnsToAdd != null) {
             for (Column column : columnsToAdd) {
                 checkDefaultReferencesTable(column.getDefaultExpression());
+                checkClustering(column);
             }
         }
         switch (type) {
@@ -194,6 +197,15 @@ public class AlterTableAlterColumn extends SchemaCommand {
         if (dependencies.contains(table)) {
             throw DbException.get(ErrorCode.COLUMN_IS_REFERENCED_1,
                     defaultExpression.getSQL());
+        }
+    }
+
+    private void checkClustering(Column c) {
+        if (!Constants.CLUSTERING_DISABLED
+                .equals(session.getDatabase().getCluster())
+                && c.isAutoIncrement()) {
+            throw DbException.getUnsupportedException(
+                    "CLUSTERING && auto-increment columns");
         }
     }
 

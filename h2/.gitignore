@@ -10,3 +10,5 @@ ext
 error.*
 temp
 test.out.txt
+.idea/
+*.log

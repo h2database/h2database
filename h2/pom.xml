@@ -125,6 +125,15 @@
   <build>
     <sourceDirectory>src/main</sourceDirectory>
     <testSourceDirectory>src/test</testSourceDirectory>
+    <!-- Resources do not follow maven project layout. We need to manually copy them -->
+    <resources>
+      <resource>
+        <directory>src/main</directory>
+        <includes>
+          <include>**/*.prop</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <!-- Add tools folder to test sources but consider moving them to src/test -->
       <plugin>

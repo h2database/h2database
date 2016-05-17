@@ -75,7 +75,7 @@
     <!-- END COMPILE DEPENDENCIES !-->
 
 
-    <!-- START BENCHMARK DEPENDENCIES !-->
+    <!-- START TEST DEPENDENCIES !-->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
@@ -118,7 +118,13 @@
       <version>5.1.6</version>
       <scope>test</scope>
     </dependency>
-    <!-- END BENCHMARK DEPENDENCIES !-->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- END TEST DEPENDENCIES !-->
 
     <!--  JDK dependencies  -->
     <dependency>
@@ -166,7 +172,14 @@
         <directory>src/main</directory>
         <includes>
           <include>**/*.prop</include>
+          <include>**/*.png</include>
+          <include>**/*.jsp</include>
+          <include>**/*.ico</include>
+          <include>**/*.gif</include>
+          <include>**/*.css</include>
           <include>org/h2/res/help.csv</include>
+          <include>org/h2/res/javadoc.properties</include>
+          <include>org/h2/server/pg/pg_catalog.sql</include>
         </includes>
       </resource>
     </resources>
@@ -240,46 +253,16 @@
           </signature>
         </configuration>
       </plugin>
-      <!-- Run our custom test suite.
-           This needed to be done with exec:exec as that forks a JVM otherwise there were difficulties
-           getting the ProxyCodeGenerator to work (maven uses a different ClassLoader) -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.5.0</version>
-        <executions>
-          <execution>
-            <id>default-test</id>
-            <phase>test</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <classpathScope>test</classpathScope>
-          <executable>java</executable>
-          <arguments>
-            <argument>-classpath</argument>
-            <!-- automatically creates the classpath using all project dependencies,
-                 also adding the project build directory -->
-            <classpath/>
-            <argument>org.h2.test.TestAll</argument>
-            <argument>fast</argument>
-          </arguments>
-        </configuration>
-      </plugin>
       <!-- Disable surefire since we don't use Junit -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.19.1</version>
-        <executions>
-          <execution>
-            <id>default-test</id>
-            <phase>none</phase>
-          </execution>
-        </executions>
+        <configuration>
+          <includes>
+            <include>TestAllJunit.java</include>
+          </includes>
+        </configuration>
       </plugin>
 
     </plugins>

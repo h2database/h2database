@@ -7,12 +7,6 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
 * Browser based Console application
 * Small footprint: around 1.5 MB jar file size
 
-##Building
-
-```
-./build.sh compile
-```
-
 ##Experimental Building & Testing with Maven
 
 ###Setup JDK

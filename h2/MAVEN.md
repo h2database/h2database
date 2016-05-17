@@ -43,3 +43,11 @@ H2 uses [Maven Wrapper](https://github.com/takari/maven-wrapper) setup, you can 
 or
 
 > $ ./mvnw.cmd clean test
+
+###Running
+
+You can run the server like this
+
+```
+mvn exec:java -Dexec.mainClass=org.h2.tools.Server  
+```

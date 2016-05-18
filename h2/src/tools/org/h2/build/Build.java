@@ -238,6 +238,7 @@ public class Build extends BuildBase {
         if (!clientOnly) {
             files = files("src/test");
             files.addAll(files("src/tools"));
+            files = files.exclude("src/test/org/h2/test/TestAllJunit.java"); //we don't use Junit for this test framework
             args = args("-Xlint:unchecked", "-Xlint:deprecation",
                     "-d", "temp", "-sourcepath", "src/test" + File.pathSeparator + "src/tools",
                     "-classpath", classpath);

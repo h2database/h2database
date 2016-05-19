@@ -76,6 +76,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testIfNull();
         testToDate();
         testToDateException();
         testAddMonths();
@@ -1656,6 +1657,21 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.executeUpdate("INSERT INTO T VALUES (TIMESTAMP '1985-01-01 08:12:34.560')");
         assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
 
+        conn.close();
+    }
+    private void testIfNull() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        stat.execute("CREATE TABLE T(f1 double)");
+        stat.executeUpdate("INSERT INTO T VALUES( 1.2 )");
+        stat.executeUpdate("INSERT INTO T VALUES( null )");
+        ResultSet rs = stat.executeQuery("SELECT IFNULL(f1, 0.0) FROM T");
+        ResultSetMetaData metaData = rs.getMetaData();
+        assertEquals("java.lang.Double", metaData.getColumnClassName(1));
+        rs.next();
+        assertEquals("java.lang.Double", rs.getObject(1).getClass().getName());
+        rs.next();
+        assertEquals("java.lang.Double", rs.getObject(1).getClass().getName());
         conn.close();
     }
 

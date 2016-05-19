@@ -54,6 +54,8 @@ table with an LOB column.
 </li>
 <li>improve performance of queries that use LIKE 'foo%' - 10x in the case of one of my queries
 </li>
+<li>The function IFNULL did not always return the result in the right data type.
+</li>
 <li>Issue #231: Possible infinite loop when initializing the ObjectDataType class
     when concurrently writing into MVStore.
 </li>
@@ -61,6 +63,8 @@ table with an LOB column.
 
 <h2>Version 1.4.191 Beta (2016-01-21)</h2>
 <ul>
+<li>TO_DATE and TO_TIMESTAMP functions. Thanks a lot to Sam Blume for the patch!
+</li>
 <li>Issue #229: DATEDIFF does not work for 'WEEK'.
 </li>
 <li>Issue #156: Add support for getGeneratedKeys() when executing commands via PreparedStatement#executeBatch.

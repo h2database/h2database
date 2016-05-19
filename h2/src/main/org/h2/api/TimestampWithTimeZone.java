@@ -9,17 +9,21 @@ import java.sql.Timestamp;
 
 /**
  * Extends java.sql.Timestamp to add our time zone information.
- *
  */
 public class TimestampWithTimeZone extends Timestamp {
+
+    /**
+     * The serial version UID.
+     */
+    private static final long serialVersionUID = 4413229090646777107L;
 
     /**
      * Time zone offset from UTC in minutes, range of -12hours to +12hours
      */
     private final short timeZoneOffsetMins;
 
-    public TimestampWithTimeZone(long time_ms, int nanos, short timeZoneOffsetMins) {
-        super(time_ms);
+    public TimestampWithTimeZone(long timeMillis, int nanos, short timeZoneOffsetMins) {
+        super(timeMillis);
         setNanos(nanos);
         this.timeZoneOffsetMins = timeZoneOffsetMins;
     }
@@ -43,15 +47,19 @@ public class TimestampWithTimeZone extends Timestamp {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (!super.equals(obj))
+        }
+        if (!super.equals(obj)) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         TimestampWithTimeZone other = (TimestampWithTimeZone) obj;
-        if (timeZoneOffsetMins != other.timeZoneOffsetMins)
+        if (timeZoneOffsetMins != other.timeZoneOffsetMins) {
             return false;
+        }
         return true;
     }
 }

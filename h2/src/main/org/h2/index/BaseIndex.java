@@ -156,6 +156,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param filter the current table filter index
      * @param sortOrder the sort order
      * @param isScanIndex whether this is a "table scan" index
+     * @param allColumnsSet the set of all columns
      * @return the estimated cost
      */
     protected final long getCostRangeIndex(int[] masks, long rowCount,
@@ -240,8 +241,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             }
         }
         // If we have two indexes with the same cost, and one of the indexes can
-        // satisfy the query without needing to read from the primary table (scan index),
-        // make that one slightly lower cost.
+        // satisfy the query without needing to read from the primary table
+        // (scan index), make that one slightly lower cost.
         boolean needsToReadFromScanIndex = true;
         if (!isScanIndex && allColumnsSet != null && !allColumnsSet.isEmpty()) {
             boolean foundAllColumnsWeNeed = true;

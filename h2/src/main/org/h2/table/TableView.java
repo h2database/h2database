@@ -557,6 +557,12 @@ public class TableView extends Table {
         return 0;
     }
 
+    /**
+     * Get the index of the first parameter.
+     *
+     * @param additionalParameters additional parameters
+     * @return the index of the first parameter
+     */
     public int getParameterOffset(ArrayList<Parameter> additionalParameters) {
         int result = topQuery == null ? -1 : getMaxParameterIndex(topQuery.getParameters());
         if (additionalParameters != null) {

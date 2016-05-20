@@ -52,18 +52,20 @@ public class CipherFactory {
      */
     public static final String KEYSTORE_PASSWORD =
             "h2pass";
+
     /**
      * The security property which can prevent anonymous TLS connections.
-     * Introduced into Java 6,7,8 in updates from July 2015.
+     * Introduced into Java 6, 7, 8 in updates from July 2015.
      */
     public static final String LEGACY_ALGORITHMS_SECURITY_KEY =
             "jdk.tls.legacyAlgorithms";
+
     /**
      * The value of {@value #LEGACY_ALGORITHMS_SECURITY_KEY} security
      * property at the time of class initialization.
      * Null if it is not set.
      */
-    public static final String DEFAULT_LEGACY_ALGORITHMS = getLegacyAlgoritmsSilently();
+    public static final String DEFAULT_LEGACY_ALGORITHMS = getLegacyAlgorithmsSilently();
 
     private static final String KEYSTORE =
             "~/.h2.keystore";
@@ -201,7 +203,7 @@ public class CipherFactory {
      * behavior.
      */
     public static synchronized void removeAnonFromLegacyAlgorithms() {
-        String legacyAlgosOrig = getLegacyAlgoritmsSilently();
+        String legacyAlgosOrig = getLegacyAlgorithmsSilently();
         if (legacyAlgosOrig == null) {
             return;
         }
@@ -227,10 +229,11 @@ public class CipherFactory {
     /**
      * Returns the security property {@value #LEGACY_ALGORITHMS_SECURITY_KEY}.
      * Ignores security exceptions.
+     *
      * @return  the value of the security property, or null if not set
      *          or not accessible
      */
-    public static String getLegacyAlgoritmsSilently() {
+    public static String getLegacyAlgorithmsSilently() {
         String defaultLegacyAlgorithms = null;
         try {
             defaultLegacyAlgorithms = Security.getProperty(LEGACY_ALGORITHMS_SECURITY_KEY);

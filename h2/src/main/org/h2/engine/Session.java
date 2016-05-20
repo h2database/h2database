@@ -937,13 +937,13 @@ public class Session extends SessionWithState {
     private void cleanTempTables(boolean closeSession) {
         if (localTempTables != null && localTempTables.size() > 0) {
             synchronized (database) {
-                Iterator<Table> itr = localTempTables.values().iterator();
-                while (itr.hasNext()) {
-                    Table table = itr.next();
+                Iterator<Table> it = localTempTables.values().iterator();
+                while (it.hasNext()) {
+                    Table table = it.next();
                     if (closeSession || table.getOnCommitDrop()) {
                         modificationId++;
                         table.setModified();
-                        itr.remove();
+                        it.remove();
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might
@@ -954,7 +954,8 @@ public class Session extends SessionWithState {
                         table.truncate(this);
                     }
                 }
-                // sometimes Table#removeChildrenAndResources will take the meta lock
+                // sometimes Table#removeChildrenAndResources
+                // will take the meta lock
                 if (closeSession) {
                     database.unlockMeta(this);
                 }

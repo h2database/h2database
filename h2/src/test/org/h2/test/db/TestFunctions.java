@@ -1407,10 +1407,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
         assertEquals(date, ToDateParser.toDate("113029", "J"));
 
-        date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse("9999-12-31T23:59:59");
-        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59","DD-MON-YYYY HH24:MI:SS"));
-        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59","DD-MON-RRRR HH24:MI:SS"));
-
+        date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                .parse("9999-12-31T23:59:59");
+        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59",
+                "DD-MON-YYYY HH24:MI:SS"));
+        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59",
+                "DD-MON-RRRR HH24:MI:SS"));
 
         SimpleDateFormat ymd = new SimpleDateFormat("yyyy-MM-dd");
         assertEquals(ymd.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001", "DD-MON-RRRR"));
@@ -1661,7 +1663,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
     private void testIfNull() throws SQLException {
         Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        Statement stat = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         stat.execute("CREATE TABLE T(f1 double)");
         stat.executeUpdate("INSERT INTO T VALUES( 1.2 )");
         stat.executeUpdate("INSERT INTO T VALUES( null )");

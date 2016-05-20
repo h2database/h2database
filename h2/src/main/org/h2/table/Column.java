@@ -298,7 +298,8 @@ public class Column {
                     } else if (dt.type == Value.TIMESTAMP_UTC) {
                         value = ValueTimestampUtc.fromMillis(session.getTransactionStart());
                     } else if (dt.type == Value.TIMESTAMP_TZ) {
-                        value = ValueTimestampTimeZone.fromMillis(session.getTransactionStart(), (short) 0);
+                        value = ValueTimestampTimeZone.fromMillis(
+                                session.getTransactionStart(), (short) 0);
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {

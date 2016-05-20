@@ -37,7 +37,8 @@ public class TestConnection extends TestBase {
     }
 
     private void testSetInternalProperty() throws SQLException {
-        // Use MySQL-mode since this allows all property names (apart from h2 internal names).
+        // Use MySQL-mode since this allows all property names
+        // (apart from h2 internal names).
         Connection conn = getConnection("clientInfoMySQL;MODE=MySQL");
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("numServers", "SomeValue");
@@ -48,7 +49,7 @@ public class TestConnection extends TestBase {
         Connection conn = getConnection("clientInfo");
 
         Properties properties = new Properties();
-        properties.put("ClientUser", "someuser");
+        properties.put("ClientUser", "someUser");
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo(properties);
     }
@@ -58,12 +59,12 @@ public class TestConnection extends TestBase {
         conn.setClientInfo("ApplicationName", "Connection Test");
 
         Properties properties = new Properties();
-        properties.put("ClientUser", "someuser");
+        properties.put("ClientUser", "someUser");
         conn.setClientInfo(properties);
         // old property should have been removed
         assertNull(conn.getClientInfo("ApplicationName"));
         // new property has been set
-        assertEquals(conn.getClientInfo("ClientUser"), "someuser");
+        assertEquals(conn.getClientInfo("ClientUser"), "someUser");
     }
 
     private void testSetSupportedClientInfo() throws SQLException {
@@ -75,7 +76,8 @@ public class TestConnection extends TestBase {
 
     private void testSetUnsupportedClientInfo() throws SQLException {
         Connection conn = getConnection("clientInfoDB2;MODE=DB2");
-        assertThrows(SQLClientInfoException.class, conn).setClientInfo("UnsupportedName", "SomeValue");
+        assertThrows(SQLClientInfoException.class, conn).setClientInfo(
+                "UnsupportedName", "SomeValue");
     }
 
     private void testGetUnsupportedClientInfo() throws SQLException {

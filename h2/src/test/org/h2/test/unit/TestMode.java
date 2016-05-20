@@ -36,12 +36,17 @@ public class TestMode extends TestBase {
     private void testDb2ClientInfo() {
         Mode db2Mode = Mode.getInstance("DB2");
 
-        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher("ApplicationName").matches());
-        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher("ClientAccountingInformation").matches());
-        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher("ClientUser").matches());
-        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher("ClientCorrelationToken").matches());
+        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher(
+                "ApplicationName").matches());
+        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher(
+                "ClientAccountingInformation").matches());
+        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher(
+                "ClientUser").matches());
+        assertTrue(db2Mode.supportedClientInfoPropertiesRegEx.matcher(
+                "ClientCorrelationToken").matches());
 
-        assertFalse(db2Mode.supportedClientInfoPropertiesRegEx.matcher("AnyOtherValue").matches());
+        assertFalse(db2Mode.supportedClientInfoPropertiesRegEx.matcher(
+                "AnyOtherValue").matches());
     }
 
     private void testDerbyClientInfo() {
@@ -61,22 +66,25 @@ public class TestMode extends TestBase {
 
     private void testMySqlClientInfo() {
         Mode mySqlMode = Mode.getInstance("MySQL");
-        assertTrue(mySqlMode.supportedClientInfoPropertiesRegEx.matcher("AnyString").matches());
+        assertTrue(mySqlMode.supportedClientInfoPropertiesRegEx.matcher(
+                "AnyString").matches());
     }
 
     private void testOracleClientInfo() {
         Mode oracleMode = Mode.getInstance("Oracle");
-        assertTrue(oracleMode.supportedClientInfoPropertiesRegEx.matcher("anythingContaining.aDot").matches());
-        assertFalse(oracleMode.supportedClientInfoPropertiesRegEx.matcher("anythingContainingNoDot").matches());
+        assertTrue(oracleMode.supportedClientInfoPropertiesRegEx.matcher(
+                "anythingContaining.aDot").matches());
+        assertFalse(oracleMode.supportedClientInfoPropertiesRegEx.matcher(
+                "anythingContainingNoDot").matches());
     }
 
 
     private void testPostgresqlClientInfo() {
         Mode postgresqlMode = Mode.getInstance("PostgreSQL");
-
-        assertTrue(postgresqlMode.supportedClientInfoPropertiesRegEx.matcher("ApplicationName").matches());
-
-        assertFalse(postgresqlMode.supportedClientInfoPropertiesRegEx.matcher("AnyOtherValue").matches());
+        assertTrue(postgresqlMode.supportedClientInfoPropertiesRegEx.matcher(
+                "ApplicationName").matches());
+        assertFalse(postgresqlMode.supportedClientInfoPropertiesRegEx.matcher(
+                "AnyOtherValue").matches());
     }
 
 }

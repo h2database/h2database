@@ -495,7 +495,7 @@ for (int i = 0; i &lt; 400; i++) {
 }
 s.commit();
 for (int i = 0; i &lt; 100; i++) {
-    map.put(0, "Hi");
+    map.put(i, "Hi");
 }
 s.commit();
 s.close();
@@ -511,7 +511,7 @@ will result in the following two chunks (excluding metadata):
 </p>
 <p>
 <b>Chunk 2:</b><br />
-- Page 4: (root) node with 2 entries pointing to page 3 and 5<br />
+- Page 4: (root) node with 2 entries pointing to page 5 and 3<br />
 - Page 5: leaf with 140 entries (keys 0 - 139)<br />
 </p>
 <p>

@@ -192,7 +192,7 @@ SHOW TABLES
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX indexName RENAME TO newIndexName
+ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index.
 This command commits an open transaction in this connection.

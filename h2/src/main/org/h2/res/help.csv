@@ -67,7 +67,7 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
 ","
 Lists the schemas, tables, or the columns of a table."
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX indexName RENAME TO newIndexName
+ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index."
 "Commands (DDL)","ALTER SCHEMA RENAME","

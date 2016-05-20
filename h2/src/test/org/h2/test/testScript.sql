@@ -4458,7 +4458,13 @@ create index if not exists idx_id on s.test(id);
 create index if not exists idx_id on s.test(id);
 > ok
 
-alter index s.idx_id rename to s.index_id;
+alter index s.idx_id rename to s.x;
+> ok
+
+alter index if exists s.idx_id rename to s.x;
+> ok
+
+alter index if exists s.x rename to s.index_id;
 > ok
 
 alter sequence if exists s.seq restart with 10;

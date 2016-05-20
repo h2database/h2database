@@ -4852,10 +4852,13 @@ public class Parser {
     }
 
     private AlterIndexRename parseAlterIndex() {
+        boolean ifExists = readIfExists(false);
         String indexName = readIdentifierWithSchema();
         Schema old = getSchema();
         AlterIndexRename command = new AlterIndexRename(session);
-        command.setOldIndex(getSchema().getIndex(indexName));
+        command.setOldSchema(old);
+        command.setOldName(indexName);
+        command.setIfExists(ifExists);
         read("RENAME");
         read("TO");
         String newName = readIdentifierWithSchema(old.getName());

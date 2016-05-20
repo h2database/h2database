@@ -262,15 +262,15 @@ public class TestSecurity extends TestBase {
                 ", DHE_RSA_EXPORT, DH_anon_EXPORT, DH_DSS_EXPORT, DH_RSA_EXPORT, RSA_EXPORT" +
                 ", RC4_128, RC4_40, DES_CBC, DES40_CBC";
         assertEquals(expectedLegacyAlgosWithoutDhAnon,
-                CipherFactory.removeDhAnonFromCommaSepList(legacyAlgos));
+                CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgos));
 
         legacyAlgos = "ECDH_anon, DH_anon_EXPORT, DH_anon";
         expectedLegacyAlgosWithoutDhAnon = "DH_anon_EXPORT";
         assertEquals(expectedLegacyAlgosWithoutDhAnon,
-                CipherFactory.removeDhAnonFromCommaSepList(legacyAlgos));
+                CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgos));
 
         legacyAlgos = null;
-        assertNull(CipherFactory.removeDhAnonFromCommaSepList(legacyAlgos));
+        assertNull(CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgos));
     }
 
     /**

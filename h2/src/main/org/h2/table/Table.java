@@ -248,6 +248,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param filters the table filters
      * @param filter the filter index
      * @param sortOrder the sort order
+     * @param allColumnsSet all columns
      * @return the scan index
      */
     public Index getScanIndex(Session session, int[] masks,

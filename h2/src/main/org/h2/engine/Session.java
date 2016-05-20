@@ -815,7 +815,10 @@ public class Session extends SessionWithState {
         if (!closed) {
             try {
                 database.checkPowerOff();
-                rollback(); // release any open table locks
+
+                // release any open table locks
+                rollback();
+
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();

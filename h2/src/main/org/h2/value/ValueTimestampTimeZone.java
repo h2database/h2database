@@ -58,7 +58,7 @@ public class ValueTimestampTimeZone extends Value {
         if (timeNanos < 0 || timeNanos >= 24L * 60 * 60 * 1000 * 1000 * 1000) {
             throw new IllegalArgumentException("timeNanos out of range " + timeNanos);
         }
-        if (timeZoneOffsetMins < (-12*60) || timeZoneOffsetMins >= (12*60)) {
+        if (timeZoneOffsetMins < (-12 * 60) || timeZoneOffsetMins >= (12 * 60)) {
             throw new IllegalArgumentException("timeZoneOffsetMins out of range " + timeZoneOffsetMins);
         }
         this.dateValue = dateValue;
@@ -149,7 +149,7 @@ public class ValueTimestampTimeZone extends Value {
         }
         long dateValue = DateTimeUtils.parseDateValue(s, 0, dateEnd);
         long nanos;
-        short tz_mins = 0;
+        short tzMinutes = 0;
         if (timeStart < 0) {
             nanos = 0;
         } else {
@@ -183,12 +183,12 @@ public class ValueTimestampTimeZone extends Value {
                 }
                 if (tz != null) {
                     long millis = DateTimeUtils.convertDateValueToDate(dateValue).getTime();
-                    tz_mins = (short) (tz.getOffset(millis) / 1000 / 60);
+                    tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
                 }
             }
             nanos = DateTimeUtils.parseTimeNanos(s, dateEnd + 1, timeEnd, true);
         }
-        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz_mins);
+        return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tzMinutes);
     }
 
     /**
@@ -250,7 +250,7 @@ public class ValueTimestampTimeZone extends Value {
     private static void appendTimeZone(StringBuilder buff, short tz) {
         if (tz < 0) {
             buff.append('-');
-            tz = (short)-tz;
+            tz = (short) -tz;
         }
         int hours = tz / 60;
         tz -= hours * 60;

@@ -167,23 +167,22 @@ public class CipherFactory {
      * Removes DH_anon and ECDH_anon from a comma separated list of ciphers.
      * Only the first occurrence is removed.
      * If there is nothing to remove, returns the reference to the argument.
-     * @param commaSepList  a list of names separated by commas (and spaces)
+     * @param list  a list of names separated by commas (and spaces)
      * @return  a new string without DH_anon and ECDH_anon items,
      *          or the original if none were found
      */
-    public static String removeDhAnonFromCommaSepList(String commaSepList) {
-        if (commaSepList == null) {
-            return commaSepList;
+    public static String removeDhAnonFromCommaSeparatedList(String list) {
+        if (list == null) {
+            return list;
         }
-        List<String> algos = new LinkedList<String>(Arrays.asList(commaSepList.split("\\s*,\\s*")));
+        List<String> algos = new LinkedList<String>(Arrays.asList(list.split("\\s*,\\s*")));
         boolean dhAnonRemoved = algos.remove("DH_anon");
         boolean ecdhAnonRemoved = algos.remove("ECDH_anon");
         if (dhAnonRemoved || ecdhAnonRemoved) {
             String algosStr = Arrays.toString(algos.toArray(new String[algos.size()]));
             return (algos.size() > 0) ? algosStr.substring(1, algosStr.length() - 1): "";
-        } else {
-            return commaSepList;
         }
+        return list;
     }
 
     /**
@@ -206,7 +205,7 @@ public class CipherFactory {
         if (legacyAlgosOrig == null) {
             return;
         }
-        String legacyAlgosNew = removeDhAnonFromCommaSepList(legacyAlgosOrig);
+        String legacyAlgosNew = removeDhAnonFromCommaSeparatedList(legacyAlgosOrig);
         if (!legacyAlgosOrig.equals(legacyAlgosNew)) {
             setLegacyAlgorithmsSilently(legacyAlgosNew);
         }

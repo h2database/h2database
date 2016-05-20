@@ -4891,10 +4891,11 @@ public class Parser {
     }
 
     private AlterSequence parseAlterSequence() {
+        boolean ifExists = readIfExists(false);
         String sequenceName = readIdentifierWithSchema();
-        Sequence sequence = getSchema().getSequence(sequenceName);
-        AlterSequence command = new AlterSequence(session, sequence.getSchema());
-        command.setSequence(sequence);
+        AlterSequence command = new AlterSequence(session, getSchema());
+        command.setSequenceName(sequenceName);
+        command.setIfExists(ifExists);
         while (true) {
             if (readIf("RESTART")) {
                 read("WITH");

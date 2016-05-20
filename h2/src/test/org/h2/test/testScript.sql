@@ -4455,6 +4455,24 @@ create index if not exists idx_id on s.test(id);
 alter index s.idx_id rename to s.index_id;
 > ok
 
+alter sequence if exists s.seq restart with 10;
+> ok
+
+create sequence s.seq cache 0;
+> ok
+
+alter sequence if exists s.seq restart with 3;
+> ok
+
+select s.seq.nextval as x;
+> X
+> -
+> 3
+> rows: 1
+
+drop sequence s.seq;
+> ok
+
 create sequence s.seq cache 0;
 > ok
 

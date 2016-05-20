@@ -2991,6 +2991,12 @@ CREATE memory TABLE ADDRESS(ID INT);
 alter view address_view recompile;
 > ok
 
+alter view if exists address_view recompile;
+> ok
+
+alter view if exists doesnt_exist recompile;
+> ok
+
 select * from ADDRESS_VIEW;
 > ID
 > --

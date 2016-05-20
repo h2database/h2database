@@ -4866,9 +4866,11 @@ public class Parser {
 
     private AlterView parseAlterView() {
         AlterView command = new AlterView(session);
+        boolean ifExists = readIfExists(false);
+        command.setIfExists(ifExists);
         String viewName = readIdentifierWithSchema();
         Table tableView = getSchema().findTableOrView(session, viewName);
-        if (!(tableView instanceof TableView)) {
+        if (!(tableView instanceof TableView) && !ifExists) {
             throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
         TableView view = (TableView) tableView;

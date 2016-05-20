@@ -380,7 +380,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
 "Commands (DDL)","ALTER VIEW","
-ALTER VIEW viewName RECOMPILE
+ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
 This command is used for views created using CREATE FORCE VIEW.

@@ -138,7 +138,7 @@ ALTER USER userName SET { PASSWORD string | SALT bytes HASH bytes }
 ","
 Changes the password of a user."
 "Commands (DDL)","ALTER VIEW","
-ALTER VIEW viewName RECOMPILE
+ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created."
 "Commands (DDL)","ANALYZE","

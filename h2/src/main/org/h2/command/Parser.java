@@ -653,7 +653,7 @@ public class Parser {
         return command;
     }
 
-    private Schema getSchema(String schemaName) {
+    private Schema findSchema(String schemaName) {
         if (schemaName == null) {
             return null;
         }
@@ -665,9 +665,18 @@ public class Parser {
             } else if (database.getMode().sysDummy1 &&
                     "SYSIBM".equals(schemaName)) {
                 // IBM DB2 and Apache Derby compatibility: SYSIBM.SYSDUMMY1
-            } else {
-                throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
+        }
+        return schema;
+    }
+
+    private Schema getSchema(String schemaName) {
+        if (schemaName == null) {
+            return null;
+        }
+        Schema schema = findSchema(schemaName);
+        if (schema == null) {
+            throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
         }
         return schema;
     }
@@ -4883,17 +4892,27 @@ public class Parser {
         return command;
     }
 
-    private AlterSchemaRename parseAlterSchema() {
+    private Prepared parseAlterSchema() {
+        boolean ifExists = readIfExists(false);
         String schemaName = readIdentifierWithSchema();
         Schema old = getSchema();
-        AlterSchemaRename command = new AlterSchemaRename(session);
-        command.setOldSchema(getSchema(schemaName));
         read("RENAME");
         read("TO");
         String newName = readIdentifierWithSchema(old.getName());
-        checkSchema(old);
-        command.setNewName(newName);
-        return command;
+        Schema schema = findSchema(schemaName);
+        if (schema == null) {
+            if (ifExists) {
+                return new NoOperation(session);
+            } else {
+                throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
+            }
+        } else {
+            AlterSchemaRename command = new AlterSchemaRename(session);
+            command.setOldSchema(schema);
+            checkSchema(old);
+            command.setNewName(newName);
+            return command;
+        }
     }
 
     private AlterSequence parseAlterSequence() {

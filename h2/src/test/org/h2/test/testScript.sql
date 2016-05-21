@@ -10431,3 +10431,21 @@ drop table x;
 
 drop table z;
 > ok
+
+create schema x;
+> ok
+
+alter schema if exists y rename to z;
+> ok
+
+alter schema if exists x rename to z;
+> ok
+
+alter schema if exists x rename to z;
+> ok
+
+create table z.z (id int);
+> ok
+
+drop schema z;
+> ok

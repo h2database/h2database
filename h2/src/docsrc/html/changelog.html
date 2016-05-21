@@ -40,13 +40,23 @@ table with an LOB column.
 </li>
 <li>Issue #235: Anonymous SSL connections fail in many situations
 </li>
-<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running  
+<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running
 </li>
 <li>Experimental support for datatype TIMESTAMP WITH TIMEZONE
 </li>
 <li>Add support for ALTER TABLE ... RENAME CONSTRAINT .. TO ...
 </li>
 <li>Add support for PostgreSQL ALTER TABLE ... RENAME COLUMN .. TO ...
+</li>
+<li>Add support for ALTER SCHEMA [ IF EXISTS ]
+</li>
+<li>Add support for ALTER TABLE [ IF EXISTS ]
+</li>
+<li>Add support for ALTER VIEW [ IF EXISTS ]
+</li>
+<li>Add support for ALTER INDE [ IF EXISTS ]
+</li>
+<li>Add support for ALTER SEQUENCE [ IF EXISTS ]
 </li>
 <li>Improve performance of cleaning up temp tables - patch from Eric Faulhaber.
 </li>

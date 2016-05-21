@@ -5,6 +5,7 @@
  */
 package org.h2.command.dml;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.SchemaCommand;
 import org.h2.engine.Right;
@@ -19,6 +20,7 @@ import org.h2.table.Table;
  */
 public class AlterTableSet extends SchemaCommand {
 
+    private boolean ifTableExists;
     private String tableName;
     private final int type;
 
@@ -40,13 +42,23 @@ public class AlterTableSet extends SchemaCommand {
         return true;
     }
 
+    public void setIfTableExists(boolean b) {
+        this.ifTableExists = b;
+    }
+
     public void setTableName(String tableName) {
         this.tableName = tableName;
     }
 
     @Override
     public int update() {
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = getSchema().findTableOrView(session, tableName);
+        if (table == null) {
+            if (ifTableExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
         session.getUser().checkRight(table, Right.ALL);
         table.lock(session, true, true);
         switch (type) {

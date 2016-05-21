@@ -140,7 +140,7 @@ public class TestNetUtils extends TestBase {
 
     private Task createServerSocketTask(final ServerSocket serverSocket) {
         Task task = new Task() {
-            
+
             @Override
             public void call() throws Exception {
                 Socket ss = null;
@@ -148,14 +148,19 @@ public class TestNetUtils extends TestBase {
                     ss = serverSocket.accept();
                     ss.getOutputStream().write(123);
                 } finally {
-                   closeSilently(ss);
+                    closeSilently(ss);
                 }
             }
         };
         return task;
     }
 
-    private void closeSilently(Socket socket) {
+    /**
+     * Close a socket, ignoring errors
+     *
+     * @param socket the socket
+     */
+    void closeSilently(Socket socket) {
         try {
             socket.close();
         } catch (Exception e) {
@@ -163,7 +168,12 @@ public class TestNetUtils extends TestBase {
         }
     }
 
-    private void closeSilently(ServerSocket socket) {
+    /**
+     * Close a server socket, ignoring errors
+     *
+     * @param socket the server socket
+     */
+    void closeSilently(ServerSocket socket) {
         try {
             socket.close();
         } catch (Exception e) {

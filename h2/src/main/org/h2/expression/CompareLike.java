@@ -259,7 +259,7 @@ public class CompareLike extends Condition {
         if (regexp) {
             result = patternRegexp.matcher(value).find();
         } else if (shortcutToStartsWith) {
-            result = value.regionMatches(ignoreCase, 0, patternString, 0, patternLength-1);
+            result = value.regionMatches(ignoreCase, 0, patternString, 0, patternLength - 1);
         } else {
             result = compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
         }
@@ -388,7 +388,7 @@ public class CompareLike extends Condition {
             while (maxMatch < patternLength && patternTypes[maxMatch] == MATCH) {
                 maxMatch++;
             }
-            if (maxMatch == patternLength - 1 && patternTypes[patternLength-1] == ANY) {
+            if (maxMatch == patternLength - 1 && patternTypes[patternLength - 1] == ANY) {
                 shortcutToStartsWith = true;
             }
         }

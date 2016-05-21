@@ -39,7 +39,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         stat.execute("insert into test(t1) values('1970-01-01 12:00:00.00+00:15')");
         ResultSet rs = stat.executeQuery("select t1 from test");
         rs.next();
-        assertTrue(new TimestampWithTimeZone(36000000, 00, (short)15).equals(rs.getTimestamp(1)));
+        assertTrue(new TimestampWithTimeZone(36000000, 00, (short) 15).equals(rs.getTimestamp(1)));
         conn.close();
     }
 

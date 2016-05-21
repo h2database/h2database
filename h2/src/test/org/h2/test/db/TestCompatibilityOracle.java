@@ -147,18 +147,24 @@ public class TestCompatibilityOracle extends TestBase {
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE DATETABLE (ID NUMBER PRIMARY KEY, TESTVAL TIMESTAMP)");
-        stat.execute("INSERT INTO DATETABLE VALUES (1, to_date('31-DEC-9999 23:59:59','DD-MON-RRRR HH24:MI:SS'))");
-        stat.execute("INSERT INTO DATETABLE VALUES (2, to_date('01-JAN-0001 00:00:00','DD-MON-RRRR HH24:MI:SS'))");
+        stat.execute("CREATE TABLE DATE_TABLE (ID NUMBER PRIMARY KEY, TEST_VAL TIMESTAMP)");
+        stat.execute("INSERT INTO DATE_TABLE VALUES (1, " +
+                "to_date('31-DEC-9999 23:59:59','DD-MON-RRRR HH24:MI:SS'))");
+        stat.execute("INSERT INTO DATE_TABLE VALUES (2, " +
+                "to_date('01-JAN-0001 00:00:00','DD-MON-RRRR HH24:MI:SS'))");
 
-        assertResultDate("9999-12-31T23:59:59", stat, "SELECT TESTVAL FROM DATETABLE WHERE ID=1");
-        assertResultDate("0001-01-01T00:00:00", stat, "SELECT TESTVAL FROM DATETABLE WHERE ID=2");
+        assertResultDate("9999-12-31T23:59:59", stat,
+                "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=1");
+        assertResultDate("0001-01-01T00:00:00", stat,
+                "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=2");
 
         conn.close();
     }
 
-    private void assertResultDate(String expected, Statement stat, String sql) throws SQLException {
-        SimpleDateFormat iso8601 = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+    private void assertResultDate(String expected, Statement stat, String sql)
+            throws SQLException {
+        SimpleDateFormat iso8601 = new SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss");
         ResultSet rs = stat.executeQuery(sql);
         if (rs.next()) {
             assertEquals(expected, iso8601.format(rs.getTimestamp(1)));

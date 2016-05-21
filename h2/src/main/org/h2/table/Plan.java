@@ -113,7 +113,8 @@ public class Plan {
         }
         double cost = 1;
         boolean invalidPlan = false;
-        final HashSet<Column> allColumnsSet = ExpressionVisitor.allColumnsForTableFilters(allFilters);
+        final HashSet<Column> allColumnsSet = ExpressionVisitor
+                .allColumnsForTableFilters(allFilters);
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter tableFilter = allFilters[i];
             if (t.isDebugEnabled()) {

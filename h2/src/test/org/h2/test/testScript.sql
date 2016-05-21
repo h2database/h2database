@@ -10212,13 +10212,13 @@ insert into test values(5, 'b'), (5, 'b'), (20, 'a');
 > update count: 3
 
 select 0 from ((
-  select 0 as f from dual u1 where null in (?, ?, ?, ?, ?)
+    select 0 as f from dual u1 where null in (?, ?, ?, ?, ?)
 ) union all (
-  select u2.f from (
-    select 0 as f from (
-      select 0 from dual u2f1f1 where now() = ?
-    ) u2f1
-  ) u2
+    select u2.f from (
+        select 0 as f from (
+            select 0 from dual u2f1f1 where now() = ?
+        ) u2f1
+    ) u2
 )) where f = 12345;
 {
 11, 22, 33, 44, 55, null

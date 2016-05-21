@@ -36,7 +36,7 @@ public class TestSecurity extends TestBase {
         testSHA();
         testAES();
         testBlockCiphers();
-        testRemoveAnonFromLegacyAlgos();
+        testRemoveAnonFromLegacyAlgorithms();
         //testResetLegacyAlgos();
     }
 
@@ -254,7 +254,7 @@ public class TestSecurity extends TestBase {
         return len * r < len * 120;
     }
 
-    private void testRemoveAnonFromLegacyAlgos() {
+    private void testRemoveAnonFromLegacyAlgorithms() {
         String legacyAlgos = "K_NULL, C_NULL, M_NULL, DHE_DSS_EXPORT" +
                 ", DHE_RSA_EXPORT, DH_anon_EXPORT, DH_DSS_EXPORT, DH_RSA_EXPORT, RSA_EXPORT" +
                 ", DH_anon, ECDH_anon, RC4_128, RC4_40, DES_CBC, DES40_CBC";
@@ -262,15 +262,15 @@ public class TestSecurity extends TestBase {
                 ", DHE_RSA_EXPORT, DH_anon_EXPORT, DH_DSS_EXPORT, DH_RSA_EXPORT, RSA_EXPORT" +
                 ", RC4_128, RC4_40, DES_CBC, DES40_CBC";
         assertEquals(expectedLegacyAlgosWithoutDhAnon,
-                CipherFactory.removeDhAnonFromCommaSepList(legacyAlgos));
+                CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgos));
 
         legacyAlgos = "ECDH_anon, DH_anon_EXPORT, DH_anon";
         expectedLegacyAlgosWithoutDhAnon = "DH_anon_EXPORT";
         assertEquals(expectedLegacyAlgosWithoutDhAnon,
-                CipherFactory.removeDhAnonFromCommaSepList(legacyAlgos));
+                CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgos));
 
         legacyAlgos = null;
-        assertNull(CipherFactory.removeDhAnonFromCommaSepList(legacyAlgos));
+        assertNull(CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgos));
     }
 
     /**
@@ -282,13 +282,13 @@ public class TestSecurity extends TestBase {
      */
     @SuppressWarnings("unused")
     private void testResetLegacyAlgos() {
-        String legacyAlgorithmsBefore = CipherFactory.getLegacyAlgoritmsSilently();
+        String legacyAlgorithmsBefore = CipherFactory.getLegacyAlgorithmsSilently();
         assertEquals("Failed assumption: jdk.tls.legacyAlgorithms" +
                 " has been modified from its initial setting",
                 CipherFactory.DEFAULT_LEGACY_ALGORITHMS, legacyAlgorithmsBefore);
         CipherFactory.removeAnonFromLegacyAlgorithms();
         CipherFactory.resetDefaultLegacyAlgorithms();
-        String legacyAlgorithmsAfter = CipherFactory.getLegacyAlgoritmsSilently();
+        String legacyAlgorithmsAfter = CipherFactory.getLegacyAlgorithmsSilently();
         assertEquals(CipherFactory.DEFAULT_LEGACY_ALGORITHMS, legacyAlgorithmsAfter);
     }
 

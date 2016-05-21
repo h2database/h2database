@@ -538,10 +538,13 @@ public class ArchiveTool {
         long inPos = 0;
         int bufferTotal = 64 * 1024 * 1024;
         int bufferPerStream = bufferTotal / segmentStart.size();
-        // FileChannel fc = new RandomAccessFile(tempFileName, "r").getChannel();
+        // FileChannel fc = new RandomAccessFile(tempFileName, "r").
+        //     getChannel();
         for (int i = 0; i < segmentStart.size(); i++) {
-            // long end = i < segmentStart.size() - 1 ? segmentStart.get(i+1) : fc.size();
-            // InputStream in = new SharedInputStream(fc, segmentStart.get(i), end);
+            // long end = i < segmentStart.size() - 1 ?
+            //     segmentStart.get(i+1) : fc.size();
+            // InputStream in =
+            //     new SharedInputStream(fc, segmentStart.get(i), end);
             InputStream in = new FileInputStream(tempFileName);
             in.skip(segmentStart.get(i));
             ChunkStream s = new ChunkStream(i);
@@ -1062,6 +1065,9 @@ public class ArchiveTool {
         return x;
     }
 
+    /**
+     * An input stream that uses a shared file channel.
+     */
     static class SharedInputStream extends InputStream {
         private final FileChannel channel;
         private final long endPosition;

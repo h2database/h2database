@@ -553,6 +553,7 @@ public class Data {
             writeVarInt(ts.getTimeZoneOffsetMins());
         }
         case Value.GEOMETRY:
+            // fall though
         case Value.JAVA_OBJECT: {
             writeByte((byte) type);
             byte[] b = v.getBytesNoCopy();
@@ -792,7 +793,7 @@ public class Data {
         case Value.TIMESTAMP_TZ: {
             long dateValue = readVarLong();
             long nanos = readVarLong();
-            short tz = (short)readVarInt();
+            short tz = (short) readVarInt();
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, nanos, tz);
         }
         case Value.BYTES: {

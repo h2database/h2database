@@ -132,7 +132,7 @@ public class CalculateHashConstantLong implements Runnable {
         System.out.println("Collisions: " + collisions);
     }
 
-    static void printQuality(CalculateHashConstantLong test, long[] randomValues) {
+    private static void printQuality(CalculateHashConstantLong test, long[] randomValues) {
         int finalCount = randomValues.length * 10;
         System.out.println("Quality of " + test);
         int[] minMax;

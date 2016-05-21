@@ -184,6 +184,7 @@ public class TableFilter implements ColumnResolver {
      * @param s the session
      * @param filters all joined table filters
      * @param filter the current table filter index
+     * @param allColumnsSet the set of all columns
      * @return the best plan item
      */
     public PlanItem getBestPlanItem(Session s, TableFilter[] filters, int filter,
@@ -195,8 +196,10 @@ public class TableFilter implements ColumnResolver {
         }
         if (indexConditions.size() == 0) {
             item1 = new PlanItem();
-            item1.setIndex(table.getScanIndex(s, null, filters, filter, sortOrder, allColumnsSet));
-            item1.cost = item1.getIndex().getCost(s, null, filters, filter, sortOrder, allColumnsSet);
+            item1.setIndex(table.getScanIndex(s, null, filters, filter,
+                    sortOrder, allColumnsSet));
+            item1.cost = item1.getIndex().getCost(s, null, filters, filter,
+                    sortOrder, allColumnsSet);
         }
         int len = table.getColumns().length;
         int[] masks = new int[len];

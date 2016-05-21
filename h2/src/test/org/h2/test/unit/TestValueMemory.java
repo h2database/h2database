@@ -167,7 +167,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         case Value.TIMESTAMP_UTC:
             return ValueTimestampUtc.fromMillis(random.nextLong());
         case Value.TIMESTAMP_TZ:
-            return ValueTimestampTimeZone.fromMillis(random.nextLong(), (short)0);
+            return ValueTimestampTimeZone.fromMillis(random.nextLong(), (short) 0);
         case Value.BYTES:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
         case Value.STRING:

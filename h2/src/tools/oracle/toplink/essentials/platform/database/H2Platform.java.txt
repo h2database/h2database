@@ -6,7 +6,7 @@
  *
  * You can obtain a copy of the license at
  * glassfish/bootstrap/legal/CDDLv1.0.txt or
- * https://glassfish.dev.java.net/public/CDDLv1.0.html.
+ * https://glassfish.dev.java.net/public/CDDLv1.0.html .
  * See the License for the specific language governing
  * permissions and limitations under the License.
  *

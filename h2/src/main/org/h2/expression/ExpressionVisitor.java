@@ -288,12 +288,18 @@ public class ExpressionVisitor {
         return type;
     }
 
-
+    /**
+     * Get the set of columns of all tables.
+     *
+     * @param filters the filters
+     * @return the set of columns
+     */
     public static HashSet<Column> allColumnsForTableFilters(TableFilter[] filters) {
         HashSet<Column> allColumnsSet = New.hashSet();
         for (int i = 0; i < filters.length; i++) {
             if (filters[i].getSelect() != null) {
-                filters[i].getSelect().isEverything(ExpressionVisitor.getColumnsVisitor(allColumnsSet));
+                filters[i].getSelect().isEverything(
+                        ExpressionVisitor.getColumnsVisitor(allColumnsSet));
             }
         }
         return allColumnsSet;

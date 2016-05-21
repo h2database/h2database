@@ -12,7 +12,10 @@ import org.junit.Test;
  * used by H2.
  */
 public class TestAllJunit {
-    
+
+    /**
+     * Run all the fast tests.
+     */
     @Test
     public void testFast() throws Exception {
         TestAll.main("fast");

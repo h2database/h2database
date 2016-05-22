@@ -401,7 +401,7 @@ public class IndexCondition {
         return "column=" + column +
                 ", compareType=" + compareTypeToString(compareType) +
                 ", expression=" + expression +
-                ", expressionList=" + expressionList +
+                ", expressionList=" + expressionList.toString() +
                 ", expressionQuery=" + expressionQuery;
     }
 

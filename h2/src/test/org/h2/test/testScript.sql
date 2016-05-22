@@ -10473,9 +10473,3 @@ create table z.z (id int);
 
 drop schema z;
 > ok
-
-select 1 a where exists (select 1 / 0);
-> A
-> -
-> 1
-> rows: 1

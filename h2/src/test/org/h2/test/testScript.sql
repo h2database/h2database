@@ -3,6 +3,30 @@
 -- Initial Developer: H2 Group
 --
 --- special grammar and test cases ---------------------------------------------------------------------------------------------
+select 1 a where exists (select 1 / 0);
+> A
+> -
+> 1
+> rows: 1
+
+select 1 a where exists (select 1 order by 1 / 0);
+> A
+> -
+> 1
+> rows (ordered): 1
+
+select 1 a where exists (select 1 / 0 union select 1 / 0);
+> exception
+
+select 1 a where exists (select 1 / 0 union all select 1 / 0);
+> exception
+
+select 1 a where exists (select 1 / 0 except select 1 / 0);
+> exception
+
+select 1 a where exists (select 1 / 0 intersect select 1 / 0);
+> exception
+
 create table test(id int) as select 1;
 > ok
 
@@ -10449,3 +10473,9 @@ create table z.z (id int);
 
 drop schema z;
 > ok
+
+select 1 a where exists (select 1 / 0);
+> A
+> -
+> 1
+> rows: 1

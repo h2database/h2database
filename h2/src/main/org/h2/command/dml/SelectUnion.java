@@ -463,6 +463,10 @@ public class SelectUnion extends Query {
     }
 
     @Override
+    public void setExistsSubquery(boolean isExistsSubquery) {
+    }
+
+    @Override
     public int getType() {
         return CommandInterface.SELECT;
     }

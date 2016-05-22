@@ -2110,6 +2110,7 @@ public class Parser {
         if (readIf("EXISTS")) {
             read("(");
             Query query = parseSelect();
+            query.setExistsSubquery(true);
             // can not reduce expression because it might be a union except
             // query with distinct
             read(")");

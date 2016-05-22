@@ -48,7 +48,7 @@ import org.h2.util.New;
  */
 public class AlterTableAlterColumn extends SchemaCommand {
 
-    private Table table;
+    private String tableName;
     private Column oldColumn;
     private Column newColumn;
     private int type;
@@ -56,6 +56,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     private Expression newSelectivity;
     private String addBefore;
     private String addAfter;
+    private boolean ifTableExists;
     private boolean ifNotExists;
     private ArrayList<Column> columnsToAdd;
     private ArrayList<Column> columnsToRemove;
@@ -64,8 +65,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
         super(session, schema);
     }
 
-    public void setTable(Table table) {
-        this.table = table;
+    public void setIfTableExists(boolean b) {
+        ifTableExists = b;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     public void setOldColumn(Column oldColumn) {
@@ -84,16 +89,23 @@ public class AlterTableAlterColumn extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
+        Table table = getSchema().findTableOrView(session, tableName);
+        if (table == null) {
+            if (ifTableExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
         table.lock(session, true, true);
         if (newColumn != null) {
-            checkDefaultReferencesTable(newColumn.getDefaultExpression());
+            checkDefaultReferencesTable(table, newColumn.getDefaultExpression());
             checkClustering(newColumn);
         }
         if (columnsToAdd != null) {
             for (Column column : columnsToAdd) {
-                checkDefaultReferencesTable(column.getDefaultExpression());
+                checkDefaultReferencesTable(table, column.getDefaultExpression());
                 checkClustering(column);
             }
         }
@@ -103,7 +115,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 // no change
                 break;
             }
-            checkNoNullValues();
+            checkNoNullValues(table);
             oldColumn.setNullable(false);
             db.updateMeta(session, table);
             break;
@@ -113,17 +125,17 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 // no change
                 break;
             }
-            checkNullable();
+            checkNullable(table);
             oldColumn.setNullable(true);
             db.updateMeta(session, table);
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT: {
             Sequence sequence = oldColumn == null ? null : oldColumn.getSequence();
-            checkDefaultReferencesTable(defaultExpression);
+            checkDefaultReferencesTable(table, defaultExpression);
             oldColumn.setSequence(null);
             oldColumn.setDefaultExpression(session, defaultExpression);
-            removeSequence(sequence);
+            removeSequence(table, sequence);
             db.updateMeta(session, table);
             break;
         }
@@ -132,7 +144,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             // need to copy the table because the length is only a constraint,
             // and does not affect the storage structure.
             if (oldColumn.isWideningConversion(newColumn)) {
-                convertAutoIncrementColumn(newColumn);
+                convertAutoIncrementColumn(table, newColumn);
                 oldColumn.copy(newColumn);
                 db.updateMeta(session, table);
             } else {
@@ -140,12 +152,12 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 oldColumn.setDefaultExpression(session, null);
                 oldColumn.setConvertNullToDefault(false);
                 if (oldColumn.isNullable() && !newColumn.isNullable()) {
-                    checkNoNullValues();
+                    checkNoNullValues(table);
                 } else if (!oldColumn.isNullable() && newColumn.isNullable()) {
-                    checkNullable();
+                    checkNullable(table);
                 }
-                convertAutoIncrementColumn(newColumn);
-                copyData();
+                convertAutoIncrementColumn(table, newColumn);
+                copyData(table);
             }
             break;
         }
@@ -162,7 +174,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                             table.isTemporary());
                 }
             }
-            copyData();
+            copyData(table);
             break;
         }
         case CommandInterface.ALTER_TABLE_DROP_COLUMN: {
@@ -171,7 +183,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                         columnsToRemove.get(0).getSQL());
             }
             table.dropMultipleColumnsConstraintsAndIndexes(session, columnsToRemove);
-            copyData();
+            copyData(table);
             break;
         }
         case CommandInterface.ALTER_TABLE_ALTER_COLUMN_SELECTIVITY: {
@@ -186,7 +198,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         return 0;
     }
 
-    private void checkDefaultReferencesTable(Expression defaultExpression) {
+    private void checkDefaultReferencesTable(Table table, Expression defaultExpression) {
         if (defaultExpression == null) {
             return;
         }
@@ -209,7 +221,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void convertAutoIncrementColumn(Column c) {
+    private void convertAutoIncrementColumn(Table table, Column c) {
         if (c.isAutoIncrement()) {
             if (c.isPrimaryKey()) {
                 c.setOriginalSQL("IDENTITY");
@@ -221,7 +233,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void removeSequence(Sequence sequence) {
+    private void removeSequence(Table table, Sequence sequence) {
         if (sequence != null) {
             table.removeSequence(sequence);
             sequence.setBelongsToTable(false);
@@ -230,7 +242,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void copyData() {
+    private void copyData(Table table) {
         if (table.isTemporary()) {
             throw DbException.getUnsupportedException("TEMP TABLE");
         }
@@ -239,7 +251,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String tempName = db.getTempTableName(baseName, session);
         Column[] columns = table.getColumns();
         ArrayList<Column> newColumns = New.arrayList();
-        Table newTable = cloneTableStructure(columns, db, tempName, newColumns);
+        Table newTable = cloneTableStructure(table, columns, db, tempName, newColumns);
         try {
             // check if a view would become invalid
             // (because the column to drop is referenced or so)
@@ -289,7 +301,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private Table cloneTableStructure(Column[] columns, Database db,
+    private Table cloneTableStructure(Table table, Column[] columns, Database db,
             String tempName, ArrayList<Column> newColumns) {
         for (Column col : columns) {
             newColumns.add(col.getClone());
@@ -479,7 +491,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNullable() {
+    private void checkNullable(Table table) {
         for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
@@ -492,7 +504,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNoNullValues() {
+    private void checkNoNullValues(Table table) {
         String sql = "SELECT COUNT(*) FROM " +
                 table.getSQL() + " WHERE " +
                 oldColumn.getSQL() + " IS NULL";

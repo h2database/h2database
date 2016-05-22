@@ -27,11 +27,16 @@ public class CreateIndex extends SchemaCommand {
     private String indexName;
     private IndexColumn[] indexColumns;
     private boolean primaryKey, unique, hash, spatial;
+    private boolean ifTableExists;
     private boolean ifNotExists;
     private String comment;
 
     public CreateIndex(Session session, Schema schema) {
         super(session, schema);
+    }
+
+    public void setIfTableExists(boolean b) {
+        this.ifTableExists = b;
     }
 
     public void setIfNotExists(boolean ifNotExists) {
@@ -57,7 +62,13 @@ public class CreateIndex extends SchemaCommand {
         }
         Database db = session.getDatabase();
         boolean persistent = db.isPersistent();
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = getSchema().findTableOrView(session, tableName);
+        if (table == null) {
+            if (ifTableExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
         if (getSchema().findIndex(session, indexName) != null) {
             if (ifNotExists) {
                 return 0;

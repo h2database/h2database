@@ -5,12 +5,15 @@
  */
 package org.h2.command.ddl;
 
+import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.message.DbException;
+import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
 
@@ -18,22 +21,27 @@ import org.h2.table.Table;
  * This class represents the statement
  * ALTER TABLE ALTER COLUMN RENAME
  */
-public class AlterTableRenameColumn extends DefineCommand {
+public class AlterTableRenameColumn extends SchemaCommand {
 
-    private Table table;
-    private Column column;
+    private boolean ifTableExists;
+    private String tableName;
+    private String oldName;
     private String newName;
 
-    public AlterTableRenameColumn(Session session) {
-        super(session);
+    public AlterTableRenameColumn(Session session, Schema schema) {
+        super(session, schema);
     }
 
-    public void setTable(Table table) {
-        this.table = table;
+    public void setIfTableExists(boolean b) {
+        this.ifTableExists = b;
     }
 
-    public void setColumn(Column column) {
-        this.column = column;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    public void setOldColumnName(String oldName) {
+        this.oldName = oldName;
     }
 
     public void setNewColumnName(String newName) {
@@ -44,6 +52,14 @@ public class AlterTableRenameColumn extends DefineCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
+        Table table = getSchema().findTableOrView(session, tableName);
+        if (table == null) {
+            if (ifTableExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
+        Column column = table.getColumn(oldName);
         session.getUser().checkRight(table, Right.ALL);
         table.checkSupportAlter();
         // we need to update CHECK constraint

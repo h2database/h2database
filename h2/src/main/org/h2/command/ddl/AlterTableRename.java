@@ -20,7 +20,8 @@ import org.h2.table.Table;
  */
 public class AlterTableRename extends SchemaCommand {
 
-    private Table oldTable;
+    private boolean ifTableExists;
+    private String oldTableName;
     private String newTableName;
     private boolean hidden;
 
@@ -28,8 +29,12 @@ public class AlterTableRename extends SchemaCommand {
         super(session, schema);
     }
 
-    public void setOldTable(Table table) {
-        oldTable = table;
+    public void setIfTableExists(boolean b) {
+        ifTableExists = b;
+    }
+
+    public void setOldTableName(String name) {
+        oldTableName = name;
     }
 
     public void setNewTableName(String name) {
@@ -40,6 +45,13 @@ public class AlterTableRename extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
+        Table oldTable = getSchema().findTableOrView(session, oldTableName);
+        if (oldTable == null) {
+            if (ifTableExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, oldTableName);
+        }
         session.getUser().checkRight(oldTable, Right.ALL);
         Table t = getSchema().findTableOrView(session, newTableName);
         if (t != null && hidden && newTableName.equals(oldTable.getName())) {

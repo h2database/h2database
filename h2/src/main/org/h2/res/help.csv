@@ -93,11 +93,7 @@ ALTER TABLE [ IF EXISTS ] tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table."
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
-<<<<<<< HEAD
 ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintName
-=======
-ALTER TABLE tableName RENAME oldConstraintName TO newConstraintName
->>>>>>> upstream/master
 ","
 Renames a constraint."
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","

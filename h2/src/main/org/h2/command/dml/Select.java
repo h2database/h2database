@@ -82,6 +82,10 @@ public class Select extends Query {
     private boolean sortUsingIndex;
     private SortOrder sort;
     private int currentGroupRowId;
+
+    /**
+     * Indicate to this query that it is wrapped inside an EXISTS().
+     */
     private boolean isExistsSubquery;
 
     public Select(Session session) {

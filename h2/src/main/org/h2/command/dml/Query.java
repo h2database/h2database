@@ -224,7 +224,7 @@ public abstract class Query extends Prepared {
     public abstract void fireBeforeSelectTriggers();
 
     /**
-     * Indicate to this query that it is an exists subquery.
+     * Indicate to this query that it is wrapped inside an EXISTS().
      */
     public abstract void setExistsSubquery(boolean isExistsSubquery);
 

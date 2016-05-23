@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -4248,7 +4247,7 @@ public class Parser {
                 }
                 primaryKey = true;
                 if (!isToken("ON")) {
-                    ifNotExists = readIfNoExists();
+                    ifNotExists = readIfNotExists();
                     indexName = readIdentifierWithSchema(null);
                     oldSchema = getSchema();
                 }
@@ -4264,7 +4263,7 @@ public class Parser {
                 }
                 if (readIf("INDEX")) {
                     if (!isToken("ON")) {
-                        ifNotExists = readIfNoExists();
+                        ifNotExists = readIfNotExists();
                         indexName = readIdentifierWithSchema(null);
                         oldSchema = getSchema();
                     }
@@ -4480,14 +4479,14 @@ public class Parser {
 
     private CreateRole parseCreateRole() {
         CreateRole command = new CreateRole(session);
-        command.setIfNotExists(readIfNoExists());
+        command.setIfNotExists(readIfNotExists());
         command.setRoleName(readUniqueIdentifier());
         return command;
     }
 
     private CreateSchema parseCreateSchema() {
         CreateSchema command = new CreateSchema(session);
-        command.setIfNotExists(readIfNoExists());
+        command.setIfNotExists(readIfNotExists());
         command.setSchemaName(readUniqueIdentifier());
         if (readIf("AUTHORIZATION")) {
             command.setAuthorization(readUniqueIdentifier());
@@ -4498,7 +4497,7 @@ public class Parser {
     }
 
     private CreateSequence parseCreateSequence() {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String sequenceName = readIdentifierWithSchema();
         CreateSequence command = new CreateSequence(session, getSchema());
         command.setIfNotExists(ifNotExists);
@@ -4547,7 +4546,7 @@ public class Parser {
         return command;
     }
 
-    private boolean readIfNoExists() {
+    private boolean readIfNotExists() {
         if (readIf("IF")) {
             read("NOT");
             read("EXISTS");
@@ -4557,7 +4556,7 @@ public class Parser {
     }
 
     private CreateConstant parseCreateConstant() {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String constantName = readIdentifierWithSchema();
         Schema schema = getSchema();
         if (isKeyword(constantName)) {
@@ -4574,7 +4573,7 @@ public class Parser {
     }
 
     private CreateAggregate parseCreateAggregate(boolean force) {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         CreateAggregate command = new CreateAggregate(session);
         command.setForce(force);
         String name = readIdentifierWithSchema();
@@ -4592,7 +4591,7 @@ public class Parser {
     }
 
     private CreateUserDataType parseCreateUserDataType() {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         CreateUserDataType command = new CreateUserDataType(session);
         command.setTypeName(readUniqueIdentifier());
         read("AS");
@@ -4608,7 +4607,7 @@ public class Parser {
     }
 
     private CreateTrigger parseCreateTrigger(boolean force) {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String triggerName = readIdentifierWithSchema(null);
         Schema schema = getSchema();
         boolean insteadOf, isBefore;
@@ -4675,7 +4674,7 @@ public class Parser {
 
     private CreateUser parseCreateUser() {
         CreateUser command = new CreateUser(session);
-        command.setIfNotExists(readIfNoExists());
+        command.setIfNotExists(readIfNotExists());
         command.setUserName(readUniqueIdentifier());
         command.setComment(readCommentIf());
         if (readIf("PASSWORD")) {
@@ -4699,7 +4698,7 @@ public class Parser {
     }
 
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String aliasName = readIdentifierWithSchema();
         if (isKeyword(aliasName) ||
                 Function.getFunction(database, aliasName) != null ||
@@ -4787,7 +4786,7 @@ public class Parser {
     }
 
     private CreateView parseCreateView(boolean force, boolean orReplace) {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
         this.createView = command;
@@ -5717,7 +5716,7 @@ public class Parser {
             read(")");
             command.setNewColumns(columnsToAdd);
         } else {
-            boolean ifNotExists = readIfNoExists();
+            boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);
             String columnName = readColumnIdentifier();
             Column column = parseColumnForTable(columnName, true);
@@ -5765,7 +5764,7 @@ public class Parser {
         boolean ifNotExists = false;
         boolean allowIndexDefinition = database.getMode().indexDefinitionInCreateTable;
         if (readIf("CONSTRAINT")) {
-            ifNotExists = readIfNoExists();
+            ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
             checkSchema(schema);
             comment = readCommentIf();
@@ -5904,7 +5903,7 @@ public class Parser {
     private CreateLinkedTable parseCreateLinkedTable(boolean temp,
             boolean globalTemp, boolean force) {
         read("TABLE");
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String tableName = readIdentifierWithSchema();
         CreateLinkedTable command = new CreateLinkedTable(session, getSchema());
         command.setTemporary(temp);
@@ -5940,7 +5939,7 @@ public class Parser {
 
     private CreateTable parseCreateTable(boolean temp, boolean globalTemp,
             boolean persistIndexes) {
-        boolean ifNotExists = readIfNoExists();
+        boolean ifNotExists = readIfNotExists();
         String tableName = readIdentifierWithSchema();
         if (temp && globalTemp && equalsToken("SESSION", schemaName)) {
             // support weird syntax: declare global temporary table session.xy

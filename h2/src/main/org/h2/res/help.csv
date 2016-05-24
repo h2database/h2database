@@ -67,15 +67,15 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
 ","
 Lists the schemas, tables, or the columns of a table."
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX indexName RENAME TO newIndexName
+ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index."
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA schema RENAME TO newSchemaName
+ALTER SCHEMA [ IF EXISTS ] schema RENAME TO newSchemaName
 ","
 Renames a schema."
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
 [ CYCLE long | NOCYCLE |  NO CYCLE ]
@@ -83,21 +83,21 @@ ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 ","
 Changes the parameters of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD [ COLUMN ]
+ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
 { [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
 Adds a new column to a table."
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
+ALTER TABLE [ IF EXISTS ] tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table."
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
-ALTER TABLE tableName RENAME oldConstraintName TO newConstraintName
+ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintName
 ","
 Renames a constraint."
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE tableName ALTER COLUMN columnName
+ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
 { { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }
     | { RESTART WITH long }
@@ -109,20 +109,20 @@ ALTER TABLE tableName ALTER COLUMN columnName
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity."
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
+ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
 ","
 Removes column(s) from a table."
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
+ALTER TABLE [ IF EXISTS ] tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table."
 "Commands (DDL)","ALTER TABLE SET","
-ALTER TABLE tableName SET REFERENTIAL_INTEGRITY
+ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
     { FALSE | TRUE [ CHECK | NOCHECK ] }
 ","
 Disables or enables referential integrity checking for a table."
 "Commands (DDL)","ALTER TABLE RENAME","
-ALTER TABLE tableName RENAME TO newName
+ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
 ","
 Renames a table."
 "Commands (DDL)","ALTER USER ADMIN","
@@ -138,7 +138,7 @@ ALTER USER userName SET { PASSWORD string | SALT bytes HASH bytes }
 ","
 Changes the password of a user."
 "Commands (DDL)","ALTER VIEW","
-ALTER VIEW viewName RECOMPILE
+ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created."
 "Commands (DDL)","ANALYZE","

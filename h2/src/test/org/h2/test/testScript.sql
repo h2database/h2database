@@ -2991,6 +2991,12 @@ CREATE memory TABLE ADDRESS(ID INT);
 alter view address_view recompile;
 > ok
 
+alter view if exists address_view recompile;
+> ok
+
+alter view if exists doesnt_exist recompile;
+> ok
+
 select * from ADDRESS_VIEW;
 > ID
 > --
@@ -4452,7 +4458,31 @@ create index if not exists idx_id on s.test(id);
 create index if not exists idx_id on s.test(id);
 > ok
 
-alter index s.idx_id rename to s.index_id;
+alter index s.idx_id rename to s.x;
+> ok
+
+alter index if exists s.idx_id rename to s.x;
+> ok
+
+alter index if exists s.x rename to s.index_id;
+> ok
+
+alter sequence if exists s.seq restart with 10;
+> ok
+
+create sequence s.seq cache 0;
+> ok
+
+alter sequence if exists s.seq restart with 3;
+> ok
+
+select s.seq.nextval as x;
+> X
+> -
+> 3
+> rows: 1
+
+drop sequence s.seq;
 > ok
 
 create sequence s.seq cache 0;
@@ -10197,3 +10227,225 @@ select 0 from ((
 > rows: 0
 };
 > update count: 0
+
+create table x(id int not null);
+> ok
+
+alter table if exists y add column a varchar;
+> ok
+
+alter table if exists x add column a varchar;
+> ok
+
+alter table if exists x add column a varchar;
+> exception
+
+alter table if exists y alter column a rename to b;
+> ok
+
+alter table if exists x alter column a rename to b;
+> ok
+
+alter table if exists x alter column a rename to b;
+> exception
+
+alter table if exists y alter column b set default 'a';
+> ok
+
+alter table if exists x alter column b set default 'a';
+> ok
+
+insert into x(id) values(1);
+> update count: 1
+
+select b from x;
+> B
+> -
+> a
+> rows: 1
+
+delete from x;
+> update count: 1
+
+alter table if exists y alter column b drop default;
+> ok
+
+alter table if exists x alter column b drop default;
+> ok
+
+alter table if exists y alter column b set not null;
+> ok
+
+alter table if exists x alter column b set not null;
+> ok
+
+insert into x(id) values(1);
+> exception
+
+alter table if exists y alter column b drop not null;
+> ok
+
+alter table if exists x alter column b drop not null;
+> ok
+
+insert into x(id) values(1);
+> update count: 1
+
+select b from x;
+> B
+> ----
+> null
+> rows: 1
+
+delete from x;
+> update count: 1
+
+alter table if exists y add constraint x_pk primary key (id);
+> ok
+
+alter table if exists x add constraint x_pk primary key (id);
+> ok
+
+alter table if exists x add constraint x_pk primary key (id);
+> exception
+
+insert into x(id) values(1);
+> update count: 1
+
+insert into x(id) values(1);
+> exception
+
+delete from x;
+> update count: 1
+
+alter table if exists y add constraint x_chk check (b = 'a');
+> ok
+
+alter table if exists x add constraint x_chk check (b = 'a');
+> ok
+
+alter table if exists x add constraint x_chk check (b = 'a');
+> exception
+
+insert into x(id, b) values(1, 'b');
+> exception
+
+alter table if exists y rename constraint x_chk to x_chk1;
+> ok
+
+alter table if exists x rename constraint x_chk to x_chk1;
+> ok
+
+alter table if exists x rename constraint x_chk to x_chk1;
+> exception
+
+alter table if exists y drop constraint x_chk1;
+> ok
+
+alter table if exists x drop constraint x_chk1;
+> ok
+
+alter table if exists y rename to z;
+> ok
+
+alter table if exists x rename to z;
+> ok
+
+alter table if exists x rename to z;
+> ok
+
+insert into z(id, b) values(1, 'b');
+> update count: 1
+
+delete from z;
+> update count: 1
+
+alter table if exists y add constraint z_uk unique (b);
+> ok
+
+alter table if exists z add constraint z_uk unique (b);
+> ok
+
+alter table if exists z add constraint z_uk unique (b);
+> exception
+
+insert into z(id, b) values(1, 'b');
+> update count: 1
+
+insert into z(id, b) values(1, 'b');
+> exception
+
+delete from z;
+> update count: 1
+
+alter table if exists y drop column b;
+> ok
+
+alter table if exists z drop column b;
+> ok
+
+alter table if exists z drop column b;
+> exception
+
+alter table if exists y drop primary key;
+> ok
+
+alter table if exists z drop primary key;
+> ok
+
+alter table if exists z drop primary key;
+> exception
+
+create table x (id int not null primary key);
+> ok
+
+alter table if exists y add constraint z_fk foreign key (id) references x (id);
+> ok
+
+alter table if exists z add constraint z_fk foreign key (id) references x (id);
+> ok
+
+alter table if exists z add constraint z_fk foreign key (id) references x (id);
+> exception
+
+insert into z (id) values (1);
+> exception
+
+alter table if exists y drop foreign key z_fk;
+> ok
+
+alter table if exists z drop foreign key z_fk;
+> ok
+
+alter table if exists z drop foreign key z_fk;
+> exception
+
+insert into z (id) values (1);
+> update count: 1
+
+delete from z;
+> update count: 1
+
+drop table x;
+> ok
+
+drop table z;
+> ok
+
+create schema x;
+> ok
+
+alter schema if exists y rename to z;
+> ok
+
+alter schema if exists x rename to z;
+> ok
+
+alter schema if exists x rename to z;
+> ok
+
+create table z.z (id int);
+> ok
+
+drop schema z;
+> ok

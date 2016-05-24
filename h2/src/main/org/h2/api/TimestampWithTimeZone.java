@@ -39,10 +39,7 @@ public class TimestampWithTimeZone extends Timestamp {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = super.hashCode();
-        result = prime * result + timeZoneOffsetMins;
-        return result;
+        return 31 * super.hashCode() + timeZoneOffsetMins;
     }
 
     @Override
@@ -62,4 +59,5 @@ public class TimestampWithTimeZone extends Timestamp {
         }
         return true;
     }
+
 }

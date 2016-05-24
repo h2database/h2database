@@ -251,7 +251,6 @@ public class ValueTimestampTimeZone extends Value {
         ValueDate.appendDate(buff, dateValue);
         buff.append(' ');
         ValueTime.appendTime(buff, timeNanos, true);
-        buff.append(' ');
         appendTimeZone(buff, timeZoneOffsetMins);
         return buff.toString();
     }
@@ -266,6 +265,8 @@ public class ValueTimestampTimeZone extends Value {
         if (tz < 0) {
             buff.append('-');
             tz = (short) -tz;
+        } else {
+            buff.append('+');
         }
         int hours = tz / 60;
         tz -= hours * 60;

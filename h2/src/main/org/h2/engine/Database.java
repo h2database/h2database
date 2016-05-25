@@ -1132,10 +1132,13 @@ public class Database implements DataHandler {
      * Create a session for the given user.
      *
      * @param user the user
-     * @return the session
+     * @return the session, or null if the database is currently closing
      * @throws DbException if the database is in exclusive mode
      */
     synchronized Session createSession(User user) {
+        if (closing) {
+            return null;
+        }
         if (exclusiveSession != null) {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }

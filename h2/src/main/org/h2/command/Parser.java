@@ -664,6 +664,7 @@ public class Parser {
             } else if (database.getMode().sysDummy1 &&
                     "SYSIBM".equals(schemaName)) {
                 // IBM DB2 and Apache Derby compatibility: SYSIBM.SYSDUMMY1
+                schema = database.getSchema(session.getCurrentSchemaName());
             }
         }
         return schema;
@@ -4902,16 +4903,14 @@ public class Parser {
         if (schema == null) {
             if (ifExists) {
                 return new NoOperation(session);
-            } else {
-                throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
             }
-        } else {
-            AlterSchemaRename command = new AlterSchemaRename(session);
-            command.setOldSchema(schema);
-            checkSchema(old);
-            command.setNewName(newName);
-            return command;
+            throw DbException.get(ErrorCode.SCHEMA_NOT_FOUND_1, schemaName);
         }
+        AlterSchemaRename command = new AlterSchemaRename(session);
+        command.setOldSchema(schema);
+        checkSchema(old);
+        command.setNewName(newName);
+        return command;
     }
 
     private AlterSequence parseAlterSequence() {

@@ -382,7 +382,7 @@ public class CompareLike extends Condition {
         }
         patternString = new String(patternChars, 0, patternLength);
 
-        /* optimises the common case of LIKE 'foo%'  */
+        // optimizes the common case of LIKE 'foo%'
         if (compareMode.getName().equals(CompareMode.OFF) && patternLength > 1) {
             int maxMatch = 0;
             while (maxMatch < patternLength && patternTypes[maxMatch] == MATCH) {

@@ -177,12 +177,12 @@ public class CipherFactory {
         if (list == null) {
             return list;
         }
-        List<String> algos = new LinkedList<String>(Arrays.asList(list.split("\\s*,\\s*")));
-        boolean dhAnonRemoved = algos.remove("DH_anon");
-        boolean ecdhAnonRemoved = algos.remove("ECDH_anon");
+        List<String> algorithms = new LinkedList<String>(Arrays.asList(list.split("\\s*,\\s*")));
+        boolean dhAnonRemoved = algorithms.remove("DH_anon");
+        boolean ecdhAnonRemoved = algorithms.remove("ECDH_anon");
         if (dhAnonRemoved || ecdhAnonRemoved) {
-            String algosStr = Arrays.toString(algos.toArray(new String[algos.size()]));
-            return (algos.size() > 0) ? algosStr.substring(1, algosStr.length() - 1): "";
+            String string = Arrays.toString(algorithms.toArray(new String[algorithms.size()]));
+            return (algorithms.size() > 0) ? string.substring(1, string.length() - 1): "";
         }
         return list;
     }
@@ -203,13 +203,13 @@ public class CipherFactory {
      * behavior.
      */
     public static synchronized void removeAnonFromLegacyAlgorithms() {
-        String legacyAlgosOrig = getLegacyAlgorithmsSilently();
-        if (legacyAlgosOrig == null) {
+        String legacyOriginal = getLegacyAlgorithmsSilently();
+        if (legacyOriginal == null) {
             return;
         }
-        String legacyAlgosNew = removeDhAnonFromCommaSeparatedList(legacyAlgosOrig);
-        if (!legacyAlgosOrig.equals(legacyAlgosNew)) {
-            setLegacyAlgorithmsSilently(legacyAlgosNew);
+        String legacyNew = removeDhAnonFromCommaSeparatedList(legacyOriginal);
+        if (!legacyOriginal.equals(legacyNew)) {
+            setLegacyAlgorithmsSilently(legacyNew);
         }
     }
 
@@ -243,12 +243,12 @@ public class CipherFactory {
         return defaultLegacyAlgorithms;
     }
 
-    private static void setLegacyAlgorithmsSilently(String legacyAlgos) {
-        if (legacyAlgos == null) {
+    private static void setLegacyAlgorithmsSilently(String legacyAlgorithms) {
+        if (legacyAlgorithms == null) {
             return;
         }
         try {
-            Security.setProperty(LEGACY_ALGORITHMS_SECURITY_KEY, legacyAlgos);
+            Security.setProperty(LEGACY_ALGORITHMS_SECURITY_KEY, legacyAlgorithms);
         } catch (SecurityException e) {
             // ignore
         }

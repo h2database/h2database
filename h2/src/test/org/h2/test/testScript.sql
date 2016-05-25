@@ -2994,7 +2994,7 @@ alter view address_view recompile;
 alter view if exists address_view recompile;
 > ok
 
-alter view if exists doesnt_exist recompile;
+alter view if exists does_not_exist recompile;
 > ok
 
 select * from ADDRESS_VIEW;
@@ -10318,31 +10318,31 @@ insert into x(id) values(1);
 delete from x;
 > update count: 1
 
-alter table if exists y add constraint x_chk check (b = 'a');
+alter table if exists y add constraint x_check check (b = 'a');
 > ok
 
-alter table if exists x add constraint x_chk check (b = 'a');
+alter table if exists x add constraint x_check check (b = 'a');
 > ok
 
-alter table if exists x add constraint x_chk check (b = 'a');
+alter table if exists x add constraint x_check check (b = 'a');
 > exception
 
 insert into x(id, b) values(1, 'b');
 > exception
 
-alter table if exists y rename constraint x_chk to x_chk1;
+alter table if exists y rename constraint x_check to x_check1;
 > ok
 
-alter table if exists x rename constraint x_chk to x_chk1;
+alter table if exists x rename constraint x_check to x_check1;
 > ok
 
-alter table if exists x rename constraint x_chk to x_chk1;
+alter table if exists x rename constraint x_check to x_check1;
 > exception
 
-alter table if exists y drop constraint x_chk1;
+alter table if exists y drop constraint x_check1;
 > ok
 
-alter table if exists x drop constraint x_chk1;
+alter table if exists x drop constraint x_check1;
 > ok
 
 alter table if exists y rename to z;

@@ -7,6 +7,8 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
 import org.h2.engine.Right;
@@ -815,6 +817,9 @@ public class TableFilter implements ColumnResolver {
             return buff.toString();
         }
         buff.append(table.getSQL());
+        if (table.isView() && ((TableView) table).isInvalid()) {
+            throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
+        }
         if (alias != null) {
             buff.append(' ').append(Parser.quoteIdentifier(alias));
         }

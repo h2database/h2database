@@ -824,21 +824,21 @@ public class Database implements DataHandler {
     }
 
     private void recompileInvalidViews(Session session) {
-        boolean recompileSuccessful;
+        boolean atLeastOneRecompiledSuccessfully;
         do {
-            recompileSuccessful = false;
+            atLeastOneRecompiledSuccessfully = false;
             for (Table obj : getAllTablesAndViews(false)) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
                         view.recompile(session, true, false);
                         if (!view.isInvalid()) {
-                            recompileSuccessful = true;
+                            atLeastOneRecompiledSuccessfully = true;
                         }
                     }
                 }
             }
-        } while (recompileSuccessful);
+        } while (atLeastOneRecompiledSuccessfully);
         TableView.clearIndexCaches(session.getDatabase());
     }
 

@@ -35,18 +35,18 @@ public class TestCompatibility extends TestBase {
     public void test() throws SQLException {
         deleteDb("compatibility");
 
-//        testOnDuplicateKey();
-//        testCaseSensitiveIdentifiers();
-//        testKeyAsColumnInMySQLMode();
+        testOnDuplicateKey();
+        testCaseSensitiveIdentifiers();
+        testKeyAsColumnInMySQLMode();
 
         conn = getConnection("compatibility");
-//        testDomain();
-//        testColumnAlias();
-//        testUniqueIndexSingleNull();
-//        testUniqueIndexOracle();
-//        testPostgreSQL();
-//        testHsqlDb();
-//        testMySQL();
+        testDomain();
+        testColumnAlias();
+        testUniqueIndexSingleNull();
+        testUniqueIndexOracle();
+        testPostgreSQL();
+        testHsqlDb();
+        testMySQL();
         testDB2();
         testDerby();
         testSybaseAndMSSQLServer();

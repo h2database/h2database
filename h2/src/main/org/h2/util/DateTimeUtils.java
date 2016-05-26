@@ -15,7 +15,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -683,6 +682,18 @@ public class DateTimeUtils {
         return new Date(millis);
     }
 
+    /**
+     * Convert a date value to millis, using the supplied timezone.
+     *
+     * @param dateValue the date value
+     * @return the date
+     */
+    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
+        return getMillis(tz,
+                yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue), 0, 0, 0, 0);
+    }
     /**
      * Convert a date value / time value to a timestamp, using the default
      * timezone.

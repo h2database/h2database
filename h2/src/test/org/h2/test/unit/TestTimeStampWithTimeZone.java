@@ -9,8 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-
+import org.h2.api.TimestampWithTimeZone;
 import org.h2.test.TestBase;
 
 /**
@@ -41,11 +40,8 @@ public class TestTimeStampWithTimeZone extends TestBase {
         ResultSet rs = stat.executeQuery("select t1 from test");
         rs.next();
         assertEquals("1970-01-01 12:00:00.0+00:15", rs.getString(1));
-        Timestamp ts = rs.getTimestamp(1);
-        // TODO currently fails:
-        //assertTrue("" + ts,
-        //        new TimestampWithTimeZone(36000000, 00, (short) 15).equals(
-        //                ts));
+        TimestampWithTimeZone ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15), ts);
         conn.close();
     }
 

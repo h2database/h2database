@@ -561,7 +561,7 @@ public class DataType {
                 break;
             }
             case Value.TIMESTAMP_TZ: {
-                TimestampWithTimeZone value = (TimestampWithTimeZone) rs.getTimestamp(columnIndex);
+                TimestampWithTimeZone value = (TimestampWithTimeZone) rs.getObject(columnIndex);
                 v = value == null ? (Value) ValueNull.INSTANCE :
                     ValueTimestampTimeZone.get(value);
                 break;

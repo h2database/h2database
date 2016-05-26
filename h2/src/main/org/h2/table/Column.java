@@ -20,6 +20,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -298,8 +299,10 @@ public class Column {
                     } else if (dt.type == Value.TIMESTAMP_UTC) {
                         value = ValueTimestampUtc.fromMillis(session.getTransactionStart());
                     } else if (dt.type == Value.TIMESTAMP_TZ) {
-                        value = ValueTimestampTimeZone.fromMillis(
-                                session.getTransactionStart(), (short) 0);
+                        long ms = session.getTransactionStart();
+                        value = ValueTimestampTimeZone.fromDateValueAndNanos(
+                                DateTimeUtils.dateValueFromDate(ms),
+                                DateTimeUtils.nanosFromDate(ms), (short) 0);
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {

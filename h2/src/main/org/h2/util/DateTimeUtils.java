@@ -685,6 +685,7 @@ public class DateTimeUtils {
     /**
      * Convert a date value to millis, using the supplied timezone.
      *
+     * @param tz the timezone
      * @param dateValue the date value
      * @return the date
      */

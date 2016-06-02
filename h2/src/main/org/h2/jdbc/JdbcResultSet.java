@@ -27,7 +27,6 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -3688,7 +3687,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.7 ##
     @Override
     public <T> T getObject(int columnIndex, Class<T> type) {
-        return null;
+        throw unsupported("getObject");
     }
 //*/
 
@@ -3701,7 +3700,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
 /*## Java 1.7 ##
     @Override
     public <T> T getObject(String columnName, Class<T> type) {
-        return null;
+        throw unsupported("getObject");
     }
 //*/
 

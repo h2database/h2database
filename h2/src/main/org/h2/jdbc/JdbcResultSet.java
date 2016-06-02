@@ -71,7 +71,7 @@ import org.h2.value.ValueTimestamp;
  * changes are visible, but not own inserts and deletes.
  * </p>
  */
-public class JdbcResultSet extends TraceObject implements ResultSet {
+public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultSetBackwardsCompat {
     private final boolean closeStatement;
     private final boolean scrollable;
     private final boolean updatable;
@@ -3684,12 +3684,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(int columnIndex, Class<T> type) {
+    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
         throw unsupported("getObject");
     }
-//*/
 
     /**
      * [Not supported]
@@ -3697,12 +3695,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param columnName the column name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(String columnName, Class<T> type) {
+    public <T> T getObject(String columnName, Class<T> type) throws SQLException {
         throw unsupported("getObject");
     }
-//*/
 
     /**
      * INTERNAL

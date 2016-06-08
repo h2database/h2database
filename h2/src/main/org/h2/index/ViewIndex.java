@@ -8,6 +8,7 @@ package org.h2.index;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -314,7 +315,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             return q;
         }
         int firstIndexParam = view.getParameterOffset(originalParameters);
-        IntArray paramIndex = new IntArray();
+        // the column index of each parameter
+        // (for example: paramColumnIndex {0, 0} mean
+        // param[0] is column 0, and param[1] is also column 0)
+        IntArray paramColumnIndex = new IntArray();
         int indexColumnCount = 0;
         for (int i = 0; i < masks.length; i++) {
             int mask = masks[i];
@@ -322,16 +326,18 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 continue;
             }
             indexColumnCount++;
-            paramIndex.add(i);
-            if (Integer.bitCount(mask) > 1) {
-                // two parameters for range queries: >= x AND <= y
-                paramIndex.add(i);
+            // the number of parameters depends on the mask;
+            // for range queries it is 2: >= x AND <= y
+            // but bitMask could also be 7 (=, and <=, and >=)
+            int bitCount = Integer.bitCount(mask);
+            for (int j = 0; j < bitCount; j++) {
+                paramColumnIndex.add(i);
             }
         }
-        int len = paramIndex.size();
+        int len = paramColumnIndex.size();
         ArrayList<Column> columnList = New.arrayList();
         for (int i = 0; i < len;) {
-            int idx = paramIndex.get(i);
+            int idx = paramColumnIndex.get(i);
             columnList.add(table.getColumn(idx));
             int mask = masks[idx];
             if ((mask & IndexCondition.EQUALITY) != 0) {

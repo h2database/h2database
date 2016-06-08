@@ -18,6 +18,7 @@ UNION combines the result of this query with the results of another query.
 
 LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
 OFFSET specified how many rows to skip.
+Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
 Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated

@@ -26,16 +26,12 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
-
-/*## Java 1.7 ##
-import java.util.concurrent.Executor;
-//*/
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -67,7 +63,7 @@ import org.h2.value.ValueString;
  * connection should only be used in one thread at any time.
  * </p>
  */
-public class JdbcConnection extends TraceObject implements Connection {
+public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat {
 
     private static final String NUM_SERVERS = "numServers";
     private static final String PREFIX_SERVER = "server";
@@ -1896,34 +1892,28 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @param schema the schema
      */
-/*## Java 1.7 ##
     @Override
     public void setSchema(String schema) {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public String getSchema() {
         return null;
     }
-//*/
 
     /**
      * [Not supported]
      *
      * @param executor the executor used by this method
      */
-/*## Java 1.7 ##
     @Override
     public void abort(Executor executor) {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
@@ -1931,22 +1921,18 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @param executor the executor used by this method
      * @param milliseconds the TCP connection timeout
      */
-/*## Java 1.7 ##
     @Override
     public void setNetworkTimeout(Executor executor, int milliseconds) {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public int getNetworkTimeout() {
         return 0;
     }
-//*/
 
     /**
      * Check that the given type map is either null or empty.

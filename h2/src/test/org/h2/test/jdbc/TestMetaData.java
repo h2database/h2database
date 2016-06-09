@@ -1200,8 +1200,17 @@ public class TestMetaData extends TestBase {
         assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
-        assertTrue(rs.next());
-        assertFalse(rs.next());
+        int count = 0;
+        while (rs.next()) {
+            count++;
+        }
+        if (config.networked) {
+            // server0, numServers
+            assertEquals(2, count);
+        } else {
+            // numServers
+            assertEquals(1, count);
+        }
         conn.close();
         deleteDb("metaData");
     }

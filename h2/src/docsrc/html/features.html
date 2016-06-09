@@ -643,7 +643,13 @@ To keep the content of an in-memory database as long as the virtual machine is a
 
 <h2 id="file_encryption">Database Files Encryption</h2>
 <p>
-The database files can be encrypted. Two encryption algorithm AES is supported.
+The database files can be encrypted.
+Three encryption algorithms are supported:
+<ul>
+<li>"AES" - also known as Rijndael, only AES-128 is implemented.</li>
+<li>"XTEA" - the 32 round version.</li>
+<li>"FOG" - pseudo-encryption only useful for hiding data from a text editor.</li>
+</ul>
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
 and the file password (in addition to the user password) when connecting to the database.
 </p>

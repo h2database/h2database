@@ -34,7 +34,7 @@ public class CalculateHashConstantLong implements Runnable {
 
     private final AES aes = new AES();
     {
-        aes.setKey("Hello Welt Hallo Welt".getBytes());
+        aes.setKey("Hello World Hallo Welt".getBytes());
     }
     private final byte[] data = new byte[16];
 
@@ -54,6 +54,39 @@ public class CalculateHashConstantLong implements Runnable {
         for (int i = 0; i < randomValues.length; i++) {
             randomValues[i] = r.nextInt();
         }
+        printQuality(new CalculateHashConstantLong() {
+            @Override
+            public long hash(long x) {
+                return secureHash(x);
+            }
+            @Override
+            public String toString() {
+                return "AES";
+            }
+        }, randomValues);
+        // Quality of AES
+        // Dependencies: 15715..16364
+        // Avalanche: 31998
+        // AvalancheSum: 3199841
+        // Effect: 49456..50584
+
+        printQuality(new CalculateHashConstantLong() {
+            @Override
+            public long hash(long x) {
+                x = (x ^ (x >>> 30)) * 0xbf58476d1ce4e5b9L;
+                x = (x ^ (x >>> 27)) * 0x94d049bb133111ebL;
+                return x ^ (x >>> 31);
+            }
+            @Override
+            public String toString() {
+                return "Test";
+            }
+        }, randomValues);
+        // Quality of Test
+        // Dependencies: 14693..16502
+        // Avalanche: 31996
+        // AvalancheSum: 3199679
+        // Effect: 49437..50537
 
         Thread[] threads = new Thread[8];
         for (int i = 0; i < 8; i++) {
@@ -67,28 +100,8 @@ public class CalculateHashConstantLong implements Runnable {
         int finalCount = 10000;
         long[] randomValues = getRandomValues(finalCount, 10);
 
-        System.out.println();
-        System.out.println("AES:");
-        CalculateHashConstantLong test = new CalculateHashConstantLong();
+        CalculateHashConstantLong test;
         int[] minMax;
-        int av = 0;
-        test = new CalculateHashConstantLong() {
-            @Override
-            public long hash(long x) {
-                return secureHash(x);
-            }
-        };
-        minMax = test.getDependencies(test, randomValues);
-        System.out.println("Dependencies: " + minMax[0] + ".." + minMax[1]);
-        av = 0;
-        for (int j = 0; j < 100; j++) {
-            av += test.getAvalanche(test, randomValues[j]);
-        }
-        System.out.println("Avalanche: " + (av / 100));
-        System.out.println("AvalancheSum: " + av);
-        minMax = test.getEffect(test, finalCount * 10, 11);
-        System.out.println("Effect: " + minMax[0] + ".." + minMax[1]);
-
         test = new CalculateHashConstantLong();
         long best = 0;
         int dist = Integer.MAX_VALUE;
@@ -99,7 +112,7 @@ public class CalculateHashConstantLong implements Runnable {
             minMax = test.getDependencies(test, randomValues);
             System.out.println("Dependencies: " + minMax[0] + ".." + minMax[1]);
             int d = minMax[1] - minMax[0];
-            av = 0;
+            int av = 0;
             for (int j = 0; j < 100; j++) {
                 av += test.getAvalanche(test, randomValues[j]);
             }
@@ -117,6 +130,24 @@ public class CalculateHashConstantLong implements Runnable {
         test.constant = best;
         long collisions = test.getCollisionCount();
         System.out.println("Collisions: " + collisions);
+    }
+
+    private static void printQuality(CalculateHashConstantLong test, long[] randomValues) {
+        int finalCount = randomValues.length * 10;
+        System.out.println("Quality of " + test);
+        int[] minMax;
+        int av = 0;
+        minMax = test.getDependencies(test, randomValues);
+        System.out.println("Dependencies: " + minMax[0] + ".." + minMax[1]);
+        av = 0;
+        for (int j = 0; j < 100; j++) {
+            av += test.getAvalanche(test, randomValues[j]);
+        }
+        System.out.println("Avalanche: " + (av / 100));
+        System.out.println("AvalancheSum: " + av);
+        minMax = test.getEffect(test, finalCount * 10, 11);
+        System.out.println("Effect: " + minMax[0] + ".." + minMax[1]);
+        System.out.println("ok=" + test.testCandidate());
     }
 
     /**
@@ -169,40 +200,42 @@ public class CalculateHashConstantLong implements Runnable {
             }
             long i = (currentHigh << 48) | ((long) low << 32) | (currentHigh << 16) | low;
             constant = i;
-            // after one bit changes in the input,
-            // on average 32 bits of the output change
-            int av = getAvalanche(this, 0);
-            if (Math.abs(av - 28057) > 1000) {
-                continue;
-            }
-            av = getAvalanche(this, 0xffffffffffffffffL);
-            if (Math.abs(av - 28057) > 1000) {
-                continue;
-            }
-            long es = getEffectSquare(this, randomValues);
-            if (es > 54379333) {
-                continue;
-            }
-            int[] minMax = getEffect(this, 10000, 1);
-            if (!isWithin(1500, 10000, minMax)) {
-                continue;
-            }
-            minMax = getDependencies(this, randomValues);
-System.out.println(i + " minMax " + minMax[0] + " " + minMax[1]);
-            // aes: 117693..162049
-            if (!isWithin(13063, 21744, minMax)) {
-                continue;
-            }
-            minMax = getEffect(this, 100000, 3);
-System.out.println(i + " minMax2 " + minMax[0] + " " + minMax[1]);
-            if (!isWithin(15143, 82527, minMax)) {
+            if (!testCandidate()) {
                 continue;
             }
             System.out.println(Long.toHexString(i) +
-                    " hit av:" + av + " bits:" + Long.bitCount(i) + " es:" + es + " prime:" +
-                    BigInteger.valueOf(i).isProbablePrime(15));
+                    " hit " + i);
             candidates.add(i);
         }
+    }
+
+    private boolean testCandidate() {
+        // after one bit changes in the input,
+        // on average 32 bits of the output change
+        int av = getAvalanche(this, 0);
+        if (Math.abs(av - 32000) > 1000) {
+            return false;
+        }
+        av = getAvalanche(this, 0xffffffffffffffffL);
+        if (Math.abs(av - 32000) > 1000) {
+            return false;
+        }
+        long es = getEffectSquare(this, randomValues);
+        if (es > 1100000) {
+            System.out.println("fail at a " + es);
+            return false;
+        }
+        int[] minMax = getEffect(this, 10000, 1);
+        if (!isWithin(4700, 5300, minMax)) {
+            System.out.println("fail at b " + minMax[0] + " " + minMax[1]);
+            return false;
+        }
+        minMax = getDependencies(this, randomValues);
+        if (!isWithin(14500, 17000, minMax)) {
+            System.out.println("fail at c " + minMax[0] + " " + minMax[1]);
+            return false;
+        }
+        return true;
     }
 
     long getCollisionCount() {
@@ -316,7 +349,7 @@ System.out.println(i + " minMax2 " + minMax[0] + " " + minMax[1]);
     }
 
     /**
-     * Calculate if the all bit changes (that an output bit changes if an input
+     * Calculate if the bit changes (that an output bit changes if an input
      * bit is changed) are within a certain range.
      *
      * @param h the hash object
@@ -360,7 +393,6 @@ System.out.println(i + " minMax2 " + minMax[0] + " " + minMax[1]);
      * @return the output
      */
     long hash(long x) {
-        // return secureHash(x);
         x = ((x >>> 32) ^ x) * constant;
         x = ((x >>> 32) ^ x) * constant;
         x = (x >>> 32) ^ x;
@@ -374,7 +406,6 @@ System.out.println(i + " minMax2 " + minMax[0] + " " + minMax[1]);
      * @return the output
      */
     long secureHash(long x) {
-        Arrays.fill(data, (byte) 0);
         writeLong(data, 0, x);
         aes.encrypt(data, 0, 16);
         return readLong(data, 0);
@@ -393,7 +424,7 @@ System.out.println(i + " minMax2 " + minMax[0] + " " + minMax[1]);
     }
 
     private static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) | readInt(buff, pos + 4);
+        return (((long) readInt(buff, pos)) << 32) | (readInt(buff, pos + 4) & 0xffffffffL);
     }
 
     private static int readInt(byte[] buff, int pos) {

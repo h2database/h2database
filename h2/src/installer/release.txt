@@ -17,7 +17,6 @@ Test installer, H2 Console (test new languages)
 Check docs, versions and links in main, downloads, build numbers
 Check the PDF file size
 
-Upload to SourceForge
 Upload to ftp://h2database.com/javadoc
 Upload to ftp://h2database.com
 Upload to ftp://h2database.com/m2-repo
@@ -31,9 +30,24 @@ Update statistics
 
 Sign files and publish files on Maven Central
 ./build.sh compile jar mavenDeployCentral
-cd /data/h2database/m2-repo/com/h2database/h2/1...
-remove sha and md5 files
-gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-* (each one separate)
+cd /data/h2database/m2-repo/com/h2database
+# remove sha and md5 files:
+find . -name "*.sha1" -delete
+find . -name "*.md5" -delete
+cd h2/1...
+# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-...
 jar -cvf bundle.jar h2-*
-http://central.sonatype.org/pages/ossrh-guide.html
-http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+cd ../../h2-mvstore/1...
+# for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
+gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
+jar -cvf bundle.jar h2-*
+# http://central.sonatype.org/pages/ossrh-guide.html
+# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+# https://oss.sonatype.org/#welcome - Log In "t..."
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm

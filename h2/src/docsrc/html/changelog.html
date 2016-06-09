@@ -21,13 +21,27 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #299: Nested derrived tables did not always work as expected.
+</li>
+<li>Use interfaces to replace the java version templating, idea from Lukas Eder.
+</li>
+<li>Issue #295: JdbcResultSet.getObject(int, Class) returns null instead of throwing.
+</li>
+</ul>
+
+<h2>Version 1.4.192 Beta (2016-05-26)</h2>
+<ul>
+<li>Garbage collection of unused chunks should now be faster.
+</li>
+<li>Prevent people using unsupported combination of auto-increment columns and clustering mode.
+</li>
 <li>Support for DB2 time format, patch by Niklas Mehner
 </li>
 <li>Added support for Connection.setClientInfo() in compatibility modes for DB2, Postgresql, Oracle and MySQL.
 </li>
 <li>Issue #249: Clarify license declaration in Maven POM xml
 </li>
-<li>Fix NPE in querying spatial data through a sub-select.
+<li>Fix NullPointerException in querying spatial data through a sub-select.
 </li>
 <li>Fix bug where a lock on the SYS table was not released when closing a session that contained a temp
 table with an LOB column.
@@ -36,13 +50,23 @@ table with an LOB column.
 </li>
 <li>Issue #235: Anonymous SSL connections fail in many situations
 </li>
-<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running  
+<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running
 </li>
 <li>Experimental support for datatype TIMESTAMP WITH TIMEZONE
 </li>
 <li>Add support for ALTER TABLE ... RENAME CONSTRAINT .. TO ...
 </li>
 <li>Add support for PostgreSQL ALTER TABLE ... RENAME COLUMN .. TO ...
+</li>
+<li>Add support for ALTER SCHEMA [ IF EXISTS ]
+</li>
+<li>Add support for ALTER TABLE [ IF EXISTS ]
+</li>
+<li>Add support for ALTER VIEW [ IF EXISTS ]
+</li>
+<li>Add support for ALTER INDEX [ IF EXISTS ]
+</li>
+<li>Add support for ALTER SEQUENCE [ IF EXISTS ]
 </li>
 <li>Improve performance of cleaning up temp tables - patch from Eric Faulhaber.
 </li>
@@ -52,13 +76,17 @@ table with an LOB column.
 </li>
 <li>improve performance of queries that use LIKE 'foo%' - 10x in the case of one of my queries
 </li>
+<li>The function IFNULL did not always return the result in the right data type.
+</li>
 <li>Issue #231: Possible infinite loop when initializing the ObjectDataType class
     when concurrently writing into MVStore.
 </li>
-<ul>
+</ul>
 
 <h2>Version 1.4.191 Beta (2016-01-21)</h2>
 <ul>
+<li>TO_DATE and TO_TIMESTAMP functions. Thanks a lot to Sam Blume for the patch!
+</li>
 <li>Issue #229: DATEDIFF does not work for 'WEEK'.
 </li>
 <li>Issue #156: Add support for getGeneratedKeys() when executing commands via PreparedStatement#executeBatch.

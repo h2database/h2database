@@ -18,6 +18,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -57,13 +59,14 @@ public class ArchiveTool {
      */
     public static void main(String... args) throws Exception {
         Log log = new Log();
+        int level = Integer.getInteger("level", Deflater.BEST_SPEED);
         if (args.length == 1) {
             File f = new File(args[0]);
             if (f.exists()) {
                 if (f.isDirectory()) {
                     String fromDir = f.getAbsolutePath();
                     String toFile = fromDir + ".at";
-                    compress(fromDir, toFile);
+                    compress(fromDir, toFile, level);
                     return;
                 }
                 String fromFile = f.getAbsolutePath();
@@ -79,7 +82,7 @@ public class ArchiveTool {
         if ("-compress".equals(arg)) {
             String toFile = args[1];
             String fromDir = args[2];
-            compress(fromDir, toFile);
+            compress(fromDir, toFile, level);
         } else if ("-extract".equals(arg)) {
             String fromFile = args[1];
             String toDir = args[2];
@@ -94,7 +97,7 @@ public class ArchiveTool {
         }
     }
 
-    private static void compress(String fromDir, String toFile) throws IOException {
+    private static void compress(String fromDir, String toFile, int level) throws IOException {
         final Log log = new Log();
         final long start = System.currentTimeMillis();
         final AtomicBoolean title = new AtomicBoolean();
@@ -126,7 +129,7 @@ public class ArchiveTool {
                 new BufferedOutputStream(
                                 new FileOutputStream(toFile), 1024 * 1024);
         Deflater def = new Deflater();
-        def.setLevel(Deflater.BEST_SPEED);
+        def.setLevel(level);
         out = new BufferedOutputStream(
                 new DeflaterOutputStream(out, def), 1024 * 1024);
         sort(log, in, out, temp, size);
@@ -535,7 +538,13 @@ public class ArchiveTool {
         long inPos = 0;
         int bufferTotal = 64 * 1024 * 1024;
         int bufferPerStream = bufferTotal / segmentStart.size();
+        // FileChannel fc = new RandomAccessFile(tempFileName, "r").
+        //     getChannel();
         for (int i = 0; i < segmentStart.size(); i++) {
+            // long end = i < segmentStart.size() - 1 ?
+            //     segmentStart.get(i+1) : fc.size();
+            // InputStream in =
+            //     new SharedInputStream(fc, segmentStart.get(i), end);
             InputStream in = new FileInputStream(tempFileName);
             in.skip(segmentStart.get(i));
             ChunkStream s = new ChunkStream(i);
@@ -1054,6 +1063,42 @@ public class ArchiveTool {
             }
         }
         return x;
+    }
+
+    /**
+     * An input stream that uses a shared file channel.
+     */
+    static class SharedInputStream extends InputStream {
+        private final FileChannel channel;
+        private final long endPosition;
+        private long position;
+
+        SharedInputStream(FileChannel channel, long position, long endPosition) {
+            this.channel = channel;
+            this.position = position;
+            this.endPosition = endPosition;
+        }
+
+        @Override
+        public int read() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+            len = (int) Math.min(len, endPosition - position);
+            if (len <= 0) {
+                return -1;
+            }
+            ByteBuffer buff = ByteBuffer.wrap(b, off, len);
+            len = channel.read(buff, position);
+            position += len;
+            return len;
+        }
+
     }
 
 }

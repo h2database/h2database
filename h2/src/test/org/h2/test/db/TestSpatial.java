@@ -39,7 +39,7 @@ import org.h2.value.ValueGeometry;
  */
 public class TestSpatial extends TestBase {
 
-    private static final String url = "spatial";
+    private static final String URL = "spatial";
 
     /**
      * Run just this test.
@@ -96,16 +96,18 @@ public class TestSpatial extends TestBase {
         testIndexUpdateNullGeometry();
         testInsertNull();
     }
-    
+
     private void testBug1() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
 
         stat.execute("CREATE TABLE VECTORS (ID INTEGER NOT NULL, GEOM GEOMETRY, S INTEGER)");
-        stat.execute("INSERT INTO VECTORS(ID, GEOM, S) VALUES(0, 'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))', 1)");
+        stat.execute("INSERT INTO VECTORS(ID, GEOM, S) " +
+                "VALUES(0, 'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))', 1)");
 
-        stat.executeQuery("select * from (select * from VECTORS) WHERE S=1 AND GEOM && 'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))'");
+        stat.executeQuery("select * from (select * from VECTORS) WHERE S=1 " +
+                "AND GEOM && 'POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))'");
         conn.close();
         deleteDb("spatial");
     }
@@ -123,7 +125,7 @@ public class TestSpatial extends TestBase {
 
     private void testSpatialValues() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
 
         stat.execute("create memory table test" +
@@ -188,7 +190,7 @@ public class TestSpatial extends TestBase {
 
     private void testOverlap() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("create memory table test" +
@@ -213,7 +215,7 @@ public class TestSpatial extends TestBase {
     }
     private void testPersistentSpatialIndex() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("create table test" +
@@ -254,7 +256,7 @@ public class TestSpatial extends TestBase {
             return;
         }
 
-        conn = getConnection(url);
+        conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery(
@@ -271,7 +273,7 @@ public class TestSpatial extends TestBase {
     }
     private void testNotOverlap() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("create memory table test" +
@@ -348,7 +350,7 @@ public class TestSpatial extends TestBase {
 
     private void testSpatialIndexQueryMultipleTable() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             createTestTable(stat);
@@ -389,7 +391,7 @@ public class TestSpatial extends TestBase {
     private void testIndexTransaction() throws SQLException {
         // Check session management in index
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         conn.setAutoCommit(false);
         try {
             Statement stat = conn.createStatement();
@@ -438,7 +440,7 @@ public class TestSpatial extends TestBase {
      */
     private void testMemorySpatialIndex() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
 
         stat.execute("create memory table test(id int primary key, polygon geometry)");
@@ -501,7 +503,7 @@ public class TestSpatial extends TestBase {
      */
     private void testJavaAlias() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS T_GEOM_FROM_TEXT FOR \"" +
@@ -527,7 +529,7 @@ public class TestSpatial extends TestBase {
      */
     private void testJavaAliasTableFunction() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS T_RANDOM_GEOM_TABLE FOR \"" +
@@ -636,7 +638,7 @@ public class TestSpatial extends TestBase {
      */
     private void testValueConversion() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS OBJ_STRING FOR \"" +
                 TestSpatial.class.getName() +
@@ -694,7 +696,7 @@ public class TestSpatial extends TestBase {
      */
     private void testTableFunctionGeometry() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS POINT_TABLE FOR \"" +
@@ -791,7 +793,7 @@ public class TestSpatial extends TestBase {
 
     private void testTableViewSpatialPredicate() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists test");
@@ -829,7 +831,7 @@ public class TestSpatial extends TestBase {
      */
     private void testValueGeometryScript() throws SQLException {
         ValueGeometry valueGeometry = ValueGeometry.get("POINT(1 1 5)");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             ResultSet rs = conn.createStatement().executeQuery(
                     "SELECT " + valueGeometry.getSQL());
@@ -847,7 +849,7 @@ public class TestSpatial extends TestBase {
      * be updated.
      */
     private void testInPlaceUpdate() throws SQLException {
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             ResultSet rs = conn.createStatement().executeQuery(
                     "SELECT 'POINT(1 1)'::geometry");
@@ -870,7 +872,7 @@ public class TestSpatial extends TestBase {
 
     private void testScanIndexOnNonSpatialQuery() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists test");
@@ -890,7 +892,7 @@ public class TestSpatial extends TestBase {
 
     private void testStoreCorruption() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;\n" +
@@ -919,7 +921,7 @@ public class TestSpatial extends TestBase {
 
     private void testExplainSpatialIndexWithPk() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         try {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;");
@@ -946,7 +948,7 @@ public class TestSpatial extends TestBase {
 
     private void testNullableGeometry() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
 
         stat.execute("create memory table test"
@@ -1000,7 +1002,7 @@ public class TestSpatial extends TestBase {
 
         conn.close();
         if (!config.memory) {
-            conn = getConnection(url);
+            conn = getConnection(URL);
             stat = conn.createStatement();
             rs = stat.executeQuery("select * from test");
             assertTrue(rs.next());
@@ -1013,7 +1015,7 @@ public class TestSpatial extends TestBase {
 
     private void testNullableGeometryDelete() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
         stat.execute("create memory table test"
                 + "(id int primary key, the_geom geometry)");
@@ -1040,7 +1042,7 @@ public class TestSpatial extends TestBase {
 
     private void testNullableGeometryInsert() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
         stat.execute("create memory table test"
                 + "(id identity, the_geom geometry)");
@@ -1058,7 +1060,7 @@ public class TestSpatial extends TestBase {
 
     private void testNullableGeometryUpdate() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(url);
+        Connection conn = getConnection(URL);
         Statement stat = conn.createStatement();
         stat.execute("create memory table test"
                 + "(id int primary key, the_geom geometry, description varchar2(32))");

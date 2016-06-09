@@ -27,19 +27,21 @@ public class TestTimeStampWithTimeZone extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        deleteDb("timestamp_tz");
+        deleteDb(getTestName());
         test1();
-        deleteDb("timestamp_tz");
+        deleteDb(getTestName());
     }
 
     private void test1() throws SQLException {
-        Connection conn = getConnection("timestamp_tz");
+        Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, t1 timestamp with timezone)");
         stat.execute("insert into test(t1) values('1970-01-01 12:00:00.00+00:15')");
         ResultSet rs = stat.executeQuery("select t1 from test");
         rs.next();
-        assertTrue(new TimestampWithTimeZone(36000000, 00, (short)15).equals(rs.getTimestamp(1)));
+        assertEquals("1970-01-01 12:00:00.0+00:15", rs.getString(1));
+        TimestampWithTimeZone ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15), ts);
         conn.close();
     }
 

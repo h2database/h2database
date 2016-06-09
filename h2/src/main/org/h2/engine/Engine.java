@@ -109,6 +109,10 @@ public class Engine implements SessionFactory {
         }
         checkClustering(ci, database);
         Session session = database.createSession(user);
+        if (session == null) {
+            // concurrently closing
+            return null;
+        }
         if (ci.getProperty("JMX", false)) {
             try {
                 Utils.callStaticMethod(

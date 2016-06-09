@@ -279,6 +279,8 @@ public class MVStore {
 
     private long lastTimeAbsolute;
 
+    private long lastFreeUnusedChunks;
+
     /**
      * Create and open the store.
      *
@@ -1051,13 +1053,16 @@ public class MVStore {
     }
 
     private long storeNowTry() {
-        freeUnusedChunks();
-
+        long time = getTimeSinceCreation();
+        int freeDelay = retentionTime / 10;
+        if (time >= lastFreeUnusedChunks + freeDelay) {
+            lastFreeUnusedChunks = time;
+            freeUnusedChunks();
+        }
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
         long version = ++currentVersion;
         setWriteVersion(version);
-        long time = getTimeSinceCreation();
         lastCommitTime = time;
         retainChunk = null;
 

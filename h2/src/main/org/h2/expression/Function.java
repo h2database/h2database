@@ -965,6 +965,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
+            result = convertResult(result);
             break;
         }
         case CASEWHEN: {
@@ -1127,6 +1128,10 @@ public class Function extends Expression implements FunctionCall {
             result = null;
         }
         return result;
+    }
+
+    private Value convertResult(Value v) {
+        return v.convertTo(dataType);
     }
 
     private static boolean cancelStatement(Session session, int targetSessionId) {

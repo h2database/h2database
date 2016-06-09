@@ -26,16 +26,12 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
-
-/*## Java 1.7 ##
-import java.util.concurrent.Executor;
-//*/
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -67,7 +63,7 @@ import org.h2.value.ValueString;
  * connection should only be used in one thread at any time.
  * </p>
  */
-public class JdbcConnection extends TraceObject implements Connection {
+public class JdbcConnection extends TraceObject implements Connection, JdbcConnectionBackwardsCompat {
 
     private static final String NUM_SERVERS = "numServers";
     private static final String PREFIX_SERVER = "server";
@@ -1675,16 +1671,21 @@ public class JdbcConnection extends TraceObject implements Connection {
     }
 
     /**
-     * Set a client property.
-     * This method always throws a SQLClientInfoException in standard mode.
-     * In compatibility mode the following properties are supported:
-     * <p><ul>
-     * <li>DB2: The properties: ApplicationName, ClientAccountingInformation, ClientUser and ClientCorrelationToken
-     * are supported.
+     * Set a client property. This method always throws a SQLClientInfoException
+     * in standard mode. In compatibility mode the following properties are
+     * supported:
+     * <ul>
+     * <li>DB2: The properties: ApplicationName, ClientAccountingInformation,
+     * ClientUser and ClientCorrelationToken are supported.
+     * </li>
      * <li>MySQL: All property names are supported.
-     * <li>Oracle: All properties in the form <namespace>.<key name> are supported.
+     * </li>
+     * <li>Oracle: All properties in the form &lt;namespace&gt;.&lt;key name&gt;
+     * are supported.
+     * </li>
      * <li>PostgreSQL: The ApplicationName property is supported.
-     * </ul><p>
+     * </li>
+     * </ul>
      *
      * For unsupported properties a SQLClientInfoException is thrown.
      *
@@ -1703,11 +1704,13 @@ public class JdbcConnection extends TraceObject implements Connection {
             checkClosed();
 
             if (isInternalProperty(name)) {
-                throw new SQLClientInfoException("Property name '" + name + " is used internally by H2.",
-                    Collections.<String, ClientInfoStatus> emptyMap());
+                throw new SQLClientInfoException("Property name '" + name +
+                        " is used internally by H2.",
+                        Collections.<String, ClientInfoStatus> emptyMap());
             }
 
-            Pattern clientInfoNameRegEx = Mode.getInstance(getMode()).supportedClientInfoPropertiesRegEx;
+            Pattern clientInfoNameRegEx =
+                    Mode.getInstance(getMode()).supportedClientInfoPropertiesRegEx;
 
             if (clientInfoNameRegEx != null && clientInfoNameRegEx.matcher(name).matches()) {
                 if (clientInfo == null) {
@@ -1739,8 +1742,9 @@ public class JdbcConnection extends TraceObject implements Connection {
     /**
      * Set the client properties. This replaces all existing properties.
      *
-     * This method always throws a SQLClientInfoException in standard mode. In compatibility mode
-     * some properties may be supported (see setProperty(String, String) for details).
+     * This method always throws a SQLClientInfoException in standard mode. In
+     * compatibility mode some properties may be supported (see
+     * setProperty(String, String) for details).
      *
      * @param properties the properties (ignored)
      */
@@ -1801,7 +1805,8 @@ public class JdbcConnection extends TraceObject implements Connection {
      * Get a client property.
      *
      * @param name the client info name
-     * @return the property value or null if the property is not found or not supported.
+     * @return the property value or null if the property is not found or not
+     *         supported.
      */
     @Override
     public String getClientInfo(String name) throws SQLException {
@@ -1887,34 +1892,28 @@ public class JdbcConnection extends TraceObject implements Connection {
      *
      * @param schema the schema
      */
-/*## Java 1.7 ##
     @Override
     public void setSchema(String schema) {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public String getSchema() {
         return null;
     }
-//*/
 
     /**
      * [Not supported]
      *
      * @param executor the executor used by this method
      */
-/*## Java 1.7 ##
     @Override
     public void abort(Executor executor) {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
@@ -1922,22 +1921,18 @@ public class JdbcConnection extends TraceObject implements Connection {
      * @param executor the executor used by this method
      * @param milliseconds the TCP connection timeout
      */
-/*## Java 1.7 ##
     @Override
     public void setNetworkTimeout(Executor executor, int milliseconds) {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public int getNetworkTimeout() {
         return 0;
     }
-//*/
 
     /**
      * Check that the given type map is either null or empty.

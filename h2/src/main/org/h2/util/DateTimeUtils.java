@@ -15,7 +15,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -314,7 +313,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parse a time string. The format is: [-]hour:minute:second[.nanos] or alternatively [-]hour.minute.second[.nanos].
+     * Parse a time string. The format is: [-]hour:minute:second[.nanos] or
+     * alternatively [-]hour.minute.second[.nanos].
      *
      * @param s the string to parse
      * @param start the parse index start
@@ -332,7 +332,8 @@ public class DateTimeUtils {
         int s2 = s.indexOf(':', s1 + 1);
         int s3 = s.indexOf('.', s2 + 1);
         if (s1 <= 0 || s2 <= s1) {
-            // if first try fails try to use IBM DB2 time format [-]hour.minute.second[.nanos]
+            // if first try fails try to use IBM DB2 time format
+            // [-]hour.minute.second[.nanos]
             s1 = s.indexOf('.', start);
             s2 = s.indexOf('.', s1 + 1);
             s3 = s.indexOf('.', s2 + 1);
@@ -681,6 +682,19 @@ public class DateTimeUtils {
         return new Date(millis);
     }
 
+    /**
+     * Convert a date value to millis, using the supplied timezone.
+     *
+     * @param tz the timezone
+     * @param dateValue the date value
+     * @return the date
+     */
+    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
+        return getMillis(tz,
+                yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue), 0, 0, 0, 0);
+    }
     /**
      * Convert a date value / time value to a timestamp, using the default
      * timezone.

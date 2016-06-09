@@ -18,6 +18,7 @@ UNION combines the result of this query with the results of another query.
 
 LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
 OFFSET specified how many rows to skip.
+Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
 Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated
@@ -192,7 +193,7 @@ SHOW TABLES
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX indexName RENAME TO newIndexName
+ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index.
 This command commits an open transaction in this connection.
@@ -201,7 +202,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA schema RENAME TO newSchemaName
+ALTER SCHEMA [ IF EXISTS ] schema RENAME TO newSchemaName
 ","
 Renames a schema.
 This command commits an open transaction in this connection.
@@ -210,7 +211,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
 [ CYCLE long | NOCYCLE |  NO CYCLE ]
@@ -224,7 +225,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD [ COLUMN ]
+ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
 { [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
@@ -235,7 +236,7 @@ ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
 
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
+ALTER TABLE [ IF EXISTS ] tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
@@ -247,7 +248,7 @@ ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
 "Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
-ALTER TABLE tableName RENAME oldConstraintName TO newConstraintName
+ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintName
 ","
 Renames a constraint.
 This command commits an open transaction in this connection.
@@ -256,7 +257,7 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 "
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE tableName ALTER COLUMN columnName
+ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
 { { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }
     | { RESTART WITH long }
@@ -298,7 +299,7 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
+ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
 ","
 Removes column(s) from a table.
 This command commits an open transaction in this connection.
@@ -308,7 +309,7 @@ ALTER TABLE TEST DROP COLUMN NAME1, NAME2
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
+ALTER TABLE [ IF EXISTS ] tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
 This command commits an open transaction in this connection.
@@ -317,7 +318,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 "
 
 "Commands (DDL)","ALTER TABLE SET","
-ALTER TABLE tableName SET REFERENTIAL_INTEGRITY
+ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
     { FALSE | TRUE [ CHECK | NOCHECK ] }
 ","
 Disables or enables referential integrity checking for a table. This command can
@@ -332,7 +333,7 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "
 
 "Commands (DDL)","ALTER TABLE RENAME","
-ALTER TABLE tableName RENAME TO newName
+ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
 ","
 Renames a table.
 This command commits an open transaction in this connection.
@@ -380,7 +381,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
 "Commands (DDL)","ALTER VIEW","
-ALTER VIEW viewName RECOMPILE
+ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
 This command is used for views created using CREATE FORCE VIEW.

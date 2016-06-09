@@ -76,6 +76,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testIfNull();
         testToDate();
         testToDateException();
         testAddMonths();
@@ -1406,21 +1407,23 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         date = new SimpleDateFormat("yyyy-MM-dd").parse("2013-01-29");
         assertEquals(date, ToDateParser.toDate("113029", "J"));
 
-        date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse("9999-12-31T23:59:59");
-        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59","DD-MON-YYYY HH24:MI:SS"));
-        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59","DD-MON-RRRR HH24:MI:SS"));
-
+        date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+                .parse("9999-12-31T23:59:59");
+        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59",
+                "DD-MON-YYYY HH24:MI:SS"));
+        assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59",
+                "DD-MON-RRRR HH24:MI:SS"));
 
         SimpleDateFormat ymd = new SimpleDateFormat("yyyy-MM-dd");
-        assertEquals(ymd.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001","DD-MON-RRRR"));
-        assertEquals(ymd.parse("9999-03-01"), ToDateParser.toDate("1-MAR-9999","DD-MON-RRRR"));
-        assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-000","DD-MON-RRRR"));
-        assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-099","DD-MON-RRRR"));
-        assertEquals(ymd.parse("0100-03-01"), ToDateParser.toDate("1-MAR-100","DD-MON-RRRR"));
-        assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-00","DD-MON-RRRR"));
-        assertEquals(ymd.parse("2049-03-01"), ToDateParser.toDate("1-MAR-49","DD-MON-RRRR"));
-        assertEquals(ymd.parse("1950-03-01"), ToDateParser.toDate("1-MAR-50","DD-MON-RRRR"));
-        assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-99","DD-MON-RRRR"));
+        assertEquals(ymd.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("9999-03-01"), ToDateParser.toDate("1-MAR-9999", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-000", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-099", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("0100-03-01"), ToDateParser.toDate("1-MAR-100", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-00", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("2049-03-01"), ToDateParser.toDate("1-MAR-49", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("1950-03-01"), ToDateParser.toDate("1-MAR-50", "DD-MON-RRRR"));
+        assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-99", "DD-MON-RRRR"));
     }
 
     private static void setMonth(Date date, int month) {
@@ -1656,6 +1659,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         stat.executeUpdate("INSERT INTO T VALUES (TIMESTAMP '1985-01-01 08:12:34.560')");
         assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
 
+        conn.close();
+    }
+    private void testIfNull() throws SQLException {
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        stat.execute("CREATE TABLE T(f1 double)");
+        stat.executeUpdate("INSERT INTO T VALUES( 1.2 )");
+        stat.executeUpdate("INSERT INTO T VALUES( null )");
+        ResultSet rs = stat.executeQuery("SELECT IFNULL(f1, 0.0) FROM T");
+        ResultSetMetaData metaData = rs.getMetaData();
+        assertEquals("java.lang.Double", metaData.getColumnClassName(1));
+        rs.next();
+        assertEquals("java.lang.Double", rs.getObject(1).getClass().getName());
+        rs.next();
+        assertEquals("java.lang.Double", rs.getObject(1).getClass().getName());
         conn.close();
     }
 

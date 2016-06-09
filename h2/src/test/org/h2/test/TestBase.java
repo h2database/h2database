@@ -680,6 +680,23 @@ public abstract class TestBase {
     }
 
     /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    public void assertEquals(Object expected, Object actual) {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
+            return;
+        }
+        if (!expected.equals(actual)) {
+            fail(" expected: " + expected + " actual: " + actual);
+        }
+    }
+
+    /**
      * Check if two readers are equal, and if not throw an exception.
      *
      * @param expected the expected value

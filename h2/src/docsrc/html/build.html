@@ -34,7 +34,7 @@ Build
 <a href="#translating">
     Translating</a><br />
 <a href="#providing_patches">
-    Providing Patches</a><br />
+    Submitting Source Code Changes</a><br />
 <a href="#support">
     Reporting Problems or Requests</a><br />
 <a href="#automated">
@@ -57,7 +57,7 @@ To create the database executables, the following software stack was used.
 To use this database, it is not required to install this software however.
 </p>
 <ul><li>Mac OS X and Windows
-</li><li><a href="http://java.sun.com/javase/downloads">Sun JDK Version 1.6 and 1.7</a>
+</li><li><a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Oracle JDK Version 1.6 and 1.7</a>
 </li><li><a href="http://www.eclipse.org">Eclipse</a>
 </li><li>Eclipse Plugins:
     <a href="http://subclipse.tigris.org">Subclipse</a>,
@@ -72,7 +72,7 @@ To use this database, it is not required to install this software however.
 
 <h2 id="building">Building the Software</h2>
 <p>
-You need to install a JDK, for example the Sun JDK version 1.6 or 1.7.
+You need to install a JDK, for example the Oracle JDK version 1.6 or 1.7.
 Ensure that Java binary directory is included in the <code>PATH</code> environment variable, and that
 the environment variable <code>JAVA_HOME</code> points to your Java installation.
 On the command line, go to the directory <code>h2</code> and execute the following command:
@@ -185,7 +185,7 @@ Afterwards, you can include the database in your Maven 2 project as a dependency
 <p>
 To create an Eclipse project for H2, use the following steps:
 </p>
-<ul><li>Install Subversion and <a href="http://www.eclipse.org">Eclipse</a>.
+<ul><li>Install Git and <a href="http://www.eclipse.org">Eclipse</a>.
 </li><li>Get the H2 source code from Github:<br />
     <code>git clone https://github.com/h2database/h2database</code>
 </li><li>Download all dependencies:<br />
@@ -212,9 +212,9 @@ After you are done, send the translated <code>*.prop</code> file to the Google G
 The web site is currently translated using Google.
 </p>
 
-<h2 id="providing_patches">Providing Patches</h2>
+<h2 id="providing_patches">Submitting Source Code Changes</h2>
 <p>
-If you like to provide patches, please consider the following guidelines to simplify merging them:
+If you'd like to contribute bug fixes or new features, please consider the following guidelines to simplify merging them:
 </p>
 <ul><li>Only use Java 6 features (do not use Java 7) (see <a href="#environment">Environment</a>).
 </li><li>Follow the coding style used in the project, and use Checkstyle (see above) to verify.
@@ -241,13 +241,14 @@ If you like to provide patches, please consider the following guidelines to simp
 </li><li>Run <code>src/installer/buildRelease</code> to find and fix formatting errors.
 </li><li>Verify the formatting using <code>build docs</code> and
     <code>build javadoc</code>.
-</li><li>Submit patches as <code>.patch</code> files (compressed if big).
-    To create a patch using Eclipse, use Team / Create Patch.
+</li><li>Submit changes using GitHub's "pull requests". You'll require a free <a href="https://github.com/">GitHub</a>
+    account. If you are not familiar with pull requests, please read GitHub's
+    <a href="https://help.github.com/articles/using-pull-requests/">Using pull requests</a> page.
 </li></ul>
 <p>
-For legal reasons, patches need to be public in the form of an email to the
-<a href="http://groups.google.com/group/h2-database">group</a>, or in the form
-of an <a href="https://github.com/h2database/h2database/issues">issue report or attachment</a>.
+For legal reasons, patches need to be public in the form of an
+    <a href="https://github.com/h2database/h2database/issues">issue report or attachment</a> or in the form of an email
+    to the <a href="http://groups.google.com/group/h2-database">group</a>.
 Significant contributions need to include the following statement:
 </p>
 <p>

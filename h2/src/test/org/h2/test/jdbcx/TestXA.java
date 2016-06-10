@@ -38,6 +38,7 @@ public class TestXA extends TestBase {
     @Override
     public void test() throws Exception {
         testRollbackWithoutPrepare();
+        testRollbackAfterPrepare();
         testXAAutoCommit();
         deleteDb("xa");
         testMixedXaNormal();
@@ -91,6 +92,49 @@ public class TestXA extends TestBase {
         c.close();
         deleteDb("xa");
     }
+
+    private void testRollbackAfterPrepare() throws Exception {
+        if (config.memory) {
+            return;
+        }
+        Xid xid = new Xid() {
+            @Override
+            public int getFormatId() {
+                return 3145;
+            }
+            @Override
+            public byte[] getGlobalTransactionId() {
+                return new byte[] { 1, 2, 3, 4, 5, 6, 6, 7, 8 };
+            }
+            @Override
+            public byte[] getBranchQualifier() {
+                return new byte[] { 34, 43, 33, 3, 3, 3, 33, 33, 3 };
+            }
+        };
+        deleteDb("xa");
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL(getURL("xa", true));
+        ds.setPassword(getPassword());
+        Connection dm = ds.getConnection();
+        Statement stat = dm.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS TEST(ID INT PRIMARY KEY, VAL INT)");
+        stat.execute("INSERT INTO TEST(ID,VAL) VALUES (1,1)");
+        dm.close();
+        XAConnection c = ds.getXAConnection();
+        XAResource xa = c.getXAResource();
+        Connection connection = c.getConnection();
+        xa.start(xid, XAResource.TMJOIN);
+        PreparedStatement ps = connection.prepareStatement("UPDATE TEST SET VAL=? WHERE ID=?");
+        ps.setInt(1, new Random().nextInt());
+        ps.setInt(2, 1);
+        ps.close();
+        xa.prepare(xid);
+        xa.rollback(xid);
+        connection.close();
+        c.close();
+        deleteDb("xa");
+    }
+
 
     private void testMixedXaNormal() throws Exception {
         JdbcDataSource ds = new JdbcDataSource();

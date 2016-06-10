@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -143,7 +142,7 @@ public class ScanIndex extends BaseIndex {
             rows = New.arrayList();
             firstFree = -1;
         } else {
-            Row free = new Row(null, 1);
+            Row free = session.createRow(null, 1);
             free.setKey(firstFree);
             long key = row.getKey();
             if (rows.size() <= key) {
@@ -174,8 +173,9 @@ public class ScanIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         return tableData.getRowCountApproximation() + Constants.COST_ROW_OFFSET;
     }
 

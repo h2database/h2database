@@ -134,7 +134,7 @@ public class JavaFunction extends Expression implements FunctionCall {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.getType()) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC:
             if (!isDeterministic()) {
                 return false;

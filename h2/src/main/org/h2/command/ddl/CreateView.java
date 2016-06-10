@@ -16,8 +16,10 @@ import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableView;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -104,8 +106,15 @@ public class CreateView extends SchemaCommand {
             if (view == null) {
                 Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
                 sysSession.setCurrentSchema(schema);
+                Column[] columnTemplates = null;
+                if (columnNames != null) {
+                    columnTemplates = new Column[columnNames.length];
+                    for (int i = 0; i < columnNames.length; ++i) {
+                        columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
+                    }
+                }
                 view = new TableView(getSchema(), id, viewName, querySQL, null,
-                        columnNames, sysSession, false);
+                        columnTemplates, sysSession, false);
             } else {
                 view.replace(querySQL, columnNames, sysSession, false, force);
                 view.setModified();

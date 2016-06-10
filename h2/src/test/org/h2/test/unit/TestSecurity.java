@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
+
 import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
@@ -35,6 +36,8 @@ public class TestSecurity extends TestBase {
         testSHA();
         testAES();
         testBlockCiphers();
+        testRemoveAnonFromLegacyAlgorithms();
+        // testResetLegacyAlgorithms();
     }
 
     private static void testConnectWithHash() throws SQLException {
@@ -250,5 +253,44 @@ public class TestSecurity extends TestBase {
         }
         return len * r < len * 120;
     }
+
+    private void testRemoveAnonFromLegacyAlgorithms() {
+        String legacyAlgorithms = "K_NULL, C_NULL, M_NULL, DHE_DSS_EXPORT" +
+                ", DHE_RSA_EXPORT, DH_anon_EXPORT, DH_DSS_EXPORT, DH_RSA_EXPORT, RSA_EXPORT" +
+                ", DH_anon, ECDH_anon, RC4_128, RC4_40, DES_CBC, DES40_CBC";
+        String expectedLegacyWithoutDhAnon = "K_NULL, C_NULL, M_NULL, DHE_DSS_EXPORT" +
+                ", DHE_RSA_EXPORT, DH_anon_EXPORT, DH_DSS_EXPORT, DH_RSA_EXPORT, RSA_EXPORT" +
+                ", RC4_128, RC4_40, DES_CBC, DES40_CBC";
+        assertEquals(expectedLegacyWithoutDhAnon,
+                CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgorithms));
+
+        legacyAlgorithms = "ECDH_anon, DH_anon_EXPORT, DH_anon";
+        expectedLegacyWithoutDhAnon = "DH_anon_EXPORT";
+        assertEquals(expectedLegacyWithoutDhAnon,
+                CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgorithms));
+
+        legacyAlgorithms = null;
+        assertNull(CipherFactory.removeDhAnonFromCommaSeparatedList(legacyAlgorithms));
+    }
+
+    /**
+     * This test is meaningful when run in isolation. However, tests of server
+     * sockets or ssl connections may modify the global state given by the
+     * jdk.tls.legacyAlgorithms security property (for a good reason).
+     * It is best to avoid running it in test suites, as it could itself lead
+     * to a modification of the global state with hard-to-track consequences.
+     */
+    @SuppressWarnings("unused")
+    private void testResetLegacyAlgorithms() {
+        String legacyAlgorithmsBefore = CipherFactory.getLegacyAlgorithmsSilently();
+        assertEquals("Failed assumption: jdk.tls.legacyAlgorithms" +
+                " has been modified from its initial setting",
+                CipherFactory.DEFAULT_LEGACY_ALGORITHMS, legacyAlgorithmsBefore);
+        CipherFactory.removeAnonFromLegacyAlgorithms();
+        CipherFactory.resetDefaultLegacyAlgorithms();
+        String legacyAlgorithmsAfter = CipherFactory.getLegacyAlgorithmsSilently();
+        assertEquals(CipherFactory.DEFAULT_LEGACY_ALGORITHMS, legacyAlgorithmsAfter);
+    }
+
 
 }

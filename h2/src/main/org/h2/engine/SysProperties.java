@@ -122,7 +122,7 @@ public class SysProperties {
     //*/
 
     /**
-     * System property <code>h2.check2</code> (default: true).<br />
+     * System property <code>h2.check2</code> (default: false).<br />
      * Additional assertions in the database engine.
      */
     //## CHECK ##
@@ -163,7 +163,7 @@ public class SysProperties {
      * Up to this many tables, the column names are listed.
      */
     public static final int CONSOLE_MAX_TABLES_LIST_COLUMNS =
-            Utils.getProperty("h2.consoleTableColumns", 300);
+            Utils.getProperty("h2.consoleTableColumns", 500);
 
     /**
      * System property <code>h2.consoleProcedureColumns</code>
@@ -424,16 +424,6 @@ public class SysProperties {
             Utils.getProperty("h2.splitFileSizeShift", 30);
 
     /**
-     * System property <code>h2.storeLocalTime</code>
-     * (default: false for version 1.3, true for version 1.4).<br />
-     * Store the local time. If disabled, the daylight saving offset is not
-     * taken into account.
-     */
-    public static final boolean STORE_LOCAL_TIME =
-            Utils.getProperty("h2.storeLocalTime",
-                    Constants.VERSION_MINOR >= 4 ? true : false);
-
-    /**
      * System property <code>h2.syncMethod</code> (default: sync).<br />
      * What method to call when closing the database, on checkpoint, and on
      * CHECKPOINT SYNC. The following options are supported:
@@ -452,6 +442,14 @@ public class SysProperties {
      */
     public static final boolean TRACE_IO =
             Utils.getProperty("h2.traceIO", false);
+
+    /**
+     * System property <code>h2.threadDeadlockDetector</code>
+     * (default: false).<br />
+     * Detect thread deadlocks in a background thread.
+     */
+    public static final boolean THREAD_DEADLOCK_DETECTOR =
+            Utils.getProperty("h2.threadDeadlockDetector", false);
 
     /**
      * System property <code>h2.implicitRelativePath</code>

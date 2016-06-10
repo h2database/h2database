@@ -36,6 +36,11 @@ public class RuleRepeat implements Rule {
         while (rule.autoComplete(sentence)) {
             // nothing to do
         }
+        String s = sentence.getQuery();
+        while (Bnf.startWithSpace(s)) {
+            s = s.substring(1);
+        }
+        sentence.setQuery(s);
         return true;
     }
 

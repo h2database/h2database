@@ -51,7 +51,7 @@ public class TestMultiThreaded extends TestBase {
             ResultSet rs;
             try {
                 while (!stop) {
-                    switch(random.nextInt(6)) {
+                    switch (random.nextInt(6)) {
                     case 0:
                         // insert a row for this connection
                         traceThread("insert " + id + " count: " + count);

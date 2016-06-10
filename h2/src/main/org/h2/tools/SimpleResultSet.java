@@ -28,8 +28,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
@@ -54,7 +54,7 @@ import org.h2.value.DataType;
  * </pre>
  *
  */
-public class SimpleResultSet implements ResultSet, ResultSetMetaData {
+public class SimpleResultSet implements ResultSet, ResultSetMetaData, JdbcResultSetBackwardsCompat {
 
     private ArrayList<Object[]> rows;
     private Object[] currentRow;
@@ -391,6 +391,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(int columnIndex, int scale)
             throws SQLException {
@@ -400,6 +401,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(String columnLabel, int scale)
             throws SQLException {
@@ -821,12 +823,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(int columnIndex, Class<T> type) {
-        return null;
+    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+        throw getUnsupportedException();
     }
-//*/
 
     /**
      * INTERNAL
@@ -834,12 +834,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
      * @param columnName the column name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(String columnName, Class<T> type) {
-        return null;
+    public <T> T getObject(String columnName, Class<T> type) throws SQLException {
+        throw getUnsupportedException();
     }
-//*/
 
     /**
      * INTERNAL
@@ -1045,6 +1043,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         throw getUnsupportedException();
@@ -1053,6 +1052,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData {
     /**
      * @deprecated INTERNAL
      */
+    @Deprecated
     @Override
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
         throw getUnsupportedException();

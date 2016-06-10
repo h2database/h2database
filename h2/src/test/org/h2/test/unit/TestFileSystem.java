@@ -393,12 +393,22 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testFileSystem(String fsBase) throws Exception {
+        testRootExists(fsBase);
         testPositionedReadWrite(fsBase);
         testSetReadOnly(fsBase);
         testParentEventuallyReturnsNull(fsBase);
         testSimple(fsBase);
         testTempFile(fsBase);
         testRandomAccess(fsBase);
+    }
+
+    private void testRootExists(String fsBase) {
+        String fileName = fsBase + "/testFile";
+        FilePath p = FilePath.get(fileName);
+        while (p.getParent() != null) {
+            p = p.getParent();
+        }
+        assertTrue(p.exists());
     }
 
     private void testSetReadOnly(String fsBase) {
@@ -673,7 +683,7 @@ public class TestFileSystem extends TestBase {
             for (int i = 0; i < size; i++) {
                 trace("op " + i);
                 int pos = random.nextInt(10000);
-                switch(random.nextInt(7)) {
+                switch (random.nextInt(7)) {
                 case 0: {
                     pos = (int) Math.min(pos, ra.length());
                     trace("seek " + pos);

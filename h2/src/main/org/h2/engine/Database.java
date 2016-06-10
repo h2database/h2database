@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
+import org.h2.api.TableEngine;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
@@ -30,6 +31,7 @@ import org.h2.message.Trace;
 import org.h2.message.TraceSystem;
 import org.h2.mvstore.db.MVTableEngine;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
@@ -103,6 +105,7 @@ public class Database implements DataHandler {
     private final HashMap<String, UserDataType> userDataTypes = New.hashMap();
     private final HashMap<String, UserAggregate> aggregates = New.hashMap();
     private final HashMap<String, Comment> comments = New.hashMap();
+    private final HashMap<String, TableEngine> tableEngines = New.hashMap();
 
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
@@ -187,7 +190,9 @@ public class Database implements DataHandler {
     private String javaObjectSerializerName;
     private volatile boolean javaObjectSerializerInitialized;
     private boolean queryStatistics;
+    private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
+    private RowFactory rowFactory = RowFactory.DEFAULT;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -246,7 +251,6 @@ public class Database implements DataHandler {
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         this.multiThreaded =
                 ci.getProperty("MULTI_THREADED", false);
-
         boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;
         int traceLevelFile =
@@ -296,6 +300,25 @@ public class Database implements DataHandler {
             closeOpenFilesAndUnlock(false);
             throw DbException.convert(e);
         }
+    }
+
+    /**
+     * Create a new row for a table.
+     *
+     * @param data the values
+     * @param memory whether the row is in memory
+     * @return the created row
+     */
+    public Row createRow(Value[] data, int memory) {
+        return rowFactory.createRow(data, memory);
+    }
+
+    public RowFactory getRowFactory() {
+        return rowFactory;
+    }
+
+    public void setRowFactory(RowFactory rowFactory) {
+        this.rowFactory = rowFactory;
     }
 
     public static void setInitialPowerOffCount(int count) {
@@ -352,8 +375,8 @@ public class Database implements DataHandler {
      * @return 0 if both values are equal, -1 if the first value is smaller, and
      *         1 otherwise
      */
-    public int compareTypeSave(Value a, Value b) {
-        return a.compareTypeSave(b, compareMode);
+    public int compareTypeSafe(Value a, Value b) {
+        return a.compareTypeSafe(b, compareMode);
     }
 
     public long getModificationDataId() {
@@ -510,13 +533,13 @@ public class Database implements DataHandler {
     }
 
     /**
-     * Get the trace object for the given module.
+     * Get the trace object for the given module id.
      *
-     * @param module the module name
+     * @param moduleId the module id
      * @return the trace object
      */
-    public Trace getTrace(String module) {
-        return traceSystem.getTrace(module);
+    public Trace getTrace(int moduleId) {
+        return traceSystem.getTrace(moduleId);
     }
 
     @Override
@@ -801,32 +824,22 @@ public class Database implements DataHandler {
     }
 
     private void recompileInvalidViews(Session session) {
-        boolean recompileSuccessful;
+        boolean atLeastOneRecompiledSuccessfully;
         do {
-            recompileSuccessful = false;
+            atLeastOneRecompiledSuccessfully = false;
             for (Table obj : getAllTablesAndViews(false)) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
-                        view.recompile(session, true);
+                        view.recompile(session, true, false);
                         if (!view.isInvalid()) {
-                            recompileSuccessful = true;
+                            atLeastOneRecompiledSuccessfully = true;
                         }
                     }
                 }
             }
-        } while (recompileSuccessful);
-        // when opening a database, views are initialized before indexes,
-        // so they may not have the optimal plan yet
-        // this is not a problem, it is just nice to see the newest plan
-        for (Table obj : getAllTablesAndViews(false)) {
-            if (obj instanceof TableView) {
-                TableView view = (TableView) obj;
-                if (!view.isInvalid()) {
-                    view.recompile(systemSession, true);
-                }
-            }
-        }
+        } while (atLeastOneRecompiledSuccessfully);
+        TableView.clearIndexCaches(session.getDatabase());
     }
 
     private void initMetaTables() {
@@ -892,6 +905,15 @@ public class Database implements DataHandler {
         }
         boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
+    }
+
+    /**
+     * Unlock the metadata table.
+     *
+     * @param session the session
+     */
+    public void unlockMeta(Session session) {
+        meta.unlock(session);
     }
 
     /**
@@ -972,14 +994,16 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the object to add
      */
-    public synchronized void addSchemaObject(Session session, SchemaObject obj) {
+    public void addSchemaObject(Session session, SchemaObject obj) {
         int id = obj.getId();
         if (id > 0 && !starting) {
             checkWritingAllowed();
         }
         lockMeta(session);
-        obj.getSchema().add(obj);
-        addMeta(session, obj);
+        synchronized (this) {
+            obj.getSchema().add(obj);
+            addMeta(session, obj);
+        }
     }
 
     /**
@@ -1108,10 +1132,13 @@ public class Database implements DataHandler {
      * Create a session for the given user.
      *
      * @param user the user
-     * @return the session
+     * @return the session, or null if the database is currently closing
      * @throws DbException if the database is in exclusive mode
      */
     synchronized Session createSession(User user) {
+        if (closing) {
+            return null;
+        }
         if (exclusiveSession != null) {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
@@ -1505,6 +1532,23 @@ public class Database implements DataHandler {
         return list;
     }
 
+    /**
+     * Get the tables with the given name, if any.
+     *
+     * @param name the table name
+     * @return the list
+     */
+    public ArrayList<Table> getTableOrViewByName(String name) {
+        ArrayList<Table> list = New.arrayList();
+        for (Schema schema : schemas.values()) {
+            Table table = schema.getTableOrViewByName(name);
+            if (table != null) {
+                list.add(table);
+            }
+        }
+        return list;
+    }
+
     public ArrayList<Schema> getAllSchemas() {
         initMetaTables();
         return New.arrayList(schemas.values());
@@ -1530,6 +1574,7 @@ public class Database implements DataHandler {
         return cluster;
     }
 
+    @Override
     public CompareMode getCompareMode() {
         return compareMode;
     }
@@ -1589,6 +1634,10 @@ public class Database implements DataHandler {
         int id = obj.getId();
         removeMeta(session, id);
         addMeta(session, obj);
+        // for temporary objects
+        if (id > 0) {
+            objectIds.set(id);
+        }
     }
 
     /**
@@ -1762,7 +1811,7 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the object to be removed
      */
-    public synchronized void removeSchemaObject(Session session,
+    public void removeSchemaObject(Session session,
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
@@ -1788,22 +1837,24 @@ public class Database implements DataHandler {
         }
         checkWritingAllowed();
         lockMeta(session);
-        Comment comment = findComment(obj);
-        if (comment != null) {
-            removeDatabaseObject(session, comment);
-        }
-        obj.getSchema().remove(obj);
-        int id = obj.getId();
-        if (!starting) {
-            Table t = getDependentTable(obj, null);
-            if (t != null) {
-                obj.getSchema().add(obj);
-                throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
-                        t.getSQL());
+        synchronized (this) {
+            Comment comment = findComment(obj);
+            if (comment != null) {
+                removeDatabaseObject(session, comment);
             }
-            obj.removeChildrenAndResources(session);
+            obj.getSchema().remove(obj);
+            int id = obj.getId();
+            if (!starting) {
+                Table t = getDependentTable(obj, null);
+                if (t != null) {
+                    obj.getSchema().add(obj);
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
+                            t.getSQL());
+                }
+                obj.removeChildrenAndResources(session);
+            }
+            removeMeta(session, id);
         }
-        removeMeta(session, id);
     }
 
     /**
@@ -1972,7 +2023,8 @@ public class Database implements DataHandler {
             DbException b = backgroundException;
             backgroundException = null;
             if (b != null) {
-                throw b;
+                // wrap the exception, so we see it was thrown here
+                throw DbException.get(b.getErrorCode(), b, b.getMessage());
             }
         }
     }
@@ -2222,6 +2274,17 @@ public class Database implements DataHandler {
         return queryStatistics;
     }
 
+    public void setQueryStatisticsMaxEntries(int n) {
+        queryStatisticsMaxEntries = n;
+        if (queryStatisticsData != null) {
+            synchronized (this) {
+                if (queryStatisticsData != null) {
+                    queryStatisticsData.setMaxQueryEntries(queryStatisticsMaxEntries);
+                }
+            }
+        }
+    }
+
     public QueryStatisticsData getQueryStatisticsData() {
         if (!queryStatistics) {
             return null;
@@ -2229,7 +2292,7 @@ public class Database implements DataHandler {
         if (queryStatisticsData == null) {
             synchronized (this) {
                 if (queryStatisticsData == null) {
-                    queryStatisticsData = new QueryStatisticsData();
+                    queryStatisticsData = new QueryStatisticsData(queryStatisticsMaxEntries);
                 }
             }
         }
@@ -2340,6 +2403,17 @@ public class Database implements DataHandler {
      */
     public boolean isSysTableLocked() {
         return meta == null || meta.isLockedExclusively();
+    }
+
+    /**
+     * Checks if the system table (containing the catalog) is locked by the
+     * given session.
+     *
+     * @param session the session
+     * @return true if it is currently locked
+     */
+    public boolean isSysTableLockedBy(Session session) {
+        return meta == null || meta.isLockedExclusivelyBy(session);
     }
 
     /**
@@ -2767,6 +2841,27 @@ public class Database implements DataHandler {
             javaObjectSerializerInitialized = false;
             javaObjectSerializerName = serializerName;
         }
+    }
+
+    /**
+     * Get the table engine class, loading it if needed.
+     *
+     * @param tableEngine the table engine name
+     * @return the class
+     */
+    public TableEngine getTableEngine(String tableEngine) {
+        assert Thread.holdsLock(this);
+
+        TableEngine engine = tableEngines.get(tableEngine);
+        if (engine == null) {
+            try {
+                engine = (TableEngine) JdbcUtils.loadUserClass(tableEngine).newInstance();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+            tableEngines.put(tableEngine, engine);
+        }
+        return engine;
     }
 
 }

@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -22,8 +23,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
+import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
@@ -315,6 +316,20 @@ public class DataType {
                 // 24 for ValueTimestamp, 32 for java.sql.Timestamp
                 56
         );
+        add(Value.TIMESTAMP_UTC, Types.TIMESTAMP, "TimestampUtc",
+                createDate(ValueTimestamp.PRECISION, "TIMESTAMP_UTC",
+                        ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
+                new String[]{"TIMESTAMP_UTC"},
+                // 24 for ValueTimestampUtc, 32 for java.sql.Timestamp
+                56
+        );
+        add(Value.TIMESTAMP_TZ, Types.OTHER, "TimestampTimeZone",
+                createDate(ValueTimestampTimeZone.PRECISION, "TIMESTAMP_TZ",
+                        ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.DISPLAY_SIZE),
+                new String[]{"TIMESTAMP WITH TIMEZONE"},
+                // 26 for ValueTimestampUtc, 32 for java.sql.Timestamp
+                58
+        );
         add(Value.BYTES, Types.VARBINARY, "Bytes",
                 createString(false),
                 new String[]{"VARBINARY"},
@@ -493,7 +508,7 @@ public class DataType {
             int columnIndex, int type) {
         try {
             Value v;
-            switch(type) {
+            switch (type) {
             case Value.NULL: {
                 return ValueNull.INSTANCE;
             }
@@ -537,6 +552,18 @@ public class DataType {
                 Timestamp value = rs.getTimestamp(columnIndex);
                 v = value == null ? (Value) ValueNull.INSTANCE :
                     ValueTimestamp.get(value);
+                break;
+            }
+            case Value.TIMESTAMP_UTC: {
+                Timestamp value = rs.getTimestamp(columnIndex);
+                v = value == null ? (Value) ValueNull.INSTANCE :
+                    ValueTimestampUtc.fromMillisNanos(value.getTime(), value.getNanos());
+                break;
+            }
+            case Value.TIMESTAMP_TZ: {
+                TimestampWithTimeZone value = (TimestampWithTimeZone) rs.getObject(columnIndex);
+                v = value == null ? (Value) ValueNull.INSTANCE :
+                    ValueTimestampTimeZone.get(value);
                 break;
             }
             case Value.DECIMAL: {
@@ -595,8 +622,9 @@ public class DataType {
             }
             case Value.CLOB: {
                 if (session == null) {
-                    v = ValueLobDb.createSmallLob(
-                            Value.CLOB, rs.getString(columnIndex).getBytes(Constants.UTF8));
+                    String s = rs.getString(columnIndex);
+                    v = s == null ? ValueNull.INSTANCE :
+                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {
@@ -606,16 +634,22 @@ public class DataType {
                                 createClob(new BufferedReader(in), -1);
                     }
                 }
+                if (session != null) {
+                    session.addTemporaryLob(v);
+                }
                 break;
             }
             case Value.BLOB: {
                 if (session == null) {
-                    v = ValueLobDb.createSmallLob(
-                            Value.BLOB, rs.getBytes(columnIndex));
-                } else {
-                    InputStream in = rs.getBinaryStream(columnIndex);
-                    v = (in == null) ? (Value) ValueNull.INSTANCE :
-                        session.getDataHandler().getLobStorage().createBlob(in, -1);
+                    byte[] buff = rs.getBytes(columnIndex);
+                    return buff == null ? ValueNull.INSTANCE :
+                        ValueLobDb.createSmallLob(Value.BLOB, buff);
+                }
+                InputStream in = rs.getBinaryStream(columnIndex);
+                v = (in == null) ? (Value) ValueNull.INSTANCE :
+                    session.getDataHandler().getLobStorage().createBlob(in, -1);
+                if (session != null) {
+                    session.addTemporaryLob(v);
                 }
                 break;
             }
@@ -653,7 +687,7 @@ public class DataType {
                 if (x == null) {
                     return ValueNull.INSTANCE;
                 }
-                return ValueResultSet.get(rs);
+                return ValueResultSet.get(x);
             }
             case Value.GEOMETRY: {
                 Object x = rs.getObject(columnIndex);
@@ -678,7 +712,7 @@ public class DataType {
      * @return the class name
      */
     public static String getTypeClassName(int type) {
-        switch(type) {
+        switch (type) {
         case Value.BOOLEAN:
             // "java.lang.Boolean";
             return Boolean.class.getName();
@@ -704,8 +738,12 @@ public class DataType {
             // "java.sql.Date";
             return Date.class.getName();
         case Value.TIMESTAMP:
+        case Value.TIMESTAMP_UTC:
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
+        case Value.TIMESTAMP_TZ:
+            // "org.h2.api.TimestampWithTimeZone";
+            return TimestampWithTimeZone.class.getName();
         case Value.BYTES:
         case Value.UUID:
             // "[B", not "byte[]";
@@ -781,7 +819,7 @@ public class DataType {
      * @param sqlTypeName the SQL type name
      * @return the value type
      */
-    private static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
+    public static int convertSQLTypeToValueType(int sqlType, String sqlTypeName) {
         switch (sqlType) {
             case Types.OTHER:
             case Types.JAVA_OBJECT:
@@ -814,7 +852,7 @@ public class DataType {
      * @return the value type
      */
     public static int convertSQLTypeToValueType(int sqlType) {
-        switch(sqlType) {
+        switch (sqlType) {
         case Types.CHAR:
         case Types.NCHAR:
             return Value.STRING_FIXED;
@@ -955,6 +993,15 @@ public class DataType {
      */
     public static Value convertToValue(SessionInterface session, Object x,
             int type) {
+        Value v = convertToValue1(session, x, type);
+        if (session != null) {
+            session.addTemporaryLob(v);
+        }
+        return v;
+    }
+
+    private static Value convertToValue1(SessionInterface session, Object x,
+            int type) {
         if (x == null) {
             return ValueNull.INSTANCE;
         }
@@ -969,6 +1016,8 @@ public class DataType {
             return ValueLong.get(((Long) x).longValue());
         } else if (x instanceof Integer) {
             return ValueInt.get(((Integer) x).intValue());
+        } else if (x instanceof BigInteger) {
+            return ValueDecimal.get(new BigDecimal((BigInteger) x));
         } else if (x instanceof BigDecimal) {
             return ValueDecimal.get((BigDecimal) x);
         } else if (x instanceof Boolean) {

@@ -5,6 +5,7 @@
  */
 package org.h2.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
@@ -287,8 +289,8 @@ public class SourceCompiler {
             JAVA_COMPILER.getTask(writer, fileManager, null, null,
                 null, compilationUnits).call();
         }
-        String err = writer.toString();
-        throwSyntaxError(err);
+        String output = writer.toString();
+        handleSyntaxError(output);
         try {
             return fileManager.getClassLoader(null).loadClass(fullClassName);
         } catch (ClassNotFoundException e) {
@@ -319,8 +321,8 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String err = new String(buff.toByteArray(), Constants.UTF8);
-            throwSyntaxError(err);
+            String output = new String(buff.toByteArray(), Constants.UTF8);
+            handleSyntaxError(output);
             return p.exitValue();
         } catch (Exception e) {
             throw DbException.convert(e);
@@ -336,7 +338,7 @@ public class SourceCompiler {
         }.execute();
     }
 
-    private synchronized static void javacSun(File javaFile) {
+    private static synchronized void javacSun(File javaFile) {
         PrintStream old = System.err;
         ByteArrayOutputStream buff = new ByteArrayOutputStream();
         PrintStream temp = new PrintStream(buff);
@@ -351,8 +353,8 @@ public class SourceCompiler {
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            String err = new String(buff.toByteArray(), Constants.UTF8);
-            throwSyntaxError(err);
+            String output = new String(buff.toByteArray(), Constants.UTF8);
+            handleSyntaxError(output);
         } catch (Exception e) {
             throw DbException.convert(e);
         } finally {
@@ -360,12 +362,25 @@ public class SourceCompiler {
         }
     }
 
-    private static void throwSyntaxError(String err) {
-        if (err.startsWith("Note:")) {
-            // unchecked or unsafe operations - just a warning
-        } else if (err.length() > 0) {
-            err = StringUtils.replaceAll(err, COMPILE_DIR, "");
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, err);
+    private static void handleSyntaxError(String output) {
+        boolean syntaxError = false;
+        final BufferedReader reader = new BufferedReader(new StringReader(output));
+        try {
+            for (String line; (line = reader.readLine()) != null;) {
+                if (line.startsWith("Note:") || line.startsWith("warning:")) {
+                    // just a warning (e.g. unchecked or unsafe operations)
+                } else {
+                    syntaxError = true;
+                    break;
+                }
+            }
+        } catch (IOException ignored) {
+            // exception ignored
+        }
+
+        if (syntaxError) {
+            output = StringUtils.replaceAll(output, COMPILE_DIR, "");
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1, output);
         }
     }
 

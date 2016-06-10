@@ -18,8 +18,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,13 +58,15 @@ public class ArchiveTool {
      * @param args the command line arguments
      */
     public static void main(String... args) throws Exception {
+        Log log = new Log();
+        int level = Integer.getInteger("level", Deflater.BEST_SPEED);
         if (args.length == 1) {
             File f = new File(args[0]);
             if (f.exists()) {
                 if (f.isDirectory()) {
                     String fromDir = f.getAbsolutePath();
                     String toFile = fromDir + ".at";
-                    compress(fromDir, toFile);
+                    compress(fromDir, toFile, level);
                     return;
                 }
                 String fromFile = f.getAbsolutePath();
@@ -76,22 +82,23 @@ public class ArchiveTool {
         if ("-compress".equals(arg)) {
             String toFile = args[1];
             String fromDir = args[2];
-            compress(fromDir, toFile);
+            compress(fromDir, toFile, level);
         } else if ("-extract".equals(arg)) {
             String fromFile = args[1];
             String toDir = args[2];
             extract(fromFile, toDir);
         } else {
-            System.out.println("An archive tool to efficiently compress large directories");
-            System.out.println("Command line options:");
-            System.out.println("<sourceDir>");
-            System.out.println("<compressedFile>");
-            System.out.println("-compress <compressedFile> <sourceDir>");
-            System.out.println("-extract <compressedFile> <targetDir>");
+            log.println("An archive tool to efficiently compress large directories");
+            log.println("Command line options:");
+            log.println("<sourceDir>");
+            log.println("<compressedFile>");
+            log.println("-compress <compressedFile> <sourceDir>");
+            log.println("-extract <compressedFile> <targetDir>");
         }
     }
 
-    private static void compress(String fromDir, String toFile) throws IOException {
+    private static void compress(String fromDir, String toFile, int level) throws IOException {
+        final Log log = new Log();
         final long start = System.currentTimeMillis();
         final AtomicBoolean title = new AtomicBoolean();
         long size = getSize(new File(fromDir), new Runnable() {
@@ -104,42 +111,43 @@ public class ArchiveTool {
                     long now = System.currentTimeMillis();
                     if (now - lastTime > 3000) {
                         if (!title.getAndSet(true)) {
-                            System.out.println("Counting files");
+                            log.println("Counting files");
                         }
-                        System.out.print(count + " ");
+                        log.print(count + " ");
                         lastTime = now;
                     }
                 }
             }
         });
         if (title.get()) {
-            System.out.println();
+            log.println();
         }
-        System.out.println("Compressing " + size / MB + " MB");
+        log.println("Compressing " + size / MB + " MB at " + new java.sql.Time(start).toString());
         InputStream in = getDirectoryInputStream(fromDir);
         String temp = toFile + ".temp";
         OutputStream out =
                 new BufferedOutputStream(
                                 new FileOutputStream(toFile), 1024 * 1024);
         Deflater def = new Deflater();
-        def.setLevel(Deflater.BEST_SPEED);
+        def.setLevel(level);
         out = new BufferedOutputStream(
                 new DeflaterOutputStream(out, def), 1024 * 1024);
-        sort(in, out, temp, size);
+        sort(log, in, out, temp, size);
         in.close();
         out.close();
-        System.out.println();
-        System.out.println("Compressed to " +
+        log.println();
+        log.println("Compressed to " +
                 new File(toFile).length() / MB + " MB in " +
                 (System.currentTimeMillis() - start) / 1000 +
                 " seconds");
-        System.out.println();
+        log.println();
     }
 
     private static void extract(String fromFile, String toDir) throws IOException {
+        Log log = new Log();
         long start = System.currentTimeMillis();
         long size = new File(fromFile).length();
-        System.out.println("Extracting " + size / MB + " MB");
+        log.println("Extracting " + size / MB + " MB at " + new java.sql.Time(start).toString());
         InputStream in =
                 new BufferedInputStream(
                         new FileInputStream(fromFile), 1024 * 1024);
@@ -147,12 +155,12 @@ public class ArchiveTool {
         Inflater inflater = new Inflater();
         in = new InflaterInputStream(in, inflater, 1024 * 1024);
         OutputStream out = getDirectoryOutputStream(toDir);
-        combine(in, out, temp);
+        combine(log, in, out, temp);
         inflater.end();
         in.close();
         out.close();
-        System.out.println();
-        System.out.println("Extracted in " +
+        log.println();
+        log.println("Extracted in " +
                 (System.currentTimeMillis() - start) / 1000 +
                 " seconds");
     }
@@ -389,15 +397,13 @@ public class ArchiveTool {
         };
     }
 
-    private static void sort(InputStream in, OutputStream out,
+    private static void sort(Log log, InputStream in, OutputStream out,
             String tempFileName, long size) throws IOException {
-        long lastTime = System.currentTimeMillis();
-        int bufferSize = 16 * 1024 * 1024;
+        int bufferSize = 32 * 1024 * 1024;
         DataOutputStream tempOut = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(tempFileName), 1024 * 1024));
         byte[] bytes = new byte[bufferSize];
-        ArrayList<Long> segmentStart = new ArrayList<Long>();
-        long inPos = 0;
+        List<Long> segmentStart = new ArrayList<Long>();
         long outPos = 0;
         long id = 1;
 
@@ -405,13 +411,13 @@ public class ArchiveTool {
         // Segment: chunk* 0
         // Chunk: pos* 0 sortKey data
 
+        log.setRange(0, 30, size);
         while (true) {
             int len = readFully(in, bytes, bytes.length);
             if (len == 0) {
                 break;
             }
-            inPos += len;
-            lastTime = printProgress(lastTime, 0, 50, inPos, size);
+            log.printProgress(len);
             TreeMap<Chunk, Chunk> map = new TreeMap<Chunk, Chunk>();
             for (int pos = 0; pos < len;) {
                 int[] key = getKey(bytes, pos, len);
@@ -439,35 +445,75 @@ public class ArchiveTool {
             outPos += writeVarLong(tempOut, 0);
         }
         tempOut.close();
-        size = outPos;
-        inPos = 0;
-        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
-        int bufferTotal = 64 * 1024 * 1024;
-        int bufferPerStream = bufferTotal / segmentStart.size();
-        for (int i = 0; i < segmentStart.size(); i++) {
-            in = new FileInputStream(tempFileName);
-            in.skip(segmentStart.get(i));
-            ChunkStream s = new ChunkStream(i);
-            s.readKey = true;
-            s.in = new DataInputStream(new BufferedInputStream(in, bufferPerStream));
-            inPos += s.readNext();
-            if (s.current != null) {
-                segmentIn.add(s);
+        long tempSize = new File(tempFileName).length();
+
+        // merge blocks if needed
+        int blockSize = 64;
+        boolean merge = false;
+        while (segmentStart.size() > blockSize) {
+            merge = true;
+            log.setRange(30, 50, tempSize);
+            log.println();
+            log.println("Merging " + segmentStart.size() + " segments " + blockSize + ":1");
+            ArrayList<Long> segmentStart2 = new ArrayList<Long>();
+            outPos = 0;
+            DataOutputStream tempOut2 = new DataOutputStream(new BufferedOutputStream(
+                    new FileOutputStream(tempFileName + ".b"), 1024 * 1024));
+            while (segmentStart.size() > 0) {
+                segmentStart2.add(outPos);
+                int s = Math.min(segmentStart.size(), blockSize);
+                List<Long> start = segmentStart.subList(0, s);
+                TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+                long read = openSegments(start, segmentIn, tempFileName, true);
+                log.printProgress(read);
+                Chunk last = null;
+                Iterator<Chunk> it = merge(segmentIn, log);
+                while (it.hasNext()) {
+                    Chunk c = it.next();
+                    if (last == null) {
+                        last = c;
+                    } else if (last.compareTo(c) == 0) {
+                        for (long x : c.idList) {
+                            last.idList.add(x);
+                        }
+                    } else {
+                        outPos += last.write(tempOut2, true);
+                        last = c;
+                    }
+                }
+                if (last != null) {
+                    outPos += last.write(tempOut2, true);
+                }
+                // end of segment
+                outPos += writeVarLong(tempOut2, 0);
+                segmentStart = segmentStart.subList(s, segmentStart.size());
             }
+            segmentStart = segmentStart2;
+            tempOut2.close();
+            tempSize = new File(tempFileName).length();
+            new File(tempFileName).delete();
+            tempFileName += ".b";
         }
+        if (merge) {
+            log.println();
+            log.println("Combining " + segmentStart.size() + " segments");
+        }
+
+        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+        long read = openSegments(segmentStart, segmentIn, tempFileName, true);
+        log.printProgress(read);
 
         DataOutputStream dataOut = new DataOutputStream(out);
         dataOut.write(HEADER);
         writeVarLong(dataOut, size);
-        Chunk last = null;
 
         // File: header length chunk* 0
         // chunk: pos* 0 data
-
-        while (segmentIn.size() > 0) {
-            ChunkStream s = segmentIn.first();
-            segmentIn.remove(s);
-            Chunk c = s.current;
+        log.setRange(50, 100, tempSize);
+        Chunk last = null;
+        Iterator<Chunk> it = merge(segmentIn, log);
+        while (it.hasNext()) {
+            Chunk c = it.next();
             if (last == null) {
                 last = c;
             } else if (last.compareTo(c) == 0) {
@@ -478,11 +524,6 @@ public class ArchiveTool {
                 last.write(dataOut, false);
                 last = c;
             }
-            inPos += s.readNext();
-            lastTime = printProgress(lastTime, 50, 100, inPos, size);
-            if (s.current != null) {
-                segmentIn.add(s);
-            }
         }
         if (last != null) {
             last.write(dataOut, false);
@@ -490,6 +531,60 @@ public class ArchiveTool {
         new File(tempFileName).delete();
         writeVarLong(dataOut, 0);
         dataOut.flush();
+    }
+
+    private static long openSegments(List<Long> segmentStart, TreeSet<ChunkStream> segmentIn,
+            String tempFileName, boolean readKey) throws IOException {
+        long inPos = 0;
+        int bufferTotal = 64 * 1024 * 1024;
+        int bufferPerStream = bufferTotal / segmentStart.size();
+        // FileChannel fc = new RandomAccessFile(tempFileName, "r").
+        //     getChannel();
+        for (int i = 0; i < segmentStart.size(); i++) {
+            // long end = i < segmentStart.size() - 1 ?
+            //     segmentStart.get(i+1) : fc.size();
+            // InputStream in =
+            //     new SharedInputStream(fc, segmentStart.get(i), end);
+            InputStream in = new FileInputStream(tempFileName);
+            in.skip(segmentStart.get(i));
+            ChunkStream s = new ChunkStream(i);
+            s.readKey = readKey;
+            s.in = new DataInputStream(new BufferedInputStream(in, bufferPerStream));
+            inPos += s.readNext();
+            if (s.current != null) {
+                segmentIn.add(s);
+            }
+        }
+        return inPos;
+    }
+
+    private static Iterator<Chunk> merge(final TreeSet<ChunkStream> segmentIn, final Log log) {
+        return new Iterator<Chunk>() {
+
+            @Override
+            public boolean hasNext() {
+                return segmentIn.size() > 0;
+            }
+
+            @Override
+            public Chunk next() {
+                ChunkStream s = segmentIn.first();
+                segmentIn.remove(s);
+                Chunk c = s.current;
+                int len = s.readNext();
+                log.printProgress(len);
+                if (s.current != null) {
+                    segmentIn.add(s);
+                }
+                return c;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+
+        };
     }
 
     /**
@@ -575,9 +670,8 @@ public class ArchiveTool {
         return hash;
     }
 
-    private static void combine(InputStream in, OutputStream out,
+    private static void combine(Log log, InputStream in, OutputStream out,
             String tempFileName) throws IOException {
-        long lastTime = System.currentTimeMillis();
         int bufferSize = 16 * 1024 * 1024;
         DataOutputStream tempOut =
                 new DataOutputStream(
@@ -595,14 +689,13 @@ public class ArchiveTool {
         }
         long size = readVarLong(dataIn);
         long outPos = 0;
-        long inPos = 0;
-        ArrayList<Long> segmentStart = new ArrayList<Long>();
+        List<Long> segmentStart = new ArrayList<Long>();
         boolean end = false;
 
         // Temp file: segment* 0
         // Segment: chunk* 0
         // Chunk: pos* 0 data
-
+        log.setRange(0, 30, size);
         while (!end) {
             int segmentSize = 0;
             TreeMap<Long, byte[]> map = new TreeMap<Long, byte[]>();
@@ -613,8 +706,7 @@ public class ArchiveTool {
                     break;
                 }
                 int length = c.value.length;
-                inPos += length;
-                lastTime = printProgress(lastTime, 0, 50, inPos, size);
+                log.printProgress(length);
                 segmentSize += length;
                 for (long x : c.idList) {
                     map.put(x, c.value);
@@ -635,32 +727,63 @@ public class ArchiveTool {
             outPos += writeVarLong(tempOut, 0);
         }
         tempOut.close();
+        long tempSize = new File(tempFileName).length();
         size = outPos;
-        inPos = 0;
-        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
-        int bufferTotal = 64 * 1024 * 1024;
-        int bufferPerStream = bufferTotal / segmentStart.size();
-        for (int i = 0; i < segmentStart.size(); i++) {
-            FileInputStream f = new FileInputStream(tempFileName);
-            f.skip(segmentStart.get(i));
-            ChunkStream s = new ChunkStream(i);
-            s.in = new DataInputStream(new BufferedInputStream(f, bufferPerStream));
-            inPos += s.readNext();
-            if (s.current != null) {
-                segmentIn.add(s);
+
+        // merge blocks if needed
+        int blockSize = 64;
+        boolean merge = false;
+        while (segmentStart.size() > blockSize) {
+            merge = true;
+            log.setRange(30, 50, tempSize);
+            log.println();
+            log.println("Merging " + segmentStart.size() + " segments " + blockSize + ":1");
+            ArrayList<Long> segmentStart2 = new ArrayList<Long>();
+            outPos = 0;
+            DataOutputStream tempOut2 = new DataOutputStream(new BufferedOutputStream(
+                    new FileOutputStream(tempFileName + ".b"), 1024 * 1024));
+            while (segmentStart.size() > 0) {
+                segmentStart2.add(outPos);
+                int s = Math.min(segmentStart.size(), blockSize);
+                List<Long> start = segmentStart.subList(0, s);
+                TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+                long read = openSegments(start, segmentIn, tempFileName, false);
+                log.printProgress(read);
+
+                Iterator<Chunk> it = merge(segmentIn, log);
+                while (it.hasNext()) {
+                    Chunk c = it.next();
+                    outPos += writeVarLong(tempOut2, c.idList.get(0));
+                    outPos += writeVarLong(tempOut2, 0);
+                    outPos += writeVarLong(tempOut2, c.value.length);
+                    tempOut2.write(c.value);
+                    outPos += c.value.length;
+                }
+                outPos += writeVarLong(tempOut2, 0);
+
+                segmentStart = segmentStart.subList(s, segmentStart.size());
             }
+            segmentStart = segmentStart2;
+            tempOut2.close();
+            tempSize = new File(tempFileName).length();
+            new File(tempFileName).delete();
+            tempFileName += ".b";
         }
+        if (merge) {
+            log.println();
+            log.println("Combining " + segmentStart.size() + " segments");
+        }
+
+        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
         DataOutputStream dataOut = new DataOutputStream(out);
-        while (segmentIn.size() > 0) {
-            ChunkStream s = segmentIn.first();
-            segmentIn.remove(s);
-            Chunk c = s.current;
-            dataOut.write(c.value);
-            inPos += s.readNext();
-            lastTime = printProgress(lastTime, 50, 100, inPos, size);
-            if (s.current != null) {
-                segmentIn.add(s);
-            }
+        log.setRange(50, 100, size);
+
+        long read = openSegments(segmentStart, segmentIn, tempFileName, false);
+        log.printProgress(read);
+
+        Iterator<Chunk> it = merge(segmentIn, log);
+        while (it.hasNext()) {
+            dataOut.write(it.next().value);
         }
         new File(tempFileName).delete();
         dataOut.flush();
@@ -684,7 +807,8 @@ public class ArchiveTool {
          *
          * @return the number of bytes read
          */
-        int readNext() throws IOException {
+        int readNext() {
+            current = null;
             current = Chunk.read(in, readKey);
             if (current == null) {
                 return 0;
@@ -723,30 +847,35 @@ public class ArchiveTool {
          * @param readKey whether to read the sort key
          * @return the chunk, or null if 0 has been read
          */
-        public static Chunk read(DataInputStream in, boolean readKey) throws IOException {
-            ArrayList<Long> idList = new ArrayList<Long>();
-            while (true) {
-                long x = readVarLong(in);
-                if (x == 0) {
-                    break;
+        public static Chunk read(DataInputStream in, boolean readKey) {
+            try {
+                ArrayList<Long> idList = new ArrayList<Long>();
+                while (true) {
+                    long x = readVarLong(in);
+                    if (x == 0) {
+                        break;
+                    }
+                    idList.add(x);
                 }
-                idList.add(x);
-            }
-            if (idList.size() == 0) {
-                // eof
-                return null;
-            }
-            int[] key = null;
-            if (readKey) {
-                key = new int[4];
-                for (int i = 0; i < key.length; i++) {
-                    key[i] = in.readInt();
+                if (idList.size() == 0) {
+                    // eof
+                    in.close();
+                    return null;
                 }
+                int[] key = null;
+                if (readKey) {
+                    key = new int[4];
+                    for (int i = 0; i < key.length; i++) {
+                        key[i] = in.readInt();
+                    }
+                }
+                int len = (int) readVarLong(in);
+                byte[] value = new byte[len];
+                in.readFully(value);
+                return new Chunk(idList, key, value);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-            int len = (int) readVarLong(in);
-            byte[] value = new byte[len];
-            in.readFully(value);
-            return new Chunk(idList, key, value);
         }
 
         /**
@@ -813,6 +942,81 @@ public class ArchiveTool {
     }
 
     /**
+     * A logger, including context.
+     */
+    static class Log {
+
+        private long lastTime;
+        private long current;
+        private int pos;
+        private int low;
+        private int high;
+        private long total;
+
+        /**
+         * Print an empty line.
+         */
+        void println() {
+            System.out.println();
+            pos = 0;
+        }
+
+        /**
+         * Print a message.
+         *
+         * @param msg the message
+         */
+        void print(String msg) {
+            System.out.print(msg);
+        }
+
+        /**
+         * Print a message.
+         *
+         * @param msg the message
+         */
+        void println(String msg) {
+            System.out.println(msg);
+            pos = 0;
+        }
+
+        /**
+         * Set the range.
+         *
+         * @param low the percent value if current = 0
+         * @param high the percent value if current = total
+         * @param total the maximum value
+         */
+        void setRange(int low, int high, long total) {
+            this.low = low;
+            this.high = high;
+            this.current = 0;
+            this.total = total;
+        }
+
+        /**
+         * Print the progress.
+         *
+         * @param current the current value
+         */
+        void printProgress(long offset) {
+            current += offset;
+            long now = System.currentTimeMillis();
+            if (now - lastTime > 3000) {
+                String msg = (low + (high - low) * current / total) + "% ";
+                if (pos > 80) {
+                    System.out.println();
+                    pos = 0;
+                }
+                System.out.print(msg);
+                pos += msg.length();
+                lastTime = now;
+            }
+        }
+
+    }
+
+    /**
      * Write a variable size long value.
      *
      * @param out the output stream
@@ -861,14 +1065,40 @@ public class ArchiveTool {
         return x;
     }
 
-    private static long printProgress(long lastTime, int low, int high,
-            long current, long total) {
-        long now = System.currentTimeMillis();
-        if (now - lastTime > 3000) {
-            System.out.print((low + (high - low) * current / total) + "% ");
-            lastTime = now;
+    /**
+     * An input stream that uses a shared file channel.
+     */
+    static class SharedInputStream extends InputStream {
+        private final FileChannel channel;
+        private final long endPosition;
+        private long position;
+
+        SharedInputStream(FileChannel channel, long position, long endPosition) {
+            this.channel = channel;
+            this.position = position;
+            this.endPosition = endPosition;
         }
-        return lastTime;
+
+        @Override
+        public int read() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+            len = (int) Math.min(len, endPosition - position);
+            if (len <= 0) {
+                return -1;
+            }
+            ByteBuffer buff = ByteBuffer.wrap(b, off, len);
+            len = channel.read(buff, position);
+            position += len;
+            return len;
+        }
+
     }
 
 }

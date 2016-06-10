@@ -5,8 +5,7 @@
  */
 package org.h2.expression;
 
-import static org.h2.util.ToChar.toChar;
-
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,7 +21,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -47,11 +45,14 @@ import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
 import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.ToChar;
+import org.h2.util.ToDateParser;
 import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -92,7 +93,8 @@ public class Function extends Expression implements FunctionCall {
             STRINGDECODE = 80, STRINGTOUTF8 = 81, UTF8TOSTRING = 82,
             XMLATTR = 83, XMLNODE = 84, XMLCOMMENT = 85, XMLCDATA = 86,
             XMLSTARTDOC = 87, XMLTEXT = 88, REGEXP_REPLACE = 89, RPAD = 90,
-            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94;
+            LPAD = 91, CONCAT_WS = 92, TO_CHAR = 93, TRANSLATE = 94, ORA_HASH = 95,
+            TO_DATE = 96, TO_TIMESTAMP = 97, ADD_MONTHS = 98;
 
     public static final int CURDATE = 100, CURTIME = 101, DATE_ADD = 102,
             DATE_DIFF = 103, DAY_NAME = 104, DAY_OF_MONTH = 105,
@@ -116,7 +118,7 @@ public class Function extends Expression implements FunctionCall {
             ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230;
+            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
 
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
@@ -297,6 +299,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
+        addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
 
         // date
@@ -304,6 +307,9 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunctionNotDeterministic("CURDATE", CURDATE,
                 0, Value.DATE);
+        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
+        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
+        addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,
                 0, Value.DATE);
@@ -452,6 +458,8 @@ public class Function extends Expression implements FunctionCall {
                 2, Value.NULL, false, false, true);
         addFunction("FILE_READ", FILE_READ,
                 VAR_ARGS, Value.NULL, false, false, true);
+        addFunction("FILE_WRITE", FILE_WRITE,
+                2, Value.LONG, false, false, true);
         addFunctionNotDeterministic("TRANSACTION_ID", TRANSACTION_ID,
                 0, Value.STRING);
         addFunctionWithNull("DECODE", DECODE,
@@ -540,7 +548,7 @@ public class Function extends Expression implements FunctionCall {
         if (info == null) {
             return null;
         }
-        switch(info.type) {
+        switch (info.type) {
         case TABLE:
         case TABLE_DISTINCT:
             return new TableFunction(database, info, Long.MAX_VALUE);
@@ -581,7 +589,7 @@ public class Function extends Expression implements FunctionCall {
         Value result;
         switch (info.type) {
         case ABS:
-            result = v0.getSignum() > 0 ? v0 : v0.negate();
+            result = v0.getSignum() >= 0 ? v0 : v0.negate();
             break;
         case ACOS:
             result = ValueDouble.get(Math.acos(v0.getDouble()));
@@ -957,6 +965,7 @@ public class Function extends Expression implements FunctionCall {
             if (v0 == ValueNull.INSTANCE) {
                 result = getNullOrValue(session, args, values, 1);
             }
+            result = convertResult(result);
             break;
         }
         case CASEWHEN: {
@@ -1018,7 +1027,7 @@ public class Function extends Expression implements FunctionCall {
                     if (result == ValueNull.INSTANCE) {
                         result = v;
                     } else {
-                        int comp = database.compareTypeSave(result, v);
+                        int comp = database.compareTypeSafe(result, v);
                         if (info.type == GREATEST && comp < 0) {
                             result = v;
                         } else if (info.type == LEAST && comp > 0) {
@@ -1121,6 +1130,10 @@ public class Function extends Expression implements FunctionCall {
         return result;
     }
 
+    private Value convertResult(Value v) {
+        return v.convertTo(dataType);
+    }
+
     private static boolean cancelStatement(Session session, int targetSessionId) {
         session.getUser().checkAdmin();
         Session[] sessions = session.getDatabase().getSessions(false);
@@ -1219,6 +1232,24 @@ public class Function extends Expression implements FunctionCall {
                 java.sql.Timestamp d = v0.getTimestamp();
                 Calendar c = Calendar.getInstance();
                 c.setTime(d);
+                c.set(Calendar.HOUR_OF_DAY, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+            } else if (v0.getType() == Value.DATE) {
+                ValueDate vd = (ValueDate) v0;
+                Calendar c = Calendar.getInstance();
+                c.setTime(vd.getDate());
+                c.set(Calendar.HOUR_OF_DAY, 0);
+                c.set(Calendar.MINUTE, 0);
+                c.set(Calendar.SECOND, 0);
+                c.set(Calendar.MILLISECOND, 0);
+                result = ValueTimestamp.fromMillis(c.getTimeInMillis());
+            } else if (v0.getType() == Value.STRING) {
+                ValueString vd = (ValueString) v0;
+                Calendar c = Calendar.getInstance();
+                c.setTime(ValueTimestamp.parse(vd.getString()).getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);
@@ -1376,12 +1407,17 @@ public class Function extends Expression implements FunctionCall {
                     v1.getInt(), v2 == null ? null : v2.getString(), false),
                     database.getMode().treatEmptyStringsAsNull);
             break;
+        case ORA_HASH:
+            result = ValueLong.get(oraHash(v0.getString(),
+                    v1 == null ? null : v1.getInt(),
+                    v2 == null ? null : v2.getInt()));
+            break;
         case TO_CHAR:
-            switch(v0.getType()){
+            switch (v0.getType()){
             case Value.TIME:
             case Value.DATE:
             case Value.TIMESTAMP:
-                result = ValueString.get(toChar(v0.getTimestamp(),
+                result = ValueString.get(ToChar.toChar(v0.getTimestamp(),
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1392,7 +1428,7 @@ public class Function extends Expression implements FunctionCall {
             case Value.DECIMAL:
             case Value.DOUBLE:
             case Value.FLOAT:
-                result = ValueString.get(toChar(v0.getBigDecimal(),
+                result = ValueString.get(ToChar.toChar(v0.getBigDecimal(),
                         v1 == null ? null : v1.getString(),
                         v2 == null ? null : v2.getString()),
                         database.getMode().treatEmptyStringsAsNull);
@@ -1401,6 +1437,17 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueString.get(v0.getString(),
                         database.getMode().treatEmptyStringsAsNull);
             }
+            break;
+        case TO_DATE:
+            result = ValueTimestamp.get(ToDateParser.toDate(v0.getString(),
+                    v1 == null ? null : v1.getString()));
+            break;
+        case TO_TIMESTAMP:
+            result = ValueTimestamp.get(ToDateParser.toTimestamp(v0.getString(),
+                    v1 == null ? null : v1.getString()));
+            break;
+        case ADD_MONTHS:
+            result = ValueTimestamp.get(DateTimeUtils.addMonths(v0.getTimestamp(), v1.getInt()));
             break;
         case TRANSLATE: {
             String matching = v1.getString();
@@ -1567,6 +1614,25 @@ public class Function extends Expression implements FunctionCall {
                         reader = new InputStreamReader(in, v1.getString());
                     }
                     result = database.getLobStorage().createClob(reader, -1);
+                }
+                session.addTemporaryLob(result);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, fileName);
+            }
+            break;
+        }
+        case FILE_WRITE: {
+            session.getUser().checkAdmin();
+            result = ValueNull.INSTANCE;
+            String fileName = v1.getString();
+            try {
+                FileOutputStream fileOutputStream = new FileOutputStream(fileName);
+                InputStream in = v0.getInputStream();
+                try {
+                    result = ValueLong.get(IOUtils.copyAndClose(in,
+                            fileOutputStream));
+                } finally {
+                    in.close();
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
@@ -1757,7 +1823,9 @@ public class Function extends Expression implements FunctionCall {
             return t2 - t1;
         case Calendar.SECOND:
         case Calendar.MINUTE:
-        case Calendar.HOUR_OF_DAY: {
+        case Calendar.HOUR_OF_DAY:
+        case Calendar.DAY_OF_YEAR:
+        case Calendar.WEEK_OF_YEAR: {
             // first 'normalize' the numbers so both are not negative
             long hour = 60 * 60 * 1000;
             long add = Math.min(t1 / hour * hour, t2 / hour * hour);
@@ -1770,6 +1838,10 @@ public class Function extends Expression implements FunctionCall {
                 return t2 / (60 * 1000) - t1 / (60 * 1000);
             case Calendar.HOUR_OF_DAY:
                 return t2 / hour - t1 / hour;
+            case Calendar.DAY_OF_YEAR:
+                return t2 / (hour * 24) - t1 / (hour * 24);
+            case Calendar.WEEK_OF_YEAR:
+                return t2 / (hour * 24 * 7) - t1 / (hour * 24 * 7);
             default:
                 throw DbException.throwInternalError("field:" + field);
             }
@@ -1787,9 +1859,12 @@ public class Function extends Expression implements FunctionCall {
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;
         if (field == Calendar.MONTH) {
-            result = 12 * result + (month2 - month1);
+            return 12 * result + (month2 - month1);
+        } else if (field == Calendar.YEAR) {
+            return result;
+        } else {
+            throw DbException.getUnsupportedException("DATEDIFF " + part);
         }
-        return result;
     }
 
     private static String substring(String s, int start, int length) {
@@ -2021,6 +2096,20 @@ public class Function extends Expression implements FunctionCall {
         return new String(chars);
     }
 
+    private static Integer oraHash(String s, Integer bucket, Integer seed) {
+        int hc = s.hashCode();
+        if (seed != null && seed.intValue() != 0) {
+            hc *= seed.intValue() * 17;
+        }
+        if (bucket == null  || bucket.intValue() <= 0) {
+            // do nothing
+        } else {
+            hc %= bucket.intValue();
+        }
+        return hc;
+    }
+
+
     @Override
     public int getType() {
         return dataType;
@@ -2063,10 +2152,16 @@ public class Function extends Expression implements FunctionCall {
         case ROUND:
         case XMLTEXT:
         case TRUNCATE:
+        case TO_TIMESTAMP:
             min = 1;
             max = 2;
             break;
         case TO_CHAR:
+        case TO_DATE:
+            min = 1;
+            max = 3;
+            break;
+        case ORA_HASH:
             min = 1;
             max = 3;
             break;

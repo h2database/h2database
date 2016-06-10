@@ -71,7 +71,7 @@ import org.h2.value.ValueTimestamp;
  * changes are visible, but not own inserts and deletes.
  * </p>
  */
-public class JdbcResultSet extends TraceObject implements ResultSet {
+public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultSetBackwardsCompat {
     private final boolean closeStatement;
     private final boolean scrollable;
     private final boolean updatable;
@@ -754,6 +754,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(String columnLabel, int scale)
             throws SQLException {
@@ -783,6 +784,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(int columnIndex, int scale)
             throws SQLException {
@@ -804,6 +806,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported]
      * @deprecated since JDBC 2.0, use getCharacterStream
      */
+    @Deprecated
     @Override
     public InputStream getUnicodeStream(int columnIndex) throws SQLException {
         throw unsupported("unicodeStream");
@@ -813,6 +816,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * [Not supported]
      * @deprecated since JDBC 2.0, use setCharacterStream
      */
+    @Deprecated
     @Override
     public InputStream getUnicodeStream(String columnLabel) throws SQLException {
         throw unsupported("unicodeStream");
@@ -2613,7 +2617,11 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      */
     @Override
     public void setFetchDirection(int direction) throws SQLException {
-        throw unsupported("setFetchDirection");
+        debugCodeCall("setFetchDirection", direction);
+        // ignore FETCH_FORWARD, that's the default value, which we do support
+        if (direction != ResultSet.FETCH_FORWARD) {
+            throw unsupported("setFetchDirection");
+        }
     }
 
     /**
@@ -3676,12 +3684,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(int columnIndex, Class<T> type) {
-        return null;
+    public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+        throw unsupported("getObject");
     }
-//*/
 
     /**
      * [Not supported]
@@ -3689,12 +3695,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet {
      * @param columnName the column name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(String columnName, Class<T> type) {
-        return null;
+    public <T> T getObject(String columnName, Class<T> type) throws SQLException {
+        throw unsupported("getObject");
     }
-//*/
 
     /**
      * INTERNAL

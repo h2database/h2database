@@ -131,6 +131,9 @@ class WebSession {
                     new DbContextRule(contents, DbContextRule.SCHEMA);
             DbContextRule columnAliasRule =
                     new DbContextRule(contents, DbContextRule.COLUMN_ALIAS);
+            DbContextRule procedure =
+                    new DbContextRule(contents, DbContextRule.PROCEDURE);
+            newBnf.updateTopic("procedure", procedure);
             newBnf.updateTopic("column_name", columnRule);
             newBnf.updateTopic("new_table_alias", newAliasRule);
             newBnf.updateTopic("table_alias", aliasRule);

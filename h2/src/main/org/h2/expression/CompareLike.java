@@ -7,7 +7,6 @@ package org.h2.expression;
 
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -38,6 +37,7 @@ public class CompareLike extends Condition {
 
     private char[] patternChars;
     private String patternString;
+    /** one of MATCH / ONE / ANY */
     private int[] patternTypes;
     private int patternLength;
 
@@ -47,6 +47,8 @@ public class CompareLike extends Condition {
     private boolean ignoreCase;
     private boolean fastCompare;
     private boolean invalidPattern;
+    /** indicates that we can shortcut the comparison and use startsWith */
+    private boolean shortcutToStartsWith;
 
     public CompareLike(Database db, Expression left, Expression right,
             Expression escape, boolean regexp) {
@@ -196,6 +198,8 @@ public class CompareLike extends Condition {
             // column is not a varchar - can't use the index
             return;
         }
+        // Get the MATCH prefix and see if we can create an index condition from
+        // that.
         int maxMatch = 0;
         StringBuilder buff = new StringBuilder();
         while (maxMatch < patternLength && patternTypes[maxMatch] == MATCH) {
@@ -253,18 +257,13 @@ public class CompareLike extends Condition {
         String value = l.getString();
         boolean result;
         if (regexp) {
-            // result = patternRegexp.matcher(value).matches();
             result = patternRegexp.matcher(value).find();
+        } else if (shortcutToStartsWith) {
+            result = value.regionMatches(ignoreCase, 0, patternString, 0, patternLength - 1);
         } else {
             result = compareAt(value, 0, 0, value.length(), patternChars, patternTypes);
         }
         return ValueBoolean.get(result);
-    }
-
-    private boolean compare(char[] pattern, String s, int pi, int si) {
-        return pattern[pi] == s.charAt(si) ||
-                (!fastCompare && compareMode.equalsChars(patternString, pi, s,
-                        si, ignoreCase));
     }
 
     private boolean compareAt(String s, int pi, int si, int sLen,
@@ -298,6 +297,12 @@ public class CompareLike extends Condition {
             }
         }
         return si == sLen;
+    }
+
+    private boolean compare(char[] pattern, String s, int pi, int si) {
+        return pattern[pi] == s.charAt(si) ||
+                (!fastCompare && compareMode.equalsChars(patternString, pi, s,
+                        si, ignoreCase));
     }
 
     /**
@@ -376,6 +381,17 @@ public class CompareLike extends Condition {
             }
         }
         patternString = new String(patternChars, 0, patternLength);
+
+        // optimizes the common case of LIKE 'foo%'
+        if (compareMode.getName().equals(CompareMode.OFF) && patternLength > 1) {
+            int maxMatch = 0;
+            while (maxMatch < patternLength && patternTypes[maxMatch] == MATCH) {
+                maxMatch++;
+            }
+            if (maxMatch == patternLength - 1 && patternTypes[patternLength - 1] == ANY) {
+                shortcutToStartsWith = true;
+            }
+        }
     }
 
     private boolean isFullMatch() {

@@ -6,10 +6,12 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
@@ -33,6 +35,8 @@ public class TestCompatibilityOracle extends TestBase {
     public void test() throws Exception {
         testTreatEmptyStringsAsNull();
         testDecimalScale();
+        testPoundSymbolInColumnName();
+        testToDate();
     }
 
     private void testTreatEmptyStringsAsNull() throws SQLException {
@@ -90,6 +94,17 @@ public class TestCompatibilityOracle extends TestBase {
         assertResult(new Object[][] { { 1, new byte[] { 10 } }, { 2, null } },
                 stat, "SELECT * FROM E");
 
+        stat.execute("CREATE TABLE F (ID NUMBER, X VARCHAR2(1))");
+        stat.execute("INSERT INTO F VALUES (1, 'a')");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO F VALUES (2, ?)");
+        prep.setString(1, "");
+        prep.execute();
+        assertResult("2", stat, "SELECT COUNT(*) FROM F");
+        assertResult("1", stat, "SELECT COUNT(*) FROM F WHERE X IS NULL");
+        assertResult("0", stat, "SELECT COUNT(*) FROM F WHERE X = ''");
+        assertResult(new Object[][]{{1, "a"}, {2, null}}, stat, "SELECT * FROM F");
+
         conn.close();
     }
 
@@ -107,6 +122,55 @@ public class TestCompatibilityOracle extends TestBase {
                 stat, "SELECT * FROM A");
 
         conn.close();
+    }
+
+    /**
+     * Test the # in a column name for oracle compatibility
+     */
+    private void testPoundSymbolInColumnName() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        stat.execute(
+                "CREATE TABLE TEST(ID INT PRIMARY KEY, U##NAME VARCHAR(255))");
+        stat.execute(
+                "INSERT INTO TEST VALUES(1, 'Hello'), (2, 'HelloWorld'), (3, 'HelloWorldWorld')");
+
+        assertResult("1", stat, "SELECT ID FROM TEST where U##NAME ='Hello'");
+
+        conn.close();
+    }
+
+    private void testToDate() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE DATE_TABLE (ID NUMBER PRIMARY KEY, TEST_VAL TIMESTAMP)");
+        stat.execute("INSERT INTO DATE_TABLE VALUES (1, " +
+                "to_date('31-DEC-9999 23:59:59','DD-MON-RRRR HH24:MI:SS'))");
+        stat.execute("INSERT INTO DATE_TABLE VALUES (2, " +
+                "to_date('01-JAN-0001 00:00:00','DD-MON-RRRR HH24:MI:SS'))");
+
+        assertResultDate("9999-12-31T23:59:59", stat,
+                "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=1");
+        assertResultDate("0001-01-01T00:00:00", stat,
+                "SELECT TEST_VAL FROM DATE_TABLE WHERE ID=2");
+
+        conn.close();
+    }
+
+    private void assertResultDate(String expected, Statement stat, String sql)
+            throws SQLException {
+        SimpleDateFormat iso8601 = new SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss");
+        ResultSet rs = stat.executeQuery(sql);
+        if (rs.next()) {
+            assertEquals(expected, iso8601.format(rs.getTimestamp(1)));
+        } else {
+            assertEquals(expected, null);
+        }
     }
 
     private void assertResult(Object[][] expectedRowsOfValues, Statement stat,

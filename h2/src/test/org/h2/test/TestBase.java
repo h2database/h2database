@@ -51,14 +51,14 @@ public abstract class TestBase {
     public static final String BASE_TEST_DIR = "./data";
 
     /**
-     * The temporary directory.
-     */
-    private static final String TEMP_DIR = "./data/temp";
-
-    /**
      * An id used to create unique file names.
      */
     protected static int uniqueId;
+
+    /**
+     * The temporary directory.
+     */
+    private static final String TEMP_DIR = "./data/temp";
 
     /**
      * The base directory to write test databases.
@@ -299,7 +299,7 @@ public abstract class TestBase {
         } else if (config.throttle > 0) {
             url = addOption(url, "THROTTLE", "" + config.throttle);
         }
-        url = addOption(url, "LOCK_TIMEOUT", "50");
+        url = addOption(url, "LOCK_TIMEOUT", "" + config.lockTimeout);
         if (config.diskUndo && admin) {
             url = addOption(url, "MAX_MEMORY_UNDO", "3");
         }
@@ -322,9 +322,6 @@ public abstract class TestBase {
         }
         if (config.defrag) {
             url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
-        }
-        if (config.nestedJoins) {
-            url = addOption(url, "NESTED_JOINS", "TRUE");
         }
         return "jdbc:h2:" + url;
     }
@@ -448,6 +445,21 @@ public abstract class TestBase {
      */
     protected void fail(String string) {
         lastPrint = 0;
+        if (string.length() > 100) {
+            // avoid long strings with special characters, because they are slow
+            // to display in Eclipse
+            char[] data = string.toCharArray();
+            for (int i = 0; i < data.length; i++) {
+                char c = data[i];
+                if (c >= 128 || c < 32) {
+                    data[i] = (char) ('a' + (c & 15));
+                    string = null;
+                }
+            }
+            if (string == null) {
+                string = new String(data);
+            }
+        }
         println(string);
         throw new AssertionError(string);
     }
@@ -668,6 +680,23 @@ public abstract class TestBase {
     }
 
     /**
+     * Check if two values are equal, and if not throw an exception.
+     *
+     * @param expected the expected value
+     * @param actual the actual value
+     * @throws AssertionError if the values are not equal
+     */
+    public void assertEquals(Object expected, Object actual) {
+        if (expected == null || actual == null) {
+            assertTrue(expected == actual);
+            return;
+        }
+        if (!expected.equals(actual)) {
+            fail(" expected: " + expected + " actual: " + actual);
+        }
+    }
+
+    /**
      * Check if two readers are equal, and if not throw an exception.
      *
      * @param expected the expected value
@@ -744,6 +773,9 @@ public abstract class TestBase {
                 String s = expected.substring(0, i);
                 if (!actual.startsWith(s)) {
                     expected = expected.substring(0, i) + "<*>" + expected.substring(i);
+                    if (al > 20) {
+                        expected = "@" + i + " " + expected;
+                    }
                     break;
                 }
             }
@@ -1005,17 +1037,17 @@ public abstract class TestBase {
     /**
      * Check that executing the specified query results in the specified error.
      *
-     * @param expectedErrorMessage the expected error message
+     * @param expectedErrorCode the expected error code
      * @param stat the statement
      * @param sql the SQL statement to execute
      */
-    protected void assertThrows(String expectedErrorMessage, Statement stat,
+    protected void assertThrows(int expectedErrorCode, Statement stat,
             String sql) {
         try {
-            stat.executeQuery(sql);
-            fail("Expected error: " + expectedErrorMessage);
+            stat.execute(sql);
+            fail("Expected error: " + expectedErrorCode);
         } catch (SQLException ex) {
-            assertStartsWith(ex.getMessage(), expectedErrorMessage);
+            assertEquals(expectedErrorCode, ex.getErrorCode());
         }
     }
 
@@ -1275,7 +1307,9 @@ public abstract class TestBase {
      */
     protected void assertEquals(Integer expected, Integer actual) {
         if (expected == null || actual == null) {
-            assertTrue(expected == null && actual == null);
+            if (expected != actual) {
+                assertEquals("" + expected, "" + actual);
+            }
         } else {
             assertEquals(expected.intValue(), actual.intValue());
         }

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.engine.Session;
@@ -17,6 +16,7 @@ import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.util.BitField;
 import org.h2.util.IntArray;
 import org.h2.util.IntIntHashMap;
@@ -316,7 +316,7 @@ public class PageLog {
                 } else if (x == ADD) {
                     int sessionId = in.readVarInt();
                     int tableId = in.readVarInt();
-                    Row row = readRow(in, data);
+                    Row row = readRow(store.getDatabase().getRowFactory(), in, data);
                     if (stage == RECOVERY_STAGE_UNDO) {
                         store.allocateIfIndexRoot(pos, tableId, row);
                     } else if (stage == RECOVERY_STAGE_REDO) {
@@ -452,11 +452,12 @@ public class PageLog {
     /**
      * Read a row from an input stream.
      *
+     * @param rowFactory the row factory
      * @param in the input stream
      * @param data a temporary buffer
      * @return the row
      */
-    public static Row readRow(DataReader in, Data data) throws IOException {
+    public static Row readRow(RowFactory rowFactory, DataReader in, Data data) throws IOException {
         long key = in.readVarLong();
         int len = in.readVarInt();
         data.reset();
@@ -467,7 +468,7 @@ public class PageLog {
         for (int i = 0; i < columnCount; i++) {
             values[i] = data.readValue();
         }
-        Row row = new Row(values, Row.MEMORY_CALCULATE);
+        Row row = rowFactory.createRow(values, Row.MEMORY_CALCULATE);
         row.setKey(key);
         return row;
     }

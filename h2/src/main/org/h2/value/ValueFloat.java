@@ -92,11 +92,7 @@ public class ValueFloat extends Value {
             // NaN
             return "SQRT(-1)";
         }
-        String s = getString();
-        if (s.equals("-0.0")) {
-            return "-CAST(0 AS REAL)";
-        }
-        return s;
+        return getString();
     }
 
     @Override
@@ -162,11 +158,8 @@ public class ValueFloat extends Value {
         if (d == 1.0F) {
             return ONE;
         } else if (d == 0.0F) {
-            // unfortunately, -0.0 == 0.0, but we don't want to return
-            // 0.0 in this case
-            if (Float.floatToIntBits(d) == ZERO_BITS) {
-                return ZERO;
-            }
+            // -0.0 == 0.0, and we want to return 0.0 for both
+            return ZERO;
         }
         return (ValueFloat) Value.cache(new ValueFloat(d));
     }

@@ -72,6 +72,18 @@ public abstract class Query extends Prepared {
     }
 
     /**
+     * Check if this is a UNION query.
+     *
+     * @return {@code true} if this is a UNION query
+     */
+    public abstract boolean isUnion();
+
+    /**
+     * Prepare join batching.
+     */
+    public abstract void prepareJoinBatch();
+
+    /**
      * Execute the query without checking the cache. If a target is specified,
      * the results are written to it, and the method returns null. If no target
      * is specified, a new LocalResult is created and returned.
@@ -129,6 +141,13 @@ public abstract class Query extends Prepared {
      * @param order the order by list
      */
     public abstract void setOrder(ArrayList<SelectOrderBy> order);
+
+    /**
+     * Whether the query has an order.
+     *
+     * @return true if it has
+     */
+    public abstract boolean hasOrder();
 
     /**
      * Set the 'for update' flag.

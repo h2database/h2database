@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.Analyze;
@@ -27,6 +28,7 @@ import org.h2.index.IndexType;
 import org.h2.index.MultiVersionIndex;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.Row;
@@ -36,6 +38,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
+import org.h2.util.DebuggingThreadLocal;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.DataType;
@@ -45,6 +48,33 @@ import org.h2.value.Value;
  * A table stored in a MVStore.
  */
 public class MVTable extends TableBase {
+
+    /**
+     * The table name this thread is waiting to lock.
+     */
+    public static final DebuggingThreadLocal<String> WAITING_FOR_LOCK;
+
+    /**
+     * The table names this thread has exclusively locked.
+     */
+    public static final DebuggingThreadLocal<ArrayList<String>> EXCLUSIVE_LOCKS;
+
+    /**
+     * The tables names this thread has a shared lock on.
+     */
+    public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS;
+
+    static {
+        if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+            WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
+            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+            SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+        } else {
+            WAITING_FOR_LOCK = null;
+            EXCLUSIVE_LOCKS = null;
+            SHARED_LOCKS = null;
+        }
+    }
 
     private MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = New.arrayList();
@@ -66,12 +96,14 @@ public class MVTable extends TableBase {
     private boolean containsLargeObject;
     private Column rowIdColumn;
 
-    private final TransactionStore store;
+    private final MVTableEngine.Store store;
+    private final TransactionStore transactionStore;
 
     public MVTable(CreateTableData data, MVTableEngine.Store store) {
         super(data);
         nextAnalyze = database.getSettings().analyzeAuto;
-        this.store = store.getTransactionStore();
+        this.store = store;
+        this.transactionStore = store.getTransactionStore();
         this.isHidden = data.isHidden;
         for (Column col : getColumns()) {
             if (DataType.isLargeObject(col.getType())) {
@@ -127,11 +159,17 @@ public class MVTable extends TableBase {
                 return true;
             }
             session.setWaitForLock(this, Thread.currentThread());
+            if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                WAITING_FOR_LOCK.set(getName());
+            }
             waitingSessions.addLast(session);
             try {
                 doLock1(session, lockMode, exclusive);
             } finally {
                 session.setWaitForLock(null, null);
+                if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                    WAITING_FOR_LOCK.remove();
+                }
                 waitingSessions.remove(session);
             }
         }
@@ -215,11 +253,23 @@ public class MVTable extends TableBase {
                     traceLock(session, exclusive, "added for");
                     session.addLock(this);
                     lockExclusiveSession = session;
+                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                        if (EXCLUSIVE_LOCKS.get() == null) {
+                            EXCLUSIVE_LOCKS.set(new ArrayList<String>());
+                        }
+                        EXCLUSIVE_LOCKS.get().add(getName());
+                    }
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
                         lockSharedSessions.containsKey(session)) {
                     traceLock(session, exclusive, "add (upgraded) for ");
                     lockExclusiveSession = session;
+                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                        if (EXCLUSIVE_LOCKS.get() == null) {
+                            EXCLUSIVE_LOCKS.set(new ArrayList<String>());
+                        }
+                        EXCLUSIVE_LOCKS.get().add(getName());
+                    }
                     return true;
                 }
             }
@@ -241,6 +291,12 @@ public class MVTable extends TableBase {
                     traceLock(session, exclusive, "ok");
                     session.addLock(this);
                     lockSharedSessions.put(session, session);
+                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                        if (SHARED_LOCKS.get() == null) {
+                            SHARED_LOCKS.set(new ArrayList<String>());
+                        }
+                        SHARED_LOCKS.get().add(getName());
+                    }
                 }
                 return true;
             }
@@ -354,10 +410,20 @@ public class MVTable extends TableBase {
             traceLock(s, lockExclusiveSession == s, "unlock");
             if (lockExclusiveSession == s) {
                 lockExclusiveSession = null;
+                if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                    if (EXCLUSIVE_LOCKS.get() != null) {
+                        EXCLUSIVE_LOCKS.get().remove(getName());
+                    }
+                }
             }
             synchronized (getLockSyncObject()) {
                 if (lockSharedSessions.size() > 0) {
                     lockSharedSessions.remove(s);
+                    if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+                        if (SHARED_LOCKS.get() != null) {
+                            SHARED_LOCKS.get().remove(getName());
+                        }
+                    }
                 }
                 if (!waitingSessions.isEmpty()) {
                     getLockSyncObject().notifyAll();
@@ -420,7 +486,7 @@ public class MVTable extends TableBase {
         int mainIndexColumn;
         mainIndexColumn = getMainIndexColumn(indexType, cols);
         if (database.isStarting()) {
-            if (store.store.hasMap("index." + indexId)) {
+            if (transactionStore.store.hasMap("index." + indexId)) {
                 mainIndexColumn = -1;
             }
         } else if (primaryIndex.getRowCountMax() != 0) {
@@ -786,7 +852,7 @@ public class MVTable extends TableBase {
     Transaction getTransaction(Session session) {
         if (session == null) {
             // TODO need to commit/rollback the transaction
-            return store.begin();
+            return transactionStore.begin();
         }
         return session.getTransaction();
     }
@@ -818,6 +884,21 @@ public class MVTable extends TableBase {
         if (database != null) {
             lastModificationId = database.getNextModificationDataId();
         }
+    }
+
+    /**
+     * Convert the illegal state exception to a database exception.
+     *
+     * @param e the illegal state exception
+     * @return the database exception
+     */
+    DbException convertException(IllegalStateException e) {
+        if (DataUtils.getErrorCode(e.getMessage()) ==
+                DataUtils.ERROR_TRANSACTION_LOCKED) {
+            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
+                    e, getName());
+        }
+        return store.convertIllegalStateException(e);
     }
 
 }

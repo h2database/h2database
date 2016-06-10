@@ -7,7 +7,7 @@ SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ [ LIMIT expression ] [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables."
@@ -67,15 +67,15 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
 ","
 Lists the schemas, tables, or the columns of a table."
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX indexName RENAME TO newIndexName
+ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index."
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA schema RENAME TO newSchemaName
+ALTER SCHEMA [ IF EXISTS ] schema RENAME TO newSchemaName
 ","
 Renames a schema."
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
 [ CYCLE long | NOCYCLE |  NO CYCLE ]
@@ -83,17 +83,21 @@ ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 ","
 Changes the parameters of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD [ COLUMN ]
+ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
 { [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
 Adds a new column to a table."
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
+ALTER TABLE [ IF EXISTS ] tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table."
+"Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
+ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintName
+","
+Renames a constraint."
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE tableName ALTER COLUMN columnName
+ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
 { { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }
     | { RESTART WITH long }
@@ -105,20 +109,20 @@ ALTER TABLE tableName ALTER COLUMN columnName
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity."
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
+ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
 ","
-Removes a column from a table."
+Removes column(s) from a table."
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
+ALTER TABLE [ IF EXISTS ] tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table."
 "Commands (DDL)","ALTER TABLE SET","
-ALTER TABLE tableName SET REFERENTIAL_INTEGRITY
+ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
     { FALSE | TRUE [ CHECK | NOCHECK ] }
 ","
 Disables or enables referential integrity checking for a table."
 "Commands (DDL)","ALTER TABLE RENAME","
-ALTER TABLE tableName RENAME TO newName
+ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
 ","
 Renames a table."
 "Commands (DDL)","ALTER USER ADMIN","
@@ -134,7 +138,7 @@ ALTER USER userName SET { PASSWORD string | SALT bytes HASH bytes }
 ","
 Changes the password of a user."
 "Commands (DDL)","ALTER VIEW","
-ALTER VIEW viewName RECOMPILE
+ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created."
 "Commands (DDL)","ANALYZE","
@@ -299,7 +303,8 @@ COMMIT TRANSACTION transactionName
 Sets the resolution of an in-doubt transaction to 'commit'."
 "Commands (Other)","GRANT RIGHT","
 GRANT { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-tableName [,...] TO { PUBLIC | userName | roleName }
+{ { SCHEMA schemaName } | { tableName [,...] } }
+TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role."
 "Commands (Other)","GRANT ALTER ANY SCHEMA","
@@ -320,7 +325,8 @@ PREPARE COMMIT newTransactionName
 Prepares committing a transaction."
 "Commands (Other)","REVOKE RIGHT","
 REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-tableName [,...] FROM { PUBLIC | userName | roleName }
+{ { SCHEMA schemaName } | { tableName [,...] } }
+FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role."
 "Commands (Other)","REVOKE ROLE","
@@ -458,6 +464,10 @@ Changes the password of the current user."
 SET QUERY_STATISTICS { TRUE | FALSE }
 ","
 Disabled or enables query statistics gathering for the whole database."
+"Commands (Other)","SET QUERY_STATISTICS_MAX_ENTRIES","
+SET QUERY_STATISTICS int
+","
+Set the maximum number of entries in query statistics meta-table."
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","
@@ -715,6 +725,7 @@ value
     | case
     | caseWhen
     | tableAlias.columnName
+    | userDefinedFunctionName
 ","
 A value."
 "Other Grammar","Time","
@@ -1021,7 +1032,7 @@ HASH(algorithmString, dataBytes, iterationInt)
 ","
 Calculate the hash value using an algorithm, and repeat this process for a number of iterations."
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp } )
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp | date | timestampString } )
 ","
 Truncates to a number of digits (to the next value closer to 0)."
 "Functions (Numeric)","COMPRESS","
@@ -1352,6 +1363,10 @@ Returns the approximate amount of space used by the table specified."
 FILE_READ(fileNameString [,encodingString])
 ","
 Returns the contents of a file."
+"Functions (System)","FILE_WRITE","
+FILE_WRITE(blobValue, fileNameString)
+","
+Write the supplied parameter into a file."
 "Functions (System)","GREATEST","
 GREATEST(aValue, bValue [,...])
 ","

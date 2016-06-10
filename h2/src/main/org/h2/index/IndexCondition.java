@@ -334,22 +334,6 @@ public class IndexCondition {
         }
     }
 
-    /**
-     * Check if this index condition is of the type equality.
-     *
-     * @param constantExpression if the inner node is a constant expression
-     * @return true if this is a equality condition
-     */
-    public boolean isEquality(boolean constantExpression) {
-        switch (compareType) {
-        case Comparison.EQUAL:
-        case Comparison.EQUAL_NULL_SAFE:
-            return !constantExpression || expression.isConstant();
-        default:
-            return false;
-        }
-    }
-
     public int getCompareType() {
         return compareType;
     }
@@ -361,6 +345,33 @@ public class IndexCondition {
      */
     public Column getColumn() {
         return column;
+    }
+
+    /**
+     * Get expression.
+     *
+     * @return Expression.
+     */
+    public Expression getExpression() {
+        return expression;
+    }
+
+    /**
+     * Get expression list.
+     *
+     * @return Expression list.
+     */
+    public List<Expression> getExpressionList() {
+        return expressionList;
+    }
+
+    /**
+     * Get expression query.
+     *
+     * @return Expression query.
+     */
+    public Query getExpressionQuery() {
+        return expressionQuery;
     }
 
     /**

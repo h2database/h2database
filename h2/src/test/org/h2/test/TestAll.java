@@ -24,6 +24,7 @@ import org.h2.test.db.TestCases;
 import org.h2.test.db.TestCheckpoint;
 import org.h2.test.db.TestCluster;
 import org.h2.test.db.TestCompatibility;
+import org.h2.test.db.TestCompatibilityOracle;
 import org.h2.test.db.TestCsv;
 import org.h2.test.db.TestDateStorage;
 import org.h2.test.db.TestDeadlock;
@@ -46,13 +47,14 @@ import org.h2.test.db.TestMultiThread;
 import org.h2.test.db.TestMultiThreadedKernel;
 import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
-import org.h2.test.db.TestCompatibilityOracle;
+import org.h2.test.db.TestOptimizerHints;
 import org.h2.test.db.TestOutOfMemory;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRecursiveQueries;
 import org.h2.test.db.TestRights;
+import org.h2.test.db.TestRowFactory;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
 import org.h2.test.db.TestScript;
@@ -70,6 +72,7 @@ import org.h2.test.db.TestTransaction;
 import org.h2.test.db.TestTriggersConstraints;
 import org.h2.test.db.TestTwoPhaseCommit;
 import org.h2.test.db.TestUpgrade;
+import org.h2.test.db.TestUsingIndex;
 import org.h2.test.db.TestView;
 import org.h2.test.db.TestViewAlterTable;
 import org.h2.test.db.TestViewDropView;
@@ -82,6 +85,8 @@ import org.h2.test.jaqu.UpdateTest;
 import org.h2.test.jdbc.TestBatchUpdates;
 import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
+import org.h2.test.jdbc.TestConcurrentConnectionUsage;
+import org.h2.test.jdbc.TestConnection;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
 import org.h2.test.jdbc.TestJavaObject;
@@ -105,7 +110,9 @@ import org.h2.test.jdbcx.TestXASimple;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
+import org.h2.test.mvcc.TestMvcc4;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
+import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
@@ -145,11 +152,15 @@ import org.h2.test.synth.TestNestedJoins;
 import org.h2.test.synth.TestOuterJoins;
 import org.h2.test.synth.TestRandomCompare;
 import org.h2.test.synth.TestRandomSQL;
+import org.h2.test.synth.TestStringAggCompatibility;
 import org.h2.test.synth.TestTimer;
 import org.h2.test.synth.sql.TestSynth;
 import org.h2.test.synth.thread.TestMulti;
+import org.h2.test.unit.TestAnsCompression;
 import org.h2.test.unit.TestAutoReconnect;
+import org.h2.test.unit.TestBinaryArithmeticStream;
 import org.h2.test.unit.TestBitField;
+import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
 import org.h2.test.unit.TestClearReferences;
@@ -159,6 +170,7 @@ import org.h2.test.unit.TestConnectionInfo;
 import org.h2.test.unit.TestDataPage;
 import org.h2.test.unit.TestDate;
 import org.h2.test.unit.TestDateIso8601;
+import org.h2.test.unit.TestDateTimeUtils;
 import org.h2.test.unit.TestExit;
 import org.h2.test.unit.TestFile;
 import org.h2.test.unit.TestFileLock;
@@ -168,10 +180,11 @@ import org.h2.test.unit.TestFileSystem;
 import org.h2.test.unit.TestFtp;
 import org.h2.test.unit.TestIntArray;
 import org.h2.test.unit.TestIntIntHashMap;
-import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestIntPerfectHash;
+import org.h2.test.unit.TestJmx;
 import org.h2.test.unit.TestLocale;
 import org.h2.test.unit.TestMathUtils;
+import org.h2.test.unit.TestMode;
 import org.h2.test.unit.TestModifyOnWrite;
 import org.h2.test.unit.TestNetUtils;
 import org.h2.test.unit.TestObjectDeserialization;
@@ -193,6 +206,8 @@ import org.h2.test.unit.TestSort;
 import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
+import org.h2.test.unit.TestTimeStampUtc;
+import org.h2.test.unit.TestTimeStampWithTimeZone;
 import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
 import org.h2.test.unit.TestUtils;
@@ -216,6 +231,10 @@ import org.h2.util.Utils;
  * different settings).
  */
 public class TestAll {
+
+    static {
+        // Locale.setDefault(new Locale("ru", "ru"));
+    }
 
 /*
 
@@ -315,9 +334,14 @@ java org.h2.test.TestAll timer
     public boolean splitFileSystem;
 
     /**
-     * Support nested joins.
+     * If only fast tests should be run. If enabled, SSL is not tested.
      */
-    public boolean nestedJoins;
+    public boolean fast;
+
+    /**
+     * The lock timeout to use
+     */
+    public int lockTimeout = 50;
 
     /**
      * If the transaction log should be kept small (that is, the log should be
@@ -344,11 +368,6 @@ java org.h2.test.TestAll timer
      * If the tests should run forever.
      */
     boolean endless;
-
-    /**
-     * If only fast tests should be run. If enabled, SSL is not tested.
-     */
-    public boolean fast;
 
     /**
      * The THROTTLE value to use.
@@ -380,9 +399,12 @@ java org.h2.test.TestAll timer
      */
     AbbaLockingDetector abbaLockingDetector;
 
-    private Server server;
-
+    /**
+     * The list of tests.
+     */
     ArrayList<TestBase> tests = New.arrayList();
+
+    private Server server;
 
     /**
      * Run all tests.
@@ -667,6 +689,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMultiThreadedKernel());
         addTest(new TestOpenClose());
         addTest(new TestOptimizations());
+        addTest(new TestOptimizerHints());
         addTest(new TestOutOfMemory());
         addTest(new TestReadOnly());
         addTest(new TestRecursiveQueries());
@@ -681,6 +704,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSpatial());
         addTest(new TestSpeed());
         addTest(new TestTableEngines());
+        addTest(new TestRowFactory());
         addTest(new TestTempTables());
         addTest(new TestTransaction());
         addTest(new TestTriggersConstraints());
@@ -701,6 +725,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBatchUpdates());
         addTest(new TestCallableStatement());
         addTest(new TestCancel());
+        addTest(new TestConcurrentConnectionUsage());
+        addTest(new TestConnection());
         addTest(new TestDatabaseEventListener());
         addTest(new TestJavaObject());
         addTest(new TestLimitUpdates());
@@ -729,6 +755,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMvcc1());
         addTest(new TestMvcc2());
         addTest(new TestMvcc3());
+        addTest(new TestMvcc4());
         addTest(new TestMvccMultiThreaded());
         addTest(new TestRowLocks());
 
@@ -745,6 +772,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMultiThreaded());
         addTest(new TestOuterJoins());
         addTest(new TestNestedJoins());
+        addTest(new TestStringAggCompatibility());
 
         runAddedTests();
 
@@ -756,6 +784,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMemoryUsage());
         addTest(new TestMultiThread());
         addTest(new TestPowerOff());
+        addTest(new TestReorderWrites());
         addTest(new TestRandomSQL());
         addTest(new TestQueryCache());
         addTest(new TestUrlJavaObjectSerializer());
@@ -782,13 +811,17 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMVTableEngine());
         addTest(new TestObjectDataType());
         addTest(new TestRandomMapOps());
+        addTest(new TestReorderWrites());
         addTest(new TestSpinLock());
         addTest(new TestStreamStore());
         addTest(new TestTransactionStore());
 
         // unit
+        addTest(new TestAnsCompression());
         addTest(new TestAutoReconnect());
+        addTest(new TestBinaryArithmeticStream());
         addTest(new TestBitField());
+        addTest(new TestBitStream());
         addTest(new TestBnf());
         addTest(new TestCache());
         addTest(new TestClearReferences());
@@ -806,6 +839,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestIntPerfectHash());
         addTest(new TestJmx());
         addTest(new TestMathUtils());
+        addTest(new TestMode());
         addTest(new TestModifyOnWrite());
         addTest(new TestOldVersion());
         addTest(new TestObjectDeserialization());
@@ -824,8 +858,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSort());
         addTest(new TestStreams());
         addTest(new TestStringUtils());
+        addTest(new TestTimeStampUtc());
+        addTest(new TestTimeStampWithTimeZone());
         addTest(new TestTraceSystem());
         addTest(new TestUpgrade());
+        addTest(new TestUsingIndex());
         addTest(new TestUtils());
         addTest(new TestValue());
         addTest(new TestValueHashMap());
@@ -835,6 +872,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // serial
         addTest(new TestDate());
+        addTest(new TestDateTimeUtils());
         addTest(new TestCluster());
         addTest(new TestConcurrent());
         addTest(new TestFileLockSerialized());
@@ -852,18 +890,21 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     }
 
     private void addTest(TestBase test) {
-        tests.add(test);
+        // tests.add(test);
+        // run directly for now, because concurrently running tests
+        // fails on Raspberry Pi quite often (seems to be a JVM problem)
+        test.runTest(this);
     }
 
     private void runAddedTests() {
         int threadCount = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
-        threadCount = 1;
+        // threadCount = 2;
         runAddedTests(threadCount);
     }
 
     private void runAddedTests(int threadCount) {
         Task[] tasks = new Task[threadCount];
-        for (int i=0; i<threadCount;i++) {
+        for (int i = 0; i < threadCount; i++) {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
@@ -882,7 +923,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             t.execute();
             tasks[i] = t;
         }
-        for(Task t : tasks) {
+        for (Task t : tasks) {
             t.get();
         }
     }

@@ -20,84 +20,115 @@ import org.h2.value.Value;
 public class Trace {
 
     /**
-     * The trace module name for commands.
+     * The trace module id for commands.
      */
-    public static final String COMMAND = "command";
+    public static final int COMMAND = 0;
 
     /**
-     * The trace module name for constraints.
+     * The trace module id for constraints.
      */
-    public static final String CONSTRAINT = "constraint";
+    public static final int CONSTRAINT = 1;
 
     /**
-     * The trace module name for databases.
+     * The trace module id for databases.
      */
-    public static final String DATABASE = "database";
+    public static final int DATABASE = 2;
 
     /**
-     * The trace module name for functions.
+     * The trace module id for functions.
      */
-    public static final String FUNCTION = "function";
+    public static final int FUNCTION = 3;
 
     /**
-     * The trace module name for file locks.
+     * The trace module id for file locks.
      */
-    public static final String FILE_LOCK = "fileLock";
+    public static final int FILE_LOCK = 4;
 
     /**
-     * The trace module name for indexes.
+     * The trace module id for indexes.
      */
-    public static final String INDEX = "index";
+    public static final int INDEX = 5;
 
     /**
-     * The trace module name for the JDBC API.
+     * The trace module id for the JDBC API.
      */
-    public static final String JDBC = "jdbc";
+    public static final int JDBC = 6;
 
     /**
-     * The trace module name for locks.
+     * The trace module id for locks.
      */
-    public static final String LOCK = "lock";
+    public static final int LOCK = 7;
 
     /**
-     * The trace module name for schemas.
+     * The trace module id for schemas.
      */
-    public static final String SCHEMA = "schema";
+    public static final int SCHEMA = 8;
 
     /**
-     * The trace module name for sequences.
+     * The trace module id for sequences.
      */
-    public static final String SEQUENCE = "sequence";
+    public static final int SEQUENCE = 9;
 
     /**
-     * The trace module name for settings.
+     * The trace module id for settings.
      */
-    public static final String SETTING = "setting";
+    public static final int SETTING = 10;
 
     /**
-     * The trace module name for tables.
+     * The trace module id for tables.
      */
-    public static final String TABLE = "table";
+    public static final int TABLE = 11;
 
     /**
-     * The trace module name for triggers.
+     * The trace module id for triggers.
      */
-    public static final String TRIGGER = "trigger";
+    public static final int TRIGGER = 12;
 
     /**
-     * The trace module name for users.
+     * The trace module id for users.
      */
-    public static final String USER = "user";
+    public static final int USER = 13;
 
     /**
-     * The trace module name for the page store.
+     * The trace module id for the page store.
      */
-    public static final String PAGE_STORE = "pageStore";
+    public static final int PAGE_STORE = 14;
+
+    /**
+     * The trace module id for the JDBCX API
+     */
+    public static final int JDBCX = 15;
+
+    /**
+     * Module names by their ids as array indexes.
+     */
+    public static final String[] MODULE_NAMES = {
+        "command",
+        "constraint",
+        "database",
+        "function",
+        "fileLock",
+        "index",
+        "jdbc",
+        "lock",
+        "schema",
+        "sequence",
+        "setting",
+        "table",
+        "trigger",
+        "user",
+        "pageStore",
+        "JDBCX"
+    };
 
     private final TraceWriter traceWriter;
     private final String module;
     private final String lineSeparator;
     private int traceLevel = TraceSystem.PARENT;
+
+    Trace(TraceWriter traceWriter, int moduleId) {
+        this(traceWriter, MODULE_NAMES[moduleId]);
+    }
 
     Trace(TraceWriter traceWriter, String module) {
         this.traceWriter = traceWriter;

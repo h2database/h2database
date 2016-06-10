@@ -33,6 +33,8 @@ public class Sequence extends SchemaObjectBase {
     private long maxValue;
     private boolean cycle;
     private boolean belongsToTable;
+    private Object flushSync = new Object();
+    private boolean writeWithMargin;
 
     /**
      * Creates a new sequence for an auto-increment column.
@@ -146,10 +148,10 @@ public class Sequence extends SchemaObjectBase {
             maxValue > minValue &&
             increment != 0 &&
             // Math.abs(increment) < maxValue - minValue
-                // use BigInteger to avoid overflows when maxValue and minValue
-                // are really big
+            // use BigInteger to avoid overflows when maxValue and minValue
+            // are really big
             BigInteger.valueOf(increment).abs().compareTo(
-                BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
+                    BigInteger.valueOf(maxValue).subtract(BigInteger.valueOf(minValue))) < 0;
     }
 
     private static long getDefaultMinValue(Long startValue, long increment) {
@@ -211,15 +213,16 @@ public class Sequence extends SchemaObjectBase {
 
     @Override
     public synchronized String getCreateSQL() {
+        long v = writeWithMargin ? valueWithMargin : value;
         StringBuilder buff = new StringBuilder("CREATE SEQUENCE ");
-        buff.append(getSQL()).append(" START WITH ").append(value);
+        buff.append(getSQL()).append(" START WITH ").append(v);
         if (increment != 1) {
             buff.append(" INCREMENT BY ").append(increment);
         }
-        if (minValue != getDefaultMinValue(value, increment)) {
+        if (minValue != getDefaultMinValue(v, increment)) {
             buff.append(" MINVALUE ").append(minValue);
         }
-        if (maxValue != getDefaultMaxValue(value, increment)) {
+        if (maxValue != getDefaultMaxValue(v, increment)) {
             buff.append(" MAXVALUE ").append(maxValue);
         }
         if (cycle) {
@@ -240,29 +243,32 @@ public class Sequence extends SchemaObjectBase {
      * @param session the session
      * @return the next value
      */
-    public synchronized long getNext(Session session) {
+    public long getNext(Session session) {
         boolean needsFlush = false;
-        if ((increment > 0 && value >= valueWithMargin) ||
-                (increment < 0 && value <= valueWithMargin)) {
-            valueWithMargin += increment * cacheSize;
-            needsFlush = true;
-        }
-        if ((increment > 0 && value > maxValue) ||
-                (increment < 0 && value < minValue)) {
-            if (cycle) {
-                value = increment > 0 ? minValue : maxValue;
-                valueWithMargin = value + (increment * cacheSize);
+        long result;
+        synchronized (this) {
+            if ((increment > 0 && value >= valueWithMargin) ||
+                    (increment < 0 && value <= valueWithMargin)) {
+                valueWithMargin += increment * cacheSize;
                 needsFlush = true;
-            } else {
-                throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
             }
+            if ((increment > 0 && value > maxValue) ||
+                    (increment < 0 && value < minValue)) {
+                if (cycle) {
+                    value = increment > 0 ? minValue : maxValue;
+                    valueWithMargin = value + (increment * cacheSize);
+                    needsFlush = true;
+                } else {
+                    throw DbException.get(ErrorCode.SEQUENCE_EXHAUSTED, getName());
+                }
+            }
+            result = value;
+            value += increment;
         }
         if (needsFlush) {
             flush(session);
         }
-        long v = value;
-        value += increment;
-        return v;
+        return result;
     }
 
     /**
@@ -280,33 +286,41 @@ public class Sequence extends SchemaObjectBase {
      *
      * @param session the session
      */
-    public synchronized void flush(Session session) {
-        if (session == null || !database.isSysTableLocked()) {
+    public void flush(Session session) {
+        if (isTemporary()) {
+            return;
+        }
+        if (session == null || !database.isSysTableLockedBy(session)) {
             // This session may not lock the sys table (except if it already has
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
             Session sysSession = database.getSystemSession();
             synchronized (sysSession) {
-                flushInternal(sysSession);
+                synchronized (flushSync) {
+                    flushInternal(sysSession);
+                }
                 sysSession.commit(false);
             }
         } else {
             synchronized (session) {
-                flushInternal(session);
+                synchronized (flushSync) {
+                    flushInternal(session);
+                }
             }
         }
     }
 
     private void flushInternal(Session session) {
-        // just for this case, use the value with the margin for the script
-        long realValue = value;
+        final boolean metaWasLocked = database.lockMeta(session);
+        // just for this case, use the value with the margin
         try {
-            value = valueWithMargin;
-            if (!isTemporary()) {
-                database.updateMeta(session, this);
-            }
+            writeWithMargin = true;
+            database.updateMeta(session, this);
         } finally {
-            value = realValue;
+            writeWithMargin = false;
+        }
+        if (!metaWasLocked) {
+            database.unlockMeta(session);
         }
     }
 

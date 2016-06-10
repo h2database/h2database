@@ -17,10 +17,15 @@ import org.h2.table.TableView;
  */
 public class AlterView extends DefineCommand {
 
+    private boolean ifExists;
     private TableView view;
 
     public AlterView(Session session) {
         super(session);
+    }
+
+    public void setIfExists(boolean b) {
+        ifExists = b;
     }
 
     public void setView(TableView view) {
@@ -30,8 +35,11 @@ public class AlterView extends DefineCommand {
     @Override
     public int update() {
         session.commit(true);
+        if (view == null && ifExists) {
+            return 0;
+        }
         session.getUser().checkRight(view, Right.ALL);
-        DbException e = view.recompile(session, false);
+        DbException e = view.recompile(session, false, true);
         if (e != null) {
             throw e;
         }

@@ -6,7 +6,6 @@
 package org.h2.expression;
 
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
@@ -70,7 +69,7 @@ public class Subquery extends Expression {
 
     @Override
     public Expression optimize(Session session) {
-        query.prepare();
+        session.optimizeQueryExpression(query);
         return this;
     }
 

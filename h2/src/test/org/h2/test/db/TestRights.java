@@ -34,8 +34,11 @@ public class TestRights extends TestBase {
 
     @Override
     public void test() throws SQLException {
+        testNullPassword();
         testLinkedTableMeta();
         testGrantMore();
+        testGrantSchema();
+        testRevokeSchema();
         testOpenNonAdminWithMode();
         testDisallowedTables();
         testDropOwnUser();
@@ -46,6 +49,17 @@ public class TestRights extends TestBase {
         testAccessRights();
         testSchemaAdminRole();
         deleteDb("rights");
+    }
+
+    private void testNullPassword() throws SQLException {
+        deleteDb("rights");
+        Connection conn = getConnection("rights");
+        stat = conn.createStatement();
+        stat.execute("create user test password null");
+        stat.execute("alter user test set password null");
+        stat.execute("create user test2 salt null hash null");
+        stat.execute("alter user test set salt null hash null");
+        conn.close();
     }
 
     private void testLinkedTableMeta() throws SQLException {
@@ -109,6 +123,120 @@ public class TestRights extends TestBase {
         stat.execute("drop table test");
         stat.execute("drop role new_role");
         conn.close();
+    }
+
+    private void testGrantSchema() throws SQLException {
+        deleteDb("rights");
+        Connection connAdmin = getConnection("rights");
+        // Test with user
+        Statement statAdmin = connAdmin.createStatement();
+        statAdmin.execute("create user test_user password 'test'");
+        statAdmin.execute("create table test1(id int)");
+        statAdmin.execute("create table test2(id int)");
+        statAdmin.execute("create table test3(id int)");
+        statAdmin.execute("grant insert on schema public to test_user");
+        statAdmin.execute("create table test4(id int)");
+
+        Connection conn = getConnection("rights", "test_user", getPassword("test"));
+        Statement stat = conn.createStatement();
+        // Must proceed
+        stat.execute("insert into test1 values (1)");
+        stat.execute("insert into test2 values (1)");
+        stat.execute("insert into test3 values (1)");
+        stat.execute("insert into test4 values (1)");
+        // Must not proceed
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat, "select * from test1");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat, "select * from test2");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat, "select * from test3");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, stat, "select * from test4");
+
+        // Test with role
+        statAdmin.execute("create role test_role");
+        statAdmin.execute("grant test_role to test_user");
+        statAdmin.execute("grant select on schema public to test_role");
+        // create the table after grant
+        statAdmin.execute("create table test5(id int)");
+
+        // Must proceed
+        stat.execute("insert into test1 values (2)");
+        stat.execute("insert into test2 values (2)");
+        stat.execute("insert into test3 values (2)");
+        stat.execute("insert into test4 values (2)");
+        stat.execute("insert into test5 values (1)");
+        stat.execute("select * from test1");
+        stat.execute("select * from test2");
+        stat.execute("select * from test3");
+        stat.execute("select * from test4");
+        stat.execute("select * from test5");
+
+        conn.close();
+
+        connAdmin.close();
+        deleteDb("rights");
+    }
+
+    private void testRevokeSchema() throws SQLException {
+        deleteDb("rights");
+        Connection connAdmin = getConnection("rights");
+        Statement statAdmin = connAdmin.createStatement();
+
+        // Test with user
+        statAdmin = connAdmin.createStatement();
+        statAdmin.execute("create user test_user password 'test'");
+        statAdmin.execute("create table test1(id int)");
+        statAdmin.execute("create table test2(id int)");
+        statAdmin.execute("create table test3(id int)");
+        statAdmin.execute("grant insert on schema public to test_user");
+
+        Connection conn = getConnection("rights", "test_user", getPassword("test"));
+        Statement stat = conn.createStatement();
+        // Must proceed
+        stat.execute("insert into test1 values (1)");
+        stat.execute("insert into test2 values (1)");
+        stat.execute("insert into test3 values (1)");
+
+        statAdmin.execute("revoke insert on schema public from test_user");
+        statAdmin.execute("create table test4(id int)");
+
+        // Must not proceed
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "insert into test1 values (2)");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "insert into test2 values (2)");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "insert into test3 values (2)");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "insert into test4 values (2)");
+
+        // Test with role
+        statAdmin.execute("create role test_role");
+        statAdmin.execute("grant test_role to test_user");
+        statAdmin.execute("grant select on schema public to test_role");
+
+        // Must proceed
+        stat.execute("select * from test1");
+        stat.execute("select * from test2");
+        stat.execute("select * from test3");
+        stat.execute("select * from test4");
+
+        statAdmin.execute("revoke select on schema public from test_role");
+        statAdmin.execute("create table test5(id int)");
+
+        // Must not proceed
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "select * from test1");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "select * from test2");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "select * from test3");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "select * from test4");
+        assertThrows(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1,
+                stat, "select * from test5");
+
+        conn.close();
+        connAdmin.close();
+        deleteDb("rights");
     }
 
     private void testOpenNonAdminWithMode() throws SQLException {

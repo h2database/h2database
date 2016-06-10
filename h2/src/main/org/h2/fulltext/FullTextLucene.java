@@ -20,11 +20,11 @@ import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Searcher;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -304,12 +304,12 @@ public class FullTextLucene extends FullText {
                 try {
                     Directory indexDir = path.startsWith(IN_MEMORY_PREFIX) ?
                             new RAMDirectory() : FSDirectory.open(new File(path));
-                    boolean recreate = !IndexReader.indexExists(indexDir);
                     Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_30);
-                    IndexWriter writer = new IndexWriter(indexDir, analyzer,
-                            recreate, IndexWriter.MaxFieldLength.UNLIMITED);
+                    IndexWriterConfig conf = new IndexWriterConfig(Version.LUCENE_30, analyzer);
+                    conf.setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND);
+                    IndexWriter writer = new IndexWriter(indexDir, conf);
                     //see http://wiki.apache.org/lucene-java/NearRealtimeSearch
-                    IndexReader reader = writer.getReader();
+                    IndexReader reader = IndexReader.open(writer, true);
                     access = new IndexAccess();
                     access.writer = writer;
                     access.reader = reader;
@@ -426,7 +426,7 @@ public class FullTextLucene extends FullText {
         try {
             IndexAccess access = getIndexAccess(conn);
             // take a reference as the searcher may change
-            Searcher searcher = access.searcher;
+            IndexSearcher searcher = access.searcher;
             // reuse the same analyzer; it's thread-safe;
             // also allows subclasses to control the analyzer used.
             Analyzer analyzer = access.writer.getAnalyzer();
@@ -606,9 +606,8 @@ public class FullTextLucene extends FullText {
                 // recreate Searcher with the IndexWriter's reader.
                 indexAccess.searcher.close();
                 indexAccess.reader.close();
-                IndexReader reader = indexAccess.writer.getReader();
-                indexAccess.reader = reader;
-                indexAccess.searcher = new IndexSearcher(reader);
+                indexAccess.reader = IndexReader.open(indexAccess.writer, true);
+                indexAccess.searcher = new IndexSearcher(indexAccess.reader);
             } catch (IOException e) {
                 throw convertException(e);
             }
@@ -715,7 +714,7 @@ public class FullTextLucene extends FullText {
         /**
          * The index searcher.
          */
-        Searcher searcher;
+        IndexSearcher searcher;
     }
 
 }

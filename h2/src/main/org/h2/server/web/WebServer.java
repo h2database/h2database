@@ -80,7 +80,7 @@ public class WebServer implements Service {
                 "jdbc:firebirdsql:localhost:c:/temp/firebird/test|sysdba",
         "Generic SQLite|org.sqlite.JDBC|" +
                 "jdbc:sqlite:test|sa",
-        "Generic DB2|COM.ibm.db2.jdbc.net.DB2Driver|" +
+        "Generic DB2|com.ibm.db2.jcc.DB2Driver|" +
                 "jdbc:db2://localhost/test|" ,
         "Generic Oracle|oracle.jdbc.driver.OracleDriver|" +
                     "jdbc:oracle:thin:@localhost:1521:XE|sa" ,

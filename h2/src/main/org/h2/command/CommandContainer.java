@@ -7,6 +7,8 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import org.h2.api.DatabaseEventListener;
+import org.h2.command.dml.Explain;
+import org.h2.command.dml.Query;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
@@ -17,7 +19,7 @@ import org.h2.value.ValueNull;
  * Represents a single SQL statements.
  * It wraps a prepared statement.
  */
-class CommandContainer extends Command {
+public class CommandContainer extends Command {
 
     private Prepared prepared;
     private boolean readOnlyKnown;
@@ -44,6 +46,23 @@ class CommandContainer extends Command {
         return prepared.isQuery();
     }
 
+    @Override
+    public void prepareJoinBatch() {
+        if (session.isJoinBatchEnabled()) {
+            prepareJoinBatch(prepared);
+        }
+    }
+
+    private static void prepareJoinBatch(Prepared prepared) {
+        if (prepared.isQuery()) {
+            if (prepared.getType() == CommandInterface.SELECT) {
+                ((Query) prepared).prepareJoinBatch();
+            } else if (prepared.getType() == CommandInterface.EXPLAIN) {
+                prepareJoinBatch(((Explain) prepared).getCommand());
+            }
+        }
+    }
+
     private void recompileIfRequired() {
         if (prepared.needRecompile()) {
             // TODO test with 'always recompile'
@@ -65,6 +84,7 @@ class CommandContainer extends Command {
             }
             prepared.prepare();
             prepared.setModificationMetaId(mod);
+            prepareJoinBatch();
         }
     }
 

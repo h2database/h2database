@@ -15,7 +15,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.value.Value;
@@ -55,29 +54,59 @@ public class DateTimeUtils {
      * The thread local. Can not override initialValue because this would result
      * in an inner class, which would not be garbage collected in a web
      * container, and prevent the class loader of H2 from being garbage
-     * collected. Using a ThreadLocal on a system class like Calendar does have
-     * that problem, and while it is still a small memory leak, it is not a
+     * collected. Using a ThreadLocal on a system class like Calendar does not
+     * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<Calendar>();
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR =
+            new ThreadLocal<Calendar>();
+
+    /**
+     * A cached instance of Calendar used when a timezone is specified.
+     */
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
+            new ThreadLocal<Calendar>();
 
     private DateTimeUtils() {
         // utility class
     }
 
     /**
-     * Reset the calendar, for example after changing the default timezone.
+     * Reset the cached calendar for default timezone, for example after
+     * changing the default timezone.
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
     }
 
+    /**
+     * Get a calendar for the default timezone.
+     *
+     * @return a calendar instance. A cached instance is returned where possible
+     */
     private static Calendar getCalendar() {
         Calendar c = CACHED_CALENDAR.get();
         if (c == null) {
             c = Calendar.getInstance();
             CACHED_CALENDAR.set(c);
         }
+        c.clear();
+        return c;
+    }
+
+    /**
+     * Get a calendar for the given timezone.
+     *
+     * @param tz timezone for the calendar, is never null
+     * @return a calendar instance. A cached instance is returned where possible
+     */
+    private static Calendar getCalendar(TimeZone tz) {
+        Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
+        if (c == null || !c.getTimeZone().equals(tz)) {
+            c = Calendar.getInstance(tz);
+            CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
+        }
+        c.clear();
         return c;
     }
 
@@ -284,7 +313,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Parse a time string. The format is: [-]hour:minute:second[.nanos]
+     * Parse a time string. The format is: [-]hour:minute:second[.nanos] or
+     * alternatively [-]hour.minute.second[.nanos].
      *
      * @param s the string to parse
      * @param start the parse index start
@@ -302,7 +332,15 @@ public class DateTimeUtils {
         int s2 = s.indexOf(':', s1 + 1);
         int s3 = s.indexOf('.', s2 + 1);
         if (s1 <= 0 || s2 <= s1) {
-            throw new IllegalArgumentException(s);
+            // if first try fails try to use IBM DB2 time format
+            // [-]hour.minute.second[.nanos]
+            s1 = s.indexOf('.', start);
+            s2 = s.indexOf('.', s1 + 1);
+            s3 = s.indexOf('.', s2 + 1);
+
+            if (s1 <= 0 || s2 <= s1) {
+                throw new IllegalArgumentException(s);
+            }
         }
         boolean negative;
         hour = Integer.parseInt(s.substring(start, s1));
@@ -393,9 +431,8 @@ public class DateTimeUtils {
         if (tz == null) {
             c = getCalendar();
         } else {
-            c = Calendar.getInstance(tz);
+            c = getCalendar(tz);
         }
-        c.clear();
         c.setLenient(lenient);
         setCalendarFields(c, year, month, day, hour, minute, second, millis);
         return c.getTime().getTime();
@@ -462,7 +499,8 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        return d.getTime() + getCalendar().get(Calendar.ZONE_OFFSET);
+        Calendar calendar = getCalendar();
+        return d.getTime() + calendar.get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -475,7 +513,6 @@ public class DateTimeUtils {
     public static long getTimeUTCWithoutDst(long millis) {
         return millis - getCalendar().get(Calendar.ZONE_OFFSET);
     }
-
     /**
      * Return the day of week according to the ISO 8601 specification. Week
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
@@ -646,6 +683,19 @@ public class DateTimeUtils {
     }
 
     /**
+     * Convert a date value to millis, using the supplied timezone.
+     *
+     * @param tz the timezone
+     * @param dateValue the date value
+     * @return the date
+     */
+    public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
+        return getMillis(tz,
+                yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue),
+                dayFromDateValue(dateValue), 0, 0, 0, 0);
+    }
+    /**
      * Convert a date value / time value to a timestamp, using the default
      * timezone.
      *
@@ -744,7 +794,6 @@ public class DateTimeUtils {
      */
     public static long dateValueFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return dateValueFromCalendar(cal);
     }
@@ -772,7 +821,6 @@ public class DateTimeUtils {
      */
     public static long nanosFromDate(long ms) {
         Calendar cal = getCalendar();
-        cal.clear();
         cal.setTimeInMillis(ms);
         return nanosFromCalendar(cal);
     }
@@ -876,6 +924,27 @@ public class DateTimeUtils {
             m -= 12;
         }
         return dateValue(y, m + 3, (int) d);
+    }
+
+    /**
+     * Adds the number of months to the date. If the resulting month's number of
+     * days is less than the original's day-of-month, the resulting
+     * day-of-months gets adjusted accordingly:
+     * <br>
+     * 30.04.2007 - 2 months = 28.02.2007
+     *
+     * @param refDate the original date
+     * @param nrOfMonthsToAdd the number of months to add
+     * @return the new timestamp
+     */
+    public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(refDate);
+        calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
+
+        Timestamp resultDate = new Timestamp(calendar.getTimeInMillis());
+        resultDate.setNanos(refDate.getNanos());
+        return resultDate;
     }
 
 }

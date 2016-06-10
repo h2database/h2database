@@ -181,17 +181,17 @@ public class RowList {
                 v = null;
             } else {
                 v = buff.readValue();
-                if (v.isLinked()) {
+                if (v.isLinkedToTable()) {
                     // the table id is 0 if it was linked when writing
                     // a temporary entry
                     if (v.getTableId() == 0) {
-                        session.unlinkAtCommit(v);
+                        session.removeAtCommit(v);
                     }
                 }
             }
             values[i] = v;
         }
-        Row row = new Row(values, mem);
+        Row row = session.createRow(values, mem);
         row.setKey(key);
         row.setVersion(version);
         row.setDeleted(deleted);

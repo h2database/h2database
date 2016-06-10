@@ -60,6 +60,7 @@ public class TestTransactionStore extends TestBase {
         testConcurrentTransactionsReadCommitted();
         testSingleConnection();
         testCompareWithPostgreSQL();
+        testStoreMultiThreadedReads();
     }
 
     private void testConcurrentAddRemove() throws InterruptedException {
@@ -137,7 +138,7 @@ public class TestTransactionStore extends TestBase {
         };
         task.execute();
         Transaction tx = null;
-        int count = 10000;
+        int count = 100000;
         TransactionMap<Integer, Integer> map = null;
         for (int i = 0; i < count; i++) {
             int k = i;
@@ -151,9 +152,15 @@ public class TestTransactionStore extends TestBase {
                 // ignore and retry
             }
             tx.commit();
+            if (failCount.get() > 0 && i > 4000) {
+                // stop earlier, if possible
+                count = i;
+                break;
+            }
         }
-        // we expect at least half the operations were successful
-        assertTrue(failCount.toString(), failCount.get() < count / 2);
+        // we expect at least 10% the operations were successful
+        assertTrue(failCount.toString() + " >= " + (count * 0.9),
+                failCount.get() < count * 0.9);
         // we expect at least a few failures
         assertTrue(failCount.toString(), failCount.get() > 0);
         s.close();
@@ -979,6 +986,60 @@ public class TestTransactionStore extends TestBase {
 
         ts.close();
         s.close();
+    }
+
+    private void testStoreMultiThreadedReads() throws Exception {
+        MVStore s = MVStore.open(null);
+        final TransactionStore ts = new TransactionStore(s);
+
+        ts.init();
+        Transaction t = ts.begin();
+        TransactionMap<Integer, Integer> mapA = t.openMap("a");
+        mapA.put(1, 0);
+        t.commit();
+
+        Task task = new Task() {
+            @Override
+            public void call() throws Exception {
+                for (int i = 0; !stop; i++) {
+                    Transaction tx = ts.begin();
+                    TransactionMap<Integer, Integer> mapA = tx.openMap("a");
+                    while (!mapA.tryPut(1, i)) {
+                        // repeat
+                    }
+                    tx.commit();
+
+                    // map B transaction
+                    // the other thread will get a map A uncommitted value,
+                    // but by the time it tries to walk back to the committed
+                    // value, the undoLog has changed
+                    tx = ts.begin();
+                    TransactionMap<Integer, Integer> mapB = tx.openMap("b");
+                    // put a new value to the map; this will cause a map B
+                    // undoLog entry to be created with a null pre-image value
+                    mapB.tryPut(i, -i);
+                    // this is where the real race condition occurs:
+                    // some other thread might get the B log entry
+                    // for this transaction rather than the uncommitted A log
+                    // entry it is expecting
+                    tx.commit();
+                }
+            }
+        };
+        task.execute();
+        try {
+            for (int i = 0; i < 10000; i++) {
+                Transaction tx = ts.begin();
+                mapA = tx.openMap("a");
+                if (mapA.get(1) == null) {
+                    throw new AssertionError("key not found");
+                }
+                tx.commit();
+            }
+        } finally {
+            task.get();
+        }
+        ts.close();
     }
 
 }

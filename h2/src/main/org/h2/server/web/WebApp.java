@@ -813,7 +813,7 @@ public class WebApp {
                 if (isH2) {
                     int code = se.getErrorCode();
                     error += " <a href=\"http://h2database.com/javadoc/" +
-                            "org/h2/constant/ErrorCode.html#c" + code +
+                            "org/h2/api/ErrorCode.html#c" + code +
                             "\">(${text.a.help})</a>";
                 }
             }
@@ -1692,8 +1692,10 @@ public class WebApp {
         }
         boolean isUpdatable = false;
         try {
-            isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE
-                && rs.getType() != ResultSet.TYPE_FORWARD_ONLY;
+            if (!session.getContents().isDB2()) {
+                isUpdatable = rs.getConcurrency() == ResultSet.CONCUR_UPDATABLE
+                    && rs.getType() != ResultSet.TYPE_FORWARD_ONLY;
+            }
         } catch (NullPointerException e) {
             // ignore
             // workaround for a JDBC-ODBC bridge problem

@@ -5,13 +5,13 @@
  */
 package org.h2.util;
 
-import static java.lang.Math.abs;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Currency;
 import java.util.GregorianCalendar;
@@ -134,7 +134,7 @@ public class ToChar {
             int pow = number.precision() - number.scale() - 1;
             number = number.movePointLeft(pow);
             return number.toPlainString() + "E" +
-                    (pow < 0 ? '-' : '+') + (abs(pow) < 10 ? "0" : "") + abs(pow);
+                    (pow < 0 ? '-' : '+') + (Math.abs(pow) < 10 ? "0" : "") + Math.abs(pow);
         } else if (formatUp.equals("RN")) {
             boolean lowercase = format.startsWith("r");
             String rn = StringUtils.pad(toRomanNumeral(number.intValue()), 15, " ", false);
@@ -220,7 +220,9 @@ public class ToChar {
         }
 
         StringBuilder output = new StringBuilder();
-        String unscaled = number.unscaledValue().abs().toString();
+        String unscaled = (number.abs().compareTo(BigDecimal.ONE) < 0 ?
+                zeroesAfterDecimalSeparator(number) : "") +
+                number.unscaledValue().abs().toString();
 
         // start at the decimal point and fill in the numbers to the left,
         // working our way from right to left
@@ -327,6 +329,25 @@ public class ToChar {
         }
 
         return output.toString();
+    }
+
+    private static String zeroesAfterDecimalSeparator(BigDecimal number) {
+        final String numberStr = number.toString();
+        final int idx = numberStr.indexOf('.');
+        if (idx < 0) {
+            return "";
+        }
+        int i = idx + 1;
+        boolean allZeroes = true;
+        for (; i < numberStr.length(); i++) {
+            if (numberStr.charAt(i) != '0') {
+                allZeroes = false;
+                break;
+            }
+        }
+        final char[] zeroes = new char[allZeroes ? numberStr.length() - idx - 1: i - 1 - idx];
+        Arrays.fill(zeroes, '0');
+        return String.valueOf(zeroes);
     }
 
     private static void addSign(StringBuilder output, int signum,

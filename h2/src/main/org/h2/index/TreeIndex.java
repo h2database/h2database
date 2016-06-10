@@ -5,12 +5,14 @@
  */
 package org.h2.index;
 
+import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
@@ -318,10 +320,10 @@ public class TreeIndex extends BaseIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks, TableFilter[] filters, int filter,
+            SortOrder sortOrder, HashSet<Column> allColumnsSet) {
         return getCostRangeIndex(masks, tableData.getRowCountApproximation(),
-                filter, sortOrder);
+                filters, filter, sortOrder, false, allColumnsSet);
     }
 
     @Override

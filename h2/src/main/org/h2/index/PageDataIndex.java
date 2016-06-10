@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -116,9 +115,9 @@ public class PageDataIndex extends PageIndex {
         if (tableData.getContainsLargeObject()) {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
-                Value v2 = v.link(database, getId());
-                if (v2.isLinked()) {
-                    session.unlinkAtCommitStop(v2);
+                Value v2 = v.copy(database, getId());
+                if (v2.isLinkedToTable()) {
+                    session.removeAtCommitStop(v2);
                 }
                 if (v != v2) {
                     row.setValue(i, v2);
@@ -310,8 +309,9 @@ public class PageDataIndex extends PageIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         long cost = 10 * (tableData.getRowCountApproximation() +
                 Constants.COST_ROW_OFFSET);
         return cost;
@@ -327,8 +327,8 @@ public class PageDataIndex extends PageIndex {
         if (tableData.getContainsLargeObject()) {
             for (int i = 0, len = row.getColumnCount(); i < len; i++) {
                 Value v = row.getValue(i);
-                if (v.isLinked()) {
-                    session.unlinkAtCommit(v);
+                if (v.isLinkedToTable()) {
+                    session.removeAtCommitStop(v);
                 }
             }
         }

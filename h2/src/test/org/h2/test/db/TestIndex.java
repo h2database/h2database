@@ -39,6 +39,7 @@ public class TestIndex extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("index");
+        testOrderIndex();
         testIndexTypes();
         testHashIndexOnMemoryTable();
         testErrorMessage();
@@ -90,6 +91,23 @@ public class TestIndex extends TestBase {
 
         testMultiColumnHashIndex();
 
+        conn.close();
+        deleteDb("index");
+    }
+
+    private void testOrderIndex() throws SQLException {
+        Connection conn = getConnection("index");
+        stat = conn.createStatement();
+        stat.execute("create table test(id int, name varchar)");
+        stat.execute("insert into test values (2, 'a'), (1, 'a')");
+        stat.execute("create index on test(name)");
+        ResultSet rs = stat.executeQuery(
+                "select id from test where name = 'a' order by id");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
         conn.close();
         deleteDb("index");
     }
@@ -279,7 +297,7 @@ public class TestIndex extends TestBase {
         for (int i = 0; i < len; i++) {
             int x = rand.nextInt(len);
             String sql = "";
-            switch(rand.nextInt(3)) {
+            switch (rand.nextInt(3)) {
             case 0:
                 sql = "delete from testA where id = " + x;
                 break;

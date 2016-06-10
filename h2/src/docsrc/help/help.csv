@@ -7,7 +7,7 @@ SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ [ LIMIT expression ] [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -18,6 +18,7 @@ UNION combines the result of this query with the results of another query.
 
 LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
 OFFSET specified how many rows to skip.
+Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
 Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated
@@ -192,7 +193,7 @@ SHOW TABLES
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
-ALTER INDEX indexName RENAME TO newIndexName
+ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
 Renames an index.
 This command commits an open transaction in this connection.
@@ -201,7 +202,7 @@ ALTER INDEX IDXNAME RENAME TO IDX_TEST_NAME
 "
 
 "Commands (DDL)","ALTER SCHEMA RENAME","
-ALTER SCHEMA schema RENAME TO newSchemaName
+ALTER SCHEMA [ IF EXISTS ] schema RENAME TO newSchemaName
 ","
 Renames a schema.
 This command commits an open transaction in this connection.
@@ -210,7 +211,7 @@ ALTER SCHEMA TEST RENAME TO PRODUCTION
 "
 
 "Commands (DDL)","ALTER SEQUENCE","
-ALTER SEQUENCE sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
+ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY long ]
 [ MINVALUE long | NOMINVALUE | NO MINVALUE ]
 [ MAXVALUE long | NOMAXVALUE | NO MAXVALUE ]
 [ CYCLE long | NOCYCLE |  NO CYCLE ]
@@ -224,7 +225,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 "
 
 "Commands (DDL)","ALTER TABLE ADD","
-ALTER TABLE tableName ADD [ COLUMN ]
+ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
 { [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
     | ( { columnDefinition } [,...] ) }
 ","
@@ -235,7 +236,7 @@ ALTER TABLE TEST ADD CREATEDATE TIMESTAMP
 "
 
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
-ALTER TABLE tableName ADD constraint [ CHECK | NOCHECK ]
+ALTER TABLE [ IF EXISTS ] tableName ADD constraint [ CHECK | NOCHECK ]
 ","
 Adds a constraint to a table. If NOCHECK is specified, existing rows are not
 checked for consistency (the default is to check consistency for existing rows).
@@ -246,8 +247,17 @@ This command commits an open transaction in this connection.
 ALTER TABLE TEST ADD CONSTRAINT NAME_UNIQUE UNIQUE(NAME)
 "
 
+"Commands (DDL)","ALTER TABLE RENAME CONSTRAINT","
+ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintName
+","
+Renames a constraint.
+This command commits an open transaction in this connection.
+","
+ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
+"
+
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
-ALTER TABLE tableName ALTER COLUMN columnName
+ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
 { { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }
     | { RESTART WITH long }
@@ -289,16 +299,17 @@ ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
-ALTER TABLE tableName DROP COLUMN [ IF EXISTS ] columnName
+ALTER TABLE [ IF EXISTS ] tableName DROP COLUMN [ IF EXISTS ] ( columnName [,...] )
 ","
-Removes a column from a table.
+Removes column(s) from a table.
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST DROP COLUMN NAME
+ALTER TABLE TEST DROP COLUMN NAME1, NAME2
 "
 
 "Commands (DDL)","ALTER TABLE DROP CONSTRAINT","
-ALTER TABLE tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
+ALTER TABLE [ IF EXISTS ] tableName DROP { CONSTRAINT [ IF EXISTS ] constraintName | PRIMARY KEY }
 ","
 Removes a constraint or a primary key from a table.
 This command commits an open transaction in this connection.
@@ -307,7 +318,7 @@ ALTER TABLE TEST DROP CONSTRAINT UNIQUE_NAME
 "
 
 "Commands (DDL)","ALTER TABLE SET","
-ALTER TABLE tableName SET REFERENTIAL_INTEGRITY
+ALTER TABLE [ IF EXISTS ] tableName SET REFERENTIAL_INTEGRITY
     { FALSE | TRUE [ CHECK | NOCHECK ] }
 ","
 Disables or enables referential integrity checking for a table. This command can
@@ -322,7 +333,7 @@ ALTER TABLE TEST SET REFERENTIAL_INTEGRITY FALSE
 "
 
 "Commands (DDL)","ALTER TABLE RENAME","
-ALTER TABLE tableName RENAME TO newName
+ALTER TABLE [ IF EXISTS ] tableName RENAME TO newName
 ","
 Renames a table.
 This command commits an open transaction in this connection.
@@ -370,7 +381,7 @@ ALTER USER SA SET PASSWORD 'rioyxlgt'
 "
 
 "Commands (DDL)","ALTER VIEW","
-ALTER VIEW viewName RECOMPILE
+ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created.
 This command is used for views created using CREATE FORCE VIEW.
@@ -912,7 +923,8 @@ COMMIT TRANSACTION XID_TEST
 
 "Commands (Other)","GRANT RIGHT","
 GRANT { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-tableName [,...] TO { PUBLIC | userName | roleName }
+{ { SCHEMA schemaName } | { tableName [,...] } }
+TO { PUBLIC | userName | roleName }
 ","
 Grants rights for a table to a user or role.
 
@@ -963,7 +975,8 @@ PREPARE COMMIT XID_TEST
 
 "Commands (Other)","REVOKE RIGHT","
 REVOKE { SELECT | INSERT | UPDATE | DELETE | ALL } [,...] ON
-tableName [,...] FROM { PUBLIC | userName | roleName }
+{ { SCHEMA schemaName } | { tableName [,...] } }
+FROM { PUBLIC | userName | roleName }
 ","
 Removes rights for a table from a user or role.
 
@@ -1479,6 +1492,19 @@ Admin rights are required to execute this command, as it affects all connections
 SET QUERY_STATISTICS FALSE
 "
 
+"Commands (Other)","SET QUERY_STATISTICS_MAX_ENTRIES","
+SET QUERY_STATISTICS int
+","
+Set the maximum number of entries in query statistics meta-table.
+Default value is 100.
+
+This setting is not persistent.
+This command commits an open transaction in this connection.
+Admin rights are required to execute this command, as it affects all connections.
+","
+SET QUERY_STATISTICS_MAX_ENTRIES 500
+"
+
 "Commands (Other)","SET QUERY_TIMEOUT","
 SET QUERY_TIMEOUT int
 ","
@@ -1843,21 +1869,20 @@ The following options are supported:
 
 ""caseSensitiveColumnNames"" (true or false; disabled by default),
 
-""charset"",
+""charset"" (for example 'UTF-8'),
 
-""escape"",
+""escape"" (the character that escapes the field delimiter),
 
-""fieldDelimiter"",
+""fieldDelimiter"" (a double quote by default),
 
-""fieldSeparator"",
+""fieldSeparator"" (a comma by default)),
 
 ""lineComment"" (disabled by default),
 
 ""lineSeparator"" (the line separator used for writing; ignored for reading),
 
-""null"", Note that an empty value is always treated as null.
-This feature for compatibility, it is only here to support reading existing CSV files
-that contain explicit ""null"" delimiters.
+""null"", Support reading existing CSV files that contain explicit ""null"" delimiters.
+Note that an empty, unquoted values are also treated as null.
 
 ""preserveWhitespace"" (true or false; disabled by default),
 
@@ -2145,6 +2170,7 @@ value
     | case
     | caseWhen
     | tableAlias.columnName
+    | userDefinedFunctionName
 ","
 A value. Parameters can be indexed, for example ""?1"" meaning the first parameter.
 Each table has a pseudo-column named ""_ROWID_"" that contains the unique row identifier.
@@ -2973,11 +2999,13 @@ CALL HASH('SHA256', STRINGTOUTF8('Password'), 1000)
 "
 
 "Functions (Numeric)","TRUNCATE","
-{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp } )
+{ TRUNC | TRUNCATE } ( { {numeric, digitsInt} | timestamp | date | timestampString } )
 ","
 Truncates to a number of digits (to the next value closer to 0).
 This method returns a double.
 When used with a timestamp, truncates a timestamp to a date (day) value.
+When used with a date, truncates a date to a date (day) value less time part.
+When used with a timestamp as string, truncates a timestamp to a date (day) value.
 ","
 TRUNCATE(VALUE, 2)
 "
@@ -3801,6 +3829,16 @@ Admin rights are required to execute this command.
 ","
 SELECT LENGTH(FILE_READ('~/.h2.server.properties')) LEN;
 SELECT FILE_READ('http://localhost:8182/stylesheet.css', NULL) CSS;
+"
+
+"Functions (System)","FILE_WRITE","
+FILE_WRITE(blobValue, fileNameString)
+","
+Write the supplied parameter into a file. Return the number of bytes written.
+
+Write access to folder, and admin rights are required to execute this command.
+","
+SELECT FILE_WRITE('Hello world', '/tmp/hello.txt')) LEN;
 "
 
 "Functions (System)","GREATEST","

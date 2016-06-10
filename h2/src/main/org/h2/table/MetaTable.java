@@ -127,7 +127,7 @@ public class MetaTable extends Table {
         this.type = type;
         Column[] cols;
         String indexColumnName = null;
-        switch(type) {
+        switch (type) {
         case TABLES:
             setObjectName("TABLES");
             cols = createColumns(
@@ -615,6 +615,19 @@ public class MetaTable extends Table {
         return tables;
     }
 
+    private ArrayList<Table> getTablesByName(Session session, String tableName) {
+        if (database.getMode().lowerCaseIdentifiers) {
+            tableName = StringUtils.toUpperEnglish(tableName);
+        }
+        ArrayList<Table> tables = database.getTableOrViewByName(tableName);
+        for (Table temp : session.getLocalTempTables()) {
+            if (temp.getName().equals(tableName)) {
+                tables.add(temp);
+            }
+        }
+        return tables;
+    }
+
     private boolean checkIndex(Session session, String value, Value indexFrom,
             Value indexTo) {
         if (value == null || (indexFrom == null && indexTo == null)) {
@@ -727,7 +740,16 @@ public class MetaTable extends Table {
             break;
         }
         case COLUMNS: {
-            for (Table table : getAllTables(session)) {
+            // reduce the number of tables to scan - makes some metadata queries
+            // 10x faster
+            final ArrayList<Table> tablesToList;
+            if (indexFrom != null && indexTo != null && indexFrom.equals(indexTo)) {
+                String tableName = identifier(indexFrom.getString());
+                tablesToList = getTablesByName(session, tableName);
+            } else {
+                tablesToList = getAllTables(session);
+            }
+            for (Table table : tablesToList) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -795,7 +817,16 @@ public class MetaTable extends Table {
             break;
         }
         case INDEXES: {
-            for (Table table : getAllTables(session)) {
+            // reduce the number of tables to scan - makes some metadata queries
+            // 10x faster
+            final ArrayList<Table> tablesToList;
+            if (indexFrom != null && indexTo != null && indexFrom.equals(indexTo)) {
+                String tableName = identifier(indexFrom.getString());
+                tablesToList = getTablesByName(session, tableName);
+            } else {
+                tablesToList = getAllTables(session);
+            }
+            for (Table table : tablesToList) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -1128,8 +1159,19 @@ public class MetaTable extends Table {
                     String rightType = grantee.getType() == DbObject.USER ?
                             "USER" : "ROLE";
                     if (role == null) {
-                        Table granted = r.getGrantedTable();
-                        String tableName = identifier(granted.getName());
+                        DbObject object = r.getGrantedObject();
+                        Schema schema = null;
+                        Table table = null;
+                        if (object != null) {
+                            if (object instanceof Schema) {
+                                schema = (Schema) object;
+                            } else if (object instanceof Table) {
+                                table = (Table) object;
+                                schema = table.getSchema();
+                            }
+                        }
+                        String tableName = (table != null) ? identifier(table.getName()) : "";
+                        String schemaName = (schema != null) ? identifier(schema.getName()) : "";
                         if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                             continue;
                         }
@@ -1143,9 +1185,9 @@ public class MetaTable extends Table {
                                 // RIGHTS
                                 r.getRights(),
                                 // TABLE_SCHEMA
-                                identifier(granted.getSchema().getName()),
+                                schemaName,
                                 // TABLE_NAME
-                                identifier(granted.getName()),
+                                tableName,
                                 // ID
                                 "" + r.getId()
                         );
@@ -1375,7 +1417,11 @@ public class MetaTable extends Table {
         }
         case TABLE_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
-                Table table = r.getGrantedTable();
+                DbObject object = r.getGrantedObject();
+                if (!(object instanceof Table)) {
+                    continue;
+                }
+                Table table = (Table) object;
                 if (table == null || hideTable(table, session)) {
                     continue;
                 }
@@ -1390,7 +1436,11 @@ public class MetaTable extends Table {
         }
         case COLUMN_PRIVILEGES: {
             for (Right r : database.getAllRights()) {
-                Table table = r.getGrantedTable();
+                DbObject object = r.getGrantedObject();
+                if (!(object instanceof Table)) {
+                    continue;
+                }
+                Table table = (Table) object;
                 if (table == null || hideTable(table, session)) {
                     continue;
                 }
@@ -1815,7 +1865,7 @@ public class MetaTable extends Table {
     }
 
     private static int getRefAction(int action) {
-        switch(action) {
+        switch (action) {
         case ConstraintReferential.CASCADE:
             return DatabaseMetaData.importedKeyCascade;
         case ConstraintReferential.RESTRICT:
@@ -1928,7 +1978,7 @@ public class MetaTable extends Table {
             v = col.convert(v);
             values[i] = v;
         }
-        Row row = new Row(values, 1);
+        Row row = database.createRow(values, 1);
         row.setKey(rows.size());
         rows.add(row);
     }

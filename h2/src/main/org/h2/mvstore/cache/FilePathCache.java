@@ -38,9 +38,15 @@ public class FilePathCache extends FilePathWrapper {
 
         private static final int CACHE_BLOCK_SIZE = 4 * 1024;
         private final FileChannel base;
-        // 1 MB cache size
-        private final CacheLongKeyLIRS<ByteBuffer> cache =
-                new CacheLongKeyLIRS<ByteBuffer>(1024 * 1024);
+
+        private final CacheLongKeyLIRS<ByteBuffer> cache;
+
+        {
+            CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
+            // 1 MB cache size
+            cc.maxMemory = 1024 * 1024;
+            cache = new CacheLongKeyLIRS<ByteBuffer>(cc);
+        }
 
         FileCache(FileChannel base) {
             this.base = base;

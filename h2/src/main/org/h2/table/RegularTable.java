@@ -322,7 +322,7 @@ public class RegularTable extends TableBase {
         if (first.sortType != SortOrder.ASCENDING) {
             return -1;
         }
-        switch(first.column.getType()) {
+        switch (first.column.getType()) {
         case Value.BYTE:
         case Value.SHORT:
         case Value.INT:
@@ -679,16 +679,6 @@ public class RegularTable extends TableBase {
                 }
             }
         }
-    }
-
-    /**
-     * Create a row from the values.
-     *
-     * @param data the value list
-     * @return the row
-     */
-    public static Row createRow(Value[] data) {
-        return new Row(data, Row.MEMORY_CALCULATE);
     }
 
     /**

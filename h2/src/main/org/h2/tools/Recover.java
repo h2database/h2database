@@ -28,7 +28,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.zip.CRC32;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.compress.CompressLZF;
@@ -45,6 +44,7 @@ import org.h2.mvstore.db.TransactionStore;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;
 import org.h2.mvstore.db.ValueDataType;
 import org.h2.result.Row;
+import org.h2.result.RowFactory;
 import org.h2.result.SimpleRow;
 import org.h2.security.SHA256;
 import org.h2.store.Data;
@@ -72,6 +72,7 @@ import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Tool;
 import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueLob;
@@ -696,6 +697,7 @@ public class Recover extends Tool implements DataHandler {
                 "INFORMATION_SCHEMA.LOB_BLOCKS(" +
                 "LOB_ID BIGINT, SEQ INT, DATA BINARY, " +
                 "PRIMARY KEY(LOB_ID, SEQ));");
+        boolean hasErrors = false;
         for (Entry<Long, Object[]> e : lobMap.entrySet()) {
             long lobId = e.getKey();
             Object[] value = e.getValue();
@@ -717,6 +719,22 @@ public class Recover extends Tool implements DataHandler {
                 }
             } catch (IOException ex) {
                 writeError(writer, ex);
+                hasErrors = true;
+            }
+        }
+        writer.println("-- lobMap.size: " + lobMap.sizeAsLong());
+        writer.println("-- lobData.size: " + lobData.sizeAsLong());
+
+        if (hasErrors) {
+            writer.println("-- lobMap");
+            for (Long k : lobMap.keyList()) {
+                Object[] value = lobMap.get(k);
+                byte[] streamStoreId = (byte[]) value[0];
+                writer.println("--     " + k + " " + StreamStore.toString(streamStoreId));
+            }
+            writer.println("-- lobData");
+            for (Long k : lobData.keyList()) {
+                writer.println("--     " + k + " len " + lobData.get(k).length);
             }
         }
     }
@@ -931,7 +949,7 @@ public class Recover extends Tool implements DataHandler {
             } else if (x == PageLog.ADD) {
                 int sessionId = in.readVarInt();
                 setStorage(in.readVarInt());
-                Row row = PageLog.readRow(in, s);
+                Row row = PageLog.readRow(RowFactory.DEFAULT, in, s);
                 writer.println("-- session " + sessionId +
                         " table " + storageId +
                         " + " + row.toString());
@@ -1729,5 +1747,10 @@ public class Recover extends Tool implements DataHandler {
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
+    }
+
+    @Override
+    public CompareMode getCompareMode() {
+        return CompareMode.getInstance(null, 0);
     }
 }

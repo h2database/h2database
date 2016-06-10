@@ -49,6 +49,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private String comment;
     private boolean checkExisting;
     private boolean primaryKeyHash;
+    private boolean ifTableExists;
     private final boolean ifNotExists;
     private ArrayList<Index> createdIndexes = New.arrayList();
 
@@ -56,6 +57,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
             boolean ifNotExists) {
         super(session, schema);
         this.ifNotExists = ifNotExists;
+    }
+
+    public void setIfTableExists(boolean b) {
+        ifTableExists = b;
     }
 
     private String generateConstraintName(Table table) {
@@ -90,7 +95,13 @@ public class AlterTableAddConstraint extends SchemaCommand {
             session.commit(true);
         }
         Database db = session.getDatabase();
-        Table table = getSchema().getTableOrView(session, tableName);
+        Table table = getSchema().findTableOrView(session, tableName);
+        if (table == null) {
+            if (ifTableExists) {
+                return 0;
+            }
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
+        }
         if (getSchema().findConstraint(session, constraintName) != null) {
             if (ifNotExists) {
                 return 0;
@@ -175,7 +186,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
-            TableFilter filter = new TableFilter(session, table, null, false, null);
+            TableFilter filter = new TableFilter(session, table, null, false, null, 0);
             checkExpression.mapColumns(filter, 0);
             checkExpression = checkExpression.optimize(session);
             check.setExpression(checkExpression);
@@ -199,15 +210,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                if (db.isStarting()) {
-                    // before version 1.3.176, an existing index was used:
-                    // must do the same to avoid
-                    // Unique index or primary key violation:
-                    // "PRIMARY KEY ON """".PAGE_INDEX"
-                    index = getIndex(table, indexColumns, true);
-                } else {
-                    index = getIndex(table, indexColumns, false);
-                }
+                index = getIndex(table, indexColumns, true);
                 if (index == null) {
                     index = createIndex(table, indexColumns, false);
                     isOwner = true;
@@ -302,6 +305,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
+        if (t.getIndexes() == null) {
+            return null;
+        }
         for (Index idx : t.getIndexes()) {
             if (canUseUniqueIndex(idx, t, cols)) {
                 return idx;
@@ -311,6 +317,9 @@ public class AlterTableAddConstraint extends SchemaCommand {
     }
 
     private static Index getIndex(Table t, IndexColumn[] cols, boolean moreColumnOk) {
+        if (t.getIndexes() == null) {
+            return null;
+        }
         for (Index idx : t.getIndexes()) {
             if (canUseIndex(idx, t, cols, moreColumnOk)) {
                 return idx;

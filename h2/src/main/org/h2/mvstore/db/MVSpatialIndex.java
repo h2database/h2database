@@ -5,9 +5,9 @@
  */
 package org.h2.mvstore.db;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -27,13 +27,13 @@ import org.h2.mvstore.rtree.SpatialKey;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -140,8 +140,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         try {
             map.put(key, ValueLong.get(0));
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
-                    e, table.getName());
+            throw mvTable.convertException(e);
         }
         if (indexType.isUnique()) {
             // check if there is another (uncommitted) entry
@@ -176,8 +175,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                         getSQL() + ": " + row.getKey());
             }
         } catch (IllegalStateException e) {
-            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1,
-                    e, table.getName());
+            throw mvTable.convertException(e);
         }
     }
 
@@ -199,10 +197,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
+    public Cursor findByGeometry(TableFilter filter, SearchRow first,
+            SearchRow last, SearchRow intersection) {
         Session session = filter.getSession();
         if (intersection == null) {
-            return find(session);
+            return find(session, first, last);
         }
         Iterator<SpatialKey> cursor =
                 spatialMap.findIntersectingKeys(getKey(intersection));
@@ -241,16 +240,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(),
-                filter, sortOrder);
-    }
-
-    @Override
-    protected long getCostRangeIndex(int[] masks, long rowCount,
-            TableFilter filter, SortOrder sortOrder) {
-        return SpatialTreeIndex.getCostRangeIndex(masks, rowCount, columns);
+    public double getCost(Session session, int[] masks, TableFilter[] filters,
+            int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
+        return SpatialTreeIndex.getCostRangeIndex(masks,
+                table.getRowCountApproximation(), columns);
     }
 
     @Override

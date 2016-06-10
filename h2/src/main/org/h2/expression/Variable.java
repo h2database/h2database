@@ -63,7 +63,7 @@ public class Variable extends Expression {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.getType()) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
             // the value will be evaluated at execute time
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:

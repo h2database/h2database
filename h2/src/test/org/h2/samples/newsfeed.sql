@@ -7,6 +7,11 @@
 CREATE TABLE VERSION(ID INT PRIMARY KEY, VERSION VARCHAR, CREATED VARCHAR);
 INSERT INTO VERSION VALUES
 
+(142, '1.4.192', '2016-05-26'),
+(141, '1.4.191', '2016-01-21'),
+(140, '1.4.190', '2015-10-11'),
+(139, '1.4.189', '2015-09-13'),
+(138, '1.4.188', '2015-08-01'),
 (137, '1.4.187', '2015-04-10'),
 (136, '1.4.186', '2015-03-02'),
 (135, '1.4.185', '2015-01-16'),
@@ -95,7 +100,7 @@ $$<rdf:RDF xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/19
     <category rdf:resource="http://projects.apache.org/category/library"/>
     <category rdf:resource="http://projects.apache.org/category/network-server"/>
     <license rdf:resource="http://usefulinc.com/doap/licenses/mpl"/>
-    <bug-database rdf:resource="http://code.google.com/p/h2database/issues/list"/>
+    <bug-database rdf:resource="https://github.com/h2database/h2database/issues"/>
     <download-page rdf:resource="http://h2database.com/html/download.html"/>
     <shortdesc xml:lang="en">H2 Database Engine</shortdesc>
     <description xml:lang="en">
@@ -110,8 +115,8 @@ $$<rdf:RDF xmlns="http://usefulinc.com/ns/doap#" xmlns:rdf="http://www.w3.org/19
     </description>
     <repository>
         <SVNRepository>
-            <browse rdf:resource="http://code.google.com/p/h2database/source/browse"/>
-            <location rdf:resource="http://h2database.googlecode.com/svn/trunk"/>
+            <browse rdf:resource="https://github.com/h2database/h2database"/>
+            <location rdf:resource="https://github.com/h2database/h2database"/>
         </SVNRepository>
     </repository>
     <mailing-list rdf:resource="http://groups.google.com/group/h2-database"/>

@@ -14,6 +14,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
@@ -149,12 +150,13 @@ public class TableLink extends Table {
             String n = rs.getString("COLUMN_NAME");
             n = convertColumnName(n);
             int sqlType = rs.getInt("DATA_TYPE");
+            String sqlTypeName = rs.getString("TYPE_NAME");
             long precision = rs.getInt("COLUMN_SIZE");
             precision = convertPrecision(sqlType, precision);
             int scale = rs.getInt("DECIMAL_DIGITS");
             scale = convertScale(sqlType, scale);
             int displaySize = MathUtils.convertLongToInt(precision);
-            int type = DataType.convertSQLTypeToValueType(sqlType);
+            int type = DataType.convertSQLTypeToValueType(sqlType, sqlTypeName);
             Column col = new Column(n, type, precision, scale, displaySize);
             col.setTable(this, i++);
             columnList.add(col);
@@ -334,7 +336,19 @@ public class TableLink extends Table {
         return columnName;
     }
 
-    private void addIndex(ArrayList<Column> list, IndexType indexType) {
+    private void addIndex(List<Column> list, IndexType indexType) {
+        // bind the index to the leading recognized columns in the index
+        // (null columns might come from a function-based index)
+        int firstNull = list.indexOf(null);
+        if (firstNull == 0) {
+            trace.info("Omitting linked index - no recognized columns.");
+            return;
+        } else if (firstNull > 0) {
+            trace.info("Unrecognized columns in linked index. " +
+                    "Registering the index against the leading {0} " +
+                    "recognized columns of {1} total columns.", firstNull, list.size());
+            list = list.subList(0, firstNull);
+        }
         Column[] cols = new Column[list.size()];
         list.toArray(cols);
         Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);

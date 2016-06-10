@@ -5,11 +5,13 @@
  */
 package org.h2.index;
 
+import java.util.HashSet;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
+import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RangeTable;
 import org.h2.table.TableFilter;
@@ -58,12 +60,13 @@ public class RangeIndex extends BaseIndex {
         } catch (Exception e) {
             // error when converting the value - ignore
         }
-        return new RangeCursor(start, end, step);
+        return new RangeCursor(session, start, end, step);
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
         return 1;
     }
 
@@ -100,7 +103,7 @@ public class RangeIndex extends BaseIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         long pos = first ? rangeTable.getMin(session) : rangeTable.getMax(session);
-        return new RangeCursor(pos, pos);
+        return new RangeCursor(session, pos, pos);
     }
 
     @Override

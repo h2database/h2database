@@ -7,7 +7,6 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Session;
@@ -72,6 +71,17 @@ public class SelectUnion extends Query {
         this.left = query;
     }
 
+    @Override
+    public boolean isUnion() {
+        return true;
+    }
+
+    @Override
+    public void prepareJoinBatch() {
+        left.prepareJoinBatch();
+        right.prepareJoinBatch();
+    }
+
     public void setUnionType(int type) {
         this.unionType = type;
     }
@@ -100,6 +110,11 @@ public class SelectUnion extends Query {
     @Override
     public void setOrder(ArrayList<SelectOrderBy> order) {
         orderList = order;
+    }
+
+    @Override
+    public boolean hasOrder() {
+        return orderList != null || sort != null;
     }
 
     private Value[] convert(Value[] values, int columnCount) {

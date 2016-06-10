@@ -20,10 +20,13 @@ public interface SpatialIndex extends Index {
      *
      * @param filter the table filter (which possibly knows about additional
      *            conditions)
+     * @param first the lower bound
+     * @param last the upper bound
      * @param intersection the geometry which values should intersect with, or
      *            null for anything
      * @return the cursor to iterate over the results
      */
-    Cursor findByGeometry(TableFilter filter, SearchRow intersection);
+    Cursor findByGeometry(TableFilter filter, SearchRow first, SearchRow last,
+            SearchRow intersection);
 
 }

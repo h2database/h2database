@@ -20,14 +20,235 @@ Change Log
 <h1>Change Log</h1>
 
 <h2>Next Version (unreleased)</h2>
-<ul><li>Pull request #4: Creating and removing temporary tables was getting
+<ul>
+<li>Issue #299: Nested derrived tables did not always work as expected.
+</li>
+<li>Use interfaces to replace the java version templating, idea from Lukas Eder.
+</li>
+<li>Issue #295: JdbcResultSet.getObject(int, Class) returns null instead of throwing.
+</li>
+</ul>
+
+<h2>Version 1.4.192 Beta (2016-05-26)</h2>
+<ul>
+<li>Garbage collection of unused chunks should now be faster.
+</li>
+<li>Prevent people using unsupported combination of auto-increment columns and clustering mode.
+</li>
+<li>Support for DB2 time format, patch by Niklas Mehner
+</li>
+<li>Added support for Connection.setClientInfo() in compatibility modes for DB2, Postgresql, Oracle and MySQL.
+</li>
+<li>Issue #249: Clarify license declaration in Maven POM xml
+</li>
+<li>Fix NullPointerException in querying spatial data through a sub-select.
+</li>
+<li>Fix bug where a lock on the SYS table was not released when closing a session that contained a temp
+table with an LOB column.
+</li>
+<li>Issue #255: ConcurrentModificationException with multiple threads in embedded mode and temporary LOBs
+</li>
+<li>Issue #235: Anonymous SSL connections fail in many situations
+</li>
+<li>Fix race condition in FILE_LOCK=SOCKET, which could result in the watchdog thread not running
+</li>
+<li>Experimental support for datatype TIMESTAMP WITH TIMEZONE
+</li>
+<li>Add support for ALTER TABLE ... RENAME CONSTRAINT .. TO ...
+</li>
+<li>Add support for PostgreSQL ALTER TABLE ... RENAME COLUMN .. TO ...
+</li>
+<li>Add support for ALTER SCHEMA [ IF EXISTS ]
+</li>
+<li>Add support for ALTER TABLE [ IF EXISTS ]
+</li>
+<li>Add support for ALTER VIEW [ IF EXISTS ]
+</li>
+<li>Add support for ALTER INDEX [ IF EXISTS ]
+</li>
+<li>Add support for ALTER SEQUENCE [ IF EXISTS ]
+</li>
+<li>Improve performance of cleaning up temp tables - patch from Eric Faulhaber.
+</li>
+<li>Fix bug where table locks were not dropped when the connection closed
+</li>
+<li>Fix extra CPU usage caused by query planner enhancement in 1.4.191
+</li>
+<li>improve performance of queries that use LIKE 'foo%' - 10x in the case of one of my queries
+</li>
+<li>The function IFNULL did not always return the result in the right data type.
+</li>
+<li>Issue #231: Possible infinite loop when initializing the ObjectDataType class
+    when concurrently writing into MVStore.
+</li>
+</ul>
+
+<h2>Version 1.4.191 Beta (2016-01-21)</h2>
+<ul>
+<li>TO_DATE and TO_TIMESTAMP functions. Thanks a lot to Sam Blume for the patch!
+</li>
+<li>Issue #229: DATEDIFF does not work for 'WEEK'.
+</li>
+<li>Issue #156: Add support for getGeneratedKeys() when executing commands via PreparedStatement#executeBatch.
+</li>
+<li>Issue #195: The new Maven uses a .cmd file instead of a .bat file.
+</li>
+<li>Issue #212: EXPLAIN PLAN for UPDATE statement did not display LIMIT expression.
+</li>
+<li>Support OFFSET without LIMIT in SELECT.
+</li>
+<li>Improve error message for METHOD_NOT_FOUND_1/90087.
+</li>
+<li>CLOB and BLOB objects of removed rows were sometimes kept in the database file.
+</li>
+<li>Server mode: executing "shutdown" left a thread on the server.
+</li>
+<li>The condition "in(select...)" did not work correctly in some cases if the subquery had an "order by".
+</li>
+<li>Issue #184: The Platform-independent zip had Windows line endings in Linux scripts.
+</li>
+<li>Issue #186: The "script" command did not include sequences of temporary tables.
+</li>
+<li>Issue #115: to_char fails with pattern FM0D099.
+</li>
+</ul>
+
+<h2>Version 1.4.190 Beta (2015-10-11)</h2>
+<ul>
+<li>Pull request #183: optimizer hints (so far without special SQL syntax).
+</li>
+<li>Issue #180: In MVCC mode, executing UPDATE and SELECT ... FOR UPDATE
+    simultaneously silently can drop rows.
+</li>
+<li>PageStore storage: the cooperative file locking mechanism
+    did not always work as expected (with very slow computers).
+</li>
+<li>Temporary CLOB and BLOB objects are now removed while the database is open
+    (and not just when closing the database).
+</li>
+<li>MVStore CLOB and BLOB larger than about 25 MB: An exception could be thrown
+    when using the MVStore storage.
+</li>
+<li>Add FILE_WRITE function. Patch provided by Nicolas Fortin
+    (Lab-STICC - CNRS UMR 6285 and Ecole Centrale de Nantes)
+</li>
+</ul>
+
+<h2>Version 1.4.189 Beta (2015-09-13)</h2>
+<ul>
+<li>Add support for dropping multiple columns in ALTER TABLE DROP COLUMN...
+</li>
+<li>Fix bug in XA management when doing rollback after prepare. Patch by Stephane Lacoin.
+</li>
+<li>MVStore CLOB and BLOB: An exception with the message "Block not found" could be thrown
+    when using the MVStore storage, when copying LOB objects
+    (for example due to "alter table" on a table with a LOB object),
+    and then re-opening the database.
+</li>
+<li>Fix for issue #171: Broken QueryStatisticsData duration data when trace level smaller than TraceSystem.INFO
+</li>
+<li>Pull request #170: Added SET QUERY_STATISTICS_MAX_ENTRIES
+</li>
+<li>Pull request #165: Fix compatibility postgresql function string_agg
+</li>
+<li>Pull request #163: improved performance when not using the default timezone.
+</li>
+<li>Local temporary tables with many rows did not work correctly due to automatic analyze.
+</li>
+<li>Server mode: concurrently using the same connection could throw an exception
+    "Connection is broken: unexpected status".
+</li>
+<li>Performance improvement for metadata queries that join against the COLUMNS metadata table.
+</li>
+<li>An ArrayIndexOutOfBoundsException was thrown in some cases
+    when opening an old version 1.3 database, or an 1.4 database with
+    both "mv_store=false" and the system property "h2.storeLocalTime" set to false.
+    It mainly showed up with an index on a time, date, or timestamp column.
+    The system property "h2.storeLocalTime" is no longer supported
+    (MVStore databases always store local time, and PageStore now databases never do).
+</li>
+</ul>
+
+<h2>Version 1.4.188 Beta (2015-08-01)</h2>
+<ul>
+<li>Server mode: CLOB processing for texts larger than about 1 MB sometimes did not work.
+</li>
+<li>Server mode: BLOB processing for binaries larger than 2 GB did not work.
+</li>
+<li>Multi-threaded processing: concurrent deleting the same row could throw the exception
+    "Row not found when trying to delete".
+</li>
+<li>MVStore transactions: a thread could see a change of a different thread
+    within a different map. Pull request #153.
+</li>
+<li>H2 Console: improved IBM DB2 compatibility.
+</li>
+<li>A thread deadlock detector (disabled by default) can help
+    detect and analyze Java level deadlocks.
+    To enable, set the system property "h2.threadDeadlockDetector" to true.
+</li>
+<li>Performance improvement for metadata queries that join against the COLUMNS metadata table.
+</li>
+<li>MVStore: power failure could corrupt the store, if writes were re-ordered.
+</li>
+<li>For compatibility with other databases, support for (double and float)
+    -0.0 has been removed. 0.0 is used instead.
+</li>
+<li>Fix for #134, Column name with a # character. Patch by bradmesserle.
+</li>
+<li>In version 1.4.186, "order by" was broken in some cases
+    due to the change "Make the planner use indexes for sorting when doing a GROUP BY".
+    The change was reverted.
+</li>
+<li>Pull request #146: Improved CompareMode.
+</li>
+<li>Fix for #144, JdbcResultSet.setFetchDirection() throws "Feature not supported".
+</li>
+<li>Fix for issue #143, deadlock between two sessions hitting the same sequence on a column.
+</li>
+<li>Pull request #137: SourceCompiler should not throw a syntax error on javac warning.
+</li>
+<li>MVStore: out of memory while storing could corrupt the store
+    (theoretically, a rollback would be possible, but this case is not yet implemented).
+</li>
+<li>The compressed in-memory file systems (memLZF:) could not be used in the MVStore.
+</li>
+<li>The in-memory file systems (memFS: and memLZF:) did not support files larger than 2 GB
+    due to an integer overflow.
+</li>
+<li>Pull request #138: Added the simple Oracle function: ORA_HASH (+ tests) #138
+</li>
+<li>Timestamps in the trace log follow the format (yyyy-MM-dd HH:mm:ss) instead
+of the old format (MM-dd HH:mm:ss). Patch by Richard Bull.
+</li>
+<li>Pull request #125: Improved Oracle compatibility with "truncate" with timestamps and dates.
+</li>
+<li>Pull request #127: Linked tables now support geometry columns.
+</li>
+<li>ABS(CAST(0.0 AS DOUBLE)) returned -0.0 instead of 0.0.
+</li>
+<li>BNF auto-completion failed with unquoted identifiers.
+</li>
+<li>Oracle compatibility: empty strings were not converted to NULL when using prepared statements.
+</li><li>PostgreSQL compatibility: new syntax "create index ... using ...".
+</li><li>There was a bug in DataType.convertToValue when reading a ResultSet from a ResultSet.
+</li><li>Pull request #116: Improved concurrency in the trace system.
+</li><li>Issue 609: the spatial index did not support NULL.
+</li><li>Granting a schema is now supported.
+</li><li>Linked tables did not work when a function-based index is present (Oracle).
+</li><li>Creating a user with a null password, salt, or hash threw a NullPointerException.
+</li><li>Foreign key: don't add a single column index if column
+    is leading key of existing index.
+</li><li>Pull request #4: Creating and removing temporary tables was getting
     slower and slower over time, because an internal object id was allocated but
     never de-allocated.
 </li><li>Issue 609: the spatial index did not support NULL with update and delete operations.
 </li><li>Pull request #2: Add external metadata type support (table type "external")
 </li><li>MS SQL Server: the CONVERT method did not work in views
-    and derrived tables.
+    and derived tables.
 </li><li>Java 8 compatibility for "regexp_replace".
+</li><li>When in cluster mode, and one of the nodes goes down,
+    we need to log the problem with priority "error", not "debug"
 </li></ul>
 
 <h2>Version 1.4.187 Beta (2015-04-10)</h2>
@@ -441,4 +662,3 @@ Change Log
 </li></ul>
 
 <!-- [close] { --></div></td></tr></table><!-- } --><!-- analytics --></body></html>
-

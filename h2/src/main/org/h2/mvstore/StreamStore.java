@@ -264,9 +264,13 @@ public class StreamStore {
                 // indirect: 2, total len (long), blockId (long)
                 DataUtils.readVarLong(idBuffer);
                 long k2 = DataUtils.readVarLong(idBuffer);
-                // recurse
+                maxKey = k2;
                 byte[] r = map.get(k2);
-                maxKey = Math.max(maxKey, getMaxBlockKey(r));
+                // recurse
+                long m = getMaxBlockKey(r);
+                if (m >= 0) {
+                    maxKey = Math.max(maxKey, m);
+                }
                 break;
             default:
                 throw DataUtils.newIllegalArgumentException(
@@ -309,6 +313,50 @@ public class StreamStore {
                         "Unsupported id {0}", Arrays.toString(id));
             }
         }
+    }
+
+    /**
+     * Convert the id to a human readable string.
+     *
+     * @param id the stream id
+     * @return the string
+     */
+    public static String toString(byte[] id) {
+        StringBuilder buff = new StringBuilder();
+        ByteBuffer idBuffer = ByteBuffer.wrap(id);
+        long length = 0;
+        while (idBuffer.hasRemaining()) {
+            long block;
+            int len;
+            switch (idBuffer.get()) {
+            case 0:
+                // in-place: 0, len (int), data
+                len = DataUtils.readVarInt(idBuffer);
+                idBuffer.position(idBuffer.position() + len);
+                buff.append("data len=").append(len);
+                length += len;
+                break;
+            case 1:
+                // block: 1, len (int), blockId (long)
+                len = DataUtils.readVarInt(idBuffer);
+                length += len;
+                block = DataUtils.readVarLong(idBuffer);
+                buff.append("block ").append(block).append(" len=").append(len);
+                break;
+            case 2:
+                // indirect: 2, total len (long), blockId (long)
+                len = DataUtils.readVarInt(idBuffer);
+                length += DataUtils.readVarLong(idBuffer);
+                block = DataUtils.readVarLong(idBuffer);
+                buff.append("indirect block ").append(block).append(" len=").append(len);
+                break;
+            default:
+                buff.append("error");
+            }
+            buff.append(", ");
+        }
+        buff.append("length=").append(length);
+        return buff.toString();
     }
 
     /**

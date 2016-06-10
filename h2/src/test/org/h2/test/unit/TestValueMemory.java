@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.Random;
-
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
@@ -24,6 +23,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.CompareMode;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -46,6 +46,8 @@ import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
+import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -162,6 +164,12 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueDate.get(new java.sql.Date(random.nextLong()));
         case Value.TIMESTAMP:
             return ValueTimestamp.fromMillis(random.nextLong());
+        case Value.TIMESTAMP_UTC:
+            return ValueTimestampUtc.fromMillis(random.nextLong());
+        case Value.TIMESTAMP_TZ:
+            return ValueTimestampTimeZone.fromDateValueAndNanos(
+                    random.nextLong(), random.nextLong(),
+                    (short) random.nextInt());
         case Value.BYTES:
             return ValueBytes.get(randomBytes(random.nextInt(1000)));
         case Value.STRING:
@@ -287,5 +295,10 @@ public class TestValueMemory extends TestBase implements DataHandler {
     @Override
     public JavaObjectSerializer getJavaObjectSerializer() {
         return null;
+    }
+
+    @Override
+    public CompareMode getCompareMode() {
+        return CompareMode.getInstance(null, 0);
     }
 }

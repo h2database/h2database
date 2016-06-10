@@ -136,12 +136,36 @@ public class TestBnf extends TestBase {
         DbContextRule columnRule = new
                 DbContextRule(dbContents, DbContextRule.COLUMN);
         bnf.updateTopic("column_name", columnRule);
-        bnf.updateTopic("expression", new
+        bnf.updateTopic("user_defined_function_name", new
                 DbContextRule(dbContents, DbContextRule.PROCEDURE));
         bnf.linkStatements();
         // Test partial
-        Map<String, String> tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");
+        Map<String, String> tokens;
+        tokens = bnf.getNextTokenList("SELECT CUSTOM_PR");
         assertTrue(tokens.values().contains("INT"));
+
+        // Test identifiers are working
+        tokens = bnf.getNextTokenList("create table \"test\" as s" + "el");
+        assertTrue(tokens.values().contains("E" + "CT"));
+
+        tokens = bnf.getNextTokenList("create table test as s" + "el");
+        assertTrue(tokens.values().contains("E" + "CT"));
+
+        // Test || with and without spaces
+        tokens = bnf.getNextTokenList("select 1||f");
+        assertFalse(tokens.values().contains("R" + "OM"));
+        tokens = bnf.getNextTokenList("select 1 || f");
+        assertFalse(tokens.values().contains("R" + "OM"));
+        tokens = bnf.getNextTokenList("select 1 || 2 ");
+        assertTrue(tokens.values().contains("FROM"));
+        tokens = bnf.getNextTokenList("select 1||2");
+        assertTrue(tokens.values().contains("FROM"));
+        tokens = bnf.getNextTokenList("select 1 || 2");
+        assertTrue(tokens.values().contains("FROM"));
+
+        // Test keyword
+        tokens = bnf.getNextTokenList("SELECT LE" + "AS");
+        assertTrue(tokens.values().contains("T"));
 
         // Test parameters
         tokens = bnf.getNextTokenList("SELECT CUSTOM_PRINT(");

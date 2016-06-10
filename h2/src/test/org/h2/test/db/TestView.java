@@ -10,8 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
+import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 
 /**
@@ -33,7 +34,8 @@ public class TestView extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("view");
-
+        testSubSubQuery();
+        testSubQueryViewIndexCache();
         testInnerSelectWithRownum();
         testInnerSelectWithRange();
         testEmptyColumn();
@@ -49,6 +51,67 @@ public class TestView extends TestBase {
         testViewAlterAndCommandCache();
         testViewConstraintFromColumnExpression();
         deleteDb("view");
+    }
+
+    private void testSubSubQuery() throws SQLException {
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(a int, b int, c int)");
+        stat.execute("insert into test values(1, 1, 1)");
+        ResultSet rs = stat.executeQuery("select 1 x from (select a, b, c from " +
+                "(select * from test) bbb where bbb.a >=1 and bbb.a <= 1) sp " +
+                "where sp.a = 1 and sp.b = 1 and sp.c = 1");
+        assertTrue(rs.next());
+        conn.close();
+    }
+
+    private void testSubQueryViewIndexCache() throws SQLException {
+        if (config.networked) {
+            return;
+        }
+        Connection conn = getConnection("view");
+        Statement stat = conn.createStatement();
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(id int primary key, " +
+                "name varchar(25) unique, age int unique)");
+
+        // check that initial cache size is empty
+        Session s = (Session) ((JdbcConnection) conn).getSession();
+        s.clearViewIndexCache();
+        assertTrue(s.getViewIndexCache(true).isEmpty());
+        assertTrue(s.getViewIndexCache(false).isEmpty());
+
+        // create view command should not affect caches
+        stat.execute("create view v as select * from test");
+        assertTrue(s.getViewIndexCache(true).isEmpty());
+        assertTrue(s.getViewIndexCache(false).isEmpty());
+
+        // check view index cache
+        stat.executeQuery("select * from v where id > 0").next();
+        int size1 = s.getViewIndexCache(false).size();
+        assertTrue(size1 > 0);
+        assertTrue(s.getViewIndexCache(true).isEmpty());
+        stat.executeQuery("select * from v where name = 'xyz'").next();
+        int size2 = s.getViewIndexCache(false).size();
+        assertTrue(size2 > size1);
+        assertTrue(s.getViewIndexCache(true).isEmpty());
+
+        // check we did not add anything to view cache if we run a sub-query
+        stat.executeQuery("select * from (select * from test) where age = 17").next();
+        int size3 = s.getViewIndexCache(false).size();
+        assertEquals(size2, size3);
+        assertTrue(s.getViewIndexCache(true).isEmpty());
+
+        // check clear works
+        s.clearViewIndexCache();
+        assertTrue(s.getViewIndexCache(false).isEmpty());
+        assertTrue(s.getViewIndexCache(true).isEmpty());
+
+        // drop everything
+        stat.execute("drop view v");
+        stat.execute("drop table test");
+        conn.close();
     }
 
     private void testInnerSelectWithRownum() throws SQLException {

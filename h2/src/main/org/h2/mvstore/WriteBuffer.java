@@ -12,6 +12,10 @@ import java.nio.ByteBuffer;
  */
 public class WriteBuffer {
 
+    /**
+     * The maximum size of the buffer in order to be re-used after a clear
+     * operation.
+     */
     private static final int MAX_REUSE_CAPACITY = 4 * 1024 * 1024;
 
     /**
@@ -19,9 +23,24 @@ public class WriteBuffer {
      */
     private static final int MIN_GROW = 1024 * 1024;
 
-    private ByteBuffer reuse = ByteBuffer.allocate(MIN_GROW);
+    /**
+     * The buffer that is used after a clear operation.
+     */
+    private ByteBuffer reuse;
 
-    private ByteBuffer buff = reuse;
+    /**
+     * The current buffer (may be replaced if it is too small).
+     */
+    private ByteBuffer buff;
+
+    public WriteBuffer(int initialSize) {
+        reuse = ByteBuffer.allocate(initialSize);
+        buff = reuse;
+    }
+
+    public WriteBuffer() {
+        this(MIN_GROW);
+    }
 
     /**
      * Write a variable size integer.

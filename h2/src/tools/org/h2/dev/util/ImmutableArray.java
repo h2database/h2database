@@ -5,7 +5,6 @@
  */
 package org.h2.dev.util;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 import org.h2.mvstore.DataUtils;

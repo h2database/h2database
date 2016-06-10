@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.BitSet;
@@ -47,6 +48,10 @@ public class TestPerfectHash extends TestBase {
 
     private static void largeFile(String s) throws IOException {
         String fileName = System.getProperty("user.home") + "/temp/" + s;
+        if (!new File(fileName).exists()) {
+            System.out.println("not found: " + fileName);
+            return;
+        }
         RandomAccessFile f = new RandomAccessFile(fileName, "r");
         byte[] data = new byte[(int) f.length()];
         f.readFully(data);

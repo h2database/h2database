@@ -18,9 +18,18 @@ public class PlanItem {
      */
     double cost;
 
+    private int[] masks;
     private Index index;
     private PlanItem joinPlan;
     private PlanItem nestedJoinPlan;
+
+    void setMasks(int[] masks) {
+        this.masks = masks;
+    }
+
+    int[] getMasks() {
+        return masks;
+    }
 
     void setIndex(Index index) {
         this.index = index;

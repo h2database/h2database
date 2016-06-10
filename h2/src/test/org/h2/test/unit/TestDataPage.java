@@ -339,4 +339,8 @@ public class TestDataPage extends TestBase implements DataHandler {
         return null;
     }
 
+    @Override
+    public CompareMode getCompareMode() {
+        return compareMode;
+    }
 }

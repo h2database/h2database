@@ -7,7 +7,6 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -70,6 +69,11 @@ public abstract class Command implements CommandInterface {
     public abstract boolean isQuery();
 
     /**
+     * Prepare join batching.
+     */
+    public abstract void prepareJoinBatch();
+
+    /**
      * Get the list of parameters.
      *
      * @return the list of parameters
@@ -122,7 +126,7 @@ public abstract class Command implements CommandInterface {
      * Start the stopwatch.
      */
     void start() {
-        if (trace.isInfoEnabled()) {
+        if (trace.isInfoEnabled() || session.getDatabase().getQueryStatistics()) {
             startTime = System.currentTimeMillis();
         }
     }
@@ -293,7 +297,9 @@ public abstract class Command implements CommandInterface {
     }
 
     private long filterConcurrentUpdate(DbException e, long start) {
-        if (e.getErrorCode() != ErrorCode.CONCURRENT_UPDATE_1) {
+        int errorCode = e.getErrorCode();
+        if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 &&
+                errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }
         long now = System.nanoTime() / 1000000;

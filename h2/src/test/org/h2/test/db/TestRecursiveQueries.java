@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Types;
 import org.h2.test.TestBase;
 
 /**
@@ -122,6 +123,34 @@ public class TestRecursiveQueries extends TestBase {
         assertTrue(rs.next());
         assertEquals(103, rs.getInt(1));
         assertFalse(rs.next());
+
+        prep = conn.prepareStatement("with recursive t(n) as " +
+                "(select ? union all select n+? from t where n<?) " +
+                "select * from t");
+        prep.setInt(1, 10);
+        prep.setInt(2, 2);
+        prep.setInt(3, 14);
+        rs = prep.executeQuery();
+        assertResultSetOrdered(rs, new String[][]{{"10"}, {"12"}, {"14"}});
+
+        prep.setInt(1, 100);
+        prep.setInt(2, 3);
+        prep.setInt(3, 103);
+        rs = prep.executeQuery();
+        assertResultSetOrdered(rs, new String[][]{{"100"}, {"103"}});
+
+        rs = stat.executeQuery("with recursive t(i, s, d) as "
+                + "(select 1, '.', now() union all"
+                + " select i+1, s||'.', d from t where i<3)"
+                + " select * from t");
+        assertResultSetMeta(rs, 3, new String[]{ "I", "S", "D" },
+                new int[]{ Types.INTEGER, Types.VARCHAR, Types.TIMESTAMP },
+                null, null);
+
+        rs = stat.executeQuery("select x from system_range(1,5) "
+                + "where x not in (with w(x) as (select 1 union all select x+1 from w where x<3) "
+                + "select x from w)");
+        assertResultSetOrdered(rs, new String[][]{{"4"}, {"5"}});
 
         conn.close();
         deleteDb("recursiveQueries");

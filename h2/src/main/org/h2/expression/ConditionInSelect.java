@@ -43,7 +43,9 @@ public class ConditionInSelect extends Condition {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        query.setDistinct(true);
+        if (!query.hasOrder()) {
+            query.setDistinct(true);
+        }
         LocalResult rows = query.query(0);
         try {
             Value l = left.getValue(session);
@@ -115,7 +117,7 @@ public class ConditionInSelect extends Condition {
     public Expression optimize(Session session) {
         left = left.optimize(session);
         query.setRandomAccessResult(true);
-        query.prepare();
+        session.optimizeQueryExpression(query);
         if (query.getColumnCount() != 1) {
             throw DbException.get(ErrorCode.SUBQUERY_IS_NOT_SINGLE_COLUMN);
         }
@@ -182,11 +184,6 @@ public class ConditionInSelect extends Condition {
             return;
         }
         filter.addIndexCondition(IndexCondition.getInQuery(l, query));
-    }
-
-    @Override
-    public boolean isDisjunctive() {
-        return true;
     }
 
 }

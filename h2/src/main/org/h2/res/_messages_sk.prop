@@ -78,10 +78,12 @@
 90048=Nepodporovaná verzia databázového súboru alebo chybná hlavička súuboru {0}
 90049=Chyba šifrovania súboru {0}
 90050=Nesprávny formát hesiel, musí byť: súborové heslo <medzera> používateľské heslo
+90051=#Scale(${0}) must not be bigger than precision({1})
 90052=Vnorený dopyt (subquery) nie je dopyt na jeden stĺpec
 90053=Skalárny vnorený dopyt (scalar subquery) obsahuje viac ako jeden riadok
 90054=Nesprávne použitie agregačnej funkcie {0}
 90055=Nepodporovaný typ šifry {0}
+90056=#Function {0}: Invalid date format: {1}
 90057=Obmedzenie (constraint) {0} nenájdený
 90058=Commit alebo Rollback nie je povolené použiť v spúšťači (trigger)
 90059=Nejednoznačné meno stĺpca {0}

@@ -187,6 +187,7 @@ public class TestDataSource extends TestBase {
         conn = ds.getConnection(getUser(), getPassword());
         stat = conn.createStatement();
         stat.execute("SELECT * FROM DUAL");
+        conn.close();
     }
 
 }

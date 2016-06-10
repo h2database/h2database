@@ -92,11 +92,7 @@ public class ValueDouble extends Value {
         } else if (Double.isNaN(value)) {
             return "SQRT(-1)";
         }
-        String s = getString();
-        if (s.equals("-0.0")) {
-            return "-CAST(0 AS DOUBLE)";
-        }
-        return s;
+        return getString();
     }
 
     @Override
@@ -162,11 +158,8 @@ public class ValueDouble extends Value {
         if (d == 1.0) {
             return ONE;
         } else if (d == 0.0) {
-            // unfortunately, -0.0 == 0.0, but we don't want to return
-            // 0.0 in this case
-            if (Double.doubleToLongBits(d) == ZERO_BITS) {
-                return ZERO;
-            }
+            // -0.0 == 0.0, and we want to return 0.0 for both
+            return ZERO;
         } else if (Double.isNaN(d)) {
             return NAN;
         }

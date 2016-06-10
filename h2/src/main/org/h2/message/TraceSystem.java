@@ -10,14 +10,12 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 
 /**
  * The trace mechanism is the logging facility of this database. There is
@@ -83,7 +81,8 @@ public class TraceSystem implements TraceWriter {
     private int levelMax;
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
-    private HashMap<String, Trace> traces;
+    private final AtomicReferenceArray<Trace> traces =
+            new AtomicReferenceArray<Trace>(Trace.MODULE_NAMES.length);
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;
@@ -117,26 +116,32 @@ public class TraceSystem implements TraceWriter {
     }
 
     /**
-     * Get or create a trace object for this module. Trace modules with names
-     * such as "JDBC[1]" are not cached (modules where the name ends with "]").
-     * All others are cached.
+     * Get or create a trace object for this module id. Trace modules with id
+     * are cached.
+     *
+     * @param moduleId module id
+     * @return the trace object
+     */
+    public Trace getTrace(int moduleId) {
+        Trace t = traces.get(moduleId);
+        if (t == null) {
+            t = new Trace(writer, moduleId);
+            if (!traces.compareAndSet(moduleId, null, t)) {
+                t = traces.get(moduleId);
+            }
+        }
+        return t;
+    }
+
+    /**
+     * Create a trace object for this module. Trace modules with names are not
+     * cached.
      *
      * @param module the module name
      * @return the trace object
      */
-    public synchronized Trace getTrace(String module) {
-        if (module.endsWith("]")) {
-            return new Trace(writer, module);
-        }
-        if (traces == null) {
-            traces = New.hashMap(16);
-        }
-        Trace t = traces.get(module);
-        if (t == null) {
-            t = new Trace(writer, module);
-            traces.put(module, t);
-        }
-        return t;
+    public Trace getTrace(String module) {
+        return new Trace(writer, module);
     }
 
     @Override
@@ -209,9 +214,14 @@ public class TraceSystem implements TraceWriter {
 
     private synchronized String format(String module, String s) {
         if (dateFormat == null) {
-            dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss ");
+            dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss ");
         }
         return dateFormat.format(System.currentTimeMillis()) + module + ": " + s;
+    }
+
+    @Override
+    public void write(int level, int moduleId, String s, Throwable t) {
+        write(level, Trace.MODULE_NAMES[moduleId], s, t);
     }
 
     @Override

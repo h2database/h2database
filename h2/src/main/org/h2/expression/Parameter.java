@@ -14,6 +14,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 
 /**
  * A parameter of a prepared statement.
@@ -83,6 +84,11 @@ public class Parameter extends Expression implements ParameterInterface {
 
     @Override
     public Expression optimize(Session session) {
+        if (session.getDatabase().getMode().treatEmptyStringsAsNull) {
+            if (value != null && value instanceof ValueString) {
+                value = ValueString.get(value.getString(), true);
+            }
+        }
         return this;
     }
 
@@ -141,7 +147,7 @@ public class Parameter extends Expression implements ParameterInterface {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.getType()) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.EVALUATABLE:
             // the parameter _will_be_ evaluatable at execute time
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:

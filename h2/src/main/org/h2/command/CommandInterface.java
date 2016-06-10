@@ -452,6 +452,11 @@ public interface CommandInterface {
     int SHUTDOWN_DEFRAG = 84;
 
     /**
+     * The type of a ALTER TABLE RENAME CONSTRAINT statement.
+     */
+    int ALTER_TABLE_RENAME_CONSTRAINT = 85;
+
+    /**
      * Get command type.
      *
      * @return one of the constants above

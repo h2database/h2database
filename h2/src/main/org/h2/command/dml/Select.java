@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -25,7 +24,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
-import org.h2.index.IndexCondition;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.result.LocalResult;
@@ -37,6 +35,7 @@ import org.h2.result.SortOrder;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
+import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
@@ -86,6 +85,11 @@ public class Select extends Query {
 
     public Select(Session session) {
         super(session);
+    }
+
+    @Override
+    public boolean isUnion() {
+        return false;
     }
 
     /**
@@ -142,6 +146,11 @@ public class Select extends Query {
     @Override
     public void setOrder(ArrayList<SelectOrderBy> order) {
         orderList = order;
+    }
+
+    @Override
+    public boolean hasOrder() {
+        return orderList != null || sort != null;
     }
 
     /**
@@ -445,16 +454,11 @@ public class Select extends Query {
                     // with the exact same columns
                     IndexColumn idxCol = indexCols[j];
                     Column sortCol = sortCols[j];
-                    boolean implicitSortColumn = false;
                     if (idxCol.column != sortCol) {
-                        implicitSortColumn = isSortColumnImplicit(
-                                topTableFilter, idxCol.column);
-                        if (!implicitSortColumn) {
-                            ok = false;
-                            break;
-                        }
+                        ok = false;
+                        break;
                     }
-                    if (!implicitSortColumn && idxCol.sortType != sortTypes[j]) {
+                    if (idxCol.sortType != sortTypes[j]) {
                         // NULL FIRST for ascending and NULLS LAST
                         // for descending would actually match the default
                         ok = false;
@@ -474,42 +478,6 @@ public class Select extends Query {
             }
         }
         return null;
-    }
-
-    /**
-     * Validates the cases where ORDER BY clause do not contains all indexed
-     * columns, but the related index path still would be valid for such search.
-     * Sometimes, the absence of a column in the ORDER BY clause does not alter
-     * the expected final result, and an index sorted scan could still be used.
-     * <pre>
-     * CREATE TABLE test(a, b);
-     * CREATE UNIQUE INDEX idx_test ON test(a, b);
-     * SELECT b FROM test WHERE a=22 AND b>10 order by b;
-     * </pre>
-     * More restrictive rule where one table query with indexed column not
-     * present in the ORDER BY clause is filtered with equality conditions (at
-     * least one) of type COLUMN = CONSTANT in a conjunctive fashion.
-     *
-     * @param sortColumn Column to be validated
-     * @return true if the column can be used implicitly, or false otherwise.
-     */
-    private boolean isSortColumnImplicit(TableFilter tableFilter,
-            Column sortColumn) {
-        if (filters.size() == 1 && condition != null
-                && !condition.isDisjunctive()) {
-            ArrayList<IndexCondition> conditions = tableFilter
-                    .getIndexConditionsForColumn(sortColumn);
-            if (conditions.isEmpty()) {
-                return false;
-            }
-            for (IndexCondition conditionExp : conditions) {
-                if (!conditionExp.isEquality(true)) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return false;
     }
 
     private void queryDistinct(ResultTarget result, long limitRows) {
@@ -671,18 +639,25 @@ public class Select extends Query {
         topTableFilter.lock(session, exclusive, exclusive);
         ResultTarget to = result != null ? result : target;
         if (limitRows != 0) {
-            if (isQuickAggregateQuery) {
-                queryQuick(columnCount, to);
-            } else if (isGroupQuery) {
-                if (isGroupSortedQuery) {
-                    queryGroupSorted(columnCount, to);
+            try {
+                if (isQuickAggregateQuery) {
+                    queryQuick(columnCount, to);
+                } else if (isGroupQuery) {
+                    if (isGroupSortedQuery) {
+                        queryGroupSorted(columnCount, to);
+                    } else {
+                        queryGroup(columnCount, result);
+                    }
+                } else if (isDistinctQuery) {
+                    queryDistinct(to, limitRows);
                 } else {
-                    queryGroup(columnCount, result);
+                    queryFlat(columnCount, to, limitRows);
                 }
-            } else if (isDistinctQuery) {
-                queryDistinct(to, limitRows);
-            } else {
-                queryFlat(columnCount, to, limitRows);
+            } finally {
+                JoinBatch jb = getJoinBatch();
+                if (jb != null) {
+                    jb.reset(false);
+                }
             }
         }
         if (offsetExpr != null) {
@@ -900,7 +875,7 @@ public class Select extends Query {
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
-        cost = preparePlan();
+        cost = preparePlan(session.isParsingView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
                 !isGroupQuery && filters.size() == 1 &&
                 expressions.size() == 1 && condition == null) {
@@ -937,8 +912,8 @@ public class Select extends Query {
         }
         if (sort != null && !isQuickAggregateQuery && !isGroupQuery) {
             Index index = getSortIndex();
-            if (index != null) {
-                Index current = topTableFilter.getIndex();
+            Index current = topTableFilter.getIndex();
+            if (index != null && current != null) {
                 if (current.getIndexType().isScan() || current == index) {
                     topTableFilter.setIndex(index);
                     if (!topTableFilter.hasInComparisons()) {
@@ -971,7 +946,7 @@ public class Select extends Query {
                 getGroupByExpressionCount() > 0) {
             Index index = getGroupSortedIndex();
             Index current = topTableFilter.getIndex();
-            if (index != null && (current.getIndexType().isScan() ||
+            if (index != null && current != null && (current.getIndexType().isScan() ||
                     current == index)) {
                 topTableFilter.setIndex(index);
                 isGroupSortedQuery = true;
@@ -980,6 +955,30 @@ public class Select extends Query {
         expressionArray = new Expression[expressions.size()];
         expressions.toArray(expressionArray);
         isPrepared = true;
+    }
+
+    @Override
+    public void prepareJoinBatch() {
+        ArrayList<TableFilter> list = New.arrayList();
+        TableFilter f = getTopTableFilter();
+        do {
+            if (f.getNestedJoin() != null) {
+                // we do not support batching with nested joins
+                return;
+            }
+            list.add(f);
+            f = f.getJoin();
+        } while (f != null);
+        TableFilter[] fs = list.toArray(new TableFilter[list.size()]);
+        // prepare join batch
+        JoinBatch jb = null;
+        for (int i = fs.length - 1; i >= 0; i--) {
+            jb = fs[i].prepareJoinBatch(jb, fs, i);
+        }
+    }
+
+    public JoinBatch getJoinBatch() {
+        return getTopTableFilter().getJoinBatch();
     }
 
     @Override
@@ -1004,7 +1003,7 @@ public class Select extends Query {
         }
     }
 
-    private double preparePlan() {
+    private double preparePlan(boolean parse) {
         TableFilter[] topArray = topFilters.toArray(
                 new TableFilter[topFilters.size()]);
         for (TableFilter t : topArray) {
@@ -1012,13 +1011,15 @@ public class Select extends Query {
         }
 
         Optimizer optimizer = new Optimizer(topArray, condition, session);
-        optimizer.optimize();
+        optimizer.optimize(parse);
         topTableFilter = optimizer.getTopFilter();
         double planCost = optimizer.getCost();
 
         setEvaluatableRecursive(topTableFilter);
 
-        topTableFilter.prepare();
+        if (!parse) {
+            topTableFilter.prepare();
+        }
         return planCost;
     }
 
@@ -1311,7 +1312,7 @@ public class Select extends Query {
 
     @Override
     public boolean isEverything(ExpressionVisitor visitor) {
-        switch(visitor.getType()) {
+        switch (visitor.getType()) {
         case ExpressionVisitor.DETERMINISTIC: {
             if (isForUpdate) {
                 return false;

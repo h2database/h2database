@@ -525,7 +525,7 @@ public class MinimalPerfectHash<K> {
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = (x >>> 16) ^ x;
-        return Math.abs(x % size);
+        return (x & (-1 >>> 1)) % size;
     }
 
     private static <K> int hash(int x, int level, int offset, int size) {
@@ -533,7 +533,7 @@ public class MinimalPerfectHash<K> {
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = ((x >>> 16) ^ x) * 0x45d9f3b;
         x = (x >>> 16) ^ x;
-        return Math.abs(x % size);
+        return (x & (-1 >>> 1)) % size;
     }
 
     private static int writeVarInt(ByteArrayOutputStream out, int x) {

@@ -55,35 +55,23 @@ public class CacheLongKeyLIRS<V> {
     private final int segmentShift;
     private final int segmentMask;
     private final int stackMoveDistance;
-
-    /**
-     * Create a new cache with the given number of entries, and the default
-     * settings (16 segments, and stack move distance of 8.
-     *
-     * @param maxMemory the maximum memory to use (1 or larger)
-     */
-    public CacheLongKeyLIRS(long maxMemory) {
-        this(maxMemory, 16, 8);
-    }
+    private final int nonResidentQueueSize;
 
     /**
      * Create a new cache with the given memory size.
      *
-     * @param maxMemory the maximum memory to use (1 or larger)
-     * @param segmentCount the number of cache segments (must be a power of 2)
-     * @param stackMoveDistance how many other item are to be moved to the top
-     *        of the stack before the current item is moved
+     * @param config the configuration
      */
     @SuppressWarnings("unchecked")
-    public CacheLongKeyLIRS(long maxMemory,
-            int segmentCount, int stackMoveDistance) {
-        setMaxMemory(maxMemory);
+    public CacheLongKeyLIRS(Config config) {
+        setMaxMemory(config.maxMemory);
+        this.nonResidentQueueSize = config.nonResidentQueueSize;
         DataUtils.checkArgument(
-                Integer.bitCount(segmentCount) == 1,
-                "The segment count must be a power of 2, is {0}", segmentCount);
-        this.segmentCount = segmentCount;
+                Integer.bitCount(config.segmentCount) == 1,
+                "The segment count must be a power of 2, is {0}", config.segmentCount);
+        this.segmentCount = config.segmentCount;
         this.segmentMask = segmentCount - 1;
-        this.stackMoveDistance = stackMoveDistance;
+        this.stackMoveDistance = config.stackMoveDistance;
         segments = new Segment[segmentCount];
         clear();
         // use the high bits for the segment
@@ -97,7 +85,7 @@ public class CacheLongKeyLIRS<V> {
         long max = Math.max(1, maxMemory / segmentCount);
         for (int i = 0; i < segmentCount; i++) {
             segments[i] = new Segment<V>(
-                    max, stackMoveDistance, 8);
+                    max, stackMoveDistance, 8, nonResidentQueueSize);
         }
     }
 
@@ -544,6 +532,12 @@ public class CacheLongKeyLIRS<V> {
         private final int mask;
 
         /**
+         * The number of entries in the non-resident queue, as a factor of the
+         * number of entries in the map.
+         */
+        private final int nonResidentQueueSize;
+
+        /**
          * The stack of recently referenced elements. This includes all hot
          * entries, and the recently referenced cold entries. Resident cold
          * entries that were not recently referenced, as well as non-resident
@@ -584,10 +578,13 @@ public class CacheLongKeyLIRS<V> {
          * @param stackMoveDistance the number of other entries to be moved to
          *        the top of the stack before moving an entry to the top
          * @param len the number of hash table buckets (must be a power of 2)
+         * @param nonResidentQueueSize the non-resident queue size factor
          */
-        Segment(long maxMemory, int stackMoveDistance, int len) {
+        Segment(long maxMemory, int stackMoveDistance, int len,
+                int nonResidentQueueSize) {
             setMaxMemory(maxMemory);
             this.stackMoveDistance = stackMoveDistance;
+            this.nonResidentQueueSize = nonResidentQueueSize;
 
             // the bit mask has all bits set
             mask = len - 1;
@@ -614,7 +611,7 @@ public class CacheLongKeyLIRS<V> {
          * @param len the number of hash table buckets (must be a power of 2)
          */
         Segment(Segment<V> old, int len) {
-            this(old.maxMemory, old.stackMoveDistance, len);
+            this(old.maxMemory, old.stackMoveDistance, len, old.nonResidentQueueSize);
             hits = old.hits;
             misses = old.misses;
             Entry<V> s = old.stack.stackPrev;
@@ -907,10 +904,13 @@ public class CacheLongKeyLIRS<V> {
                 e.memory = 0;
                 addToQueue(queue2, e);
                 // the size of the non-resident-cold entries needs to be limited
-                while (queue2Size + queue2Size > stackSize) {
-                    e = queue2.queuePrev;
-                    int hash = getHash(e.key);
-                    remove(e.key, hash);
+                int maxQueue2Size = nonResidentQueueSize * (mapSize - queue2Size);
+                if (maxQueue2Size >= 0) {
+                    while (queue2Size > maxQueue2Size) {
+                        e = queue2.queuePrev;
+                        int hash = getHash(e.key);
+                        remove(e.key, hash);
+                    }
                 }
             }
         }
@@ -1148,6 +1148,35 @@ public class CacheLongKeyLIRS<V> {
         boolean isHot() {
             return queueNext == null;
         }
+
+    }
+
+    /**
+     * The cache configuration.
+     */
+    public static class Config {
+
+        /**
+         *  The maximum memory to use (1 or larger).
+         */
+        public long maxMemory = 1;
+
+        /**
+         * The number of cache segments (must be a power of 2).
+         */
+        public int segmentCount = 16;
+
+        /**
+         * How many other item are to be moved to the top of the stack before
+         * the current item is moved.
+         */
+        public int stackMoveDistance = 32;
+
+        /**
+         * The number of entries in the non-resident queue, as a factor of the
+         * number of all other entries in the map.
+         */
+        public int nonResidentQueueSize = 3;
 
     }
 

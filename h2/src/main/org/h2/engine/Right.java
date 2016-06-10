@@ -7,6 +7,7 @@ package org.h2.engine;
 
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
 import org.h2.table.Table;
 
 /**
@@ -46,10 +47,25 @@ public class Right extends DbObjectBase {
      */
     public static final int ALL = SELECT | DELETE | INSERT | UPDATE;
 
-    private Role grantedRole;
-    private int grantedRight;
-    private Table grantedTable;
+    /**
+     * To whom the right is granted.
+     */
     private RightOwner grantee;
+
+    /**
+     * The granted role, or null if a right was granted.
+     */
+    private Role grantedRole;
+
+    /**
+     * The granted right.
+     */
+    private int grantedRight;
+
+    /**
+     * The object. If the right is global, this is null.
+     */
+    private DbObject grantedObject;
 
     public Right(Database db, int id, RightOwner grantee, Role grantedRole) {
         initDbObjectBase(db, id, "RIGHT_" + id, Trace.USER);
@@ -58,11 +74,11 @@ public class Right extends DbObjectBase {
     }
 
     public Right(Database db, int id, RightOwner grantee, int grantedRight,
-            Table grantedRightOnTable) {
+            DbObject grantedObject) {
         initDbObjectBase(db, id, "" + id, Trace.USER);
         this.grantee = grantee;
         this.grantedRight = grantedRight;
-        this.grantedTable = grantedRightOnTable;
+        this.grantedObject = grantedObject;
     }
 
     private static boolean appendRight(StringBuilder buff, int right, int mask,
@@ -97,8 +113,8 @@ public class Right extends DbObjectBase {
         return grantedRole;
     }
 
-    public Table getGrantedTable() {
-        return grantedTable;
+    public DbObject getGrantedObject() {
+        return grantedObject;
     }
 
     public DbObject getGrantee() {
@@ -112,14 +128,22 @@ public class Right extends DbObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
+        return getCreateSQLForCopy(table);
+    }
+
+    private String getCreateSQLForCopy(DbObject object) {
         StringBuilder buff = new StringBuilder();
         buff.append("GRANT ");
         if (grantedRole != null) {
             buff.append(grantedRole.getSQL());
         } else {
             buff.append(getRights());
-            if (table != null) {
-                buff.append(" ON ").append(table.getSQL());
+            if (object != null) {
+                if (object instanceof Schema) {
+                    buff.append(" ON SCHEMA ").append(object.getSQL());
+                } else if (object instanceof Table) {
+                    buff.append(" ON ").append(object.getSQL());
+                }
             }
         }
         buff.append(" TO ").append(grantee.getSQL());
@@ -128,7 +152,7 @@ public class Right extends DbObjectBase {
 
     @Override
     public String getCreateSQL() {
-        return getCreateSQLForCopy(grantedTable, null);
+        return getCreateSQLForCopy(grantedObject);
     }
 
     @Override
@@ -138,14 +162,14 @@ public class Right extends DbObjectBase {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        if (grantedTable != null) {
-            grantee.revokeRight(grantedTable);
-        } else {
+        if (grantedRole != null) {
             grantee.revokeRole(grantedRole);
+        } else {
+            grantee.revokeRight(grantedObject);
         }
         database.removeMeta(session, getId());
         grantedRole = null;
-        grantedTable = null;
+        grantedObject = null;
         grantee = null;
         invalidate();
     }

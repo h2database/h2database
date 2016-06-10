@@ -37,6 +37,7 @@ public class Profiler implements Runnable {
     public int depth = 48;
     public boolean paused;
     public boolean sumClasses;
+    public boolean sumMethods;
 
     private int pid;
 
@@ -45,14 +46,16 @@ public class Profiler implements Runnable {
             "sun," +
             "com.sun.," +
             "com.google.common.," +
-            "com.mongodb."
+            "com.mongodb.," +
+            "org.bson.,"
             ).split(",");
     private final String[] ignorePackages = (
             "java," +
             "sun," +
             "com.sun.," +
             "com.google.common.," +
-            "com.mongodb."
+            "com.mongodb.," +
+            "org.bson"
             ).split(",");
     private final String[] ignoreThreads = (
             "java.lang.Object.wait," +
@@ -65,6 +68,7 @@ public class Profiler implements Runnable {
             "java.net.PlainSocketImpl.socketAccept," +
             "java.net.SocketInputStream.socketRead," +
             "java.net.SocketOutputStream.socketWrite," +
+            "org.eclipse.jetty.io.nio.SelectorManager$SelectSet.doSelect," +
             "sun.awt.windows.WToolkit.eventLoop," +
             "sun.misc.Unsafe.park," +
             "sun.nio.ch.EPollArrayWrapper.epollWait," +
@@ -146,7 +150,21 @@ public class Profiler implements Runnable {
             }
         }
         try {
-            for (String file : args) {
+            for (String arg : args) {
+                if (arg.startsWith("-")) {
+                    if ("-classes".equals(arg)) {
+                        sumClasses = true;
+                    } else if ("-methods".equals(arg)) {
+                        sumMethods = true;
+                    } else if ("-packages".equals(args)) {
+                        sumClasses = false;
+                        sumMethods = false;
+                    } else {
+                        throw new IllegalArgumentException(arg);
+                    }
+                    continue;
+                }
+                String file = arg;
                 Reader reader;
                 LineNumberReader r;
                 reader = new InputStreamReader(
@@ -167,7 +185,7 @@ public class Profiler implements Runnable {
                 processList(readStackTrace(r));
                 reader.close();
             }
-            System.out.println(getTopTraces(3));
+            System.out.println(getTopTraces(5));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -378,6 +396,10 @@ public class Profiler implements Runnable {
                         }
                         if (sumClasses) {
                             int m = el.indexOf('.', index + 1);
+                            index = m >= 0 ? m : index;
+                        }
+                        if (sumMethods) {
+                            int m = el.indexOf('(', index + 1);
                             index = m >= 0 ? m : index;
                         }
                         String groupName = el.substring(0, index);

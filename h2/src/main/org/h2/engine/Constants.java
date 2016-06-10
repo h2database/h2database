@@ -16,7 +16,7 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2015-04-10";
+    public static final String BUILD_DATE = "2016-05-26";
 
     /**
      * The build date of the last stable release.
@@ -26,7 +26,7 @@ public class Constants {
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 187;
+    public static final int BUILD_ID = 192;
 
     /**
      * The build id of the last stable release.
@@ -504,6 +504,11 @@ public class Constants {
      * used as tables).
      */
     public static final int VIEW_INDEX_CACHE_SIZE = 64;
+
+    /**
+     * The maximum number of entries in query statistics.
+     */
+    public static final int QUERY_STATISTICS_MAX_ENTRIES = 100;
 
     private Constants() {
         // utility class

@@ -28,11 +28,10 @@ public class TestSessionsLocks extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (config.mvcc) {
-            return;
-        }
         testCancelStatement();
-        testLocks();
+        if (!config.mvcc) {
+            testLocks();
+        }
         deleteDb("sessionsLocks");
     }
 

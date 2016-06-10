@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Connection;
@@ -23,7 +24,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
@@ -79,6 +79,7 @@ public class TestPreparedStatement extends TestBase {
         testSubquery(conn);
         testObject(conn);
         testIdentity(conn);
+        testBatchGeneratedKeys(conn);
         testDataTypes(conn);
         testGetMoreResults(conn);
         testBlob(conn);
@@ -504,11 +505,10 @@ public class TestPreparedStatement extends TestBase {
 
     private void testScopedGeneratedKey(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
-        Trigger t = new SequenceTrigger();
         stat.execute("create table test(id identity)");
         stat.execute("create sequence seq start with 1000");
         stat.execute("create trigger test_ins after insert on test call \"" +
-                t.getClass().getName() + "\"");
+                SequenceTrigger.class.getName() + "\"");
         stat.execute("insert into test values(null)");
         ResultSet rs = stat.getGeneratedKeys();
         rs.next();
@@ -786,6 +786,8 @@ public class TestPreparedStatement extends TestBase {
                 "(ID INT PRIMARY KEY,VALUE DECIMAL(20,10))");
         stat.execute("CREATE TABLE T_DATETIME" +
                 "(ID INT PRIMARY KEY,VALUE DATETIME)");
+        stat.execute("CREATE TABLE T_BIGINT" +
+                "(ID INT PRIMARY KEY,VALUE DECIMAL(30,0))");
         prep = conn.prepareStatement("INSERT INTO T_INT VALUES(?,?)",
                 ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
         prep.setInt(1, 1);
@@ -882,6 +884,32 @@ public class TestPreparedStatement extends TestBase {
         rs = stat.executeQuery("SELECT VALUE FROM T_DECIMAL_0 ORDER BY ID");
         checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE,
                 "" + Long.MIN_VALUE, "10", "-20", "30", "-40" });
+        prep = conn.prepareStatement("INSERT INTO T_BIGINT VALUES(?,?)");
+        prep.setInt(1, 1);
+        prep.setObject(2, new BigInteger("" + Long.MAX_VALUE));
+        prep.executeUpdate();
+        prep.setInt(1, 2);
+        prep.setObject(2, Long.MIN_VALUE);
+        prep.executeUpdate();
+        prep.setInt(1, 3);
+        prep.setObject(2, 10);
+        prep.executeUpdate();
+        prep.setInt(1, 4);
+        prep.setObject(2, -20);
+        prep.executeUpdate();
+        prep.setInt(1, 5);
+        prep.setObject(2, 30);
+        prep.executeUpdate();
+        prep.setInt(1, 6);
+        prep.setObject(2, -40);
+        prep.executeUpdate();
+        prep.setInt(1, 7);
+        prep.setObject(2, new BigInteger("-60"));
+        prep.executeUpdate();
+
+        rs = stat.executeQuery("SELECT VALUE FROM T_BIGINT ORDER BY ID");
+        checkBigDecimal(rs, new String[] { "" + Long.MAX_VALUE,
+                "" + Long.MIN_VALUE, "10", "-20", "30", "-40", "-60" });
     }
 
     private void testGetMoreResults(Connection conn) throws SQLException {
@@ -1049,6 +1077,29 @@ public class TestPreparedStatement extends TestBase {
         assertFalse(rs.next());
 
         stat.execute("DROP TABLE TEST");
+        stat.execute("DROP SEQUENCE SEQ");
+    }
+
+    private void testBatchGeneratedKeys(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SEQUENCE SEQ");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        PreparedStatement prep = conn.prepareStatement(
+                "INSERT INTO TEST VALUES(NEXT VALUE FOR SEQ)");
+        prep.addBatch();
+        prep.addBatch();
+        prep.addBatch();
+        prep.executeBatch();
+        ResultSet keys = prep.getGeneratedKeys();
+        keys.next();
+        assertEquals(1, keys.getLong(1));
+        keys.next();
+        assertEquals(2, keys.getLong(1));
+        keys.next();
+        assertEquals(3, keys.getLong(1));
+        assertFalse(keys.next());
+        stat.execute("DROP TABLE TEST");
+        stat.execute("DROP SEQUENCE SEQ");
     }
 
     private int getLength() {

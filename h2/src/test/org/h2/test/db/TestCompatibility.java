@@ -12,7 +12,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -436,6 +435,8 @@ public class TestCompatibility extends TestBase {
         res.next();
         assertEquals("2", res.getString(1));
         assertFalse(res.next());
+        conn.close();
+
         // test isolation-clause
         conn = getConnection("compatibility;MODE=DB2");
         stat = conn.createStatement();

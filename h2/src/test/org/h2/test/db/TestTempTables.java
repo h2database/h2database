@@ -6,6 +6,7 @@
 package org.h2.test.db;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -32,6 +33,7 @@ public class TestTempTables extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb("tempTables");
+        testAnalyzeReuseObjectId();
         testTempSequence();
         testTempFileResultSet();
         testTempTableResultSet();
@@ -49,16 +51,39 @@ public class TestTempTables extends TestBase {
         deleteDb("tempTables");
     }
 
+    private void testAnalyzeReuseObjectId() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables");
+        Statement stat = conn.createStatement();
+        stat.execute("create local temporary table test(id identity)");
+        PreparedStatement prep = conn
+                .prepareStatement("insert into test values(null)");
+        for (int i = 0; i < 10000; i++) {
+            prep.execute();
+        }
+        stat.execute("create local temporary table " +
+                "test2(id identity) as select x from system_range(1, 10)");
+        conn.close();
+    }
+
     private void testTempSequence() throws SQLException {
         deleteDb("tempTables");
         Connection conn = getConnection("tempTables");
         Statement stat = conn.createStatement();
         stat.execute("create local temporary table test(id identity)");
+        ResultSet rs = stat.executeQuery("script");
+        boolean foundSequence = false;
+        while (rs.next()) {
+            if (rs.getString(1).startsWith("CREATE SEQUENCE")) {
+                foundSequence = true;
+            }
+        }
+        assertTrue(foundSequence);
         stat.execute("insert into test values(null)");
         stat.execute("shutdown");
         conn.close();
         conn = getConnection("tempTables");
-        ResultSet rs = conn.createStatement().executeQuery(
+        rs = conn.createStatement().executeQuery(
                 "select * from information_schema.sequences");
         assertFalse(rs.next());
         conn.close();

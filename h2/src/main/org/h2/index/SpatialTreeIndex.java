@@ -5,8 +5,8 @@
  */
 package org.h2.index;
 
+import java.util.HashSet;
 import java.util.Iterator;
-
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
@@ -24,7 +24,6 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueGeometry;
 import org.h2.value.ValueNull;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -169,19 +168,14 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public Cursor findByGeometry(TableFilter filter, SearchRow intersection) {
+    public Cursor findByGeometry(TableFilter filter, SearchRow first,
+            SearchRow last, SearchRow intersection) {
         if (intersection == null) {
-            return find(filter.getSession());
+            return find(filter.getSession(), first, last);
         }
         return new SpatialCursor(
                 treeMap.findIntersectingKeys(getKey(intersection)), table,
                 filter.getSession());
-    }
-
-    @Override
-    protected long getCostRangeIndex(int[] masks, long rowCount,
-            TableFilter filter, SortOrder sortOrder) {
-        return getCostRangeIndex(masks, rowCount, columns);
     }
 
     /**
@@ -208,11 +202,12 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public double getCost(Session session, int[] masks, TableFilter filter,
-            SortOrder sortOrder) {
-        return getCostRangeIndex(masks, table.getRowCountApproximation(),
-                filter, sortOrder);
+    public double getCost(Session session, int[] masks,
+            TableFilter[] filters, int filter, SortOrder sortOrder,
+            HashSet<Column> allColumnsSet) {
+        return getCostRangeIndex(masks, table.getRowCountApproximation(), columns);
     }
+
 
     @Override
     public void remove(Session session) {

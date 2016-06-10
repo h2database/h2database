@@ -202,7 +202,8 @@ public class TestWeb extends TestBase {
             assertTrue(FileUtils.exists(getBaseDir() + "/" + getTestName() + ".h2.sql"));
             FileUtils.delete(getBaseDir() + "/web.h2.sql");
             result = client.get(url, "tools.do?tool=RunScript&args=-script," +
-                    getBaseDir() + "/" + getTestName() + ".h2.sql,-url," + getURL(getTestName(), true) +
+                    getBaseDir() + "/" + getTestName() + ".h2.sql,-url," +
+                    getURL(getTestName(), true) +
                     ",-user," + getUser() + ",-password," + getPassword());
             FileUtils.delete(getBaseDir() + "/" + getTestName() + ".h2.sql");
             assertTrue(FileUtils.exists(fn));

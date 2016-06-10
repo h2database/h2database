@@ -191,7 +191,7 @@ public class TestCancel extends TestBase {
                 Thread.yield();
                 assertThrows(ErrorCode.STATEMENT_WAS_CANCELED, query).
                         executeQuery("SELECT VISIT(ID), (SELECT SUM(X) " +
-                                "FROM SYSTEM_RANGE(1, 10000) WHERE X<>ID) FROM TEST ORDER BY ID");
+                                "FROM SYSTEM_RANGE(1, 100000) WHERE X<>ID) FROM TEST ORDER BY ID");
             } finally {
                 cancel.stopNow();
                 cancel.join();

@@ -237,6 +237,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
         if (p.isLeaf()) {
             for (int i = 0; i < p.getKeyCount(); i++) {
                 if (keyType.equals(p.getKey(i), key)) {
+                    p.setKey(i, key);
                     return p.setValue(i, value);
                 }
             }

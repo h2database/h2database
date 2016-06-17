@@ -579,6 +579,10 @@ public class TableView extends Table {
         return result;
     }
 
+    public boolean isRecursive() {
+        return recursive;
+    }
+
     @Override
     public boolean isDeterministic() {
         if (recursive || viewQuery == null) {

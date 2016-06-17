@@ -38,6 +38,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableView;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -1082,7 +1083,21 @@ public class Select extends Query {
         // but indexes may be set manually as well
         Expression[] exprList = expressions.toArray(
                 new Expression[expressions.size()]);
-        StatementBuilder buff = new StatementBuilder("SELECT");
+        StatementBuilder buff = new StatementBuilder();
+        for (TableFilter f : topFilters) {
+            Table t = f.getTable();
+            if ((t instanceof TableView) && ((TableView) t).isRecursive()) {
+                buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
+                buff.resetCount();
+                for (Column c : t.getColumns()) {
+                    buff.appendExceptFirst(",");
+                    buff.append(c.getName());
+                }
+                buff.append(") AS ").append(t.getSQL()).append("\n");
+            }
+        }
+        buff.resetCount();
+        buff.append("SELECT");
         if (distinct) {
             buff.append(" DISTINCT");
         }

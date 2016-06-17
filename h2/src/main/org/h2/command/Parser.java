@@ -477,8 +477,8 @@ public class Parser {
                 break;
             case 'w':
             case 'W':
-                if (readIf("WITH")) {
-                    c = parseWith();
+                if (isToken("WITH")) {
+                    c = parseSelect();
                 }
                 break;
             case ';':
@@ -999,7 +999,7 @@ public class Parser {
             // need to read ahead, it could be a nested union:
             // ((select 1) union (select 1))
         }
-        boolean select = isToken("SELECT") || isToken("FROM");
+        boolean select = isToken("SELECT") || isToken("FROM") || isToken("WITH");
         parseIndex = start;
         read();
         return select;
@@ -1676,7 +1676,7 @@ public class Parser {
                 readIf("FOR");
             }
         }
-        if (isToken("SELECT") || isToken("FROM") || isToken("(")) {
+        if (isToken("SELECT") || isToken("FROM") || isToken("(") || isToken("WITH")) {
             command.setCommand(parseSelect());
         } else if (readIf("DELETE")) {
             command.setCommand(parseDelete());
@@ -1686,8 +1686,6 @@ public class Parser {
             command.setCommand(parseInsert());
         } else if (readIf("MERGE")) {
             command.setCommand(parseMerge());
-        } else if (readIf("WITH")) {
-            command.setCommand(parseWith());
         } else {
             throw getSyntaxError();
         }
@@ -1887,6 +1885,8 @@ public class Parser {
             read(")");
             return command;
         }
+        if (readIf("WITH"))
+            return parseWith();
         Select select = parseSelectSimple();
         return select;
     }
@@ -2772,11 +2772,8 @@ public class Parser {
             r = p;
             break;
         case KEYWORD:
-            if (isToken("SELECT") || isToken("FROM")) {
+            if (isToken("SELECT") || isToken("FROM") || isToken("WITH")) {
                 Query query = parseSelect();
-                r = new Subquery(query);
-            } else if (readIf("WITH")) {
-                Query query = parseWith();
                 r = new Subquery(query);
             } else {
                 throw getSyntaxError();
@@ -4781,7 +4778,7 @@ public class Parser {
         view.setTemporary(true);
         session.addLocalTempTable(view);
         view.setOnCommitDrop(true);
-        Query q = parseSelect();
+        Query q = parseSelectUnion();
         q.setPrepareAlways(true);
         return q;
     }

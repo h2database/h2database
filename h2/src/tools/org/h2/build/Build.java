@@ -314,6 +314,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/jts-core-1.14.0.jar",
                 "com/vividsolutions", "jts-core", "1.14.0",
                 "ff63492fba33a395f0da17720dd1716aba0d8c84", offline);
+        downloadOrVerify("ext/junit-4.12.jar",
+                "junit", "junit", "4.12",
+                "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
     }
 
     private void downloadOrVerify(String target, String group, String artifact,

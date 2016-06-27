@@ -816,10 +816,11 @@ public class TableFilter implements ColumnResolver {
             }
             return buff.toString();
         }
-        if ((table instanceof TableView) && ((TableView) table).isRecursive())
+        if (table.isView() && ((TableView) table).isRecursive()) {
             buff.append(table.getName());
-        else
+        } else {
             buff.append(table.getSQL());
+        }
         if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }

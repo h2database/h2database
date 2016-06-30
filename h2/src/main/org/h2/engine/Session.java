@@ -1649,6 +1649,14 @@ public class Session extends SessionWithState {
         }
     }
 
+    public boolean isUserInitScriptExecuted() {
+        return database.isUserInitScriptExecuted();
+    }
+
+    public void setUserInitScriptExecuted(boolean userInitScriptExecuted) {
+        database.setUserInitScriptExecuted(userInitScriptExecuted);
+    }
+
     /**
      * Represents a savepoint (a position in a transaction to where one can roll
      * back to).

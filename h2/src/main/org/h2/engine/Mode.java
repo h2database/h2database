@@ -150,6 +150,8 @@ public class Mode {
      */
     public boolean supportPoundSymbolForColumnNames;
 
+    public boolean prohibitEmptyInPredicate;
+
     private final String name;
 
     static {
@@ -168,6 +170,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName|ClientAccountingInformation|" +
                         "ClientUser|ClientCorrelationToken");
+        mode.prohibitEmptyInPredicate = true;
         add(mode);
 
         mode = new Mode("Derby");
@@ -216,6 +219,7 @@ public class Mode {
         //     JDBC4CommentClientInfoProvider.java
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*");
+        mode.prohibitEmptyInPredicate = true;
         add(mode);
 
         mode = new Mode("Oracle");
@@ -228,6 +232,7 @@ public class Mode {
         // https://docs.oracle.com/database/121/JJDBC/jdbcvers.htm#JJDBC29006
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
+        mode.prohibitEmptyInPredicate = true;
         add(mode);
 
         mode = new Mode("PostgreSQL");
@@ -242,6 +247,7 @@ public class Mode {
         //     org/postgresql/jdbc4/AbstractJdbc4Connection.java
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
+        mode.prohibitEmptyInPredicate = true;
         add(mode);
     }
 

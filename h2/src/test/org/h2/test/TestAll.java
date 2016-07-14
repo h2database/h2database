@@ -116,6 +116,7 @@ import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
+import org.h2.test.server.TestInitWithTwoConnections;
 import org.h2.test.server.TestNestedLoop;
 import org.h2.test.server.TestWeb;
 import org.h2.test.store.TestCacheConcurrentLIRS;
@@ -679,6 +680,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFunctionOverload());
         addTest(new TestFunctions());
         addTest(new TestInit());
+        addTest(new TestInitWithTwoConnections());
         addTest(new TestIndex());
         addTest(new TestLargeBlob());
         addTest(new TestLinkedTable());

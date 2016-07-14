@@ -193,6 +193,7 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
+    private boolean userInitScriptExecuted;
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -2864,4 +2865,11 @@ public class Database implements DataHandler {
         return engine;
     }
 
+    public boolean isUserInitScriptExecuted() {
+        return userInitScriptExecuted;
+    }
+
+    public void setUserInitScriptExecuted(boolean userInitScriptExecuted) {
+        this.userInitScriptExecuted = userInitScriptExecuted;
+    }
 }

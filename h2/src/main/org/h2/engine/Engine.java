@@ -217,7 +217,8 @@ public class Engine implements SessionFactory {
                     }
                 }
             }
-            if (init != null) {
+            if (init != null && !session.isUserInitScriptExecuted()) {
+                session.setUserInitScriptExecuted(true);
                 try {
                     CommandInterface command = session.prepareCommand(init,
                             Integer.MAX_VALUE);

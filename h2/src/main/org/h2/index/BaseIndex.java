@@ -473,7 +473,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+    public IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
         // Lookup batching is not supported.
         return null;
     }

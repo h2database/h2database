@@ -393,6 +393,7 @@ public class TableFilter implements ColumnResolver {
      *         lookups, {@code null} otherwise
      */
     public JoinBatch prepareJoinBatch(JoinBatch jb, TableFilter[] filters, int filter) {
+        assert filters[filter] == this;
         joinBatch = null;
         joinFilterId = -1;
         if (getTable().isView()) {
@@ -414,7 +415,7 @@ public class TableFilter implements ColumnResolver {
         // sub-query.
         IndexLookupBatch lookupBatch = null;
         if (jb == null && select != null && !isAlwaysTopTableFilter(filter)) {
-            lookupBatch = index.createLookupBatch(this);
+            lookupBatch = index.createLookupBatch(filters, filter);
             if (lookupBatch != null) {
                 jb = new JoinBatch(filter + 1, join);
             }
@@ -429,7 +430,7 @@ public class TableFilter implements ColumnResolver {
                 // createLookupBatch will be called at most once because jb can
                 // be created only if lookupBatch is already not null from the
                 // call above.
-                lookupBatch = index.createLookupBatch(this);
+                lookupBatch = index.createLookupBatch(filters, filter);
                 if (lookupBatch == null) {
                     // the index does not support lookup batching, need to fake
                     // it because we are not top

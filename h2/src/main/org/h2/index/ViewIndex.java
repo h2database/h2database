@@ -110,7 +110,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
     }
 
     @Override
-    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+    public IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
         if (recursive) {
             // we do not support batching for recursive queries
             return null;

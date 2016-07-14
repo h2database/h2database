@@ -263,9 +263,10 @@ public interface Index extends SchemaObject {
      * Creates new lookup batch. Note that returned {@link IndexLookupBatch}
      * instance can be used multiple times.
      *
-     * @param filter Table filter.
+     * @param filters the table filters
+     * @param filter the filter index (0, 1,...)
      * @return created batch or {@code null} if batched lookup is not supported
      *         by this index.
      */
-    IndexLookupBatch createLookupBatch(TableFilter filter);
+    IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter);
 }

@@ -37,13 +37,16 @@ import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
+import org.h2.engine.Database;
 import org.h2.engine.Mode;
+import org.h2.engine.Session;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
+import org.h2.schema.Schema;
 import org.h2.util.CloseWatcher;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
@@ -1888,21 +1891,48 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     }
 
     /**
-     * [Not supported]
+     * Sets the given schema name to access. Current implementation is case sensitive,
+     * i.e. requires schema name to be passed in correct case.
      *
-     * @param schema the schema
+     * @param schema the schema name
      */
     @Override
-    public void setSchema(String schema) {
-        // not supported
+    public void setSchema(String schema) throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCodeCall("setSchema", schema);
+            }
+            checkClosed();
+            if (session.isRemote()) {
+                throw DbException.getUnsupportedException("setSchema && remote session");
+            }
+            Database database = (Database) session.getDataHandler();
+            Schema s = database.getSchema(schema);
+            ((Session) session).setCurrentSchema(s);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported]
+     * Retrieves this current schema name for this connection.
+     *
+     * @return current schema name
      */
     @Override
-    public String getSchema() {
-        return null;
+    public String getSchema() throws SQLException {
+        try {
+            if (isDebugEnabled()) {
+                debugCodeCall("getSchema");
+            }
+            checkClosed();
+            if (session.isRemote()) {
+                throw DbException.getUnsupportedException("getSchema && remote session");
+            }
+            return ((Session) session).getCurrentSchemaName();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

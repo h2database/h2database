@@ -5,6 +5,7 @@
  */
 package org.h2.jdbc;
 
+import java.sql.SQLException;
 import java.util.concurrent.Executor;
 
 /**
@@ -12,13 +13,13 @@ import java.util.concurrent.Executor;
  */
 public interface JdbcConnectionBackwardsCompat {
 
-    void setSchema(String schema);
+    void setSchema(String schema) throws SQLException;
 
-    String getSchema();
+    String getSchema() throws SQLException;
 
-    void abort(Executor executor);
+    void abort(Executor executor) throws SQLException;
 
-    void setNetworkTimeout(Executor executor, int milliseconds);
+    void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException;
 
-    int getNetworkTimeout();
+    int getNetworkTimeout() throws SQLException;
 }

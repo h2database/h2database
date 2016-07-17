@@ -1649,6 +1649,11 @@ public class Session extends SessionWithState {
         }
     }
 
+    @Override
+    public boolean isRemote() {
+        return false;
+    }
+
     /**
      * Represents a savepoint (a position in a transaction to where one can roll
      * back to).

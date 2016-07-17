@@ -134,4 +134,10 @@ public interface SessionInterface extends Closeable {
      */
     void addTemporaryLob(Value v);
 
+    /**
+     * Check if this session is remote or embedded.
+     *
+     * @return true if this session is remote
+     */
+    boolean isRemote();
 }

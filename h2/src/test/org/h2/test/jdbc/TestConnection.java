@@ -5,11 +5,13 @@
  */
 package org.h2.test.jdbc;
 
+import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcConnectionBackwardsCompat;
 import org.h2.test.TestBase;
-
 import java.sql.Connection;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -34,6 +36,7 @@ public class TestConnection extends TestBase {
         testSetSupportedClientInfoProperties();
         testSetUnsupportedClientInfoProperties();
         testSetInternalProperty();
+        testSetGetSchema();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -85,4 +88,28 @@ public class TestConnection extends TestBase {
         assertNull(conn.getClientInfo("UnknownProperty"));
     }
 
+    private void testSetGetSchema() throws SQLException {
+        if (config.networked) {
+            return;
+        }
+        deleteDb("schemaSetGet");
+        Connection conn = getConnection("schemaSetGet");
+        Statement s = conn.createStatement();
+        s.executeUpdate("create schema my_test_schema");
+        s.executeUpdate("create table my_test_schema.my_test_table(id uuid, nave varchar)");
+        JdbcConnectionBackwardsCompat connx = (JdbcConnectionBackwardsCompat) conn;
+        assertEquals("PUBLIC", connx.getSchema());
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s, "select * from my_test_table");
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, connx).setSchema("my_test_table");
+        connx.setSchema("MY_TEST_SCHEMA");
+        assertEquals("MY_TEST_SCHEMA", connx.getSchema());
+        s.executeQuery("select * from my_test_table");
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, connx).setSchema("NON_EXISTING_SCHEMA");
+        assertEquals("MY_TEST_SCHEMA", connx.getSchema());
+        s.executeUpdate("create schema \"otheR_schEma\"");
+        connx.setSchema("otheR_schEma");
+        assertEquals("otheR_schEma", connx.getSchema());
+        s.close();
+        conn.close();
+    }
 }

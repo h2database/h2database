@@ -853,4 +853,9 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public CompareMode getCompareMode() {
         return compareMode;
     }
+
+    @Override
+    public boolean isRemote() {
+        return true;
+    }
 }

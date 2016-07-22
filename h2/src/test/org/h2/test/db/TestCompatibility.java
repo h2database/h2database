@@ -218,6 +218,11 @@ public class TestCompatibility extends TestBase {
         prep.setInt(1, 2);
         prep.executeQuery();
         stat.execute("DROP TABLE TEST IF EXISTS");
+
+        stat.execute("DROP TABLE TEST IF EXISTS");
+        stat.execute("CREATE TABLE TEST(ID INT)");
+        stat.executeQuery("SELECT * FROM TEST WHERE ID IN ()");
+        stat.execute("DROP TABLE TEST IF EXISTS");
     }
 
     private void testLog(double expected, Statement stat) throws SQLException {

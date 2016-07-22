@@ -2176,6 +2176,9 @@ public class Parser {
             } else if (readIf("IN")) {
                 read("(");
                 if (readIf(")")) {
+                    if (database.getMode().prohibitEmptyInPredicate) {
+                        throw getSyntaxError();
+                    }
                     r = ValueExpression.get(ValueBoolean.get(false));
                 } else {
                     if (isSelect()) {

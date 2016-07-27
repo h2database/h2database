@@ -12,7 +12,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
@@ -61,6 +67,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentAnalyze();
         testConcurrentInsertUpdateSelect();
         testLockModeWithMultiThreaded();
+        testViews();
     }
 
     private void testConcurrentSchemaChange() throws Exception {
@@ -292,4 +299,70 @@ public class TestMultiThread extends TestBase implements Runnable {
         deleteDb("lockMode");
     }
 
+    private void testViews() throws Exception {
+        // currently the combination of LOCK_MODE=0 and MULTI_THREADED
+        // is not supported
+        deleteDb("lockMode");
+        final String url = getURL("lockMode;MULTI_THREADED=1", true);
+
+        // create some common tables and views
+        final Connection conn = getConnection(url);
+        final Statement stat = conn.createStatement();
+        stat.execute(
+                "CREATE TABLE INVOICE(INVOICE_ID INT PRIMARY KEY, AMOUNT DECIMAL)");
+        stat.execute("CREATE VIEW INVOICE_VIEW as SELECT * FROM INVOICE");
+
+        stat.execute(
+                "CREATE TABLE INVOICE_DETAIL(DETAIL_ID INT PRIMARY KEY, INVOICE_ID INT, DESCRIPTION VARCHAR)");
+        stat.execute(
+                "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
+
+        stat.close();
+        conn.close();
+        // create views that reference the common views in different threads
+        final ExecutorService executor = Executors.newFixedThreadPool(8);
+        final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+        for (int i = 0; i < 1000; i++) {
+            final int j = i;
+            jobs.add(executor.submit(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    final Connection conn2 = getConnection(url);
+                    Statement stat2 = conn2.createStatement();
+
+                    stat2.execute("CREATE VIEW INVOICE_VIEW" + j
+                            + " as SELECT * FROM INVOICE_VIEW");
+
+                    // the following query intermittently results in a
+                    // NullPointerException
+                    stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
+                            + " as SELECT DTL.* FROM INVOICE_VIEW" + j
+                            + " INV JOIN INVOICE_DETAIL_VIEW DTL ON INV.INVOICE_ID = DTL.INVOICE_ID"
+                            + " WHERE DESCRIPTION='TEST'");
+
+                    ResultSet rs = stat2
+                            .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
+                    rs.next();
+                    rs.close();
+
+                    rs = stat2.executeQuery(
+                            "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
+                    rs.next();
+                    rs.close();
+
+                    stat.close();
+                    conn.close();
+                    return null;
+                }
+            }));
+        }
+        // check for exceptions
+        for (Future<Void> job : jobs) {
+            job.get();
+        }
+        executor.shutdown();
+        executor.awaitTermination(20, TimeUnit.SECONDS);
+
+        deleteDb("lockMode");
+    }
 }

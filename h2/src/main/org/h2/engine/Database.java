@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -66,8 +67,10 @@ import org.h2.util.SourceCompiler;
 import org.h2.util.StringUtils;
 import org.h2.util.TempFileDeleter;
 import org.h2.util.Utils;
+import org.h2.value.CaseInsensitiveConcurrentMap;
 import org.h2.value.CaseInsensitiveMap;
 import org.h2.value.CompareMode;
+import org.h2.value.NullableKeyConcurrentMap;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 
@@ -2771,6 +2774,19 @@ public class Database implements DataHandler {
         return dbSettings.databaseToUpper ?
                 new HashMap<String, V>() :
                 new CaseInsensitiveMap<V>();
+    }
+
+    /**
+     * Create a new hash map. Depending on the configuration, the key is case
+     * sensitive or case insensitive.
+     *
+     * @param <V> the value type
+     * @return the hash map
+     */
+    public <V> ConcurrentHashMap<String, V> newConcurrentStringMap() {
+        return dbSettings.databaseToUpper ?
+                new NullableKeyConcurrentMap<V>() :
+                new CaseInsensitiveConcurrentMap<V>();
     }
 
     /**

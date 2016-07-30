@@ -351,9 +351,10 @@ ShutdownHandler {
                 trayIconUsed = false;
             }
             System.gc();
+            // Mac OS X: Console tool process did not stop on exit
+            System.exit(0);
         }
 //*/
-        // System.exit(0);
     }
 
 //## AWT ##

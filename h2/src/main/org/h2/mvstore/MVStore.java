@@ -1056,8 +1056,11 @@ public class MVStore {
         long time = getTimeSinceCreation();
         int freeDelay = retentionTime / 10;
         if (time >= lastFreeUnusedChunks + freeDelay) {
+            // set early in case it fails (out of memory or so)
             lastFreeUnusedChunks = time;
             freeUnusedChunks();
+            // set it here as well, to avoid calling it often if it was slow
+            lastFreeUnusedChunks = getTimeSinceCreation();
         }
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
@@ -1514,6 +1517,9 @@ public class MVStore {
      * @param minPercent the minimum percentage to save
      */
     private void shrinkFileIfPossible(int minPercent) {
+        if (fileStore.isReadOnly()) {
+            return;
+        }
         long end = getFileLengthInUse();
         long fileSize = fileStore.size();
         if (end >= fileSize) {
@@ -2658,6 +2664,15 @@ public class MVStore {
      */
     public CacheLongKeyLIRS<Page> getCache() {
         return cache;
+    }
+
+    /**
+     * Whether the store is read-only.
+     *
+     * @return true if it is
+     */
+    public boolean isReadOnly() {
+        return fileStore == null ? false : fileStore.isReadOnly();
     }
 
     /**

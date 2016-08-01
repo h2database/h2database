@@ -156,7 +156,7 @@ public class Profiler implements Runnable {
                         sumClasses = true;
                     } else if ("-methods".equals(arg)) {
                         sumMethods = true;
-                    } else if ("-packages".equals(args)) {
+                    } else if ("-packages".equals(arg)) {
                         sumClasses = false;
                         sumMethods = false;
                     } else {

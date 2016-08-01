@@ -1246,6 +1246,10 @@ public class TransactionStore {
                 Object[] d;
                 d = transaction.store.undoLog.get(id);
                 if (d == null) {
+                    if (transaction.store.store.isReadOnly()) {
+                        // uncommitted transaction for a read-only store
+                        return null;
+                    }
                     // this entry should be committed or rolled back
                     // in the meantime (the transaction might still be open)
                     // or it might be changed again in a different

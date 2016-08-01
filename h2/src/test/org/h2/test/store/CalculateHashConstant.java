@@ -18,8 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.security.AES;
 
 /**
- * Calculate the constant for the secondary hash function, so that the hash
- * function mixes the input bits as much as possible.
+ * Calculate the constant for the secondary / supplemental hash function, so
+ * that the hash function mixes the input bits as much as possible.
  */
 public class CalculateHashConstant implements Runnable {
 
@@ -227,6 +227,30 @@ public class CalculateHashConstant implements Runnable {
         System.out.println("Collisions: " + collisions);
     }
 
+    /**
+     * Calculate the multiplicative inverse of a value (int).
+     *
+     * @param a the value
+     * @return the multiplicative inverse
+     */
+    static long calcMultiplicativeInverse(long a) {
+        return BigInteger.valueOf(a).modPow(
+                BigInteger.valueOf((1 << 31) - 1), BigInteger.valueOf(1L << 32)).longValue();
+    }
+
+    /**
+     * Calculate the multiplicative inverse of a value (long).
+     *
+     * @param a the value
+     * @return the multiplicative inverse
+     */
+    static long calcMultiplicativeInverseLong(long a) {
+        BigInteger oneShift64 = BigInteger.valueOf(1).shiftLeft(64);
+        BigInteger oneShift63 = BigInteger.valueOf(1).shiftLeft(63);
+        return BigInteger.valueOf(a).modPow(
+                oneShift63.subtract(BigInteger.ONE),
+                oneShift64).longValue();
+    }
     /**
      * Store a random file to be analyzed by the Diehard test.
      */

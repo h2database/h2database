@@ -3254,14 +3254,25 @@ TRIM(BOTH '_' FROM NAME)
 "
 
 "Functions (String)","REGEXP_REPLACE","
-REGEXP_REPLACE(inputString, regexString, replacementString)
+REGEXP_REPLACE(inputString, regexString, replacementString [, flagsString])
 ","
 Replaces each substring that matches a regular expression.
 For details, see the Java ""String.replaceAll()"" method.
-If any parameter is null, the result is null.
+If any parameter is null (except optional flags parameter), the result is null.
 ","
 REGEXP_REPLACE('Hello    World', ' +', ' ')
 "
+
+"Functions (String)","REGEXP_LIKE","
+REGEXP_LIKE(inputString, regexString [, flagsString])
+","
+Matches string to a regular expression.
+For details, see the Java ""String.matches()"" method.
+If any parameter is null (except optional flags parameter), the result is null.
+","
+REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
+"
+
 
 "Functions (String)","REPEAT","
 REPEAT(string, int)

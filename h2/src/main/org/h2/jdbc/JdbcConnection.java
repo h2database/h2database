@@ -1903,12 +1903,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                 debugCodeCall("setSchema", schema);
             }
             checkClosed();
-            if (session.isRemote()) {
-                throw DbException.getUnsupportedException("setSchema && remote session");
-            }
-            Database database = (Database) session.getDataHandler();
-            Schema s = database.getSchema(schema);
-            ((Session) session).setCurrentSchema(s);
+            session.setCurrentSchemaName(schema);
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -1926,10 +1921,7 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
                 debugCodeCall("getSchema");
             }
             checkClosed();
-            if (session.isRemote()) {
-                throw DbException.getUnsupportedException("getSchema && remote session");
-            }
-            return ((Session) session).getCurrentSchemaName();
+            return session.getCurrentSchemaName();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

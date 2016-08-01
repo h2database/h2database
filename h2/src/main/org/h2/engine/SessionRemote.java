@@ -858,4 +858,14 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public boolean isRemote() {
         return true;
     }
+
+    @Override
+    public String getCurrentSchemaName() {
+        throw DbException.getUnsupportedException("getSchema && remote session");
+    }
+
+    @Override
+    public void setCurrentSchemaName(String schema) {
+        throw DbException.getUnsupportedException("setSchema && remote session");
+    }
 }

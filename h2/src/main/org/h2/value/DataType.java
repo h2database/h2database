@@ -1046,10 +1046,10 @@ public class DataType {
                     createClob(r, -1);
         } else if (x instanceof java.sql.Clob) {
             try {
-                Reader r = new BufferedReader(
-                        ((java.sql.Clob) x).getCharacterStream());
+                java.sql.Clob clob = (java.sql.Clob) x;
+                Reader r = new BufferedReader(clob.getCharacterStream());
                 return session.getDataHandler().getLobStorage().
-                        createClob(r, -1);
+                        createClob(r, clob.length());
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
@@ -1058,8 +1058,9 @@ public class DataType {
                     createBlob((java.io.InputStream) x, -1);
         } else if (x instanceof java.sql.Blob) {
             try {
+                java.sql.Blob blob = (java.sql.Blob) x;
                 return session.getDataHandler().getLobStorage().
-                        createBlob(((java.sql.Blob) x).getBinaryStream(), -1);
+                        createBlob(blob.getBinaryStream(), blob.length());
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }

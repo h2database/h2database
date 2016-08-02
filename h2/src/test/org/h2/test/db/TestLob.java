@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
@@ -84,6 +83,7 @@ public class TestLob extends TestBase {
         testDelete();
         testLobServerMemory();
         testUpdatingLobRow();
+        testBufferedInputStreamBug();
         if (config.memory) {
             return;
         }
@@ -1502,6 +1502,17 @@ public class TestLob extends TestBase {
         while (rs.next()) {
             assertEquals("", (String) rs.getObject("value"));
         }
+        conn.close();
+    }
+
+    /** test a bug where the usage of BufferedInputStream in LobStorageMap was causing a deadlock */
+    private void testBufferedInputStreamBug() throws SQLException {
+        deleteDb("lob");
+        JdbcConnection conn = (JdbcConnection) getConnection("lob");
+        conn.createStatement().execute("CREATE TABLE TEST(test BLOB)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST(test) VALUES(?)");
+        ps.setBlob(1, new ByteArrayInputStream(new byte[257]));
+        ps.executeUpdate();
         conn.close();
     }
 

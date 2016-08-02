@@ -5,15 +5,12 @@
  */
 package org.h2.store;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -145,26 +142,21 @@ public class LobStorageMap implements LobStorageInterface {
     public Value createBlob(InputStream in, long maxLength) {
         init();
         int type = Value.BLOB;
-        if (maxLength < 0) {
-            maxLength = Long.MAX_VALUE;
-        }
-        int max = (int) Math.min(maxLength, database.getMaxLengthInplaceLob());
         try {
-            if (max != 0 && max < Integer.MAX_VALUE) {
-                BufferedInputStream b = new BufferedInputStream(in, max);
-                b.mark(max);
-                byte[] small = new byte[max];
-                int len = IOUtils.readFully(b, small, max);
-                if (len < max) {
-                    if (len < small.length) {
-                        small = Arrays.copyOf(small, len);
-                    }
-                    return ValueLobDb.createSmallLob(type, small);
+            if (maxLength != -1
+                    && maxLength <= database.getMaxLengthInplaceLob()) {
+                byte[] small = new byte[(int) maxLength];
+                int len = IOUtils.readFully(in, small, (int) maxLength);
+                if (len > maxLength) {
+                    throw new IllegalStateException(
+                            "len > blobLength, " + len + " > " + maxLength);
                 }
-                b.reset();
-                in = b;
+                if (len < small.length) {
+                    small = Arrays.copyOf(small, len);
+                }
+                return ValueLobDb.createSmallLob(type, small);
             }
-            if (maxLength != Long.MAX_VALUE) {
+            if (maxLength != -1) {
                 in = new LimitInputStream(in, maxLength);
             }
             return createLob(in, type);
@@ -179,32 +171,34 @@ public class LobStorageMap implements LobStorageInterface {
     public Value createClob(Reader reader, long maxLength) {
         init();
         int type = Value.CLOB;
-        if (maxLength < 0) {
-            maxLength = Long.MAX_VALUE;
-        }
-        int max = (int) Math.min(maxLength, database.getMaxLengthInplaceLob());
         try {
-            if (max != 0 && max < Integer.MAX_VALUE) {
-                BufferedReader b = new BufferedReader(reader, max);
-                b.mark(max);
-                char[] small = new char[max];
-                int len = IOUtils.readFully(b, small, max);
-                if (len < max) {
-                    if (len < small.length) {
-                        small = Arrays.copyOf(small, len);
-                    }
-                    byte[] utf8 = new String(small, 0, len).getBytes(Constants.UTF8);
-                    return ValueLobDb.createSmallLob(type, utf8);
+            // we multiple by 3 here to get the worst-case size in bytes
+            if (maxLength != -1
+                    && maxLength * 3 <= database.getMaxLengthInplaceLob()) {
+                char[] small = new char[(int) maxLength];
+                int len = IOUtils.readFully(reader, small, (int) maxLength);
+                if (len > maxLength) {
+                    throw new IllegalStateException(
+                            "len > blobLength, " + len + " > " + maxLength);
                 }
-                b.reset();
-                reader = b;
+                byte[] utf8 = new String(small, 0, len)
+                        .getBytes(Constants.UTF8);
+                if (utf8.length > database.getMaxLengthInplaceLob()) {
+                    throw new IllegalStateException(
+                            "len > maxinplace, " + utf8.length + " > "
+                                    + database.getMaxLengthInplaceLob());
+                }
+                return ValueLobDb.createSmallLob(type, utf8);
             }
-            CountingReaderInputStream in =
-                    new CountingReaderInputStream(reader, maxLength);
+            if (maxLength < 0) {
+                maxLength = Long.MAX_VALUE;
+            }
+            CountingReaderInputStream in = new CountingReaderInputStream(reader,
+                    maxLength);
             ValueLobDb lob = createLob(in, type);
             // the length is not correct
-            lob = ValueLobDb.create(type, database,
-                    lob.getTableId(), lob.getLobId(), null, in.getLength());
+            lob = ValueLobDb.create(type, database, lob.getTableId(),
+                    lob.getLobId(), null, in.getLength());
             return lob;
         } catch (IllegalStateException e) {
             throw DbException.get(ErrorCode.OBJECT_CLOSED, e);

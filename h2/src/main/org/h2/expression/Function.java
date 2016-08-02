@@ -1602,10 +1602,11 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v0.getString();
             boolean blob = args.length == 1;
             try {
+                long fileLength = FileUtils.size(fileName);
                 InputStream in = new AutoCloseInputStream(
                         FileUtils.newInputStream(fileName));
                 if (blob) {
-                    result = database.getLobStorage().createBlob(in, -1);
+                    result = database.getLobStorage().createBlob(in, fileLength);
                 } else {
                     Reader reader;
                     if (v1 == ValueNull.INSTANCE) {
@@ -1613,7 +1614,7 @@ public class Function extends Expression implements FunctionCall {
                     } else {
                         reader = new InputStreamReader(in, v1.getString());
                     }
-                    result = database.getLobStorage().createClob(reader, -1);
+                    result = database.getLobStorage().createClob(reader, fileLength);
                 }
                 session.addTemporaryLob(result);
             } catch (IOException e) {

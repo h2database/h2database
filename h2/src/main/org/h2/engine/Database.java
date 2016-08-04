@@ -2269,7 +2269,9 @@ public class Database implements DataHandler {
     public void setQueryStatistics(boolean b) {
         queryStatistics = b;
         synchronized (this) {
-            queryStatisticsData = null;
+            if (!b) {
+                queryStatisticsData = null;
+            }
         }
     }
 

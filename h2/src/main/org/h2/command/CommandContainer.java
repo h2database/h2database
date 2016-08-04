@@ -96,7 +96,7 @@ public class CommandContainer extends Command {
         session.setLastScopeIdentity(ValueNull.INSTANCE);
         prepared.checkParameters();
         int updateCount = prepared.update();
-        prepared.trace(startTime, updateCount);
+        prepared.trace(startTime_nanos, updateCount);
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return updateCount;
     }
@@ -108,7 +108,7 @@ public class CommandContainer extends Command {
         start();
         prepared.checkParameters();
         ResultInterface result = prepared.query(maxrows);
-        prepared.trace(startTime, result.getRowCount());
+        prepared.trace(startTime_nanos, result.getRowCount());
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return result;
     }

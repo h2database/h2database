@@ -54,11 +54,11 @@ public class QueryStatisticsData {
      * Update query statistics.
      *
      * @param sqlStatement the statement being executed
-     * @param executionTime the time in milliseconds the query/update took to
+     * @param executionTime_nanos the time in nanoseconds the query/update took to
      *            execute
      * @param rowCount the query or update row count
      */
-    public synchronized void update(String sqlStatement, long executionTime,
+    public synchronized void update(String sqlStatement, long executionTime_nanos,
             int rowCount) {
         QueryEntry entry = map.get(sqlStatement);
         if (entry == null) {
@@ -66,7 +66,7 @@ public class QueryStatisticsData {
             entry.sqlStatement = sqlStatement;
             map.put(sqlStatement, entry);
         }
-        entry.update(executionTime, rowCount);
+        entry.update(executionTime_nanos, rowCount);
 
         // Age-out the oldest entries if the map gets too big.
         // Test against 1.5 x max-size so we don't do this too often
@@ -112,19 +112,19 @@ public class QueryStatisticsData {
         public long lastUpdateTime;
 
         /**
-         * The minimum execution time, in milliseconds.
+         * The minimum execution time, in nanoseconds.
          */
-        public long executionTimeMin;
+        public long executionTimeMin_nanos;
 
         /**
-         * The maximum execution time, in milliseconds.
+         * The maximum execution time, in nanoseconds.
          */
-        public long executionTimeMax;
+        public long executionTimeMax_nanos;
 
         /**
          * The total execution time.
          */
-        public long executionTimeCumulative;
+        public long executionTimeCumulative_nanos;
 
         /**
          * The minimum number of rows.
@@ -144,7 +144,7 @@ public class QueryStatisticsData {
         /**
          * The mean execution time.
          */
-        public double executionTimeMean;
+        public double executionTimeMean_nanos;
 
         /**
          * The mean number of rows.
@@ -155,39 +155,38 @@ public class QueryStatisticsData {
         // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
         // http://www.johndcook.com/standard_deviation.html
 
-        private double executionTimeM2;
+        private double executionTimeM2_nanos;
         private double rowCountM2;
 
         /**
          * Update the statistics entry.
          *
-         * @param time the execution time
+         * @param time_nanos the execution time in nanos
          * @param rows the number of rows
          */
-        void update(long time, int rows) {
+        void update(long time_nanos, int rows) {
             count++;
-            executionTimeMin = Math.min(time, executionTimeMin);
-            executionTimeMax = Math.max(time, executionTimeMax);
+            executionTimeMin_nanos = Math.min(time_nanos, executionTimeMin_nanos);
+            executionTimeMax_nanos = Math.max(time_nanos, executionTimeMax_nanos);
             rowCountMin = Math.min(rows, rowCountMin);
             rowCountMax = Math.max(rows, rowCountMax);
 
-            double delta = rows - rowCountMean;
-            rowCountMean += delta / count;
-            rowCountM2 += delta * (rows - rowCountMean);
+            double rowDelta = rows - rowCountMean;
+            rowCountMean += rowDelta / count;
+            rowCountM2 += rowDelta * (rows - rowCountMean);
 
-            delta = time - executionTimeMean;
-            executionTimeMean += delta / count;
-            executionTimeM2 += delta * (time - executionTimeMean);
+            double timeDelta = time_nanos - executionTimeMean_nanos;
+            executionTimeMean_nanos += timeDelta / count;
+            executionTimeM2_nanos += timeDelta * (time_nanos - executionTimeMean_nanos);
 
-            executionTimeCumulative += time;
+            executionTimeCumulative_nanos += time_nanos;
             rowCountCumulative += rows;
             lastUpdateTime = System.currentTimeMillis();
-
         }
 
         public double getExecutionTimeStandardDeviation() {
             // population standard deviation
-            return Math.sqrt(executionTimeM2 / count);
+            return Math.sqrt(executionTimeM2_nanos / count);
         }
 
         public double getRowCountStandardDeviation() {

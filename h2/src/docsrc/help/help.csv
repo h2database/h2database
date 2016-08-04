@@ -3258,17 +3258,44 @@ REGEXP_REPLACE(inputString, regexString, replacementString [, flagsString])
 ","
 Replaces each substring that matches a regular expression.
 For details, see the Java ""String.replaceAll()"" method.
-If any parameter is null (except optional flags parameter), the result is null.
+If any parameter is null (except optional flagsString parameter), the result is null.
+
+Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
+Multiple symbols could be uses in one flagsString parameter (like 'im').
+Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+
+'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'c' disables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'n' allows the period to match the newline character (Pattern.DOTALL)
+
+'m' enables multiline mode (Pattern.MULTILINE)
+
 ","
 REGEXP_REPLACE('Hello    World', ' +', ' ')
+REGEXP_REPLACE('Hello WWWWorld', 'w+', 'W', 'i')
 "
 
 "Functions (String)","REGEXP_LIKE","
 REGEXP_LIKE(inputString, regexString [, flagsString])
 ","
 Matches string to a regular expression.
-For details, see the Java ""String.matches()"" method.
-If any parameter is null (except optional flags parameter), the result is null.
+For details, see the Java ""Matcher.find()"" method.
+If any parameter is null (except optional flagsString parameter), the result is null.
+
+Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
+Multiple symbols could be uses in one flagsString parameter (like 'im').
+Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+
+'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'c' disables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'n' allows the period to match the newline character (Pattern.DOTALL)
+
+'m' enables multiline mode (Pattern.MULTILINE)
+
 ","
 REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
 "

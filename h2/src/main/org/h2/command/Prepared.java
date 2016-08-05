@@ -311,7 +311,8 @@ public abstract class Prepared {
             String params = Trace.formatParams(parameters);
             session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTime_nanos / 1000 / 1000);
         }
-        if (session.getDatabase().getQueryStatistics()) {
+        // startTime_nanos can be zero for the command that actually turns on statistics
+        if (session.getDatabase().getQueryStatistics() && startTime_nanos != 0) {
             long deltaTime_nanos = System.nanoTime() - startTime_nanos;
             session.getDatabase().getQueryStatisticsData().
                     update(toString(), deltaTime_nanos, rowCount);

@@ -335,6 +335,10 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public String getVirtualServerName() {
+            throw new UnsupportedOperationException();
+        }
 
     }
 

@@ -2115,13 +2115,13 @@ CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
 > abckabom
 > rows: 1
 
-select x from dual where REGEXP_LIKE('aBc', '[a-z]*', 'i');
+select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
 > X
 > -
 > 1
 > rows: 1
 
-select x from dual where REGEXP_LIKE('aBc', '[a-z]*', 'c');
+select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
 > X
 > -
 > rows: 0

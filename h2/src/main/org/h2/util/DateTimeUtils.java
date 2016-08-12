@@ -67,6 +67,16 @@ public class DateTimeUtils {
     private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
             new ThreadLocal<Calendar>();
 
+    /**
+     * Observed JVM behaviour is that if the timezone of the host computer is changed while the JVM is running,
+     * the zone offset does not change but keeps the initial value. So it is correct to measure this once and use
+     * this value throughout the JVM's lifecycle.
+     *
+     * In any case, it is safer to use a fixed value throughout the duration of the JVM's life, rather than have
+     * this offset change, possibly midway through a long-running query.
+     */
+    private static int zoneOffsetMillis = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
+
     private DateTimeUtils() {
         // utility class
     }
@@ -77,6 +87,7 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
+        zoneOffsetMillis = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -499,8 +510,7 @@ public class DateTimeUtils {
      * @return the milliseconds
      */
     public static long getTimeLocalWithoutDst(java.util.Date d) {
-        Calendar calendar = getCalendar();
-        return d.getTime() + calendar.get(Calendar.ZONE_OFFSET);
+        return d.getTime() + zoneOffsetMillis;
     }
 
     /**
@@ -511,8 +521,9 @@ public class DateTimeUtils {
      * @return the number of milliseconds in UTC
      */
     public static long getTimeUTCWithoutDst(long millis) {
-        return millis - getCalendar().get(Calendar.ZONE_OFFSET);
+        return millis - zoneOffsetMillis;
     }
+
     /**
      * Return the day of week according to the ISO 8601 specification. Week
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601

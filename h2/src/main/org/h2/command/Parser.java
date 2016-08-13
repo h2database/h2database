@@ -160,8 +160,6 @@ import org.h2.value.ValueTimestamp;
  */
 public class Parser {
 
-    long underscoreTest = 1234_5678_9012_3456L;
-
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
     private static final int CHAR_NAME = 4, CHAR_SPECIAL_1 = 5,

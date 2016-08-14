@@ -1,0 +1,9 @@
+language: java
+
+jdk:
+  - openjdk6
+  - openjdk7
+
+before_script: cd h2
+
+script: ./build.sh jar

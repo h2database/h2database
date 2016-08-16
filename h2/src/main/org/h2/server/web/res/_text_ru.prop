@@ -119,7 +119,11 @@ tools.changeFileEncryption.help=Позволяет изменить алгори
 tools.cipher=Алгоритм (AES или XTEA)
 tools.commandLine=Командная строка
 tools.convertTraceFile=Преобразовать trace-файл
+<<<<<<< HEAD
 tools.convertTraceFile.help=Преобразует .trace.db файл в приложение Java и скрипт SQL.
+=======
+tools.convertTraceFile.help=Преобразует .trace.db файл в приложения Java и скрипт SQL.
+>>>>>>> 06c7a42ac3b5fcc667f7cfa53c67ff0eb79fda1d
 tools.createCluster=Создать кластер
 tools.createCluster.help=Создание кластера из автономной базы данных.
 tools.databaseName=Имя базы данных

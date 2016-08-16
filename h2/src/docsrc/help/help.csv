@@ -3500,7 +3500,7 @@ Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 otherwise it's range is restricted to int.
 The same units as in the EXTRACT function are supported.
-This method returns a timestamp.
+DATEADD method returns a timestamp. TIMESTAMPADD method returns a long.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "

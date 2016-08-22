@@ -44,6 +44,7 @@ Import-Package: javax.management,
  org.osgi.service.jdbc;version="1.0";resolution:=optional,
  org.slf4j;version="[1.6.0,1.7.0)";resolution:=optional
 Export-Package: org.h2;version="${version}",
+ org.h2.server.web;version="${version}",
  org.h2.api;version="${version}",
  org.h2.constant;version="${version}",
  org.h2.fulltext;version="${version}",

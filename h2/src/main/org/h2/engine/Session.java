@@ -923,12 +923,14 @@ public class Session extends SessionWithState {
             }
         }
         if (locks.size() > 0) {
-            // don't use the enhanced for loop to save memory
-            for (int i = 0, size = locks.size(); i < size; i++) {
-                Table t = locks.get(i);
-                t.unlock(this);
+            synchronized (database) {
+                // don't use the enhanced for loop to save memory
+                for (int i = 0, size = locks.size(); i < size; i++) {
+                    Table t = locks.get(i);
+                    t.unlock(this);
+                }
+                locks.clear();
             }
-            locks.clear();
         }
         savepoints = null;
         sessionStateChanged = true;

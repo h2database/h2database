@@ -308,7 +308,12 @@ public class PgServerThread implements Runnable {
                 if (p == null) {
                     sendErrorResponse("Prepared not found: " + name);
                 } else {
-                    sendParameterDescription(p);
+                    try {
+                        sendParameterDescription(p.prep.getParameterMetaData(), p.paramType);
+                        sendRowDescription(p.prep.getMetaData());
+                    } catch (Exception e) {
+                        sendErrorResponse(e);
+                    }
                 }
             } else if (type == 'P') {
                 Portal p = portals.get(name);
@@ -636,27 +641,21 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendParameterDescription(Prepared p) throws IOException {
-        try {
-            PreparedStatement prep = p.prep;
-            ParameterMetaData meta = prep.getParameterMetaData();
-            int count = meta.getParameterCount();
-            startMessage('t');
-            writeShort(count);
-            for (int i = 0; i < count; i++) {
-                int type;
-                if (p.paramType != null && p.paramType[i] != 0) {
-                    type = p.paramType[i];
-                } else {
-                    type = PgServer.PG_TYPE_VARCHAR;
-                }
-                server.checkType(type);
-                writeInt(type);
+    private void sendParameterDescription(ParameterMetaData meta, int[] paramTypes) throws Exception {
+        int count = meta.getParameterCount();
+        startMessage('t');
+        writeShort(count);
+        for (int i = 0; i < count; i++) {
+            int type;
+            if (paramTypes != null && paramTypes[i] != 0) {
+                type = paramTypes[i];
+            } else {
+                type = PgServer.PG_TYPE_VARCHAR;
             }
-            sendMessage();
-        } catch (Exception e) {
-            sendErrorResponse(e);
+            server.checkType(type);
+            writeInt(type);
         }
+        sendMessage();
     }
 
     private void sendNoData() throws IOException {

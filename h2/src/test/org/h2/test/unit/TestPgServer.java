@@ -5,8 +5,10 @@
  */
 package org.h2.test.unit;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
@@ -14,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Properties;
 import java.util.concurrent.Callable;
@@ -429,18 +432,25 @@ public class TestPgServer extends TestBase {
                     "jdbc:postgresql://localhost:5535/test", props);
 
             Statement stmt = conn.createStatement();
-            stmt.executeUpdate("create table t1 (id integer, value boolean)");
-            stmt.executeUpdate("INSERT INTO t1 VALUES (1,'t')");
-            stmt.executeUpdate("INSERT INTO t1 VALUES (2,'f')");
+            stmt.executeUpdate("create table t1 (id integer, value timestamp)");
             stmt.close();
 
-            PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE value = ?");
+            PreparedStatement pstmt = conn.prepareStatement("insert into t1 values(100500, ?)");
             // assertTrue(((PGStatement) pstmt).isUseServerPrepare());
+            assertEquals(Types.TIMESTAMP, pstmt.getParameterMetaData().getParameterType(1));
 
-            pstmt.setObject(1, false, Types.OTHER);
+            Timestamp t = new Timestamp(System.currentTimeMillis());
+            pstmt.setObject(1, t);
+            assertEquals(1, pstmt.executeUpdate());
+            pstmt.close();
+
+            pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE value = ?");
+            assertEquals(Types.TIMESTAMP, pstmt.getParameterMetaData().getParameterType(1));
+
+            pstmt.setObject(1, t);
             ResultSet rs = pstmt.executeQuery();
             assertTrue(rs.next());
-            assertEquals(2, rs.getInt(1));
+            assertEquals(100500, rs.getInt(1));
             rs.close();
             pstmt.close();
 

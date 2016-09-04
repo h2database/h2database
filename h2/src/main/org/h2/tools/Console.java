@@ -200,6 +200,8 @@ ShutdownHandler {
                 // no parameters
             } else if ("-baseDir".equals(arg)) {
                 i++;
+            } else if ("-key".equals(arg)) {
+                i += 2;
             } else {
                 showUsageAndThrowUnsupportedOption(arg);
             }

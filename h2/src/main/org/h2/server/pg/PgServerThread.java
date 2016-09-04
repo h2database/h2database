@@ -231,15 +231,25 @@ public class PgServerThread implements Runnable {
             p.name = readString();
             p.sql = getSQL(readString());
             int count = readShort();
-            p.paramType = new int[count];
-            for (int i = 0; i < count; i++) {
-                int type = readInt();
-                server.checkType(type);
-                p.paramType[i] = type;
+            if (count != 0) {
+                p.paramType = new int[count];
+                for (int i = 0; i < count; i++) {
+                    int type = readInt();
+                    server.checkType(type);
+                    p.paramType[i] = type;
+                }
             }
             try {
                 p.prep = (JdbcPreparedStatement) conn.prepareStatement(p.sql);
                 prepared.put(p.name, p);
+                if (p.paramType == null) {
+                    // Guess parameter types if the client hasn't sent them
+                    ParameterMetaData meta = p.prep.getParameterMetaData();
+                    p.paramType = new int[meta.getParameterCount()];
+                    for (int i = 0; i < p.paramType.length; i++) {
+                        p.paramType[i] =  PgServer.convertType(meta.getParameterType(i + 1));
+                    }
+                }
                 sendParseComplete();
             } catch (Exception e) {
                 sendErrorResponse(e);

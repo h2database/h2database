@@ -573,7 +573,7 @@ public class PgServerThread implements Runnable {
             // binary
             switch (pgType) {
             case PgServer.PG_TYPE_INT2:
-                checkParamLength(4, paramLen);
+                checkParamLength(2, paramLen);
                 prep.setShort(col, readShort());
                 break;
             case PgServer.PG_TYPE_INT4:

@@ -15,15 +15,14 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.postgresql.PGStatement;
 
 /**
  * Tests the PostgreSQL server protocol compliant implementation.
@@ -419,8 +418,15 @@ public class TestPgServer extends TestBase {
                 "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
         server.start();
         try {
+            Properties props = new Properties();
+
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            // force server side prepare
+            props.setProperty("prepareThreshold", "1");
+
             Connection conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+                    "jdbc:postgresql://localhost:5535/test", props);
 
             Statement stmt = conn.createStatement();
             stmt.executeUpdate("create table t1 (id integer, value boolean)");
@@ -429,8 +435,7 @@ public class TestPgServer extends TestBase {
             stmt.close();
 
             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE value = ?");
-            ((PGStatement) pstmt).setPrepareThreshold(1); // force server side prepare
-            assertTrue(((PGStatement) pstmt).isUseServerPrepare());
+            // assertTrue(((PGStatement) pstmt).isUseServerPrepare());
 
             pstmt.setObject(1, false, Types.OTHER);
             ResultSet rs = pstmt.executeQuery();

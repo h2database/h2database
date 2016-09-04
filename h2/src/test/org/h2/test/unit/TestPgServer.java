@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
+import org.postgresql.PGStatement;
 
 /**
  * Tests the PostgreSQL server protocol compliant implementation.
@@ -46,6 +47,7 @@ public class TestPgServer extends TestBase {
         testKeyAlias();
         testCancelQuery();
         testBinaryTypes();
+        testPrepareWithUnspecifiedType();
     }
 
     private void testLowerCaseIdentifiers() throws SQLException {
@@ -401,6 +403,41 @@ public class TestPgServer extends TestBase {
             assertEquals((byte) 0xfe, rs.getByte(9));
             assertEquals(new byte[] { 'a', (byte) 0xfe, '\127' },
                     rs.getBytes(10));
+
+            conn.close();
+        } finally {
+            server.stop();
+        }
+    }
+
+    private void testPrepareWithUnspecifiedType() throws Exception {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        Server server = Server.createPgServer(
+                "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+        server.start();
+        try {
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate("create table t1 (id integer, value boolean)");
+            stmt.executeUpdate("INSERT INTO t1 VALUES (1,'t')");
+            stmt.executeUpdate("INSERT INTO t1 VALUES (2,'f')");
+            stmt.close();
+
+            PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE value = ?");
+            ((PGStatement) pstmt).setPrepareThreshold(1); // force server side prepare
+            assertTrue(((PGStatement) pstmt).isUseServerPrepare());
+
+            pstmt.setObject(1, false, Types.OTHER);
+            ResultSet rs = pstmt.executeQuery();
+            assertTrue(rs.next());
+            assertEquals(2, rs.getInt(1));
+            rs.close();
+            pstmt.close();
 
             conn.close();
         } finally {

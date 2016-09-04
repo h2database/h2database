@@ -209,6 +209,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
                 File.pathSeparator + "ext/jts-core-1.14.0.jar" +
+                File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
                 File.pathSeparator + javaToolsJar;
         FileList files;
         if (clientOnly) {
@@ -317,6 +318,9 @@ public class Build extends BuildBase {
         downloadOrVerify("ext/junit-4.12.jar",
                 "junit", "junit", "4.12",
                 "2973d150c0dc1fefe998f834810d68f278ea58ec", offline);
+        downloadOrVerify("ext/postgresql-8.3-603.jdbc3.jar",
+                "postgresql", "postgresql", "8.3-603.jdbc3",
+                "33d531c3c53055ddcbea3d88bfa093466ffef924", offline);
     }
 
     private void downloadOrVerify(String target, String group, String artifact,

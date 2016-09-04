@@ -14,8 +14,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcSQLException;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
@@ -26,6 +27,7 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -282,6 +284,9 @@ public class TestValue extends TestBase {
         assertEquals("ffffffff-ffff-4fff-bfff-ffffffffffff", max.getString());
         ValueUuid min = ValueUuid.get(minHigh, minLow);
         assertEquals("00000000-0000-4000-8000-000000000000", min.getString());
+
+        ValueJavaObject vo = ValueJavaObject.getNoCopy(UUID.randomUUID(), null, null);
+        assertThrows(DbException.class, vo).convertTo(Value.UUID);
     }
 
     private void testModulusDouble() {

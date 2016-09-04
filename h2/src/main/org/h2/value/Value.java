@@ -909,12 +909,14 @@ public abstract class Value {
                 switch (getType()) {
                 case BYTES:
                     return ValueUuid.get(getBytesNoCopy());
+                case JAVA_OBJECT:
                 case TIMESTAMP_TZ:
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 }
+                break;
             }
-            case GEOMETRY:
+            case GEOMETRY: {
                 switch (getType()) {
                 case BYTES:
                     return ValueGeometry.get(getBytesNoCopy());
@@ -927,6 +929,8 @@ public abstract class Value {
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 }
+                break;
+            }
             }
             // conversion by parsing the string value
             String s = getString();

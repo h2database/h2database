@@ -107,9 +107,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>postgresql</groupId>
+      <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>8.3-603.jdbc3</version>
+      <version>9.4.1209</version>
       <scope>test</scope>
     </dependency>
     <dependency>

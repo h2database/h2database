@@ -368,7 +368,7 @@ public class PgServerThread implements Runnable {
                         ResultSet rs = prep.getResultSet();
                         // the meta-data is sent in the prior 'Describe'
                         while (rs.next()) {
-                            sendDataRow(rs);
+                            sendDataRow(rs, p.resultColumnFormat);
                         }
                         sendCommandComplete(prep, 0);
                     } catch (Exception e) {
@@ -414,7 +414,7 @@ public class PgServerThread implements Runnable {
                         try {
                             sendRowDescription(meta);
                             while (rs.next()) {
-                                sendDataRow(rs);
+                                sendDataRow(rs, null);
                             }
                             sendCommandComplete(stat, 0);
                         } catch (Exception e) {
@@ -495,20 +495,31 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendDataRow(ResultSet rs) throws Exception {
+    private void sendDataRow(ResultSet rs, int[] formatCodes) throws Exception {
         ResultSetMetaData metaData = rs.getMetaData();
         int columns = metaData.getColumnCount();
         startMessage('D');
         writeShort(columns);
         for (int i = 1; i <= columns; i++) {
-            writeDataColumn(rs, i, PgServer.convertType(metaData.getColumnType(i)));
+            int pgType = PgServer.convertType(metaData.getColumnType(i));
+            boolean text = formatAsText(pgType);
+            if (formatCodes != null) {
+                if (formatCodes.length == 0) {
+                    text = true;
+                } else if (formatCodes.length == 1) {
+                    text = formatCodes[0] == 0;
+                } else if (i - 1 < formatCodes.length) {
+                    text = formatCodes[i - 1] == 0;
+                }
+            }
+            writeDataColumn(rs, i, pgType, text);
         }
         sendMessage();
     }
 
-    private void writeDataColumn(ResultSet rs, int column, int pgType)
+    private void writeDataColumn(ResultSet rs, int column, int pgType, boolean text)
             throws Exception {
-        if (formatAsText(pgType)) {
+        if (text) {
             // plain text
             switch (pgType) {
             case PgServer.PG_TYPE_BOOL:

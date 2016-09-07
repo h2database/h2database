@@ -910,6 +910,14 @@ public abstract class Value {
                 case BYTES:
                     return ValueUuid.get(getBytesNoCopy());
                 case JAVA_OBJECT:
+                    Object object = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
+                    if (object instanceof java.util.UUID) {
+                        java.util.UUID uuid = (java.util.UUID) object;
+                        return ValueUuid.get(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
+                    }
+                    else {
+                        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
+                    }
                 case TIMESTAMP_TZ:
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());

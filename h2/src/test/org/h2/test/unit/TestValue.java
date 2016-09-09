@@ -286,10 +286,12 @@ public class TestValue extends TestBase {
         assertEquals("00000000-0000-4000-8000-000000000000", min.getString());
 
         // Test conversion from ValueJavaObject to ValueUuid
-        ValueJavaObject valObj = ValueJavaObject.getNoCopy(UUID.fromString("12345678-1234-4321-8765-123456789012"), null, null);
+        UUID origUUID = UUID.fromString("12345678-1234-4321-8765-123456789012");
+        ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
         Value valUUID = valObj.convertTo(Value.UUID);
         assertTrue(valUUID instanceof ValueUuid);
         assertTrue((valUUID.getString().equals("12345678-1234-4321-8765-123456789012")));
+        assertTrue(valUUID.getObject().equals(origUUID));
 
         ValueJavaObject vo_string = ValueJavaObject.getNoCopy(new String("This is not a ValueUuid object"), null, null);
         assertThrows(DbException.class, vo_string).convertTo(Value.UUID);

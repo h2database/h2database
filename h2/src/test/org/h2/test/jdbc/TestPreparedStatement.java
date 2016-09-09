@@ -460,18 +460,24 @@ public class TestPreparedStatement extends TestBase {
     }
 
     private void testUUIDAsJavaObject(Connection conn) throws SQLException {
+        String uuidStr = "12345678-1234-4321-8765-123456789012";
+
         Statement stat = conn.createStatement();
         stat.execute("create table test_uuid(id uuid primary key)");
-        UUID uuid = new UUID(-2, -1);
-        PreparedStatement prep = conn.prepareStatement(
-                "insert into test_uuid values(?)");
-        prep.setObject(1, uuid, java.sql.Types.JAVA_OBJECT);
+        UUID origUUID = UUID.fromString(uuidStr);
+        PreparedStatement prep = conn.prepareStatement("insert into test_uuid values(?)");
+        prep.setObject(1, origUUID, java.sql.Types.JAVA_OBJECT);
         prep.execute();
-        ResultSet rs = stat.executeQuery("select * from test_uuid");
+
+        prep = conn.prepareStatement("select * from test_uuid where id=?");
+        prep.setObject(1, origUUID);
+        ResultSet rs = prep.executeQuery();
         rs.next();
-        assertEquals("ffffffff-ffff-fffe-ffff-ffffffffffff", rs.getString(1));
         Object o = rs.getObject(1);
-        assertEquals("java.util.UUID", o.getClass().getName());
+        assertTrue(o instanceof UUID);
+        UUID selectedUUID = (UUID) o;
+        assertTrue(selectedUUID.toString().equals(uuidStr));
+        assertTrue(selectedUUID.equals(origUUID));
         stat.execute("drop table test_uuid");
     }
 

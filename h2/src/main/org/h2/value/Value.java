@@ -314,9 +314,9 @@ public abstract class Value {
             return 40;
         case BLOB:
             return 41;
-        case UUID:
-            return 42;
         case JAVA_OBJECT:
+            return 42;
+        case UUID:
             return 43;
         case GEOMETRY:
             return 44;

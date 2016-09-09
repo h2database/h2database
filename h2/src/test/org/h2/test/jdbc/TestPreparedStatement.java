@@ -470,7 +470,7 @@ public class TestPreparedStatement extends TestBase {
         prep.execute();
 
         prep = conn.prepareStatement("select * from test_uuid where id=?");
-        prep.setObject(1, origUUID);
+        prep.setObject(1, origUUID, java.sql.Types.JAVA_OBJECT);
         ResultSet rs = prep.executeQuery();
         rs.next();
         Object o = rs.getObject(1);

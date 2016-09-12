@@ -226,8 +226,8 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
-    | ( { columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnDefinition | ( { columnDefinition } [,...] ) }
+[ { BEFORE | AFTER } columnName ]
 ","
 Adds a new column to a table.
 This command commits an open transaction in this connection.

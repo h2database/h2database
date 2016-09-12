@@ -5719,7 +5719,11 @@ public class Parser {
                 columnsToAdd.add(column);
             } while (readIf(","));
             read(")");
-            command.setNewColumns(columnsToAdd);
+            if (readIf("BEFORE")) {
+                command.setAddBefore(readColumnIdentifier());
+            } else if (readIf("AFTER")) {
+                command.setAddAfter(readColumnIdentifier());
+            }
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);

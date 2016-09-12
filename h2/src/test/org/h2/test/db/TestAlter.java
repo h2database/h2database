@@ -48,6 +48,8 @@ public class TestAlter extends TestBase {
         testAlterTableAlterColumn2();
         testAlterTableAddColumnBefore();
         testAlterTableAddColumnAfter();
+        testAlterTableAddMultipleColumnsBefore();
+        testAlterTableAddMultipleColumnsAfter();
         testAlterTableModifyColumn();
         conn.close();
         deleteDb(getTestName());
@@ -204,6 +206,38 @@ public class TestAlter extends TestBase {
         stat.execute("create table t(x varchar) as select 'x'");
         stat.execute("alter table t add (y int)");
         stat.execute("drop table t");
+    }
+
+    // column and field names must be upper-case due to getMetaData sensitivity
+    private void testAlterTableAddMultipleColumnsBefore() throws SQLException {
+        stat.execute("create table T(X varchar)");
+        stat.execute("alter table T add (Y int, Z int) before X");
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getColumns(null, null, "T", null);
+        assertTrue(rs.next());
+        assertEquals("Y", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Z", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("X", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        stat.execute("drop table T");
+    }
+
+    // column and field names must be upper-case due to getMetaData sensitivity
+    private void testAlterTableAddMultipleColumnsAfter() throws SQLException {
+        stat.execute("create table T(X varchar)");
+        stat.execute("alter table T add (Y int, Z int) after X");
+        DatabaseMetaData dbMeta = conn.getMetaData();
+        ResultSet rs = dbMeta.getColumns(null, null, "T", null);
+        assertTrue(rs.next());
+        assertEquals("X", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Y", rs.getString("COLUMN_NAME"));
+        assertTrue(rs.next());
+        assertEquals("Z", rs.getString("COLUMN_NAME"));
+        assertFalse(rs.next());
+        stat.execute("drop table T");
     }
 
     // column and field names must be upper-case due to getMetaData sensitivity

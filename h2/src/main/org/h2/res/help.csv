@@ -84,8 +84,8 @@ ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY l
 Changes the parameters of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
-    | ( { columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnDefinition | ( { columnDefinition } [,...] ) }
+[ { BEFORE | AFTER } columnName ]
 ","
 Adds a new column to a table."
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","

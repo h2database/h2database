@@ -670,9 +670,9 @@ public class Server extends Tool implements Runnable, ShutdownHandler {
                 // Mac OS: to open a page with Safari, use "open -a Safari"
                 Runtime.getRuntime().exec(new String[] { "open", url });
             } else {
-                String[] browsers = { "chromium", "google-chrome", "firefox",
-                        "mozilla-firefox", "mozilla", "konqueror", "netscape",
-                        "opera", "midori" };
+                String[] browsers = { "xdg-open", "chromium", "google-chrome",
+                        "firefox", "mozilla-firefox", "mozilla", "konqueror",
+                        "netscape", "opera", "midori" };
                 boolean ok = false;
                 for (String b : browsers) {
                     try {

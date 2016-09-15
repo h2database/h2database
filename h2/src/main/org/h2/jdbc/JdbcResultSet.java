@@ -27,7 +27,10 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
 import org.h2.api.ErrorCode;
+import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -54,6 +57,8 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * <p>
@@ -3679,25 +3684,86 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     /**
-     * [Not supported]
+     * Returns a column value as a Java object. The data is
+     * de-serialized into a Java object (on the client side).
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
+     * @throws SQLException if the column is not found or if the result set is
+     *             closed
      */
     @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-        throw unsupported("getObject");
+        try {
+            if (type == null) {
+                throw DbException.getInvalidValueException("type", type);
+            }
+            debugCodeCall("getObject", columnIndex);
+            Value value = get(columnIndex);
+            return extractObjectOfType(type, value);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
-     * [Not supported]
+     * Returns a column value as a Java object. The data is
+     * de-serialized into a Java object (on the client side).
      *
      * @param columnName the column name
      * @param type the class of the returned value
      */
     @Override
     public <T> T getObject(String columnName, Class<T> type) throws SQLException {
-        throw unsupported("getObject");
+        try {
+            if (type == null) {
+                throw DbException.getInvalidValueException("type", type);
+            }
+            debugCodeCall("getObject", columnName);
+            Value value = get(columnName);
+            return extractObjectOfType(type, value);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    private <T> T extractObjectOfType(Class<T> type, Value value) throws SQLException {
+        if (value == ValueNull.INSTANCE) {
+            return null;
+        }
+        if (type == BigDecimal.class) {
+            return type.cast(value.getBigDecimal());
+        } else if (type == String.class) {
+            return type.cast(value.getString());
+        } else if (type == Boolean.class) {
+            return type.cast(value.getBoolean());
+        } else if (type == Byte.class) {
+            return type.cast(value.getByte());
+        } else if (type == Short.class) {
+            return type.cast(value.getShort());
+        } else if (type == Integer.class) {
+            return type.cast(value.getInt());
+        } else if (type == Long.class) {
+            return type.cast(value.getLong());
+        } else if (type == Float.class) {
+            return type.cast(value.getFloat());
+        } else if (type == Double.class) {
+            return type.cast(value.getDouble());
+        } else if (type == Date.class) {
+            return type.cast(value.getDate());
+        } else if (type == Time.class) {
+            return type.cast(value.getTime());
+        } else if (type == Timestamp.class) {
+            return type.cast(value.getTimestamp());
+        } else if (type == UUID.class) {
+            return type.cast(value.getObject());
+        } else if (type == TimestampWithTimeZone.class) {
+            return type.cast(value.getObject());
+        } else if (type.isAssignableFrom(Geometry.class)) {
+            return type.cast(value.getObject());
+        } else {
+            throw unsupported(type.getClass().getName());
+        }
     }
 
     /**

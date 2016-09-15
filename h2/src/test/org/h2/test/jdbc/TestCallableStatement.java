@@ -23,6 +23,7 @@ import java.sql.Types;
 import java.util.Collections;
 
 import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcCallableStatementBackwardsCompat;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.IOUtils;
@@ -147,6 +148,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals(1, call.getLong(1));
         assertEquals(1, call.getByte(1));
         assertEquals(1, ((Long) call.getObject(1)).longValue());
+        assertEquals(1, ((JdbcCallableStatementBackwardsCompat) call).getObject(1, Long.class).longValue());
         assertFalse(call.wasNull());
 
         call.setFloat(2, 1.1f);

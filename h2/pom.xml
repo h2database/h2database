@@ -37,6 +37,7 @@
     <derby.version>10.10.1.1</derby.version>
     <osgi.version>4.2.0</osgi.version>
     <slf4j.version>1.6.0</slf4j.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>

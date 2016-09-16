@@ -1571,7 +1571,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      */
     @Override
     public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
-        throw unsupported("getObject");
+        return getOpenResultSet().getObject(parameterIndex, type);
     }
 
     /**
@@ -1582,7 +1582,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      */
     @Override
     public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
-        throw unsupported("getObject");
+        return getObject(getIndexForName(parameterName), type);
     }
 
     private ResultSetMetaData getCheckedMetaData() throws SQLException {

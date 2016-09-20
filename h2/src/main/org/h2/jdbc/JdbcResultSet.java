@@ -38,6 +38,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
+import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -57,6 +58,7 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -77,6 +79,7 @@ import com.vividsolutions.jts.geom.Geometry;
  * </p>
  */
 public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultSetBackwardsCompat {
+
     private final boolean closeStatement;
     private final boolean scrollable;
     private final boolean updatable;
@@ -3779,6 +3782,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getObject());
         } else if (type.isAssignableFrom(Geometry.class)) {
             return type.cast(value.getObject());
+        } else if (LocalDateTimeUtils.isLocalDate(type)) {
+            return type.cast(LocalDateTimeUtils.valueToLocalDate(value));
+        } else if (LocalDateTimeUtils.isLocalTime(type)) {
+            return type.cast(LocalDateTimeUtils.valueToLocalTime(value));
+        } else if (LocalDateTimeUtils.isLocalDateTime(type)) {
+            return type.cast(LocalDateTimeUtils.valueToLocalDateTime(
+                            (ValueTimestamp) value));
+        } else if (LocalDateTimeUtils.isOffsetDateTime(type) && value instanceof ValueTimestampTimeZone) {
+            return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(
+                            (ValueTimestampTimeZone) value));
         } else {
             throw unsupported(type.getClass().getName());
         }

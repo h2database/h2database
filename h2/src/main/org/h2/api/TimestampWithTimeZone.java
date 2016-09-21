@@ -46,15 +46,15 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
         return dateValue;
     }
 
-    public long getYear() {
+    public int getYear() {
         return DateTimeUtils.yearFromDateValue(dateValue);
     }
 
-    public long getMonth() {
+    public int getMonth() {
         return DateTimeUtils.monthFromDateValue(dateValue);
     }
 
-    public long getDay() {
+    public int getDay() {
         return DateTimeUtils.dayFromDateValue(dateValue);
     }
 

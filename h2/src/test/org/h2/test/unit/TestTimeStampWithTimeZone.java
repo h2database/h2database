@@ -37,11 +37,47 @@ public class TestTimeStampWithTimeZone extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id identity, t1 timestamp with timezone)");
         stat.execute("insert into test(t1) values('1970-01-01 12:00:00.00+00:15')");
+        // verify NanosSinceMidnight is in local time and not UTC
+        stat.execute("insert into test(t1) values('2016-09-24 00:00:00.000000001+00:01')");
+        stat.execute("insert into test(t1) values('2016-09-24 00:00:00.000000001-00:01')");
+        // verify year month day is in local time and not UTC
+        stat.execute("insert into test(t1) values('2016-01-01 05:00:00.00+10:00')");
+        stat.execute("insert into test(t1) values('2015-12-31 19:00:00.00-10:00')");
         ResultSet rs = stat.executeQuery("select t1 from test");
         rs.next();
         assertEquals("1970-01-01 12:00:00.0+00:15", rs.getString(1));
         TimestampWithTimeZone ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(1970, ts.getYear());
+        assertEquals(1, ts.getMonth());
+        assertEquals(1, ts.getDay());
+        assertEquals(15, ts.getTimeZoneOffsetMins());
         assertEquals(new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15), ts);
+        rs.next();
+        ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(2016, ts.getYear());
+        assertEquals(9, ts.getMonth());
+        assertEquals(24, ts.getDay());
+        assertEquals(1, ts.getTimeZoneOffsetMins());
+        assertEquals(1L, ts.getNanosSinceMidnight());
+        rs.next();
+        ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(2016, ts.getYear());
+        assertEquals(9, ts.getMonth());
+        assertEquals(24, ts.getDay());
+        assertEquals(-1, ts.getTimeZoneOffsetMins());
+        assertEquals(1L, ts.getNanosSinceMidnight());
+        rs.next();
+        ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(2016, ts.getYear());
+        assertEquals(1, ts.getMonth());
+        assertEquals(1, ts.getDay());
+        rs.next();
+        ts = (TimestampWithTimeZone) rs.getObject(1);
+        assertEquals(2015, ts.getYear());
+        assertEquals(12, ts.getMonth());
+        assertEquals(31, ts.getDay());
+        rs.close();
+        stat.close();
         conn.close();
     }
 

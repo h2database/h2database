@@ -262,7 +262,12 @@ public class TriggerObject extends SchemaObjectBase {
                 throw DbException.convert(e);
             }
         } finally {
-            session.setLastScopeIdentity(identity);
+            if (session.getLastTriggerIdentity() != null) {
+                session.setLastScopeIdentity(session.getLastTriggerIdentity());
+                session.setLastTriggerIdentity(null);
+            } else {
+                session.setLastScopeIdentity(identity);
+            }
             session.setCommitOrRollbackDisabled(oldDisabled);
             session.setAutoCommit(old);
         }

@@ -337,14 +337,13 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         public void init(Connection conn, String schemaName,
                 String triggerName, String tableName, boolean before, int type)
                 throws SQLException {
-            prepInsert = conn.prepareStatement("insert into test values(?)", Statement.RETURN_GENERATED_KEYS);
+            prepInsert = conn.prepareStatement("insert into test values()", Statement.RETURN_GENERATED_KEYS);
         }
 
         @Override
         public void fire(Connection conn, Object[] oldRow, Object[] newRow)
                 throws SQLException {
             if (newRow != null) {
-                prepInsert.setInt(1, (Integer) newRow[0]);
                 prepInsert.execute();
                 ResultSet rs = prepInsert.getGeneratedKeys();
                 if (rs.next()) {

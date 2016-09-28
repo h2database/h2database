@@ -113,6 +113,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testTranslate();
         testGenerateSeries();
         testFileWrite();
+        testThatCurrentTimestampIsSane();
+        testThatCurrentTimestampStaysTheSameWithinATransaction();
+        testThatCurrentTimestampUpdatesOutsideATransaction();
         testAnnotationProcessorsOutput();
 
         deleteDb("functions");
@@ -2000,6 +2003,77 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         } finally {
             System.clearProperty(TestAnnotationProcessor.MESSAGES_KEY);
         }
+    }
+
+    private void testThatCurrentTimestampIsSane() throws SQLException, InterruptedException, ParseException {
+        deleteDb("functions");
+
+        Date before = new Date();
+
+        Connection conn = getConnection("functions");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+
+
+        final String formatted;
+        try (final ResultSet rs = stat.executeQuery("select to_char(current_timestamp(9), 'YYYY MM DD HH24 MI SS FF3') from dual")) {
+            rs.next();
+            formatted = rs.getString(1);
+        }
+
+        Date after = new Date();
+
+        Date parsed = new SimpleDateFormat("y M d H m s S").parse(formatted);
+
+        assertFalse(parsed.before(before));
+        assertFalse(parsed.after(after));
+    }
+
+
+    private void testThatCurrentTimestampStaysTheSameWithinATransaction() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        conn.setAutoCommit(false);
+        Statement stat = conn.createStatement();
+
+        final Timestamp first;
+        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+            rs.next();
+            first = rs.getTimestamp(1);
+        }
+
+        Thread.sleep(1);
+
+        final Timestamp second;
+        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+            rs.next();
+            second = rs.getTimestamp(1);
+        }
+
+        assertEquals(first, second);
+    }
+
+    private void testThatCurrentTimestampUpdatesOutsideATransaction() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        conn.setAutoCommit(true);
+        Statement stat = conn.createStatement();
+
+        final Timestamp first;
+        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+            rs.next();
+            first = rs.getTimestamp(1);
+        }
+
+        Thread.sleep(1);
+
+        final Timestamp second;
+        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+            rs.next();
+            second = rs.getTimestamp(1);
+        }
+
+        assertTrue(second.after(first));
     }
 
     private void callCompiledFunction(String functionName) throws SQLException {

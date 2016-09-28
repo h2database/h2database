@@ -85,6 +85,8 @@ Advanced
     Database Upgrade</a><br />
 <a href="#java_objects_serialization">
     Java Objects Serialization</a><br />
+<a href="#time_source">
+    Alternative Time Sources</a><br />
 <a href="#limits_limitations">
     Limits and Limitations</a><br />
 <a href="#glossary_links">
@@ -1682,6 +1684,18 @@ Please note that this SQL statement can only be executed before any tables are d
 </p>
 </li>
 </ul>
+</p>
+
+<h2 id="time_source">Alternative Time Sources</h2>
+<p>
+By default, time stamps are generated using
+<code>System.currentTimeMillis</code>, which limits the precision to at most
+milliseconds. This can be changed using the <code>TIME_SOURCE</code> option.
+The default value is <code>org.h2.time.MillisecondTimeSource</code>, but if set
+to <code>org.h2.time.ElapsedNanoTimeSource</code>, an alternative time source
+that provides nanosecond precision but may not react to system clock changes
+(e.g.  NTP updates) is used. If desired, users can supply other implementations
+of the <code>org.h2.time.TimeSource</code> interface to get other behaviour.
 </p>
 
 <h2 id="limits_limitations">Limits and Limitations</h2>

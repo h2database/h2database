@@ -10,7 +10,9 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+
 import org.h2.message.DbException;
+import org.h2.time.Timestamp;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
@@ -78,6 +80,13 @@ public final class ValueTimestampUtc extends Value {
      */
     public static ValueTimestampUtc fromNanos(long nanos) {
         return (ValueTimestampUtc) Value.cache(new ValueTimestampUtc(nanos));
+    }
+
+    /**
+     * Convenience method for creating a ValueTimestampUtc from a Timestamp.
+     */
+    public static ValueTimestampUtc fromTimestamp(Timestamp ts) {
+        return fromMillisNanos(ts.getSystemTimeInMillis(), ts.getFraction());
     }
 
     /**
@@ -263,5 +272,4 @@ public final class ValueTimestampUtc extends Value {
         long d1 = utcDateTimeNanos - t.utcDateTimeNanos;
         return new ValueTimestampUtc(d1);
     }
-
 }

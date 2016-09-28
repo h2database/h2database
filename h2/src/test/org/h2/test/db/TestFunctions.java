@@ -34,10 +34,13 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
@@ -118,6 +121,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testThatCurrentTimestampUpdatesOutsideATransaction();
         testThatToCharTruncates();
         testThatTimestampsSurviveStringRoundtrips();
+        testThatTimestampMillisecondsAreConsistent();
+        testThatCurrentTimestampHasHighPrecision();
+        testThatNanosecondsAreIncludedWhenFormatted();
         testAnnotationProcessorsOutput();
 
         deleteDb("functions");
@@ -2125,6 +2131,102 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             }
 
             assertEquals(raw, roundtripped);
+        }
+    }
+
+    private void testThatTimestampMillisecondsAreConsistent() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions", "TIME_SOURCE=org.h2.time.ElapsedNanoTimeSource")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
+
+            long deadline = System.currentTimeMillis() + 20;
+
+            while (System.currentTimeMillis() < deadline) {
+                final int limited;
+                try (final ResultSet rs = stat.executeQuery("select to_char(CURRENT_TIMESTAMP(3), 'FF3') from DUAL")) {
+                    rs.next();
+                    limited = Integer.parseInt(rs.getString(1));
+                }
+
+                final int full;
+                try (final ResultSet rs = stat.executeQuery("select to_char(CURRENT_TIMESTAMP, 'FF3') from DUAL")) {
+                    rs.next();
+                    full = Integer.parseInt(rs.getString(1));
+                }
+
+                // CURRENT_TIMESTAMP(3) rounds, but TO_CHAR truncates.
+                assertTrue(limited == full || limited - 1 == full);
+
+                conn.commit();
+            }
+        }
+    }
+
+    private void testThatCurrentTimestampHasHighPrecision() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions", "TIME_SOURCE=org.h2.time.ElapsedNanoTimeSource")) {
+            conn.setAutoCommit(true);
+            Statement stat = conn.createStatement();
+
+            Set<Long> seen = new HashSet<Long>();
+
+            for (int i = 0; i < 100; i++) {
+                final Timestamp t;
+                try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+                    rs.next();
+                    t = rs.getTimestamp(1);
+                }
+                long nanos = t.getNanos() % 1000000;
+                seen.add(nanos);
+                if (seen.size() > 1) {
+                    return;
+                }
+            }
+            assertTrue("Never got more than one nanosecond value", false);
+        }
+    }
+
+    private void testThatCurrentTimestampHasSelectablePrecision() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
+
+            for (int i = 1; i <= 9; i++) {
+
+                final Timestamp raw;
+                try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP(" + i + ") from DUAL")) {
+                    rs.next();
+                    raw = rs.getTimestamp(1);
+                }
+                String nanos = Integer.toString(raw.getNanos());
+                assertTrue(nanos.substring(i).matches("0+"));
+            }
+        }
+    }
+
+    private void testThatNanosecondsAreIncludedWhenFormatted() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions", "TIME_SOURCE=org.h2.time.ElapsedNanoTimeSource")) {
+            conn.setAutoCommit(true);
+            Statement stat = conn.createStatement();
+
+            Set<String> seen = new HashSet<String>();
+
+            for (int i = 0; i < 100; i++) {
+                final String t;
+                try (final ResultSet rs = stat.executeQuery("select to_char(current_timestamp(9), 'FF9') from dual")) {
+                    rs.next();
+                    t = rs.getString(1);
+                }
+                String nanos = t.substring(3);
+                seen.add(nanos);
+                if (seen.size() > 1) {
+                    return;
+                }
+            }
+            assertTrue("Never got more than one nanosecond value", false);
         }
     }
 

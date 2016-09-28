@@ -3486,7 +3486,9 @@ CURRENT_TIME()
 { CURRENT_TIMESTAMP [ ( [ int ] ) ] | NOW( [ int ] ) }
 ","
 Returns the current timestamp.
-The precision parameter for nanoseconds precision is optional.
+The resolution parameter for nanoseconds resolution is optional.
+By default, at most millisecond precision is provided, regardless of the
+resolution. This can be changed using the TIME_SOURCE option.
 This method always returns the same value within a transaction.
 ","
 CURRENT_TIMESTAMP()

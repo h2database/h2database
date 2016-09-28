@@ -331,4 +331,7 @@ public class ValueTimestamp extends Value {
         return DateTimeUtils.normalizeTimestamp(d1 - d2, timeNanos - t.timeNanos);
     }
 
+    public static ValueTimestamp fromTimestamp(org.h2.time.Timestamp ts) {
+        return fromMillisNanos(ts.getSystemTimeInMillis(), ts.getFraction());
+    }
 }

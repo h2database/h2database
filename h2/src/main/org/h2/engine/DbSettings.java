@@ -7,6 +7,9 @@ package org.h2.engine;
 
 import java.util.HashMap;
 
+import org.h2.time.ElapsedNanoTimeSource;
+import org.h2.time.MillisecondTimeSource;
+
 /**
  * This class contains various database-level settings. To override the
  * documented default value for a database, append the setting in the database
@@ -343,6 +346,18 @@ public class DbSettings extends SettingsBase {
      * Compress data when storing.
      */
     public final boolean compressData = get("COMPRESS", false);
+
+    /**
+     * Database setting <code>TIME_SOURCE</code>
+     * (default: org.h2.time.MillisecondTimeSource).<br />
+     * Specifies which class to use as time source. The default is {@link MillisecondTimeSource},
+     * which uses {@link System#currentTimeMillis}. Also provided is
+     * {@link ElapsedNanoTimeSource}, which uses nanosecond precision, but may not take updates
+     * to the system clock in effect. Users can provide custom implementations of
+     * {@link org.h2.time.TimeSource} here.
+     */
+    public final String timeSource = get("TIME_SOURCE", "org.h2.time.MillisecondTimeSource");
+
 
     private DbSettings(HashMap<String, String> s) {
         super(s);

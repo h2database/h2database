@@ -20,6 +20,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.time.Timestamp;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -295,18 +296,18 @@ public class Column {
                     if (dt.decimal) {
                         value = ValueInt.get(0).convertTo(type);
                     } else if (dt.type == Value.TIMESTAMP) {
-                        value = ValueTimestamp.fromMillis(session.getTransactionStart());
+                        value = ValueTimestamp.fromTimestamp(session.getTransactionStart());
                     } else if (dt.type == Value.TIMESTAMP_UTC) {
-                        value = ValueTimestampUtc.fromMillis(session.getTransactionStart());
+                        value = ValueTimestampUtc.fromTimestamp(session.getTransactionStart());
                     } else if (dt.type == Value.TIMESTAMP_TZ) {
-                        long ms = session.getTransactionStart();
+                        Timestamp ms = session.getTransactionStart();
                         value = ValueTimestampTimeZone.fromDateValueAndNanos(
-                                DateTimeUtils.dateValueFromDate(ms),
-                                DateTimeUtils.nanosFromDate(ms), (short) 0);
+                                DateTimeUtils.dateValueFromDate(ms.getSystemTimeInMillis()),
+                                DateTimeUtils.nanosFromDate(ms.getFraction()), (short) 0);
                     } else if (dt.type == Value.TIME) {
                         value = ValueTime.fromNanos(0);
                     } else if (dt.type == Value.DATE) {
-                        value = ValueDate.fromMillis(session.getTransactionStart());
+                        value = ValueDate.fromTimestamp(session.getTransactionStart());
                     } else {
                         value = ValueString.get("").convertTo(type);
                     }

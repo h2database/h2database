@@ -116,6 +116,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testThatCurrentTimestampIsSane();
         testThatCurrentTimestampStaysTheSameWithinATransaction();
         testThatCurrentTimestampUpdatesOutsideATransaction();
+        testThatToCharTruncates();
+        testThatTimestampsSurviveStringRoundtrips();
         testAnnotationProcessorsOutput();
 
         deleteDb("functions");
@@ -2077,6 +2079,52 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             }
 
             assertTrue(second.after(first));
+        }
+    }
+
+    private void testThatToCharTruncates() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions")) {
+            Statement stat = conn.createStatement();
+
+            final String rounded;
+            try (final ResultSet rs = stat.executeQuery(
+                "select to_char(parsedatetime('2000 01 02 03 04 05 169', 'y M d H m s S'), 'FF2') from DUAL")) {
+                rs.next();
+                rounded = rs.getString(1);
+            }
+            assertEquals("16", rounded);
+        }
+    }
+
+
+    private void testThatTimestampsSurviveStringRoundtrips() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
+
+            final Timestamp raw;
+            try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP(3) from DUAL")) {
+                rs.next();
+                raw = rs.getTimestamp(1);
+            }
+
+            final String formatted;
+            try (final ResultSet rs = stat
+                .executeQuery("select to_char(CURRENT_TIMESTAMP(3), 'YYYY MM DD HH24 MI SS FF3') from DUAL")) {
+                rs.next();
+                formatted = rs.getString(1);
+            }
+
+            final Timestamp roundtripped;
+            try (final ResultSet rs = stat
+                .executeQuery("select parsedatetime('" + formatted + "', 'y M d H m s S') from DUAL")) {
+                rs.next();
+                roundtripped = rs.getTimestamp(1);
+            }
+
+            assertEquals(raw, roundtripped);
         }
     }
 

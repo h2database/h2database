@@ -1275,15 +1275,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     private void testOraHash() throws SQLException {
         deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        String testStr = "foo";
-        assertResult(String.valueOf("foo".hashCode()), stat,
+        try (Connection conn = getConnection("functions")) {
+            Statement stat = conn.createStatement();
+            String testStr = "foo";
+            assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
-        assertResult(String.valueOf("foo".hashCode()), stat,
+            assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
-        assertResult(String.valueOf("foo".hashCode()), stat,
+            assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+        }
     }
 
     private void testToDateException() {

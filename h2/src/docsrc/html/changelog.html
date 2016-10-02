@@ -21,6 +21,30 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>WARNING: THE MERGE BELOW WILL AFFECT ANY 'TIMESTAMP WITH TIMEZONE' INDEXES. You will need to drop and recreate any such indexes.
+</li>
+<li>PR #364: fix compare TIMESTAMP WITH TIMEZONE
+</li>
+<li>PR #363: Added support to define last IDENTIFIER on a Trigger.
+</li>
+<li>PR #366: Tests for timestamps
+</li>
+<li>PR #361: Improve TimestampWithTimeZone javadoc
+</li>
+<li>PR #360: Change getters in TimestampWithTimeZone to int
+</li>
+<li>PR #359: Added missing source encoding. Assuming UTF-8.
+</li>
+<li>PR #353: Add support for converting JAVA_OBJECT to UUID
+</li>
+<li>PR #358: Add support for getObject(int|String, Class)
+</li>
+<li>PR #357: Server: use xdg-open to open the WebConsole in the user's preferred browser on Linux
+</li>
+<li>PR #356: Support for BEFORE and AFTER clauses when using multiple columns in ALTER TABLE ADD
+</li>
+<li>PR #351: Respect format codes from Bind message when sending results
+</li>
 <li>ignore summary line when compiling stored procedure
 </li>
 <li>PR #348: pg: send RowDescription in response to Describe (statement variant), patch by kostya-sh

@@ -788,6 +788,10 @@ The date data type."
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type."
+"Data Types","TIMESTAMP WITH TIMEZONE Type","
+TIMESTAMP WITH TIMEZONE
+","
+VERY MUCH STILL IN TESTING."
 "Data Types","BINARY Type","
 { BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA } [ ( precisionInt ) ]
 ","

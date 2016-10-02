@@ -2325,10 +2325,24 @@ DATE
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+Stored internally as a BCD-encoded date, and nano-seconds since midnight.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
 ","
 TIMESTAMP
+"
+
+"Data Types","TIMESTAMP WITH TIMEZONE Type","
+TIMESTAMP WITH TIMEZONE
+","
+VERY MUCH STILL IN TESTING.
+The timestamp with timezone data type.
+Stored internally as a BCD-encoded date, nano-seconds since midnight, and timezone offset in minutes.
+Note that range queries on this datatype may do some weird stuff close to DST boundaries.
+
+Mapped to ""org.h2.api.TimestampWithTimeZone""
+","
+TIMESTAMP WITH TIMEZONE
 "
 
 "Data Types","BINARY Type","

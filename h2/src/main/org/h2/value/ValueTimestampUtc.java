@@ -15,7 +15,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
- * Implementation of the TIMESTAMP data type.
+ * Implementation of the TIMESTAMP UTC data type.
  */
 public final class ValueTimestampUtc extends Value {
 

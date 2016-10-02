@@ -879,22 +879,22 @@ public class Function extends Expression implements FunctionCall {
             break;
         case CURDATE:
         case CURRENT_DATE: {
-            long now = session.getTransactionStart();
+            org.h2.time.Timestamp now = session.getTransactionStart();
             // need to normalize
-            result = ValueDate.fromMillis(now);
+            result = ValueDate.fromTimestamp(now);
             break;
         }
         case CURTIME:
         case CURRENT_TIME: {
-            long now = session.getTransactionStart();
+            org.h2.time.Timestamp now = session.getTransactionStart();
             // need to normalize
-            result = ValueTime.fromMillis(now);
+            result = ValueTime.fromTimestamp(now);
             break;
         }
         case NOW:
         case CURRENT_TIMESTAMP: {
-            long now = session.getTransactionStart();
-            ValueTimestamp vt = ValueTimestamp.fromMillis(now);
+            org.h2.time.Timestamp now = session.getTransactionStart();
+            ValueTimestamp vt = ValueTimestamp.fromTimestamp(now);
             if (v0 != null) {
                 Mode mode = database.getMode();
                 vt = (ValueTimestamp) vt.convertScale(

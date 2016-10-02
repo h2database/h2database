@@ -39,6 +39,10 @@ import org.h2.store.LobStorageFrontend;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.time.ElapsedNanoTimeSource;
+import org.h2.time.TimeSource;
+import org.h2.time.Timestamp;
+import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -101,8 +105,8 @@ public class Session extends SessionWithState {
     private String currentTransactionName;
     private volatile long cancelAt;
     private boolean closed;
-    private final long sessionStart = System.currentTimeMillis();
-    private long transactionStart;
+    private final Timestamp sessionStart;
+    private Timestamp transactionStart;
     private long currentCommandStart;
     private HashMap<String, Value> variables;
     private HashSet<LocalResult> temporaryResults;
@@ -122,6 +126,7 @@ public class Session extends SessionWithState {
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
+    private TimeSource timeSource = new ElapsedNanoTimeSource();
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -148,11 +153,18 @@ public class Session extends SessionWithState {
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
+        final Class<TimeSource> timeSourceClass = JdbcUtils.loadUserClass(database.getSettings().timeSource);
+        try {
+            timeSource = timeSourceClass.newInstance();
+        } catch (Exception e) {
+            throw DbException.convert(e);
+        }
         Setting setting = database.findSetting(
                 SetTypes.getTypeName(SetTypes.DEFAULT_LOCK_TIMEOUT));
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+        this.sessionStart = timeSource.getCurrentTimestamp();
     }
 
     public void setForceJoinOrder(boolean forceJoinOrder) {
@@ -596,7 +608,7 @@ public class Session extends SessionWithState {
     public void commit(boolean ddl) {
         checkCommitRollback();
         currentTransactionName = null;
-        transactionStart = 0;
+        transactionStart = null;
         if (transaction != null) {
             // increment the data mod count, so that other sessions
             // see the changes
@@ -1380,13 +1392,13 @@ public class Session extends SessionWithState {
         autoCommit = false;
     }
 
-    public long getSessionStart() {
+    public Timestamp getSessionStart() {
         return sessionStart;
     }
 
-    public long getTransactionStart() {
-        if (transactionStart == 0) {
-            transactionStart = System.currentTimeMillis();
+    public Timestamp getTransactionStart() {
+        if (transactionStart == null) {
+            transactionStart = timeSource.getCurrentTimestamp();
         }
         return transactionStart;
     }

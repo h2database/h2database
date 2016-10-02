@@ -11,6 +11,7 @@ import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.time.Timestamp;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
@@ -66,6 +67,14 @@ public class ValueDate extends Value {
      */
     public static ValueDate fromMillis(long ms) {
         return fromDateValue(DateTimeUtils.dateValueFromDate(ms));
+    }
+
+
+    /**
+     * Convenience method for creating a ValueDate from a Timestamp.
+     */
+    public static ValueDate fromTimestamp(Timestamp timestamp) {
+        return fromMillis(timestamp.getSystemTimeInMillis());
     }
 
     /**
@@ -169,5 +178,4 @@ public class ValueDate extends Value {
         buff.append('-');
         StringUtils.appendZeroPadded(buff, 2, d);
     }
-
 }

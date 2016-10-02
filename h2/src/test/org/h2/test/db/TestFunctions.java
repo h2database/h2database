@@ -34,10 +34,13 @@ import java.util.Calendar;
 import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
@@ -116,6 +119,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testThatCurrentTimestampIsSane();
         testThatCurrentTimestampStaysTheSameWithinATransaction();
         testThatCurrentTimestampUpdatesOutsideATransaction();
+        testThatToCharTruncates();
+        testThatTimestampsSurviveStringRoundtrips();
+        testThatTimestampMillisecondsAreConsistent();
+        testThatCurrentTimestampHasHighPrecision();
+        testThatNanosecondsAreIncludedWhenFormatted();
         testAnnotationProcessorsOutput();
 
         deleteDb("functions");
@@ -1275,15 +1283,16 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     private void testOraHash() throws SQLException {
         deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        String testStr = "foo";
-        assertResult(String.valueOf("foo".hashCode()), stat,
+        try (Connection conn = getConnection("functions")) {
+            Statement stat = conn.createStatement();
+            String testStr = "foo";
+            assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s') FROM DUAL", testStr));
-        assertResult(String.valueOf("foo".hashCode()), stat,
+            assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
-        assertResult(String.valueOf("foo".hashCode()), stat,
+            assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+        }
     }
 
     private void testToDateException() {
@@ -2010,70 +2019,215 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         Date before = new Date();
 
-        Connection conn = getConnection("functions");
-        conn.setAutoCommit(false);
-        Statement stat = conn.createStatement();
+        try (Connection conn = getConnection("functions")){
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
 
+            final String formatted;
+            try (final ResultSet rs = stat
+                .executeQuery("select to_char(current_timestamp(9), 'YYYY MM DD HH24 MI SS FF3') from dual")) {
+                rs.next();
+                formatted = rs.getString(1);
+            }
 
-        final String formatted;
-        try (final ResultSet rs = stat.executeQuery("select to_char(current_timestamp(9), 'YYYY MM DD HH24 MI SS FF3') from dual")) {
-            rs.next();
-            formatted = rs.getString(1);
+            Date after = new Date();
+
+            Date parsed = new SimpleDateFormat("y M d H m s S").parse(formatted);
+
+            assertFalse(parsed.before(before));
+            assertFalse(parsed.after(after));
         }
-
-        Date after = new Date();
-
-        Date parsed = new SimpleDateFormat("y M d H m s S").parse(formatted);
-
-        assertFalse(parsed.before(before));
-        assertFalse(parsed.after(after));
     }
 
 
     private void testThatCurrentTimestampStaysTheSameWithinATransaction() throws SQLException, InterruptedException {
         deleteDb("functions");
-        Connection conn = getConnection("functions");
-        conn.setAutoCommit(false);
-        Statement stat = conn.createStatement();
+        try (Connection conn = getConnection("functions")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
 
-        final Timestamp first;
-        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
-            rs.next();
-            first = rs.getTimestamp(1);
+            final Timestamp first;
+            try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+                rs.next();
+                first = rs.getTimestamp(1);
+            }
+
+            Thread.sleep(1);
+
+            final Timestamp second;
+            try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+                rs.next();
+                second = rs.getTimestamp(1);
+            }
+
+            assertEquals(first, second);
         }
-
-        Thread.sleep(1);
-
-        final Timestamp second;
-        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
-            rs.next();
-            second = rs.getTimestamp(1);
-        }
-
-        assertEquals(first, second);
     }
 
     private void testThatCurrentTimestampUpdatesOutsideATransaction() throws SQLException, InterruptedException {
         deleteDb("functions");
-        Connection conn = getConnection("functions");
-        conn.setAutoCommit(true);
-        Statement stat = conn.createStatement();
+        try (Connection conn = getConnection("functions")) {
+            conn.setAutoCommit(true);
+            Statement stat = conn.createStatement();
 
-        final Timestamp first;
-        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
-            rs.next();
-            first = rs.getTimestamp(1);
+            final Timestamp first;
+            try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+                rs.next();
+                first = rs.getTimestamp(1);
+            }
+
+            Thread.sleep(1);
+
+            final Timestamp second;
+            try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+                rs.next();
+                second = rs.getTimestamp(1);
+            }
+
+            assertTrue(second.after(first));
         }
+    }
 
-        Thread.sleep(1);
+    private void testThatToCharTruncates() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions")) {
+            Statement stat = conn.createStatement();
 
-        final Timestamp second;
-        try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
-            rs.next();
-            second = rs.getTimestamp(1);
+            final String rounded;
+            try (final ResultSet rs = stat.executeQuery(
+                "select to_char(parsedatetime('2000 01 02 03 04 05 169', 'y M d H m s S'), 'FF2') from DUAL")) {
+                rs.next();
+                rounded = rs.getString(1);
+            }
+            assertEquals("16", rounded);
         }
+    }
 
-        assertTrue(second.after(first));
+
+    private void testThatTimestampsSurviveStringRoundtrips() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
+
+            final Timestamp raw;
+            try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP(3) from DUAL")) {
+                rs.next();
+                raw = rs.getTimestamp(1);
+            }
+
+            final String formatted;
+            try (final ResultSet rs = stat
+                .executeQuery("select to_char(CURRENT_TIMESTAMP(3), 'YYYY MM DD HH24 MI SS FF3') from DUAL")) {
+                rs.next();
+                formatted = rs.getString(1);
+            }
+
+            final Timestamp roundtripped;
+            try (final ResultSet rs = stat
+                .executeQuery("select parsedatetime('" + formatted + "', 'y M d H m s S') from DUAL")) {
+                rs.next();
+                roundtripped = rs.getTimestamp(1);
+            }
+
+            assertEquals(raw, roundtripped);
+        }
+    }
+
+    private void testThatTimestampMillisecondsAreConsistent() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions", "TIME_SOURCE=org.h2.time.ElapsedNanoTimeSource")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
+
+            long deadline = System.currentTimeMillis() + 20;
+
+            while (System.currentTimeMillis() < deadline) {
+                final int limited;
+                try (final ResultSet rs = stat.executeQuery("select to_char(CURRENT_TIMESTAMP(3), 'FF3') from DUAL")) {
+                    rs.next();
+                    limited = Integer.parseInt(rs.getString(1));
+                }
+
+                final int full;
+                try (final ResultSet rs = stat.executeQuery("select to_char(CURRENT_TIMESTAMP, 'FF3') from DUAL")) {
+                    rs.next();
+                    full = Integer.parseInt(rs.getString(1));
+                }
+
+                // CURRENT_TIMESTAMP(3) rounds, but TO_CHAR truncates.
+                assertTrue(limited == full || limited - 1 == full);
+
+                conn.commit();
+            }
+        }
+    }
+
+    private void testThatCurrentTimestampHasHighPrecision() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions", "TIME_SOURCE=org.h2.time.ElapsedNanoTimeSource")) {
+            conn.setAutoCommit(true);
+            Statement stat = conn.createStatement();
+
+            Set<Long> seen = new HashSet<Long>();
+
+            for (int i = 0; i < 100; i++) {
+                final Timestamp t;
+                try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP from DUAL")) {
+                    rs.next();
+                    t = rs.getTimestamp(1);
+                }
+                long nanos = t.getNanos() % 1000000;
+                seen.add(nanos);
+                if (seen.size() > 1) {
+                    return;
+                }
+            }
+            assertTrue("Never got more than one nanosecond value", false);
+        }
+    }
+
+    private void testThatCurrentTimestampHasSelectablePrecision() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions")) {
+            conn.setAutoCommit(false);
+            Statement stat = conn.createStatement();
+
+            for (int i = 1; i <= 9; i++) {
+
+                final Timestamp raw;
+                try (final ResultSet rs = stat.executeQuery("select CURRENT_TIMESTAMP(" + i + ") from DUAL")) {
+                    rs.next();
+                    raw = rs.getTimestamp(1);
+                }
+                String nanos = Integer.toString(raw.getNanos());
+                assertTrue(nanos.substring(i).matches("0+"));
+            }
+        }
+    }
+
+    private void testThatNanosecondsAreIncludedWhenFormatted() throws SQLException, InterruptedException {
+        deleteDb("functions");
+        try (Connection conn = getConnection("functions", "TIME_SOURCE=org.h2.time.ElapsedNanoTimeSource")) {
+            conn.setAutoCommit(true);
+            Statement stat = conn.createStatement();
+
+            Set<String> seen = new HashSet<String>();
+
+            for (int i = 0; i < 100; i++) {
+                final String t;
+                try (final ResultSet rs = stat.executeQuery("select to_char(current_timestamp(9), 'FF9') from dual")) {
+                    rs.next();
+                    t = rs.getString(1);
+                }
+                String nanos = t.substring(3);
+                seen.add(nanos);
+                if (seen.size() > 1) {
+                    return;
+                }
+            }
+            assertTrue("Never got more than one nanosecond value", false);
+        }
     }
 
     private void callCompiledFunction(String functionName) throws SQLException {

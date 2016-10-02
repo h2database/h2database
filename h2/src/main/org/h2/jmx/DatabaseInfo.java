@@ -245,7 +245,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
                     append(session.getUser().getName()).
                     append('\n');
             buff.append("connected: ").
-                    append(new Timestamp(session.getSessionStart())).
+                    append(new Timestamp(session.getSessionStart().getSystemTimeInMillis())).
                     append('\n');
             Command command = session.getCurrentCommand();
             if (command != null) {

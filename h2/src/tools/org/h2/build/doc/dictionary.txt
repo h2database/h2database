@@ -125,7 +125,7 @@ connects connecturl cons consecutive consequences consequential conservative
 conserve consider considerations considered consistency consistent consistently
 consisting consists console consortium conspicuously const constant constants
 constitute constitutes constraint constraints construct constructed constructing
-construction constructor constructors constructs construe construed consult
+constructible construction constructor constructors constructs construe construed consult
 consulting consumes consumption contact contacts contain contained container
 containers containing contains contended contends content contents context
 contiguous contingent continuation continue continued continues continuous
@@ -258,7 +258,7 @@ footprint for forall forbidden force forced forcefully forces forcing foreign
 forever forge forget forgetting forgot forgotten fork form formal format
 formatdatetime formats formatted formatter formatting formed forms formula forth
 fortin forward forwarding found foundation four fourth fox fqn frac fraction
-fractional fragment fragments frame frameborder frames frameset framespacing
+fractional fractions fragment fragments frame frameborder frames frameset framespacing
 framework frameworks fran france frank frasl fred frederico free freed freeing
 freely frees freezes frem french freq frequencies frequency frequent frequently
 fresh freshmeat freturn friday fried friend friendly from front frontbase
@@ -305,8 +305,8 @@ illegal iload image imageio images img iml immediately immutable imola imp impac
 imperial impersonate impl imple implement implementation implementations
 implemented implementing implements implication implicit implicitly implied
 implies import important imported importing imports impose imposes impossible
-improperly improve improved improvement improvements improves improving imul
-inability inaccessible inaccuracies inactive inactivity inc incidental include
+imprecise improperly improve improved improvement improvements improves improving imul
+inability inaccessible inaccuracies inaccurate inactive inactivity inc incidental include
 included includes including inclusive incoming incompatibility incompatible
 incomplete incompressible inconsistency inconsistent incorporated incorrect
 incorrectly increase increased increases increasing increment incremental
@@ -480,7 +480,7 @@ portability portable portal portals ported porting portion portions portlet port
 portugal portugu pos position positioned positions positive pospichal possibility
 possible possibly post postal postfix postgre postgres postgresql posting
 postmaster potential potentially poultry pound pow power powerful poweroff
-practicable practice prd pre prec precedence precision precisions predicate
+practicable practice prd pre prec precedence precise precision precisions predicate
 predict predicted prediction prefer preferable preferdoslikelineends preferences
 preferred prefix prefixes prefs premain premature prep prepare prepared prepares
 preparing prepended prepending pres presence present presentation preserve
@@ -553,12 +553,12 @@ revoked revolutions rewind rewrite rewriting rfc rfloor rgb rho rice richard rid
 ridvan rife right rightmost rights rijndael ring rioyxlgt risk risks risky rlm
 rmd rmdir rmerr rmi rmiregistry rnd rnfr rnto road roadmap roads robert roc rogue
 rojas role roles roll rollback rollbacks rolled rolling rollover rolls roman room
-root roots rot rotate round rounded rounding roundmagic rounds routine routinely
+root roots rot rotate round rounded rounding roundmagic rounds roundtripped roundtrips routine routinely
 row rowcount rowid rowlock rownum rows rowscn rowsize roy royalty rpad rpm rsa
 rsaquo rsquo rss rtree rtrim ruby ruebezahl rule rules run rund rundll runnable
 runner runners running runs runscript runtime rwd rws sabine safari safe safely
 safes safety said sainsbury salary sale sales saload salt salz sam same
-sameorigin samp sample samples sanity sans sastore sat satisfy saturday sauce
+sameorigin samp sample samples sane sanity sans sastore sat satisfy saturday sauce
 sauerkraut sava save saved savepoint savepoints saves saving savings say saying
 says sbquo scala scalability scalable scalar scale scaled scales scan scanned
 scanner scanners scanning scans scapegoat scc schedule scheduler schem schema

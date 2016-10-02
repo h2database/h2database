@@ -166,8 +166,8 @@ public abstract class TestBase {
      * @param name the database name
      * @return the connection
      */
-    public Connection getConnection(String name) throws SQLException {
-        return getConnectionInternal(getURL(name, true), getUser(),
+    public Connection getConnection(String name, String... options) throws SQLException {
+        return getConnectionInternal(getURL(name, true, options), getUser(),
                 getPassword());
     }
 
@@ -243,7 +243,7 @@ public abstract class TestBase {
      * @param admin true if the current user is an admin
      * @return the database URL
      */
-    protected String getURL(String name, boolean admin) {
+    protected String getURL(String name, boolean admin, String... options) {
         String url;
         if (name.startsWith("jdbc:")) {
             if (config.mvStore) {
@@ -327,6 +327,9 @@ public abstract class TestBase {
         }
         if (config.defrag) {
             url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
+        }
+        for (String option : options) {
+            url += ";" + option;
         }
         return "jdbc:h2:" + url;
     }

@@ -603,6 +603,7 @@ public class ToChar {
 
         GregorianCalendar cal = new GregorianCalendar(Locale.ENGLISH);
         cal.setTimeInMillis(ts.getTime());
+        final int nanos = ts.getNanos() % 1000000;
         StringBuilder output = new StringBuilder();
         boolean fillMode = true;
 
@@ -708,7 +709,7 @@ public class ToChar {
             } else if ((cap = containsAt(format, i, "FF1", "FF2",
                     "FF3", "FF4", "FF5", "FF6", "FF7", "FF8", "FF9")) != null) {
                 int x = Integer.parseInt(format.substring(i + 2, i + 3));
-                int ff = (int) (cal.get(Calendar.MILLISECOND) * Math.pow(10, x - 3));
+                long ff = (long) (cal.get(Calendar.MILLISECOND) * Math.pow(10, x - 3)) + (long) (nanos * Math.pow(10, x - 9));
                 output.append(ff);
                 i += 3;
             } else if ((cap = containsAt(format, i, "FF")) != null) {

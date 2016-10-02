@@ -8,11 +8,13 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Time;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
+import org.h2.time.Timestamp;
 
 /**
  * Implementation of the TIME data type.
@@ -65,6 +67,13 @@ public class ValueTime extends Value {
      */
     public static ValueTime fromMillis(long ms) {
         return fromNanos(DateTimeUtils.nanosFromDate(ms));
+    }
+
+    /**
+     * Convenience method for creating a ValueTime from a Timestamp
+     */
+    public static ValueTime fromTimestamp(Timestamp now) {
+        return fromNanos(now.getFraction() + now.getSystemTimeInMillis() % (24 * 60 * 60 * 1000));
     }
 
     /**
@@ -221,5 +230,4 @@ public class ValueTime extends Value {
             }
         }
     }
-
 }

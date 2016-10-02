@@ -1749,7 +1749,7 @@ public class MetaTable extends Table {
                             // USER_NAME
                             s.getUser().getName(),
                             // SESSION_START
-                            new Timestamp(s.getSessionStart()).toString(),
+                            new Timestamp(s.getSessionStart().getSystemTimeInMillis()).toString(),
                             // STATEMENT
                             command == null ? null : command.toString(),
                             // STATEMENT_START

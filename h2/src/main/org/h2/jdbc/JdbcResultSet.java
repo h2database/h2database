@@ -3757,6 +3757,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getTimestamp());
         } else if (type == UUID.class) {
             return type.cast(value.getObject());
+        } else if (type == byte[].class) {
+            return type.cast(value.getBytes());
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
         } else if (type.isAssignableFrom(Geometry.class)) {

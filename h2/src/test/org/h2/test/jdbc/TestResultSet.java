@@ -1227,10 +1227,18 @@ public class TestResultSet extends TestBase {
                 (byte) 0x01, (byte) 0x01 },
                 rs.getBytes(2));
         assertTrue(!rs.wasNull());
+        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
+                (byte) 0x01, (byte) 0x01 },
+                ((JdbcResultSetBackwardsCompat) rs).getObject(2, byte[].class));
+        assertTrue(!rs.wasNull());
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getBytes("value"));
+        assertTrue(!rs.wasNull());
+        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
+                (byte) 0x02, (byte) 0x02 },
+                ((JdbcResultSetBackwardsCompat) rs).getObject("value", byte[].class));
         assertTrue(!rs.wasNull());
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x00 },

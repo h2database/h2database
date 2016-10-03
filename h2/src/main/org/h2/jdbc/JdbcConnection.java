@@ -882,7 +882,9 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     @Override
     public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
         try {
-            debugCode("setTypeMap(" + quoteMap(map) + ");");
+            if (isDebugEnabled()) {
+                debugCode("setTypeMap(" + quoteMap(map) + ");");
+            }
             checkMap(map);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1044,7 +1046,9 @@ public class JdbcConnection extends TraceObject implements Connection, JdbcConne
     public void rollback(Savepoint savepoint) throws SQLException {
         try {
             JdbcSavepoint sp = convertSavepoint(savepoint);
-            debugCode("rollback(" + sp.getTraceObjectName() + ");");
+            if (isDebugEnabled()) {
+                debugCode("rollback(" + sp.getTraceObjectName() + ");");
+            }
             checkClosedForWrite();
             try {
                 sp.rollback();

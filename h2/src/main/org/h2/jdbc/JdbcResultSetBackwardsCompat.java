@@ -5,14 +5,9 @@
  */
 package org.h2.jdbc;
 
-import java.sql.SQLException;
-
 /**
  * Allows us to compile on older platforms, while still implementing the methods from the newer JDBC API.
  */
 public interface JdbcResultSetBackwardsCompat {
 
-    public abstract <T> T getObject(int columnIndex, Class<T> type) throws SQLException;
-
-    public abstract <T> T getObject(String columnName, Class<T> type) throws SQLException;
 }

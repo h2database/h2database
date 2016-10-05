@@ -10,7 +10,4 @@ package org.h2.jdbc;
  */
 public interface JdbcStatementBackwardsCompat {
 
-    void closeOnCompletion();
-
-    boolean isCloseOnCompletion();
 }

@@ -7,7 +7,6 @@ package org.h2.index;
 
 import java.util.HashSet;
 import java.util.Iterator;
-import org.h2.engine.Constants;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVStore;
@@ -187,7 +186,7 @@ public class SpatialTreeIndex extends BaseIndex implements SpatialIndex {
      */
     public static long getCostRangeIndex(int[] masks, long rowCount, Column[] columns) {
         // Never use spatial tree index without spatial filter
-        if(columns.length == 0) {
+        if (columns.length == 0) {
             return Long.MAX_VALUE;
         }
         for (Column column : columns) {

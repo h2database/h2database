@@ -302,20 +302,20 @@ public abstract class Prepared {
      * Print information about the statement executed if info trace level is
      * enabled.
      *
-     * @param startTime_nanos when the statement was started
+     * @param startTimeNanos when the statement was started
      * @param rowCount the query or update row count
      */
-    void trace(long startTime_nanos, int rowCount) {
-        if (session.getTrace().isInfoEnabled() && startTime_nanos > 0) {
-            long deltaTime_nanos = System.nanoTime() - startTime_nanos;
+    void trace(long startTimeNanos, int rowCount) {
+        if (session.getTrace().isInfoEnabled() && startTimeNanos > 0) {
+            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             String params = Trace.formatParams(parameters);
-            session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTime_nanos / 1000 / 1000);
+            session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTimeNanos / 1000 / 1000);
         }
         // startTime_nanos can be zero for the command that actually turns on statistics
-        if (session.getDatabase().getQueryStatistics() && startTime_nanos != 0) {
-            long deltaTime_nanos = System.nanoTime() - startTime_nanos;
+        if (session.getDatabase().getQueryStatistics() && startTimeNanos != 0) {
+            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             session.getDatabase().getQueryStatisticsData().
-                    update(toString(), deltaTime_nanos, rowCount);
+                    update(toString(), deltaTimeNanos, rowCount);
         }
     }
 

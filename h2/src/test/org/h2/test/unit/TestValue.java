@@ -15,7 +15,6 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -292,11 +291,11 @@ public class TestValue extends TestBase {
         ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
         Value valUUID = valObj.convertTo(Value.UUID);
         assertTrue(valUUID instanceof ValueUuid);
-        assertTrue((valUUID.getString().equals(uuidStr)));
+        assertTrue(valUUID.getString().equals(uuidStr));
         assertTrue(valUUID.getObject().equals(origUUID));
 
-        ValueJavaObject vo_string = ValueJavaObject.getNoCopy(new String("This is not a ValueUuid object"), null, null);
-        assertThrows(DbException.class, vo_string).convertTo(Value.UUID);
+        ValueJavaObject voString = ValueJavaObject.getNoCopy(new String("This is not a ValueUuid object"), null, null);
+        assertThrows(DbException.class, voString).convertTo(Value.UUID);
     }
 
     private void testModulusDouble() {

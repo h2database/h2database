@@ -5,10 +5,8 @@
  */
 package org.h2.test.unit;
 
-import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;

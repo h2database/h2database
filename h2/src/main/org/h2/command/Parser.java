@@ -1885,8 +1885,9 @@ public class Parser {
             read(")");
             return command;
         }
-        if (readIf("WITH"))
+        if (readIf("WITH")) {
             return parseWith();
+        }
         Select select = parseSelectSimple();
         return select;
     }

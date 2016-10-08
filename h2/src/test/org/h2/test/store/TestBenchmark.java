@@ -31,7 +31,6 @@ public class TestBenchmark extends TestBase {
     @Override
     public void test() throws Exception {
 
-        ;
         // TODO this test is currently disabled
 
         test(true);

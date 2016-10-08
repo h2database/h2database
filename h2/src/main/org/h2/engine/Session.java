@@ -78,7 +78,7 @@ public class Session extends SessionWithState {
     private int lockTimeout;
     private Value lastIdentity = ValueLong.get(0);
     private Value lastScopeIdentity = ValueLong.get(0);
-    private Value lastTriggerIdentity = null;
+    private Value lastTriggerIdentity;
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Savepoint> savepoints;

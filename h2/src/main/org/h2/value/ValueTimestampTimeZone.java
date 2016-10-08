@@ -294,14 +294,14 @@ public class ValueTimestampTimeZone extends Value {
         // even if the DST database changes.
 
         // convert to minutes and add timezone offset
-        long a = DateTimeUtils.convertDateValueToMillis(TimeZone.getTimeZone("UTC"), dateValue) / ( 1000L * 60L );
-        long ma = timeNanos / ( 1000L * 1000L * 1000L * 60L );
+        long a = DateTimeUtils.convertDateValueToMillis(TimeZone.getTimeZone("UTC"), dateValue) / (1000L * 60L);
+        long ma = timeNanos / (1000L * 1000L * 1000L * 60L);
         a += ma;
         a -= timeZoneOffsetMins;
 
         // convert to minutes and add timezone offset
-        long b = DateTimeUtils.convertDateValueToMillis(TimeZone.getTimeZone("UTC"), t.dateValue) / ( 1000L * 60L );
-        long mb = t.timeNanos / ( 1000L * 1000L * 1000L * 60L );
+        long b = DateTimeUtils.convertDateValueToMillis(TimeZone.getTimeZone("UTC"), t.dateValue) / (1000L * 60L);
+        long mb = t.timeNanos / (1000L * 1000L * 1000L * 60L);
         b += mb;
         b -= t.timeZoneOffsetMins;
 
@@ -311,8 +311,8 @@ public class ValueTimestampTimeZone extends Value {
             return c;
         }
         // compare time
-        long na = timeNanos - ( ma * 1000L * 1000L * 1000L * 60L );
-        long nb = t.timeNanos - ( mb * 1000L * 1000L * 1000L * 60L );
+        long na = timeNanos - (ma * 1000L * 1000L * 1000L * 60L);
+        long nb = t.timeNanos - (mb * 1000L * 1000L * 1000L * 60L);
         return MathUtils.compareLong(na, nb);
     }
 

@@ -914,8 +914,7 @@ public abstract class Value {
                     if (object instanceof java.util.UUID) {
                         java.util.UUID uuid = (java.util.UUID) object;
                         return ValueUuid.get(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
-                    }
-                    else {
+                    } else {
                         throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                     }
                 case TIMESTAMP_TZ:

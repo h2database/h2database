@@ -1834,13 +1834,13 @@ public class MetaTable extends Table {
                             // EXECUTION_COUNT
                             "" + entry.count,
                             // MIN_EXECUTION_TIME
-                            "" + entry.executionTimeMin_nanos / 1000d / 1000,
+                            "" + entry.executionTimeMinNanos / 1000d / 1000,
                             // MAX_EXECUTION_TIME
-                            "" + entry.executionTimeMax_nanos / 1000d / 1000,
+                            "" + entry.executionTimeMaxNanos / 1000d / 1000,
                             // CUMULATIVE_EXECUTION_TIME
-                            "" + entry.executionTimeCumulative_nanos / 1000d / 1000,
+                            "" + entry.executionTimeCumulativeNanos / 1000d / 1000,
                             // AVERAGE_EXECUTION_TIME
-                            "" + entry.executionTimeMean_nanos / 1000d / 1000,
+                            "" + entry.executionTimeMeanNanos / 1000d / 1000,
                             // STD_DEV_EXECUTION_TIME
                             "" + entry.getExecutionTimeStandardDeviation() / 1000d / 1000,
                             // MIN_ROW_COUNT

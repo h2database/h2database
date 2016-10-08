@@ -67,7 +67,7 @@ public class TestStreamStore extends TestBase {
             if (max == -1) {
                 assertTrue(map.isEmpty());
             } else {
-                assertEquals(map.lastKey(), (Long)max);
+                assertEquals(map.lastKey(), (Long) max);
             }
         }
     }

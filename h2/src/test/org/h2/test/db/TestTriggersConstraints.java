@@ -329,6 +329,9 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     }
     
+    /**
+     *
+     */
     public static class TestViewGeneratedKeys implements Trigger {
 
         PreparedStatement prepInsert;

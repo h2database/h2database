@@ -210,11 +210,8 @@ public class FileLock implements Runnable {
      */
     public Properties save() {
         try {
-            OutputStream out = FileUtils.newOutputStream(fileName, false);
-            try {
+            try (OutputStream out = FileUtils.newOutputStream(fileName, false)) {
                 properties.store(out, MAGIC);
-            } finally {
-                out.close();
             }
             lastWrite = FileUtils.lastModified(fileName);
             if (trace.isDebugEnabled()) {

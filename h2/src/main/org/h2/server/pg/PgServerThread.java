@@ -28,7 +28,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
-
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.SysProperties;
@@ -37,7 +36,6 @@ import org.h2.jdbc.JdbcPreparedStatement;
 import org.h2.jdbc.JdbcStatement;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
-import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.ScriptReader;
@@ -827,10 +825,8 @@ public class PgServerThread implements Runnable {
     }
 
     private static void installPgCatalog(Statement stat) throws SQLException {
-        Reader r = null;
-        try {
-            r = new InputStreamReader(new ByteArrayInputStream(Utils
-                    .getResource("/org/h2/server/pg/pg_catalog.sql")));
+        try (Reader r = new InputStreamReader(new ByteArrayInputStream(Utils
+                    .getResource("/org/h2/server/pg/pg_catalog.sql")))) {
             ScriptReader reader = new ScriptReader(r);
             while (true) {
                 String sql = reader.readStatement();
@@ -842,8 +838,6 @@ public class PgServerThread implements Runnable {
             reader.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, "Can not read pg_catalog resource");
-        } finally {
-            IOUtils.closeSilently(r);
         }
     }
 

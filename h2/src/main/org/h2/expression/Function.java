@@ -122,7 +122,7 @@ public class Function extends Expression implements FunctionCall {
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
 
     public static final int REGEXP_LIKE = 240;
-    
+
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
      */
@@ -1636,12 +1636,9 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v1.getString();
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-                InputStream in = v0.getInputStream();
-                try {
+                try (InputStream in = v0.getInputStream()) {
                     result = ValueLong.get(IOUtils.copyAndClose(in,
                             fileOutputStream));
-                } finally {
-                    in.close();
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);

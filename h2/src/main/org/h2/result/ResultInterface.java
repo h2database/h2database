@@ -11,7 +11,7 @@ import org.h2.value.Value;
  * The result interface is used by the LocalResult and ResultRemote class.
  * A result may contain rows, or just an update count.
  */
-public interface ResultInterface {
+public interface ResultInterface extends AutoCloseable {
 
     /**
      * Go to the beginning of the result, that means

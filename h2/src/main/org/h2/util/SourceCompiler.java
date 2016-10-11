@@ -282,7 +282,7 @@ public class SourceCompiler {
                     .getStandardFileManager(null, null, null));
         ArrayList<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
         compilationUnits.add(new StringJavaFileObject(fullClassName, source));
-        // can not concurrently compile
+        // cannot concurrently compile
         synchronized (JAVA_COMPILER) {
             JAVA_COMPILER.getTask(writer, fileManager, null, null,
                 null, compilationUnits).call();

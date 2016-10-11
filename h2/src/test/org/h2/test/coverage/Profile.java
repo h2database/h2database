@@ -29,9 +29,7 @@ public class Profile extends Thread {
     private BufferedWriter trace;
 
     private Profile() {
-        LineNumberReader r = null;
-        try {
-            r = new LineNumberReader(new FileReader("profile.txt"));
+        try (LineNumberReader r = new LineNumberReader(new FileReader("profile.txt"))) {
             while (r.readLine() != null) {
                 // nothing - just count lines
             }
@@ -43,8 +41,6 @@ public class Profile extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
-        } finally {
-            IOUtils.closeSilently(r);
         }
     }
 
@@ -195,9 +191,8 @@ public class Profile extends Thread {
             list[bigIndex] = -(big + 1);
             index[i] = bigIndex;
         }
-        LineNumberReader r = null;
-        try {
-            r = new LineNumberReader(new FileReader("profile.txt"));
+
+        try (LineNumberReader r = new LineNumberReader(new FileReader("profile.txt"))) {
             for (int i = 0; i < maxIndex; i++) {
                 String line = r.readLine();
                 int k = list[i];
@@ -215,8 +210,6 @@ public class Profile extends Thread {
             for (int i = 0; i < max; i++) {
                 print(text[i]);
             }
-        } finally {
-            IOUtils.closeSilently(r);
         }
     }
 

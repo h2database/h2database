@@ -21,7 +21,6 @@ import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -186,26 +185,18 @@ class Database {
         Connection newConn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
-            Statement s = null;
-            try {
-                s = newConn.createStatement();
+            try (Statement s = newConn.createStatement()) {
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageCacheSize', '64')");
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageSize', '8192')");
-            } finally {
-                JdbcUtils.closeSilently(s);
             }
         } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
-            Statement s = null;
-            try {
-                s = newConn.createStatement();
+            try (Statement s = newConn.createStatement()){
                 s.execute("SET WRITE_DELAY 1");
-            } finally {
-                JdbcUtils.closeSilently(s);
             }
         }
         return newConn;

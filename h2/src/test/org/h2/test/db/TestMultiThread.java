@@ -81,16 +81,13 @@ public class TestMultiThread extends TestBase implements Runnable {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Connection c2 = getConnection(url);
-                    Statement stat = c2.createStatement();
-                    try {
+                    try (Connection c2 = getConnection(url)) {
+                        Statement stat = c2.createStatement();
                         for (int i = 0; !stop; i++) {
                             stat.execute("create table test" + x + "_" + i);
                             c2.getMetaData().getTables(null, null, null, null);
                             stat.execute("drop table test" + x + "_" + i);
                         }
-                    } finally {
-                        c2.close();
                     }
                 }
             };
@@ -116,17 +113,14 @@ public class TestMultiThread extends TestBase implements Runnable {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Connection c2 = getConnection(url);
-                    PreparedStatement p2 = c2
-                            .prepareStatement("insert into test(data) values(?)");
-                    try {
+                    try (Connection c2 = getConnection(url)) {
+                        PreparedStatement p2 = c2
+                                .prepareStatement("insert into test(data) values(?)");
                         while (!stop) {
                             p2.setCharacterStream(1, new StringReader(new String(
                                     new char[10 * 1024])));
                             p2.execute();
                         }
-                    } finally {
-                        c2.close();
                     }
                 }
             };

@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
@@ -237,11 +236,8 @@ public class TestFileLockSerialized extends TestBase {
         SortedProperties p = SortedProperties.loadProperties(propFile);
         p.setProperty("changePending", "true");
         p.setProperty("modificationDataId", "1000");
-        OutputStream out = FileUtils.newOutputStream(propFile, false);
-        try {
+        try (OutputStream out = FileUtils.newOutputStream(propFile, false)) {
             p.store(out, "test");
-        } finally {
-            out.close();
         }
         Thread.sleep(100);
         stat.execute("select * from test");

@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -222,9 +221,8 @@ public class ValueLob extends Value {
 
     private void createFromReader(char[] buff, int len, Reader in,
             long remaining, DataHandler h) throws IOException {
-        FileStoreOutputStream out = initLarge(h);
-        boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
-        try {
+        try (FileStoreOutputStream out = initLarge(h)) {
+            boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
             while (true) {
                 precision += len;
                 byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
@@ -239,8 +237,6 @@ public class ValueLob extends Value {
                     break;
                 }
             }
-        } finally {
-            out.close();
         }
     }
 
@@ -421,9 +417,8 @@ public class ValueLob extends Value {
 
     private void createFromStream(byte[] buff, int len, InputStream in,
             long remaining, DataHandler h) throws IOException {
-        FileStoreOutputStream out = initLarge(h);
-        boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
-        try {
+        try (FileStoreOutputStream out = initLarge(h)) {
+            boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
             while (true) {
                 precision += len;
                 out.write(buff, 0, len);
@@ -437,8 +432,6 @@ public class ValueLob extends Value {
                     break;
                 }
             }
-        } finally {
-            out.close();
         }
     }
 

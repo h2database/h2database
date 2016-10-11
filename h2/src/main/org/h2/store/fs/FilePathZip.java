@@ -55,11 +55,8 @@ public class FilePathZip extends FilePath {
             if (entryName.length() == 0) {
                 return true;
             }
-            ZipFile file = openZipFile();
-            try {
+            try (ZipFile file = openZipFile()) {
                 return file.getEntry(entryName) != null;
-            } finally {
-                file.close();
             }
         } catch (IOException e) {
             return false;
@@ -95,8 +92,7 @@ public class FilePathZip extends FilePath {
             if (entryName.length() == 0) {
                 return true;
             }
-            ZipFile file = openZipFile();
-            try {
+            try (ZipFile file = openZipFile()) {
                 Enumeration<? extends ZipEntry> en = file.entries();
                 while (en.hasMoreElements()) {
                     ZipEntry entry = en.nextElement();
@@ -111,8 +107,6 @@ public class FilePathZip extends FilePath {
                         }
                     }
                 }
-            } finally {
-                file.close();
             }
             return false;
         } catch (IOException e) {
@@ -133,12 +127,9 @@ public class FilePathZip extends FilePath {
     @Override
     public long size() {
         try {
-            ZipFile file = openZipFile();
-            try {
+            try (ZipFile file = openZipFile()) {
                 ZipEntry entry = file.getEntry(getEntryName());
                 return entry == null ? 0 : entry.getSize();
-            } finally {
-                file.close();
             }
         } catch (IOException e) {
             return 0;
@@ -156,8 +147,7 @@ public class FilePathZip extends FilePath {
             if (!path.endsWith("/")) {
                 path += "/";
             }
-            ZipFile file = openZipFile();
-            try {
+            try (ZipFile file = openZipFile()) {
                 String dirName = getEntryName();
                 String prefix = path.substring(0, path.length() - dirName.length());
                 Enumeration<? extends ZipEntry> en = file.entries();
@@ -175,8 +165,6 @@ public class FilePathZip extends FilePath {
                         list.add(getPath(prefix + name));
                     }
                 }
-            } finally {
-                file.close();
             }
             return list;
         } catch (IOException e) {

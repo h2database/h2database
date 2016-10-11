@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<fileset-config file-format-version="1.2.0" simple-config="true" sync-formatter="false">
-  <local-check-config name="h2" location="internal_config_1450858517638.xml" type="internal" description=""/>
-  <fileset name="all" enabled="true" check-config-name="h2" local="true">
-    <file-match-pattern match-pattern="." include-pattern="true"/>
-  </fileset>
-  <filter name="FilesInSync" enabled="true"/>
-</fileset-config>

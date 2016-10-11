@@ -30,8 +30,14 @@ public class ValueTime extends Value {
      */
     static final int DISPLAY_SIZE = 8;
 
+    /**
+     * Nanoseconds since midnight
+     */
     private final long nanos;
 
+    /**
+     * @param nanos nanoseconds since midnight
+     */
     private ValueTime(long nanos) {
         this.nanos = nanos;
     }
@@ -39,7 +45,7 @@ public class ValueTime extends Value {
     /**
      * Get or create a time value.
      *
-     * @param nanos the nanoseconds
+     * @param nanos the nanoseconds since midnight
      * @return the value
      */
     public static ValueTime fromNanos(long nanos) {
@@ -73,7 +79,6 @@ public class ValueTime extends Value {
      * @param s the string to parse
      * @return the time
      */
-
     public static ValueTime parse(String s) {
         try {
             return fromNanos(DateTimeUtils.parseTimeNanos(s, 0, s.length(), false));
@@ -83,6 +88,9 @@ public class ValueTime extends Value {
         }
     }
 
+    /**
+     * @return nanoseconds since midnight
+     */
     public long getNanos() {
         return nanos;
     }

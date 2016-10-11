@@ -1,9 +1,8 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
- * Iso8601:
- * Initial Developer: Robert Rathsack (firstName dot lastName at gmx dot de)
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
+ * Group Iso8601: Initial Developer: Robert Rathsack (firstName dot lastName at
+ * gmx dot de)
  */
 package org.h2.util;
 
@@ -26,8 +25,8 @@ import org.h2.value.ValueTimestamp;
 /**
  * This utility class contains time conversion functions.
  * <p>
- * Date value: a bit field with bits for the year, month, and day.
- * Absolute day: the day number (0 means 1970-01-01).
+ * Date value: a bit field with bits for the year, month, and day. Absolute day:
+ * the day number (0 means 1970-01-01).
  */
 public class DateTimeUtils {
 
@@ -58,24 +57,23 @@ public class DateTimeUtils {
      * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR =
-            new ThreadLocal<Calendar>();
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<Calendar>();
 
     /**
      * A cached instance of Calendar used when a timezone is specified.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
-            new ThreadLocal<Calendar>();
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE = new ThreadLocal<Calendar>();
 
     /**
-     * Observed JVM behaviour is that if the timezone of the host computer is changed while the JVM is running,
-     * the zone offset does not change but keeps the initial value. So it is correct to measure this once and use
-     * this value throughout the JVM's lifecycle.
-     *
-     * In any case, it is safer to use a fixed value throughout the duration of the JVM's life, rather than have
-     * this offset change, possibly midway through a long-running query.
+     * Observed JVM behaviour is that if the timezone of the host computer is
+     * changed while the JVM is running, the zone offset does not change but
+     * keeps the initial value. So it is correct to measure this once and use
+     * this value throughout the JVM's lifecycle. In any case, it is safer to
+     * use a fixed value throughout the duration of the JVM's life, rather than
+     * have this offset change, possibly midway through a long-running query.
      */
-    private static int zoneOffsetMillis = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
+    private static int zoneOffsetMillis = Calendar.getInstance()
+            .get(Calendar.ZONE_OFFSET);
 
     private DateTimeUtils() {
         // utility class
@@ -138,9 +136,8 @@ public class DateTimeUtils {
         cal.setLenient(true);
         long dateValue = d.getDateValue();
         setCalendarFields(cal, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue),
-                dayFromDateValue(dateValue),
-                0, 0, 0, 0);
+                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
+                0, 0, 0);
         long ms = cal.getTimeInMillis();
         return new Date(ms);
     }
@@ -169,8 +166,8 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        setCalendarFields(cal, 1970, 1, 1,
-                (int) h, (int) m, (int) s, (int) millis);
+        setCalendarFields(cal, 1970, 1, 1, (int) h, (int) m, (int) s,
+                (int) millis);
         long ms = cal.getTimeInMillis();
         return new Time(ms);
     }
@@ -201,8 +198,7 @@ public class DateTimeUtils {
         long h = m / 60;
         m -= h * 60;
         setCalendarFields(cal, yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue),
-                dayFromDateValue(dateValue),
+                monthFromDateValue(dateValue), dayFromDateValue(dateValue),
                 (int) h, (int) m, (int) s, (int) millis);
         long ms = cal.getTimeInMillis();
         Timestamp x = new Timestamp(ms);
@@ -211,7 +207,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert the date using the specified calendar.
+     * Convert a java.util.Date using the specified calendar.
      *
      * @param x the date
      * @param calendar the calendar
@@ -282,7 +278,8 @@ public class DateTimeUtils {
      * @param calendar the calendar
      * @return the timestamp
      */
-    public static ValueTimestamp convertTimestamp(Timestamp x, Calendar calendar) {
+    public static ValueTimestamp convertTimestamp(Timestamp x,
+            Calendar calendar) {
         if (calendar == null) {
             throw DbException.getInvalidValueException("calendar", null);
         }
@@ -372,8 +369,8 @@ public class DateTimeUtils {
             String n = (s.substring(s3 + 1, end) + "000000000").substring(0, 9);
             nanos = Integer.parseInt(n);
         }
-        if (hour >= 2000000 || minute < 0 ||
-                minute >= 60 || second < 0 || second >= 60) {
+        if (hour >= 2000000 || minute < 0 || minute >= 60 || second < 0
+                || second >= 60) {
             throw new IllegalArgumentException(s);
         }
         if (timeOfDay && hour >= 24) {
@@ -387,8 +384,8 @@ public class DateTimeUtils {
      * Calculate the milliseconds since 1970-01-01 (UTC) for the given date and
      * time (in the specified timezone).
      *
-     * @param tz the timezone of the parameters,
- *              or null for the default timezone
+     * @param tz the timezone of the parameters, or null for the default
+     *            timezone
      * @param year the absolute year (positive or negative)
      * @param month the month (1-12)
      * @param day the day (1-31)
@@ -401,7 +398,8 @@ public class DateTimeUtils {
     public static long getMillis(TimeZone tz, int year, int month, int day,
             int hour, int minute, int second, int millis) {
         try {
-            return getTimeTry(false, tz, year, month, day, hour, minute, second, millis);
+            return getTimeTry(false, tz, year, month, day, hour, minute, second,
+                    millis);
         } catch (IllegalArgumentException e) {
             // special case: if the time simply doesn't exist because of
             // daylight saving time changes, use the lenient version
@@ -435,9 +433,8 @@ public class DateTimeUtils {
         }
     }
 
-    private static long getTimeTry(boolean lenient, TimeZone tz,
-            int year, int month, int day, int hour, int minute, int second,
-            int millis) {
+    private static long getTimeTry(boolean lenient, TimeZone tz, int year,
+            int month, int day, int hour, int minute, int second, int millis) {
         Calendar c;
         if (tz == null) {
             c = getCalendar();
@@ -529,7 +526,6 @@ public class DateTimeUtils {
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
      *
      * @author Robert Rathsack
-     *
      * @param date the date object which day of week should be calculated
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
@@ -566,7 +562,6 @@ public class DateTimeUtils {
      * Returns the year according to the ISO week definition.
      *
      * @author Robert Rathsack
-     *
      * @param date the date object which year should be calculated
      * @return the year
      */
@@ -680,35 +675,35 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a date value to a date, using the default timezone.
+     * Convert an encoded date value to a java.util.Date, using the default
+     * timezone.
      *
      * @param dateValue the date value
      * @return the date
      */
     public static Date convertDateValueToDate(long dateValue) {
-        long millis = getMillis(null,
-                yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue),
-                dayFromDateValue(dateValue), 0, 0, 0, 0);
+        long millis = getMillis(null, yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
+                0, 0, 0);
         return new Date(millis);
     }
 
     /**
-     * Convert a date value to millis, using the supplied timezone.
+     * Convert an encoded date value to millis, using the supplied timezone.
      *
      * @param tz the timezone
      * @param dateValue the date value
      * @return the date
      */
     public static long convertDateValueToMillis(TimeZone tz, long dateValue) {
-        return getMillis(tz,
-                yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue),
-                dayFromDateValue(dateValue), 0, 0, 0, 0);
+        return getMillis(tz, yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
+                0, 0, 0);
     }
+
     /**
-     * Convert a date value / time value to a timestamp, using the default
-     * timezone.
+     * Convert an encoded date value / time value to a timestamp, using the
+     * default timezone.
      *
      * @param dateValue the date value
      * @param timeNanos the nanoseconds since midnight
@@ -724,10 +719,8 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        long ms = getMillis(null,
-                yearFromDateValue(dateValue),
-                monthFromDateValue(dateValue),
-                dayFromDateValue(dateValue),
+        long ms = getMillis(null, yearFromDateValue(dateValue),
+                monthFromDateValue(dateValue), dayFromDateValue(dateValue),
                 (int) h, (int) m, (int) s, 0);
         Timestamp ts = new Timestamp(ms);
         ts.setNanos((int) (timeNanos + millis * 1000000));
@@ -735,22 +728,21 @@ public class DateTimeUtils {
     }
 
     /**
-     * Convert a time value to a time, using the default
-     * timezone.
+     * Convert a time value to a time, using the default timezone.
      *
-     * @param nanos the nanoseconds since midnight
+     * @param nanosSinceMidnight the nanoseconds since midnight
      * @return the time
      */
-    public static Time convertNanoToTime(long nanos) {
-        long millis = nanos / 1000000;
+    public static Time convertNanoToTime(long nanosSinceMidnight) {
+        long millis = nanosSinceMidnight / 1000000;
         long s = millis / 1000;
         millis -= s * 1000;
         long m = s / 60;
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        long ms = getMillis(null,
-                1970, 1, 1, (int) (h % 24), (int) m, (int) s, (int) millis);
+        long ms = getMillis(null, 1970, 1, 1, (int) (h % 24), (int) m, (int) s,
+                (int) millis);
         return new Time(ms);
     }
 
@@ -797,8 +789,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the date value (in the default timezone) from a given time in
-     * milliseconds in UTC.
+     * Convert a UTC datetime in millis to an encoded date in the default
+     * timezone.
      *
      * @param ms the milliseconds
      * @return the date value
@@ -810,7 +802,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the date value from a given calendar.
+     * Calculate the encoded date value from a given calendar.
      *
      * @param cal the calendar
      * @return the date value
@@ -824,8 +816,8 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the nanoseconds since midnight (in the default timezone) from a
-     * given time in milliseconds in UTC.
+     * Convert a time in milliseconds in UTC to the nanoseconds since midnight
+     * (in the default timezone).
      *
      * @param ms the milliseconds
      * @return the nanoseconds
@@ -837,7 +829,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the nanoseconds since midnight from a given calendar.
+     * Convert a java.util.Calendar to nanoseconds since midnight.
      *
      * @param cal the calendar
      * @return the nanoseconds
@@ -857,7 +849,8 @@ public class DateTimeUtils {
      * @param nanos the nanoseconds (may be negative or larger than one day)
      * @return the timestamp
      */
-    public static ValueTimestamp normalizeTimestamp(long absoluteDay, long nanos) {
+    public static ValueTimestamp normalizeTimestamp(long absoluteDay,
+            long nanos) {
         if (nanos > NANOS_PER_DAY || nanos < 0) {
             long d;
             if (nanos > NANOS_PER_DAY) {
@@ -873,7 +866,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the absolute day from a date value.
+     * Calculate the absolute day from an encoded date value.
      *
      * @param dateValue the date value
      * @return the absolute day
@@ -898,7 +891,7 @@ public class DateTimeUtils {
     }
 
     /**
-     * Calculate the date value from an absolute day.
+     * Calculate the encoded date value from an absolute day.
      *
      * @param absoluteDay the absolute day
      * @return the date value
@@ -940,8 +933,7 @@ public class DateTimeUtils {
     /**
      * Adds the number of months to the date. If the resulting month's number of
      * days is less than the original's day-of-month, the resulting
-     * day-of-months gets adjusted accordingly:
-     * <br>
+     * day-of-months gets adjusted accordingly: <br>
      * 30.04.2007 - 2 months = 28.02.2007
      *
      * @param refDate the original date

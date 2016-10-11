@@ -10,7 +10,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 
 /**
- * How we expose "DATETIME WITH TIMEZONE" in our ResultSets.
+ * How we expose "TIMESTAMP WITH TIMEZONE" in our ResultSets.
  */
 public class TimestampWithTimeZone implements Serializable, Cloneable {
 
@@ -170,27 +170,29 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + timeZoneOffsetMins;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int) (dateValue ^ (dateValue >>> 32));
+        result = prime * result + (int) (timeNanos ^ (timeNanos >>> 32));
+        result = prime * result + timeZoneOffsetMins;
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (getClass() != obj.getClass()) {
+        if (obj == null)
             return false;
-        }
+        if (getClass() != obj.getClass())
+            return false;
         TimestampWithTimeZone other = (TimestampWithTimeZone) obj;
-        if (dateValue != other.dateValue) {
+        if (dateValue != other.dateValue)
             return false;
-        }
-        if (timeNanos != other.timeNanos) {
+        if (timeNanos != other.timeNanos)
             return false;
-        }
-        if (timeZoneOffsetMins != other.timeZoneOffsetMins) {
+        if (timeZoneOffsetMins != other.timeZoneOffsetMins)
             return false;
-        }
         return true;
     }
 

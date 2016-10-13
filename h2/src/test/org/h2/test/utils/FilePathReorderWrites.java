@@ -13,7 +13,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.store.fs.FileBase;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathWrapper;
@@ -163,7 +162,7 @@ class FileReorderWrites extends FileBase {
     /**
      * The list of not yet applied to the base channel. It is sorted by time.
      */
-    private ArrayList<FileOperation> notAppliedList = new ArrayList<FileOperation>();
+    private ArrayList<FileWriteOperation> notAppliedList = new ArrayList<FileWriteOperation>();
 
     private int id;
 
@@ -212,17 +211,17 @@ class FileReorderWrites extends FileBase {
         if (oldSize <= newSize) {
             return this;
         }
-        addOperation(new FileOperation(id++, newSize, null));
+        addOperation(new FileWriteOperation(id++, newSize, null));
         return this;
     }
 
-    private int addOperation(FileOperation op) throws IOException {
+    private int addOperation(FileWriteOperation op) throws IOException {
         trace("op " + op);
         checkError();
         notAppliedList.add(op);
         long now = op.getTime();
         for (int i = 0; i < notAppliedList.size() - 1; i++) {
-            FileOperation old = notAppliedList.get(i);
+            FileWriteOperation old = notAppliedList.get(i);
             boolean applyOld = false;
             // String reason = "";
             if (old.getTime() + 45000 < now) {
@@ -247,7 +246,7 @@ class FileReorderWrites extends FileBase {
 
     private void applyAll() throws IOException {
         trace("applyAll");
-        for (FileOperation op : notAppliedList) {
+        for (FileWriteOperation op : notAppliedList) {
             op.apply(base);
         }
         notAppliedList.clear();
@@ -262,12 +261,12 @@ class FileReorderWrites extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        return addOperation(new FileOperation(id++, readBase.position(), src));
+        return addOperation(new FileWriteOperation(id++, readBase.position(), src));
     }
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        return addOperation(new FileOperation(id++, position, src));
+        return addOperation(new FileWriteOperation(id++, position, src));
     }
 
     private void checkError() throws IOException {
@@ -298,13 +297,13 @@ class FileReorderWrites extends FileBase {
      * A file operation (that might be re-ordered with other operations, or not
      * be applied on power failure).
      */
-    static class FileOperation {
+    static class FileWriteOperation {
         private final int id;
         private final long time;
         private final ByteBuffer buffer;
         private final long position;
 
-        FileOperation(int id, long position, ByteBuffer src) {
+        FileWriteOperation(int id, long position, ByteBuffer src) {
             this.id = id;
             this.time = System.currentTimeMillis();
             if (src == null) {
@@ -329,7 +328,7 @@ class FileReorderWrites extends FileBase {
          * @param other the other operation
          * @return if there is an overlap
          */
-        boolean overlaps(FileOperation other) {
+        boolean overlaps(FileWriteOperation other) {
             if (isTruncate() && other.isTruncate()) {
                 // we just keep the latest truncate operation
                 return true;

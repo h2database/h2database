@@ -71,11 +71,11 @@ public class FilePathReorderWrites extends FilePathWrapper {
      *
      * @param partialWrites true to enable
      */
-    public void setPartialWrites(boolean partialWrites) {
+    public static void setPartialWrites(boolean partialWrites) {
         FilePathReorderWrites.partialWrites = partialWrites;
     }
 
-    boolean getPartialWrites() {
+    static boolean getPartialWrites() {
         return partialWrites;
     }
 
@@ -261,12 +261,25 @@ class FileReorderWrites extends FileBase {
 
     @Override
     public int write(ByteBuffer src) throws IOException {
-        return addOperation(new FileWriteOperation(id++, readBase.position(), src));
+        return write(src, readBase.position());
     }
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        return addOperation(new FileWriteOperation(id++, position, src));
+        if (FilePathReorderWrites.getPartialWrites() && src.remaining() > 2) {
+            ByteBuffer buf1 = src.slice();
+            ByteBuffer buf2 = src.slice();
+            int len1 = src.remaining() / 2;
+            int len2 = src.remaining() - len1;
+            buf1.limit(buf1.limit() - len2);
+            buf2.position(buf2.position() + len1);
+            int x = addOperation(new FileWriteOperation(id++, position, buf1));
+            x += addOperation(
+                    new FileWriteOperation(id++, position + len1, buf2));
+            return x;
+        } else {
+            return addOperation(new FileWriteOperation(id++, position, src));
+        }
     }
 
     private void checkError() throws IOException {

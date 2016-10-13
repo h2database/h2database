@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
-
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreTool;
 import org.h2.store.fs.FilePath;
@@ -129,6 +128,7 @@ public class TestReorderWrites  extends TestBase {
 
     private void testFileSystem() throws IOException {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
+        FilePathReorderWrites.setPartialWrites(true);
         String fileName = "reorder:memFS:test";
         ByteBuffer empty = ByteBuffer.allocate(1024);
         Random r = new Random(1);

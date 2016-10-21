@@ -5,12 +5,9 @@
  */
 package org.h2;
 
-import java.util.logging.Logger;
-
 /**
  * Allows us to compile on older platforms, while still implementing the methods from the newer JDBC API.
  */
 public interface JdbcDriverBackwardsCompat {
 
-    Logger getParentLogger();
 }

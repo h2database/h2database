@@ -290,15 +290,30 @@ public class ValueTimestampTimeZone extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueTimestampTimeZone t = (ValueTimestampTimeZone) o;
-        int c = MathUtils.compareLong(dateValue, t.dateValue);
+        // We are pretending that the dateValue is in UTC because that gives us a stable sort
+        // even if the DST database changes.
+
+        // convert to minutes and add timezone offset
+        long a = DateTimeUtils.convertDateValueToMillis(TimeZone.getTimeZone("UTC"), dateValue) / (1000L * 60L);
+        long ma = timeNanos / (1000L * 1000L * 1000L * 60L);
+        a += ma;
+        a -= timeZoneOffsetMins;
+
+        // convert to minutes and add timezone offset
+        long b = DateTimeUtils.convertDateValueToMillis(TimeZone.getTimeZone("UTC"), t.dateValue) / (1000L * 60L);
+        long mb = t.timeNanos / (1000L * 1000L * 1000L * 60L);
+        b += mb;
+        b -= t.timeZoneOffsetMins;
+
+        // compare date
+        int c = MathUtils.compareLong(a, b);
         if (c != 0) {
             return c;
         }
-        c = MathUtils.compareLong(timeNanos, t.timeNanos);
-        if (c != 0) {
-            return c;
-        }
-        return MathUtils.compareInt(timeZoneOffsetMins, t.timeZoneOffsetMins);
+        // compare time
+        long na = timeNanos - (ma * 1000L * 1000L * 1000L * 60L);
+        long nb = t.timeNanos - (mb * 1000L * 1000L * 1000L * 60L);
+        return MathUtils.compareLong(na, nb);
     }
 
     @Override

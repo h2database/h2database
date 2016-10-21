@@ -14,13 +14,14 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
@@ -46,6 +47,7 @@ public class TestPgServer extends TestBase {
         testKeyAlias();
         testCancelQuery();
         testBinaryTypes();
+        testPrepareWithUnspecifiedType();
     }
 
     private void testLowerCaseIdentifiers() throws SQLException {
@@ -365,8 +367,14 @@ public class TestPgServer extends TestBase {
                 "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
         server.start();
         try {
+            Properties props = new Properties();
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            // force binary
+            props.setProperty("prepareThreshold", "-1");
+
             Connection conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+                    "jdbc:postgresql://localhost:5535/test", props);
             Statement stat = conn.createStatement();
 
             stat.execute(
@@ -382,7 +390,7 @@ public class TestPgServer extends TestBase {
             ps.setLong(4, 1234567890123L);
             ps.setDouble(5, 123.456);
             ps.setFloat(6, 123.456f);
-            ps.setDouble(7, 123.456);
+            ps.setFloat(7, 123.456f);
             ps.setBoolean(8, true);
             ps.setByte(9, (byte) 0xfe);
             ps.setBytes(10, new byte[] { 'a', (byte) 0xfe, '\127' });
@@ -396,11 +404,59 @@ public class TestPgServer extends TestBase {
             assertEquals(1234567890123L, rs.getLong(4));
             assertEquals(123.456, rs.getDouble(5));
             assertEquals(123.456f, rs.getFloat(6));
-            assertEquals(123.456, rs.getDouble(7));
+            assertEquals(123.456f, rs.getFloat(7));
             assertEquals(true, rs.getBoolean(8));
             assertEquals((byte) 0xfe, rs.getByte(9));
             assertEquals(new byte[] { 'a', (byte) 0xfe, '\127' },
                     rs.getBytes(10));
+
+            conn.close();
+        } finally {
+            server.stop();
+        }
+    }
+
+    private void testPrepareWithUnspecifiedType() throws Exception {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        Server server = Server.createPgServer(
+                "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+        server.start();
+        try {
+            Properties props = new Properties();
+
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            // force server side prepare
+            props.setProperty("prepareThreshold", "1");
+
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/test", props);
+
+            Statement stmt = conn.createStatement();
+            stmt.executeUpdate("create table t1 (id integer, value timestamp)");
+            stmt.close();
+
+            PreparedStatement pstmt = conn.prepareStatement("insert into t1 values(100500, ?)");
+            // assertTrue(((PGStatement) pstmt).isUseServerPrepare());
+            assertEquals(Types.TIMESTAMP, pstmt.getParameterMetaData().getParameterType(1));
+
+            Timestamp t = new Timestamp(System.currentTimeMillis());
+            pstmt.setObject(1, t);
+            assertEquals(1, pstmt.executeUpdate());
+            pstmt.close();
+
+            pstmt = conn.prepareStatement("SELECT * FROM t1 WHERE value = ?");
+            assertEquals(Types.TIMESTAMP, pstmt.getParameterMetaData().getParameterType(1));
+
+            pstmt.setObject(1, t);
+            ResultSet rs = pstmt.executeQuery();
+            assertTrue(rs.next());
+            assertEquals(100500, rs.getInt(1));
+            rs.close();
+            pstmt.close();
 
             conn.close();
         } finally {

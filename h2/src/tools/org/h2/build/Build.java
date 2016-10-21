@@ -51,9 +51,9 @@ public class Build extends BuildBase {
         downloadUsingMaven("ext/derbynet-10.10.1.1.jar",
                 "org/apache/derby", "derbynet", "10.10.1.1",
                 "912b08dca73663d4665e09cd317be1218412d93e");
-        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar",
-                "postgresql", "postgresql", "8.3-603.jdbc3",
-                "33d531c3c53055ddcbea3d88bfa093466ffef924");
+        downloadUsingMaven("ext/postgresql-9.4.1209.jre6.jar",
+                "org.postgresql", "postgresql", "9.4.1209.jre6",
+                "2ed7a5a8c952d9ea18af92efea7e56ef854abfea");
         downloadUsingMaven("ext/mysql-connector-java-5.1.6.jar",
                 "mysql", "mysql-connector-java", "5.1.6",
                 "380ef5226de2c85ff3b38cbfefeea881c5fce09d");
@@ -66,7 +66,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/derby-10.10.1.1.jar" +
                 File.pathSeparator + "ext/derbyclient-10.10.1.1.jar" +
                 File.pathSeparator + "ext/derbynet-10.10.1.1.jar" +
-                File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
+                File.pathSeparator + "ext/postgresql-9.4.1209.jre6.jar" +
                 File.pathSeparator + "ext/mysql-connector-java-5.1.6.jar";
         StringList args = args("-Xmx128m",
                 "-cp", cp, "org.h2.test.bench.TestPerformance");
@@ -124,8 +124,8 @@ public class Build extends BuildBase {
                 "30a40933caf67d88d9e75957950ccf353b181ab7");
         String cp = "temp" + File.pathSeparator + "bin" +
             File.pathSeparator + "ext/emma-2.0.5312.jar" +
-            File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
-            File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+            File.pathSeparator + "ext/postgresql-9.4.1209.jre6.jar" +
+            File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
             File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
             File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
             File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
@@ -203,7 +203,7 @@ public class Build extends BuildBase {
         mkdir("temp");
         download();
         String classpath = "temp" +
-                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
@@ -296,9 +296,9 @@ public class Build extends BuildBase {
     }
 
     private void downloadOrVerify(boolean offline) {
-        downloadOrVerify("ext/servlet-api-3.0.1.jar",
-                "javax/servlet", "javax.servlet-api", "3.0.1",
-                "6bf0ebb7efd993e222fc1112377b5e92a13b38dd", offline);
+        downloadOrVerify("ext/servlet-api-3.1.0.jar",
+                "javax/servlet", "javax.servlet-api", "3.1.0",
+                "3cd63d075497751784b2fa84be59432f4905bf7c", offline);
         downloadOrVerify("ext/lucene-core-3.6.2.jar",
                 "org/apache/lucene", "lucene-core", "3.6.2",
                 "9ec77e2507f9cc01756964c71d91efd8154a8c47", offline);
@@ -343,10 +343,9 @@ public class Build extends BuildBase {
                 "com/h2database", "h2", "1.2.127",
                 "056e784c7cf009483366ab9cd8d21d02fe47031a");
         // for TestPgServer
-
-        downloadUsingMaven("ext/postgresql-8.3-603.jdbc3.jar",
-                "postgresql", "postgresql", "8.3-603.jdbc3",
-                "33d531c3c53055ddcbea3d88bfa093466ffef924");
+        downloadUsingMaven("ext/postgresql-9.4.1209.jre6.jar",
+                "org.postgresql", "postgresql", "9.4.1209.jre6",
+                "2ed7a5a8c952d9ea18af92efea7e56ef854abfea");
         // for TestTraceSystem
         downloadUsingMaven("ext/slf4j-nop-1.6.0.jar",
                 "org/slf4j", "slf4j-nop", "1.6.0",
@@ -617,7 +616,7 @@ public class Build extends BuildBase {
                 "-d", "docs/javadocImpl2",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -632,7 +631,7 @@ public class Build extends BuildBase {
                 "-d", "docs/javadocImpl3",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -647,7 +646,7 @@ public class Build extends BuildBase {
                 File.pathSeparator + "src/tools",
                 "-classpath", javaToolsJar +
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
-                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +
                 File.pathSeparator + "ext/org.osgi.enterprise-4.2.0.jar" +
@@ -915,8 +914,8 @@ public class Build extends BuildBase {
     private void test(boolean fast) {
         downloadTest();
         String cp = "temp" + File.pathSeparator + "bin" +
-                File.pathSeparator + "ext/postgresql-8.3-603.jdbc3.jar" +
-                File.pathSeparator + "ext/servlet-api-3.0.1.jar" +
+                File.pathSeparator + "ext/postgresql-9.4.1209.jre6.jar" +
+                File.pathSeparator + "ext/servlet-api-3.1.0.jar" +
                 File.pathSeparator + "ext/lucene-core-3.6.2.jar" +
                 File.pathSeparator + "ext/h2mig_pagestore_addon.jar" +
                 File.pathSeparator + "ext/org.osgi.core-4.2.0.jar" +

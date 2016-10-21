@@ -1,0 +1,9 @@
+language: java
+
+jdk:
+  - openjdk7
+  - oraclejdk8
+
+before_script: cd h2
+
+script: ./build.sh jar

@@ -280,6 +280,8 @@ public abstract class TestBase {
         if (config.mvStore) {
             url = addOption(url, "MV_STORE", "true");
             // url = addOption(url, "MVCC", "true");
+        } else {
+            url = addOption(url, "MV_STORE", "false");
         }
         if (!config.memory) {
             if (config.smallLog && admin) {
@@ -309,6 +311,9 @@ public abstract class TestBase {
         }
         if (config.mvcc) {
             url = addOption(url, "MVCC", "TRUE");
+        }
+        if (config.multiThreaded) {
+            url = addOption(url, "MULTI_THREADED", "TRUE");
         }
         if (config.cacheType != null && admin) {
             url = addOption(url, "CACHE_TYPE", config.cacheType);

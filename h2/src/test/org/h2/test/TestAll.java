@@ -53,6 +53,7 @@ import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
 import org.h2.test.db.TestRecursiveQueries;
+import org.h2.test.db.TestReplace;
 import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRowFactory;
 import org.h2.test.db.TestRunscript;
@@ -266,7 +267,7 @@ java org.h2.test.TestAll timer
     /**
      * Whether the MVStore storage is used.
      */
-    public final boolean mvStore = Constants.VERSION_MINOR >= 4;
+    public boolean mvStore = Constants.VERSION_MINOR >= 4;
 
     /**
      * If the test should run with many rows.
@@ -297,6 +298,11 @@ java org.h2.test.TestAll timer
      * If the multi version concurrency control mode should be used.
      */
     public boolean mvcc = mvStore;
+
+    /**
+     * If the multi-threaded mode should be used.
+     */
+    public boolean multiThreaded;
 
     /**
      * The cipher to use (null for unencrypted).
@@ -712,6 +718,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestView());
         addTest(new TestViewAlterTable());
         addTest(new TestViewDropView());
+        addTest(new TestReplace());
 
         // jaqu
         addTest(new AliasMapTest());

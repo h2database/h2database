@@ -5,21 +5,9 @@
  */
 package org.h2.jdbc;
 
-import java.sql.SQLException;
-import java.util.concurrent.Executor;
-
 /**
  * Allows us to compile on older platforms, while still implementing the methods from the newer JDBC API.
  */
 public interface JdbcConnectionBackwardsCompat {
 
-    void setSchema(String schema) throws SQLException;
-
-    String getSchema() throws SQLException;
-
-    void abort(Executor executor) throws SQLException;
-
-    void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException;
-
-    int getNetworkTimeout() throws SQLException;
 }

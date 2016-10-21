@@ -524,9 +524,9 @@ public class MetaTable extends Table {
             cols = createColumns(
                     "SQL_STATEMENT",
                     "EXECUTION_COUNT INT",
-                    "MIN_EXECUTION_TIME LONG",
-                    "MAX_EXECUTION_TIME LONG",
-                    "CUMULATIVE_EXECUTION_TIME LONG",
+                    "MIN_EXECUTION_TIME DOUBLE",
+                    "MAX_EXECUTION_TIME DOUBLE",
+                    "CUMULATIVE_EXECUTION_TIME DOUBLE",
                     "AVERAGE_EXECUTION_TIME DOUBLE",
                     "STD_DEV_EXECUTION_TIME DOUBLE",
                     "MIN_ROW_COUNT INT",
@@ -1834,15 +1834,15 @@ public class MetaTable extends Table {
                             // EXECUTION_COUNT
                             "" + entry.count,
                             // MIN_EXECUTION_TIME
-                            "" + entry.executionTimeMin,
+                            "" + entry.executionTimeMinNanos / 1000d / 1000,
                             // MAX_EXECUTION_TIME
-                            "" + entry.executionTimeMax,
+                            "" + entry.executionTimeMaxNanos / 1000d / 1000,
                             // CUMULATIVE_EXECUTION_TIME
-                            "" + entry.executionTimeCumulative,
+                            "" + entry.executionTimeCumulativeNanos / 1000d / 1000,
                             // AVERAGE_EXECUTION_TIME
-                            "" + entry.executionTimeMean,
+                            "" + entry.executionTimeMeanNanos / 1000d / 1000,
                             // STD_DEV_EXECUTION_TIME
-                            "" + entry.getExecutionTimeStandardDeviation(),
+                            "" + entry.getExecutionTimeStandardDeviation() / 1000d / 1000,
                             // MIN_ROW_COUNT
                             "" + entry.rowCountMin,
                             // MAX_ROW_COUNT

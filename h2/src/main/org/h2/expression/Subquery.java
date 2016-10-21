@@ -33,8 +33,7 @@ public class Subquery extends Expression {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        ResultInterface result = query.query(2);
-        try {
+        try (ResultInterface result = query.query(2)) {
             int rowcount = result.getRowCount();
             if (rowcount > 1) {
                 throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
@@ -52,8 +51,6 @@ public class Subquery extends Expression {
                 }
             }
             return v;
-        } finally {
-            result.close();
         }
     }
 

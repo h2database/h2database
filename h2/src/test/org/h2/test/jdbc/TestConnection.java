@@ -6,7 +6,6 @@
 package org.h2.test.jdbc;
 
 import org.h2.api.ErrorCode;
-import org.h2.jdbc.JdbcConnectionBackwardsCompat;
 import org.h2.test.TestBase;
 import java.sql.Connection;
 import java.sql.SQLClientInfoException;
@@ -97,18 +96,17 @@ public class TestConnection extends TestBase {
         Statement s = conn.createStatement();
         s.executeUpdate("create schema my_test_schema");
         s.executeUpdate("create table my_test_schema.my_test_table(id uuid, nave varchar)");
-        JdbcConnectionBackwardsCompat connx = (JdbcConnectionBackwardsCompat) conn;
-        assertEquals("PUBLIC", connx.getSchema());
+        assertEquals("PUBLIC", conn.getSchema());
         assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s, "select * from my_test_table");
-        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, connx).setSchema("my_test_table");
-        connx.setSchema("MY_TEST_SCHEMA");
-        assertEquals("MY_TEST_SCHEMA", connx.getSchema());
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("my_test_table");
+        conn.setSchema("MY_TEST_SCHEMA");
+        assertEquals("MY_TEST_SCHEMA", conn.getSchema());
         s.executeQuery("select * from my_test_table");
-        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, connx).setSchema("NON_EXISTING_SCHEMA");
-        assertEquals("MY_TEST_SCHEMA", connx.getSchema());
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("NON_EXISTING_SCHEMA");
+        assertEquals("MY_TEST_SCHEMA", conn.getSchema());
         s.executeUpdate("create schema \"otheR_schEma\"");
-        connx.setSchema("otheR_schEma");
-        assertEquals("otheR_schEma", connx.getSchema());
+        conn.setSchema("otheR_schEma");
+        assertEquals("otheR_schEma", conn.getSchema());
         s.close();
         conn.close();
     }

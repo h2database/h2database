@@ -20,6 +20,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -119,6 +120,8 @@ public class Function extends Expression implements FunctionCall {
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
             NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
+
+    public static final int REGEXP_LIKE = 240;
 
     /**
      * Used in MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ... VALUES
@@ -295,12 +298,13 @@ public class Function extends Expression implements FunctionCall {
         addFunction("XMLCDATA", XMLCDATA, 1, Value.STRING);
         addFunction("XMLSTARTDOC", XMLSTARTDOC, 0, Value.STRING);
         addFunction("XMLTEXT", XMLTEXT, VAR_ARGS, Value.STRING);
-        addFunction("REGEXP_REPLACE", REGEXP_REPLACE, 3, Value.STRING);
+        addFunction("REGEXP_REPLACE", REGEXP_REPLACE, VAR_ARGS, Value.STRING);
         addFunction("RPAD", RPAD, VAR_ARGS, Value.STRING);
         addFunction("LPAD", LPAD, VAR_ARGS, Value.STRING);
         addFunction("TO_CHAR", TO_CHAR, VAR_ARGS, Value.STRING);
         addFunction("ORA_HASH", ORA_HASH, VAR_ARGS, Value.INT);
         addFunction("TRANSLATE", TRANSLATE, 3, Value.STRING);
+        addFunction("REGEXP_LIKE", REGEXP_LIKE, VAR_ARGS, Value.BOOLEAN);
 
         // date
         addFunctionNotDeterministic("CURRENT_DATE", CURRENT_DATE,
@@ -1381,9 +1385,13 @@ public class Function extends Expression implements FunctionCall {
         case REGEXP_REPLACE: {
             String regexp = v1.getString();
             String replacement = v2.getString();
+            String regexpMode = v3 == null || v3.getString() == null ? "" :
+                    v2.getString();
+            int flags = makeRegexpFlags(regexpMode);
             try {
                 result = ValueString.get(
-                        v0.getString().replaceAll(regexp, replacement),
+                        Pattern.compile(regexp, flags).matcher(v0.getString())
+                                .replaceAll(replacement),
                         database.getMode().treatEmptyStringsAsNull);
             } catch (StringIndexOutOfBoundsException e) {
                 throw DbException.get(
@@ -1602,10 +1610,11 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v0.getString();
             boolean blob = args.length == 1;
             try {
+                long fileLength = FileUtils.size(fileName);
                 InputStream in = new AutoCloseInputStream(
                         FileUtils.newInputStream(fileName));
                 if (blob) {
-                    result = database.getLobStorage().createBlob(in, -1);
+                    result = database.getLobStorage().createBlob(in, fileLength);
                 } else {
                     Reader reader;
                     if (v1 == ValueNull.INSTANCE) {
@@ -1613,7 +1622,7 @@ public class Function extends Expression implements FunctionCall {
                     } else {
                         reader = new InputStreamReader(in, v1.getString());
                     }
-                    result = database.getLobStorage().createClob(reader, -1);
+                    result = database.getLobStorage().createClob(reader, fileLength);
                 }
                 session.addTemporaryLob(result);
             } catch (IOException e) {
@@ -1627,12 +1636,9 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v1.getString();
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-                InputStream in = v0.getInputStream();
-                try {
+                try (InputStream in = v0.getInputStream()) {
                     result = ValueLong.get(IOUtils.copyAndClose(in,
                             fileOutputStream));
-                } finally {
-                    in.close();
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);
@@ -1654,6 +1660,19 @@ public class Function extends Expression implements FunctionCall {
                         database.getMode().treatEmptyStringsAsNull);
             }
             break;
+        case REGEXP_LIKE: {
+            String regexp = v1.getString();
+            String regexpMode = v2 == null || v2.getString() == null ? "" :
+                    v2.getString();
+            int flags = makeRegexpFlags(regexpMode);
+            try {
+                result = ValueBoolean.get(Pattern.compile(regexp, flags)
+                        .matcher(v0.getString()).find());
+            } catch (PatternSyntaxException e) {
+                throw DbException.get(ErrorCode.LIKE_ESCAPE_ERROR_1, e, regexp);
+            }
+            break;
+        }
         case VALUES:
             result = session.getVariable(args[0].getSchemaName() + "." +
                     args[0].getTableName() + "." + args[0].getColumnName());
@@ -2109,6 +2128,30 @@ public class Function extends Expression implements FunctionCall {
         return hc;
     }
 
+    public int makeRegexpFlags(String stringFlags) {
+        int flags = Pattern.UNICODE_CASE;
+        if (stringFlags != null) {
+            for (int i = 0; i < stringFlags.length(); ++i) {
+                switch (stringFlags.charAt(i)) {
+                    case 'i':
+                        flags |= Pattern.CASE_INSENSITIVE;
+                        break;
+                    case 'c':
+                        flags &= ~Pattern.CASE_INSENSITIVE;
+                        break;
+                    case 'n':
+                        flags |= Pattern.DOTALL;
+                        break;
+                    case 'm':
+                        flags |= Pattern.MULTILINE;
+                        break;
+                    default:
+                        throw DbException.get(ErrorCode.INVALID_VALUE_2, stringFlags);
+                }
+            }
+        }
+        return flags;
+    }
 
     @Override
     public int getType() {
@@ -2197,6 +2240,14 @@ public class Function extends Expression implements FunctionCall {
         case DECODE:
         case CASE:
             min = 3;
+            break;
+        case REGEXP_REPLACE:
+            min = 3;
+            max = 4;
+            break;
+        case REGEXP_LIKE:
+            min = 2;
+            max = 3;
             break;
         default:
             DbException.throwInternalError("type=" + info.type);

@@ -24,7 +24,7 @@ import org.h2.value.ValueArray;
  * and it is also used directly by the ResultSet class in the embedded mode.
  * If the result does not fit in memory, it is written to a temporary file.
  */
-public class LocalResult implements ResultInterface, ResultTarget {
+public class LocalResult implements ResultInterface, ResultTarget, AutoCloseable {
 
     private int maxMemoryRows;
     private Session session;

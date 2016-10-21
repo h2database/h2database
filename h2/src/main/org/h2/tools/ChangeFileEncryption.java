@@ -186,15 +186,15 @@ public class ChangeFileEncryption extends Tool {
         for (String fileName : files) {
             // don't process a lob directory, just the files in the directory.
             if (!FileUtils.isDirectory(fileName)) {
-                change.process(fileName);
+                change.process(fileName, quiet);
             }
         }
     }
 
-    private void process(String fileName) {
+    private void process(String fileName, boolean quiet) {
         if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
             try {
-                copy(fileName);
+                copy(fileName, quiet);
             } catch (IOException e) {
                 throw DbException.convertIOException(e,
                         "Error encrypting / decrypting file " + fileName);
@@ -209,13 +209,13 @@ public class ChangeFileEncryption extends Tool {
         }
         try {
             in.init();
-            copy(fileName, in, encrypt);
+            copy(fileName, in, encrypt, quiet);
         } finally {
             in.closeSilently();
         }
     }
 
-    private void copy(String fileName) throws IOException {
+    private void copy(String fileName, boolean quiet) throws IOException {
         if (FileUtils.isDirectory(fileName)) {
             return;
         }
@@ -238,7 +238,7 @@ public class ChangeFileEncryption extends Tool {
             long total = remaining;
             long time = System.currentTimeMillis();
             while (remaining > 0) {
-                if (System.currentTimeMillis() - time > 1000) {
+                if (!quiet && System.currentTimeMillis() - time > 1000) {
                     out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
                     time = System.currentTimeMillis();
                 }
@@ -259,7 +259,7 @@ public class ChangeFileEncryption extends Tool {
         FileUtils.move(temp, fileName);
     }
 
-    private void copy(String fileName, FileStore in, byte[] key) {
+    private void copy(String fileName, FileStore in, byte[] key, boolean quiet) {
         if (FileUtils.isDirectory(fileName)) {
             return;
         }
@@ -279,7 +279,7 @@ public class ChangeFileEncryption extends Tool {
         fileOut.seek(FileStore.HEADER_LENGTH);
         long time = System.currentTimeMillis();
         while (remaining > 0) {
-            if (System.currentTimeMillis() - time > 1000) {
+            if (!quiet && System.currentTimeMillis() - time > 1000) {
                 out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
                 time = System.currentTimeMillis();
             }

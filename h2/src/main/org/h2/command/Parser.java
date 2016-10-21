@@ -1885,8 +1885,9 @@ public class Parser {
             read(")");
             return command;
         }
-        if (readIf("WITH"))
+        if (readIf("WITH")) {
             return parseWith();
+        }
         Select select = parseSelectSimple();
         return select;
     }
@@ -5719,7 +5720,11 @@ public class Parser {
                 columnsToAdd.add(column);
             } while (readIf(","));
             read(")");
-            command.setNewColumns(columnsToAdd);
+            if (readIf("BEFORE")) {
+                command.setAddBefore(readColumnIdentifier());
+            } else if (readIf("AFTER")) {
+                command.setAddAfter(readColumnIdentifier());
+            }
         } else {
             boolean ifNotExists = readIfNotExists();
             command.setIfNotExists(ifNotExists);

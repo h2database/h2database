@@ -24,13 +24,6 @@ import java.net.URI;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
-import org.h2.engine.SysProperties;
-import org.h2.message.DbException;
-import org.h2.store.fs.FileUtils;
-
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -40,6 +33,11 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+import org.h2.api.ErrorCode;
+import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
+import org.h2.message.DbException;
+import org.h2.store.fs.FileUtils;
 
 /**
  * This class allows to convert source code to a class. It uses one class loader
@@ -284,7 +282,7 @@ public class SourceCompiler {
                     .getStandardFileManager(null, null, null));
         ArrayList<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
         compilationUnits.add(new StringJavaFileObject(fullClassName, source));
-        // can not concurrently compile
+        // cannot concurrently compile
         synchronized (JAVA_COMPILER) {
             JAVA_COMPILER.getTask(writer, fileManager, null, null,
                 null, compilationUnits).call();
@@ -367,7 +365,10 @@ public class SourceCompiler {
         final BufferedReader reader = new BufferedReader(new StringReader(output));
         try {
             for (String line; (line = reader.readLine()) != null;) {
-                if (line.startsWith("Note:") || line.startsWith("warning:")) {
+                if (line.endsWith("warning")) {
+                    // ignore summary line
+                } else if (line.startsWith("Note:")
+                        || line.startsWith("warning:")) {
                     // just a warning (e.g. unchecked or unsafe operations)
                 } else {
                     syntaxError = true;

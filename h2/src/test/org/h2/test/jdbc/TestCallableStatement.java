@@ -147,6 +147,7 @@ public class TestCallableStatement extends TestBase {
         assertEquals(1, call.getLong(1));
         assertEquals(1, call.getByte(1));
         assertEquals(1, ((Long) call.getObject(1)).longValue());
+        assertEquals(1, call.getObject(1, Long.class).longValue());
         assertFalse(call.wasNull());
 
         call.setFloat(2, 1.1f);

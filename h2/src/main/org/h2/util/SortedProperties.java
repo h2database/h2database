@@ -17,10 +17,10 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.Vector;
-import java.util.Map.Entry;
 import org.h2.store.fs.FileUtils;
 
 /**
@@ -88,14 +88,8 @@ public class SortedProperties extends Properties {
             throws IOException {
         SortedProperties prop = new SortedProperties();
         if (FileUtils.exists(fileName)) {
-            InputStream in = null;
-            try {
-                in = FileUtils.newInputStream(fileName);
+            try (InputStream in = FileUtils.newInputStream(fileName)) {
                 prop.load(in);
-            } finally {
-                if (in != null) {
-                    in.close();
-                }
             }
         }
         return prop;

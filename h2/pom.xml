@@ -32,11 +32,12 @@
   </developers>
 
   <properties>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
     <derby.version>10.10.1.1</derby.version>
     <osgi.version>4.2.0</osgi.version>
     <slf4j.version>1.6.0</slf4j.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
@@ -45,7 +46,7 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>3.0.1</version>
+      <version>3.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.lucene</groupId>
@@ -107,9 +108,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>postgresql</groupId>
+      <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>8.3-603.jdbc3</version>
+      <version>9.4.1209.jre6</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -130,7 +131,7 @@
     <dependency>
       <groupId>com.sun</groupId>
       <artifactId>tools</artifactId>
-      <version>1.6</version>
+      <version>1.7</version>
       <scope>system</scope>
       <systemPath>${tools.jar}</systemPath>
     </dependency>

@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -134,13 +133,10 @@ public class Script extends Tool {
      */
     public static void process(Connection conn,
             String fileName, String options1, String options2) throws SQLException {
-        Statement stat = null;
-        try {
-            stat = conn.createStatement();
+
+        try (Statement stat = conn.createStatement()) {
             String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
             stat.execute(sql);
-        } finally {
-            JdbcUtils.closeSilently(stat);
         }
     }
 

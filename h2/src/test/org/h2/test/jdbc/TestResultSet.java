@@ -670,7 +670,15 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof Integer);
         assertTrue(((Integer) o).intValue() == -1);
+        o = rs.getObject("value", Integer.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Integer);
+        assertTrue(((Integer) o).intValue() == -1);
         o = rs.getObject(2);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Integer);
+        assertTrue(((Integer) o).intValue() == -1);
+        o = rs.getObject(2, Integer.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Integer);
         assertTrue(((Integer) o).intValue() == -1);
@@ -719,6 +727,9 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
+        assertTrue(o == null);
+        assertTrue(rs.wasNull());
+        o = rs.getObject(2, Integer.class);
         assertTrue(o == null);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
@@ -780,6 +791,10 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof String);
         assertTrue(o.toString().equals("Hi"));
+        o = rs.getObject("value", String.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof String);
+        assertTrue(o.equals("Hi"));
         rs.next();
         value = rs.getString(2);
         trace("Value: <" + value + "> (should be: < Hi >)");
@@ -845,6 +860,10 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof BigDecimal);
         assertTrue(((BigDecimal) o).compareTo(new BigDecimal("-1.00")) == 0);
+        o = rs.getObject(2, BigDecimal.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof BigDecimal);
+        assertTrue(((BigDecimal) o).compareTo(new BigDecimal("-1.00")) == 0);
 
         rs.next();
         assertTrue(rs.getInt(1) == 2);
@@ -905,7 +924,15 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof Double);
         assertTrue(((Double) o).compareTo(new Double("-1.00")) == 0);
+        o = rs.getObject(2, Double.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Double);
+        assertTrue(((Double) o).compareTo(new Double("-1.00")) == 0);
         o = rs.getObject(3);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Float);
+        assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
+        o = rs.getObject(3, Float.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Float);
         assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
@@ -1009,6 +1036,12 @@ public class TestResultSet extends TestBase {
         assertTrue(((java.sql.Timestamp) o).equals(
                 java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
         assertFalse(rs.wasNull());
+        o = rs.getObject(2, java.sql.Timestamp.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof java.sql.Timestamp);
+        assertTrue(((java.sql.Timestamp) o).equals(
+                        java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
+        assertFalse(rs.wasNull());
         rs.next();
 
         date = rs.getDate("VALUE");
@@ -1045,6 +1078,12 @@ public class TestResultSet extends TestBase {
         date = (Date) rs.getObject(1);
         time = (Time) rs.getObject(2);
         ts = (Timestamp) rs.getObject(3);
+        assertEquals("2001-02-03", date.toString());
+        assertEquals("14:15:16", time.toString());
+        assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
+        date = rs.getObject(1, Date.class);
+        time = rs.getObject(2, Time.class);
+        ts = rs.getObject(3, Timestamp.class);
         assertEquals("2001-02-03", date.toString());
         assertEquals("14:15:16", time.toString());
         assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
@@ -1187,10 +1226,18 @@ public class TestResultSet extends TestBase {
                 (byte) 0x01, (byte) 0x01 },
                 rs.getBytes(2));
         assertTrue(!rs.wasNull());
+        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
+                (byte) 0x01, (byte) 0x01 },
+                rs.getObject(2, byte[].class));
+        assertTrue(!rs.wasNull());
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getBytes("value"));
+        assertTrue(!rs.wasNull());
+        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
+                (byte) 0x02, (byte) 0x02 },
+                rs.getObject("value", byte[].class));
         assertTrue(!rs.wasNull());
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x00 },

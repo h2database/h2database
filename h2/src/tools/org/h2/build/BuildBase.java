@@ -599,7 +599,7 @@ public class BuildBase {
         if (targetFile.exists()) {
             return;
         }
-        String repoFile = group + "/" + artifact + "/" + version + "/"
+        String repoFile = group.replace('.', '/') + "/" + artifact + "/" + version + "/"
                 + artifact + "-" + version + ".jar";
         mkdirs(targetFile.getAbsoluteFile().getParentFile());
         String localMavenDir = getLocalMavenDir();

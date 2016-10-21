@@ -10,7 +10,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.StringUtils;
 
 /**
- * How we expose "DATETIME WITH TIMEZONE" in our ResultSets.
+ * How we expose "TIMESTAMP WITH TIMEZONE" in our ResultSets.
  */
 public class TimestampWithTimeZone implements Serializable, Cloneable {
 
@@ -46,18 +46,55 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
         return dateValue;
     }
 
-    public long getYear() {
+    /**
+     * Gets the year.
+     *
+     * <p>The year is in the specified time zone and not UTC. So for
+     * {@code 2015-12-31 19:00:00.00-10:00} the value returned
+     * will be {@code 2015} even though in UTC the year is {@code 2016}.</p>
+     *
+     * @return the year
+     */
+    public int getYear() {
         return DateTimeUtils.yearFromDateValue(dateValue);
     }
 
-    public long getMonth() {
+    /**
+     * Gets the month 1-based.
+     *
+     * <p>The month is in the specified time zone and not UTC. So for
+     * {@code 2015-12-31 19:00:00.00-10:00} the value returned
+     * is {@code 12} even though in UTC the month is {@code 1}.</p>
+     *
+     * @return the month
+     */
+    public int getMonth() {
         return DateTimeUtils.monthFromDateValue(dateValue);
     }
 
-    public long getDay() {
+    /**
+     * Gets the day of month 1-based.
+     *
+     * <p>The day of month is in the specified time zone and not UTC. So for
+     * {@code 2015-12-31 19:00:00.00-10:00} the value returned
+     * is {@code 31} even though in UTC the day of month is {@code 1}.</p>
+     *
+     * @return the day of month
+     */
+    public int getDay() {
         return DateTimeUtils.dayFromDateValue(dateValue);
     }
 
+    /**
+     * Gets the nanoseconds since midnight.
+     *
+     * <p>The nanoseconds are relative to midnight in the specified
+     * time zone. So for {@code 2016-09-24 00:00:00.000000001-00:01} the
+     * value returned is {@code 1} even though {@code 60000000001}
+     * nanoseconds have passed since midnight in UTC.</p>
+     *
+     * @return the nanoseconds since midnight
+     */
     public long getNanosSinceMidnight() {
         return timeNanos;
     }
@@ -133,27 +170,29 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
 
     @Override
     public int hashCode() {
-        return 31 * super.hashCode() + timeZoneOffsetMins;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + (int) (dateValue ^ (dateValue >>> 32));
+        result = prime * result + (int) (timeNanos ^ (timeNanos >>> 32));
+        result = prime * result + timeZoneOffsetMins;
+        return result;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
+        if (this == obj)
             return true;
-        }
-        if (getClass() != obj.getClass()) {
+        if (obj == null)
             return false;
-        }
+        if (getClass() != obj.getClass())
+            return false;
         TimestampWithTimeZone other = (TimestampWithTimeZone) obj;
-        if (dateValue != other.dateValue) {
+        if (dateValue != other.dateValue)
             return false;
-        }
-        if (timeNanos != other.timeNanos) {
+        if (timeNanos != other.timeNanos)
             return false;
-        }
-        if (timeZoneOffsetMins != other.timeZoneOffsetMins) {
+        if (timeZoneOffsetMins != other.timeZoneOffsetMins)
             return false;
-        }
         return true;
     }
 

@@ -167,7 +167,12 @@ public class TriggerObject extends SchemaObjectBase {
             throw DbException.get(ErrorCode.ERROR_EXECUTING_TRIGGER_3, e, getName(),
                     triggerClassName != null ? triggerClassName : "..source..", e.toString());
         } finally {
-            session.setLastScopeIdentity(identity);
+            if (session.getLastTriggerIdentity() != null) {
+                session.setLastScopeIdentity(session.getLastTriggerIdentity());
+                session.setLastTriggerIdentity(null);
+            } else {
+                session.setLastScopeIdentity(identity);
+            }
             if (type != Trigger.SELECT) {
                 session.setCommitOrRollbackDisabled(old);
             }
@@ -262,7 +267,12 @@ public class TriggerObject extends SchemaObjectBase {
                 throw DbException.convert(e);
             }
         } finally {
-            session.setLastScopeIdentity(identity);
+            if (session.getLastTriggerIdentity() != null) {
+                session.setLastScopeIdentity(session.getLastTriggerIdentity());
+                session.setLastTriggerIdentity(null);
+            } else {
+                session.setLastScopeIdentity(identity);
+            }
             session.setCommitOrRollbackDisabled(oldDisabled);
             session.setAutoCommit(old);
         }

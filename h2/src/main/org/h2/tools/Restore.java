@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -74,9 +73,8 @@ public class Restore extends Tool {
 
     private static String getOriginalDbName(String fileName, String db)
             throws IOException {
-        InputStream in = null;
-        try {
-            in = FileUtils.newInputStream(fileName);
+
+        try (InputStream in = FileUtils.newInputStream(fileName)) {
             ZipInputStream zipIn = new ZipInputStream(in);
             String originalDbName = null;
             boolean multiple = false;
@@ -108,8 +106,6 @@ public class Restore extends Tool {
                 throw new IOException("Multiple databases found, but not " + db);
             }
             return originalDbName;
-        } finally {
-            IOUtils.closeSilently(in);
         }
     }
 

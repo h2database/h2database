@@ -46,8 +46,7 @@ public class ConditionInSelect extends Condition {
         if (!query.hasOrder()) {
             query.setDistinct(true);
         }
-        LocalResult rows = query.query(0);
-        try {
+        try (LocalResult rows = query.query(0)) {
             Value l = left.getValue(session);
             if (rows.getRowCount() == 0) {
                 return ValueBoolean.get(all);
@@ -73,8 +72,6 @@ public class ConditionInSelect extends Condition {
                 return ValueNull.INSTANCE;
             }
             return ValueBoolean.get(false);
-        } finally {
-            rows.close();
         }
     }
 

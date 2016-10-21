@@ -78,6 +78,7 @@ public class Session extends SessionWithState {
     private int lockTimeout;
     private Value lastIdentity = ValueLong.get(0);
     private Value lastScopeIdentity = ValueLong.get(0);
+    private Value lastTriggerIdentity;
     private int firstUncommittedLog = Session.LOG_WRITTEN;
     private int firstUncommittedPos = Session.LOG_WRITTEN;
     private HashMap<String, Savepoint> savepoints;
@@ -1000,6 +1001,14 @@ public class Session extends SessionWithState {
         return lastScopeIdentity;
     }
 
+    public void setLastTriggerIdentity(Value last) {
+        this.lastTriggerIdentity = last;
+    }
+
+    public Value getLastTriggerIdentity() {
+        return lastTriggerIdentity;
+    }
+
     /**
      * Called when a log entry for this session is added. The session keeps
      * track of the first entry in the transaction log that is not yet
@@ -1221,8 +1230,15 @@ public class Session extends SessionWithState {
         this.currentSchemaName = schema.getName();
     }
 
+    @Override
     public String getCurrentSchemaName() {
         return currentSchemaName;
+    }
+
+    @Override
+    public void setCurrentSchemaName(String schemaName) {
+        Schema schema = database.getSchema(schemaName);
+        setCurrentSchema(schema);
     }
 
     /**

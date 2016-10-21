@@ -12,23 +12,22 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.Random;
-
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.util.AffineTransformation;
 import org.h2.api.Aggregate;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleRowSource;
 import org.h2.value.DataType;
 import org.h2.value.Value;
+import org.h2.value.ValueGeometry;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.util.AffineTransformation;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.h2.value.ValueGeometry;
 
 /**
  * Spatial datatype and index tests.
@@ -190,8 +189,7 @@ public class TestSpatial extends TestBase {
 
     private void testOverlap() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("create memory table test" +
                     "(id int primary key, poly geometry)");
@@ -209,14 +207,11 @@ public class TestSpatial extends TestBase {
             assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
-        } finally {
-            conn.close();
         }
     }
     private void testPersistentSpatialIndex() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("create table test" +
                     "(id int primary key, poly geometry)");
@@ -247,17 +242,13 @@ public class TestSpatial extends TestBase {
             assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             rs.close();
-        } finally {
-            // Close the database
-            conn.close();
         }
 
         if (config.memory) {
             return;
         }
 
-        conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery(
                     "select * from test " +
@@ -266,15 +257,12 @@ public class TestSpatial extends TestBase {
             assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
-        } finally {
-            conn.close();
         }
-
     }
+
     private void testNotOverlap() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("create memory table test" +
                     "(id int primary key, poly geometry)");
@@ -296,8 +284,6 @@ public class TestSpatial extends TestBase {
             assertEquals(5, rs.getInt("id"));
             assertFalse(rs.next());
             stat.execute("drop table test");
-        } finally {
-            conn.close();
         }
     }
 
@@ -350,14 +336,10 @@ public class TestSpatial extends TestBase {
 
     private void testSpatialIndexQueryMultipleTable() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             createTestTable(stat);
             testRoadAndArea(stat);
-        } finally {
-            // Close the database
-            conn.close();
         }
         deleteDb("spatial");
     }
@@ -391,9 +373,8 @@ public class TestSpatial extends TestBase {
     private void testIndexTransaction() throws SQLException {
         // Check session management in index
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        conn.setAutoCommit(false);
-        try {
+        try (Connection conn = getConnection(URL)) {
+            conn.setAutoCommit(false);
             Statement stat = conn.createStatement();
             createTestTable(stat);
             Savepoint sp = conn.setSavepoint();
@@ -429,10 +410,7 @@ public class TestSpatial extends TestBase {
             conn.rollback(sp);
             // Check if the index is restored
             testRoadAndArea(stat);
-        } finally {
-            conn.close();
         }
-
     }
 
     /**
@@ -503,8 +481,7 @@ public class TestSpatial extends TestBase {
      */
     private void testJavaAlias() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS T_GEOM_FROM_TEXT FOR \"" +
                     TestSpatial.class.getName() + ".geomFromText\"");
@@ -518,8 +495,6 @@ public class TestSpatial extends TestBase {
             assertTrue(rs.next());
             assertEquals("POLYGON ((62 48, 84 48, 84 42, 56 34, 62 48))",
                     rs.getObject(1).toString());
-        } finally {
-            conn.close();
         }
         deleteDb("spatial");
     }
@@ -529,8 +504,7 @@ public class TestSpatial extends TestBase {
      */
     private void testJavaAliasTableFunction() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS T_RANDOM_GEOM_TABLE FOR \"" +
                     TestSpatial.class.getName() + ".getRandomGeometryTable\"");
@@ -541,8 +515,6 @@ public class TestSpatial extends TestBase {
             ResultSet rs = stat.executeQuery("select count(*) from test");
             assertTrue(rs.next());
             assertEquals(20, rs.getInt(1));
-        } finally {
-            conn.close();
         }
         deleteDb("spatial");
     }
@@ -696,8 +668,7 @@ public class TestSpatial extends TestBase {
      */
     private void testTableFunctionGeometry() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE ALIAS POINT_TABLE FOR \"" +
                     TestSpatial.class.getName() + ".pointTable\"");
@@ -709,8 +680,6 @@ public class TestSpatial extends TestBase {
             assertEquals("geometry",
                     columnMeta.getString("TYPE_NAME").toLowerCase());
             assertFalse(columnMeta.next());
-        } finally {
-            conn.close();
         }
         deleteDb("spatial");
     }
@@ -732,8 +701,7 @@ public class TestSpatial extends TestBase {
 
     private void testAggregateWithGeometry() throws SQLException {
         deleteDb("spatialIndex");
-        Connection conn = getConnection("spatialIndex");
-        try {
+        try (Connection conn = getConnection("spatialIndex")) {
             Statement st = conn.createStatement();
             st.execute("CREATE AGGREGATE TABLE_ENVELOPE FOR \""+
                     TableEnvelope.class.getName()+"\"");
@@ -747,8 +715,6 @@ public class TestSpatial extends TestBase {
             assertTrue(new Envelope(1, 10, 1, 5).equals(
                     ((Geometry) rs.getObject(1)).getEnvelopeInternal()));
             assertFalse(rs.next());
-        } finally {
-            conn.close();
         }
         deleteDb("spatialIndex");
     }
@@ -793,8 +759,7 @@ public class TestSpatial extends TestBase {
 
     private void testTableViewSpatialPredicate() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists test");
             stat.execute("drop view if exists test_view");
@@ -819,9 +784,6 @@ public class TestSpatial extends TestBase {
             assertEquals(1, rs.getInt("id"));
             assertFalse(rs.next());
             rs.close();
-        } finally {
-            // Close the database
-            conn.close();
         }
         deleteDb("spatial");
     }
@@ -831,16 +793,13 @@ public class TestSpatial extends TestBase {
      */
     private void testValueGeometryScript() throws SQLException {
         ValueGeometry valueGeometry = ValueGeometry.get("POINT(1 1 5)");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             ResultSet rs = conn.createStatement().executeQuery(
                     "SELECT " + valueGeometry.getSQL());
             assertTrue(rs.next());
             Object obj = rs.getObject(1);
             ValueGeometry g = ValueGeometry.getFromGeometry(obj);
             assertTrue("got: " + g + " exp: " + valueGeometry, valueGeometry.equals(g));
-        } finally {
-            conn.close();
         }
     }
 
@@ -849,8 +808,7 @@ public class TestSpatial extends TestBase {
      * be updated.
      */
     private void testInPlaceUpdate() throws SQLException {
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             ResultSet rs = conn.createStatement().executeQuery(
                     "SELECT 'POINT(1 1)'::geometry");
             assertTrue(rs.next());
@@ -865,15 +823,12 @@ public class TestSpatial extends TestBase {
             assertEquals(1, ((Point) rs.getObject(1)).getX());
             assertEquals(1, ((Point) rs.getObject(1)).getY());
             rs.close();
-        } finally {
-            conn.close();
         }
     }
 
     private void testScanIndexOnNonSpatialQuery() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists test");
             stat.execute("create table test(id serial primary key, " +
@@ -883,17 +838,13 @@ public class TestSpatial extends TestBase {
             assertTrue(rs.next());
             assertFalse(rs.getString(1).contains("/* PUBLIC.SPATIAL: _ROWID_ = " +
                     "5 */"));
-        } finally {
-            // Close the database
-            conn.close();
         }
         deleteDb("spatial");
     }
 
     private void testStoreCorruption() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;\n" +
                     "CREATE TABLE PT_CLOUD AS " +
@@ -912,17 +863,13 @@ public class TestSpatial extends TestBase {
                     " system_range(1e6,1e6+50) A,system_range(6e6,6e6+50) B;\n" +
                     "create spatial index pt_index on pt_cloud(the_geom);\n" +
                     "shutdown compact;");
-        } finally {
-            // Close the database
-            conn.close();
         }
         deleteDb("spatial");
     }
 
     private void testExplainSpatialIndexWithPk() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        try {
+        try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("drop table if exists pt_cloud;");
             stat.execute("CREATE TABLE PT_CLOUD(id serial, the_geom geometry) AS " +
@@ -939,9 +886,6 @@ public class TestSpatial extends TestBase {
             } finally {
                 rs.close();
             }
-        } finally {
-            // Close the database
-            conn.close();
         }
         deleteDb("spatial");
     }
@@ -1189,11 +1133,8 @@ public class TestSpatial extends TestBase {
                 "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (178,-1,NULL);\n" +
                 "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (179," +
                 "-1,NULL);");
-        ResultSet rs = stat.executeQuery("select * from DUMMY_12");
-        try {
+        try (ResultSet rs = stat.executeQuery("select * from DUMMY_12")) {
             assertTrue(rs.next());
-        } finally {
-            rs.close();
         }
 
     }

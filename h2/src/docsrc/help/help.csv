@@ -226,8 +226,8 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
-    | ( { columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnDefinition | ( { columnDefinition } [,...] ) }
+[ { BEFORE | AFTER } columnName ]
 ","
 Adds a new column to a table.
 This command commits an open transaction in this connection.
@@ -2325,10 +2325,24 @@ DATE
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type. The format is yyyy-MM-dd hh:mm:ss[.nnnnnnnnn].
+Stored internally as a BCD-encoded date, and nano-seconds since midnight.
 
 Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
 ","
 TIMESTAMP
+"
+
+"Data Types","TIMESTAMP WITH TIMEZONE Type","
+TIMESTAMP WITH TIMEZONE
+","
+VERY MUCH STILL IN TESTING.
+The timestamp with timezone data type.
+Stored internally as a BCD-encoded date, nano-seconds since midnight, and timezone offset in minutes.
+Note that range queries on this datatype may do some weird stuff close to DST boundaries.
+
+Mapped to ""org.h2.api.TimestampWithTimeZone""
+","
+TIMESTAMP WITH TIMEZONE
 "
 
 "Data Types","BINARY Type","
@@ -3255,14 +3269,52 @@ TRIM(BOTH '_' FROM NAME)
 "
 
 "Functions (String)","REGEXP_REPLACE","
-REGEXP_REPLACE(inputString, regexString, replacementString)
+REGEXP_REPLACE(inputString, regexString, replacementString [, flagsString])
 ","
 Replaces each substring that matches a regular expression.
 For details, see the Java ""String.replaceAll()"" method.
-If any parameter is null, the result is null.
+If any parameter is null (except optional flagsString parameter), the result is null.
+
+Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
+Multiple symbols could be uses in one flagsString parameter (like 'im').
+Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+
+'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'c' disables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'n' allows the period to match the newline character (Pattern.DOTALL)
+
+'m' enables multiline mode (Pattern.MULTILINE)
+
 ","
 REGEXP_REPLACE('Hello    World', ' +', ' ')
+REGEXP_REPLACE('Hello WWWWorld', 'w+', 'W', 'i')
 "
+
+"Functions (String)","REGEXP_LIKE","
+REGEXP_LIKE(inputString, regexString [, flagsString])
+","
+Matches string to a regular expression.
+For details, see the Java ""Matcher.find()"" method.
+If any parameter is null (except optional flagsString parameter), the result is null.
+
+Flags values limited to 'i', 'c', 'n', 'm'. Other symbols causes exception.
+Multiple symbols could be uses in one flagsString parameter (like 'im').
+Later flags overrides first ones, for example 'ic' equivalent to case sensitive matching 'c'.
+
+'i' enables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'c' disables case insensitive matching (Pattern.CASE_INSENSITIVE)
+
+'n' allows the period to match the newline character (Pattern.DOTALL)
+
+'m' enables multiline mode (Pattern.MULTILINE)
+
+","
+REGEXP_LIKE('Hello    World', '[A-Z ]*', 'i')
+"
+
 
 "Functions (String)","REPEAT","
 REPEAT(string, int)
@@ -3462,7 +3514,7 @@ Use negative values to subtract units.
 addIntLong may be a long value when manipulating milliseconds,
 otherwise it's range is restricted to int.
 The same units as in the EXTRACT function are supported.
-This method returns a timestamp.
+DATEADD method returns a timestamp. TIMESTAMPADD method returns a long.
 ","
 DATEADD('MONTH', 1, DATE '2001-01-31')
 "

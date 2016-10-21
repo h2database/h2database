@@ -84,8 +84,8 @@ ALTER SEQUENCE [ IF EXISTS ] sequenceName [ RESTART WITH long ] [ INCREMENT BY l
 Changes the parameters of a sequence."
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition [ { BEFORE | AFTER } columnName ]
-    | ( { columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnDefinition | ( { columnDefinition } [,...] ) }
+[ { BEFORE | AFTER } columnName ]
 ","
 Adds a new column to a table."
 "Commands (DDL)","ALTER TABLE ADD CONSTRAINT","
@@ -788,6 +788,10 @@ The date data type."
 { TIMESTAMP | DATETIME | SMALLDATETIME }
 ","
 The timestamp data type."
+"Data Types","TIMESTAMP WITH TIMEZONE Type","
+TIMESTAMP WITH TIMEZONE
+","
+VERY MUCH STILL IN TESTING."
 "Data Types","BINARY Type","
 { BINARY | VARBINARY | LONGVARBINARY | RAW | BYTEA } [ ( precisionInt ) ]
 ","
@@ -1140,9 +1144,13 @@ TRIM ( [ { LEADING | TRAILING | BOTH } [ string ] FROM ] string )
 ","
 Removes all leading spaces, trailing spaces, or spaces at both ends, from a string."
 "Functions (String)","REGEXP_REPLACE","
-REGEXP_REPLACE(inputString, regexString, replacementString)
+REGEXP_REPLACE(inputString, regexString, replacementString [, flagsString])
 ","
 Replaces each substring that matches a regular expression."
+"Functions (String)","REGEXP_LIKE","
+REGEXP_LIKE(inputString, regexString [, flagsString])
+","
+Matches string to a regular expression."
 "Functions (String)","REPEAT","
 REPEAT(string, int)
 ","

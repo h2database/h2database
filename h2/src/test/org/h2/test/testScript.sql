@@ -167,6 +167,9 @@ drop table test;
 call regexp_replace('x', 'x', '\');
 > exception
 
+call select 1 from dual where regexp_like('x', 'x', '\');
+> exception
+
 select * from dual where x = x + 1 or x in(2, 0);
 > X
 > -
@@ -2111,6 +2114,17 @@ CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
 > ----------
 > abckabom
 > rows: 1
+
+select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
+> X
+> -
+> 1
+> rows: 1
+
+select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
+> X
+> -
+> rows: 0
 
 SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
 > T1   F2    T3

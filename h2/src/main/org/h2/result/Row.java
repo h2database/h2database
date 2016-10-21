@@ -11,10 +11,10 @@ import org.h2.value.Value;
 /**
  * Represents a row in a table.
  */
-public abstract class Row implements SearchRow {
+public interface Row extends SearchRow {
 
-    public static final int MEMORY_CALCULATE = -1;
-    public static final Row[] EMPTY_ARRAY = {};
+    int MEMORY_CALCULATE = -1;
+    Row[] EMPTY_ARRAY = {};
 
     /**
      * Get a copy of the row that is distinct from (not equal to) this row.
@@ -22,14 +22,14 @@ public abstract class Row implements SearchRow {
      *
      * @return a new row with the same data
      */
-    public abstract Row getCopy();
+    Row getCopy();
 
     /**
      * Set version.
      *
      * @param version row version
      */
-    public abstract void setVersion(int version);
+    void setVersion(int version);
 
     /**
      * Get the number of bytes required for the data.
@@ -37,52 +37,52 @@ public abstract class Row implements SearchRow {
      * @param dummy the template buffer
      * @return the number of bytes
      */
-    public abstract int getByteCount(Data dummy);
+    int getByteCount(Data dummy);
 
     /**
      * Check if this is an empty row.
      *
      * @return {@code true} if the row is empty
      */
-    public abstract boolean isEmpty();
+    boolean isEmpty();
 
     /**
      * Mark the row as deleted.
      *
      * @param deleted deleted flag
      */
-    public abstract void setDeleted(boolean deleted);
+    void setDeleted(boolean deleted);
 
     /**
      * Set session id.
      *
      * @param sessionId the session id
      */
-    public abstract void setSessionId(int sessionId);
+    void setSessionId(int sessionId);
 
     /**
      * Get session id.
      *
      * @return the session id
      */
-    public abstract int getSessionId();
+    int getSessionId();
 
     /**
      * This record has been committed. The session id is reset.
      */
-    public abstract void commit();
+    void commit();
 
     /**
      * Check if the row is deleted.
      *
      * @return {@code true} if the row is deleted
      */
-    public abstract boolean isDeleted();
+    boolean isDeleted();
 
     /**
      * Get values.
      *
      * @return values
      */
-    public abstract Value[] getValueList();
+    Value[] getValueList();
 }

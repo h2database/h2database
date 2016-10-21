@@ -466,8 +466,7 @@ public class ScriptCommand extends ScriptBase {
         switch (v.getType()) {
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
-            InputStream input = v.getInputStream();
-            try {
+            try (InputStream input = v.getInputStream()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id +
@@ -480,15 +479,13 @@ public class ScriptCommand extends ScriptBase {
                     String sql = buff.toString();
                     add(sql, true);
                 }
-            } finally {
-                IOUtils.closeSilently(input);
             }
             break;
         }
         case Value.CLOB: {
             char[] chars = new char[lobBlockSize];
-            Reader reader = v.getReader();
-            try {
+
+            try (Reader reader = v.getReader()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
@@ -501,8 +498,6 @@ public class ScriptCommand extends ScriptBase {
                     String sql = buff.toString();
                     add(sql, true);
                 }
-            } finally {
-                IOUtils.closeSilently(reader);
             }
             break;
         }

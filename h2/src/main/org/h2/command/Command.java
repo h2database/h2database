@@ -30,7 +30,7 @@ public abstract class Command implements CommandInterface {
     /**
      * The last start time.
      */
-    protected long startTime;
+    protected long startTimeNanos;
 
     /**
      * The trace module.
@@ -127,7 +127,7 @@ public abstract class Command implements CommandInterface {
      */
     void start() {
         if (trace.isInfoEnabled() || session.getDatabase().getQueryStatistics()) {
-            startTime = System.currentTimeMillis();
+            startTimeNanos = System.nanoTime();
         }
     }
 
@@ -162,10 +162,10 @@ public abstract class Command implements CommandInterface {
                 }
             }
         }
-        if (trace.isInfoEnabled() && startTime > 0) {
-            long time = System.currentTimeMillis() - startTime;
-            if (time > Constants.SLOW_QUERY_LIMIT_MS) {
-                trace.info("slow query: {0} ms", time);
+        if (trace.isInfoEnabled() && startTimeNanos > 0) {
+            long timeMillis = (System.nanoTime() - startTimeNanos) / 1000 / 1000;
+            if (timeMillis > Constants.SLOW_QUERY_LIMIT_MS) {
+                trace.info("slow query: {0} ms", timeMillis);
             }
         }
     }
@@ -180,7 +180,7 @@ public abstract class Command implements CommandInterface {
      */
     @Override
     public ResultInterface executeQuery(int maxrows, boolean scrollable) {
-        startTime = 0;
+        startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;

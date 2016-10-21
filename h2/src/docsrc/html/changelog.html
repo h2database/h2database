@@ -83,6 +83,10 @@ Change Log
 </li>
 <li>MVStore / transaction store: opening a store in read-only mode does no longer loop.
 </li>
+<li>MVStore: disabled the file system cache by default, because it limits concurrency
+    when using larger databases and many threads.
+    To re-enable, use the file name prefix "cache:".
+</li>
 </ul>
 
 <h2>Version 1.4.192 Beta (2016-05-26)</h2>

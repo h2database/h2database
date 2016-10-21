@@ -10,12 +10,22 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import org.h2.store.fs.FileBase;
+import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathWrapper;
 
 /**
  * A file with a read cache.
  */
 public class FilePathCache extends FilePathWrapper {
+
+    public static final FilePathCache INSTANCE = new FilePathCache();
+
+    /**
+     * Register the file system.
+     */
+    static {
+        FilePath.register(INSTANCE);
+    }
 
     public static FileChannel wrap(FileChannel f) {
         return new FileCache(f);

@@ -61,6 +61,10 @@ public class MVStoreTool {
             } else if ("-compress".equals(args[i])) {
                 String fileName = args[++i];
                 compact(fileName, true);
+            } else if ("-rollback".equals(args[i])) {
+                String fileName = args[++i];
+                long targetVersion = Long.decode(args[++i]);
+                rollback(fileName, targetVersion, new PrintWriter(System.out));
             } else if ("-repair".equals(args[i])) {
                 String fileName = args[++i];
                 repair(fileName);

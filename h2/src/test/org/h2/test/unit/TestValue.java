@@ -68,8 +68,10 @@ public class TestValue extends TestBase {
         rs.addRow(new Object[]{null});
         rs.next();
         for (int type = Value.NULL; type < Value.TYPE_COUNT; type++) {
-            Value v = DataType.readValue(null, rs, 1, type);
-            assertTrue(v == ValueNull.INSTANCE);
+            if (type != 23) { // a defunct experimental type
+                Value v = DataType.readValue(null, rs, 1, type);
+                assertTrue(v == ValueNull.INSTANCE);
+            }
         }
         testResultSetOperation(new byte[0]);
         testResultSetOperation(1);

@@ -207,7 +207,6 @@ import org.h2.test.unit.TestSort;
 import org.h2.test.unit.TestStreams;
 import org.h2.test.unit.TestStringCache;
 import org.h2.test.unit.TestStringUtils;
-import org.h2.test.unit.TestTimeStampUtc;
 import org.h2.test.unit.TestTimeStampWithTimeZone;
 import org.h2.test.unit.TestTools;
 import org.h2.test.unit.TestTraceSystem;
@@ -865,7 +864,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestSort());
         addTest(new TestStreams());
         addTest(new TestStringUtils());
-        addTest(new TestTimeStampUtc());
         addTest(new TestTimeStampWithTimeZone());
         addTest(new TestTraceSystem());
         addTest(new TestUpgrade());

@@ -46,7 +46,6 @@ import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
-import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -278,12 +277,6 @@ public class ValueDataType implements DataType {
                 putVarLong(nanos);
             break;
         }
-        case Value.TIMESTAMP_UTC: {
-            ValueTimestampUtc ts = (ValueTimestampUtc) v;
-            long dateTimeValue = ts.getUtcDateTimeNanos();
-            buff.put((byte) type).putVarLong(dateTimeValue);
-            break;
-        }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
             long dateValue = ts.getDateValue();
@@ -501,10 +494,6 @@ public class ValueDataType implements DataType {
             long dateValue = readVarLong(buff);
             long nanos = readVarLong(buff) * 1000000 + readVarLong(buff);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
-        }
-        case Value.TIMESTAMP_UTC: {
-            long dateTimeValue = readVarLong(buff);
-            return ValueTimestampUtc.fromNanos(dateTimeValue);
         }
         case Value.TIMESTAMP_TZ: {
             long dateValue = readVarLong(buff);

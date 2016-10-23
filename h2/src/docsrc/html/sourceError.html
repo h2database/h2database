@@ -82,13 +82,12 @@ function go(file, line) {
         get('file').innerHTML = file;
         get('code').src = url;
     } else {
+        url = 'https://github.com/h2database/h2database/tree/'
         if (build && build > 0) {
-            var tag = 'tags/version-' + getVersion(build) + '/h2';
+            url += 'version-' + getVersion(build) + '/h2';
         } else {
-            var tag = 'trunk/h2';
+            var tag = 'master/h2';
         }
-        url = 'http://code.google.com/p/h2database/source/browse/';
-        url += tag;
         url += '/src/main/';
         url += file;
         url += '#';

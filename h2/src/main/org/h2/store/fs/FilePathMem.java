@@ -88,7 +88,10 @@ public class FilePathMem extends FilePath {
             return;
         }
         synchronized (MEMORY_FILES) {
-            MEMORY_FILES.remove(name);
+            FileMemData old = MEMORY_FILES.remove(name);
+            if (old != null) {
+                old.truncate(0);
+            }
         }
     }
 
@@ -399,6 +402,7 @@ class FileMemData {
         new Cache<CompressItem, CompressItem>(CACHE_SIZE);
 
     private String name;
+    private final int id;
     private final boolean compress;
     private long length;
     private byte[][] data;
@@ -416,9 +420,14 @@ class FileMemData {
 
     FileMemData(String name, boolean compress) {
         this.name = name;
+        this.id = name.hashCode();
         this.compress = compress;
         data = new byte[0][];
         lastModified = System.currentTimeMillis();
+    }
+
+    int getId() {
+        return id;
     }
 
     /**
@@ -477,20 +486,25 @@ class FileMemData {
                 return false;
             }
             CompressItem c = (CompressItem) eldest.getKey();
-            compress(c.data, c.page);
+            c.file.compress(c.page, c.data);
             return true;
         }
     }
 
     /**
-     * Represents a compressed item.
+     * Points to a block of bytes that needs to be compressed.
      */
     static class CompressItem {
 
         /**
-         * The file data.
+         * The file.
          */
-        byte[][] data;
+        FileMemData file;
+
+        /**
+         * The data array.
+         */
+        byte[] data;
 
         /**
          * The page to compress.
@@ -499,30 +513,31 @@ class FileMemData {
 
         @Override
         public int hashCode() {
-            return page;
+            return page ^ file.getId();
         }
 
         @Override
         public boolean equals(Object o) {
             if (o instanceof CompressItem) {
                 CompressItem c = (CompressItem) o;
-                return c.data == data && c.page == page;
+                return c.page == page && c.file == file;
             }
             return false;
         }
 
     }
 
-    private static void compressLater(byte[][] data, int page) {
+    private void compressLater(int page) {
         CompressItem c = new CompressItem();
-        c.data = data;
+        c.file = this;
         c.page = page;
+        c.data = data[page];
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
     }
 
-    private static void expand(byte[][] data, int page) {
+    private void expand(int page) {
         byte[] d = data[page];
         if (d.length == BLOCK_SIZE) {
             return;
@@ -542,14 +557,26 @@ class FileMemData {
      * @param data the page array
      * @param page which page to compress
      */
-    static void compress(byte[][] data, int page) {
-        byte[] d = data[page];
+    void compress(int page, byte[] old) {
+        byte[][] array = data;
+        if (page >= array.length) {
+            return;
+        }
+        byte[] d = array[page];
+        if (d != old) {
+            return;
+        }
         synchronized (LZF) {
             int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
             if (len <= BLOCK_SIZE) {
                 d = new byte[len];
                 System.arraycopy(BUFFER, 0, d, 0, len);
-                data[page] = d;
+                // maybe data was changed in the meantime
+                byte[] o = array[page];
+                if (o != old) {
+                    return;
+                }
+                array[page] = d;
             }
         }
     }
@@ -585,13 +612,13 @@ class FileMemData {
         long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
         if (end != newLength) {
             int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
-            expand(data, lastPage);
+            expand(lastPage);
             byte[] d = data[lastPage];
             for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
                 d[i] = 0;
             }
             if (compress) {
-                compressLater(data, lastPage);
+                compressLater(lastPage);
             }
         }
     }
@@ -632,7 +659,7 @@ class FileMemData {
         while (len > 0) {
             int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
             int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(data, page);
+            expand(page);
             byte[] block = data[page];
             int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
             if (write) {
@@ -641,7 +668,7 @@ class FileMemData {
                 System.arraycopy(block, blockOffset, b, off, l);
             }
             if (compress) {
-                compressLater(data, page);
+                compressLater(page);
             }
             off += l;
             pos += l;

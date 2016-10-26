@@ -7,7 +7,6 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Command;
@@ -23,6 +22,7 @@ import org.h2.expression.ExpressionColumn;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVPrimaryIndex;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.Row;
@@ -340,7 +340,7 @@ public class Insert extends Prepared implements ResultTarget {
             buff.append(column.getSQL()).append("=").append(ex.getSQL());
         }
         buff.append(" WHERE ");
-        Index foundIndex = searchForUpdateIndex();
+        Index foundIndex = (Index) de.getSource();
         if (foundIndex == null) {
             throw DbException.getUnsupportedException(
                     "Unable to apply ON DUPLICATE KEY UPDATE, no index found!");
@@ -358,44 +358,36 @@ public class Insert extends Prepared implements ResultTarget {
         }
     }
 
-    private Index searchForUpdateIndex() {
-        Index foundIndex = null;
-        for (Index index : table.getIndexes()) {
-            if (index.getIndexType().isPrimaryKey() || index.getIndexType().isUnique()) {
-                for (Column indexColumn : index.getColumns()) {
-                    for (Column insertColumn : columns) {
-                        if (indexColumn.getName().equals(insertColumn.getName())) {
-                            foundIndex = index;
-                            break;
-                        }
-                        foundIndex = null;
-                    }
-                    if (foundIndex == null) {
-                        break;
-                    }
-                }
-                if (foundIndex != null) {
-                    break;
-                }
-            }
-        }
-        return foundIndex;
-    }
-
     private Expression prepareUpdateCondition(Index foundIndex) {
+        // MVPrimaryIndex is playing fast and loose with it's implementation of
+        // the Index interface.
+        // It returns all of the columns in the table when we call
+        // getIndexColumns() or getColumns().
+        // Don't have time right now to fix that, so just special-case it.
+        final Column[] indexedColumns;
+        if (foundIndex instanceof MVPrimaryIndex) {
+            MVPrimaryIndex foundMV = (MVPrimaryIndex) foundIndex;
+            indexedColumns = new Column[] { foundMV.getIndexColumns()[foundMV
+                    .getMainIndexColumn()].column };
+        } else {
+            indexedColumns = foundIndex.getColumns();
+        }
+
         Expression condition = null;
-        for (Column column : foundIndex.getColumns()) {
+        for (Column column : indexedColumns) {
             ExpressionColumn expr = new ExpressionColumn(session.getDatabase(),
-                    table.getSchema().getName(), table.getName(), column.getName());
+                    table.getSchema().getName(), table.getName(),
+                    column.getName());
             for (int i = 0; i < columns.length; i++) {
                 if (expr.getColumnName().equals(columns[i].getName())) {
                     if (condition == null) {
                         condition = new Comparison(session, Comparison.EQUAL,
                                 expr, list.get(getCurrentRowNumber() - 1)[i++]);
                     } else {
-                        condition = new ConditionAndOr(ConditionAndOr.AND, condition,
-                                new Comparison(session, Comparison.EQUAL,
-                                expr, list.get(0)[i++]));
+                        condition = new ConditionAndOr(ConditionAndOr.AND,
+                                condition,
+                                new Comparison(session, Comparison.EQUAL, expr,
+                                        list.get(0)[i++]));
                     }
                 }
             }

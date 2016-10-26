@@ -323,6 +323,22 @@ class FileNioMem extends FileBase {
     }
 
     @Override
+    public int read(ByteBuffer dst, long position) throws IOException {
+        int len = dst.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        long newPos;
+        newPos = data.readWrite(position, dst, dst.position(), len, false);
+        len = (int) (newPos - position);
+        if (len <= 0) {
+            return -1;
+        }
+        dst.position(dst.position() + len);
+        return len;
+    }
+
+    @Override
     public long position() {
         return pos;
     }
@@ -634,9 +650,10 @@ class FileNioMemData {
                 block.position(blockOffset);
                 block.put(tmp);
             } else {
-                block.position(blockOffset);
-                ByteBuffer tmp = block.slice();
-                tmp.limit(l);
+                // duplicate, so this can be done concurrently
+                ByteBuffer tmp = block.duplicate();
+                tmp.position(blockOffset);
+                tmp.limit(l + blockOffset);
                 int oldPosition = b.position();
                 b.position(off);
                 b.put(tmp);

@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.test.TestBase;
+import org.h2.util.LocalDateTimeUtils;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -57,6 +58,10 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(1, ts.getDay());
         assertEquals(15, ts.getTimeZoneOffsetMins());
         assertEquals(new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15), ts);
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("1970-01-01T12:00+00:15", rs.getObject(1,
+                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+        }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
         assertEquals(2016, ts.getYear());
@@ -64,6 +69,10 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(24, ts.getDay());
         assertEquals(1, ts.getTimeZoneOffsetMins());
         assertEquals(1L, ts.getNanosSinceMidnight());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2016-09-24T00:00:00.000000001+00:01", rs.getObject(1,
+                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+        }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
         assertEquals(2016, ts.getYear());
@@ -71,16 +80,28 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(24, ts.getDay());
         assertEquals(-1, ts.getTimeZoneOffsetMins());
         assertEquals(1L, ts.getNanosSinceMidnight());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2016-09-24T00:00:00.000000001-00:01", rs.getObject(1,
+                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+        }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
         assertEquals(2016, ts.getYear());
         assertEquals(1, ts.getMonth());
         assertEquals(1, ts.getDay());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2016-01-01T05:00+10:00", rs.getObject(1,
+                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+        }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
         assertEquals(2015, ts.getYear());
         assertEquals(12, ts.getMonth());
         assertEquals(31, ts.getDay());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2015-12-31T19:00-10:00", rs.getObject(1,
+                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+        }
         rs.close();
         stat.close();
         conn.close();
@@ -92,7 +113,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         int c = a.compareTo(b, null);
         assertEquals(c, 1);
     }
-    
+
     private void test3() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-02 00:00:02.00+01:15");
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");

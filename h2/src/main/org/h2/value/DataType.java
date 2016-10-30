@@ -23,6 +23,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Constants;
@@ -34,6 +35,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
+import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.New;
 import org.h2.util.Utils;
 
@@ -957,6 +959,14 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
+        } else if (LocalDateTimeUtils.isLocalDate(x)) {
+            return Value.DATE;
+        } else if (LocalDateTimeUtils.isLocalTime(x)) {
+            return Value.TIME;
+        } else if (LocalDateTimeUtils.isLocalDateTime(x)) {
+            return Value.TIMESTAMP;
+        } else if (LocalDateTimeUtils.isOffsetDateTime(x)) {
+            return Value.TIMESTAMP_TZ;
         } else {
             return Value.JAVA_OBJECT;
         }
@@ -1065,10 +1075,19 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
+        } else if (LocalDateTimeUtils.isLocalDate(x.getClass())) {
+            return LocalDateTimeUtils.localDateToDateValue(x);
+        } else if (LocalDateTimeUtils.isLocalTime(x.getClass())) {
+            return LocalDateTimeUtils.localTimeToTimeValue(x);
+        } else if (LocalDateTimeUtils.isLocalDateTime(x.getClass())) {
+            return LocalDateTimeUtils.localDateTimeToValue(x);
+        } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
+            return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
     }
+
 
     /**
      * Check whether a given class matches the Geometry class.

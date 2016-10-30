@@ -24,9 +24,11 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
+import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.Task;
 
 /**
@@ -71,6 +73,10 @@ public class TestPreparedStatement extends TestBase {
         testCoalesce(conn);
         testPreparedStatementMetaData(conn);
         testDate(conn);
+        testDate8(conn);
+        testTime8(conn);
+        testDateTime8(conn);
+        testOffsetDateTime8(conn);
         testArray(conn);
         testUUIDGeneratedKeys(conn);
         testSetObject(conn);
@@ -587,6 +593,62 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         Timestamp ts2 = rs.getTimestamp(1);
         assertEquals(ts.toString(), ts2.toString());
+    }
+
+    private void testDate8(Connection conn) throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object localDate = LocalDateTimeUtils.parseLocalDate("2001-02-03");
+        prep.setObject(1, localDate);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object localDate2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        assertEquals(localDate, localDate2);
+        rs.close();
+    }
+
+    private void testTime8(Connection conn) throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object localTime = LocalDateTimeUtils.parseLocalTime("04:05:06");
+        prep.setObject(1, localTime);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
+        assertEquals(localTime, localTime2);
+        rs.close();
+    }
+
+    private void testDateTime8(Connection conn) throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object localDateTime = LocalDateTimeUtils.parseLocalDateTime("2001-02-03T04:05:06");
+        prep.setObject(1, localDateTime);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        assertEquals(localDateTime, localDateTime2);
+        rs.close();
+    }
+
+    private void testOffsetDateTime8(Connection conn) throws SQLException {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object offsetDateTime = LocalDateTimeUtils.parseOffsetDateTime("2001-02-03T04:05:06+02:30");
+        prep.setObject(1, offsetDateTime);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
+        assertEquals(offsetDateTime, offsetDateTime2);
+        rs.close();
     }
 
     private void testPreparedSubquery(Connection conn) throws SQLException {

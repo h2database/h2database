@@ -37,6 +37,7 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.LocalDateTimeUtils;
 
 /**
  * Tests for the ResultSet implementation.
@@ -1057,18 +1058,44 @@ public class TestResultSet extends TestBase {
         assertEquals("2002-02-02 02:02:02.0", ts.toString());
         rs.next();
         assertEquals("1800-01-01", rs.getDate("value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("1800-01-01", rs.getObject("value",
+                            LocalDateTimeUtils.getLocalDateClass()).toString());
+        }
         assertEquals("00:00:00", rs.getTime("value").toString());
-        assertEquals("1800-01-01 00:00:00.0",
-                rs.getTimestamp("value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("00:00", rs.getObject("value",
+                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+        }
+        assertEquals("1800-01-01 00:00:00.0", rs.getTimestamp("value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("1800-01-01T00:00", rs.getObject("value",
+                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+        }
         rs.next();
         assertEquals("9999-12-31", rs.getDate("Value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("9999-12-31", rs.getObject("Value",
+                            LocalDateTimeUtils.getLocalDateClass()).toString());
+        }
         assertEquals("23:59:59", rs.getTime("Value").toString());
-        assertEquals("9999-12-31 23:59:59.0",
-                rs.getTimestamp("Value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("23:59:59", rs.getObject("Value",
+                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+        }
+        assertEquals("9999-12-31 23:59:59.0", rs.getTimestamp("Value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("9999-12-31T23:59:59", rs.getObject("Value",
+                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+        }
         rs.next();
         assertTrue(rs.getDate("Value") == null && rs.wasNull());
         assertTrue(rs.getTime("vALUe") == null && rs.wasNull());
         assertTrue(rs.getTimestamp(2) == null && rs.wasNull());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertTrue(rs.getObject(2,
+                            LocalDateTimeUtils.getLocalDateTimeClass()) == null && rs.wasNull());
+        }
         assertTrue(!rs.next());
 
         rs = stat.executeQuery("SELECT DATE '2001-02-03' D, " +
@@ -1087,6 +1114,18 @@ public class TestResultSet extends TestBase {
         assertEquals("2001-02-03", date.toString());
         assertEquals("14:15:16", time.toString());
         assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2001-02-03", rs.getObject(1,
+                            LocalDateTimeUtils.getLocalDateClass()).toString());
+        }
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("14:15:16", rs.getObject(2,
+                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+        }
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2007-08-09T10:11:12.141516171",
+                            rs.getObject(3, LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+        }
 
         stat.execute("DROP TABLE TEST");
     }

@@ -70,7 +70,8 @@ public class TestBenchmark extends TestBase {
         FileUtils.delete(fileName);
     }
 
-    private void testConcurrency(String fileName, int concurrency, final int count) throws Exception {
+    private void testConcurrency(String fileName,
+            int concurrency, final int count) throws Exception {
         Thread.sleep(1000);
             final MVStore store = new MVStore.Builder().cacheSize(256).
                     cacheConcurrency(concurrency).
@@ -112,7 +113,8 @@ public class TestBenchmark extends TestBase {
             t.get();
         }
         // System.out.println(prof.getTop(5));
-        String msg = "concurrency " + concurrency + " threads " + threadCount + " requests: " + counter;
+        String msg = "concurrency " + concurrency +
+                " threads " + threadCount + " requests: " + counter;
         System.out.println(msg);
         trace(msg);
         store.close();

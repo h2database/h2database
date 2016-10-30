@@ -54,7 +54,8 @@ import org.h2.value.DataType;
  * </pre>
  *
  */
-public class SimpleResultSet implements ResultSet, ResultSetMetaData, JdbcResultSetBackwardsCompat {
+public class SimpleResultSet implements ResultSet, ResultSetMetaData,
+        JdbcResultSetBackwardsCompat {
 
     private ArrayList<Object[]> rows;
     private Object[] currentRow;

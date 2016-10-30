@@ -1124,7 +1124,8 @@ public class TestResultSet extends TestBase {
         }
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2007-08-09T10:11:12.141516171",
-                            rs.getObject(3, LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+                    rs.getObject(3, LocalDateTimeUtils.getLocalDateTimeClass())
+                            .toString());
         }
 
         stat.execute("DROP TABLE TEST");

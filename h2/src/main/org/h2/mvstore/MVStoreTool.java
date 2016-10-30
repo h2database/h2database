@@ -333,7 +333,8 @@ public class MVStoreTool {
      *
      * @param fileName the name of the file
      * @param writer the print writer
-     * @return null if successful (if there was no error), otherwise the error message
+     * @return null if successful (if there was no error), otherwise the error
+     *         message
      */
     public static String info(String fileName, Writer writer) {
         PrintWriter pw = new PrintWriter(writer, true);
@@ -544,7 +545,8 @@ public class MVStoreTool {
             }
         };
         while (version >= 0) {
-            pw.println(version == Long.MAX_VALUE ? "Trying latest version" : ("Trying version " + version));
+            pw.println(version == Long.MAX_VALUE ? "Trying latest version"
+                    : ("Trying version " + version));
             pw.flush();
             version = rollback(fileName, version, new PrintWriter(ignore));
             try {
@@ -569,7 +571,9 @@ public class MVStoreTool {
      * Roll back to a given revision into a a file called *.temp.
      *
      * @param fileName the file name
-     * @param targetVersion the version to roll back to (Long.MAX_VALUE for the latest version)
+     * @param targetVersion the version to roll back to (Long.MAX_VALUE for the
+     *            latest version)
+     * @param writer the log writer
      * @return the version rolled back to (-1 if no version)
      */
     public static long rollback(String fileName, long targetVersion, Writer writer) {

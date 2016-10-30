@@ -2831,7 +2831,8 @@ public class MVStore {
         }
 
         /**
-         * Set the read cache concurrency. The default is 16, meaning 16 segments are used.
+         * Set the read cache concurrency. The default is 16, meaning 16
+         * segments are used.
          *
          * @param concurrency the cache concurrency
          * @return this

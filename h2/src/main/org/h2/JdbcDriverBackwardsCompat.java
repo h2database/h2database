@@ -6,7 +6,8 @@
 package org.h2;
 
 /**
- * Allows us to compile on older platforms, while still implementing the methods from the newer JDBC API.
+ * Allows us to compile on older platforms, while still implementing the methods
+ * from the newer JDBC API.
  */
 public interface JdbcDriverBackwardsCompat {
 

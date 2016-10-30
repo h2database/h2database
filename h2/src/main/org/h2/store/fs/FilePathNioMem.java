@@ -555,7 +555,6 @@ class FileNioMemData {
     /**
      * Compress the data in a byte array.
      *
-     * @param data the page array
      * @param page which page to compress
      */
     void compress(int page) {

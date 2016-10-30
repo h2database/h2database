@@ -60,7 +60,8 @@ import org.h2.util.StringUtils;
  * well; this may be a security problem in some cases.
  */
 public class JdbcDataSource extends TraceObject implements XADataSource,
-        DataSource, ConnectionPoolDataSource, Serializable, Referenceable, JdbcDataSourceBackwardsCompat {
+        DataSource, ConnectionPoolDataSource, Serializable, Referenceable,
+        JdbcDataSourceBackwardsCompat {
 
     private static final long serialVersionUID = 1288136338451857771L;
 

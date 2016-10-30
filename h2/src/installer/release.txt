@@ -42,12 +42,12 @@ cd ../../h2-mvstore/1...
 # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
 gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
 jar -cvf bundle.jar h2-*
-# http://central.sonatype.org/pages/ossrh-guide.html
-# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
-# https://oss.sonatype.org/#welcome - Log In "t..."
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+# http://central.sonatype.org/pages/ossrh-guide.html
+# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+# https://oss.sonatype.org/#welcome - Log In "t..."
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm

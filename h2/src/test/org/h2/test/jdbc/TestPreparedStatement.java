@@ -642,7 +642,8 @@ public class TestPreparedStatement extends TestBase {
             return;
         }
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
-        Object offsetDateTime = LocalDateTimeUtils.parseOffsetDateTime("2001-02-03T04:05:06+02:30");
+        Object offsetDateTime = LocalDateTimeUtils
+                .parseOffsetDateTime("2001-02-03T04:05:06+02:30");
         prep.setObject(1, offsetDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();

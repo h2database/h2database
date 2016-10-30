@@ -296,7 +296,8 @@ public class TestValue extends TestBase {
         assertTrue(valUUID.getString().equals(uuidStr));
         assertTrue(valUUID.getObject().equals(origUUID));
 
-        ValueJavaObject voString = ValueJavaObject.getNoCopy(new String("This is not a ValueUuid object"), null, null);
+        ValueJavaObject voString = ValueJavaObject.getNoCopy(
+                new String("This is not a ValueUuid object"), null, null);
         assertThrows(DbException.class, voString).convertTo(Value.UUID);
     }
 

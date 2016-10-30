@@ -89,7 +89,6 @@ public class TestMVStoreCachePerformance extends TestBase {
         for (Task t : tasks) {
             t.get();
         }
-        // System.out.println(System.currentTimeMillis() - time + " ms to stop");
         store.close();
         System.out.println(counter.get() / 10000 + " ops/ms; " +
                 threadCount + " thread(s); " + fileNamePrefix);

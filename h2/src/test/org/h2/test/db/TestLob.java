@@ -1505,7 +1505,10 @@ public class TestLob extends TestBase {
         conn.close();
     }
 
-    /** test a bug where the usage of BufferedInputStream in LobStorageMap was causing a deadlock */
+    /**
+     * Test a bug where the usage of BufferedInputStream in LobStorageMap was
+     * causing a deadlock.
+     */
     private void testBufferedInputStreamBug() throws SQLException {
         deleteDb("lob");
         JdbcConnection conn = (JdbcConnection) getConnection("lob");

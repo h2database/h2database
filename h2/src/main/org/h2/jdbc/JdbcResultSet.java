@@ -3708,6 +3708,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param columnIndex the column index (1, 2, ...)
      * @param type the class of the returned value
+     * @return the value
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
@@ -3731,6 +3732,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      *
      * @param columnName the column name
      * @param type the class of the returned value
+     * @return the value
      */
     @Override
     public <T> T getObject(String columnName, Class<T> type) throws SQLException {
@@ -3789,7 +3791,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (LocalDateTimeUtils.isLocalDateTime(type)) {
             return type.cast(LocalDateTimeUtils.valueToLocalDateTime(
                             (ValueTimestamp) value));
-        } else if (LocalDateTimeUtils.isOffsetDateTime(type) && value instanceof ValueTimestampTimeZone) {
+        } else if (LocalDateTimeUtils.isOffsetDateTime(type) &&
+                value instanceof ValueTimestampTimeZone) {
             return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(
                             (ValueTimestampTimeZone) value));
         } else {

@@ -2005,7 +2005,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
     }
 
-    private void testThatCurrentTimestampIsSane() throws SQLException, InterruptedException, ParseException {
+    private void testThatCurrentTimestampIsSane() throws SQLException,
+            ParseException {
         deleteDb("functions");
 
         Date before = new Date();
@@ -2031,7 +2032,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
 
-    private void testThatCurrentTimestampStaysTheSameWithinATransaction() throws SQLException, InterruptedException {
+    private void testThatCurrentTimestampStaysTheSameWithinATransaction()
+            throws SQLException, InterruptedException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         conn.setAutoCommit(false);
@@ -2054,7 +2056,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(first, second);
     }
 
-    private void testThatCurrentTimestampUpdatesOutsideATransaction() throws SQLException, InterruptedException {
+    private void testThatCurrentTimestampUpdatesOutsideATransaction()
+            throws SQLException, InterruptedException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         conn.setAutoCommit(true);

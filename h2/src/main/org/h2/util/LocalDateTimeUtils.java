@@ -1,7 +1,8 @@
 /*
- * Copyright 2016 H2 Group. Multiple-Licensed under the MPL 2.0, and the
- * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
- * Group Iso8601: Initial Developer: Philippe Marschall (firstName dot lastName
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ * Iso8601: Initial Developer: Philippe Marschall (firstName dot lastName
  * at gmail dot com)
  */
 package org.h2.util;
@@ -9,7 +10,6 @@ package org.h2.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Date;
-import java.sql.SQLException;
 import java.sql.Time;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -150,8 +150,10 @@ public class LocalDateTimeUtils {
             DATE_VALUE_OF = getMethod(java.sql.Date.class, "valueOf", LOCAL_DATE);
             TIME_VALUE_OF = getMethod(java.sql.Time.class, "valueOf", LOCAL_TIME);
 
-            LOCAL_DATE_OF_YEAR_MONTH_DAY = getMethod(LOCAL_DATE, "of", int.class, int.class, int.class);
-            LOCAL_DATE_PARSE = getMethod(LOCAL_DATE, "parse", CharSequence.class);
+            LOCAL_DATE_OF_YEAR_MONTH_DAY = getMethod(LOCAL_DATE, "of",
+                    int.class, int.class, int.class);
+            LOCAL_DATE_PARSE = getMethod(LOCAL_DATE, "parse",
+                    CharSequence.class);
             LOCAL_DATE_GET_YEAR = getMethod(LOCAL_DATE, "getYear");
             LOCAL_DATE_GET_MONTH_VALUE = getMethod(LOCAL_DATE, "getMonthValue");
             LOCAL_DATE_GET_DAY_OF_MONTH = getMethod(LOCAL_DATE, "getDayOfMonth");
@@ -168,7 +170,8 @@ public class LocalDateTimeUtils {
 
             OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME = getMethod(OFFSET_DATE_TIME, "toLocalDateTime");
             OFFSET_DATE_TIME_GET_OFFSET = getMethod(OFFSET_DATE_TIME, "getOffset");
-            OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = getMethod(OFFSET_DATE_TIME, "of", LOCAL_DATE_TIME, ZONE_OFFSET);
+            OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = getMethod(
+                    OFFSET_DATE_TIME, "of", LOCAL_DATE_TIME, ZONE_OFFSET);
             OFFSET_DATE_TIME_PARSE = getMethod(OFFSET_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_GET_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "getTotalSeconds");
@@ -293,16 +296,19 @@ public class LocalDateTimeUtils {
         try {
             return Class.forName(className);
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Java 8 or later but class " + className + " is missing", e);
+            throw new IllegalStateException("Java 8 or later but class " +
+                    className + " is missing", e);
         }
     }
 
-    private static Method getMethod(Class<?> clazz, String methodName, Class<?>... parameterTypes) {
+    private static Method getMethod(Class<?> clazz, String methodName,
+            Class<?>... parameterTypes) {
         try {
             return clazz.getMethod(methodName, parameterTypes);
         } catch (NoSuchMethodException e) {
-            throw new IllegalStateException("Java 8 or later but method "
-                + clazz.getName() + "#" + methodName + "(" + Arrays.toString(parameterTypes) + ") is missing", e);
+            throw new IllegalStateException("Java 8 or later but method " +
+                    clazz.getName() + "#" + methodName + "(" +
+                    Arrays.toString(parameterTypes) + ") is missing", e);
         }
     }
 
@@ -310,8 +316,8 @@ public class LocalDateTimeUtils {
         try {
             return clazz.getField(fieldName).get(null);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException("Java 8 or later but field " + clazz.getName()
-            + "#" + fieldName + " is missing", e);
+            throw new IllegalStateException("Java 8 or later but field " +
+                    clazz.getName() + "#" + fieldName + " is missing", e);
         }
     }
 
@@ -371,8 +377,7 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the LocalDate
      */
-    public static Object valueToLocalDate(Value value)
-                    throws SQLException {
+    public static Object valueToLocalDate(Value value) {
         return dateToLocalDate(value.getDate());
     }
 
@@ -384,13 +389,11 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the LocalTime
      */
-    public static Object valueToLocalTime(Value value)
-                    throws SQLException {
+    public static Object valueToLocalTime(Value value) {
         return timeToLocalTime(value.getTime());
     }
 
-    private static Object dateToLocalDate(Date date)
-                    throws SQLException {
+    private static Object dateToLocalDate(Date date) {
         try {
             return TO_LOCAL_DATE.invoke(date);
         } catch (IllegalAccessException e) {
@@ -400,8 +403,7 @@ public class LocalDateTimeUtils {
         }
     }
 
-    private static Object timeToLocalTime(Time time)
-                    throws SQLException {
+    private static Object timeToLocalTime(Time time) {
         try {
             return TO_LOCAL_TIME.invoke(time);
         } catch (IllegalAccessException e) {
@@ -419,8 +421,7 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the LocalDateTime
      */
-    public static Object valueToLocalDateTime(ValueTimestamp value)
-                    throws SQLException {
+    public static Object valueToLocalDateTime(ValueTimestamp value) {
 
         long dateValue = value.getDateValue();
         long timeNanos = value.getTimeNanos();
@@ -443,13 +444,12 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the OffsetDateTime
      */
-    public static Object valueToOffsetDateTime(ValueTimestampTimeZone value)
-                    throws SQLException {
+    public static Object valueToOffsetDateTime(ValueTimestampTimeZone value) {
         return timestampWithTimeZoneToOffsetDateTime((TimestampWithTimeZone) value.getObject());
     }
 
-    private static Object timestampWithTimeZoneToOffsetDateTime(TimestampWithTimeZone timestampWithTimeZone)
-                    throws SQLException {
+    private static Object timestampWithTimeZoneToOffsetDateTime(
+            TimestampWithTimeZone timestampWithTimeZone) {
 
         long dateValue = timestampWithTimeZone.getYMD();
         long timeNanos = timestampWithTimeZone.getNanosSinceMidnight();
@@ -461,7 +461,8 @@ public class LocalDateTimeUtils {
 
             Object offset = ZONE_OFFSET_OF_TOTAL_SECONDS.invoke(null, offsetSeconds);
 
-            return OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET.invoke(null, localDateTime, offset);
+            return OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET.invoke(null,
+                    localDateTime, offset);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -531,13 +532,14 @@ public class LocalDateTimeUtils {
     public static Value offsetDateTimeToValue(Object offsetDateTime) {
         try {
             Object localDateTime = OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME.invoke(offsetDateTime);
-            Object localDate = LOCAL_DATE_TIME_TO_LOCAL_DATE.invoke(localDateTime);;
+            Object localDate = LOCAL_DATE_TIME_TO_LOCAL_DATE.invoke(localDateTime);
             Object zoneOffset = OFFSET_DATE_TIME_GET_OFFSET.invoke(offsetDateTime);
 
             long dateValue = dateValueFromLocalDate(localDate);
             long timeNanos = timeNanosFromLocalDate(localDateTime);
             short timeZoneOffsetMins = zoneOffsetToOffsetMinute(zoneOffset);
-            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos, timeZoneOffsetMins);
+            return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue,
+                    timeNanos, timeZoneOffsetMins);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

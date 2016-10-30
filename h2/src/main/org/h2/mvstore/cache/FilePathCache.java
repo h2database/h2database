@@ -18,6 +18,9 @@ import org.h2.store.fs.FilePathWrapper;
  */
 public class FilePathCache extends FilePathWrapper {
 
+    /**
+     * The instance.
+     */
     public static final FilePathCache INSTANCE = new FilePathCache();
 
     /**

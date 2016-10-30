@@ -660,7 +660,7 @@ public class ArchiveTool {
         return key;
     }
 
-    public static long getSipHash24(byte[] b, int start, int end, long k0,
+    private static long getSipHash24(byte[] b, int start, int end, long k0,
             long k1) {
         long v0 = k0 ^ 0x736f6d6570736575L;
         long v1 = k1 ^ 0x646f72616e646f6dL;

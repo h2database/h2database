@@ -25,8 +25,6 @@ Newsletter: prepare (always to BCC)
 Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
 Add to http://twitter.com
 - tweet: add @geospatialnews for the new geometry type and disk spatial index
-Close bugs: https://github.com/h2database/h2database/issues
-Update statistics
 
 Sign files and publish files on Maven Central
 ./build.sh compile jar mavenDeployCentral
@@ -51,3 +49,6 @@ jar -cvf bundle.jar h2-*
 # - Staging Upload
 # - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
 # - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+
+Update statistics
+Change version in pom.xml, commit

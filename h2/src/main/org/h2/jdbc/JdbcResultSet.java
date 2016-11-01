@@ -60,8 +60,6 @@ import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
 
-import com.vividsolutions.jts.geom.Geometry;
-
 /**
  * <p>
  * Represents a result set.
@@ -3782,7 +3780,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getBytes());
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
-        } else if (type.isAssignableFrom(Geometry.class)) {
+        } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.getObject());
         } else if (LocalDateTimeUtils.isLocalDate(type)) {
             return type.cast(LocalDateTimeUtils.valueToLocalDate(value));

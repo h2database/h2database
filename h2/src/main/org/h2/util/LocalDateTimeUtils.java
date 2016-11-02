@@ -63,13 +63,15 @@ public class LocalDateTimeUtils {
 
     // java.sql.Date#toLocalDate()
     private static Method TO_LOCAL_DATE;
-    // java.sql.Time#toLocalTime()
-    private static Method TO_LOCAL_TIME;
+
+    // java.time.LocalTime#ofNanoOfDay()
+    private static Method LOCAL_TIME_OF_NANO;
 
     // java.sql.Date#valueOf(LocalDate)
     private static Method DATE_VALUE_OF;
-    // java.sql.Time#valueOf(LocalTime)
-    private static Method TIME_VALUE_OF;
+
+    // java.time.LocalTime#toNanoOfDay()
+    private static Method LOCAL_TIME_TO_NANO;
 
     // java.time.LocalDate#of(int, int, int)
     private static Method LOCAL_DATE_OF_YEAR_MONTH_DAY;
@@ -145,10 +147,12 @@ public class LocalDateTimeUtils {
             Class<?> temporal = getClass("java.time.temporal.Temporal");
 
             TO_LOCAL_DATE = getMethod(java.sql.Date.class, "toLocalDate");
-            TO_LOCAL_TIME = getMethod(java.sql.Time.class, "toLocalTime");
+
+            LOCAL_TIME_OF_NANO = getMethod(LOCAL_TIME, "ofNanoOfDay", long.class);
 
             DATE_VALUE_OF = getMethod(java.sql.Date.class, "valueOf", LOCAL_DATE);
-            TIME_VALUE_OF = getMethod(java.sql.Time.class, "valueOf", LOCAL_TIME);
+
+            LOCAL_TIME_TO_NANO = getMethod(LOCAL_TIME, "toNanoOfDay");
 
             LOCAL_DATE_OF_YEAR_MONTH_DAY = getMethod(LOCAL_DATE, "of",
                     int.class, int.class, int.class);
@@ -390,7 +394,13 @@ public class LocalDateTimeUtils {
      * @return the LocalTime
      */
     public static Object valueToLocalTime(Value value) {
-        return timeToLocalTime(value.getTime());
+        try {
+            return LOCAL_TIME_OF_NANO.invoke(null, ((ValueTime) value.convertTo(Value.TIME)).getNanos());
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "time conversion failed");
+        }
     }
 
     private static Object dateToLocalDate(Date date) {
@@ -400,16 +410,6 @@ public class LocalDateTimeUtils {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
             throw DbException.convertInvocation(e, "date conversion failed");
-        }
-    }
-
-    private static Object timeToLocalTime(Time time) {
-        try {
-            return TO_LOCAL_TIME.invoke(time);
-        } catch (IllegalAccessException e) {
-            throw DbException.convert(e);
-        } catch (InvocationTargetException e) {
-            throw DbException.convertInvocation(e, "time conversion failed");
         }
     }
 
@@ -495,8 +495,7 @@ public class LocalDateTimeUtils {
      */
     public static Value localTimeToTimeValue(Object localTime) {
         try {
-            Time time = (Time) TIME_VALUE_OF.invoke(null, localTime);
-            return ValueTime.get(time);
+            return ValueTime.fromNanos((Long) LOCAL_TIME_TO_NANO.invoke(localTime));
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

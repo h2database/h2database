@@ -104,7 +104,8 @@ public class CreateView extends SchemaCommand {
         synchronized (sysSession) {
             try {
                 if (view == null) {
-                    Schema schema = session.getDatabase().getSchema(session.getCurrentSchemaName());
+                    Schema schema = session.getDatabase().getSchema(
+                            session.getCurrentSchemaName());
                     sysSession.setCurrentSchema(schema);
                     Column[] columnTemplates = null;
                     if (columnNames != null) {

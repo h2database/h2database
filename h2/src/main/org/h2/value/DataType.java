@@ -23,6 +23,7 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Constants;
@@ -34,6 +35,7 @@ import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
+import org.h2.util.LocalDateTimeUtils;
 import org.h2.util.New;
 import org.h2.util.Utils;
 
@@ -65,7 +67,7 @@ public class DataType {
      */
     private static final ArrayList<DataType> TYPES = New.arrayList();
     private static final HashMap<String, DataType> TYPES_BY_NAME = New.hashMap();
-    private static final ArrayList<DataType> TYPES_BY_VALUE_TYPE = New.arrayList();
+    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = New.hashMap();
 
     /**
      * The value type of this data type.
@@ -185,9 +187,6 @@ public class DataType {
     }
 
     static {
-        for (int i = 0; i < Value.TYPE_COUNT; i++) {
-            TYPES_BY_VALUE_TYPE.add(null);
-        }
         add(Value.NULL, Types.NULL, "Null",
                 new DataType(),
                 new String[]{"NULL"},
@@ -316,13 +315,6 @@ public class DataType {
                 // 24 for ValueTimestamp, 32 for java.sql.Timestamp
                 56
         );
-        add(Value.TIMESTAMP_UTC, Types.TIMESTAMP, "TimestampUtc",
-                createDate(ValueTimestamp.PRECISION, "TIMESTAMP_UTC",
-                        ValueTimestamp.DEFAULT_SCALE, ValueTimestamp.DISPLAY_SIZE),
-                new String[]{"TIMESTAMP_UTC"},
-                // 24 for ValueTimestampUtc, 32 for java.sql.Timestamp
-                56
-        );
         add(Value.TIMESTAMP_TZ, Types.OTHER, "TimestampTimeZone",
                 createDate(ValueTimestampTimeZone.PRECISION, "TIMESTAMP_TZ",
                         ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.DISPLAY_SIZE),
@@ -388,11 +380,7 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 400
         );
-        for (int i = 0, size = TYPES_BY_VALUE_TYPE.size(); i < size; i++) {
-            DataType dt = TYPES_BY_VALUE_TYPE.get(i);
-            if (dt == null) {
-                DbException.throwInternalError("unmapped type " + i);
-            }
+        for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
             Value.getOrder(i);
         }
     }
@@ -428,7 +416,7 @@ public class DataType {
             }
             TYPES_BY_NAME.put(dt.name, dt);
             if (TYPES_BY_VALUE_TYPE.get(type) == null) {
-                TYPES_BY_VALUE_TYPE.set(type, dt);
+                TYPES_BY_VALUE_TYPE.put(type, dt);
             }
             TYPES.add(dt);
         }
@@ -552,12 +540,6 @@ public class DataType {
                 Timestamp value = rs.getTimestamp(columnIndex);
                 v = value == null ? (Value) ValueNull.INSTANCE :
                     ValueTimestamp.get(value);
-                break;
-            }
-            case Value.TIMESTAMP_UTC: {
-                Timestamp value = rs.getTimestamp(columnIndex);
-                v = value == null ? (Value) ValueNull.INSTANCE :
-                    ValueTimestampUtc.fromMillisNanos(value.getTime(), value.getNanos());
                 break;
             }
             case Value.TIMESTAMP_TZ: {
@@ -738,7 +720,6 @@ public class DataType {
             // "java.sql.Date";
             return Date.class.getName();
         case Value.TIMESTAMP:
-        case Value.TIMESTAMP_UTC:
             // "java.sql.Timestamp";
             return Timestamp.class.getName();
         case Value.TIMESTAMP_TZ:
@@ -978,6 +959,14 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
+        } else if (LocalDateTimeUtils.isLocalDate(x)) {
+            return Value.DATE;
+        } else if (LocalDateTimeUtils.isLocalTime(x)) {
+            return Value.TIME;
+        } else if (LocalDateTimeUtils.isLocalDateTime(x)) {
+            return Value.TIMESTAMP;
+        } else if (LocalDateTimeUtils.isOffsetDateTime(x)) {
+            return Value.TIMESTAMP_TZ;
         } else {
             return Value.JAVA_OBJECT;
         }
@@ -1086,10 +1075,19 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
+        } else if (LocalDateTimeUtils.isLocalDate(x.getClass())) {
+            return LocalDateTimeUtils.localDateToDateValue(x);
+        } else if (LocalDateTimeUtils.isLocalTime(x.getClass())) {
+            return LocalDateTimeUtils.localTimeToTimeValue(x);
+        } else if (LocalDateTimeUtils.isLocalDateTime(x.getClass())) {
+            return LocalDateTimeUtils.localDateTimeToValue(x);
+        } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
+            return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
     }
+
 
     /**
      * Check whether a given class matches the Geometry class.

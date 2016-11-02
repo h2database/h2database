@@ -9,7 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.h2.util.StringUtils;
 
 /**
- * A concurrent hash map with a case-insensitive string key, that also allows NULL as a key.
+ * A concurrent hash map with a case-insensitive string key, that also allows
+ * NULL as a key.
  *
  * @param <V> the value type
  */

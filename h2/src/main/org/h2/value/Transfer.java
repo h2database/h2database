@@ -387,11 +387,6 @@ public class Transfer {
             }
             break;
         }
-        case Value.TIMESTAMP_UTC: {
-            ValueTimestampUtc ts = (ValueTimestampUtc) v;
-            writeLong(ts.getUtcDateTimeNanos());
-            break;
-        }
         case Value.TIMESTAMP_TZ: {
             ValueTimestampTimeZone ts = (ValueTimestampTimeZone) v;
             writeLong(ts.getDateValue());
@@ -584,9 +579,6 @@ public class Transfer {
             }
             return ValueTimestamp.fromMillisNanos(readLong(),
                     readInt() % 1000000);
-        }
-        case Value.TIMESTAMP_UTC: {
-            return ValueTimestampUtc.fromNanos(readLong());
         }
         case Value.TIMESTAMP_TZ: {
             return ValueTimestampTimeZone.fromDateValueAndNanos(readLong(),

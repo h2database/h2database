@@ -791,9 +791,12 @@ public class CacheLongKeyLIRS<V> {
             }
             V old;
             Entry<V> e = find(key, hash);
+            boolean existed;
             if (e == null) {
+                existed = false;
                 old = null;
             } else {
+                existed = true;
                 old = e.value;
                 remove(key, hash);
             }
@@ -822,6 +825,10 @@ public class CacheLongKeyLIRS<V> {
             mapSize++;
             // added entries are always added to the stack
             addToStack(e);
+            if (existed) {
+                // if it was there before (even non-resident), it becomes hot
+                access(key, hash);
+            }
             return old;
         }
 

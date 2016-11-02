@@ -326,6 +326,10 @@ public class MVStore {
         if (mb > 0) {
             CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
             cc.maxMemory = mb * 1024L * 1024L;
+            o = config.get("cacheConcurrency");
+            if (o != null) {
+                cc.segmentCount = (Integer) o;
+            }
             cache = new CacheLongKeyLIRS<Page>(cc);
             cc.maxMemory /= 4;
             cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(cc);
@@ -2824,6 +2828,17 @@ public class MVStore {
          */
         public Builder cacheSize(int mb) {
             return set("cacheSize", mb);
+        }
+
+        /**
+         * Set the read cache concurrency. The default is 16, meaning 16
+         * segments are used.
+         *
+         * @param concurrency the cache concurrency
+         * @return this
+         */
+        public Builder cacheConcurrency(int concurrency) {
+            return set("cacheConcurrency", concurrency);
         }
 
         /**

@@ -47,7 +47,6 @@ import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
 import org.h2.value.ValueTimestampTimeZone;
-import org.h2.value.ValueTimestampUtc;
 import org.h2.value.ValueUuid;
 
 /**
@@ -164,8 +163,6 @@ public class TestValueMemory extends TestBase implements DataHandler {
             return ValueDate.get(new java.sql.Date(random.nextLong()));
         case Value.TIMESTAMP:
             return ValueTimestamp.fromMillis(random.nextLong());
-        case Value.TIMESTAMP_UTC:
-            return ValueTimestampUtc.fromMillis(random.nextLong());
         case Value.TIMESTAMP_TZ:
             // clamp to max legal value
             long nanos = Math.max(Math.min(random.nextLong(),

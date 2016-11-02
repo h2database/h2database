@@ -2128,7 +2128,7 @@ public class Function extends Expression implements FunctionCall {
         return hc;
     }
 
-    public int makeRegexpFlags(String stringFlags) {
+    private static int makeRegexpFlags(String stringFlags) {
         int flags = Pattern.UNICODE_CASE;
         if (stringFlags != null) {
             for (int i = 0; i < stringFlags.length(); ++i) {

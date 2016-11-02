@@ -616,6 +616,102 @@ public class ArchiveTool {
     private static int[] getKey(byte[] data, int start, int maxPos) {
         int minLen = 4 * 1024;
         int mask = 4 * 1024 - 1;
+        long min = Long.MAX_VALUE;
+        int pos = start;
+        for (int j = 0; pos < maxPos; pos++, j++) {
+            if (pos <= start + 10) {
+                continue;
+            }
+            long hash = getSipHash24(data, pos - 10, pos, 111, 11224);
+            if (hash < min) {
+                min = hash;
+            }
+            if (j > minLen) {
+                if ((hash & mask) == 1) {
+                    break;
+                }
+                if (j > minLen * 4 && (hash & (mask >> 1)) == 1) {
+                    break;
+                }
+                if (j > minLen * 16) {
+                    break;
+                }
+            }
+        }
+        int len = pos - start;
+        int[] counts = new int[8];
+        for (int i = start; i < pos; i++) {
+            int x = data[i] & 0xff;
+            counts[x >> 5]++;
+        }
+        int cs = 0;
+        for (int i = 0; i < 8; i++) {
+            cs *= 2;
+            if (counts[i] > (len / 32)) {
+                cs += 1;
+            }
+        }
+        int[] key = new int[4];
+        ; // TODO test if cs makes a difference
+        key[0] = (int) (min >>> 32);
+        key[1] = (int) min;
+        key[2] = cs;
+        key[3] = len;
+        return key;
+    }
+
+    private static long getSipHash24(byte[] b, int start, int end, long k0,
+            long k1) {
+        long v0 = k0 ^ 0x736f6d6570736575L;
+        long v1 = k1 ^ 0x646f72616e646f6dL;
+        long v2 = k0 ^ 0x6c7967656e657261L;
+        long v3 = k1 ^ 0x7465646279746573L;
+        int repeat;
+        for (int off = start; off <= end + 8; off += 8) {
+            long m;
+            if (off <= end) {
+                m = 0;
+                int i = 0;
+                for (; i < 8 && off + i < end; i++) {
+                    m |= ((long) b[off + i] & 255) << (8 * i);
+                }
+                if (i < 8) {
+                    m |= ((long) end - start) << 56;
+                }
+                v3 ^= m;
+                repeat = 2;
+            } else {
+                m = 0;
+                v2 ^= 0xff;
+                repeat = 4;
+            }
+            for (int i = 0; i < repeat; i++) {
+                v0 += v1;
+                v2 += v3;
+                v1 = Long.rotateLeft(v1, 13);
+                v3 = Long.rotateLeft(v3, 16);
+                v1 ^= v0;
+                v3 ^= v2;
+                v0 = Long.rotateLeft(v0, 32);
+                v2 += v1;
+                v0 += v3;
+                v1 = Long.rotateLeft(v1, 17);
+                v3 = Long.rotateLeft(v3, 21);
+                v1 ^= v2;
+                v3 ^= v0;
+                v2 = Long.rotateLeft(v2, 32);
+            }
+            v0 ^= m;
+        }
+        return v0 ^ v1 ^ v2 ^ v3;
+    }
+
+    /**
+     * Get the sort key and length of a chunk.
+     */
+    private static int[] getKeyOld(byte[] data, int start, int maxPos) {
+        int minLen = 4 * 1024;
+        int mask = 4 * 1024 - 1;
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         int pos = start;

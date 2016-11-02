@@ -323,6 +323,22 @@ class FileNioMem extends FileBase {
     }
 
     @Override
+    public int read(ByteBuffer dst, long position) throws IOException {
+        int len = dst.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        long newPos;
+        newPos = data.readWrite(position, dst, dst.position(), len, false);
+        len = (int) (newPos - position);
+        if (len <= 0) {
+            return -1;
+        }
+        dst.position(dst.position() + len);
+        return len;
+    }
+
+    @Override
     public long position() {
         return pos;
     }
@@ -392,6 +408,7 @@ class FileNioMemData {
         new Cache<CompressItem, CompressItem>(CACHE_SIZE);
 
     private String name;
+    private final int id;
     private final boolean compress;
     private long length;
     private ByteBuffer[] data;
@@ -409,9 +426,14 @@ class FileNioMemData {
 
     FileNioMemData(String name, boolean compress) {
         this.name = name;
+        this.id = name.hashCode();
         this.compress = compress;
         data = new ByteBuffer[0];
         lastModified = System.currentTimeMillis();
+    }
+
+    int getId() {
+        return id;
     }
 
     /**
@@ -470,7 +492,7 @@ class FileNioMemData {
                 return false;
             }
             CompressItem c = (CompressItem) eldest.getKey();
-            compress(c.data, c.page);
+            c.data.compress(c.page);
             return true;
         }
     }
@@ -483,7 +505,7 @@ class FileNioMemData {
         /**
          * The file data.
          */
-        ByteBuffer[] data;
+        FileNioMemData data;
 
         /**
          * The page to compress.
@@ -492,7 +514,7 @@ class FileNioMemData {
 
         @Override
         public int hashCode() {
-            return page;
+            return page ^ data.getId();
         }
 
         @Override
@@ -506,16 +528,16 @@ class FileNioMemData {
 
     }
 
-    private static void compressLater(ByteBuffer[] data, int page) {
+    private void compressLater(int page) {
         CompressItem c = new CompressItem();
-        c.data = data;
+        c.data = this;
         c.page = page;
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
     }
 
-    private static void expand(ByteBuffer[] data, int page) {
+    private void expand(int page) {
         ByteBuffer d = data[page];
         if (d.capacity() == BLOCK_SIZE) {
             return;
@@ -533,10 +555,9 @@ class FileNioMemData {
     /**
      * Compress the data in a byte array.
      *
-     * @param data the page array
      * @param page which page to compress
      */
-    static void compress(ByteBuffer[] data, int page) {
+    void compress(int page) {
         ByteBuffer d = data[page];
         synchronized (LZF) {
             int len = LZF.compress(d, 0, BUFFER, 0);
@@ -577,13 +598,13 @@ class FileNioMemData {
         long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
         if (end != newLength) {
             int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
-            expand(data, lastPage);
+            expand(lastPage);
             ByteBuffer d = data[lastPage];
             for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
                 d.put(i, (byte) 0);
             }
             if (compress) {
-                compressLater(data, lastPage);
+                compressLater(lastPage);
             }
         }
     }
@@ -624,7 +645,7 @@ class FileNioMemData {
         while (len > 0) {
             int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
             int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(data, page);
+            expand(page);
             ByteBuffer block = data[page];
             int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
             if (write) {
@@ -634,9 +655,10 @@ class FileNioMemData {
                 block.position(blockOffset);
                 block.put(tmp);
             } else {
-                block.position(blockOffset);
-                ByteBuffer tmp = block.slice();
-                tmp.limit(l);
+                // duplicate, so this can be done concurrently
+                ByteBuffer tmp = block.duplicate();
+                tmp.position(blockOffset);
+                tmp.limit(l + blockOffset);
                 int oldPosition = b.position();
                 b.position(off);
                 b.put(tmp);
@@ -644,7 +666,7 @@ class FileNioMemData {
                 b.position(oldPosition);
             }
             if (compress) {
-                compressLater(data, page);
+                compressLater(page);
             }
             off += l;
             pos += l;

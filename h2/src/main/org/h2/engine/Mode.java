@@ -150,6 +150,9 @@ public class Mode {
      */
     public boolean supportPoundSymbolForColumnNames;
 
+    /**
+     * Whether an empty list as in "NAME IN()" results in a syntax error.
+     */
     public boolean prohibitEmptyInPredicate;
 
     private final String name;

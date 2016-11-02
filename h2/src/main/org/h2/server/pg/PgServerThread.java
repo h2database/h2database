@@ -663,7 +663,8 @@ public class PgServerThread implements Runnable {
         sendMessage();
     }
 
-    private void sendParameterDescription(ParameterMetaData meta, int[] paramTypes) throws Exception {
+    private void sendParameterDescription(ParameterMetaData meta,
+            int[] paramTypes) throws Exception {
         int count = meta.getParameterCount();
         startMessage('t');
         writeShort(count);

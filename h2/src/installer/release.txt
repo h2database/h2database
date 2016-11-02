@@ -25,8 +25,6 @@ Newsletter: prepare (always to BCC)
 Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...
 Add to http://twitter.com
 - tweet: add @geospatialnews for the new geometry type and disk spatial index
-Close bugs: https://github.com/h2database/h2database/issues
-Update statistics
 
 Sign files and publish files on Maven Central
 ./build.sh compile jar mavenDeployCentral
@@ -42,12 +40,15 @@ cd ../../h2-mvstore/1...
 # for each file separately (-javadoc.jar, -sources.jar, .jar, .pom):
 gpg -u "Thomas Mueller Graf <thomas.tom.mueller@gmail.com>" -ab h2-mvstore...
 jar -cvf bundle.jar h2-*
-# http://central.sonatype.org/pages/ossrh-guide.html
-# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
-# https://oss.sonatype.org/#welcome - Log In "t..."
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
-# - Staging Upload
-# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
-# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+# http://central.sonatype.org/pages/ossrh-guide.html
+# http://central.sonatype.org/pages/manual-staging-bundle-creation-and-deployment.html
+# https://oss.sonatype.org/#welcome - Log In "t..."
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+# - Staging Upload
+# - Upload Mode: Artifact Bundle, Select Bundle to Upload... - /data/.../bundle.jar
+# - Upload Bundle - Staging Repositories - select comh2database - Release - Confirm
+
+Update statistics
+Change version in pom.xml, commit

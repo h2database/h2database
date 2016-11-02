@@ -307,7 +307,8 @@ public class TestMultiThread extends TestBase implements Runnable {
         stat.execute("CREATE VIEW INVOICE_VIEW as SELECT * FROM INVOICE");
 
         stat.execute(
-                "CREATE TABLE INVOICE_DETAIL(DETAIL_ID INT PRIMARY KEY, INVOICE_ID INT, DESCRIPTION VARCHAR)");
+                "CREATE TABLE INVOICE_DETAIL(DETAIL_ID INT PRIMARY KEY, " +
+                "INVOICE_ID INT, DESCRIPTION VARCHAR)");
         stat.execute(
                 "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
 
@@ -331,7 +332,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                     // NullPointerException
                     stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
                             + " as SELECT DTL.* FROM INVOICE_VIEW" + j
-                            + " INV JOIN INVOICE_DETAIL_VIEW DTL ON INV.INVOICE_ID = DTL.INVOICE_ID"
+                            + " INV JOIN INVOICE_DETAIL_VIEW DTL "
+                            + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
                             + " WHERE DESCRIPTION='TEST'");
 
                     ResultSet rs = stat2

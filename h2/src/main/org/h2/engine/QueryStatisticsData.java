@@ -54,8 +54,8 @@ public class QueryStatisticsData {
      * Update query statistics.
      *
      * @param sqlStatement the statement being executed
-     * @param executionTimeNanos the time in nanoseconds the query/update took to
-     *            execute
+     * @param executionTimeNanos the time in nanoseconds the query/update took
+     *            to execute
      * @param rowCount the query or update row count
      */
     public synchronized void update(String sqlStatement, long executionTimeNanos,

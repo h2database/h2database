@@ -206,7 +206,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         stat.execute("drop table test");
         conn.close();
     }
-    
+
     private void testViewTriggerGeneratedKeys() throws SQLException {
         Connection conn;
         Statement stat;
@@ -223,19 +223,20 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             conn = getConnection("trigger");
             stat = conn.createStatement();
         }
-        
+
         PreparedStatement pstat;
-        pstat = conn.prepareStatement("insert into test_view values()", Statement.RETURN_GENERATED_KEYS);
+        pstat = conn.prepareStatement(
+                "insert into test_view values()", Statement.RETURN_GENERATED_KEYS);
         int count = pstat.executeUpdate();
         assertEquals(1, count);
-        
+
         ResultSet gkRs;
         gkRs = pstat.getGeneratedKeys();
-        
+
         assertTrue(gkRs.next());
         assertEquals(1, gkRs.getInt(1));
         assertFalse(gkRs.next());
-        
+
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
@@ -328,7 +329,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         }
 
     }
-    
+
     /**
      *
      */
@@ -340,7 +341,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         public void init(Connection conn, String schemaName,
                 String triggerName, String tableName, boolean before, int type)
                 throws SQLException {
-            prepInsert = conn.prepareStatement("insert into test values()", Statement.RETURN_GENERATED_KEYS);
+            prepInsert = conn.prepareStatement(
+                    "insert into test values()", Statement.RETURN_GENERATED_KEYS);
         }
 
         @Override

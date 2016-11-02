@@ -244,7 +244,10 @@ public class SpatialDataType implements DataType {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
         if (a.isNull() || b.isNull()) {
-            return false;
+            // In order for null geometries to be found,
+            // a simple contains-relation is mimicked on the Ids 
+            // instead of the empty boundinx boxes.
+            return a.getId() <= b.getId();
         }
         for (int i = 0; i < dimensions; i++) {
             if (a.min(i) > b.min(i) || a.max(i) < b.max(i)) {

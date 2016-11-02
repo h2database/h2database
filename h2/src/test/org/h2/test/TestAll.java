@@ -114,6 +114,7 @@ import org.h2.test.mvcc.TestMvcc3;
 import org.h2.test.mvcc.TestMvcc4;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
 import org.h2.test.poweroff.TestReorderWrites;
+import org.h2.test.recover.RecoverLobTest;
 import org.h2.test.rowlock.TestRowLocks;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
@@ -858,6 +859,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestReader());
         addTest(new TestRecovery());
         addTest(new TestScriptReader());
+        addTest(new RecoverLobTest());
         addTest(createTest("org.h2.test.unit.TestServlet"));
         addTest(new TestSecurity());
         addTest(new TestShell());
@@ -872,6 +874,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestValue());
         addTest(new TestValueHashMap());
         addTest(new TestWeb());
+        
 
         runAddedTests();
 

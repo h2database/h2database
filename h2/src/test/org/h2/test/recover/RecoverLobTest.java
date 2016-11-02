@@ -1,7 +1,5 @@
 package org.h2.test.recover;
 
-import static org.junit.Assert.*;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -9,25 +7,27 @@ import java.sql.Statement;
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 public class RecoverLobTest  extends TestBase {
 
-    @Before
-    public void setUp() throws Exception{
-        init();
+    public static void main(String... a) throws Exception {
+        TestBase.createCaller().init().test();
+    }
+    
+    @Override
+    public TestBase init() throws Exception {
+        TestBase tb = super.init();
         config.mvStore=false;
+        return tb;
     }
 
     @Override
     public void test() throws Exception {
+        testRecoverClob();
     }
    
     
     
-    @Test
     public void testRecoverClob() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
@@ -56,8 +56,8 @@ public class RecoverLobTest  extends TestBase {
             int id = rs.getInt(1);
             String data = rs.getString(2);
             
-            Assert.assertNotNull(data);
-            Assert.assertTrue(data.length() == 10000 * id);
+            assertTrue(data != null);
+            assertTrue(data.length() == 10000 * id);
             
         }
         rs.close();

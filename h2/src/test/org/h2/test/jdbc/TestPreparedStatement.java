@@ -639,7 +639,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, localDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateTimeClass());
         assertEquals(localDateTime, localDateTime2);
         rs.close();
     }

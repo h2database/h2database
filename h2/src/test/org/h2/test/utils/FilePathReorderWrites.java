@@ -138,6 +138,12 @@ public class FilePathReorderWrites extends FilePathWrapper {
         return 45000;
     }
 
+    @Override
+    public void delete() {
+        super.delete();
+        FilePath.get(getBase().toString() + ".copy").delete();
+    }
+
 }
 
 /**
@@ -378,7 +384,7 @@ class FileReorderWrites extends FileBase {
                 channel.truncate(position);
                 return -1;
             }
-            // TODO support the case were part is not written
+            // TODO support the case where part is not written
             int len = channel.write(buffer, position);
             buffer.flip();
             return len;

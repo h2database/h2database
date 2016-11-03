@@ -54,6 +54,11 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     private final FileStore tempFile;
     private int tableId;
     private int hash;
+    
+    //Arbonaut: 13.07.2016
+    // Fix for recovery tool.
+    
+    private boolean isRecoveryReference = false;
 
     private ValueLobDb(int type, DataHandler handler, int tableId, long lobId,
             byte[] hmac, long precision) {
@@ -664,4 +669,12 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         return new ValueLobDb(type, small, precision);
     }
 
+    
+    public void setRecoveryReference(boolean isRecoveryReference) {
+        this.isRecoveryReference = isRecoveryReference;
+    }
+    
+    public boolean isRecoveryReference() {
+        return isRecoveryReference;
+    }
 }

@@ -15,7 +15,6 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
@@ -829,7 +828,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         int[] expectedReadsForCacheSize = {
-                3407, 2590, 1924, 1440, 1111, 956, 918
+                3407, 2590, 1924, 1440, 1330, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             int cacheMB = 1 + 3 * cacheSize;

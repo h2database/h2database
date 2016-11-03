@@ -24,7 +24,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;

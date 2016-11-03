@@ -5,7 +5,6 @@
  */
 package org.h2.test.db;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +13,6 @@ import java.sql.Statement;
 import java.util.Random;
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
-import com.peralex.utilities.ui.HeapDumper;
 
 /**
  * Tests the memory usage of the cache.
@@ -99,8 +97,6 @@ public class TestMemoryUsage extends TestBase {
             }
             usedNow = Utils.getMemoryUsed();
             if (usedNow > used * 1.3) {
-                new File("h2-heap-create-drop.hprof").delete();
-                HeapDumper.dumpHeap("h2-heap-create-drop.hprof", false);
                 assertEquals(used, usedNow);
             }
         }

@@ -39,7 +39,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.utils.ProxyCodeGenerator;
 import org.h2.test.utils.ResultVerifier;
 import org.h2.tools.DeleteDbFiles;
-import com.peralex.utilities.ui.HeapDumper;
 
 /**
  * The base class for all tests.
@@ -155,8 +154,6 @@ public abstract class TestBase {
                 throw new AssertionError("ERROR");
             }
             if (e instanceof OutOfMemoryError) {
-                new File("h2-heap.hprof").delete();
-                HeapDumper.dumpHeap("h2-heap.hprof", false);
                 throw (OutOfMemoryError) e;
             }
         }

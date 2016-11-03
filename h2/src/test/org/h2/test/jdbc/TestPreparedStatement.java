@@ -620,6 +620,13 @@ public class TestPreparedStatement extends TestBase {
         Object localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
         assertEquals(localTime, localTime2);
         rs.close();
+        localTime = LocalDateTimeUtils.parseLocalTime("04:05:06.123456789");
+        prep.setObject(1, localTime);
+        rs = prep.executeQuery();
+        rs.next();
+        localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
+        assertEquals(localTime, localTime2);
+        rs.close();
     }
 
     private void testDateTime8(Connection conn) throws SQLException {

@@ -6,7 +6,6 @@
 package org.h2.expression;
 
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
@@ -249,9 +248,13 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public String getAlias() {
-        String table = tableAlias == null ? "" : tableAlias + ".";
-        String columnName = column == null ? this.columnName : column.getName();
-        return table + columnName;
+        if (column != null) {
+            return column.getName();
+        }
+        if (tableAlias != null) {
+            return tableAlias + "." + columnName;
+        }
+        return columnName;
     }
 
     @Override

@@ -108,7 +108,6 @@ import org.h2.test.jdbcx.TestConnectionPool;
 import org.h2.test.jdbcx.TestDataSource;
 import org.h2.test.jdbcx.TestXA;
 import org.h2.test.jdbcx.TestXASimple;
-import org.h2.test.lostalias.LostAliasTest;
 import org.h2.test.mvcc.TestMvcc1;
 import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
@@ -797,9 +796,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestQueryCache());
         addTest(new TestUrlJavaObjectSerializer());
         addTest(new TestWeb());
-        
-        // #392: Table alias get lost
-        addTest(new LostAliasTest());
 
         runAddedTests(1);
 
@@ -878,7 +874,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestValue());
         addTest(new TestValueHashMap());
         addTest(new TestWeb());
-        
+
 
         runAddedTests();
 

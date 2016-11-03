@@ -249,13 +249,9 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public String getAlias() {
-        if (column != null) {
-            return column.getName();
-        }
-        if (tableAlias != null) {
-            return tableAlias + "." + columnName;
-        }
-        return columnName;
+        String table = tableAlias == null ? "" : tableAlias + ".";
+        String columnName = column == null ? this.columnName : column.getName();
+        return table + columnName;
     }
 
     @Override

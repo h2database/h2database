@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
 
@@ -88,7 +87,7 @@ public class TestMemoryUsage extends TestBase {
         if (usedNow > used * 1.3) {
             // try to lower memory usage (because it might be wrong)
             // by forcing OOME
-            for (int i = 1024;; i *= 2) {
+            for (int i = 1024; i < (1 >> 31); i *= 2) {
                 try {
                     byte[] oome = new byte[1024 * 1024 * 256];
                     oome[0] = (byte) i;

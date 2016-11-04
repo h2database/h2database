@@ -15,10 +15,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.SmallLRUCache;
@@ -354,7 +357,17 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
         // check for exceptions
         for (Future<Void> job : jobs) {
-            job.get();
+            try {
+                job.get();
+            } catch (ExecutionException ex) {
+                // ignore timeout exceptions, happens periodically when the machine is really
+                // busy and it's not the thing we are trying to test
+                if (!(ex.getCause() instanceof JdbcSQLException)
+                        || ((JdbcSQLException) ex.getCause())
+                                .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
+                    throw ex;
+                }
+            }
         }
         executor.shutdown();
         executor.awaitTermination(20, TimeUnit.SECONDS);

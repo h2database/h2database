@@ -24,7 +24,6 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
@@ -621,6 +620,13 @@ public class TestPreparedStatement extends TestBase {
         Object localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
         assertEquals(localTime, localTime2);
         rs.close();
+        localTime = LocalDateTimeUtils.parseLocalTime("04:05:06.123456789");
+        prep.setObject(1, localTime);
+        rs = prep.executeQuery();
+        rs.next();
+        localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
+        assertEquals(localTime, localTime2);
+        rs.close();
     }
 
     private void testDateTime8(Connection conn) throws SQLException {
@@ -632,7 +638,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, localDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateTimeClass());
         assertEquals(localDateTime, localDateTime2);
         rs.close();
     }

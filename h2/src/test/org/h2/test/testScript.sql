@@ -2126,6 +2126,12 @@ select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
 > -
 > rows: 0
 
+select regexp_replace('Sylvain', 'S..', 'TOTO', 'mni') as X;
+> X
+> --------
+> TOTOvain
+> rows: 1
+
 SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
 > T1   F2    T3
 > ---- ----- ----

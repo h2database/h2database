@@ -6,7 +6,6 @@
 package org.h2.expression;
 
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;

@@ -1386,7 +1386,7 @@ public class Function extends Expression implements FunctionCall {
             String regexp = v1.getString();
             String replacement = v2.getString();
             String regexpMode = v3 == null || v3.getString() == null ? "" :
-                    v2.getString();
+                    v3.getString();
             int flags = makeRegexpFlags(regexpMode);
             try {
                 result = ValueString.get(

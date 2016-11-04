@@ -213,7 +213,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     private SpatialKey getKey(SearchRow row) {
         Value v = row.getValue(columnIds[0]);
         if (v == ValueNull.INSTANCE) {
-            return new SpatialKey(row.getKey());
+            return new SpatialKey(row.getKey(),0,0,0,0);
         }
         Geometry g = ((ValueGeometry) v.convertTo(Value.GEOMETRY)).getGeometryNoCopy();
         Envelope env = g.getEnvelopeInternal();

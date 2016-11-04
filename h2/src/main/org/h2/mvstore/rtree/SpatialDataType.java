@@ -243,22 +243,7 @@ public class SpatialDataType implements DataType {
     public boolean contains(Object objA, Object objB) {
         SpatialKey a = (SpatialKey) objA;
         SpatialKey b = (SpatialKey) objB;
-        
-        // if objB (the searched key) is a null spatial key, it is considered to
-        // be "contained everywhere". This means it will be
-        // always added/get/removed/set in the first searched node of the RTree
-        // (so usually at index 0).
-        // Thus, with many null-keys, the R-Tree will have a bias to the right,
-        // which could have an impact on performance.
-        //
-        // Otherwise, if objA (the key in which the search is performed) is a
-        // null spatial key, it is considered to never contain a
-        // not-null spatial key.
-        
-        if (b.isNull()) {
-            return true;
-        }
-        else if (a.isNull()){
+        if (a.isNull() || b.isNull()) {
             return false;
         }
         for (int i = 0; i < dimensions; i++) {

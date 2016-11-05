@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
+import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -66,6 +67,7 @@ public class Column {
     private final int type;
     private long precision;
     private int scale;
+    private Set<String> permittedValues;
     private int displaySize;
     private Table table;
     private String name;
@@ -88,11 +90,20 @@ public class Column {
     private boolean primaryKey;
 
     public Column(String name, int type) {
-        this(name, type, -1, -1, -1);
+        this(name, type, -1, -1, -1, null);
+    }
+
+    public Column(String name, int type, Set<String> permittedValues) {
+        this(name, type, -1, -1, -1, permittedValues);
     }
 
     public Column(String name, int type, long precision, int scale,
             int displaySize) {
+        this(name, type, precision, scale, displaySize, null);
+    }
+
+    public Column(String name, int type, long precision, int scale,
+            int displaySize, Set<String> permittedValues) {
         this.name = name;
         this.type = type;
         if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
@@ -104,6 +115,7 @@ public class Column {
         this.precision = precision;
         this.scale = scale;
         this.displaySize = displaySize;
+        this.permittedValues = permittedValues;
     }
 
     @Override
@@ -133,7 +145,7 @@ public class Column {
     }
 
     public Column getClone() {
-        Column newColumn = new Column(name, type, precision, scale, displaySize);
+        Column newColumn = new Column(name, type, precision, scale, displaySize, permittedValues);
         newColumn.copy(this);
         return newColumn;
     }
@@ -255,6 +267,14 @@ public class Column {
 
     public void setNullable(boolean b) {
         nullable = b;
+    }
+
+    public Set<String> getPermittedValues() {
+        return permittedValues;
+    }
+
+    public void setPermittedValues(Set<String> permittedValues) {
+        this.permittedValues = permittedValues;
     }
 
     /**
@@ -733,6 +753,7 @@ public class Column {
         displaySize = source.displaySize;
         name = source.name;
         precision = source.precision;
+        permittedValues = source.permittedValues;
         scale = source.scale;
         // table is not set
         // columnId is not set

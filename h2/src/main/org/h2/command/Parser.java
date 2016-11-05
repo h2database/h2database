@@ -4058,6 +4058,7 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
+        java.util.Set<String> permittedValues = new HashSet<>();
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
@@ -4131,6 +4132,13 @@ public class Parser {
                 }
                 read(")");
             }
+        } else if (dataType.supportsPermittedValues) {
+            if (readIf("(")) {
+                permittedValues.add(readString());
+                while(readIf(","))
+                    readString();
+                read(")");
+            }
         } else if (readIf("(")) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
             // Just ignore the precision.
@@ -4151,8 +4159,13 @@ public class Parser {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
-        Column column = new Column(columnName, type, precision, scale,
+        Column column;
+        if (permittedValues.isEmpty()) {
+            column = new Column(columnName, type, precision, scale,
                 displaySize);
+        } else {
+            column = new Column(columnName, type, permittedValues);
+        }
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

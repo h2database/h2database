@@ -141,6 +141,11 @@ public class DataType {
     public boolean caseSensitive;
 
     /**
+     * If permitted values are supports.
+     */
+    public boolean supportsPermittedValues;
+
+    /**
      * If the precision parameter is supported.
      */
     public boolean supportsPrecision;
@@ -380,6 +385,11 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 400
         );
+        add(Value.ENUM, Types.OTHER, "Enum",
+                createEnum(),
+                new String[]{"ENUM"},
+                48
+        );
         for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
             Value.getOrder(i);
         }
@@ -401,6 +411,7 @@ public class DataType {
             dt.params = dataType.params;
             dt.prefix = dataType.prefix;
             dt.suffix = dataType.suffix;
+            dt.supportsPermittedValues = dataType.supportsPermittedValues;
             dt.supportsPrecision = dataType.supportsPrecision;
             dt.supportsScale = dataType.supportsScale;
             dt.defaultPrecision = dataType.defaultPrecision;
@@ -454,6 +465,13 @@ public class DataType {
         return dataType;
     }
 
+    private static DataType createEnum() {
+        DataType dataType = createString(false);
+        dataType.supportsPermittedValues = true;
+        dataType.supportsPrecision = false;
+        dataType.supportsScale = false;
+        return dataType;
+    }
     private static DataType createString(boolean caseSensitive) {
         DataType dataType = new DataType();
         dataType.prefix = "'";
@@ -663,6 +681,13 @@ public class DataType {
                 }
                 v = ValueArray.get(values);
                 break;
+            }
+            case Value.ENUM: {
+                Object x = rs.getObject(columnIndex);
+                if (x == null) {
+                    return ValueNull.INSTANCE;
+                }
+                return ValueEnum.get((String)x);
             }
             case Value.RESULT_SET: {
                 ResultSet x = (ResultSet) rs.getObject(columnIndex);
@@ -998,6 +1023,9 @@ public class DataType {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
         if (x instanceof String) {
+            if (type == Value.ENUM) {
+                return ValueEnum.get((String) x);
+            }
             return ValueString.get((String) x);
         } else if (x instanceof Value) {
             return (Value) x;
@@ -1145,8 +1173,8 @@ public class DataType {
      * @return true if the value type is a String type
      */
     public static boolean isStringType(int type) {
-        if (type == Value.STRING || type == Value.STRING_FIXED
-                || type == Value.STRING_IGNORECASE) {
+        if (type == Value.ENUM || type == Value.STRING
+                || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE) {
             return true;
         }
         return false;

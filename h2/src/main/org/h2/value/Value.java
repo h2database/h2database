@@ -167,6 +167,11 @@ public abstract class Value {
     public static final int TIMESTAMP_TZ = 24;
 
     /**
+     * The value type for ENUM values.
+     */
+    public static final int ENUM = 25;
+
+    /**
      * The number of value types.
      */
     public static final int TYPE_COUNT = TIMESTAMP_TZ;
@@ -321,6 +326,8 @@ public abstract class Value {
             return 50;
         case RESULT_SET:
             return 51;
+        case ENUM:
+            return 52;
         default:
             throw DbException.throwInternalError("type:"+type);
         }
@@ -965,6 +972,8 @@ public abstract class Value {
                 return ValueUuid.get(s);
             case GEOMETRY:
                 return ValueGeometry.get(s);
+            case ENUM:
+                return ValueEnum.get(s);
             default:
                 throw DbException.throwInternalError("type=" + targetType);
             }

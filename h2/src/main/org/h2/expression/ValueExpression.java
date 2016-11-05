@@ -13,6 +13,7 @@ import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueBoolean;
+import org.h2.value.ValueEnum;
 import org.h2.value.ValueNull;
 
 /**

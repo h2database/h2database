@@ -1009,9 +1009,9 @@ public class TestSpatial extends TestBase {
         stat.execute("create memory table test"
                 + "(id int primary key, the_geom geometry, description varchar2(32))");
         stat.execute("create spatial index on test(the_geom)");
-        stat.execute("insert into test values(1, null, null)");
-        stat.execute("insert into test values(2, null, null)");
-        stat.execute("insert into test values(3, null, null)");
+        for (int i = 0; i < 1000; i++) {
+            stat.execute("insert into test values("+ (i + 1) +", null, null)");
+        }
         ResultSet rs = stat.executeQuery("select * from test");
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));

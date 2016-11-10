@@ -179,6 +179,7 @@ class FileRetryOnInterrupt extends FileBase {
         for (int i = 0;; i++) {
             try {
                 channel.force(metaData);
+                return;
             } catch (IOException e) {
                 reopen(i, e);
             }

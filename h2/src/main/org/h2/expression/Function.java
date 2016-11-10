@@ -82,7 +82,8 @@ public class Function extends Expression implements FunctionCall {
             ROUNDMAGIC = 22, SIGN = 23, SIN = 24, SQRT = 25, TAN = 26,
             TRUNCATE = 27, SECURE_RAND = 28, HASH = 29, ENCRYPT = 30,
             DECRYPT = 31, COMPRESS = 32, EXPAND = 33, ZERO = 34,
-            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39;
+            RANDOM_UUID = 35, COSH = 36, SINH = 37, TANH = 38, LN = 39,
+            BITGET=40;
 
     public static final int ASCII = 50, BIT_LENGTH = 51, CHAR = 52,
             CHAR_LENGTH = 53, CONCAT = 54, DIFFERENCE = 55, HEXTORAW = 56,
@@ -208,6 +209,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("ATAN", ATAN, 1, Value.DOUBLE);
         addFunction("ATAN2", ATAN2, 2, Value.DOUBLE);
         addFunction("BITAND", BITAND, 2, Value.LONG);
+        addFunction("BITGET", BITGET, 2, Value.BOOLEAN);
         addFunction("BITOR", BITOR, 2, Value.LONG);
         addFunction("BITXOR", BITXOR, 2, Value.LONG);
         addFunction("CEILING", CEILING, 1, Value.DOUBLE);
@@ -1207,6 +1209,9 @@ public class Function extends Expression implements FunctionCall {
             break;
         case BITAND:
             result = ValueLong.get(v0.getLong() & v1.getLong());
+            break;
+        case BITGET:
+            result = ValueBoolean.get((v0.getLong() & (1L << v1.getInt())) != 0);
             break;
         case BITOR:
             result = ValueLong.get(v0.getLong() | v1.getLong());

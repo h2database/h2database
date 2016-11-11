@@ -76,7 +76,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     private void testConcurrentSchemaChange() throws Exception {
         String db = getTestName();
         deleteDb(db);
-        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        final String url = getURL(db + ";MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
         Connection conn = getConnection(url);
         Task[] tasks = new Task[2];
         for (int i = 0; i < tasks.length; i++) {

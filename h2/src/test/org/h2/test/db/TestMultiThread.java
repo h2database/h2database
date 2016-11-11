@@ -319,58 +319,61 @@ public class TestMultiThread extends TestBase implements Runnable {
         conn.close();
         // create views that reference the common views in different threads
         final ExecutorService executor = Executors.newFixedThreadPool(8);
-        final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
-        for (int i = 0; i < 1000; i++) {
-            final int j = i;
-            jobs.add(executor.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    final Connection conn2 = getConnection(url);
-                    Statement stat2 = conn2.createStatement();
-
-                    stat2.execute("CREATE VIEW INVOICE_VIEW" + j
-                            + " as SELECT * FROM INVOICE_VIEW");
-
-                    // the following query intermittently results in a
-                    // NullPointerException
-                    stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
-                            + " as SELECT DTL.* FROM INVOICE_VIEW" + j
-                            + " INV JOIN INVOICE_DETAIL_VIEW DTL "
-                            + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
-                            + " WHERE DESCRIPTION='TEST'");
-
-                    ResultSet rs = stat2
-                            .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
-                    rs.next();
-                    rs.close();
-
-                    rs = stat2.executeQuery(
-                            "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
-                    rs.next();
-                    rs.close();
-
-                    stat.close();
-                    conn.close();
-                    return null;
-                }
-            }));
-        }
-        // check for exceptions
-        for (Future<Void> job : jobs) {
-            try {
-                job.get();
-            } catch (ExecutionException ex) {
-                // ignore timeout exceptions, happens periodically when the machine is really
-                // busy and it's not the thing we are trying to test
-                if (!(ex.getCause() instanceof JdbcSQLException)
-                        || ((JdbcSQLException) ex.getCause())
-                                .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
-                    throw ex;
+        try {
+            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            for (int i = 0; i < 1000; i++) {
+                final int j = i;
+                jobs.add(executor.submit(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        final Connection conn2 = getConnection(url);
+                        Statement stat2 = conn2.createStatement();
+    
+                        stat2.execute("CREATE VIEW INVOICE_VIEW" + j
+                                + " as SELECT * FROM INVOICE_VIEW");
+    
+                        // the following query intermittently results in a
+                        // NullPointerException
+                        stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
+                                + " as SELECT DTL.* FROM INVOICE_VIEW" + j
+                                + " INV JOIN INVOICE_DETAIL_VIEW DTL "
+                                + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
+                                + " WHERE DESCRIPTION='TEST'");
+    
+                        ResultSet rs = stat2
+                                .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
+                        rs.next();
+                        rs.close();
+    
+                        rs = stat2.executeQuery(
+                                "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
+                        rs.next();
+                        rs.close();
+    
+                        stat.close();
+                        conn.close();
+                        return null;
+                    }
+                }));
+            }
+            // check for exceptions
+            for (Future<Void> job : jobs) {
+                try {
+                    job.get();
+                } catch (ExecutionException ex) {
+                    // ignore timeout exceptions, happens periodically when the machine is really
+                    // busy and it's not the thing we are trying to test
+                    if (!(ex.getCause() instanceof JdbcSQLException)
+                            || ((JdbcSQLException) ex.getCause())
+                                    .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
+                        throw ex;
+                    }
                 }
             }
+        } finally {
+            executor.shutdown();
+            executor.awaitTermination(20, TimeUnit.SECONDS);
         }
-        executor.shutdown();
-        executor.awaitTermination(20, TimeUnit.SECONDS);
 
         deleteDb("lockMode");
     }

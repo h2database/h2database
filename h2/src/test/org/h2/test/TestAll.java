@@ -410,6 +410,11 @@ java org.h2.test.TestAll timer
      */
     ArrayList<TestBase> tests = New.arrayList();
 
+    /**
+     * Set to true if any of the tests fail. Used to return an error code from the whole program.
+     */
+    static boolean atLeastOneTestFailed;
+
     private Server server;
 
     /**
@@ -422,6 +427,9 @@ java org.h2.test.TestAll timer
         run(args);
         catcher.stop();
         catcher.writeTo("Test Output", "docs/html/testOutput.html");
+        if (atLeastOneTestFailed) {
+            System.exit(1);
+        }
     }
 
     private static void run(String... args) throws Exception {

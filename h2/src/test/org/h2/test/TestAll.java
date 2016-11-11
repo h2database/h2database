@@ -340,7 +340,7 @@ java org.h2.test.TestAll timer
     public boolean splitFileSystem;
 
     /**
-     * If only fast tests should be run. If enabled, SSL is not tested.
+     * If only fast/CI/Jenkins/Travis tests should be run.
      */
     public boolean fast;
 
@@ -575,7 +575,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
-        mvcc = mvStore;
+        mvcc = false;
         traceTest = stopOnError = false;
         defrag = false;
         traceLevelFile = throttle = 0;
@@ -608,16 +608,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = true;
         test();
 
-        traceLevelFile = 0;
-        smallLog = true;
-        networked = true;
         if (!fast) {
+            traceLevelFile = 0;
+            smallLog = true;
+            networked = true;
+            defrag = false;
             ssl = true;
-        }
-        defrag = false;
-        test();
+            test();
 
-        if (!fast) {
             big = true;
             smallLog = false;
             networked = false;
@@ -625,18 +623,18 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             traceLevelFile = 0;
             test();
             testUnit();
+
+            big = false;
+            cipher = "AES";
+            test();
+            mvcc = true;
+            cipher = null;
+            test();
+
+            memory = true;
+            test();
         }
 
-        big = false;
-        cipher = "AES";
-        test();
-
-        mvcc = true;
-        cipher = null;
-        test();
-
-        memory = true;
-        test();
     }
 
     /**

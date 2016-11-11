@@ -11,9 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
 import org.h2.test.TestBase;
 
 /**
@@ -64,7 +64,7 @@ public class TestMvcc4 extends TestBase {
         }
 
         //Create a connection from thread 1
-        Connection c1 = getConnection("mvcc4");
+        Connection c1 = getConnection("mvcc4;LOCK_TIMEOUT=10000");
         c1.setAutoCommit(false);
 
         //Fire off a concurrent update.
@@ -130,20 +130,22 @@ public class TestMvcc4 extends TestBase {
      */
     static void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
+            // sleep the first time through the loop so we give the main thread a chance
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e1) {
+                // ignore
+            }
             // TODO must not use getAllStackTraces, as the method names are
             // implementation details
             Map<Thread, StackTraceElement[]> threadMap = Thread.getAllStackTraces();
             StackTraceElement[] elements = threadMap.get(t);
+            System.out.println("xxxx" + Arrays.deepToString(elements));
             if (elements != null
                     && elements.length > 1
                     && "wait".equals(elements[0].getMethodName())
                     && "filterConcurrentUpdate".equals(elements[1].getMethodName())) {
                 return;
-            }
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e1) {
-                // ignore
             }
         }
     }

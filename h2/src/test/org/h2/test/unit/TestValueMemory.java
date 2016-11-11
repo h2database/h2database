@@ -76,6 +76,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
     public void test() throws SQLException {
         testCompare();
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
+            if (i == 23) {
+                // this used to be "TIMESTAMP UTC", which was a short-lived
+                // experiment
+                continue;
+            }
             Value v = create(i);
             String s = "type: " + v.getType() +
                     " calculated: " + v.getMemory() +
@@ -84,6 +89,11 @@ public class TestValueMemory extends TestBase implements DataHandler {
             trace(s);
         }
         for (int i = 0; i < Value.TYPE_COUNT; i++) {
+            if (i == 23) {
+                // this used to be "TIMESTAMP UTC", which was a short-lived
+                // experiment
+                continue;
+            }
             Value v = create(i);
             if (v == ValueNull.INSTANCE && i == Value.GEOMETRY) {
                 // jts not in the classpath, OK

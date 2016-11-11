@@ -123,7 +123,9 @@ public class TestReorderWrites  extends TestBase {
                 store.close();
             }
         } finally {
-            FileUtils.delete(fileName); // release the static data this test generates
+            // release the static data this test generates
+            FileUtils.delete("memFS:test.mv");
+            FileUtils.delete("memFS:test.mv.copy");
         }
     }
 

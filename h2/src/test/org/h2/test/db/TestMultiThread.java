@@ -138,7 +138,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentView() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         String db = getTestName();

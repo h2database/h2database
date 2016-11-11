@@ -105,7 +105,7 @@ public class TestJmx extends TestBase {
 
         result = mbeanServer.invoke(name, "listSessions", null, null).toString();
         assertTrue(result.contains("session id"));
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             assertTrue(result.contains("read lock"));
         } else {
             assertTrue(result.contains("write lock"));

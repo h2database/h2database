@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -233,7 +232,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testThreePhilosophers() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -279,7 +278,7 @@ public class TestDeadlock extends TestBase {
     // test case for issue # 61
     // http://code.google.com/p/h2database/issues/detail?id=61)
     private void testThreeSome() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -324,7 +323,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testLockUpgrade() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -358,7 +357,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testDiningPhilosophers() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();

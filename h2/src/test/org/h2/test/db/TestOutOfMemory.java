@@ -104,7 +104,7 @@ public class TestOutOfMemory extends TestBase {
     }
 
     private void testUpdateWhenNearlyOutOfMemory() throws SQLException {
-        if (config.memory || config.mvcc) {
+        if (config.memory || config.mvcc || config.mvStore) {
             return;
         }
         for (int i = 0; i < 5; i++) {

@@ -1490,7 +1490,9 @@ public abstract class TestBase {
                 if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
                             "Expected an SQLException or DbException with error code "
-                                    + expectedErrorCode);
+                                    + expectedErrorCode
+                                    + ", but got a " + t.getClass().getName() + " exception "
+                                    + " with error code " + errorCode);
                     ae.initCause(t);
                     throw ae;
                 }

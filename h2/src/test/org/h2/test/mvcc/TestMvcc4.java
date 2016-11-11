@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import org.h2.test.TestBase;
@@ -140,7 +139,6 @@ public class TestMvcc4 extends TestBase {
             // implementation details
             Map<Thread, StackTraceElement[]> threadMap = Thread.getAllStackTraces();
             StackTraceElement[] elements = threadMap.get(t);
-            System.out.println("xxxx" + Arrays.deepToString(elements));
             if (elements != null
                     && elements.length > 1
                     && "wait".equals(elements[0].getMethodName())

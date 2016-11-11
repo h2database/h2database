@@ -14,7 +14,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
 import org.h2.build.code.SwitchSource;
 import org.h2.build.doc.XMLParser;
 
@@ -924,16 +923,21 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + javaToolsJar;
+        int ret;
         if (fast) {
-            execJava(args(
+            ret = execJava(args(
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll", "fast"));
         } else {
-            execJava(args(
+            ret = execJava(args(
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll"));
+        }
+        // return a failure code for Jenkins/Travis/CI builds
+        if (ret != 0) {
+            System.exit(ret);
         }
     }
 

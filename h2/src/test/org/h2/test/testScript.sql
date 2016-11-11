@@ -3057,9 +3057,9 @@ select min(8=bitand(12, PARSE_INT2(SUBSTRING(random_uuid(), 20,1), 16))) from sy
 
 select BITGET(x, 0) AS IS_SET from system_range(1, 2);
 > IS_SET
-> ---------------------------------------------------------------------------
-> TRUE
+> ------
 > FALSE
+> TRUE
 > rows: 2
 
 drop alias PARSE_INT2;

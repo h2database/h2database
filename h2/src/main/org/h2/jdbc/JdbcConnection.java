@@ -1799,7 +1799,6 @@ public class JdbcConnection extends TraceObject implements Connection,
                 p.setProperty(PREFIX_SERVER + String.valueOf(i), serverList.get(i));
             }
 
-
             return p;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1820,6 +1819,9 @@ public class JdbcConnection extends TraceObject implements Connection,
                 debugCodeCall("getClientInfo", name);
             }
             checkClosed();
+            if (name == null) {
+                throw DbException.getInvalidValueException("name", null);
+            }
             return getClientInfo().getProperty(name);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1835,10 +1837,14 @@ public class JdbcConnection extends TraceObject implements Connection,
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface)) {
-            return (T) this;
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        throw DbException.getInvalidValueException("iface", iface);
     }
 
     /**

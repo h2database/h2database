@@ -308,12 +308,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
                             break;
                         }
                         try {
-long start = System.currentTimeMillis();
                             conn = getConnection(seed, false);
-long connectTime = System.currentTimeMillis() - start;
-if (connectTime > 2000) {
-    System.out.println("??? connected2 in " + connectTime);
-}
                         } catch (Throwable t) {
                             printIfBad(seed, -i, -1, t);
                         }
@@ -407,6 +402,8 @@ if (connectTime > 2000) {
             // do nothing
         } else if (t.getClass().getName().contains("SQLClientInfoException")) {
             // do nothing
+        } else if (t instanceof UnsupportedOperationException) {
+            // do nothing - new Java8/9 stuff
         } else if (t instanceof SQLException) {
             SQLException s = (SQLException) t;
             int errorCode = s.getErrorCode();

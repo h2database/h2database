@@ -668,7 +668,7 @@ public class TestMVStore extends TestBase {
             }
             long diff = System.currentTimeMillis() - time;
             if (diff > 1000) {
-                fail();
+                fail("diff=" + diff);
             }
             sleep(10);
         }

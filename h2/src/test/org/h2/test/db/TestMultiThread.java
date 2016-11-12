@@ -316,11 +316,6 @@ public class TestMultiThread extends TestBase implements Runnable {
                 "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
 
         stat.close();
-        conn.close();
-        
-        // Without this we fail when testing in "mvstore net memory" mode with "Table INVOICE_VIEW not found"
-        // which is not the point of this test, so just workaround
-        Thread.sleep(100);
         
         // create views that reference the common views in different threads
         final ExecutorService executor = Executors.newFixedThreadPool(8);
@@ -376,6 +371,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 }
             }
         } finally {
+            conn.close();
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }

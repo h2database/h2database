@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -73,7 +72,7 @@ public class TestKillRestartMulti extends TestBase {
                     Thread.sleep(sleep);
                     printTime("killing: " + i);
                     p.destroy();
-                    p.waitFor(10, TimeUnit.SECONDS);
+                    p.waitFor();
                     break;
                 } else if (s.startsWith("#Info")) {
                     // System.out.println("info: " + s);

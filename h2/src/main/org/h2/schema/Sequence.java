@@ -291,7 +291,7 @@ public class Sequence extends SchemaObjectBase {
             return;
         }
         if (session == null || !database.isSysTableLockedBy(session)) {
-            // This session may not lock the sys table (except if it already has
+            // This session may not lock the sys table (except if it has already
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
             Session sysSession = database.getSystemSession();

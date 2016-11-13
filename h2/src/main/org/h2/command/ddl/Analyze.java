@@ -130,10 +130,10 @@ public class Analyze extends DefineCommand {
                 // then we can't update the statistics because
                 // that would unlock all locked objects
                 synchronized (sysSession) {
-                    synchronized (db) {
-                        db.updateMeta(sysSession, table);
-                        sysSession.commit(true);
-                    }
+                    // can't take the db lock yet, updateMeta needs to call lockMeta,
+                    // and then it will take the db lock
+                    db.updateMeta(sysSession, table);
+                    sysSession.commit(true);
                 }
             }
         }

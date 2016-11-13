@@ -1632,14 +1632,16 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the database object
      */
-    public synchronized void updateMeta(Session session, DbObject obj) {
+    public void updateMeta(Session session, DbObject obj) {
         lockMeta(session);
-        int id = obj.getId();
-        removeMeta(session, id);
-        addMeta(session, obj);
-        // for temporary objects
-        if (id > 0) {
-            objectIds.set(id);
+        synchronized (this) {
+            int id = obj.getId();
+            removeMeta(session, id);
+            addMeta(session, obj);
+            // for temporary objects
+            if (id > 0) {
+                objectIds.set(id);
+            }
         }
     }
 

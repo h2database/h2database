@@ -31,9 +31,9 @@ public class TestMvccMultiThreaded extends TestBase {
     @Override
     public void test() throws Exception {
         testMergeWithUniqueKeyViolation();
-        testConcurrentMerge();
         // not supported currently
         if (!config.multiThreaded) {
+            testConcurrentMerge();
             testConcurrentUpdate();
         }
     }

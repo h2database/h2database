@@ -127,7 +127,7 @@ public class TestMvcc4 extends TestBase {
      *
      * @param t the thread
      */
-    static void waitForThreadToBlockOnDB(Thread t) {
+    void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
             // sleep the first time through the loop so we give the main thread a chance
             try {
@@ -141,7 +141,7 @@ public class TestMvcc4 extends TestBase {
             StackTraceElement[] elements = threadMap.get(t);
             if (elements != null
                     && elements.length > 1
-                    && "wait".equals(elements[0].getMethodName())
+                    && (config.multiThreaded ? "sleep".equals(elements[0].getMethodName()) : "wait".equals(elements[0].getMethodName()))
                     && "filterConcurrentUpdate".equals(elements[1].getMethodName())) {
                 return;
             }

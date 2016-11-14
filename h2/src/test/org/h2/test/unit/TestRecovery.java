@@ -37,6 +37,9 @@ public class TestRecovery extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.memory) {
+            return;
+        }
         if (!config.mvStore) {
             testRecoverTestMode();
         }
@@ -50,9 +53,6 @@ public class TestRecovery extends TestBase {
     }
 
     private void testRecoverTestMode() throws Exception {
-        if (config.memory) {
-            return;
-        }
         String recoverTestLog = getBaseDir() + "/recovery.h2.db.log";
         FileUtils.delete(recoverTestLog);
         deleteDb("recovery");

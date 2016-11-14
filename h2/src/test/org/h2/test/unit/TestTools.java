@@ -35,7 +35,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.FileLister;
@@ -504,6 +503,9 @@ public class TestTools extends TestBase {
     }
 
     private void testDeleteFiles() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         deleteDb("testDeleteFiles");
         Connection conn = getConnection("testDeleteFiles");
         Statement stat = conn.createStatement();
@@ -750,6 +752,9 @@ public class TestTools extends TestBase {
     }
 
     private void testRecover() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         deleteDb("toolsRecover");
         org.h2.Driver.load();
         String url = getURL("toolsRecover", true);

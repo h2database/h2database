@@ -257,10 +257,10 @@ public abstract class TestBase {
             // name = addOption(name, "RETENTION_TIME", "10");
             // name = addOption(name, "WRITE_DELAY", "10");
         }
-        if (config.memory) {
+        int idx = name.indexOf(':');
+        if (idx == -1 && config.memory) {
             name = "mem:" + name;
         } else {
-            int idx = name.indexOf(':');
             if (idx < 0 || idx > 10) {
                 // index > 10 if in options
                 name = getBaseDir() + "/" + name;

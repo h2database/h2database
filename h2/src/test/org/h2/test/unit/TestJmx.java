@@ -77,8 +77,13 @@ public class TestJmx extends TestBase {
         }
         assertEquals("REGULAR", mbeanServer.
                 getAttribute(name, "Mode").toString());
-        assertEquals("false", mbeanServer.
-                getAttribute(name, "MultiThreaded").toString());
+        if (config.multiThreaded) {
+            assertEquals("true", mbeanServer.
+                    getAttribute(name, "MultiThreaded").toString());
+        } else {
+            assertEquals("false", mbeanServer.
+                    getAttribute(name, "MultiThreaded").toString());
+        }
         if (config.mvStore) {
             assertEquals("true", mbeanServer.
                     getAttribute(name, "Mvcc").toString());
@@ -136,10 +141,18 @@ public class TestJmx extends TestBase {
         Set set = mbeanServer.queryNames(name, null);
         name = (ObjectName) set.iterator().next();
 
-        assertEquals("16384", mbeanServer.
-                getAttribute(name, "CacheSizeMax").toString());
+        if (config.memory) {
+            assertEquals("0", mbeanServer.
+                    getAttribute(name, "CacheSizeMax").toString());
+        } else {
+            assertEquals("16384", mbeanServer.
+                    getAttribute(name, "CacheSizeMax").toString());
+        }
         mbeanServer.setAttribute(name, new Attribute("CacheSizeMax", 1));
-        if (config.mvStore) {
+        if (config.memory) {
+            assertEquals("0", mbeanServer.
+                    getAttribute(name, "CacheSizeMax").toString());
+        } else if (config.mvStore) {
             assertEquals("1024", mbeanServer.
                     getAttribute(name, "CacheSizeMax").toString());
             assertEquals("0", mbeanServer.

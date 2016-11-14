@@ -50,6 +50,9 @@ public class TestPageStore extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.memory) {
+            return;
+        }
         deleteDb(null);
         testDropTempTable();
         testLogLimitFalsePositive();

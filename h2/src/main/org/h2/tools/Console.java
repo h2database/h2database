@@ -31,6 +31,7 @@ import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Locale;
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -352,9 +353,12 @@ ShutdownHandler {
             }
             System.gc();
             // Mac OS X: Console tool process did not stop on exit
-            for (Thread t : Thread.getAllStackTraces().keySet()) {
-                if (t.getName().startsWith("AWT-")) {
-                    t.interrupt();
+            String OS = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH);
+            if (OS.indexOf("mac") >= 0) {
+                for (Thread t : Thread.getAllStackTraces().keySet()) {
+                    if (t.getName().startsWith("AWT-")) {
+                        t.interrupt();
+                    }
                 }
             }
             Thread.currentThread().interrupt();

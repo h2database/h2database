@@ -231,7 +231,7 @@ public class TestPageStore extends TestBase {
     }
 
     private void testDefrag() throws SQLException {
-        if (config.reopen) {
+        if (config.reopen || config.multiThreaded) {
             return;
         }
         deleteDb("pageStoreDefrag");

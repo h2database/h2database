@@ -535,14 +535,16 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void testAll() throws Exception {
         runTests();
-        Profiler prof = new Profiler();
-        prof.depth = 16;
-        prof.interval = 1;
-        prof.startCollecting();
-        TestPerformance.main("-init", "-db", "1", "-size", "1000");
-        prof.stopCollecting();
-        System.out.println(prof.getTop(5));
-        TestPerformance.main("-init", "-db", "1", "-size", "1000");
+        if (!fast) {
+            Profiler prof = new Profiler();
+            prof.depth = 16;
+            prof.interval = 1;
+            prof.startCollecting();
+            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            prof.stopCollecting();
+            System.out.println(prof.getTop(5));
+            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+        }
     }
 
     /**
@@ -583,18 +585,33 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
-        mvcc = false;
         traceTest = stopOnError = false;
         defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
-        // splitFileSystem = true;
+
+        // memory is a good match for multi-threaded, makes things happen faster, more change of exposing
+        // race conditions
+        memory = true;
+        multiThreaded = true;
         test();
         testUnit();
 
-        networked = true;
+        // but sometimes race conditions need bigger windows
+        memory = false;
+        multiThreaded = true;
+        test();
+        testUnit();
+
+        // a more normal setup
+        memory = false;
+        multiThreaded = false;
+        test();
+        testUnit();
+
         memory = true;
-        splitFileSystem = false;
+        multiThreaded = false;
+        networked = true;
         test();
 
         memory = false;
@@ -635,11 +652,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             big = false;
             cipher = "AES";
             test();
-            mvcc = true;
             cipher = null;
-            test();
-
-            memory = true;
             test();
         }
 

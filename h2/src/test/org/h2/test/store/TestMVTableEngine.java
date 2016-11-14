@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -175,7 +174,6 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("shutdown immediately");
         Exception ex = t.getException();
         assertTrue(ex != null);
-        ex.printStackTrace();
         try {
             conn.close();
         } catch (Exception e) {

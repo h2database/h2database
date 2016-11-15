@@ -23,7 +23,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Constants;
@@ -339,7 +338,8 @@ public class DataType {
         );
         add(Value.UUID, Types.BINARY, "Bytes",
                 createString(false),
-                new String[]{"UUID"},
+                // UNIQUEIDENTIFIER is the MSSQL mode equivalent
+                new String[]{"UUID", "UNIQUEIDENTIFIER"},
                 32
         );
         add(Value.JAVA_OBJECT, Types.OTHER, "Object",

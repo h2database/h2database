@@ -411,6 +411,9 @@ public class TestCompatibility extends TestBase {
         // make sure we're ignoring the index part of the statement
         rs = stat.executeQuery("select * from test (index table1_index)");
         rs.close();
+
+        // UNIQUEIDENTIFIER is MSSQL's equivalent of UUID
+        stat.execute("create table test3 (id UNIQUEIDENTIFIER)");
     }
 
     private void testDB2() throws SQLException {

@@ -5,8 +5,11 @@
  */
 package org.h2.engine;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import org.h2.command.Parser;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 
 /**
@@ -123,16 +126,28 @@ public abstract class DbObjectBase implements DbObject {
         return objectName;
     }
 
+    private String invalidateStackTrace;
     /**
      * Set the main attributes to null to make sure the object is no longer
      * used.
      */
     protected void invalidate() {
+        if (SysProperties.CHECK && id == -1) {
+            throw DbException.throwInternalError();
+        }
         setModified();
         id = -1;
         database = null;
         trace = null;
         objectName = null;
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        new Throwable().printStackTrace(pw);
+        invalidateStackTrace = sw.toString();
+    }
+    
+    public final boolean isValid() {
+        return id != -1;
     }
 
     @Override

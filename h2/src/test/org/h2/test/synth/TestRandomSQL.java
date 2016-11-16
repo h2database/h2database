@@ -34,7 +34,8 @@ public class TestRandomSQL extends TestBase {
         if (config.networked) {
             return;
         }
-        int len = getSize(2, 6);
+        config.memory = true;
+        int len = 567897; // getSize(2, 6);
         for (int a = 0; a < len; a++) {
             int s = MathUtils.randomInt(Integer.MAX_VALUE);
             testCase(s);

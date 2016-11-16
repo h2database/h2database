@@ -622,9 +622,10 @@ public class H2Database {
     /**
      * TODO
      *
-     * @deprecated
+     * @deprecated deprecated in API Level 3, use yieldIfContendedSafely
      * @return TODO
      */
+    @Deprecated
     public boolean yieldIfContended() {
         return false;
     }

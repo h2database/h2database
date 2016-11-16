@@ -14,7 +14,6 @@ import org.h2.message.DbException;
 /**
  * Single threaded lazy future.
  *
- * @param <T>
  * @author Sergi Vladykin
  */
 public abstract class LazyFuture<T> implements Future<T> {

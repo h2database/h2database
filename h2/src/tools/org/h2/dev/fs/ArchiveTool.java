@@ -1092,8 +1092,6 @@ public class ArchiveTool {
 
         /**
          * Print the progress.
-         *
-         * @param current the current value
          */
         void printProgress(long offset) {
             current += offset;

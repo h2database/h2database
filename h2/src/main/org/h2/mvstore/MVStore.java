@@ -917,7 +917,7 @@ public class MVStore {
     /**
      * Whether the chunk at the given position is live.
      *
-     * @param the chunk id
+     * @param chunkId the chunk id
      * @return true if it is live
      */
     boolean isChunkLive(int chunkId) {

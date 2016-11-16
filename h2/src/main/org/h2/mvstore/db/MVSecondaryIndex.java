@@ -329,7 +329,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     /**
      * Convert array of values to a SearchRow.
      *
-     * @param array the index key
+     * @param key the index key
      * @return the row
      */
     SearchRow convertToSearchRow(ValueArray key) {

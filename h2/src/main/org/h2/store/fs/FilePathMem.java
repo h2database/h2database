@@ -17,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
@@ -554,8 +553,8 @@ class FileMemData {
     /**
      * Compress the data in a byte array.
      *
-     * @param data the page array
      * @param page which page to compress
+     * @param old the page array
      */
     void compress(int page, byte[] old) {
         byte[][] array = data;

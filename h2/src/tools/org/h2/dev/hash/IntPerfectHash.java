@@ -91,7 +91,6 @@ public class IntPerfectHash {
      *
      * @param pos the start position
      * @param x the key
-     * @param isRoot whether this is the root of the tree
      * @param level the level
      * @return the hash value
      */

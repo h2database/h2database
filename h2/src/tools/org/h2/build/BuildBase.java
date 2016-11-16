@@ -474,7 +474,7 @@ public class BuildBase {
         }
     }
 
-    private PrintStream filter(PrintStream out, final String[] exclude) {
+    private static PrintStream filter(PrintStream out, final String[] exclude) {
         return new PrintStream(new FilterOutputStream(out) {
             private ByteArrayOutputStream buff = new ByteArrayOutputStream();
 

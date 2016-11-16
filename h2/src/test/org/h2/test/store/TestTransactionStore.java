@@ -15,7 +15,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -63,7 +62,7 @@ public class TestTransactionStore extends TestBase {
         testStoreMultiThreadedReads();
     }
 
-    private void testConcurrentAddRemove() throws InterruptedException {
+    private static void testConcurrentAddRemove() throws InterruptedException {
         MVStore s = MVStore.open(null);
         int threadCount = 3;
         final int keyCount = 2;
@@ -988,7 +987,7 @@ public class TestTransactionStore extends TestBase {
         s.close();
     }
 
-    private void testStoreMultiThreadedReads() throws Exception {
+    private static void testStoreMultiThreadedReads() throws Exception {
         MVStore s = MVStore.open(null);
         final TransactionStore ts = new TransactionStore(s);
 

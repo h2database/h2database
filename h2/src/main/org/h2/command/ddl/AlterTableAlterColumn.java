@@ -198,7 +198,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         return 0;
     }
 
-    private void checkDefaultReferencesTable(Table table, Expression defaultExpression) {
+    private static void checkDefaultReferencesTable(Table table, Expression defaultExpression) {
         if (defaultExpression == null) {
             return;
         }

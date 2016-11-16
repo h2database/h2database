@@ -153,7 +153,7 @@ public abstract class TestBase {
             if (config.stopOnError) {
                 throw new AssertionError("ERROR");
             }
-            conf.atLeastOneTestFailed = true;
+            TestAll.atLeastOneTestFailed = true;
             if (e instanceof OutOfMemoryError) {
                 throw (OutOfMemoryError) e;
             }

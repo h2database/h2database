@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.ConcurrentArrayList;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -45,7 +44,7 @@ public class TestConcurrentLinkedList extends TestBase {
         testPerformance(false);
     }
 
-    private void testPerformance(final boolean stock) {
+    private static void testPerformance(final boolean stock) {
         System.out.print(stock ? "stock " : "custom ");
         long start = System.currentTimeMillis();
         // final ConcurrentLinkedList<Integer> test =

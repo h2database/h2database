@@ -177,7 +177,7 @@ public class TestNetUtils extends TestBase {
         }
     }
 
-    private void testFrequentConnections(boolean ssl, int count) throws Exception {
+    private static void testFrequentConnections(boolean ssl, int count) throws Exception {
         final ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl);
         final AtomicInteger counter = new AtomicInteger(count);
         Task serverThread = new Task() {

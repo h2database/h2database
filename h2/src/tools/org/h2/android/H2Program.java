@@ -12,6 +12,7 @@ import org.h2.value.ValueBytes;
 /**
  * This class represents a prepared statement.
  */
+@SuppressWarnings("unused")
 public class H2Program extends H2Closable {
 
     /**
@@ -99,6 +100,7 @@ public class H2Program extends H2Closable {
     /**
      * TODO
      */
+    @Override
     protected void onAllReferencesReleased() {
         // TODO
     }
@@ -106,6 +108,7 @@ public class H2Program extends H2Closable {
     /**
      * TODO
      */
+    @Override
     protected void onAllReferencesReleasedFromContainer() {
         // TODO
     }

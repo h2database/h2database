@@ -630,9 +630,7 @@ public class DataType {
                 InputStream in = rs.getBinaryStream(columnIndex);
                 v = (in == null) ? (Value) ValueNull.INSTANCE :
                     session.getDataHandler().getLobStorage().createBlob(in, -1);
-                if (session != null) {
-                    session.addTemporaryLob(v);
-                }
+                session.addTemporaryLob(v);
                 break;
             }
             case Value.JAVA_OBJECT: {

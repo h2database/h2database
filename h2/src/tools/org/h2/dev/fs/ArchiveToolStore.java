@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map.Entry;
 import java.util.Random;
-
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
@@ -134,7 +133,7 @@ public class ArchiveToolStore {
                             data.put(key, bytes);
                             break;
                         }
-                        if (old != null && Arrays.equals(old, bytes)) {
+                        if (Arrays.equals(old, bytes)) {
                             // duplicate
                             break;
                         }

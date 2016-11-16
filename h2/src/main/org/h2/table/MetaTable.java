@@ -1422,7 +1422,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 Table table = (Table) object;
-                if (table == null || hideTable(table, session)) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1441,7 +1441,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 Table table = (Table) object;
-                if (table == null || hideTable(table, session)) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());

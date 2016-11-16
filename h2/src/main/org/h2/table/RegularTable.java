@@ -760,8 +760,8 @@ public class RegularTable extends TableBase {
     }
 
     @Override
-    public String getTableType() {
-        return Table.TABLE;
+    public TableType getTableType() {
+        return TableType.TABLE;
     }
 
     @Override

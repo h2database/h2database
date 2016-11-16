@@ -54,6 +54,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
+import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
@@ -1798,7 +1799,7 @@ public class Database implements DataHandler {
         for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
-            } else if (Table.VIEW.equals(t.getTableType())) {
+            } else if (TableType.VIEW == t.getTableType()) {
                 continue;
             }
             set.clear();

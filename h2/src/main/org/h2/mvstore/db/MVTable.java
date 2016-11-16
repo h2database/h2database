@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.Analyze;
@@ -38,6 +37,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
+import org.h2.table.TableType;
 import org.h2.util.DebuggingThreadLocal;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -744,8 +744,8 @@ public class MVTable extends TableBase {
     }
 
     @Override
-    public String getTableType() {
-        return Table.TABLE;
+    public TableType getTableType() {
+        return TableType.TABLE;
     }
 
     @Override

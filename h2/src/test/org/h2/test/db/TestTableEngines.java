@@ -47,6 +47,7 @@ import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
 import org.h2.table.TableFilter;
+import org.h2.table.TableType;
 import org.h2.test.TestBase;
 import org.h2.util.DoneFuture;
 import org.h2.util.New;
@@ -1009,8 +1010,8 @@ public class TestTableEngines extends TestBase {
             }
 
             @Override
-            public String getTableType() {
-                return EXTERNAL_TABLE_ENGINE;
+            public TableType getTableType() {
+                return TableType.EXTERNAL_TABLE_ENGINE;
             }
 
             @Override
@@ -1260,8 +1261,8 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public String getTableType() {
-            return EXTERNAL_TABLE_ENGINE;
+        public TableType getTableType() {
+            return TableType.EXTERNAL_TABLE_ENGINE;
         }
 
         @Override

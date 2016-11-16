@@ -39,6 +39,7 @@ import org.h2.store.LobStorageFrontend;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
+import org.h2.table.TableType;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -864,10 +865,10 @@ public class Session extends SessionWithState {
                 int lockMode = database.getLockMode();
                 if (lockMode != Constants.LOCK_MODE_OFF &&
                         !database.isMultiVersion()) {
-                    String tableType = log.getTable().getTableType();
+                    TableType tableType = log.getTable().getTableType();
                     if (locks.indexOf(log.getTable()) < 0
-                            && !Table.TABLE_LINK.equals(tableType)
-                            && !Table.EXTERNAL_TABLE_ENGINE.equals(tableType)) {
+                            && TableType.TABLE_LINK != tableType
+                            && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
                         DbException.throwInternalError();
                     }
                 }

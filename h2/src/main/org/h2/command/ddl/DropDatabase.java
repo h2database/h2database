@@ -15,6 +15,7 @@ import org.h2.engine.User;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.New;
 
 /**
@@ -55,26 +56,26 @@ public class DropDatabase extends DefineCommand {
             ArrayList<Table> toRemove = New.arrayList();
             for (Table t : tables) {
                 if (t.getName() != null &&
-                        Table.VIEW.equals(t.getTableType())) {
+                        TableType.VIEW == t.getTableType()) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
                 if (t.getName() != null &&
-                        Table.TABLE_LINK.equals(t.getTableType())) {
+                        TableType.TABLE_LINK == t.getTableType()) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
                 if (t.getName() != null &&
-                        Table.TABLE.equals(t.getTableType()) &&
+                        TableType.TABLE == t.getTableType() &&
                         !t.isHidden()) {
                     toRemove.add(t);
                 }
             }
             for (Table t : tables) {
                 if (t.getName() != null &&
-                        Table.EXTERNAL_TABLE_ENGINE.equals(t.getTableType()) &&
+                        TableType.EXTERNAL_TABLE_ENGINE == t.getTableType() &&
                         !t.isHidden()) {
                     toRemove.add(t);
                 }

@@ -17,6 +17,7 @@ import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.value.Value;
 
@@ -82,7 +83,7 @@ public class CreateView extends SchemaCommand {
             if (ifNotExists) {
                 return 0;
             }
-            if (!orReplace || !Table.VIEW.equals(old.getTableType())) {
+            if (!orReplace || TableType.VIEW != old.getTableType()) {
                 throw DbException.get(ErrorCode.VIEW_ALREADY_EXISTS_1, viewName);
             }
             view = (TableView) old;

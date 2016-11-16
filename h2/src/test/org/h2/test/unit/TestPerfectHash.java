@@ -12,7 +12,6 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-
 import org.h2.dev.hash.MinimalPerfectHash;
 import org.h2.dev.hash.MinimalPerfectHash.LongHash;
 import org.h2.dev.hash.MinimalPerfectHash.StringHash;
@@ -63,6 +62,7 @@ public class TestPerfectHash extends TestBase {
             }
 
         };
+        f.close();
         HashSet<Text> set = new HashSet<Text>();
         Text t = new Text(data, 0);
         while (true) {

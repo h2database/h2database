@@ -242,6 +242,7 @@ public class SelectUnion extends Query {
                     result.addRow(values);
                 }
             }
+            temp.close();
             break;
         }
         default:

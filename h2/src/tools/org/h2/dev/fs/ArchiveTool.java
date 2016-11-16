@@ -781,6 +781,7 @@ public class ArchiveTool {
         byte[] header = new byte[4];
         dataIn.readFully(header);
         if (!Arrays.equals(header, HEADER)) {
+            tempOut.close();
             throw new IOException("Invalid header");
         }
         long size = readVarLong(dataIn);

@@ -1047,6 +1047,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, memory, "memory");
         appendIf(buff, codeCoverage, "codeCoverage");
         appendIf(buff, mvcc, "mvcc");
+        appendIf(buff, multiThreaded, "multiThreaded");
         appendIf(buff, cipher != null, cipher);
         appendIf(buff, cacheType != null, cacheType);
         appendIf(buff, smallLog, "smallLog");

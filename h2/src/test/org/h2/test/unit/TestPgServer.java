@@ -41,6 +41,10 @@ public class TestPgServer extends TestBase {
 
     @Override
     public void test() throws Exception {
+        config.multiThreaded = true;
+        config.memory = true;
+        config.mvStore = true;
+        config.mvcc = true;
         testLowerCaseIdentifiers();
         testPgAdapter();
         testKeyAlias();
@@ -54,18 +58,18 @@ public class TestPgServer extends TestBase {
         if (!getPgJdbcDriver()) {
             return;
         }
-        deleteDb("test");
+        deleteDb("pgserver");
         Connection conn = getConnection(
-                "test;DATABASE_TO_UPPER=false", "sa", "sa");
+                "mem:pgserver;DATABASE_TO_UPPER=false", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
         Server server = Server.createPgServer(
-                "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
+                "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         server.start();
         try {
             Connection conn2;
             conn2 = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+                    "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
             stat = conn2.createStatement();
             stat.execute("select * from test");
             conn2.close();
@@ -73,7 +77,7 @@ public class TestPgServer extends TestBase {
             server.stop();
         }
         conn.close();
-        deleteDb("test");
+        deleteDb("pgserver");
     }
 
     private boolean getPgJdbcDriver() {
@@ -87,7 +91,7 @@ public class TestPgServer extends TestBase {
     }
 
     private void testPgAdapter() throws SQLException {
-        deleteDb("test");
+        deleteDb("pgserver");
         Server server = Server.createPgServer(
                 "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon");
         assertEquals(5535, server.getPort());
@@ -109,13 +113,13 @@ public class TestPgServer extends TestBase {
         }
 
         Server server = Server.createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         server.start();
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             Connection conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+                    "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
             final Statement stat = conn.createStatement();
             stat.execute("create alias sleep for \"java.lang.Thread.sleep\"");
 
@@ -149,12 +153,12 @@ public class TestPgServer extends TestBase {
             server.stop();
             executor.shutdown();
         }
-        deleteDb("test");
+        deleteDb("pgserver");
     }
 
     private void testPgClient() throws SQLException {
         Connection conn = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+                "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
         Statement stat = conn.createStatement();
         assertThrows(SQLException.class, stat).
                 execute("select ***");
@@ -166,7 +170,7 @@ public class TestPgServer extends TestBase {
         conn.close();
 
         conn = DriverManager.getConnection(
-                "jdbc:postgresql://localhost:5535/test", "test", "test");
+                "jdbc:postgresql://localhost:5535/pgserver", "test", "test");
         stat = conn.createStatement();
         ResultSet rs;
 
@@ -336,11 +340,11 @@ public class TestPgServer extends TestBase {
             return;
         }
         Server server = Server.createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         server.start();
         try {
             Connection conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", "sa", "sa");
+                    "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
             Statement stat = conn.createStatement();
 
             // confirm that we've got the in memory implementation
@@ -364,7 +368,7 @@ public class TestPgServer extends TestBase {
         }
 
         Server server = Server.createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         server.start();
         try {
             Properties props = new Properties();
@@ -374,7 +378,7 @@ public class TestPgServer extends TestBase {
             props.setProperty("prepareThreshold", "-1");
 
             Connection conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", props);
+                    "jdbc:postgresql://localhost:5535/pgserver", props);
             Statement stat = conn.createStatement();
 
             stat.execute(
@@ -422,7 +426,7 @@ public class TestPgServer extends TestBase {
         }
 
         Server server = Server.createPgServer(
-                "-pgPort", "5535", "-pgDaemon", "-key", "test", "mem:test");
+                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
         server.start();
         try {
             Properties props = new Properties();
@@ -433,7 +437,7 @@ public class TestPgServer extends TestBase {
             props.setProperty("prepareThreshold", "1");
 
             Connection conn = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5535/test", props);
+                    "jdbc:postgresql://localhost:5535/pgserver", props);
 
             Statement stmt = conn.createStatement();
             stmt.executeUpdate("create table t1 (id integer, value timestamp)");

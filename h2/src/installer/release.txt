@@ -17,9 +17,9 @@ Test installer, H2 Console (test new languages)
 Check docs, versions and links in main, downloads, build numbers
 Check the PDF file size
 
-Upload to ftp://h2database.com/javadoc
-Upload to ftp://h2database.com
-Upload to ftp://h2database.com/m2-repo
+Upload (http and https) to ftp://h2database.com/javadoc
+Upload (http and https) to ftp://h2database.com 
+Upload (http and https) to ftp://h2database.com/m2-repo
 Github: create a release
 Newsletter: prepare (always to BCC)
 Newsletter: send to h2-database-jp@googlegroups.com; h2-database@googlegroups.com; h2database-news@googlegroups.com; ...

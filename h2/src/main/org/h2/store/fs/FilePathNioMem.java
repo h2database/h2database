@@ -538,8 +538,14 @@ class FileNioMemData {
     }
 
     private void expand(int page) {
-        ByteBuffer d = data[page];
+        ByteBuffer[] list = data;
+        if (page >= list.length) {
+            // was truncated
+            return;
+        }
+        ByteBuffer d = list[page];
         if (d.capacity() == BLOCK_SIZE) {
+            // already expanded, or not compressed
             return;
         }
         ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
@@ -549,7 +555,7 @@ class FileNioMemData {
                 CompressLZF.expand(d, out);
             }
         }
-        data[page] = out;
+        list[page] = out;
     }
 
     /**
@@ -558,12 +564,17 @@ class FileNioMemData {
      * @param page which page to compress
      */
     void compress(int page) {
-        ByteBuffer d = data[page];
+        ByteBuffer[] list = data;
+        if (page >= list.length) {
+            // was truncated
+            return;
+        }
+        ByteBuffer d = list[page];
         synchronized (LZF) {
             int len = LZF.compress(d, 0, BUFFER, 0);
             d = ByteBuffer.allocateDirect(len);
             d.put(BUFFER, 0, len);
-            data[page] = d;
+            list[page] = d;
         }
     }
 

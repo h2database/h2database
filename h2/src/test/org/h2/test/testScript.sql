@@ -7378,6 +7378,17 @@ SELECT * FROM TEST WHERE NAME LIKE 'Hello%';
 > 1  Hello
 > rows: 1
 
+SELECT * FROM TEST WHERE NAME ILIKE 'hello%';
+> ID NAME
+> -- -----
+> 1  Hello
+> rows: 1
+
+SELECT * FROM TEST WHERE NAME ILIKE 'xxx%';
+> ID NAME
+> -- ----
+> rows: 0
+
 SELECT * FROM TEST WHERE NAME LIKE 'Wo%';
 > ID NAME
 > -- -----

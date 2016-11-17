@@ -1809,7 +1809,7 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
     | IN ( { select | expression [,...] } )
-    | [ NOT ] LIKE operand [ ESCAPE string ]
+    | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition.
@@ -1825,6 +1825,8 @@ To select no escape character, use ""ESCAPE ''"" (empty string).
 At most one escape character is allowed.
 Each character that follows the escape character in the pattern needs to match exactly.
 Patterns that end with an escape character are invalid and the expression returns NULL.
+
+ILIKE does a case-insensitive compare.
 
 When comparing with REGEXP, regular expression matching is used.
 See Java ""Matcher.find"" for details.

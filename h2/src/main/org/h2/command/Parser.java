@@ -2148,6 +2148,18 @@ public class Parser {
                 }
                 recompileAlways = true;
                 r = new CompareLike(database, r, b, esc, false);
+            } else if (readIf("ILIKE")) {
+                Function function = Function.getFunction(database, "CAST");
+                function.setDataType(new Column("X", Value.STRING_IGNORECASE));
+                function.setParameter(0, r);
+                r = function;
+                Expression b = readConcat();
+                Expression esc = null;
+                if (readIf("ESCAPE")) {
+                    esc = readConcat();
+                }
+                recompileAlways = true;
+                r = new CompareLike(database, r, b, esc, false);
             } else if (readIf("REGEXP")) {
                 Expression b = readConcat();
                 r = new CompareLike(database, r, b, null, true);

@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
+import java.util.Iterator;
 import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -356,6 +357,16 @@ public class Column {
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
+        if (permittedValues != null) {
+            if (!value.checkPermitted(permittedValues)) {
+                String s = value.getTraceSQL();
+                if (s.length() > 127) {
+                    s = s.substring(0, 128) + "...";
+                }
+                throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
+                        getCreateSQL(), s + " (" + value.getString() + ")");
+            }
+        }
         updateSequenceIfRequired(session, value);
         return value;
     }
@@ -444,6 +455,15 @@ public class Column {
             case Value.DECIMAL:
                 buff.append('(').append(precision).append(", ").append(scale).append(')');
                 break;
+            case Value.ENUM:
+                buff.append('(');
+                Iterator<String> it = permittedValues.iterator();
+                while(it.hasNext()) {
+                    buff.append('\'').append(it.next()).append('\'');
+                    if(it.hasNext()) {
+                        buff.append(',');
+                    }
+                }
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:

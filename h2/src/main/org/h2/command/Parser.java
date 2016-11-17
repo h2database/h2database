@@ -4136,7 +4136,7 @@ public class Parser {
             if (readIf("(")) {
                 permittedValues.add(readString());
                 while(readIf(","))
-                    readString();
+                    permittedValues.add(readString());
                 read(")");
             }
         } else if (readIf("(")) {

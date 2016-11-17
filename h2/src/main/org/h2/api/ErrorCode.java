@@ -159,6 +159,19 @@ public class ErrorCode {
      */
     public static final int LIKE_ESCAPE_ERROR_1 = 22025;
 
+    /**
+     * The error with code <code>22030</code> is thrown when
+     * an attempt is made to insert or update an ENUM value,
+     * but the target value is not one of the values permitted
+     * by the column.
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(ID INT, CASE ENUM('sensitive','insensitive'));
+     * INSERT INTO TEST VALUES(1, 'Hello');
+     * </pre>
+     */
+    public static final int VALUE_NOT_PERMITTED = 22030;
+
     // 23: constraint violation
 
     /**

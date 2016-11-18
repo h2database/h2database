@@ -2626,6 +2626,9 @@ public class Parser {
             read("OVER");
             read("(");
             read(")");
+            if (currentSelect == null && currentPrepared == null) {
+                throw getSyntaxError();
+            }
             return new Rownum(currentSelect == null ? currentPrepared
                     : currentSelect);
         default:
@@ -2962,6 +2965,9 @@ public class Parser {
             read();
             if (readIf("(")) {
                 read(")");
+            }
+            if (currentSelect == null && currentPrepared == null) {
+                throw getSyntaxError();
             }
             r = new Rownum(currentSelect == null ? currentPrepared
                     : currentSelect);

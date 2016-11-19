@@ -18,6 +18,7 @@ import org.h2.result.ResultRemote;
 import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Represents the client-side part of a SQL statement.
@@ -203,7 +204,12 @@ public class CommandRemote implements CommandInterface {
     }
 
     private void checkParameters() {
+        boolean explain = isQuery && sql.startsWith("EXPLAIN");
+
         for (ParameterInterface p : parameters) {
+            if (explain)
+                p.setValue(ValueNull.INSTANCE, false);
+
             p.checkSet();
         }
     }

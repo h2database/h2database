@@ -59,6 +59,11 @@ public class Explain extends Prepared {
     }
 
     @Override
+    protected void checkParameters() {
+        // No-op. Explain does not care for parameters values.
+    }
+
+    @Override
     public ResultInterface query(int maxrows) {
         Column column = new Column("PLAN", Value.STRING);
         Database db = session.getDatabase();

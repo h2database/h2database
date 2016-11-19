@@ -75,6 +75,7 @@ public class TestCases extends TestBase {
         testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
+        testExplain();
         if (config.memory) {
             return;
         }
@@ -893,6 +894,139 @@ public class TestCases extends TestBase {
         rs.next();
         assertEquals("World", rs.getString(1));
         assertFalse(rs.next());
+
+        conn.close();
+    }
+
+    private void checkExplain(Statement stat, String sql, String expected) throws SQLException {
+        ResultSet rs = stat.executeQuery(sql);
+
+        rs.next();
+
+        assertEquals(expected, rs.getString(1));
+    }
+
+    private void testExplain() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE ORGANIZATION(id int primary key, name varchar(100))");
+        stat.execute("CREATE TABLE PERSON(id int primary key, orgId int, name varchar(100), salary int)");
+
+        checkExplain(stat, "EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?",
+            "SELECT\n" +
+                "    ID\n" +
+                "FROM PUBLIC.ORGANIZATION\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "WHERE ID = ?1");
+
+        checkExplain(stat, "EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = 1",
+            "SELECT\n" +
+                "    ID\n" +
+                "FROM PUBLIC.ORGANIZATION\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = 1 */\n" +
+                "WHERE ID = 1");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE id = ?",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = ?1 */\n" +
+                "WHERE ID = ?1");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE id = 50",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = 50 */\n" +
+                "WHERE ID = 50");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE salary > ? and salary < ?",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE (SALARY > ?1)\n" +
+                "    AND (SALARY < ?2)");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE salary > 1000 and salary < 2000",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE (SALARY > 1000)\n" +
+                "    AND (SALARY < 2000)");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE name = lower(?)",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE NAME = LOWER(?1)");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON WHERE name = lower('Smith')",
+            "SELECT\n" +
+                "    PERSON.ID,\n" +
+                "    PERSON.ORGID,\n" +
+                "    PERSON.NAME,\n" +
+                "    PERSON.SALARY\n" +
+                "FROM PUBLIC.PERSON\n" +
+                "    /* PUBLIC.PERSON.tableScan */\n" +
+                "WHERE NAME = 'smith'");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = ? AND p.salary > ?",
+            "SELECT\n" +
+                "    P.ID,\n" +
+                "    P.ORGID,\n" +
+                "    P.NAME,\n" +
+                "    P.SALARY,\n" +
+                "    O.ID,\n" +
+                "    O.NAME\n" +
+                "FROM PUBLIC.ORGANIZATION O\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = ?1 */\n" +
+                "    /* WHERE O.ID = ?1\n" +
+                "    */\n" +
+                "INNER JOIN PUBLIC.PERSON P\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID */\n" +
+                "    ON 1=1\n" +
+                "WHERE (P.ID = O.ID)\n" +
+                "    AND ((O.ID = ?1)\n" +
+                "    AND (P.SALARY > ?2))");
+
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = 10 AND p.salary > 1000",
+            "SELECT\n" +
+                "    P.ID,\n" +
+                "    P.ORGID,\n" +
+                "    P.NAME,\n" +
+                "    P.SALARY,\n" +
+                "    O.ID,\n" +
+                "    O.NAME\n" +
+                "FROM PUBLIC.ORGANIZATION O\n" +
+                "    /* PUBLIC.PRIMARY_KEY_D: ID = 10 */\n" +
+                "    /* WHERE O.ID = 10\n" +
+                "    */\n" +
+                "INNER JOIN PUBLIC.PERSON P\n" +
+                "    /* PUBLIC.PRIMARY_KEY_8: ID = O.ID */\n" +
+                "    ON 1=1\n" +
+                "WHERE (P.ID = O.ID)\n" +
+                "    AND ((O.ID = 10)\n" +
+                "    AND (P.SALARY > 1000))");
 
         conn.close();
     }

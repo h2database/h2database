@@ -285,7 +285,7 @@ public class TestNestedJoins extends TestBase {
                 "inner join c on c.id = b.id on b.id = a.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        assertTrue("nested", sql.contains("("));
+        assertContains(sql, "(");
         stat.execute("drop table a, b, c");
 
         // see roadmap, tag: swapInnerJoinTables
@@ -350,7 +350,7 @@ public class TestNestedJoins extends TestBase {
                 "left outer join (test c) on a.id = c.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        assertTrue(sql.contains("PRIMARY_KEY"));
+        assertContains(sql, "PRIMARY_KEY");
         stat.execute("drop table test");
 
         /*

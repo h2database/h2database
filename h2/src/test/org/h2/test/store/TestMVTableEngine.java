@@ -542,7 +542,7 @@ public class TestMVTableEngine extends TestBase {
         rs.next();
         plan = rs.getString(1);
         // transaction log is larger than the table, so read the table
-        assertTrue(plan, plan.contains("reads:"));
+        assertContains(plan, "reads:");
         rs = stat2.executeQuery("select count(*) from test");
         rs.next();
         assertEquals(10000, rs.getInt(1));

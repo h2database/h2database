@@ -760,7 +760,7 @@ public class TestPreparedStatement extends TestBase {
         ResultSet rs = prep.executeQuery();
         rs.next();
         String plan = rs.getString(1);
-        assertTrue(plan.contains(".tableScan"));
+        assertContains(plan, ".tableScan");
         rs = prepExe.executeQuery();
         rs.next();
         assertEquals("World", rs.getString(2));
@@ -771,7 +771,7 @@ public class TestPreparedStatement extends TestBase {
         rs = prep.executeQuery();
         rs.next();
         String plan1 = rs.getString(1);
-        assertTrue(plan1.contains("IDXNAME"));
+        assertContains(plan1, "IDXNAME");
         rs = prepExe.executeQuery();
         rs.next();
         assertEquals("Hello", rs.getString(2));

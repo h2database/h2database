@@ -290,7 +290,7 @@ public class TestRecovery extends TestBase {
         rec.setOut(new PrintStream(buff));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
         String out = new String(buff.toByteArray());
-        assertTrue(out.contains("Created file"));
+        assertContains(out, "Created file");
 
         Connection conn2 = getConnection("recovery2");
         Statement stat2 = conn2.createStatement();

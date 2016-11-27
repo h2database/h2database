@@ -85,13 +85,13 @@ public class TcpServerThread implements Runnable {
                 if (minClientVersion < Constants.TCP_PROTOCOL_VERSION_6) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
                             "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_6);
-                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_15) {
+                } else if (minClientVersion > Constants.TCP_PROTOCOL_VERSION_16) {
                     throw DbException.get(ErrorCode.DRIVER_VERSION_ERROR_2,
-                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_15);
+                            "" + clientVersion, "" + Constants.TCP_PROTOCOL_VERSION_16);
                 }
                 int maxClientVersion = transfer.readInt();
-                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
-                    clientVersion = Constants.TCP_PROTOCOL_VERSION_15;
+                if (maxClientVersion >= Constants.TCP_PROTOCOL_VERSION_16) {
+                    clientVersion = Constants.TCP_PROTOCOL_VERSION_16;
                 } else {
                     clientVersion = minClientVersion;
                 }
@@ -256,6 +256,7 @@ public class TcpServerThread implements Runnable {
         int operation = transfer.readInt();
         switch (operation) {
         case SessionRemote.SESSION_PREPARE_READ_PARAMS:
+        case SessionRemote.SESSION_PREPARE_READ_PARAMS2:
         case SessionRemote.SESSION_PREPARE: {
             int id = transfer.readInt();
             String sql = transfer.readString();
@@ -266,7 +267,14 @@ public class TcpServerThread implements Runnable {
             boolean isQuery = command.isQuery();
             ArrayList<? extends ParameterInterface> params = command.getParameters();
             transfer.writeInt(getState(old)).writeBoolean(isQuery).
-                    writeBoolean(readonly).writeInt(params.size());
+                    writeBoolean(readonly);
+
+            if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS2) {
+                transfer.writeInt(command.getCommandType());
+            }
+
+            transfer.writeInt(params.size());
+
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
                 for (ParameterInterface p : params) {
                     ParameterRemote.writeMetaData(transfer, p);

@@ -75,7 +75,6 @@ public class TestCases extends TestBase {
         testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
-        testExplain();
         if (config.memory) {
             return;
         }
@@ -914,7 +913,7 @@ public class TestCases extends TestBase {
         stat.execute("CREATE TABLE ORGANIZATION(id int primary key, name varchar(100))");
         stat.execute("CREATE TABLE PERSON(id int primary key, orgId int, name varchar(100), salary int)");
 
-        checkExplain(stat, "EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?",
+        checkExplain(stat, "/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?",
             "SELECT\n" +
                 "    ID\n" +
                 "FROM PUBLIC.ORGANIZATION\n" +

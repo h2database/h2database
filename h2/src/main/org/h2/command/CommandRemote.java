@@ -7,6 +7,8 @@ package org.h2.command;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
@@ -18,7 +20,6 @@ import org.h2.result.ResultRemote;
 import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
 
 /**
  * Represents the client-side part of a SQL statement.
@@ -34,6 +35,7 @@ public class CommandRemote implements CommandInterface {
     private SessionRemote session;
     private int id;
     private boolean isQuery;
+    private int cmdType = UNKNOWN;
     private boolean readonly;
     private final int created;
 
@@ -56,10 +58,13 @@ public class CommandRemote implements CommandInterface {
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = transferList.get(i);
+
+                boolean v16 = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_16;
+
                 if (createParams) {
-                    s.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
+                    s.traceOperation(v16 ? "SESSION_PREPARE_READ_PARAMS2" : "SESSION_PREPARE_READ_PARAMS", id);
                     transfer.
-                        writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS).
+                        writeInt(v16 ? SessionRemote.SESSION_PREPARE_READ_PARAMS2 : SessionRemote.SESSION_PREPARE_READ_PARAMS).
                         writeInt(id).writeString(sql);
                 } else {
                     s.traceOperation("SESSION_PREPARE", id);
@@ -69,6 +74,7 @@ public class CommandRemote implements CommandInterface {
                 s.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
+                cmdType = v16 ? transfer.readInt() : UNKNOWN;
                 int paramCount = transfer.readInt();
                 if (createParams) {
                     parameters.clear();
@@ -204,13 +210,9 @@ public class CommandRemote implements CommandInterface {
     }
 
     private void checkParameters() {
-        boolean explain = isQuery && sql.startsWith("EXPLAIN");
-
         for (ParameterInterface p : parameters) {
-            if (explain)
-                p.setValue(ValueNull.INSTANCE, false);
-
-            p.checkSet();
+            if (cmdType != EXPLAIN)
+                p.checkSet();
         }
     }
 
@@ -266,7 +268,7 @@ public class CommandRemote implements CommandInterface {
 
     @Override
     public int getCommandType() {
-        return UNKNOWN;
+        return cmdType;
     }
 
 }

@@ -74,7 +74,9 @@ public class CommandRemote implements CommandInterface {
                 s.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
-                cmdType = v16 ? transfer.readInt() : UNKNOWN;
+
+                cmdType = v16 && createParams ? transfer.readInt() : UNKNOWN;
+
                 int paramCount = transfer.readInt();
                 if (createParams) {
                     parameters.clear();

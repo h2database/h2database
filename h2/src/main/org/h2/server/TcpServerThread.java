@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
+import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;
@@ -265,17 +266,23 @@ public class TcpServerThread implements Runnable {
             boolean readonly = command.isReadOnly();
             cache.addObject(id, command);
             boolean isQuery = command.isQuery();
-            ArrayList<? extends ParameterInterface> params = command.getParameters();
+
             transfer.writeInt(getState(old)).writeBoolean(isQuery).
                     writeBoolean(readonly);
 
+            boolean explain = false;
+
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS2) {
                 transfer.writeInt(command.getCommandType());
+
+                explain = command.getCommandType() == CommandInterface.EXPLAIN;
             }
 
-            transfer.writeInt(params.size());
+            ArrayList<? extends ParameterInterface> params = command.getParameters();
 
-            if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS) {
+            transfer.writeInt(explain ? 0 : params.size());
+
+            if (operation != SessionRemote.SESSION_PREPARE && !explain) {
                 for (ParameterInterface p : params) {
                     ParameterRemote.writeMetaData(transfer, p);
                 }

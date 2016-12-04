@@ -75,6 +75,7 @@ public class TestCases extends TestBase {
         testDeleteGroup();
         testDisconnect();
         testExecuteTrace();
+        testExplain();
         if (config.memory) {
             return;
         }

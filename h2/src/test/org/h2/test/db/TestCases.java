@@ -1028,6 +1028,8 @@ public class TestCases extends TestBase {
                 "    AND ((O.ID = 10)\n" +
                 "    AND (P.SALARY > 1000))");
 
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, stat, "/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
+
         conn.close();
     }
 

@@ -60,7 +60,9 @@ public class Explain extends Prepared {
 
     @Override
     protected void checkParameters() {
-        // No-op. Explain does not care for parameters values.
+        // Check params only in case of EXPLAIN ANALYZE
+        if (executeCommand)
+            super.checkParameters();
     }
 
     @Override
@@ -151,6 +153,6 @@ public class Explain extends Prepared {
 
     @Override
     public int getType() {
-        return CommandInterface.EXPLAIN;
+        return executeCommand ? CommandInterface.EXPLAIN_ANALYZE : CommandInterface.EXPLAIN;
     }
 }

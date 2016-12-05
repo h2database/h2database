@@ -20,7 +20,7 @@ import org.h2.result.ResultRemote;
 import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
-import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 
 /**
  * Represents the client-side part of a SQL statement.
@@ -225,8 +225,8 @@ public class CommandRemote implements CommandInterface {
         for (ParameterInterface p : parameters) {
             Value pVal = p.getParamValue();
 
-            if (pVal == null)
-                pVal = ValueNull.INSTANCE;
+            if (pVal == null && cmdType == EXPLAIN)
+                pVal = ValueString.get("PARAMETER_NOT_SET");
 
             transfer.writeValue(pVal);
         }

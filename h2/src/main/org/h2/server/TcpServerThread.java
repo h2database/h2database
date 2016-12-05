@@ -270,12 +270,8 @@ public class TcpServerThread implements Runnable {
             transfer.writeInt(getState(old)).writeBoolean(isQuery).
                     writeBoolean(readonly);
 
-            boolean explain = false;
-
             if (operation == SessionRemote.SESSION_PREPARE_READ_PARAMS2) {
                 transfer.writeInt(command.getCommandType());
-
-                explain = command.getCommandType() == CommandInterface.EXPLAIN;
             }
 
             ArrayList<? extends ParameterInterface> params = command.getParameters();

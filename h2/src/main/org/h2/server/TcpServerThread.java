@@ -280,9 +280,9 @@ public class TcpServerThread implements Runnable {
 
             ArrayList<? extends ParameterInterface> params = command.getParameters();
 
-            transfer.writeInt(explain ? 0 : params.size());
+            transfer.writeInt(params.size());
 
-            if (operation != SessionRemote.SESSION_PREPARE && !explain) {
+            if (operation != SessionRemote.SESSION_PREPARE) {
                 for (ParameterInterface p : params) {
                     ParameterRemote.writeMetaData(transfer, p);
                 }

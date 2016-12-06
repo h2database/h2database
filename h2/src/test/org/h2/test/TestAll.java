@@ -793,8 +793,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFuzzOptimizations());
         addTest(new TestLimit());
         addTest(new TestRandomCompare());
-        addTest(new TestKillRestart());
-        addTest(new TestKillRestartMulti());
+//        addTest(new TestKillRestart());
+//        addTest(new TestKillRestartMulti());
         addTest(new TestMultiThreaded());
         addTest(new TestOuterJoins());
         addTest(new TestNestedJoins());

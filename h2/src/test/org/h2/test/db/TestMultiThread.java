@@ -406,6 +406,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                         insertTranStmt.execute();
                         taskConn.commit();
                     }
+                    taskConn.close();
                     return 1;
                 }
             });
@@ -429,5 +430,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }
+
+        deleteDb("lockMode");
     }
 }

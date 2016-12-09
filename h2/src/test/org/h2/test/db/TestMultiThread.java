@@ -389,7 +389,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
 
         final int threadCount = 100;
-        final ArrayList<Callable<Integer>> callables = new ArrayList<Callable<Integer>>();
+        final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
         for (int i = 0; i < threadCount; i++) {
             final Connection taskConn = getConnection(url);
             taskConn.setAutoCommit(false);
@@ -397,9 +397,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                     .prepareStatement("INSERT INTO tran (id) values(?)");
             // to guarantee uniqueness
             final long initialTransactionId = i * 1000000L;
-            callables.add(new Callable<Integer>() {
+            callables.add(new Callable<Void>() {
                 @Override
-                public Integer call() throws Exception {
+                public Void call() throws Exception {
                     long tranId = initialTransactionId;
                     for (int j = 0; j < 10000; j++) {
                         insertTranStmt.setLong(1, tranId++);
@@ -407,7 +407,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                         taskConn.commit();
                     }
                     taskConn.close();
-                    return 1;
+                    return null;
                 }
             });
         }
@@ -415,15 +415,13 @@ public class TestMultiThread extends TestBase implements Runnable {
         final ExecutorService executor = Executors
                 .newFixedThreadPool(threadCount);
         try {
-            final ArrayList<Future<Integer>> jobs = new ArrayList<Future<Integer>>();
+            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
             for (int i = 0; i < threadCount; i++) {
                 jobs.add(executor.submit(callables.get(i)));
             }
             // check for exceptions
-            for (Future<Integer> job : jobs) {
-                if (job.get(180, TimeUnit.SECONDS) == null) {
-                    throw new RuntimeException("timed out");
-                }
+            for (Future<Void> job : jobs) {
+                job.get(5, TimeUnit.MINUTES);
             }
         } finally {
             conn.close();

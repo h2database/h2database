@@ -71,6 +71,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentInsertUpdateSelect();
         testLockModeWithMultiThreaded();
         testViews();
+        testConcurrentInsert();
     }
 
     private void testConcurrentSchemaChange() throws Exception {
@@ -316,7 +317,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
 
         stat.close();
-        
+
         // create views that reference the common views in different threads
         final ExecutorService executor = Executors.newFixedThreadPool(8);
         try {
@@ -328,10 +329,10 @@ public class TestMultiThread extends TestBase implements Runnable {
                     public Void call() throws Exception {
                         final Connection conn2 = getConnection(url);
                         Statement stat2 = conn2.createStatement();
-    
+
                         stat2.execute("CREATE VIEW INVOICE_VIEW" + j
                                 + " as SELECT * FROM INVOICE_VIEW");
-    
+
                         // the following query intermittently results in a
                         // NullPointerException
                         stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
@@ -339,17 +340,17 @@ public class TestMultiThread extends TestBase implements Runnable {
                                 + " INV JOIN INVOICE_DETAIL_VIEW DTL "
                                 + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
                                 + " WHERE DESCRIPTION='TEST'");
-    
+
                         ResultSet rs = stat2
                                 .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
                         rs.next();
                         rs.close();
-    
+
                         rs = stat2.executeQuery(
                                 "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
                         rs.next();
                         rs.close();
-    
+
                         stat.close();
                         conn.close();
                         return null;
@@ -377,5 +378,56 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
 
         deleteDb("lockMode");
+    }
+
+    private void testConcurrentInsert() throws Exception {
+        deleteDb("lockMode");
+
+        final String url = getURL("lockMode;MULTI_THREADED=1", true);
+        final Connection conn = getConnection(url);
+        conn.createStatement().execute(
+                "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
+
+        final int threadCount = 100;
+        final ArrayList<Callable<Integer>> callables = new ArrayList<Callable<Integer>>();
+        for (int i = 0; i < threadCount; i++) {
+            final Connection taskConn = getConnection(url);
+            taskConn.setAutoCommit(false);
+            final PreparedStatement insertTranStmt = taskConn
+                    .prepareStatement("INSERT INTO tran (id) values(?)");
+            // to guarantee uniqueness
+            final long initialTransactionId = i * 1000000L;
+            callables.add(new Callable<Integer>() {
+                @Override
+                public Integer call() throws Exception {
+                    long tranId = initialTransactionId;
+                    for (int j = 0; j < 10000; j++) {
+                        insertTranStmt.setLong(1, tranId++);
+                        insertTranStmt.execute();
+                        taskConn.commit();
+                    }
+                    return 1;
+                }
+            });
+        }
+
+        final ExecutorService executor = Executors
+                .newFixedThreadPool(threadCount);
+        try {
+            final ArrayList<Future<Integer>> jobs = new ArrayList<Future<Integer>>();
+            for (int i = 0; i < threadCount; i++) {
+                jobs.add(executor.submit(callables.get(i)));
+            }
+            // check for exceptions
+            for (Future<Integer> job : jobs) {
+                if (job.get(180, TimeUnit.SECONDS) == null) {
+                    throw new RuntimeException("timed out");
+                }
+            }
+        } finally {
+            conn.close();
+            executor.shutdown();
+            executor.awaitTermination(20, TimeUnit.SECONDS);
+        }
     }
 }

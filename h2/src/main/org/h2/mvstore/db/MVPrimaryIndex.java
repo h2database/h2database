@@ -213,6 +213,10 @@ public class MVPrimaryIndex extends BaseIndex {
     public Row getRow(Session session, long key) {
         TransactionMap<Value, Value> map = getMap(session);
         Value v = map.get(ValueLong.get(key));
+        if (v == null) {
+            throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
+                    getSQL() + ": " + key);            
+        }
         ValueArray array = (ValueArray) v;
         Row row = session.createRow(array.getList(), 0);
         row.setKey(key);

@@ -6,6 +6,7 @@
 package org.h2.test.db;
 
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -72,6 +73,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         testLockModeWithMultiThreaded();
         testViews();
         testConcurrentInsert();
+        testConcurrentUpdate();
     }
 
     private void testConcurrentSchemaChange() throws Exception {
@@ -414,6 +416,63 @@ public class TestMultiThread extends TestBase implements Runnable {
 
         final ExecutorService executor = Executors
                 .newFixedThreadPool(threadCount);
+        try {
+            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            for (int i = 0; i < threadCount; i++) {
+                jobs.add(executor.submit(callables.get(i)));
+            }
+            // check for exceptions
+            for (Future<Void> job : jobs) {
+                job.get(5, TimeUnit.MINUTES);
+            }
+        } finally {
+            conn.close();
+            executor.shutdown();
+            executor.awaitTermination(20, TimeUnit.SECONDS);
+        }
+
+        deleteDb("lockMode");
+    }
+
+    private void testConcurrentUpdate() throws Exception {
+        deleteDb("lockMode");
+
+        final int OBJ_CNT = 10000;
+        final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
+        final Connection conn = getConnection(url);
+        conn.createStatement().execute(
+                "CREATE TABLE IF NOT EXISTS ACCOUNT ( ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
+        final PreparedStatement mergeAcctStmt = conn
+                .prepareStatement("MERGE INTO Account(id, balance) key (id) VALUES (?, ?)");
+        for (int i = 0; i < OBJ_CNT; i++) {
+            mergeAcctStmt.setLong(1, i);
+            mergeAcctStmt.setBigDecimal(2, BigDecimal.ZERO);
+            mergeAcctStmt.execute();
+        }
+
+        final int threadCount = 100;
+        final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+        for (int i = 0; i < threadCount; i++) {
+            final Connection taskConn = getConnection(url);
+            taskConn.setAutoCommit(false);
+            final PreparedStatement updateAcctStmt = taskConn
+                    .prepareStatement("UPDATE account set balance = ? where id = ?");
+            callables.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    for (int j = 0; j < 10000; j++) {
+                        updateAcctStmt.setDouble(1, Math.random());
+                        updateAcctStmt.setLong(2, (int) (Math.random() * OBJ_CNT));
+                        updateAcctStmt.execute();
+                        taskConn.commit();
+                    }
+                    taskConn.close();
+                    return null;
+                }
+            });
+        }
+
+        final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         try {
             final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
             for (int i = 0; i < threadCount; i++) {

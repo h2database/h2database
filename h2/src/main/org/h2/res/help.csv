@@ -577,7 +577,7 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
     | IN ( { select | expression [,...] } )
-    | [ NOT ] LIKE operand [ ESCAPE string ]
+    | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition."
@@ -947,6 +947,11 @@ Calculate the angle when converting the rectangular coordinates to polar coordin
 BITAND(long, long)
 ","
 The bitwise AND operation."
+"Functions (Numeric)","BITGET","
+BITGET(long, int)
+","
+Returns true if and only if the first parameter has a bit set in the
+position specified by the second parameter."
 "Functions (Numeric)","BITOR","
 BITOR(long, long)
 ","

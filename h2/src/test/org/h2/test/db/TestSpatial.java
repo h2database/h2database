@@ -94,6 +94,7 @@ public class TestSpatial extends TestBase {
         testNullableGeometryUpdate();
         testIndexUpdateNullGeometry();
         testInsertNull();
+        testSpatialIndexWithOrder();
     }
 
     private void testBug1() throws SQLException {
@@ -1137,5 +1138,22 @@ public class TestSpatial extends TestBase {
             assertTrue(rs.next());
         }
 
+    }
+    
+    private void testSpatialIndexWithOrder() throws SQLException {
+        deleteDb("spatial");
+        Connection conn = getConnection(URL);
+        Statement stat = conn.createStatement();
+        stat.execute("DROP TABLE IF EXISTS BUILDINGS;" +
+                "CREATE TABLE BUILDINGS (PK serial, THE_GEOM geometry);" +
+                "insert into buildings(the_geom) SELECT 'POINT(1 1)" +
+                "'::geometry from SYSTEM_RANGE(1,10000);\n" +
+                "CREATE SPATIAL INDEX ON PUBLIC.BUILDINGS(THE_GEOM);\n");
+
+        try (ResultSet rs = stat.executeQuery("EXPLAIN SELECT * FROM " +
+                "BUILDINGS ORDER BY PK LIMIT 51;")) {
+            assertTrue(rs.next());
+            assertTrue(rs.getString(1).contains("PRIMARY_KEY"));
+        }
     }
 }

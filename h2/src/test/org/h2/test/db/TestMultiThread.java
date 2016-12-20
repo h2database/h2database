@@ -390,7 +390,7 @@ public class TestMultiThread extends TestBase implements Runnable {
         conn.createStatement().execute(
                 "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
 
-        final int threadCount = 100;
+        final int threadCount = 25;
         final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
         for (int i = 0; i < threadCount; i++) {
             final Connection taskConn = getConnection(url);
@@ -450,7 +450,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             mergeAcctStmt.execute();
         }
 
-        final int threadCount = 100;
+        final int threadCount = 25;
         final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
         for (int i = 0; i < threadCount; i++) {
             final Connection taskConn = getConnection(url);

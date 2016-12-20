@@ -9,6 +9,7 @@ import java.lang.management.ManagementFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.TimerTask;
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -224,6 +225,7 @@ import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
+import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
 /**
@@ -920,7 +922,20 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // tests.add(test);
         // run directly for now, because concurrently running tests
         // fails on Raspberry Pi quite often (seems to be a JVM problem)
-        test.runTest(this);
+
+        // event queue watchdog for tests that get stuck when running in Jenkins CI
+        final java.util.Timer watchdog = new java.util.Timer();
+        watchdog.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                ThreadDeadlockDetector.dumpAllThreadsAndLocks("test watchdog timed out");
+            }
+        }, 5 * 60 * 1000); // 5 minutes
+        try {
+            test.runTest(this);
+        } finally {
+            watchdog.cancel();
+        }
     }
 
     private void runAddedTests() {

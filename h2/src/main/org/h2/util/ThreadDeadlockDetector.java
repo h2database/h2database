@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import org.h2.mvstore.db.MVTable;
 
 /**
@@ -60,16 +59,27 @@ public class ThreadDeadlockDetector {
      * information.
      */
     void checkForDeadlocks() {
-        long[] ids = threadBean.findDeadlockedThreads();
-        if (ids == null) {
+        long[] deadlockedThreadIds = threadBean.findDeadlockedThreads();
+        if (deadlockedThreadIds == null) {
             return;
         }
+        dumpThreadsAndLocks("ThreadDeadlockDetector - deadlock found :",
+                threadBean, deadlockedThreadIds);
+    }
 
+    public static void dumpAllThreadsAndLocks(String msg) {
+        final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+        final long[] allThreadIds = threadBean.getAllThreadIds();
+        dumpThreadsAndLocks(msg, threadBean, allThreadIds);
+    }
+
+    private static void dumpThreadsAndLocks(String msg, ThreadMXBean threadBean, long[] threadIds)
+    {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter print = new PrintWriter(stringWriter);
 
-        print.println("ThreadDeadlockDetector - deadlock found :");
-        final ThreadInfo[] infos = threadBean.getThreadInfo(ids, true, true);
+        print.println(msg);
+        final ThreadInfo[] infos = threadBean.getThreadInfo(threadIds, true, true);
         final HashMap<Long, String> tableWaitingForLockMap =
                 MVTable.WAITING_FOR_LOCK.getSnapshotOfAllThreads();
         final HashMap<Long, ArrayList<String>> tableExclusiveLocksMap =

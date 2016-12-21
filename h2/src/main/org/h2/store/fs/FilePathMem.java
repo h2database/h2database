@@ -303,6 +303,19 @@ class FileMem extends FileBase {
     }
 
     @Override
+    public int write(ByteBuffer src, long position) throws IOException {
+        int len = src.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        data.touch(readOnly);
+        data.readWrite(position, src.array(),
+                src.arrayOffset() + src.position(), len, true);
+        src.position(src.position() + len);
+        return len;
+    }
+
+    @Override
     public int write(ByteBuffer src) throws IOException {
         int len = src.remaining();
         if (len == 0) {
@@ -312,6 +325,22 @@ class FileMem extends FileBase {
         pos = data.readWrite(pos, src.array(),
                 src.arrayOffset() + src.position(), len, true);
         src.position(src.position() + len);
+        return len;
+    }
+
+    @Override
+    public int read(ByteBuffer dst, long position) throws IOException {
+        int len = dst.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        long newPos = data.readWrite(position, dst.array(),
+                dst.arrayOffset() + dst.position(), len, false);
+        len = (int) (newPos - position);
+        if (len <= 0) {
+            return -1;
+        }
+        dst.position(dst.position() + len);
         return len;
     }
 

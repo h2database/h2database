@@ -9,7 +9,6 @@ import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Locale;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -907,47 +906,6 @@ public class StringUtils {
             }
             cache[index] = s;
         }
-        return s;
-    }
-
-    /**
-     * Get a string from the cache, and if no such string has been found, create
-     * a new one with only this content. This solves out of memory problems if
-     * the string is a substring of another, large string. In Java, strings are
-     * shared, which could lead to memory problems. This avoid such problems.
-     *
-     * @param s the string
-     * @return a string that is guaranteed not be a substring of a large string
-     */
-    public static String fromCacheOrNew(String s) {
-        if (!SysProperties.OBJECT_CACHE) {
-            return s;
-        }
-        if (s == null) {
-            return s;
-        } else if (s.length() == 0) {
-            return "";
-        }
-        int hash = s.hashCode();
-        String[] cache = getCache();
-        int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
-        if (cache == null) {
-            return s;
-        }
-        String cached = cache[index];
-        if (cached != null) {
-            if (s.equals(cached)) {
-                return cached;
-            }
-        }
-        // create a new object that is not shared
-        // (to avoid out of memory if it is a substring of a big String)
-        // (not longer needed for Java 7 update 6 and newer,
-        // but the performance overhead is very small for those
-        // versions where it is not needed)
-        // NOPMD
-        s = new String(s);
-        cache[index] = s;
         return s;
     }
 

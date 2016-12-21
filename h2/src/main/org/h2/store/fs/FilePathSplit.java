@@ -14,7 +14,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.util.New;
@@ -281,6 +280,23 @@ class FileSplit extends FileBase {
     }
 
     @Override
+    public synchronized int read(ByteBuffer dst, long position)
+            throws IOException {
+        int len = dst.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        len = (int) Math.min(len, length - position);
+        if (len <= 0) {
+            return -1;
+        }
+        long offset = position % maxLength;
+        len = (int) Math.min(len, maxLength - offset);
+        FileChannel channel = getFileChannel(position);
+        return channel.read(dst, offset);
+    }
+
+    @Override
     public int read(ByteBuffer dst) throws IOException {
         int len = dst.remaining();
         if (len == 0) {
@@ -292,7 +308,7 @@ class FileSplit extends FileBase {
         }
         long offset = filePointer % maxLength;
         len = (int) Math.min(len, maxLength - offset);
-        FileChannel channel = getFileChannel();
+        FileChannel channel = getFileChannel(filePointer);
         channel.position(offset);
         len = channel.read(dst);
         filePointer += len;
@@ -305,8 +321,8 @@ class FileSplit extends FileBase {
         return this;
     }
 
-    private FileChannel getFileChannel() throws IOException {
-        int id = (int) (filePointer / maxLength);
+    private FileChannel getFileChannel(long position) throws IOException {
+        int id = (int) (position / maxLength);
         while (id >= list.length) {
             int i = list.length;
             FileChannel[] newList = new FileChannel[i + 1];
@@ -356,6 +372,37 @@ class FileSplit extends FileBase {
     }
 
     @Override
+    public int write(ByteBuffer src, long position) throws IOException {
+        if (position >= length && position > maxLength) {
+            // may need to extend and create files
+            long oldFilePointer = position;
+            long x = length - (length % maxLength) + maxLength;
+            for (; x < position; x += maxLength) {
+                if (x > length) {
+                    // expand the file size
+                    position(x - 1);
+                    write(ByteBuffer.wrap(new byte[1]));
+                }
+                position = oldFilePointer;
+            }
+        }
+        long offset = position % maxLength;
+        int len = src.remaining();
+        FileChannel channel = getFileChannel(position);
+        int l = (int) Math.min(len, maxLength - offset);
+        if (l == len) {
+            l = channel.write(src, offset);
+        } else {
+            int oldLimit = src.limit();
+            src.limit(src.position() + l);
+            l = channel.write(src, offset);
+            src.limit(oldLimit);
+        }
+        length = Math.max(length, position + l);
+        return l;
+    }
+
+    @Override
     public int write(ByteBuffer src) throws IOException {
         if (filePointer >= length && filePointer > maxLength) {
             // may need to extend and create files
@@ -372,7 +419,7 @@ class FileSplit extends FileBase {
         }
         long offset = filePointer % maxLength;
         int len = src.remaining();
-        FileChannel channel = getFileChannel();
+        FileChannel channel = getFileChannel(filePointer);
         channel.position(offset);
         int l = (int) Math.min(len, maxLength - offset);
         if (l == len) {

@@ -404,7 +404,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 @Override
                 public Void call() throws Exception {
                     long tranId = initialTransactionId;
-                    for (int j = 0; j < 10000; j++) {
+                    for (int j = 0; j < 1000; j++) {
                         insertTranStmt.setLong(1, tranId++);
                         insertTranStmt.execute();
                         taskConn.commit();
@@ -461,7 +461,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             callables.add(new Callable<Void>() {
                 @Override
                 public Void call() throws Exception {
-                    for (int j = 0; j < 10000; j++) {
+                    for (int j = 0; j < 1000; j++) {
                         updateAcctStmt.setDouble(1, Math.random());
                         updateAcctStmt.setLong(2, (int) (Math.random() * OBJ_CNT));
                         updateAcctStmt.execute();

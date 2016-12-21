@@ -25,6 +25,7 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SynchronizedVerifier;
 import org.h2.util.Task;
@@ -374,7 +375,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 }
             }
         } finally {
-            conn.close();
+            IOUtils.closeSilently(conn);
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }
@@ -426,7 +427,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 job.get(5, TimeUnit.MINUTES);
             }
         } finally {
-            conn.close();
+            IOUtils.closeSilently(conn);
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }
@@ -483,7 +484,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 job.get(5, TimeUnit.MINUTES);
             }
         } finally {
-            conn.close();
+            IOUtils.closeSilently(conn);
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }

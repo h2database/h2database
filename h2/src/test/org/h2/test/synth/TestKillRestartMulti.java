@@ -41,7 +41,7 @@ public class TestKillRestartMulti extends TestBase {
         }
         if (config.fast) {
             // using fast as a proxy for "running on Jenkins CI" where this test gets stuck waiting
-            // the sub-process after killing it
+            // for the sub-process after killing it
             return;
         }
         if (getBaseDir().indexOf(':') > 0) {

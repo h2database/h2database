@@ -17,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
@@ -404,11 +403,11 @@ class FileNioMemData {
     private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private static final Cache<CompressItem, CompressItem> COMPRESS_LATER =
-        new Cache<CompressItem, CompressItem>(CACHE_SIZE);
+    private static final CompressLaterCache<CompressItem, CompressItem> COMPRESS_LATER =
+        new CompressLaterCache<CompressItem, CompressItem>(CACHE_SIZE);
 
     private String name;
-    private final int id;
+    private final int nameHashCode;
     private final boolean compress;
     private long length;
     private ByteBuffer[] data;
@@ -426,14 +425,10 @@ class FileNioMemData {
 
     FileNioMemData(String name, boolean compress) {
         this.name = name;
-        this.id = name.hashCode();
+        this.nameHashCode = name.hashCode();
         this.compress = compress;
         data = new ByteBuffer[0];
         lastModified = System.currentTimeMillis();
-    }
-
-    int getId() {
-        return id;
     }
 
     /**
@@ -476,12 +471,12 @@ class FileNioMemData {
     /**
      * This small cache compresses the data if an element leaves the cache.
      */
-    static class Cache<K, V> extends LinkedHashMap<K, V> {
+    static class CompressLaterCache<K, V> extends LinkedHashMap<K, V> {
 
         private static final long serialVersionUID = 1L;
         private final int size;
 
-        Cache(int size) {
+        CompressLaterCache(int size) {
             super(size, (float) 0.75, true);
             this.size = size;
         }
@@ -505,16 +500,21 @@ class FileNioMemData {
         /**
          * The file data.
          */
-        FileNioMemData data;
+        public final FileNioMemData data;
 
         /**
          * The page to compress.
          */
-        int page;
+        public final int page;
+
+        public CompressItem(FileNioMemData data, int page) {
+            this.data = data;
+            this.page = page;
+        }
 
         @Override
         public int hashCode() {
-            return page ^ data.getId();
+            return page ^ data.nameHashCode;
         }
 
         @Override
@@ -528,10 +528,8 @@ class FileNioMemData {
 
     }
 
-    private void compressLater(int page) {
-        CompressItem c = new CompressItem();
-        c.data = this;
-        c.page = page;
+    private void addToCompressLaterCache(int page) {
+        CompressItem c = new CompressItem(this, page);
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
@@ -615,7 +613,7 @@ class FileNioMemData {
                 d.put(i, (byte) 0);
             }
             if (compress) {
-                compressLater(lastPage);
+                addToCompressLaterCache(lastPage);
             }
         }
     }
@@ -677,7 +675,7 @@ class FileNioMemData {
                 b.position(oldPosition);
             }
             if (compress) {
-                compressLater(page);
+                addToCompressLaterCache(page);
             }
             off += l;
             pos += l;

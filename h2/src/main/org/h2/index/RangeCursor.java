@@ -59,7 +59,7 @@ class RangeCursor implements Cursor {
 
     @Override
     public boolean previous() {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
 }

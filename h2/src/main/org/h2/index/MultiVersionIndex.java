@@ -93,7 +93,7 @@ public class MultiVersionIndex implements Index {
 
     @Override
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override

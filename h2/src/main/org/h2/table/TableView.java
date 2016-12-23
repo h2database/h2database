@@ -389,7 +389,7 @@ public class TableView extends Table {
 
     @Override
     public long getRowCount(Session session) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override

@@ -7,7 +7,6 @@ package org.h2.index;
 
 import java.lang.ref.SoftReference;
 import java.util.Arrays;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Session;
@@ -221,7 +220,7 @@ public class PageDataLeaf extends PageData {
         if (offset < start) {
             writtenData = false;
             if (entryCount > 1) {
-                DbException.throwInternalError();
+                DbException.throwInternalError("" + entryCount);
             }
             // need to write the overflow page id
             start += 4;
@@ -284,7 +283,7 @@ public class PageDataLeaf extends PageData {
         }
         entryCount--;
         if (entryCount < 0) {
-            DbException.throwInternalError();
+            DbException.throwInternalError("" + entryCount);
         }
         if (firstOverflowPageId != 0) {
             start -= 4;

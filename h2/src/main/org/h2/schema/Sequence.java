@@ -6,7 +6,6 @@
 package org.h2.schema;
 
 import java.math.BigInteger;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -208,7 +207,7 @@ public class Sequence extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override

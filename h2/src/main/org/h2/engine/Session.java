@@ -840,7 +840,7 @@ public class Session extends SessionWithState {
     public void addLock(Table table) {
         if (SysProperties.CHECK) {
             if (locks.contains(table)) {
-                DbException.throwInternalError();
+                DbException.throwInternalError(table.toString());
             }
         }
         locks.add(table);
@@ -869,7 +869,7 @@ public class Session extends SessionWithState {
                     if (locks.indexOf(log.getTable()) < 0
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
-                        DbException.throwInternalError();
+                        DbException.throwInternalError("" + tableType);
                     }
                 }
             }
@@ -1271,7 +1271,7 @@ public class Session extends SessionWithState {
      */
     public void removeAtCommit(Value v) {
         if (SysProperties.CHECK && !v.isLinkedToTable()) {
-            DbException.throwInternalError();
+            DbException.throwInternalError(v.toString());
         }
         if (removeLobMap == null) {
             removeLobMap = New.hashMap();

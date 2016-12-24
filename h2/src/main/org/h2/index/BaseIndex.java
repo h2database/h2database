@@ -141,7 +141,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     @Override
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     /**

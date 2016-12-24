@@ -206,7 +206,7 @@ public class Comparison extends Condition {
             }
         } else {
             if (SysProperties.CHECK && (left == null || right == null)) {
-                DbException.throwInternalError();
+                DbException.throwInternalError(left + " " + right);
             }
             if (left == ValueExpression.getNull() ||
                     right == ValueExpression.getNull()) {

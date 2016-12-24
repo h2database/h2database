@@ -1,13 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
- * and the EPL 1.0 (http://h2database.com/html/license.html).
- * Initial Developer: H2 Group
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
+ * Group
  */
 package org.h2.test.unit;
 
 import java.util.Locale;
 import java.util.Random;
-
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 
@@ -23,7 +22,6 @@ public class TestStringCache extends TestBase {
     private final Random random = new Random(1);
     private final String[] some = { null, "", "ABC",
             "this is a medium sized string", "1", "2" };
-    private boolean returnNew;
     private boolean useIntern;
 
     /**
@@ -40,11 +38,6 @@ public class TestStringCache extends TestBase {
     @Override
     public void test() throws InterruptedException {
         testToUpperToLower();
-        returnNew = true;
-        StringUtils.clearCache();
-        testSingleThread(getSize(5000, 20000));
-        testMultiThreads();
-        returnNew = false;
         StringUtils.clearCache();
         testSingleThread(getSize(5000, 20000));
         testMultiThreads();
@@ -105,7 +98,6 @@ public class TestStringCache extends TestBase {
         testToUpperCache();
         testToUpperCache();
         testToUpperCache();
-        returnNew = false;
         for (int i = 0; i < 6; i++) {
             useIntern = (i % 2) == 0;
             long time = System.currentTimeMillis();
@@ -124,7 +116,8 @@ public class TestStringCache extends TestBase {
             }
             return s;
         }
-        int len = random.nextBoolean() ? random.nextInt(1000) : random.nextInt(10);
+        int len = random.nextBoolean() ? random.nextInt(1000)
+                : random.nextInt(10);
         StringBuilder buff = new StringBuilder(len);
         for (int i = 0; i < len; i++) {
             buff.append(random.nextInt(0xfff));
@@ -137,29 +130,16 @@ public class TestStringCache extends TestBase {
      */
     void testString() {
         String a = randomString();
-        if (returnNew) {
-            String b = StringUtils.fromCacheOrNew(a);
-            try {
-                assertEquals(a, b);
-            } catch (Exception e) {
-                TestBase.logError("error", e);
-            }
-            if (a != null && a == b && a.length() > 0) {
-                throw new AssertionError("a=" + System.identityHashCode(a) +
-                        " b=" + System.identityHashCode(b));
-            }
+        String b;
+        if (useIntern) {
+            b = a == null ? null : a.intern();
         } else {
-            String b;
-            if (useIntern) {
-                b = a == null ? null : a.intern();
-            } else {
-                b = StringUtils.cache(a);
-            }
-            try {
-                assertEquals(a, b);
-            } catch (Exception e) {
-                TestBase.logError("error", e);
-            }
+            b = StringUtils.cache(a);
+        }
+        try {
+            assertEquals(a, b);
+        } catch (Exception e) {
+            TestBase.logError("error", e);
         }
     }
 

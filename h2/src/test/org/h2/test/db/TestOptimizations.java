@@ -338,12 +338,12 @@ public class TestOptimizations extends TestBase {
         rs = stat.executeQuery("explain select * from test " +
                 "where id > 10 order by id");
         rs.next();
-        assertTrue(rs.getString(1).contains("IDX_ID_ASC"));
+        assertContains(rs.getString(1), "IDX_ID_ASC");
 
         rs = stat.executeQuery("explain select * from test " +
                 "where id < 10 order by id desc");
         rs.next();
-        assertTrue(rs.getString(1).contains("IDX_ID_DESC"));
+        assertContains(rs.getString(1), "IDX_ID_DESC");
 
         rs.next();
         stat.execute("drop table test");
@@ -635,7 +635,7 @@ public class TestOptimizations extends TestBase {
             rs.next();
             if (!config.mvcc) {
                 String plan = rs.getString(1);
-                assertTrue(plan.indexOf("direct") > 0);
+                assertContains(plan, "direct");
             }
             rs = stat.executeQuery("select min(x), max(x) from test");
             rs.next();
@@ -667,7 +667,7 @@ public class TestOptimizations extends TestBase {
                 "WHERE id < 100 and type=2 AND id<100");
         rs.next();
         String plan = rs.getString(1);
-        assertTrue(plan.indexOf("TYPE_INDEX") > 0);
+        assertContains(plan, "TYPE_INDEX");
         conn.close();
     }
 

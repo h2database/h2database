@@ -3267,7 +3267,7 @@ public class Parser {
                 }
                 i++;
             }
-            currentToken = StringUtils.fromCacheOrNew(sqlCommand.substring(
+            currentToken = StringUtils.cache(sqlCommand.substring(
                     start, i));
             currentTokenType = getTokenType(currentToken);
             parseIndex = i;
@@ -3290,7 +3290,7 @@ public class Parser {
                 }
                 i++;
             }
-            currentToken = StringUtils.fromCacheOrNew(result);
+            currentToken = StringUtils.cache(result);
             parseIndex = i;
             currentTokenQuoted = true;
             currentTokenType = IDENTIFIER;
@@ -3386,7 +3386,7 @@ public class Parser {
             }
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result),
+            currentValue = ValueString.get(StringUtils.cache(result),
                     database.getMode().treatEmptyStringsAsNull);
             parseIndex = i;
             currentTokenType = VALUE;
@@ -3401,7 +3401,7 @@ public class Parser {
             result = sqlCommand.substring(begin, i);
             currentToken = "'";
             checkLiterals(true);
-            currentValue = ValueString.get(StringUtils.fromCacheOrNew(result),
+            currentValue = ValueString.get(StringUtils.cache(result),
                     database.getMode().treatEmptyStringsAsNull);
             parseIndex = i;
             currentTokenType = VALUE;
@@ -4785,7 +4785,7 @@ public class Parser {
             Query withQuery = parseSelect();
             read(")");
             withQuery.prepare();
-            querySQL = StringUtils.fromCacheOrNew(withQuery.getPlanSQL());
+            querySQL = StringUtils.cache(withQuery.getPlanSQL());
             ArrayList<Expression> withExpressions = withQuery.getExpressions();
             for (int i = 0; i < cols.length; ++i) {
                 columnTemplates[i] = new Column(cols[i], withExpressions.get(i).getType());
@@ -4819,7 +4819,7 @@ public class Parser {
             String[] cols = parseColumnList();
             command.setColumnNames(cols);
         }
-        String select = StringUtils.fromCacheOrNew(sqlCommand
+        String select = StringUtils.cache(sqlCommand
                 .substring(parseIndex));
         read("AS");
         try {

@@ -263,6 +263,8 @@ public class TestTableEngines extends TestBase {
         checkResults(6, dataSet, stat,
                 "select * from t order by a", null, new RowComparator(0));
         checkResults(6, dataSet, stat,
+                "select * from t order by a desc", null, new RowComparator(true, 0));
+        checkResults(6, dataSet, stat,
                 "select * from t order by b, c", null, new RowComparator(1, 2));
         checkResults(6, dataSet, stat,
                 "select * from t order by c, a", null, new RowComparator(2, 0));
@@ -1614,8 +1616,15 @@ public class TestTableEngines extends TestBase {
      */
     private static class RowComparator implements Comparator<List<Object>> {
         private int[] cols;
+        private boolean descending;
 
         public RowComparator(int... cols) {
+            this.descending = false;
+            this.cols = cols;
+        }
+
+        public RowComparator(boolean descending, int... cols) {
+            this.descending = descending;
             this.cols = cols;
         }
 
@@ -1627,17 +1636,27 @@ public class TestTableEngines extends TestBase {
                 Comparable<Object> o1 = (Comparable<Object>) row1.get(col);
                 Comparable<Object> o2 = (Comparable<Object>) row2.get(col);
                 if (o1 == null) {
-                    return o2 == null ? 0 : -1;
+                    return applyDescending(o2 == null ? 0 : -1);
                 }
                 if (o2 == null) {
-                    return 1;
+                    return applyDescending(1);
                 }
                 int res = o1.compareTo(o2);
                 if (res != 0) {
-                    return res;
+                    return applyDescending(res);
                 }
             }
             return 0;
+        }
+
+        private int applyDescending(int v) {
+            if (!descending) {
+                return v;
+            }
+            if (v == 0) {
+                return v;
+            }
+            return -v;
         }
     }
 

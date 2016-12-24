@@ -57,7 +57,7 @@ public class MultiVersionIndex implements Index {
         synchronized (sync) {
             base.add(session, row);
             if (removeIfExists(session, row)) {
-                // for example rolling back an delete operation
+                // for example rolling back a delete operation
             } else if (row.getSessionId() != 0) {
                 // don't insert rows that are added when creating an index
                 delta.add(session, row);
@@ -93,7 +93,7 @@ public class MultiVersionIndex implements Index {
 
     @Override
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override

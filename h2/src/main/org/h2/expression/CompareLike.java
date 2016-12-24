@@ -329,7 +329,7 @@ public class CompareLike extends Condition {
                 }
                 return false;
             default:
-                DbException.throwInternalError();
+                DbException.throwInternalError("" + types[pi]);
             }
         }
         return si == sLen;

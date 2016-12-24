@@ -300,7 +300,7 @@ public class PageDataIndex extends PageIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     long getLastKey() {

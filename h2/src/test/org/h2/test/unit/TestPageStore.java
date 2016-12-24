@@ -138,7 +138,7 @@ public class TestPageStore extends TestBase {
         InputStream in = FileUtils.newInputStream(getBaseDir() +
                 "/pageStoreLogLimit.trace.db");
         String s = IOUtils.readStringAndClose(new InputStreamReader(in), -1);
-        assertTrue(s.indexOf("Transaction log could not be truncated") > 0);
+        assertContains(s, "Transaction log could not be truncated");
         conn.commit();
         ResultSet rs = stat2.executeQuery("select * from test");
         assertTrue(rs.next());

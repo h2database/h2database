@@ -723,7 +723,7 @@ public class ValueLob extends Value {
                 }
                 Value v2 = copy(h, tabId);
                 if (SysProperties.CHECK && v2 != this) {
-                    DbException.throwInternalError();
+                    DbException.throwInternalError(v2.toString());
                 }
             }
         } catch (IOException e) {

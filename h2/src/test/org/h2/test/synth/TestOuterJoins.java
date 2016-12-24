@@ -304,7 +304,7 @@ public class TestOuterJoins extends TestBase {
                 "left outer join (test c) on a.id = c.id");
         assertTrue(rs.next());
         sql = rs.getString(1);
-        assertTrue(sql.contains("PRIMARY_KEY"));
+        assertContains(sql, "PRIMARY_KEY");
         stat.execute("drop table test");
 
         /*

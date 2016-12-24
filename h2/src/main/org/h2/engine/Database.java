@@ -1664,7 +1664,7 @@ public class Database implements DataHandler {
         ArrayList<DbObject> list = obj.getChildren();
         Comment comment = findComment(obj);
         if (comment != null) {
-            DbException.throwInternalError();
+            DbException.throwInternalError(comment.toString());
         }
         updateMeta(session, obj);
         // remember that this scans only one level deep!
@@ -2575,7 +2575,7 @@ public class Database implements DataHandler {
         long now = System.currentTimeMillis();
         if (now > reconnectCheckNext + reconnectCheckDelay) {
             if (SysProperties.CHECK && checkpointAllowed < 0) {
-                DbException.throwInternalError();
+                DbException.throwInternalError("" + checkpointAllowed);
             }
             synchronized (reconnectSync) {
                 if (checkpointAllowed > 0) {
@@ -2645,7 +2645,7 @@ public class Database implements DataHandler {
             if (reconnectModified(true)) {
                 checkpointAllowed++;
                 if (SysProperties.CHECK && checkpointAllowed > 20) {
-                    throw DbException.throwInternalError();
+                    throw DbException.throwInternalError("" + checkpointAllowed);
                 }
                 return true;
             }
@@ -2667,7 +2667,7 @@ public class Database implements DataHandler {
             checkpointAllowed--;
         }
         if (SysProperties.CHECK && checkpointAllowed < 0) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError("" + checkpointAllowed);
         }
     }
 

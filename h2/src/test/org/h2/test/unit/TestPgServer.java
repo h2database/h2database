@@ -236,8 +236,8 @@ public class TestPgServer extends TestBase {
                 "select version(), pg_postmaster_start_time(), current_schema()");
         rs.next();
         String s = rs.getString(1);
-        assertTrue(s.contains("H2"));
-        assertTrue(s.contains("PostgreSQL"));
+        assertContains(s, "H2");
+        assertContains(s, "PostgreSQL");
         s = rs.getString(2);
         s = rs.getString(3);
         assertEquals(s, "PUBLIC");

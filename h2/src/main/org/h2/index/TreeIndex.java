@@ -355,7 +355,7 @@ public class TreeIndex extends BaseIndex {
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
         if (closed) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(toString());
         }
         if (first) {
             // TODO optimization: this loops through NULL

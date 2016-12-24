@@ -8,7 +8,6 @@ package org.h2.index;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.result.Row;
@@ -73,7 +72,7 @@ public class LinkedCursor implements Cursor {
 
     @Override
     public boolean previous() {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
 }

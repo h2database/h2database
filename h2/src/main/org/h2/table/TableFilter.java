@@ -7,7 +7,6 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
@@ -835,7 +834,7 @@ public class TableFilter implements ColumnResolver {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
                     if (joinFilterId != 0) {
-                        throw DbException.throwInternalError();
+                        throw DbException.throwInternalError("" + joinFilterId);
                     }
                 } else {
                     planBuff.append("batched:");

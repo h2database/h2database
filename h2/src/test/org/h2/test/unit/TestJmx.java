@@ -102,32 +102,32 @@ public class TestJmx extends TestBase {
                 getAttribute(name, "Version").toString().startsWith("1."));
         assertEquals(14, info.getAttributes().length);
         result = mbeanServer.invoke(name, "listSettings", null, null).toString();
-        assertTrue(result.contains("ANALYZE_AUTO"));
+        assertContains(result, "ANALYZE_AUTO");
 
         conn.setAutoCommit(false);
         stat.execute("create table test(id int)");
         stat.execute("insert into test values(1)");
 
         result = mbeanServer.invoke(name, "listSessions", null, null).toString();
-        assertTrue(result.contains("session id"));
+        assertContains(result, "session id");
         if (config.mvcc || config.mvStore) {
-            assertTrue(result.contains("read lock"));
+            assertContains(result, "read lock");
         } else {
-            assertTrue(result.contains("write lock"));
+            assertContains(result, "write lock");
         }
 
         assertEquals(2, info.getOperations().length);
-        assertTrue(info.getDescription().contains("database"));
+        assertContains(info.getDescription(), "database");
         attrMap = New.hashMap();
         for (MBeanAttributeInfo a : info.getAttributes()) {
             attrMap.put(a.getName(), a);
         }
-        assertTrue(attrMap.get("CacheSize").getDescription().contains("KB"));
+        assertContains(attrMap.get("CacheSize").getDescription(), "KB");
         opMap = New.hashMap();
         for (MBeanOperationInfo o : info.getOperations()) {
             opMap.put(o.getName(), o);
         }
-        assertTrue(opMap.get("listSessions").getDescription().contains("lock"));
+        assertContains(opMap.get("listSessions").getDescription(), "lock");
         assertEquals(MBeanOperationInfo.INFO, opMap.get("listSessions").getImpact());
 
         conn.close();

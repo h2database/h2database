@@ -59,6 +59,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     public static final int SESSION_SET_AUTOCOMMIT = 15;
     public static final int SESSION_HAS_PENDING_TRANSACTION = 16;
     public static final int LOB_READ = 17;
+    public static final int SESSION_PREPARE_READ_PARAMS2 = 18;
 
     public static final int STATUS_ERROR = 0;
     public static final int STATUS_OK = 1;
@@ -118,7 +119,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
         trans.setSSL(ci.isSSL());
         trans.init();
         trans.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_15);
+        trans.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
         trans.writeString(db);
         trans.writeString(ci.getOriginalURL());
         trans.writeString(ci.getUserName());
@@ -215,6 +216,10 @@ public class SessionRemote extends SessionWithState implements DataHandler {
             autoCommit = true;
             cluster = true;
         }
+    }
+
+    public int getClientVersion() {
+        return clientVersion;
     }
 
     @Override

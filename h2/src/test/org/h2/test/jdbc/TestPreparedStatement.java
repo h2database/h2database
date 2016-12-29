@@ -12,7 +12,6 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
-import java.sql.Array;
 import java.sql.Connection;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
@@ -142,15 +141,11 @@ public class TestPreparedStatement extends TestBase {
             setRowId(1, (RowId) null);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
             setUnicodeStream(1, (InputStream) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, prep).
-            setArray(1, (Array) null);
 
         ParameterMetaData meta = prep.getParameterMetaData();
         assertTrue(meta.toString(), meta.toString().endsWith("parameterCount=1"));
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
                 createSQLXML();
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
-                createArrayOf("Integer", new Object[0]);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).
                 createStruct("Integer", new Object[0]);
     }

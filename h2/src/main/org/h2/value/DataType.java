@@ -28,6 +28,7 @@ import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcArray;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
@@ -1051,6 +1052,13 @@ public class DataType {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
+        } else if (x instanceof java.sql.Array) {
+            java.sql.Array array = (java.sql.Array) x;
+            try {
+                return convertToValue(session, array.getArray(), Value.ARRAY);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
         } else if (x instanceof ResultSet) {
             if (x instanceof SimpleResultSet) {
                 return ValueResultSet.get((ResultSet) x);
@@ -1238,6 +1246,8 @@ public class DataType {
             return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {
             return new JdbcClob(conn, v, 0);
+        } else if (paramClass == Array.class) {
+            return new JdbcArray(conn, v, 0);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),

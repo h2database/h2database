@@ -9,3 +9,8 @@ jdk:
 before_script: cd h2
 
 script: ./build.sh jar testFast
+
+cache:
+  directories:
+    - $HOME/.m2/repository
+

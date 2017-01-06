@@ -721,7 +721,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private IndexHints getIndexHints(Session session, TableFilter[] filters, int filter) {
         IndexHints indexHints = filters == null
-                ? IndexHints.NONE
+                ? IndexHints.createNoHints()
                 : filters[filter].getIndexHints();
         // check all index names in hints are valid indexes
         for (String indexName : indexHints.getUseIndexList()) {

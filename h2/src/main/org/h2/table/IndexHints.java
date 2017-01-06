@@ -26,8 +26,6 @@ import java.util.Set;
  **/
 public final class IndexHints {
 
-    public static final IndexHints NONE = new IndexHints();
-
     private final boolean useOnlySpecifiedIndexes;
     private final Set<String> useIndexList;
 
@@ -38,6 +36,10 @@ public final class IndexHints {
     private IndexHints(boolean useOnlySpecifiedIndexes, Set<String> useIndexList) {
         this.useOnlySpecifiedIndexes = useOnlySpecifiedIndexes;
         this.useIndexList = useIndexList;
+    }
+
+    public static IndexHints createNoHints() {
+        return new IndexHints();
     }
 
     public static IndexHints createUseIndexHints(Set<String> useIndexList) {

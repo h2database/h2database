@@ -46,7 +46,8 @@ public class TestIndexHints extends TestBase {
     private void testWithSingleIndexName() throws SQLException {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("explain analyze select * from test use index(idx2) where x=1 and y=1");
+        ResultSet rs = stat.executeQuery("explain analyze select * " +
+                "from test use index(idx2) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX2:"));
@@ -56,7 +57,8 @@ public class TestIndexHints extends TestBase {
     private void testWithTableAlias() throws SQLException {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("explain analyze select * from test t use index(idx2) where x=1 and y=1");
+        ResultSet rs = stat.executeQuery("explain analyze select * " +
+                "from test t use index(idx2) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX2:"));
@@ -66,7 +68,8 @@ public class TestIndexHints extends TestBase {
     private void testWithMultipleIndexNames() throws SQLException {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("explain analyze select * from test use index(idx1, idx2) where x=1 and y=1");
+        ResultSet rs = stat.executeQuery("explain analyze select * " +
+                "from test use index(idx1, idx2) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX2:"));
@@ -76,7 +79,8 @@ public class TestIndexHints extends TestBase {
     private void testWithEmptyIndexHintsList() throws SQLException {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("explain analyze select * from test use index () where x=1 and y=1");
+        ResultSet rs = stat.executeQuery("explain analyze select * " +
+                "from test use index () where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.TEST.tableScan"));
@@ -87,8 +91,10 @@ public class TestIndexHints extends TestBase {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         try {
-            stat.executeQuery("explain analyze select * from test use index(idx_doesnt_exist) where x=1 and y=1");
-            fail("Expected exception: " + "Index \"IDX_DOESNT_EXIST\" not found");
+            stat.executeQuery("explain analyze select * " +
+                    "from test use index(idx_doesnt_exist) where x=1 and y=1");
+            fail("Expected exception: "
+                    + "Index \"IDX_DOESNT_EXIST\" not found");
         } catch (SQLException e) {
             assert(e.getErrorCode() == 1);
         } finally {

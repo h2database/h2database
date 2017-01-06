@@ -129,7 +129,7 @@ public class TableFilter implements ColumnResolver {
      * @param indexHints the index hints to be used by the query planner
      */
     public TableFilter(Session session, Table table, String alias,
-                       boolean rightsChecked, Select select, int orderInFrom, IndexHints indexHints) {
+            boolean rightsChecked, Select select, int orderInFrom, IndexHints indexHints) {
         this.session = session;
         this.table = table;
         this.alias = alias;

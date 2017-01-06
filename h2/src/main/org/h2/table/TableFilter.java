@@ -55,7 +55,7 @@ public class TableFilter implements ColumnResolver {
     private final Select select;
     private String alias;
     private Index index;
-    private IndexHints indexHints;
+    private final IndexHints indexHints;
     private int[] masks;
     private int scanCount;
     private boolean evaluatable;
@@ -1193,6 +1193,10 @@ public class TableFilter implements ColumnResolver {
 
     public Session getSession() {
         return session;
+    }
+
+    public IndexHints getIndexHints() {
+        return indexHints;
     }
 
     /**

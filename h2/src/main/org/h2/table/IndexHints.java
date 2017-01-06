@@ -1,7 +1,9 @@
 package org.h2.table;
 
+import org.h2.index.Index;
+
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Contains the hints for which index to use for a specific table. Currently allows no hints to be specified, or
@@ -19,26 +21,22 @@ public final class IndexHints {
     public static final IndexHints NONE = new IndexHints();
 
     private final boolean useOnlySpecifiedIndexes;
-    private final List<String> useIndexList;
+    private final Set<String> useIndexList;
 
     private IndexHints() {
-        this(false, Collections.<String>emptyList());
+        this(false, Collections.<String>emptySet());
     }
 
-    private IndexHints(boolean useOnlySpecifiedIndexes, List<String> useIndexList) {
+    private IndexHints(boolean useOnlySpecifiedIndexes, Set<String> useIndexList) {
         this.useOnlySpecifiedIndexes = useOnlySpecifiedIndexes;
         this.useIndexList = useIndexList;
     }
 
-    public boolean isUseOnlySpecifiedIndexes() {
-        return useOnlySpecifiedIndexes;
-    }
-
-    public List<String> getUseIndexList() {
+    public Set<String> getUseIndexList() {
         return useIndexList;
     }
 
-    public static IndexHints createUseIndexHints(List<String> useIndexList) {
+    public static IndexHints createUseIndexHints(Set<String> useIndexList) {
         return new IndexHints(true, useIndexList);
     }
 
@@ -48,5 +46,9 @@ public final class IndexHints {
                 "useOnlySpecifiedIndexes=" + useOnlySpecifiedIndexes +
                 ", useIndexList=" + useIndexList +
                 '}';
+    }
+
+    public boolean allowIndex(Index index) {
+        return !useOnlySpecifiedIndexes || useIndexList.contains(index.getName());
     }
 }

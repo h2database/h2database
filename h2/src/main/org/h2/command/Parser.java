@@ -1262,7 +1262,6 @@ public class Parser {
             alias = readFromAlias(alias);
         }
         IndexHints indexHints = parseIndexHints();
-        System.out.println("indexHints = " + indexHints);
         return new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
     }
@@ -1276,11 +1275,13 @@ public class Parser {
         read("INDEX");
         read("(");
 
-        ArrayList<String> indexNameList = New.arrayList();
-        do {
-            indexNameList.add(readIdentifierWithSchema());
-        } while (readIf(","));
-        read(")");
+        HashSet<String> indexNameList = New.hashSet();
+        if (!readIf(")")) {
+            do {
+                indexNameList.add(readIdentifierWithSchema());
+            } while (readIf(","));
+            read(")");
+        }
 
         return IndexHints.createUseIndexHints(indexNameList);
     }

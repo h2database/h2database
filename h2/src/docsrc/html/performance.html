@@ -707,6 +707,14 @@ For queries of the form <code>SELECT * FROM TEST GROUP BY ID ORDER BY ID</code>,
 <code>/* group sorted */</code> to indicate there is no separate sorting required.
 </p>
 
+<h3>Index Hints</h3>
+<p>
+If you have determined that H2 is not using the optimal index for your query, you can use index hints to force
+H2 to use a specific index.
+</p>
+<pre>
+SELECT * FROM TEST USE INDEX (index_name) WHERE X=1
+</pre>
 <h2 id="storage_and_indexes">How Data is Stored and How Indexes Work</h2>
 <p>
 Internally, each row in a table is identified by a unique number, the row id.

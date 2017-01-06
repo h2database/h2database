@@ -6,15 +6,18 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Contains the hints for which index to use for a specific table. Currently allows no hints to be specified, or
- * a list of "use indexes" to be specified.
+ * Contains the hints for which index to use for a specific table. Currently
+ * allows no hints to be specified, or a list of "use indexes" to be specified.
  * <p>
- * Use IndexHints.NONE for the most common case of table having no index hints. This instance can be safely reused.
+ * Use IndexHints.NONE for the most common case of table having no index hints.
+ * This instance can be safely reused.
  * <p>
- * Use factory method IndexHints.createUseIndexHints(listOfIndexes) to limit the query planner to only use
- * specific indexes when determining which index to use for a table
+ * Use factory method IndexHints.createUseIndexHints(listOfIndexes) to limit
+ * the query planner to only use specific indexes when determining which index
+ * to use for a table
  * <p>
- * Currently handles "USE INDEX" syntax only, but allows adding of other syntax such as "IGNORE INDEX" and "FORCE INDEX".
+ * Currently handles "USE INDEX" syntax only, but allows adding of other
+ * syntax such as "IGNORE INDEX" and "FORCE INDEX".
  **/
 public final class IndexHints {
 
@@ -32,12 +35,12 @@ public final class IndexHints {
         this.useIndexList = useIndexList;
     }
 
-    public Set<String> getUseIndexList() {
-        return useIndexList;
-    }
-
     public static IndexHints createUseIndexHints(Set<String> useIndexList) {
         return new IndexHints(true, useIndexList);
+    }
+
+    public Set<String> getUseIndexList() {
+        return useIndexList;
     }
 
     @Override

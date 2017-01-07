@@ -32,6 +32,7 @@ public class TestIndexHints extends TestBase {
         testWithInvalidIndexName();
         testWithMultipleIndexNames();
         testWithTableAlias();
+        testWithTableAliasCalledUse();
         deleteDb("indexhints");
     }
 
@@ -62,6 +63,16 @@ public class TestIndexHints extends TestBase {
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX2:"));
+        conn.close();
+    }
+
+    private void testWithTableAliasCalledUse() throws SQLException {
+        // make sure that while adding new syntax for table hints, code
+        // that uses "USE" as a table alias still works
+        Connection conn = getConnection("indexhints");
+        Statement stat = conn.createStatement();
+        stat.executeQuery("explain analyze select * " +
+                "from test use where use.x=1 and use.y=1");
         conn.close();
     }
 

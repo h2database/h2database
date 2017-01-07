@@ -1258,21 +1258,30 @@ public class Parser {
                 table = readTableOrView(tableName);
             }
         }
-        if (!isToken("USE")) {
+        IndexHints indexHints = null;
+        // for backward compatibility, handle case where USE is a table alias
+        if (readIf("USE")) {
+            if (readIf("INDEX")) {
+                indexHints = parseUseIndexList();
+            } else {
+                alias = "USE";
+            }
+        } else {
             alias = readFromAlias(alias);
+            if (alias != null) {
+                // if alias present, a second chance to parse index hints
+                if (readIf("USE")) {
+                    read("INDEX");
+                    indexHints = parseUseIndexList();
+                }
+            }
         }
-        IndexHints indexHints = parseIndexHints();
         return new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
     }
 
 
-    private IndexHints parseIndexHints() {
-        if (!readIf("USE")) {
-            return null;
-        }
-
-        read("INDEX");
+    private IndexHints parseUseIndexList() {
         read("(");
 
         HashSet<String> indexNameList = New.hashSet();

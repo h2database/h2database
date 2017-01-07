@@ -25,7 +25,6 @@ import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.IndexHints;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
@@ -187,7 +186,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             int id = getObjectId();
             String name = generateConstraintName(table);
             ConstraintCheck check = new ConstraintCheck(getSchema(), id, name, table);
-            TableFilter filter = new TableFilter(session, table, null, false, null, 0, IndexHints.createNoHints());
+            TableFilter filter = new TableFilter(session, table, null, false, null, 0, null);
             checkExpression.mapColumns(filter, 0);
             checkExpression = checkExpression.optimize(session);
             check.setExpression(checkExpression);

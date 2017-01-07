@@ -699,8 +699,7 @@ public abstract class Table extends SchemaObjectBase {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
 
-                if (!indexHints.allowIndex(index)) {
-                    // index is not in USE INDEX list
+                if (isIndexExcludedByHints(indexHints, index)) {
                     continue;
                 }
 
@@ -719,10 +718,19 @@ public abstract class Table extends SchemaObjectBase {
         return item;
     }
 
+    private boolean isIndexExcludedByHints(IndexHints indexHints, Index index) {
+        return indexHints != null && !indexHints.allowIndex(index);
+    }
+
     private IndexHints getIndexHints(Session session, TableFilter[] filters, int filter) {
-        IndexHints indexHints = filters == null
-                ? IndexHints.createNoHints()
-                : filters[filter].getIndexHints();
+        if (filters == null) {
+            return null;
+        }
+
+        IndexHints indexHints = filters[filter].getIndexHints();
+        if (indexHints == null) {
+            return null;
+        }
         // check all index names in hints are valid indexes
         for (String indexName : indexHints.getUseIndexList()) {
             Index index = getSchema().findIndex(session, indexName);

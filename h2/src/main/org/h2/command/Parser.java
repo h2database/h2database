@@ -796,7 +796,7 @@ public class Parser {
             }
         }
         return new TableFilter(session, table, alias, rightsChecked,
-                currentSelect, orderInFrom, IndexHints.createNoHints());
+                currentSelect, orderInFrom, null);
     }
 
     private Delete parseDelete() {
@@ -1269,7 +1269,7 @@ public class Parser {
 
     private IndexHints parseIndexHints() {
         if (!readIf("USE")) {
-            return IndexHints.createNoHints();
+            return null;
         }
 
         read("INDEX");
@@ -1658,7 +1658,7 @@ public class Parser {
         String joinTable = Constants.PREFIX_JOIN + parseIndex;
         TableFilter top = new TableFilter(session, getDualTable(true),
                 joinTable, rightsChecked, currentSelect, n.getOrderInFrom(),
-                IndexHints.createNoHints());
+                null);
         top.addJoin(n, false, true, null);
         return top;
     }
@@ -2065,7 +2065,7 @@ public class Parser {
                 Table dual = getDualTable(false);
                 TableFilter filter = new TableFilter(session, dual, null,
                         rightsChecked, currentSelect, 0,
-                        IndexHints.createNoHints());
+                        null);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);
@@ -4513,7 +4513,7 @@ public class Parser {
         Table table = new FunctionTable(mainSchema, session, tf, tf);
         TableFilter filter = new TableFilter(session, table, null,
                 rightsChecked, currentSelect, orderInFrom,
-                IndexHints.createNoHints());
+                null);
         return filter;
     }
 

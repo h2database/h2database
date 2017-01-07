@@ -406,7 +406,7 @@ public class Column {
     public void prepareExpression(Session session) {
         if (defaultExpression != null) {
             computeTableFilter = new TableFilter(session, table, null, false, null, 0,
-                    IndexHints.createNoHints());
+                    null);
             defaultExpression.mapColumns(computeTableFilter, 0);
             defaultExpression = defaultExpression.optimize(session);
         }

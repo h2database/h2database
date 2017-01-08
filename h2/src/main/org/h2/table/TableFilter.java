@@ -832,7 +832,7 @@ public class TableFilter implements ColumnResolver {
         if (indexHints != null) {
             buff.append(" USE INDEX (");
             boolean first = true;
-            for (String index : indexHints.getIndexList()) {
+            for (String index : indexHints.getAllowedIndexes()) {
                 if (!first) {
                     buff.append(", ");
                 } else {

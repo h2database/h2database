@@ -732,7 +732,7 @@ public abstract class Table extends SchemaObjectBase {
             return null;
         }
         // check all index names in hints are valid indexes
-        for (String indexName : indexHints.getIndexList()) {
+        for (String indexName : indexHints.getAllowedIndexes()) {
             Index index = getSchema().findIndex(session, indexName);
             if (index == null) {
                 throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);

@@ -7,6 +7,7 @@ package org.h2.table;
 
 import org.h2.index.Index;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -19,26 +20,26 @@ import java.util.Set;
  **/
 public final class IndexHints {
 
-    private final Set<String> indexList;
+    private final LinkedHashSet<String> allowedIndexes;
 
-    private IndexHints(Set<String> indexList) {
-        this.indexList = indexList;
+    private IndexHints(LinkedHashSet<String> allowedIndexes) {
+        this.allowedIndexes = allowedIndexes;
     }
 
-    public static IndexHints createUseIndexHints(Set<String> indexList) {
-        return new IndexHints(indexList);
+    public static IndexHints createUseIndexHints(LinkedHashSet<String> allowedIndexes) {
+        return new IndexHints(allowedIndexes);
     }
 
-    public Set<String> getIndexList() {
-        return indexList;
+    public Set<String> getAllowedIndexes() {
+        return allowedIndexes;
     }
 
     @Override
     public String toString() {
-        return "IndexHints{indexList=" + indexList + '}';
+        return "IndexHints{allowedIndexes=" + allowedIndexes + '}';
     }
 
     public boolean allowIndex(Index index) {
-        return indexList.contains(index.getName());
+        return allowedIndexes.contains(index.getName());
     }
 }

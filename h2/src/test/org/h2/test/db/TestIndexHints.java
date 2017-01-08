@@ -48,10 +48,10 @@ public class TestIndexHints extends TestBase {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain analyze select * " +
-                "from test use index(idx2) where x=1 and y=1");
+                "from test use index(idx1) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
-        assertTrue(result.contains("/* PUBLIC.IDX2:"));
+        assertTrue(result.contains("/* PUBLIC.IDX1:"));
         conn.close();
     }
 

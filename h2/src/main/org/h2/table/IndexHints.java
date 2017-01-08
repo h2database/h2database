@@ -16,36 +16,29 @@ import java.util.Set;
  * Use the factory method IndexHints.createUseIndexHints(listOfIndexes) to limit
  * the query planner to only use specific indexes when determining which index
  * to use for a table
- * <p>
- * Currently supports "USE INDEX" syntax.
  **/
 public final class IndexHints {
 
-    private final boolean useOnlySpecifiedIndexes;
-    private final Set<String> useIndexList;
+    private final Set<String> indexList;
 
-    private IndexHints(boolean useOnlySpecifiedIndexes, Set<String> useIndexList) {
-        this.useOnlySpecifiedIndexes = useOnlySpecifiedIndexes;
-        this.useIndexList = useIndexList;
+    private IndexHints(Set<String> indexList) {
+        this.indexList = indexList;
     }
 
-    public static IndexHints createUseIndexHints(Set<String> useIndexList) {
-        return new IndexHints(true, useIndexList);
+    public static IndexHints createUseIndexHints(Set<String> indexList) {
+        return new IndexHints(indexList);
     }
 
-    public Set<String> getUseIndexList() {
-        return useIndexList;
+    public Set<String> getIndexList() {
+        return indexList;
     }
 
     @Override
     public String toString() {
-        return "IndexHints{" +
-                "useOnlySpecifiedIndexes=" + useOnlySpecifiedIndexes +
-                ", useIndexList=" + useIndexList +
-                '}';
+        return "IndexHints{indexList=" + indexList + '}';
     }
 
     public boolean allowIndex(Index index) {
-        return !useOnlySpecifiedIndexes || useIndexList.contains(index.getName());
+        return indexList.contains(index.getName());
     }
 }

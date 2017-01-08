@@ -829,6 +829,19 @@ public class TableFilter implements ColumnResolver {
         if (alias != null) {
             buff.append(' ').append(Parser.quoteIdentifier(alias));
         }
+        if (indexHints != null) {
+            buff.append(" USE INDEX (");
+            boolean first = true;
+            for (String index : indexHints.getIndexList()) {
+                if (!first) {
+                    buff.append(", ");
+                } else {
+                    first = false;
+                }
+                buff.append(index);
+            }
+            buff.append(")");
+        }
         if (index != null) {
             buff.append('\n');
             StatementBuilder planBuff = new StatementBuilder();

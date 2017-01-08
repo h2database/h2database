@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -1284,15 +1285,15 @@ public class Parser {
     private IndexHints parseUseIndexList() {
         read("(");
 
-        HashSet<String> indexNameList = New.hashSet();
+        LinkedHashSet<String> indexNames = new LinkedHashSet<>();
         if (!readIf(")")) {
             do {
-                indexNameList.add(readIdentifierWithSchema());
+                indexNames.add(readIdentifierWithSchema());
             } while (readIf(","));
             read(")");
         }
 
-        return IndexHints.createUseIndexHints(indexNameList);
+        return IndexHints.createUseIndexHints(indexNames);
     }
 
     private String readFromAlias(String alias) {

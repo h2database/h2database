@@ -7,7 +7,10 @@ package org.h2.test.db;
 
 import org.h2.test.TestBase;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Tests the index hints feature of this database.
@@ -90,12 +93,16 @@ public class TestIndexHints extends TestBase {
 
     private void testPlanSqlHasIndexesInCorrectOrder() throws SQLException {
         Connection conn = getConnection("indexhints");
-        Statement stat = conn.createStatement();
-        ResultSet rs = stat.executeQuery("explain analyze select * " +
+        ResultSet rs = conn.createStatement().executeQuery("explain analyze select * " +
                 "from test use index(idx1, idx2) where x=1 and y=1");
         rs.next();
-        String result = rs.getString(1);
-        assertTrue(result.contains("USE INDEX (IDX1, IDX2)"));
+        assertTrue(rs.getString(1).contains("USE INDEX (IDX1, IDX2)"));
+
+        ResultSet rs2 = conn.createStatement().executeQuery("explain analyze select * " +
+                "from test use index(idx2, idx1) where x=1 and y=1");
+        rs2.next();
+        assertTrue(rs2.getString(1).contains("USE INDEX (IDX2, IDX1)"));
+
         conn.close();
     }
 

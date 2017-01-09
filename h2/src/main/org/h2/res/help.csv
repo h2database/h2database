@@ -705,6 +705,7 @@ factor [ { { + | - } factor } [...] ]
 A value or a numeric sum."
 "Other Grammar","Table Expression","
 { [ schemaName. ] tableName | ( select ) | valuesExpression } [ [ AS ] newTableAlias ]
+[ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ ON expression ] ]
 ","

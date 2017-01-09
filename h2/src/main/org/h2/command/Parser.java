@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -128,6 +129,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
+import org.h2.table.IndexHints;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -795,7 +797,7 @@ public class Parser {
             }
         }
         return new TableFilter(session, table, alias, rightsChecked,
-                currentSelect, orderInFrom);
+                currentSelect, orderInFrom, null);
     }
 
     private Delete parseDelete() {
@@ -1257,9 +1259,41 @@ public class Parser {
                 table = readTableOrView(tableName);
             }
         }
-        alias = readFromAlias(alias);
+        IndexHints indexHints = null;
+        // for backward compatibility, handle case where USE is a table alias
+        if (readIf("USE")) {
+            if (readIf("INDEX")) {
+                indexHints = parseUseIndexList();
+            } else {
+                alias = "USE";
+            }
+        } else {
+            alias = readFromAlias(alias);
+            if (alias != null) {
+                // if alias present, a second chance to parse index hints
+                if (readIf("USE")) {
+                    read("INDEX");
+                    indexHints = parseUseIndexList();
+                }
+            }
+        }
         return new TableFilter(session, table, alias, rightsChecked,
-                currentSelect, orderInFrom++);
+                currentSelect, orderInFrom++, indexHints);
+    }
+
+
+    private IndexHints parseUseIndexList() {
+        read("(");
+
+        LinkedHashSet<String> indexNames = new LinkedHashSet<>();
+        if (!readIf(")")) {
+            do {
+                indexNames.add(readIdentifierWithSchema());
+            } while (readIf(","));
+            read(")");
+        }
+
+        return IndexHints.createUseIndexHints(indexNames);
     }
 
     private String readFromAlias(String alias) {
@@ -1633,7 +1667,8 @@ public class Parser {
     private TableFilter getNested(TableFilter n) {
         String joinTable = Constants.PREFIX_JOIN + parseIndex;
         TableFilter top = new TableFilter(session, getDualTable(true),
-                joinTable, rightsChecked, currentSelect, n.getOrderInFrom());
+                joinTable, rightsChecked, currentSelect, n.getOrderInFrom(),
+                null);
         top.addJoin(n, false, true, null);
         return top;
     }
@@ -2039,7 +2074,8 @@ public class Parser {
                 // SYSTEM_RANGE(1,1)
                 Table dual = getDualTable(false);
                 TableFilter filter = new TableFilter(session, dual, null,
-                        rightsChecked, currentSelect, 0);
+                        rightsChecked, currentSelect, 0,
+                        null);
                 command.addTableFilter(filter, true);
             } else {
                 parseSelectSimpleFromPart(command);
@@ -3817,7 +3853,7 @@ public class Parser {
     /**
      * Checks if this string is a SQL keyword.
      *
-     * @param s the token to check
+     * @param s                  the token to check
      * @param supportOffsetFetch if OFFSET and FETCH are keywords
      * @return true if it is a keyword
      */
@@ -4486,7 +4522,8 @@ public class Parser {
         tf.doneWithParameters();
         Table table = new FunctionTable(mainSchema, session, tf, tf);
         TableFilter filter = new TableFilter(session, table, null,
-                rightsChecked, currentSelect, orderInFrom);
+                rightsChecked, currentSelect, orderInFrom,
+                null);
         return filter;
     }
 

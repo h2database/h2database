@@ -693,9 +693,16 @@ public abstract class Table extends SchemaObjectBase {
                     item.cost, item.getIndex().getPlanSQL());
         }
         ArrayList<Index> indexes = getIndexes();
+        IndexHints indexHints = getIndexHints(session, filters, filter);
+
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
+
+                if (isIndexExcludedByHints(indexHints, index)) {
+                    continue;
+                }
+
                 double cost = index.getCost(session, masks, filters, filter,
                         sortOrder, allColumnsSet);
                 if (t.isDebugEnabled()) {
@@ -709,6 +716,29 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         return item;
+    }
+
+    private boolean isIndexExcludedByHints(IndexHints indexHints, Index index) {
+        return indexHints != null && !indexHints.allowIndex(index);
+    }
+
+    private IndexHints getIndexHints(Session session, TableFilter[] filters, int filter) {
+        if (filters == null) {
+            return null;
+        }
+
+        IndexHints indexHints = filters[filter].getIndexHints();
+        if (indexHints == null) {
+            return null;
+        }
+        // check all index names in hints are valid indexes
+        for (String indexName : indexHints.getAllowedIndexes()) {
+            Index index = getSchema().findIndex(session, indexName);
+            if (index == null) {
+                throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
+            }
+        }
+        return indexHints;
     }
 
     /**

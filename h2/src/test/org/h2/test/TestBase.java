@@ -662,7 +662,9 @@ public abstract class TestBase {
     }
 
     /**
-     * Check if two values are equal, and if not throw an exception.
+     * Check if two arrays are equal, and if not throw an exception.
+     * If some of the elements in the arrays are themselves arrays this
+     * check is called recursively.
      *
      * @param expected the expected value
      * @param actual the actual value
@@ -679,6 +681,8 @@ public abstract class TestBase {
                 if (expected[i] != actual[i]) {
                     fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
                 }
+            } else if (expected[i] instanceof Object[] && actual[i] instanceof Object[]) {
+                assertEquals((Object[]) expected[i], (Object[]) actual[i]);
             } else if (!expected[i].equals(actual[i])) {
                 fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
             }

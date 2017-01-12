@@ -875,11 +875,29 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     }
 
     /**
-     * [Not supported] Sets the value of a parameter as a Array.
+     * Sets the value of a parameter as an Array.
+     *
+     * @param parameterIndex the parameter index (1, 2, ...)
+     * @param x the value
+     * @throws SQLException if this object is closed
      */
     @Override
     public void setArray(int parameterIndex, Array x) throws SQLException {
-        throw unsupported("setArray");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setArray("+parameterIndex+", x);");
+            }
+            checkClosed();
+            Value v;
+            if (x == null) {
+                v = ValueNull.INSTANCE;
+            } else {
+                v = DataType.convertToValue(session, x.getArray(), Value.ARRAY);
+            }
+            setParameter(parameterIndex, v);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

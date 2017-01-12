@@ -47,6 +47,7 @@ public class TestDeadlock extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("deadlock");
+        testTemporaryTablesAndMetaDataLocking();
         testDeadlockInFulltextSearch();
         testConcurrentLobReadAndTempResultTableDelete();
         testDiningPhilosophers();
@@ -395,6 +396,18 @@ public class TestDeadlock extends TestBase {
             // we have two exception, but there should only be one
             throw new SQLException("Expected one exception, got multiple", e2);
         }
+    }
+
+    // there was a bug in the meta data locking here
+    private void testTemporaryTablesAndMetaDataLocking() throws Exception {
+        deleteDb("deadlock");
+        Connection conn = getConnection("deadlock");
+        Statement stmt = conn.createStatement();
+        conn.setAutoCommit(false);
+        stmt.execute("CREATE SEQUENCE IF NOT EXISTS SEQ1 START WITH 1000000");
+        stmt.execute("CREATE FORCE VIEW V1 AS WITH RECURSIVE TEMP(X) AS (SELECT x FROM DUAL) SELECT * FROM TEMP");
+        stmt.executeQuery("SELECT SEQ1.NEXTVAL");
+        conn.close();
     }
 
 }

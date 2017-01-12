@@ -918,6 +918,7 @@ public class Database implements DataHandler {
      */
     public void unlockMeta(Session session) {
         meta.unlock(session);
+        session.unlock(meta);
     }
 
     /**

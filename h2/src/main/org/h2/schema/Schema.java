@@ -28,6 +28,7 @@ import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * A schema as created by the SQL statement
@@ -359,7 +360,7 @@ public class Schema extends DbObjectBase {
 
     private String getUniqueName(DbObject obj,
             Map<String, ? extends SchemaObject> map, String prefix) {
-        String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
+        String hash = StringUtils.toUpperEnglish(Integer.toHexString(obj.getName().hashCode()));
         String name = null;
         synchronized (temporaryUniqueNames) {
             for (int i = 1, len = hash.length(); i < len; i++) {

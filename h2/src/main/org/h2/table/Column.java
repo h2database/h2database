@@ -383,7 +383,7 @@ public class Column {
         while (true) {
             ValueUuid uuid = ValueUuid.getNewRandom();
             String s = uuid.getString();
-            s = s.replace('-', '_').toUpperCase();
+            s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
             if (schema.findSequence(sequenceName) == null) {
                 break;

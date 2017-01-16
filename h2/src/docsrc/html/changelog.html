@@ -21,6 +21,10 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #418, Implement Connection#createArrayOf and PreparedStatement#setArray
+</li>
+<li>PR #427, Add MySQL compatibility functions UNIX_TIMESTAMP, FROM_UNIXTIME and DATE
+</li>
 <li>#429: Tables not found : Fix some turkish locale bugs around uppercasing
 </li>
 <li>Fixed bug in metadata locking, obscure combination of DDL and SELECT SEQUENCE.NEXTVAL required
@@ -59,6 +63,8 @@ Change Log
 
 <h2>Version 1.4.193 Beta (2016-10-31)</h2>
 <ul>
+<li>PR #386: Add JSR-310 Support (introduces JTS dependency fixed in 1.4.194)
+</li>
 <li>WARNING: THE MERGE BELOW WILL AFFECT ANY 'TIMESTAMP WITH TIMEZONE' INDEXES. You will need to drop and recreate any such indexes.
 </li>
 <li>PR #364: fix compare TIMESTAMP WITH TIMEZONE

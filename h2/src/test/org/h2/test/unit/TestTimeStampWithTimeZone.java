@@ -41,7 +41,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
     private void test1() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, t1 timestamp with timezone)");
+        stat.execute("create table test(id identity, t1 timestamp with time zone)");
         stat.execute("insert into test(t1) values('1970-01-01 12:00:00.00+00:15')");
         // verify NanosSinceMidnight is in local time and not UTC
         stat.execute("insert into test(t1) values('2016-09-24 00:00:00.000000001+00:01')");
@@ -131,7 +131,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
     private void testOrder() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
-        stat.execute("create table test_order(id identity, t1 timestamp with timezone)");
+        stat.execute("create table test_order(id identity, t1 timestamp with time zone)");
         stat.execute("insert into test_order(t1) values('1970-01-01 12:00:00.00+00:15')");
         stat.execute("insert into test_order(t1) values('1970-01-01 12:00:01.00+01:15')");
         ResultSet rs = stat.executeQuery("select t1 from test_order order by t1");

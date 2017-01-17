@@ -318,7 +318,7 @@ public class DataType {
         add(Value.TIMESTAMP_TZ, Types.OTHER, "TimestampTimeZone",
                 createDate(ValueTimestampTimeZone.PRECISION, "TIMESTAMP_TZ",
                         ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.DISPLAY_SIZE),
-                new String[]{"TIMESTAMP WITH TIMEZONE"},
+                new String[]{"TIMESTAMP WITH TIME ZONE"},
                 // 26 for ValueTimestampUtc, 32 for java.sql.Timestamp
                 58
         );

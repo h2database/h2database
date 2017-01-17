@@ -10271,7 +10271,7 @@ H2 コンソール アプリケーション
 #MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL) 
 
 @roadmap_1272_li
-#Support a data type "timestamp with timezone" using java.util.Calendar. 
+#Support a data type "timestamp with time zone" using java.util.Calendar. 
 
 @roadmap_1273_li
 #Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62 

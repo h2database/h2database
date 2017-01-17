@@ -2335,17 +2335,17 @@ Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
 TIMESTAMP
 "
 
-"Data Types","TIMESTAMP WITH TIMEZONE Type","
-TIMESTAMP WITH TIMEZONE
+"Data Types","TIMESTAMP WITH TIME ZONE Type","
+TIMESTAMP WITH TIME ZONE
 ","
 VERY MUCH STILL IN TESTING.
-The timestamp with timezone data type.
+The timestamp with time zone data type.
 Stored internally as a BCD-encoded date, nano-seconds since midnight, and timezone offset in minutes.
 Note that range queries on this datatype may do some weird stuff close to DST boundaries.
 
 Mapped to ""org.h2.api.TimestampWithTimeZone""
 ","
-TIMESTAMP WITH TIMEZONE
+TIMESTAMP WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","

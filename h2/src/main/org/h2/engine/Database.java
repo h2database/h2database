@@ -713,8 +713,8 @@ public class Database implements DataHandler {
             }
         }
         systemUser = new User(this, 0, SYSTEM_USER_NAME, true);
-        mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true);
-        infoSchema = new Schema(this, -1, "INFORMATION_SCHEMA", systemUser, true);
+        mainSchema = new Schema(this, 0, Constants.SCHEMA_MAIN, systemUser, true, null);
+        infoSchema = new Schema(this, -1, "INFORMATION_SCHEMA", systemUser, true, null);
         schemas.put(mainSchema.getName(), mainSchema);
         schemas.put(infoSchema.getName(), infoSchema);
         publicRole = new Role(this, 0, Constants.PUBLIC_ROLE_NAME, true);

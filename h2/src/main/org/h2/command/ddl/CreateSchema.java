@@ -5,6 +5,7 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
@@ -22,6 +23,7 @@ public class CreateSchema extends DefineCommand {
     private String schemaName;
     private String authorization;
     private boolean ifNotExists;
+    private ArrayList<String> tableEngineParams;
 
     public CreateSchema(Session session) {
         super(session);
@@ -48,7 +50,7 @@ public class CreateSchema extends DefineCommand {
             throw DbException.get(ErrorCode.SCHEMA_ALREADY_EXISTS_1, schemaName);
         }
         int id = getObjectId();
-        Schema schema = new Schema(db, id, schemaName, user, false);
+        Schema schema = new Schema(db, id, schemaName, user, false, tableEngineParams);
         db.addDatabaseObject(session, schema);
         return 0;
     }
@@ -59,6 +61,10 @@ public class CreateSchema extends DefineCommand {
 
     public void setAuthorization(String userName) {
         this.authorization = userName;
+    }
+
+    public void setTableEngineParams(ArrayList<String> tableEngineParams) {
+        this.tableEngineParams = tableEngineParams;
     }
 
     @Override

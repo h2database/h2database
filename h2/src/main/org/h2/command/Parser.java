@@ -4558,6 +4558,13 @@ public class Parser {
         } else {
             command.setAuthorization(session.getUser().getName());
         }
+        if (readIf("WITH")) {
+            ArrayList<String> tableEngineParams = New.arrayList();
+            do {
+                tableEngineParams.add(readUniqueIdentifier());
+            } while (readIf(","));
+            command.setTableEngineParams(tableEngineParams);
+        }
         return command;
     }
 

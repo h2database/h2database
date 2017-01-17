@@ -38,6 +38,7 @@ public class Schema extends DbObjectBase {
 
     private User owner;
     private final boolean system;
+    private final ArrayList<String> tableEngineParams;
 
     private final ConcurrentHashMap<String, Table> tablesAndViews;
     private final ConcurrentHashMap<String, Index> indexes;
@@ -63,9 +64,10 @@ public class Schema extends DbObjectBase {
      * @param owner the owner of the schema
      * @param system if this is a system schema (such a schema can not be
      *            dropped)
+     * @param tableEngineParams Table engine params to use when none are present in CREATE TABLE.
      */
     public Schema(Database database, int id, String schemaName, User owner,
-            boolean system) {
+            boolean system, ArrayList<String> tableEngineParams) {
         tablesAndViews = database.newConcurrentStringMap();
         indexes = database.newConcurrentStringMap();
         sequences = database.newConcurrentStringMap();
@@ -76,6 +78,7 @@ public class Schema extends DbObjectBase {
         initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
+        this.tableEngineParams = tableEngineParams;
     }
 
     /**
@@ -174,6 +177,15 @@ public class Schema extends DbObjectBase {
      */
     public User getOwner() {
         return owner;
+    }
+
+    /**
+     * Get table engine params of this schema.
+     *
+     * @return default table engine params
+     */
+    public ArrayList<String> getTableEngineParams() {
+        return tableEngineParams;
     }
 
     @SuppressWarnings("unchecked")
@@ -588,6 +600,9 @@ public class Schema extends DbObjectBase {
                 }
             }
             if (data.tableEngine != null) {
+                if (data.tableEngineParams == null)
+                    data.tableEngineParams = this.tableEngineParams;
+
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);

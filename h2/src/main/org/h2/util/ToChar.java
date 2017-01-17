@@ -937,10 +937,10 @@ public class ToChar {
             case UPPERCASE:
                 return StringUtils.toUpperEnglish(s);
             case LOWERCASE:
-                return s.toLowerCase();
+                return StringUtils.toLowerEnglish(s);
             case CAPITALIZE:
                 return Character.toUpperCase(s.charAt(0)) +
-                        (s.length() > 1 ? s.toLowerCase().substring(1) : "");
+                        (s.length() > 1 ? StringUtils.toLowerEnglish(s).substring(1) : "");
             default:
                 throw new IllegalArgumentException(
                         "Unknown capitalization strategy: " + this);

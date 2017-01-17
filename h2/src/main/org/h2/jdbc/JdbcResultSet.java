@@ -1184,7 +1184,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             int id = getNextId(TraceObject.ARRAY);
             if (isDebugEnabled()) {
-                debugCodeAssign("Clob", TraceObject.ARRAY, id, "getArray(" + columnIndex + ")");
+                debugCodeAssign("Array", TraceObject.ARRAY, id, "getArray(" + columnIndex + ")");
             }
             Value v = get(columnIndex);
             return v == ValueNull.INSTANCE ? null : new JdbcArray(conn, v, id);
@@ -1206,7 +1206,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             int id = getNextId(TraceObject.ARRAY);
             if (isDebugEnabled()) {
-                debugCodeAssign("Clob", TraceObject.ARRAY, id, "getArray(" +
+                debugCodeAssign("Array", TraceObject.ARRAY, id, "getArray(" +
                                 quote(columnLabel) + ")");
             }
             Value v = get(columnLabel);

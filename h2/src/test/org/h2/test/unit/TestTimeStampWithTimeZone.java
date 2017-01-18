@@ -7,6 +7,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.TimestampWithTimeZone;
@@ -102,6 +103,15 @@ public class TestTimeStampWithTimeZone extends TestBase {
             assertEquals("2015-12-31T19:00-10:00", rs.getObject(1,
                             LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
         }
+
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columnType = metaData.getColumnType(1);
+        // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
+        // use the value instead of the reference because the code has to compile
+        // on Java 1.7
+        // can be replaced with Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required
+        assertEquals(2014, columnType);
+
         rs.close();
         stat.close();
         conn.close();

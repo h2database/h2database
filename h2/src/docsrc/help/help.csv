@@ -582,8 +582,8 @@ CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
 Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
 Specifying the owner currently has no effect.
-Optional table engine parameters are passed down in the tableEngineParams field
-of the CreateTableData object when CREATE TABLE does not have its engine params set.
+Optional table engine parameters are used when CREATE TABLE command
+is run on this schema without having its engine params set.
 
 This command commits an open transaction in this connection.
 ","

@@ -1683,6 +1683,15 @@ CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine" WITH "param1
 <p>
 In which case the parameters are passed down in the tableEngineParams field of the CreateTableData object.
 </p>
+<p>
+It is also possible to specify default table engine params on schema creation:
+</p>
+<pre>
+CREATE SCHEMA TEST_SCHEMA WITH "param1", "param2";
+</pre>
+<p>
+Params from the schema are used when CREATE TABLE issued on this schema does not have its own engine params specified.
+</p>
 
 <h2 id="triggers">Triggers</h2>
 <p>

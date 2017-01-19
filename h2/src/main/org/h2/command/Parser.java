@@ -6135,10 +6135,10 @@ public class Parser {
                 }
             } else {
                 command.setTableEngine(readUniqueIdentifier());
-                if (readIf("WITH")) {
-                    command.setTableEngineParams(readTableEngineParams());
-                }
             }
+        }
+        if (readIf("WITH")) {
+            command.setTableEngineParams(readTableEngineParams());
         }
         // MySQL compatibility
         if (readIf("AUTO_INCREMENT")) {

@@ -399,11 +399,13 @@ class FileNioMemData {
 
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
-    private static final CompressLZF LZF = new CompressLZF();
-    private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private static final CompressLaterCache<CompressItem, CompressItem> COMPRESS_LATER =
+    private final CompressLZF LZF = new CompressLZF();
+    /** the output buffer when compressing */
+    private final byte[] compressOutputBuffer = new byte[BLOCK_SIZE * 2];
+
+    private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
         new CompressLaterCache<CompressItem, CompressItem>(CACHE_SIZE);
 
     private String name;
@@ -417,10 +419,11 @@ class FileNioMemData {
     private int sharedLockCount;
 
     static {
-        byte[] n = new byte[BLOCK_SIZE];
-        int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
+        final byte[] n = new byte[BLOCK_SIZE];
+        final byte[] output = new byte[BLOCK_SIZE * 2];
+        int len = new CompressLZF().compress(n, BLOCK_SIZE, output, 0);
         COMPRESSED_EMPTY_BLOCK = ByteBuffer.allocateDirect(len);
-        COMPRESSED_EMPTY_BLOCK.put(BUFFER, 0, len);
+        COMPRESSED_EMPTY_BLOCK.put(output, 0, len);
     }
 
     FileNioMemData(String name, boolean compress) {
@@ -530,9 +533,7 @@ class FileNioMemData {
 
     private void addToCompressLaterCache(int page) {
         CompressItem c = new CompressItem(this, page);
-        synchronized (LZF) {
-            COMPRESS_LATER.put(c, c);
-        }
+        compressLaterCache.put(c, c);
     }
 
     private void expand(int page) {
@@ -548,10 +549,8 @@ class FileNioMemData {
         }
         ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
         if (d != COMPRESSED_EMPTY_BLOCK) {
-            synchronized (LZF) {
-                d.position(0);
-                CompressLZF.expand(d, out);
-            }
+            d.position(0);
+            CompressLZF.expand(d, out);
         }
         list[page] = out;
     }
@@ -568,12 +567,10 @@ class FileNioMemData {
             return;
         }
         ByteBuffer d = list[page];
-        synchronized (LZF) {
-            int len = LZF.compress(d, 0, BUFFER, 0);
-            d = ByteBuffer.allocateDirect(len);
-            d.put(BUFFER, 0, len);
-            list[page] = d;
-        }
+        int len = LZF.compress(d, 0, compressOutputBuffer, 0);
+        d = ByteBuffer.allocateDirect(len);
+        d.put(compressOutputBuffer, 0, len);
+        list[page] = d;
     }
 
     /**
@@ -602,7 +599,7 @@ class FileNioMemData {
      *
      * @param newLength the new length
      */
-    void truncate(long newLength) {
+    synchronized void truncate(long newLength) {
         changeLength(newLength);
         long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
         if (end != newLength) {
@@ -642,7 +639,7 @@ class FileNioMemData {
      * @param write true for writing
      * @return the new position
      */
-    long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
+    synchronized long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
         long end = pos + len;
         if (end > length) {
             if (write) {

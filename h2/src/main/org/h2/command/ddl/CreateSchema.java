@@ -50,7 +50,8 @@ public class CreateSchema extends DefineCommand {
             throw DbException.get(ErrorCode.SCHEMA_ALREADY_EXISTS_1, schemaName);
         }
         int id = getObjectId();
-        Schema schema = new Schema(db, id, schemaName, user, false, tableEngineParams);
+        Schema schema = new Schema(db, id, schemaName, user, false);
+        schema.setTableEngineParams(tableEngineParams);
         db.addDatabaseObject(session, schema);
         return 0;
     }

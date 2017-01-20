@@ -577,10 +577,13 @@ CREATE ROLE READONLY
 
 "Commands (DDL)","CREATE SCHEMA","
 CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
+[ WITH tableEngineParamName [,...] ]
 ","
 Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
 Specifying the owner currently has no effect.
+Optional table engine parameters are used when CREATE TABLE command
+is run on this schema without having its engine params set.
 
 This command commits an open transaction in this connection.
 ","

@@ -38,6 +38,7 @@ public class Schema extends DbObjectBase {
 
     private User owner;
     private final boolean system;
+    private ArrayList<String> tableEngineParams;
 
     private final ConcurrentHashMap<String, Table> tablesAndViews;
     private final ConcurrentHashMap<String, Index> indexes;
@@ -174,6 +175,23 @@ public class Schema extends DbObjectBase {
      */
     public User getOwner() {
         return owner;
+    }
+
+    /**
+     * Get table engine params of this schema.
+     *
+     * @return default table engine params
+     */
+    public ArrayList<String> getTableEngineParams() {
+        return tableEngineParams;
+    }
+
+    /**
+     * Set table engine params of this schema.
+     * @param tableEngineParams default table engine params
+     */
+    public void setTableEngineParams(ArrayList<String> tableEngineParams) {
+        this.tableEngineParams = tableEngineParams;
     }
 
     @SuppressWarnings("unchecked")
@@ -588,6 +606,9 @@ public class Schema extends DbObjectBase {
                 }
             }
             if (data.tableEngine != null) {
+                if (data.tableEngineParams == null)
+                    data.tableEngineParams = this.tableEngineParams;
+
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);

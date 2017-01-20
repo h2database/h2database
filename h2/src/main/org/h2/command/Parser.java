@@ -4560,7 +4560,18 @@ public class Parser {
         } else {
             command.setAuthorization(session.getUser().getName());
         }
+        if (readIf("WITH")) {
+            command.setTableEngineParams(readTableEngineParams());
+        }
         return command;
+    }
+
+    private ArrayList<String> readTableEngineParams() {
+        ArrayList<String> tableEngineParams = New.arrayList();
+        do {
+            tableEngineParams.add(readUniqueIdentifier());
+        } while (readIf(","));
+        return tableEngineParams;
     }
 
     private CreateSequence parseCreateSequence() {
@@ -6129,11 +6140,7 @@ public class Parser {
             }
         }
         if (readIf("WITH")) {
-            ArrayList<String> tableEngineParams = New.arrayList();
-            do {
-                tableEngineParams.add(readUniqueIdentifier());
-            } while (readIf(","));
-            command.setTableEngineParams(tableEngineParams);
+            command.setTableEngineParams(readTableEngineParams());
         }
         // MySQL compatibility
         if (readIf("AUTO_INCREMENT")) {

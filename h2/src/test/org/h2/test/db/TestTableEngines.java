@@ -78,6 +78,7 @@ public class TestTableEngines extends TestBase {
         testSubQueryInfo();
         testEarlyFilter();
         testEngineParams();
+        testSchemaEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
         testBatchedJoin();
@@ -130,6 +131,23 @@ public class TestTableEngines extends TestBase {
                     EndlessTableEngine.createTableData.tableEngineParams.get(1));
             conn.close();
         }
+        deleteDb("tableEngine");
+    }
+
+    private void testSchemaEngineParams() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SCHEMA s1 WITH \"param1\", \"param2\"");
+
+        stat.execute("CREATE TABLE s1.t1(id int, name varchar) ENGINE \"" + EndlessTableEngine.class.getName() + '\"');
+        assertEquals(2,
+            EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1",
+            EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2",
+            EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        conn.close();
         deleteDb("tableEngine");
     }
 

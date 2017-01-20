@@ -17,6 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
@@ -401,9 +403,19 @@ class FileNioMemData {
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private final CompressLZF LZF = new CompressLZF();
+    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL = new ThreadLocal<CompressLZF>() {
+        @Override
+        protected CompressLZF initialValue() {
+            return new CompressLZF();
+        }
+    };
     /** the output buffer when compressing */
-    private final byte[] compressOutputBuffer = new byte[BLOCK_SIZE * 2];
+    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL = new ThreadLocal<byte[] >() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[BLOCK_SIZE * 2];
+        }
+    };
 
     private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
         new CompressLaterCache<CompressItem, CompressItem>(CACHE_SIZE);
@@ -412,11 +424,12 @@ class FileNioMemData {
     private final int nameHashCode;
     private final boolean compress;
     private long length;
-    private ByteBuffer[] data;
+    private AtomicReference<ByteBuffer>[] buffers;
     private long lastModified;
     private boolean isReadOnly;
     private boolean isLockedExclusive;
     private int sharedLockCount;
+    private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     static {
         final byte[] n = new byte[BLOCK_SIZE];
@@ -426,11 +439,12 @@ class FileNioMemData {
         COMPRESSED_EMPTY_BLOCK.put(output, 0, len);
     }
 
+    @SuppressWarnings("unchecked")
     FileNioMemData(String name, boolean compress) {
         this.name = name;
         this.nameHashCode = name.hashCode();
         this.compress = compress;
-        data = new ByteBuffer[0];
+        buffers = new AtomicReference[0];
         lastModified = System.currentTimeMillis();
     }
 
@@ -490,7 +504,7 @@ class FileNioMemData {
                 return false;
             }
             CompressItem c = (CompressItem) eldest.getKey();
-            c.data.compress(c.page);
+            c.data.compressPage(c.page);
             return true;
         }
     }
@@ -536,23 +550,25 @@ class FileNioMemData {
         compressLaterCache.put(c, c);
     }
 
-    private void expand(int page) {
-        ByteBuffer[] list = data;
-        if (page >= list.length) {
-            // was truncated
-            return;
-        }
-        ByteBuffer d = list[page];
+    private ByteBuffer expandPage(int page) {
+        final ByteBuffer d = buffers[page].get();
         if (d.capacity() == BLOCK_SIZE) {
             // already expanded, or not compressed
-            return;
+            return d;
         }
-        ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
-        if (d != COMPRESSED_EMPTY_BLOCK) {
-            d.position(0);
-            CompressLZF.expand(d, out);
+        synchronized (d)
+        {
+            if (d.capacity() == BLOCK_SIZE) {
+                return d;
+            }
+            ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
+            if (d != COMPRESSED_EMPTY_BLOCK) {
+                d.position(0);
+                CompressLZF.expand(d, out);
+            }
+            buffers[page].compareAndSet(d, out);
+            return out;
         }
-        list[page] = out;
     }
 
     /**
@@ -560,17 +576,19 @@ class FileNioMemData {
      *
      * @param page which page to compress
      */
-    void compress(int page) {
-        ByteBuffer[] list = data;
-        if (page >= list.length) {
-            // was truncated
-            return;
+    void compressPage(int page) {
+        final ByteBuffer d = buffers[page].get();
+        synchronized (d)
+        {
+            if (d.capacity() != BLOCK_SIZE) {
+                return; // already compressed
+            }
+            final byte[] compressOutputBuffer = COMPRESS_OUT_BUF_THREAD_LOCAL.get();
+            int len = LZF_THREAD_LOCAL.get().compress(d, 0, compressOutputBuffer, 0);
+            ByteBuffer out = ByteBuffer.allocateDirect(len);
+            out.put(compressOutputBuffer, 0, len);
+            buffers[page].compareAndSet(d, out);
         }
-        ByteBuffer d = list[page];
-        int len = LZF.compress(d, 0, compressOutputBuffer, 0);
-        d = ByteBuffer.allocateDirect(len);
-        d.put(compressOutputBuffer, 0, len);
-        list[page] = d;
     }
 
     /**
@@ -599,33 +617,38 @@ class FileNioMemData {
      *
      * @param newLength the new length
      */
-    synchronized void truncate(long newLength) {
-        changeLength(newLength);
-        long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
-        if (end != newLength) {
-            int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
-            expand(lastPage);
-            ByteBuffer d = data[lastPage];
-            for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
-                d.put(i, (byte) 0);
+    void truncate(long newLength) {
+        rwLock.writeLock().lock();
+        try {
+            changeLength(newLength);
+            long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
+            if (end != newLength) {
+                int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
+                ByteBuffer d = expandPage(lastPage);
+                for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
+                    d.put(i, (byte) 0);
+                }
+                if (compress) {
+                    addToCompressLaterCache(lastPage);
+                }
             }
-            if (compress) {
-                addToCompressLaterCache(lastPage);
-            }
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void changeLength(long len) {
         length = len;
         len = MathUtils.roundUpLong(len, BLOCK_SIZE);
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
-        if (blocks != data.length) {
-            ByteBuffer[] n = new ByteBuffer[blocks];
-            System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
-            for (int i = data.length; i < blocks; i++) {
-                n[i] = COMPRESSED_EMPTY_BLOCK;
+        if (blocks != buffers.length) {
+            final AtomicReference<ByteBuffer>[] newBuffers = new AtomicReference[blocks];
+            System.arraycopy(buffers, 0, newBuffers, 0, Math.min(buffers.length, buffers.length));
+            for (int i = buffers.length; i < blocks; i++) {
+                newBuffers[i] = new AtomicReference<ByteBuffer>(COMPRESSED_EMPTY_BLOCK);
             }
-            data = n;
+            buffers = newBuffers;
         }
     }
 
@@ -639,46 +662,53 @@ class FileNioMemData {
      * @param write true for writing
      * @return the new position
      */
-    synchronized long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
-        long end = pos + len;
-        if (end > length) {
-            if (write) {
-                changeLength(end);
-            } else {
-                len = (int) (length - pos);
+     long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
+        final java.util.concurrent.locks.Lock lock = write ? rwLock.writeLock() : rwLock.readLock();
+        lock.lock();
+        try {
+
+            long end = pos + len;
+            if (end > length) {
+                if (write) {
+                    changeLength(end);
+                } else {
+                    len = (int) (length - pos);
+                }
             }
+            while (len > 0) {
+                final int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
+                final int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
+                final ByteBuffer block = expandPage(page);
+                int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
+                if (write) {
+                    final ByteBuffer srcTmp = b.slice();
+                    final ByteBuffer dstTmp = block.duplicate();
+                    srcTmp.position(off);
+                    srcTmp.limit(off + l);
+                    dstTmp.position(blockOffset);
+                    dstTmp.put(srcTmp);
+                } else {
+                    // duplicate, so this can be done concurrently
+                    final ByteBuffer tmp = block.duplicate();
+                    tmp.position(blockOffset);
+                    tmp.limit(l + blockOffset);
+                    int oldPosition = b.position();
+                    b.position(off);
+                    b.put(tmp);
+                    // restore old position
+                    b.position(oldPosition);
+                }
+                if (compress) {
+                    addToCompressLaterCache(page);
+                }
+                off += l;
+                pos += l;
+                len -= l;
+            }
+            return pos;
+        } finally {
+            lock.unlock();
         }
-        while (len > 0) {
-            int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
-            int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(page);
-            ByteBuffer block = data[page];
-            int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
-            if (write) {
-                ByteBuffer tmp = b.slice();
-                tmp.position(off);
-                tmp.limit(off + l);
-                block.position(blockOffset);
-                block.put(tmp);
-            } else {
-                // duplicate, so this can be done concurrently
-                ByteBuffer tmp = block.duplicate();
-                tmp.position(blockOffset);
-                tmp.limit(l + blockOffset);
-                int oldPosition = b.position();
-                b.position(off);
-                b.put(tmp);
-                // restore old position
-                b.position(oldPosition);
-            }
-            if (compress) {
-                addToCompressLaterCache(page);
-            }
-            off += l;
-            pos += l;
-            len -= l;
-        }
-        return pos;
     }
 
     /**

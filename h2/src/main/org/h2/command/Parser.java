@@ -1263,7 +1263,7 @@ public class Parser {
         // for backward compatibility, handle case where USE is a table alias
         if (readIf("USE")) {
             if (readIf("INDEX")) {
-                indexHints = parseUseIndexList();
+                indexHints = parseIndexHints(table);
             } else {
                 alias = "USE";
             }
@@ -1273,7 +1273,7 @@ public class Parser {
                 // if alias present, a second chance to parse index hints
                 if (readIf("USE")) {
                     read("INDEX");
-                    indexHints = parseUseIndexList();
+                    indexHints = parseIndexHints(table);
                 }
             }
         }
@@ -1281,18 +1281,20 @@ public class Parser {
                 currentSelect, orderInFrom++, indexHints);
     }
 
-
-    private IndexHints parseUseIndexList() {
+    private IndexHints parseIndexHints(Table table) {
+        if (table == null) {
+            throw getSyntaxError();
+        }
         read("(");
-
         LinkedHashSet<String> indexNames = new LinkedHashSet<>();
         if (!readIf(")")) {
             do {
-                indexNames.add(readIdentifierWithSchema());
+                String indexName = readIdentifierWithSchema();
+                Index index = table.getIndex(indexName);
+                indexNames.add(index.getName());
             } while (readIf(","));
             read(")");
         }
-
         return IndexHints.createUseIndexHints(indexNames);
     }
 

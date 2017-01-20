@@ -5,6 +5,7 @@
  */
 package org.h2.test.db;
 
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
 import java.sql.Connection;
@@ -126,10 +127,9 @@ public class TestIndexHints extends TestBase {
             fail("Expected exception: "
                     + "Index \"IDX_DOESNT_EXIST\" not found");
         } catch (SQLException e) {
-            assert(e.getErrorCode() == 1);
+            assertEquals(ErrorCode.INDEX_NOT_FOUND_1, e.getErrorCode());
         } finally {
             conn.close();
-
         }
     }
 

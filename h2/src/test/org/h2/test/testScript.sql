@@ -8172,9 +8172,9 @@ select * from s;
 > rows: 1
 
 select some(y>10), every(y>10), min(y), max(y) from t;
-> BOOL_OR(Y > 10) BOOL_AND(Y > 10) MIN(Y) MAX(Y)
-> --------------- ---------------- ------ ------
-> null            null             null   null
+> BOOL_OR(Y > 10.0) BOOL_AND(Y > 10.0) MIN(Y) MAX(Y)
+> ----------------- ------------------ ------ ------
+> null              null               null   null
 > rows: 1
 
 insert into t values(1000000004, 4);
@@ -8230,9 +8230,9 @@ stddev_pop(distinct y) s_py, stddev_samp(distinct y) s_sy, var_pop(distinct y) v
 > rows: 1
 
 select some(y>10), every(y>10), min(y), max(y) from t;
-> BOOL_OR(Y > 10) BOOL_AND(Y > 10) MIN(Y) MAX(Y)
-> --------------- ---------------- ------ ------
-> TRUE            FALSE            4.0    16.0
+> BOOL_OR(Y > 10.0) BOOL_AND(Y > 10.0) MIN(Y) MAX(Y)
+> ----------------- ------------------ ------ ------
+> TRUE              FALSE              4.0    16.0
 > rows: 1
 
 drop view s;

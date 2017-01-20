@@ -58,6 +58,7 @@ public class TestOptimizations extends TestBase {
         testNestedIn();
         testConstantIn1();
         testConstantIn2();
+        testConstantTypeConversionToColumnType();
         testNestedInSelectAndLike();
         testNestedInSelect();
         testInSelectJoin();
@@ -459,6 +460,25 @@ public class TestOptimizations extends TestBase {
         resultSet = stat.executeQuery(
                 "SELECT x FROM testValues WHERE x IN ('FOO','bar')");
         assertTrue(resultSet.next());
+
+        conn.close();
+    }
+
+    private void testConstantTypeConversionToColumnType() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations;IGNORECASE=TRUE");
+        Statement stat = conn.createStatement();
+
+        stat.executeUpdate("CREATE TABLE test (x int)");
+        ResultSet resultSet;
+        resultSet = stat.executeQuery(
+            "EXPLAIN SELECT x FROM test WHERE x = '5'");
+
+        assertTrue(resultSet.next());
+        // String constant '5' has been converted to int constant 5 on optimization
+        assertTrue(resultSet.getString(1).endsWith("X = 5"));
+
+        stat.execute("drop table test");
 
         conn.close();
     }

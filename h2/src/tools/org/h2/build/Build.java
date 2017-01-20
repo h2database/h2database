@@ -926,11 +926,13 @@ public class Build extends BuildBase {
         int ret;
         if (fast) {
             ret = execJava(args(
+                    "-ea",
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll", "fast"));
         } else {
             ret = execJava(args(
+                    "-ea",
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll"));

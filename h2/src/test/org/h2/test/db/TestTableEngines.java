@@ -110,6 +110,13 @@ public class TestTableEngines extends TestBase {
                 EndlessTableEngine.createTableData.tableEngineParams.get(0));
         assertEquals("param2",
                 EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        stat.execute("CREATE TABLE t2(id int, name varchar) WITH \"param1\", \"param2\"");
+        assertEquals(2,
+            EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1",
+            EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2",
+            EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
         if (!config.memory) {
             // Test serialization of table parameters

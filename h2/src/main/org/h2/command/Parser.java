@@ -6126,14 +6126,14 @@ public class Parser {
                 }
             } else {
                 command.setTableEngine(readUniqueIdentifier());
-                if (readIf("WITH")) {
-                    ArrayList<String> tableEngineParams = New.arrayList();
-                    do {
-                        tableEngineParams.add(readUniqueIdentifier());
-                    } while (readIf(","));
-                    command.setTableEngineParams(tableEngineParams);
-                }
             }
+        }
+        if (readIf("WITH")) {
+            ArrayList<String> tableEngineParams = New.arrayList();
+            do {
+                tableEngineParams.add(readUniqueIdentifier());
+            } while (readIf(","));
+            command.setTableEngineParams(tableEngineParams);
         }
         // MySQL compatibility
         if (readIf("AUTO_INCREMENT")) {

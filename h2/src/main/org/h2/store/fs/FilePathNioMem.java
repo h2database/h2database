@@ -644,7 +644,7 @@ class FileNioMemData {
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
         if (blocks != buffers.length) {
             final AtomicReference<ByteBuffer>[] newBuffers = new AtomicReference[blocks];
-            System.arraycopy(buffers, 0, newBuffers, 0, Math.min(buffers.length, buffers.length));
+            System.arraycopy(buffers, 0, newBuffers, 0, Math.min(buffers.length, newBuffers.length));
             for (int i = buffers.length; i < blocks; i++) {
                 newBuffers[i] = new AtomicReference<ByteBuffer>(COMPRESSED_EMPTY_BLOCK);
             }

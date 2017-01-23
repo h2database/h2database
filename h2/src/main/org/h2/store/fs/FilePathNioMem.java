@@ -33,6 +33,7 @@ public class FilePathNioMem extends FilePath {
 
     private static final TreeMap<String, FileNioMemData> MEMORY_FILES =
             new TreeMap<String, FileNioMemData>();
+    float compressLaterCachePercent = 1;
 
     @Override
     public FilePathNioMem getPath(String path) {
@@ -184,14 +185,14 @@ public class FilePathNioMem extends FilePath {
         synchronized (MEMORY_FILES) {
             FileNioMemData m = MEMORY_FILES.get(name);
             if (m == null) {
-                m = new FileNioMemData(name, compressed());
+                m = new FileNioMemData(name, compressed(), compressLaterCachePercent);
                 MEMORY_FILES.put(name, m);
             }
             return m;
         }
     }
 
-    private boolean isRoot() {
+    protected boolean isRoot() {
         return name.equals(getScheme() + ":");
     }
 
@@ -204,7 +205,7 @@ public class FilePathNioMem extends FilePath {
      */
     protected static String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
-        int idx = fileName.indexOf(':') + 1;
+        int idx = fileName.lastIndexOf(':') + 1;
         if (fileName.length() > idx && fileName.charAt(idx) != '/') {
             fileName = fileName.substring(0, idx) + "/" + fileName.substring(idx);
         }
@@ -219,7 +220,7 @@ public class FilePathNioMem extends FilePath {
     /**
      * Whether the file should be compressed.
      *
-     * @return if it should be compressed.
+     * @return true if it should be compressed.
      */
     boolean compressed() {
         return false;
@@ -239,9 +240,23 @@ class FilePathNioMemLZF extends FilePathNioMem {
 
     @Override
     public FilePathNioMem getPath(String path) {
-        FilePathNioMemLZF p = new FilePathNioMemLZF();
+        if (!path.startsWith(getScheme())) {
+            throw new IllegalArgumentException(path +
+                    " doesn't start with " + getScheme());
+        }
+        int idx1 = path.indexOf(":");
+        int idx2 = path.lastIndexOf(":");
+        final FilePathNioMemLZF p = new FilePathNioMemLZF();
+        if (idx1 != -1 && idx1 != idx2) {
+            p.compressLaterCachePercent = Float.parseFloat(path.substring(idx1 + 1, idx2));
+        }
         p.name = getCanonicalPath(path);
         return p;
+    }
+
+    @Override
+    protected boolean isRoot() {
+        return name.lastIndexOf(":") == name.length() - 1;
     }
 
     @Override
@@ -396,7 +411,7 @@ class FileNioMem extends FileBase {
  */
 class FileNioMemData {
 
-    private static final int CACHE_SIZE = 8;
+    private static final int CACHE_MIN_SIZE = 8;
     private static final int BLOCK_SIZE_SHIFT = 16;
 
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
@@ -418,11 +433,12 @@ class FileNioMemData {
     };
 
     private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
-        new CompressLaterCache<CompressItem, CompressItem>(CACHE_SIZE);
+        new CompressLaterCache<CompressItem, CompressItem>(CACHE_MIN_SIZE);
 
     private String name;
     private final int nameHashCode;
     private final boolean compress;
+    private final float compressLaterCachePercent;
     private long length;
     private AtomicReference<ByteBuffer>[] buffers;
     private long lastModified;
@@ -440,10 +456,11 @@ class FileNioMemData {
     }
 
     @SuppressWarnings("unchecked")
-    FileNioMemData(String name, boolean compress) {
+    FileNioMemData(String name, boolean compress, float compressLaterCachePercent) {
         this.name = name;
         this.nameHashCode = name.hashCode();
         this.compress = compress;
+        this.compressLaterCachePercent = compressLaterCachePercent;
         buffers = new AtomicReference[0];
         lastModified = System.currentTimeMillis();
     }
@@ -491,7 +508,7 @@ class FileNioMemData {
     static class CompressLaterCache<K, V> extends LinkedHashMap<K, V> {
 
         private static final long serialVersionUID = 1L;
-        private final int size;
+        private int size;
 
         CompressLaterCache(int size) {
             super(size, (float) 0.75, true);
@@ -506,6 +523,10 @@ class FileNioMemData {
             CompressItem c = (CompressItem) eldest.getKey();
             c.data.compressPage(c.page);
             return true;
+        }
+
+        public void setCacheSize(int size) {
+            this.size = size;
         }
     }
 
@@ -650,6 +671,7 @@ class FileNioMemData {
             }
             buffers = newBuffers;
         }
+        compressLaterCache.setCacheSize(Math.max(CACHE_MIN_SIZE, (int)(blocks * compressLaterCachePercent / 100)));
     }
 
     /**

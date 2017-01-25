@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.dev.util.ImmutableArray2;
 import org.h2.test.TestBase;
@@ -48,7 +49,7 @@ public class TestImmutableArray extends TestBase {
 //        ArrayList time 361 dummy: 60000000
 
         System.out.print(immutable ? "immutable" : "ArrayList");
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         int count = 20000000;
         Integer x = 1;
         int sum = 0;
@@ -101,7 +102,7 @@ public class TestImmutableArray extends TestBase {
                 }
             }
         }
-        System.out.println(" time " + (System.currentTimeMillis() - start) +
+        System.out.println(" time " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) +
                 " dummy: " + sum);
     }
 

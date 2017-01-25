@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -557,19 +558,19 @@ public class TestCsv extends TestBase {
             stat.execute("INSERT INTO TEST(NAME) VALUES('Ruebezahl')");
         }
         long time;
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         new Csv().write(conn, getBaseDir() + "/testRW.csv",
                 "SELECT X ID, 'Ruebezahl' NAME FROM SYSTEM_RANGE(1, " + len + ")", "UTF8");
-        trace("write: " + (System.currentTimeMillis() - time));
+        trace("write: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         ResultSet rs;
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         for (int i = 0; i < 30; i++) {
             rs = new Csv().read(getBaseDir() + "/testRW.csv", null, "UTF8");
             while (rs.next()) {
                 // ignore
             }
         }
-        trace("read: " + (System.currentTimeMillis() - time));
+        trace("read: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         rs = new Csv().read(getBaseDir() + "/testRW.csv", null, "UTF8");
         // stat.execute("CREATE ALIAS CSVREAD FOR \"org.h2.tools.Csv.read\"");
         ResultSetMetaData meta = rs.getMetaData();

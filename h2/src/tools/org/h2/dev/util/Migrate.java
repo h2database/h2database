@@ -16,6 +16,8 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.engine.Constants;
 import org.h2.tools.RunScript;
 
@@ -124,11 +126,11 @@ public class Migrate {
             println("Downloading " + fileURL);
             URL url = new URL(fileURL);
             InputStream in = new BufferedInputStream(url.openStream());
-            long last = System.currentTimeMillis();
+            long last = System.nanoTime();
             int len = 0;
             while (true) {
-                long now = System.currentTimeMillis();
-                if (now > last + 1000) {
+                long now = System.nanoTime();
+                if (now > last + TimeUnit.SECONDS.toNanos(1)) {
                     println("Downloaded " + len + " bytes");
                     last = now;
                 }

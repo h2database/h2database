@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.result.Row;
@@ -307,13 +309,13 @@ public class TestPageStore extends TestBase {
         stat.execute("set max_log_size 1");
         conn.setAutoCommit(false);
         stat.execute("insert into test select space(1000) from system_range(1, 1000)");
-        long before = System.currentTimeMillis();
+        long before = System.nanoTime();
         stat.execute("select nextval('SEQ') from system_range(1, 100000)");
-        long after = System.currentTimeMillis();
+        long after = System.nanoTime();
         // it's hard to test - basically it shouldn't checkpoint too often
-        if (after - before > 20000) {
+        if (after - before > TimeUnit.SECONDS.toNanos(20)) {
             if (!config.reopen) {
-                fail("Checkpoint took " + (after - before) + " ms");
+                fail("Checkpoint took " + TimeUnit.NANOSECONDS.toMillis(after - before) + " ms");
             }
         }
         stat.execute("drop table test");

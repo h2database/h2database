@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
@@ -802,16 +803,16 @@ public class TestOptimizations extends TestBase {
     private void testQuerySpeed(Statement stat, String sql) throws SQLException {
         stat.execute("set OPTIMIZE_REUSE_RESULTS 0");
         stat.execute(sql);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         stat.execute(sql);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         stat.execute("set OPTIMIZE_REUSE_RESULTS 1");
         stat.execute(sql);
-        long time2 = System.currentTimeMillis();
+        long time2 = System.nanoTime();
         stat.execute(sql);
-        time2 = System.currentTimeMillis() - time2;
+        time2 = System.nanoTime() - time2;
         if (time2 > time * 2) {
-            fail("not optimized: " + time + " optimized: " + time2 + " sql:" + sql);
+            fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(time) + " optimized: " + TimeUnit.NANOSECONDS.toMillis(time2) + " sql:" + sql);
         }
     }
 

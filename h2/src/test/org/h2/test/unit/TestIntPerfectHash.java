@@ -10,6 +10,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.dev.hash.IntPerfectHash;
 import org.h2.dev.hash.IntPerfectHash.BitArray;
@@ -39,11 +40,11 @@ public class TestIntPerfectHash extends TestBase {
         int size = 10000;
         test(size / 10);
         int s;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         s = test(size);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key in " +
-                time + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
 
     }
 

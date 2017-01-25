@@ -10,6 +10,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.util.IOUtils;
 
 /**
@@ -36,7 +38,7 @@ public class Profile extends Thread {
             maxIndex = r.getLineNumber();
             count = new int[maxIndex];
             time = new int[maxIndex];
-            lastTime = System.currentTimeMillis();
+            lastTime = System.nanoTime();
             Runtime.getRuntime().addShutdownHook(this);
         } catch (Exception e) {
             e.printStackTrace();
@@ -75,7 +77,7 @@ public class Profile extends Thread {
      */
     public static void startCollecting() {
         MAIN.stop = false;
-        MAIN.lastTime = System.currentTimeMillis();
+        MAIN.lastTime = System.nanoTime();
     }
 
     /**
@@ -106,10 +108,10 @@ public class Profile extends Thread {
         if (stop) {
             return;
         }
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
         if (TRACE) {
             if (trace != null) {
-                int duration = (int) (now - lastTime);
+                int duration = (int) TimeUnit.NANOSECONDS.toMillis(now - lastTime);
                 try {
                     trace.write(i + "\t" + duration + "\r\n");
                 } catch (Exception e) {
@@ -119,7 +121,7 @@ public class Profile extends Thread {
             }
         }
         count[i]++;
-        time[lastIndex] += (int) (now - lastTime);
+        time[lastIndex] += (int) TimeUnit.NANOSECONDS.toMillis(now - lastTime);
         lastTime = now;
         lastIndex = i;
     }

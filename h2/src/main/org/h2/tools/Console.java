@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -532,8 +534,8 @@ ShutdownHandler {
             if (urlText != null) {
                 urlText.setText(url);
             }
-            long now = System.currentTimeMillis();
-            if (lastOpen == 0 || lastOpen + 100 < now) {
+            long now = System.nanoTime();
+            if (lastOpen == 0 || lastOpen + TimeUnit.MILLISECONDS.toNanos(100) < now) {
                 lastOpen = now;
                 openBrowser(url);
             }

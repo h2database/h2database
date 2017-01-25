@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple CPU profiling tool similar to java -Xrunhprof. It can be used
@@ -135,15 +136,15 @@ public class Profiler implements Runnable {
             System.out.println(processes);
             return;
         }
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         if (args[0].matches("\\d+")) {
             pid = Integer.parseInt(args[0]);
             long last = 0;
             while (true) {
                 tick();
-                long t = System.currentTimeMillis();
-                if (t - last > 5000) {
-                    time = System.currentTimeMillis() - start;
+                long t = System.nanoTime();
+                if (t - last > TimeUnit.SECONDS.toNanos(5)) {
+                    time = System.nanoTime() - start;
                     System.out.println(getTopTraces(3));
                     last = t;
                 }
@@ -335,7 +336,7 @@ public class Profiler implements Runnable {
 
     @Override
     public void run() {
-        start = System.currentTimeMillis();
+        start = System.nanoTime();
         while (!stop) {
             try {
                 tick();
@@ -343,7 +344,7 @@ public class Profiler implements Runnable {
                 break;
             }
         }
-        time = System.currentTimeMillis() - start;
+        time = System.nanoTime() - start;
     }
 
     private void tick() {
@@ -462,7 +463,7 @@ public class Profiler implements Runnable {
         StringBuilder buff = new StringBuilder();
         buff.append("Profiler: top ").append(count).append(" stack trace(s) of ");
         if (time > 0) {
-            buff.append(" of ").append(time).append(" ms");
+            buff.append(" of ").append(TimeUnit.NANOSECONDS.toMillis(time)).append(" ms");
         }
         if (threadDumps > 0) {
             buff.append(" of ").append(threadDumps).append(" thread dumps");

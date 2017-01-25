@@ -13,6 +13,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -97,8 +99,8 @@ public class TestOpenClose extends TestBase {
         Connection conn = DriverManager.getConnection(url, user, password);
         conn.close();
         Thread.sleep(950);
-        long time = System.currentTimeMillis();
-        while (System.currentTimeMillis() - time < 100) {
+        long time = System.nanoTime();
+        while (System.nanoTime() - time < TimeUnit.MILLISECONDS.toNanos(100)) {
             conn = DriverManager.getConnection(url, user, password);
             conn.close();
         }

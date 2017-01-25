@@ -10,6 +10,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -80,8 +82,8 @@ public class TestDeadlock extends TestBase {
             }
         };
         t.execute();
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 1000) {
+        long start = System.nanoTime();
+        while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
             stat2.execute("insert into test values(1, 'Hello')");
             stat2.execute("delete from test");
         }
@@ -117,8 +119,8 @@ public class TestDeadlock extends TestBase {
             }
         };
         t.execute();
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 1000) {
+        long start = System.nanoTime();
+        while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
             Reader r = rs2.getCharacterStream(2);
             char[] buff = new char[1024];
             while (true) {

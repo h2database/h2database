@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
 import org.h2.tools.Backup;
@@ -47,7 +48,7 @@ public class TestTimer extends TestBase {
         Random random = new Random();
         int max = 0;
         int count = 0;
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
         while (true) {
             int action = random.nextInt(10);
             int x = max == 0 ? 0 : random.nextInt(max);
@@ -81,8 +82,8 @@ public class TestTimer extends TestBase {
                 rs.next();
                 int c = rs.getInt(1);
                 assertEquals(count, c);
-                long time = System.currentTimeMillis();
-                if (time > startTime + 5000) {
+                long time = System.nanoTime();
+                if (time > startTime + TimeUnit.SECONDS.toNanos(5)) {
                     println("rows: " + count);
                     startTime = time;
                 }

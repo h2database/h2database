@@ -13,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
@@ -112,7 +113,7 @@ public class NetUtils {
      */
     public static Socket createSocket(InetAddress address, int port, boolean ssl)
             throws IOException {
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         for (int i = 0;; i++) {
             try {
                 if (ssl) {
@@ -123,8 +124,8 @@ public class NetUtils {
                         SysProperties.SOCKET_CONNECT_TIMEOUT);
                 return socket;
             } catch (IOException e) {
-                if (System.currentTimeMillis() - start >=
-                        SysProperties.SOCKET_CONNECT_TIMEOUT) {
+                if (System.nanoTime() - start >=
+                        TimeUnit.MILLISECONDS.toNanos(SysProperties.SOCKET_CONNECT_TIMEOUT)) {
                     // either it was a connect timeout,
                     // or list of different exceptions
                     throw e;
@@ -250,9 +251,9 @@ public class NetUtils {
      * @return the local host address
      */
     public static synchronized String getLocalAddress() {
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
         if (cachedLocalAddress != null) {
-            if (cachedLocalAddressTime + CACHE_MILLIS > now) {
+            if (cachedLocalAddressTime + TimeUnit.MILLISECONDS.toNanos(CACHE_MILLIS) > now) {
                 return cachedLocalAddress;
             }
         }

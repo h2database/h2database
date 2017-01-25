@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.jdbc.JdbcConnection;
@@ -28,7 +29,7 @@ public class ShowProgress implements DatabaseEventListener {
      * Create a new instance of this class, and start the timer.
      */
     public ShowProgress() {
-        start = last = System.currentTimeMillis();
+        start = last = System.nanoTime();
     }
 
     /**
@@ -53,11 +54,11 @@ public class ShowProgress implements DatabaseEventListener {
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, 'Test' || SPACE(100))");
         long time;
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         int len = 1000;
         for (int i = 0; i < len; i++) {
-            long now = System.currentTimeMillis();
-            if (now > time + 1000) {
+            long now = System.nanoTime();
+            if (now > time + TimeUnit.SECONDS.toNanos(1)) {
                 time = now;
                 System.out.println("Inserting " + (100L * i / len) + "%");
             }
@@ -77,12 +78,12 @@ public class ShowProgress implements DatabaseEventListener {
         }
 
         System.out.println("Open connection...");
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         conn = DriverManager.getConnection(
                 "jdbc:h2:test;DATABASE_EVENT_LISTENER='" +
                 getClass().getName() + "'", "sa", "");
-        time = System.currentTimeMillis() - time;
-        System.out.println("Done after " + time + " ms");
+        time = System.nanoTime() - time;
+        System.out.println("Done after " + TimeUnit.NANOSECONDS.toMillis(time) + " ms");
         prep.close();
         stat.close();
         conn.close();
@@ -112,8 +113,8 @@ public class ShowProgress implements DatabaseEventListener {
      */
     @Override
     public void setProgress(int state, String name, int current, int max) {
-        long time = System.currentTimeMillis();
-        if (time < last + 5000) {
+        long time = System.nanoTime();
+        if (time < last + TimeUnit.SECONDS.toNanos(5)) {
             return;
         }
         last = time;
@@ -139,7 +140,7 @@ public class ShowProgress implements DatabaseEventListener {
         System.out.println("State: " + stateName + " " +
                 (100 * current / max) + "% (" +
                 current + " of " + max + ") "
-                + (time - start) + " ms");
+                + TimeUnit.NANOSECONDS.toMillis(time - start) + " ms");
     }
 
     /**

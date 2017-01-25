@@ -13,6 +13,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.fs.FileUtils;
@@ -359,7 +361,7 @@ public class TestFileLockSerialized extends TestBase {
                 "create table test(id int auto_increment, id2 int)");
         conn.close();
 
-        final long endTime = System.currentTimeMillis() + runTime;
+        final long endTime = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(runTime);
         final Exception[] ex = { null };
         final Connection[] connList = new Connection[howManyThreads];
         final boolean[] stop = { false };
@@ -412,7 +414,7 @@ public class TestFileLockSerialized extends TestBase {
             t.start();
             threads[i] = t;
         }
-        while ((ex[0] == null) && (System.currentTimeMillis() < endTime)) {
+        while ((ex[0] == null) && (System.nanoTime() < endTime)) {
             Thread.sleep(10);
         }
 
@@ -443,7 +445,7 @@ public class TestFileLockSerialized extends TestBase {
         conn.createStatement().execute("insert into test values(1)");
         conn.close();
 
-        final long endTime = System.currentTimeMillis() + runTime;
+        final long endTime = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(runTime);
         final Exception[] ex = { null };
         final Connection[] connList = new Connection[howManyThreads];
         final boolean[] stop = { false };
@@ -484,7 +486,7 @@ public class TestFileLockSerialized extends TestBase {
             t.start();
             threads[i] = t;
         }
-        while ((ex[0] == null) && (System.currentTimeMillis() < endTime)) {
+        while ((ex[0] == null) && (System.nanoTime() < endTime)) {
             Thread.sleep(10);
         }
 

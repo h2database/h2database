@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -99,7 +100,8 @@ public class ArchiveTool {
 
     private static void compress(String fromDir, String toFile, int level) throws IOException {
         final Log log = new Log();
-        final long start = System.currentTimeMillis();
+        final long start = System.nanoTime();
+        final long startMs = System.currentTimeMillis();
         final AtomicBoolean title = new AtomicBoolean();
         long size = getSize(new File(fromDir), new Runnable() {
             int count;
@@ -108,8 +110,8 @@ public class ArchiveTool {
             public void run() {
                 count++;
                 if (count % 1000 == 0) {
-                    long now = System.currentTimeMillis();
-                    if (now - lastTime > 3000) {
+                    long now = System.nanoTime();
+                    if (now - lastTime > TimeUnit.SECONDS.toNanos(3)) {
                         if (!title.getAndSet(true)) {
                             log.println("Counting files");
                         }
@@ -122,7 +124,7 @@ public class ArchiveTool {
         if (title.get()) {
             log.println();
         }
-        log.println("Compressing " + size / MB + " MB at " + new java.sql.Time(start).toString());
+        log.println("Compressing " + size / MB + " MB at " + new java.sql.Time(startMs).toString());
         InputStream in = getDirectoryInputStream(fromDir);
         String temp = toFile + ".temp";
         OutputStream out =
@@ -138,16 +140,17 @@ public class ArchiveTool {
         log.println();
         log.println("Compressed to " +
                 new File(toFile).length() / MB + " MB in " +
-                (System.currentTimeMillis() - start) / 1000 +
+                TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start)  +
                 " seconds");
         log.println();
     }
 
     private static void extract(String fromFile, String toDir) throws IOException {
         Log log = new Log();
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
+        long startMs = System.currentTimeMillis();
         long size = new File(fromFile).length();
-        log.println("Extracting " + size / MB + " MB at " + new java.sql.Time(start).toString());
+        log.println("Extracting " + size / MB + " MB at " + new java.sql.Time(startMs).toString());
         InputStream in =
                 new BufferedInputStream(
                         new FileInputStream(fromFile), 1024 * 1024);
@@ -161,7 +164,7 @@ public class ArchiveTool {
         out.close();
         log.println();
         log.println("Extracted in " +
-                (System.currentTimeMillis() - start) / 1000 +
+                TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start) +
                 " seconds");
     }
 
@@ -1096,8 +1099,8 @@ public class ArchiveTool {
          */
         void printProgress(long offset) {
             current += offset;
-            long now = System.currentTimeMillis();
-            if (now - lastTime > 3000) {
+            long now = System.nanoTime();
+            if (now - lastTime > TimeUnit.SECONDS.toNanos(3)) {
                 String msg = (low + (high - low) * current / total) + "% ";
                 if (pos > 80) {
                     System.out.println();

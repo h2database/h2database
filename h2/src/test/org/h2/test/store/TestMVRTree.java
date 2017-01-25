@@ -151,7 +151,7 @@ public class TestMVRTree extends TestMVStore {
         // r.setQuadraticSplit(true);
         Random rand = new Random(1);
         int len = 1000;
-        // long t = System.currentTimeMillis();
+        // long t = System.nanoTime();
         // Profiler prof = new Profiler();
         // prof.startCollecting();
         for (int i = 0; i < len; i++) {
@@ -167,13 +167,13 @@ public class TestMVRTree extends TestMVStore {
             }
         }
         // System.out.println(prof.getTop(5));
-        // System.out.println("add: " + (System.currentTimeMillis() - t));
+        // System.out.println("add: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
         s.close();
         s = openStore(fileName);
         r = s.openMap("data",
                 new MVRTreeMap.Builder<String>().dimensions(2).
                 valueType(StringDataType.INSTANCE));
-        // t = System.currentTimeMillis();
+        // t = System.nanoTime();
         rand = new Random(1);
         for (int i = 0; i < len; i++) {
             float x = rand.nextFloat(), y = rand.nextFloat();
@@ -181,7 +181,7 @@ public class TestMVRTree extends TestMVStore {
             SpatialKey k = new SpatialKey(i, x - p, x + p, y - p, y + p);
             assertEquals("" + i, r.get(k));
         }
-        // System.out.println("query: " + (System.currentTimeMillis() - t));
+        // System.out.println("query: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
         assertEquals(len, r.size());
         int count = 0;
         for (SpatialKey k : r.keySet()) {
@@ -189,7 +189,7 @@ public class TestMVRTree extends TestMVStore {
             count++;
         }
         assertEquals(len, count);
-        // t = System.currentTimeMillis();
+        // t = System.nanoTime();
         // Profiler prof = new Profiler();
         // prof.startCollecting();
         rand = new Random(1);
@@ -202,7 +202,7 @@ public class TestMVRTree extends TestMVStore {
         assertEquals(0, r.size());
         s.close();
         // System.out.println(prof.getTop(5));
-        // System.out.println("remove: " + (System.currentTimeMillis() - t));
+        // System.out.println("remove: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
     }
 
     private void testSimple() {

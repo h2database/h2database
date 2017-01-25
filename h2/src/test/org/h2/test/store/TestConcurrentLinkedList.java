@@ -8,6 +8,7 @@ package org.h2.test.store;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.ConcurrentArrayList;
 import org.h2.test.TestBase;
@@ -46,7 +47,7 @@ public class TestConcurrentLinkedList extends TestBase {
 
     private static void testPerformance(final boolean stock) {
         System.out.print(stock ? "stock " : "custom ");
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         // final ConcurrentLinkedList<Integer> test =
         //     new ConcurrentLinkedList<Integer>();
         final ConcurrentArrayList<Integer> test =
@@ -104,7 +105,7 @@ public class TestConcurrentLinkedList extends TestBase {
             }
         }
         task.get();
-        System.out.println(System.currentTimeMillis() - start);
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
     }
 
     private void testConcurrent() {

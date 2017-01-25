@@ -6,6 +6,8 @@
 package org.h2.command.dml;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.Plan;
@@ -78,7 +80,7 @@ class Optimizer {
         if (filters.length == 1 || session.isForceJoinOrder()) {
             testPlan(filters);
         } else {
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
                 calculateBruteForceAll();
             } else {
@@ -96,9 +98,9 @@ class Optimizer {
 
     private boolean canStop(int x) {
         if ((x & 127) == 0) {
-            long t = System.currentTimeMillis() - start;
+            long t = System.nanoTime() - start;
             // don't calculate for simple queries (no rows or so)
-            if (cost >= 0 && 10 * t > cost) {
+            if (cost >= 0 && 10 * t > cost * TimeUnit.MILLISECONDS.toNanos(1)) {
                 return true;
             }
         }

@@ -13,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This test shows the raw file access performance using various file modes.
@@ -57,7 +58,7 @@ public class TestWrite {
         RandomAccessFile file = new RandomAccessFile("test.txt", mode);
         file.setLength(0);
         FileDescriptor fd = file.getFD();
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         byte[] data = { 0 };
         file.write(data);
         int i = 0;
@@ -67,8 +68,8 @@ public class TestWrite {
                 file.write(data);
                 fd.sync();
                 if ((i & 15) == 0) {
-                    long time = System.currentTimeMillis() - start;
-                    if (time > 5000) {
+                    long time = System.nanoTime() - start;
+                    if (time > TimeUnit.SECONDS.toNanos(5)) {
                         break;
                     }
                 }
@@ -78,17 +79,17 @@ public class TestWrite {
                 file.seek(0);
                 file.write(data);
                 if ((i & 1023) == 0) {
-                    long time = System.currentTimeMillis() - start;
-                    if (time > 5000) {
+                    long time = System.nanoTime() - start;
+                    if (time > TimeUnit.SECONDS.toNanos(5)) {
                         break;
                     }
                 }
             }
         }
-        long time = System.currentTimeMillis() - start;
-        System.out.println("Time: " + time);
+        long time = System.nanoTime() - start;
+        System.out.println("Time: " + TimeUnit.NANOSECONDS.toMillis(time));
         System.out.println("Operations: " + i);
-        System.out.println("Operations/second: " + (i * 1000 / time));
+        System.out.println("Operations/second: " + (i * TimeUnit.SECONDS.toNanos(1) / time));
         System.out.println();
         file.close();
         new File("test.txt").delete();
@@ -108,23 +109,23 @@ public class TestWrite {
         stat.execute("CREATE TABLE TEST(ID INT)");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?)");
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         int i = 0;
         for (;; i++) {
             prep.setInt(1, i);
             // autocommit is on by default, so this commits as well
             prep.execute();
             if ((i & 15) == 0) {
-                long time = System.currentTimeMillis() - start;
-                if (time > 5000) {
+                long time = System.nanoTime() - start;
+                if (time > TimeUnit.SECONDS.toNanos(5)) {
                     break;
                 }
             }
         }
-        long time = System.currentTimeMillis() - start;
-        System.out.println("Time: " + time);
+        long time = System.nanoTime() - start;
+        System.out.println("Time: " + TimeUnit.NANOSECONDS.toMillis(time));
         System.out.println("Operations: " + i);
-        System.out.println("Operations/second: " + (i * 1000 / time));
+        System.out.println("Operations/second: " + (i * TimeUnit.SECONDS.toNanos(1) / time));
         System.out.println();
         stat.execute("DROP TABLE TEST");
         conn.close();

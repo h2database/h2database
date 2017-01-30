@@ -62,7 +62,7 @@ ShutdownHandler {
 //*/
     private Server web, tcp, pg;
     private boolean isWindows;
-    private long lastOpen;
+    private long lastOpenNs;
 
     /**
      * When running without options, -tcp, -web, -browser and -pg are started.
@@ -535,8 +535,8 @@ ShutdownHandler {
                 urlText.setText(url);
             }
             long now = System.nanoTime();
-            if (lastOpen == 0 || lastOpen + TimeUnit.MILLISECONDS.toNanos(100) < now) {
-                lastOpen = now;
+            if (lastOpenNs == 0 || lastOpenNs + TimeUnit.MILLISECONDS.toNanos(100) < now) {
+                lastOpenNs = now;
                 openBrowser(url);
             }
         }

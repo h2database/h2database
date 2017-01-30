@@ -27,7 +27,7 @@ public class Profile extends Thread {
     private boolean stop;
     private int maxIndex;
     private int lastIndex;
-    private long lastTime;
+    private long lastTimeNs;
     private BufferedWriter trace;
 
     private Profile() {
@@ -38,7 +38,7 @@ public class Profile extends Thread {
             maxIndex = r.getLineNumber();
             count = new int[maxIndex];
             time = new int[maxIndex];
-            lastTime = System.nanoTime();
+            lastTimeNs = System.nanoTime();
             Runtime.getRuntime().addShutdownHook(this);
         } catch (Exception e) {
             e.printStackTrace();
@@ -77,7 +77,7 @@ public class Profile extends Thread {
      */
     public static void startCollecting() {
         MAIN.stop = false;
-        MAIN.lastTime = System.nanoTime();
+        MAIN.lastTimeNs = System.nanoTime();
     }
 
     /**
@@ -111,7 +111,7 @@ public class Profile extends Thread {
         long now = System.nanoTime();
         if (TRACE) {
             if (trace != null) {
-                int duration = (int) TimeUnit.NANOSECONDS.toMillis(now - lastTime);
+                long duration = TimeUnit.NANOSECONDS.toMillis(now - lastTimeNs);
                 try {
                     trace.write(i + "\t" + duration + "\r\n");
                 } catch (Exception e) {
@@ -121,8 +121,8 @@ public class Profile extends Thread {
             }
         }
         count[i]++;
-        time[lastIndex] += (int) TimeUnit.NANOSECONDS.toMillis(now - lastTime);
-        lastTime = now;
+        time[lastIndex] += (int) TimeUnit.NANOSECONDS.toMillis(now - lastTimeNs);
+        lastTimeNs = now;
         lastIndex = i;
     }
 

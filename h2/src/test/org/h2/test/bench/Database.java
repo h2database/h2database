@@ -36,7 +36,7 @@ class Database {
     private String name, url, user, password;
     private final ArrayList<String[]> replace = new ArrayList<String[]>();
     private String currentAction;
-    private long startTime;
+    private long startTimeNs;
     private Connection conn;
     private Statement stat;
     private long lastTrace;
@@ -271,7 +271,7 @@ class Database {
      */
     void start(Bench bench, String action) {
         this.currentAction = bench.getName() + ": " + action;
-        this.startTime = System.nanoTime();
+        this.startTimeNs = System.nanoTime();
     }
 
     /**
@@ -279,7 +279,7 @@ class Database {
      * data.
      */
     void end() {
-        long time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        long time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
         log(currentAction, "ms", (int) time);
         if (test.isCollect()) {
             totalTime += time;

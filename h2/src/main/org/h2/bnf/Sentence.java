@@ -54,7 +54,7 @@ public class Sentence {
      */
     private String queryUpper;
 
-    private long stopAt;
+    private long stopAtNs;
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
@@ -65,7 +65,7 @@ public class Sentence {
      * Start the timer to make sure processing doesn't take too long.
      */
     public void start() {
-        stopAt = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(MAX_PROCESSING_TIME);
+        stopAtNs = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(MAX_PROCESSING_TIME);
     }
 
     /**
@@ -74,7 +74,7 @@ public class Sentence {
      * If processing is stopped, this methods throws an IllegalStateException
      */
     public void stopIfRequired() {
-        if (System.nanoTime() > stopAt) {
+        if (System.nanoTime() > stopAtNs) {
             throw new IllegalStateException();
         }
     }

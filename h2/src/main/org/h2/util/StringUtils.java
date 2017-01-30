@@ -23,7 +23,7 @@ public class StringUtils {
 
     private static SoftReference<String[]> softCache =
             new SoftReference<String[]>(null);
-    private static long softCacheCreated;
+    private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
@@ -64,7 +64,7 @@ public class StringUtils {
         // create a new cache at most every 5 seconds
         // so that out of memory exceptions are not delayed
         long time = System.nanoTime();
-        if (softCacheCreated != 0 && time - softCacheCreated < TimeUnit.SECONDS.toNanos(5)) {
+        if (softCacheCreatedNs != 0 && time - softCacheCreatedNs < TimeUnit.SECONDS.toNanos(5)) {
             return null;
         }
         try {
@@ -72,7 +72,7 @@ public class StringUtils {
             softCache = new SoftReference<String[]>(cache);
             return cache;
         } finally {
-            softCacheCreated = System.nanoTime();
+            softCacheCreatedNs = System.nanoTime();
         }
     }
 

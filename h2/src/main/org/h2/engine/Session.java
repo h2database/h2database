@@ -102,7 +102,7 @@ public class Session extends SessionWithState {
     private boolean redoLogBinary = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
-    private volatile long cancelAt;
+    private volatile long cancelAtNs;
     private boolean closed;
     private final long sessionStart = System.currentTimeMillis();
     private long transactionStart;
@@ -811,7 +811,7 @@ public class Session extends SessionWithState {
 
     @Override
     public void cancel() {
-        cancelAt = System.nanoTime();
+        cancelAtNs = System.nanoTime();
     }
 
     @Override
@@ -1181,7 +1181,7 @@ public class Session extends SessionWithState {
         if (queryTimeout > 0 && command != null) {
             currentCommandStart = System.currentTimeMillis();
             long now = System.nanoTime();
-            cancelAt = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
+            cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
         }
     }
 
@@ -1193,12 +1193,12 @@ public class Session extends SessionWithState {
      */
     public void checkCanceled() {
         throttle();
-        if (cancelAt == 0) {
+        if (cancelAtNs == 0) {
             return;
         }
         long time = System.nanoTime();
-        if (time >= cancelAt) {
-            cancelAt = 0;
+        if (time >= cancelAtNs) {
+            cancelAtNs = 0;
             throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
@@ -1209,7 +1209,7 @@ public class Session extends SessionWithState {
      * @return the time or 0 if not set
      */
     public long getCancel() {
-        return cancelAt;
+        return cancelAtNs;
     }
 
     public Command getCurrentCommand() {
@@ -1500,7 +1500,7 @@ public class Session extends SessionWithState {
         this.queryTimeout = queryTimeout;
         // must reset the cancel at here,
         // otherwise it is still used
-        this.cancelAt = 0;
+        this.cancelAtNs = 0;
     }
 
     public int getQueryTimeout() {

@@ -22,14 +22,14 @@ import org.h2.jdbc.JdbcConnection;
  */
 public class ShowProgress implements DatabaseEventListener {
 
-    private final long start;
-    private long last;
+    private final long startNs;
+    private long lastNs;
 
     /**
-     * Create a new instance of this class, and start the timer.
+     * Create a new instance of this class, and startNs the timer.
      */
     public ShowProgress() {
-        start = last = System.nanoTime();
+        startNs = lastNs = System.nanoTime();
     }
 
     /**
@@ -114,10 +114,10 @@ public class ShowProgress implements DatabaseEventListener {
     @Override
     public void setProgress(int state, String name, int current, int max) {
         long time = System.nanoTime();
-        if (time < last + TimeUnit.SECONDS.toNanos(5)) {
+        if (time < lastNs + TimeUnit.SECONDS.toNanos(5)) {
             return;
         }
-        last = time;
+        lastNs = time;
         String stateName = "?";
         switch (state) {
         case STATE_SCAN_FILE:
@@ -140,7 +140,7 @@ public class ShowProgress implements DatabaseEventListener {
         System.out.println("State: " + stateName + " " +
                 (100 * current / max) + "% (" +
                 current + " of " + max + ") "
-                + TimeUnit.NANOSECONDS.toMillis(time - start) + " ms");
+                + TimeUnit.NANOSECONDS.toMillis(time - startNs) + " ms");
     }
 
     /**

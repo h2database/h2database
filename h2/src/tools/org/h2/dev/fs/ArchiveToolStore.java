@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.Random;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
@@ -276,13 +277,13 @@ public class ArchiveToolStore {
     }
 
     private void start() {
-        this.start = System.currentTimeMillis();
+        this.start = System.nanoTime();
         this.lastTime = start;
     }
 
     private void printProgress(int low, int high, long current, long total) {
-        long now = System.currentTimeMillis();
-        if (now - lastTime > 5000) {
+        long now = System.nanoTime();
+        if (now - lastTime > TimeUnit.SECONDS.toNanos(5)) {
             System.out.print((low + (high - low) * current / total) + "% ");
             lastTime = now;
         }
@@ -290,7 +291,7 @@ public class ArchiveToolStore {
 
     private void printDone() {
         System.out.println("Done in " +
-                (System.currentTimeMillis() - start) / 1000 +
+                TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start) +
                 " seconds");
     }
 

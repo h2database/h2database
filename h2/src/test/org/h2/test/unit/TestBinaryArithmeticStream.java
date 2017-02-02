@@ -91,7 +91,7 @@ public class TestBinaryArithmeticStream extends TestBase {
 
     private void testPerformance() throws IOException {
         Random r = new Random();
-        // long time = System.currentTimeMillis();
+        // long time = System.nanoTime();
         // Profiler prof = new Profiler().startCollecting();
         for (int seed = 0; seed < 10000; seed++) {
             r.setSeed(seed);
@@ -114,8 +114,8 @@ public class TestBinaryArithmeticStream extends TestBase {
                 assertEquals(expected, in.readBit(prob));
             }
         }
-        // time = System.currentTimeMillis() - time;
-        // System.out.println("time: " + time);
+        // time = System.nanoTime() - time;
+        // System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(time));
         // System.out.println(prof.getTop(5));
     }
 

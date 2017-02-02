@@ -18,6 +18,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -845,14 +846,14 @@ public class TestCases extends TestBase {
             @Override
             public void run() {
                 try {
-                    long time = System.currentTimeMillis();
+                    long time = System.nanoTime();
                     ResultSet rs = stat.executeQuery("SELECT MAX(T.ID) " +
                             "FROM TEST T, TEST, TEST, TEST, TEST, " +
                             "TEST, TEST, TEST, TEST, TEST, TEST");
                     rs.next();
-                    time = System.currentTimeMillis() - time;
+                    time = System.nanoTime() - time;
                     TestBase.logError("query was too quick; result: " +
-                            rs.getInt(1) + " time:" + time, null);
+                            rs.getInt(1) + " time:" + TimeUnit.NANOSECONDS.toMillis(time), null);
                 } catch (SQLException e) {
                     stopped[0] = e;
                     // ok
@@ -861,7 +862,7 @@ public class TestCases extends TestBase {
         });
         t.start();
         Thread.sleep(300);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         conn.close();
         t.join(5000);
         if (stopped[0] == null) {
@@ -869,8 +870,8 @@ public class TestCases extends TestBase {
         } else {
             assertKnownException(stopped[0]);
         }
-        time = System.currentTimeMillis() - time;
-        if (time > 5000) {
+        time = System.nanoTime() - time;
+        if (time > TimeUnit.SECONDS.toNanos(5)) {
             if (!config.reopen) {
                 fail("closing took " + time);
             }

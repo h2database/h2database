@@ -6,6 +6,8 @@
 package org.h2.command.dml;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.table.Plan;
@@ -23,7 +25,7 @@ class Optimizer {
     private static final int MAX_BRUTE_FORCE_FILTERS = 7;
     private static final int MAX_BRUTE_FORCE = 2000;
     private static final int MAX_GENETIC = 500;
-    private long start;
+    private long startNs;
     private BitField switched;
 
     //  possible plans for filters, if using brute force:
@@ -78,7 +80,7 @@ class Optimizer {
         if (filters.length == 1 || session.isForceJoinOrder()) {
             testPlan(filters);
         } else {
-            start = System.currentTimeMillis();
+            startNs = System.nanoTime();
             if (filters.length <= MAX_BRUTE_FORCE_FILTERS) {
                 calculateBruteForceAll();
             } else {
@@ -96,9 +98,9 @@ class Optimizer {
 
     private boolean canStop(int x) {
         if ((x & 127) == 0) {
-            long t = System.currentTimeMillis() - start;
+            long t = System.nanoTime() - startNs;
             // don't calculate for simple queries (no rows or so)
-            if (cost >= 0 && 10 * t > cost) {
+            if (cost >= 0 && 10 * t > cost * TimeUnit.MILLISECONDS.toNanos(1)) {
                 return true;
             }
         }

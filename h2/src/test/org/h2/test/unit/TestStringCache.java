@@ -7,6 +7,8 @@ package org.h2.test.unit;
 
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.test.TestBase;
 import org.h2.util.StringUtils;
 
@@ -56,24 +58,24 @@ public class TestStringCache extends TestBase {
         }
         int repeat = 100000;
         int testLen = 0;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         for (int a = 0; a < repeat; a++) {
             for (String x : test) {
                 String y = StringUtils.toUpperEnglish(x);
                 testLen += y.length();
             }
         }
-        time = System.currentTimeMillis() - time;
-        System.out.println("cache " + time);
-        time = System.currentTimeMillis();
+        time = System.nanoTime() - time;
+        System.out.println("cache " + TimeUnit.NANOSECONDS.toMillis(time));
+        time = System.nanoTime();
         for (int a = 0; a < repeat; a++) {
             for (String x : test) {
                 String y = x.toUpperCase(Locale.ENGLISH);
                 testLen -= y.length();
             }
         }
-        time = System.currentTimeMillis() - time;
-        System.out.println("toUpperCase " + time);
+        time = System.nanoTime() - time;
+        System.out.println("toUpperCase " + TimeUnit.NANOSECONDS.toMillis(time));
         assertEquals(0, testLen);
     }
 
@@ -100,10 +102,10 @@ public class TestStringCache extends TestBase {
         testToUpperCache();
         for (int i = 0; i < 6; i++) {
             useIntern = (i % 2) == 0;
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             testSingleThread(100000);
-            time = System.currentTimeMillis() - time;
-            System.out.println(time + " ms (useIntern=" + useIntern + ")");
+            time = System.nanoTime() - time;
+            System.out.println(TimeUnit.NANOSECONDS.toMillis(time) + " ms (useIntern=" + useIntern + ")");
         }
 
     }

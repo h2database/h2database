@@ -9,6 +9,8 @@ import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -21,7 +23,7 @@ public class StringUtils {
 
     private static SoftReference<String[]> softCache =
             new SoftReference<String[]>(null);
-    private static long softCacheCreated;
+    private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
@@ -61,8 +63,8 @@ public class StringUtils {
         }
         // create a new cache at most every 5 seconds
         // so that out of memory exceptions are not delayed
-        long time = System.currentTimeMillis();
-        if (softCacheCreated != 0 && time - softCacheCreated < 5000) {
+        long time = System.nanoTime();
+        if (softCacheCreatedNs != 0 && time - softCacheCreatedNs < TimeUnit.SECONDS.toNanos(5)) {
             return null;
         }
         try {
@@ -70,7 +72,7 @@ public class StringUtils {
             softCache = new SoftReference<String[]>(cache);
             return cache;
         } finally {
-            softCacheCreated = System.currentTimeMillis();
+            softCacheCreatedNs = System.nanoTime();
         }
     }
 

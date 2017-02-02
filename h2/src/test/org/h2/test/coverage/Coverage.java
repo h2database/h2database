@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.util.New;
 
 /**
@@ -127,10 +129,10 @@ public class Coverage {
 
     private void processAll() {
         int len = files.size();
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         for (int i = 0; i < len; i++) {
-            long t2 = System.currentTimeMillis();
-            if (t2 - time > 1000 || i >= len - 1) {
+            long t2 = System.nanoTime();
+            if (t2 - time > TimeUnit.SECONDS.toNanos(1) || i >= len - 1) {
                 System.out.println((i + 1) + " of " + len +
                         " " + (100 * i / len) + "%");
                 time = t2;

@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Types;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.JavaObjectSerializer;
 import org.h2.store.Data;
@@ -73,7 +74,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     private static void testPerformance() {
         Data data = Data.create(null, 1024);
         for (int j = 0; j < 4; j++) {
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             for (int i = 0; i < 100000; i++) {
                 data.reset();
                 for (int k = 0; k < 30; k++) {
@@ -92,10 +93,10 @@ public class TestDataPage extends TestBase implements DataHandler {
             //                    data.writeVarInt(k * k);
             //                }
             //            }
-            System.out.println("write: " + (System.currentTimeMillis() - time) + " ms");
+            System.out.println("write: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
         }
         for (int j = 0; j < 4; j++) {
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             for (int i = 0; i < 1000000; i++) {
                 data.reset();
                 for (int k = 0; k < 30; k++) {
@@ -114,7 +115,7 @@ public class TestDataPage extends TestBase implements DataHandler {
             //                    data.readInt();
             //                }
             //            }
-            System.out.println("read: " + (System.currentTimeMillis() - time) + " ms");
+            System.out.println("read: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
         }
     }
 

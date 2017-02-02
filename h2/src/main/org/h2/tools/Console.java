@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.server.ShutdownHandler;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
@@ -60,7 +62,7 @@ ShutdownHandler {
 //*/
     private Server web, tcp, pg;
     private boolean isWindows;
-    private long lastOpen;
+    private long lastOpenNs;
 
     /**
      * When running without options, -tcp, -web, -browser and -pg are started.
@@ -532,9 +534,9 @@ ShutdownHandler {
             if (urlText != null) {
                 urlText.setText(url);
             }
-            long now = System.currentTimeMillis();
-            if (lastOpen == 0 || lastOpen + 100 < now) {
-                lastOpen = now;
+            long now = System.nanoTime();
+            if (lastOpenNs == 0 || lastOpenNs + TimeUnit.MILLISECONDS.toNanos(100) < now) {
+                lastOpenNs = now;
                 openBrowser(url);
             }
         }

@@ -7,6 +7,7 @@ package org.h2.bnf;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
@@ -53,7 +54,7 @@ public class Sentence {
      */
     private String queryUpper;
 
-    private long stopAt;
+    private long stopAtNs;
     private DbSchema lastMatchedSchema;
     private DbTableOrView lastMatchedTable;
     private DbTableOrView lastTable;
@@ -64,7 +65,7 @@ public class Sentence {
      * Start the timer to make sure processing doesn't take too long.
      */
     public void start() {
-        stopAt = System.currentTimeMillis() + MAX_PROCESSING_TIME;
+        stopAtNs = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(MAX_PROCESSING_TIME);
     }
 
     /**
@@ -73,7 +74,7 @@ public class Sentence {
      * If processing is stopped, this methods throws an IllegalStateException
      */
     public void stopIfRequired() {
-        if (System.currentTimeMillis() > stopAt) {
+        if (System.nanoTime() > stopAtNs) {
             throw new IllegalStateException();
         }
     }

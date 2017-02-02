@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.mvstore.MVMap;
@@ -156,12 +157,12 @@ public class TestBenchmark extends TestBase {
             }
         }
 
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         // Profiler prof = new Profiler().startCollecting();
         stat.execute("create index on test(data)");
         // System.out.println(prof.getTop(5));
 
-        System.out.println((System.currentTimeMillis() - start) + " "
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
         conn.createStatement().execute("shutdown compact");
         conn.close();
@@ -191,7 +192,7 @@ public class TestBenchmark extends TestBase {
         int rowCount = 100;
         int readCount = 20 * rowCount;
 
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
 
         for (int i = 0; i < rowCount; i++) {
             prep.setInt(1, i);
@@ -209,7 +210,7 @@ public class TestBenchmark extends TestBase {
             prep.executeQuery();
         }
 
-        System.out.println((System.currentTimeMillis() - start) + " "
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
         conn.close();
     }
@@ -249,7 +250,7 @@ public class TestBenchmark extends TestBase {
                 conn.commit();
             }
         }
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
 
         prep = conn.prepareStatement("select * from test where id = ?");
         for (int i = 0; i < readCount; i++) {
@@ -257,7 +258,7 @@ public class TestBenchmark extends TestBase {
             prep.executeQuery();
         }
 
-        System.out.println((System.currentTimeMillis() - start) + " "
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
         conn.createStatement().execute("shutdown compact");
         conn.close();

@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -454,12 +456,12 @@ public class TestFullText extends TestBase {
                 "CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
         stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT NOT NULL");
         stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
-        println("create " + prefix + ": " + (System.currentTimeMillis() - time));
+        println("create " + prefix + ": " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         ResultSet rs = stat.executeQuery("SELECT TEXT FROM TEST");
         int count = 0;
         while (rs.next()) {
@@ -480,7 +482,7 @@ public class TestFullText extends TestBase {
             }
         }
         println("search " + prefix + ": " +
-                (System.currentTimeMillis() - time) + " count: " + count);
+        		TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " count: " + count);
         stat.execute("CALL " + prefix + "_DROP_ALL()");
         conn.close();
     }

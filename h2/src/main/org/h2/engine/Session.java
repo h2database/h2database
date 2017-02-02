@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
@@ -86,7 +88,7 @@ public class Session extends SessionWithState {
     private HashMap<String, Table> localTempTables;
     private HashMap<String, Index> localTempTableIndexes;
     private HashMap<String, Constraint> localTempTableConstraints;
-    private int throttle;
+    private long throttleNs;
     private long lastThrottle;
     private Command currentCommand;
     private boolean allowLiterals;
@@ -100,7 +102,7 @@ public class Session extends SessionWithState {
     private boolean redoLogBinary = true;
     private boolean autoCommitAtTransactionEnd;
     private String currentTransactionName;
-    private volatile long cancelAt;
+    private volatile long cancelAtNs;
     private boolean closed;
     private final long sessionStart = System.currentTimeMillis();
     private long transactionStart;
@@ -666,8 +668,8 @@ public class Session extends SessionWithState {
             temporaryLobs.clear();
         }
         if (temporaryResultLobs != null && temporaryResultLobs.size() > 0) {
-            long keepYoungerThan = System.currentTimeMillis() -
-                    database.getSettings().lobTimeout;
+            long keepYoungerThan = System.nanoTime() -
+                    TimeUnit.MILLISECONDS.toNanos(database.getSettings().lobTimeout);
             while (temporaryResultLobs.size() > 0) {
                 TimeoutValue tv = temporaryResultLobs.getFirst();
                 if (onTimeout && tv.created >= keepYoungerThan) {
@@ -809,7 +811,7 @@ public class Session extends SessionWithState {
 
     @Override
     public void cancel() {
-        cancelAt = System.currentTimeMillis();
+        cancelAtNs = System.nanoTime();
     }
 
     @Override
@@ -1143,7 +1145,7 @@ public class Session extends SessionWithState {
     }
 
     public void setThrottle(int throttle) {
-        this.throttle = throttle;
+        this.throttleNs = TimeUnit.MILLISECONDS.toNanos(throttle);
     }
 
     /**
@@ -1153,16 +1155,16 @@ public class Session extends SessionWithState {
         if (currentCommandStart == 0) {
             currentCommandStart = System.currentTimeMillis();
         }
-        if (throttle == 0) {
+        if (throttleNs == 0) {
             return;
         }
-        long time = System.currentTimeMillis();
-        if (lastThrottle + Constants.THROTTLE_DELAY > time) {
+        long time = System.nanoTime();
+        if (lastThrottle + TimeUnit.MILLISECONDS.toNanos(Constants.THROTTLE_DELAY) > time) {
             return;
         }
-        lastThrottle = time + throttle;
+        lastThrottle = time + throttleNs;
         try {
-            Thread.sleep(throttle);
+            Thread.sleep(TimeUnit.NANOSECONDS.toMillis(throttleNs));
         } catch (Exception e) {
             // ignore InterruptedException
         }
@@ -1177,9 +1179,9 @@ public class Session extends SessionWithState {
     public void setCurrentCommand(Command command) {
         this.currentCommand = command;
         if (queryTimeout > 0 && command != null) {
-            long now = System.currentTimeMillis();
-            currentCommandStart = now;
-            cancelAt = now + queryTimeout;
+            currentCommandStart = System.currentTimeMillis();
+            long now = System.nanoTime();
+            cancelAtNs = now + TimeUnit.MILLISECONDS.toNanos(queryTimeout);
         }
     }
 
@@ -1191,12 +1193,12 @@ public class Session extends SessionWithState {
      */
     public void checkCanceled() {
         throttle();
-        if (cancelAt == 0) {
+        if (cancelAtNs == 0) {
             return;
         }
-        long time = System.currentTimeMillis();
-        if (time >= cancelAt) {
-            cancelAt = 0;
+        long time = System.nanoTime();
+        if (time >= cancelAtNs) {
+            cancelAtNs = 0;
             throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
         }
     }
@@ -1207,7 +1209,7 @@ public class Session extends SessionWithState {
      * @return the time or 0 if not set
      */
     public long getCancel() {
-        return cancelAt;
+        return cancelAtNs;
     }
 
     public Command getCurrentCommand() {
@@ -1498,7 +1500,7 @@ public class Session extends SessionWithState {
         this.queryTimeout = queryTimeout;
         // must reset the cancel at here,
         // otherwise it is still used
-        this.cancelAt = 0;
+        this.cancelAtNs = 0;
     }
 
     public int getQueryTimeout() {
@@ -1696,7 +1698,7 @@ public class Session extends SessionWithState {
         /**
          * The time when this object was created.
          */
-        final long created = System.currentTimeMillis();
+        final long created = System.nanoTime();
 
         /**
          * The value.

@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.Analyze;
@@ -500,10 +502,10 @@ public class RegularTable extends TableBase {
                 // check for deadlocks from now on
                 checkDeadlock = true;
             }
-            long now = System.currentTimeMillis();
+            long now = System.nanoTime();
             if (max == 0) {
                 // try at least one more time
-                max = now + session.getLockTimeout();
+                max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
             } else if (now >= max) {
                 traceLock(session, exclusive, "timeout after " + session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
@@ -521,7 +523,7 @@ public class RegularTable extends TableBase {
                     }
                 }
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK, max - now);
+                long sleep = Math.min(Constants.DEADLOCK_CHECK, TimeUnit.NANOSECONDS.toMillis(max - now));
                 if (sleep == 0) {
                     sleep = 1;
                 }

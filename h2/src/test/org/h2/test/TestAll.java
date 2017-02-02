@@ -10,6 +10,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -437,7 +439,7 @@ java org.h2.test.TestAll timer
 
     private static void run(String... args) throws Exception {
         SelfDestructor.startCountdown(4 * 60);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         printSystemInfo();
 
         // use lower values, to better test those cases,
@@ -533,7 +535,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             test.testAll();
         }
         System.out.println(TestBase.formatTime(
-                System.currentTimeMillis() - time) + " total");
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time)) + " total");
     }
 
     private void testAll() throws Exception {

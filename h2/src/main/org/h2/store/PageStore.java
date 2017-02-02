@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
@@ -506,7 +507,7 @@ public class PageStore implements CacheWriter {
         } finally {
             recoveryRunning = false;
         }
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         boolean isCompactFully = compactMode ==
                 CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode ==
@@ -537,8 +538,8 @@ public class PageStore implements CacheWriter {
                         }
                         if (compact(full, firstFree)) {
                             j++;
-                            long now = System.currentTimeMillis();
-                            if (now > start + maxCompactTime) {
+                            long now = System.nanoTime();
+                            if (now > start + TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
                                 j = maxMove;
                                 break;
                             }

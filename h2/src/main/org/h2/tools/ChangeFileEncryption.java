@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -236,11 +237,11 @@ public class ChangeFileEncryption extends Tool {
             byte[] buffer = new byte[4 * 1024];
             long remaining = fileIn.size();
             long total = remaining;
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             while (remaining > 0) {
-                if (!quiet && System.currentTimeMillis() - time > 1000) {
+                if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
                     out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
-                    time = System.currentTimeMillis();
+                    time = System.nanoTime();
                 }
                 int len = (int) Math.min(buffer.length, remaining);
                 len = inStream.read(buffer, 0, len);
@@ -277,11 +278,11 @@ public class ChangeFileEncryption extends Tool {
         long total = remaining;
         in.seek(FileStore.HEADER_LENGTH);
         fileOut.seek(FileStore.HEADER_LENGTH);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         while (remaining > 0) {
-            if (!quiet && System.currentTimeMillis() - time > 1000) {
+            if (!quiet && System.nanoTime() - time > TimeUnit.SECONDS.toNanos(1)) {
                 out.println(fileName + ": " + (100 - 100 * remaining / total) + "%");
-                time = System.currentTimeMillis();
+                time = System.nanoTime();
             }
             int len = (int) Math.min(buffer.length, remaining);
             in.readFully(buffer, 0, len);

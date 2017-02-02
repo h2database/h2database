@@ -32,6 +32,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.SimpleTimeZone;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -144,7 +146,7 @@ public abstract class TestBase {
         }
         try {
             init(conf);
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             test();
             println("");
         } catch (Throwable e) {
@@ -519,10 +521,10 @@ public abstract class TestBase {
      * @param s the message
      */
     public void println(String s) {
-        long now = System.currentTimeMillis();
-        if (now > lastPrint + 1000) {
+        long now = System.nanoTime();
+        if (now > lastPrint + TimeUnit.SECONDS.toNanos(1)) {
             lastPrint = now;
-            long time = now - start;
+            long time = TimeUnit.NANOSECONDS.toMillis(now - start);
             printlnWithTime(time, getClass().getName() + " " + s);
         }
     }

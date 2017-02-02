@@ -175,10 +175,10 @@ public class TestUtils extends TestBase {
 
     private void testReflectionUtils() throws Exception {
         // Static method call
-        long currentTimeMillis1 = System.currentTimeMillis();
-        long currentTimeMillis2 = (Long) Utils.callStaticMethod(
-                "java.lang.System.currentTimeMillis");
-        assertTrue(currentTimeMillis1 <= currentTimeMillis2);
+        long currentTimeNanos1 = System.nanoTime();
+        long currentTimeNanos2 = (Long) Utils.callStaticMethod(
+                "java.lang.System.nanoTime");
+        assertTrue(currentTimeNanos1 <= currentTimeNanos2);
         // New Instance
         Object instance = Utils.newInstance("java.lang.StringBuilder");
         // New Instance with int parameter

@@ -313,8 +313,8 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunctionNotDeterministic("CURDATE", CURDATE,
                 0, Value.DATE);
-        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.STRING);
-        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.STRING);
+        addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
+        addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
         // alias for MSSQLServer
         addFunctionNotDeterministic("GETDATE", CURDATE,

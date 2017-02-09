@@ -23,7 +23,7 @@ class FunctionInfo {
     /**
      * The data type of the return value.
      */
-    int dataType;
+    int returnDataType;
 
     /**
      * The number of parameters.

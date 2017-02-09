@@ -498,13 +498,13 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int dataType, boolean nullIfParameterIsNull, boolean deterministic,
+            int returnDataType, boolean nullIfParameterIsNull, boolean deterministic,
             boolean bufferResultSetToLocalTemp) {
         FunctionInfo info = new FunctionInfo();
         info.name = name;
         info.type = type;
         info.parameterCount = parameterCount;
-        info.dataType = dataType;
+        info.returnDataType = returnDataType;
         info.nullIfParameterIsNull = nullIfParameterIsNull;
         info.deterministic = deterministic;
         info.bufferResultSetToLocalTemp = bufferResultSetToLocalTemp;
@@ -512,18 +512,18 @@ public class Function extends Expression implements FunctionCall {
     }
 
     private static void addFunctionNotDeterministic(String name, int type,
-            int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, false, true);
+            int parameterCount, int returnDataType) {
+        addFunction(name, type, parameterCount, returnDataType, true, false, true);
     }
 
     private static void addFunction(String name, int type, int parameterCount,
-            int dataType) {
-        addFunction(name, type, parameterCount, dataType, true, true, true);
+            int returnDataType) {
+        addFunction(name, type, parameterCount, returnDataType, true, true, true);
     }
 
     private static void addFunctionWithNull(String name, int type,
-            int parameterCount, int dataType) {
-        addFunction(name, type, parameterCount, dataType, false, true, true);
+            int parameterCount, int returnDataType) {
+        addFunction(name, type, parameterCount, returnDataType, false, true, true);
     }
 
     /**
@@ -2470,7 +2470,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case SUBSTRING:
         case SUBSTR: {
-            t = info.dataType;
+            t = info.returnDataType;
             p = args[0].getPrecision();
             s = 0;
             if (args[1].isConstant()) {
@@ -2487,7 +2487,7 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         default:
-            t = info.dataType;
+            t = info.returnDataType;
             DataType type = DataType.getDataType(t);
             p = PRECISION_UNKNOWN;
             d = 0;

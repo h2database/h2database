@@ -74,4 +74,9 @@ public class IndexColumn {
             col.column = table.getColumn(col.columnName);
         }
     }
+
+    @Override
+    public String toString() {
+        return "IndexColumn " + getSQL();
+    }
 }

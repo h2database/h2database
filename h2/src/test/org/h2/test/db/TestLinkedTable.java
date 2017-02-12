@@ -137,7 +137,7 @@ public class TestLinkedTable extends TestBase {
                     "(null, 'jdbc:h2:mem:', 'sa', 'pwd', 'DUAL2')");
             fail();
         } catch (SQLException e) {
-            assertTrue(e.toString().contains("pwd"));
+            assertContains(e.toString(), "pwd");
         }
         try {
             conn.createStatement().execute("create linked table test" +

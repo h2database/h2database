@@ -7,7 +7,6 @@ package org.h2.table;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.dml.Select;
@@ -56,6 +55,7 @@ public class TableFilter implements ColumnResolver {
     private final Select select;
     private String alias;
     private Index index;
+    private final IndexHints indexHints;
     private int[] masks;
     private int scanCount;
     private boolean evaluatable;
@@ -126,10 +126,10 @@ public class TableFilter implements ColumnResolver {
      * @param rightsChecked true if rights are already checked
      * @param select the select statement
      * @param orderInFrom original order number (index) of this table filter in
-     *            FROM clause (0, 1, 2,...)
+     * @param indexHints the index hints to be used by the query planner
      */
     public TableFilter(Session session, Table table, String alias,
-            boolean rightsChecked, Select select, int orderInFrom) {
+            boolean rightsChecked, Select select, int orderInFrom, IndexHints indexHints) {
         this.session = session;
         this.table = table;
         this.alias = alias;
@@ -140,6 +140,7 @@ public class TableFilter implements ColumnResolver {
         }
         hashCode = session.nextObjectId();
         this.orderInFrom = orderInFrom;
+        this.indexHints = indexHints;
     }
 
     /**
@@ -828,6 +829,19 @@ public class TableFilter implements ColumnResolver {
         if (alias != null) {
             buff.append(' ').append(Parser.quoteIdentifier(alias));
         }
+        if (indexHints != null) {
+            buff.append(" USE INDEX (");
+            boolean first = true;
+            for (String index : indexHints.getAllowedIndexes()) {
+                if (!first) {
+                    buff.append(", ");
+                } else {
+                    first = false;
+                }
+                buff.append(index);
+            }
+            buff.append(")");
+        }
         if (index != null) {
             buff.append('\n');
             StatementBuilder planBuff = new StatementBuilder();
@@ -835,7 +849,7 @@ public class TableFilter implements ColumnResolver {
                 IndexLookupBatch lookupBatch = joinBatch.getLookupBatch(joinFilterId);
                 if (lookupBatch == null) {
                     if (joinFilterId != 0) {
-                        throw DbException.throwInternalError();
+                        throw DbException.throwInternalError("" + joinFilterId);
                     }
                 } else {
                     planBuff.append("batched:");
@@ -1192,6 +1206,10 @@ public class TableFilter implements ColumnResolver {
 
     public Session getSession() {
         return session;
+    }
+
+    public IndexHints getIndexHints() {
+        return indexHints;
     }
 
     /**

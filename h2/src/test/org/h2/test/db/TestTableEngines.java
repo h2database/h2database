@@ -47,6 +47,7 @@ import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
 import org.h2.table.TableFilter;
+import org.h2.table.TableType;
 import org.h2.test.TestBase;
 import org.h2.util.DoneFuture;
 import org.h2.util.New;
@@ -77,6 +78,7 @@ public class TestTableEngines extends TestBase {
         testSubQueryInfo();
         testEarlyFilter();
         testEngineParams();
+        testSchemaEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
         testBatchedJoin();
@@ -109,6 +111,13 @@ public class TestTableEngines extends TestBase {
                 EndlessTableEngine.createTableData.tableEngineParams.get(0));
         assertEquals("param2",
                 EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        stat.execute("CREATE TABLE t2(id int, name varchar) WITH \"param1\", \"param2\"");
+        assertEquals(2,
+            EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1",
+            EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2",
+            EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
         if (!config.memory) {
             // Test serialization of table parameters
@@ -122,6 +131,23 @@ public class TestTableEngines extends TestBase {
                     EndlessTableEngine.createTableData.tableEngineParams.get(1));
             conn.close();
         }
+        deleteDb("tableEngine");
+    }
+
+    private void testSchemaEngineParams() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SCHEMA s1 WITH \"param1\", \"param2\"");
+
+        stat.execute("CREATE TABLE s1.t1(id int, name varchar) ENGINE \"" + EndlessTableEngine.class.getName() + '\"');
+        assertEquals(2,
+            EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1",
+            EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2",
+            EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        conn.close();
         deleteDb("tableEngine");
     }
 
@@ -261,6 +287,8 @@ public class TestTableEngines extends TestBase {
 
         checkResults(6, dataSet, stat,
                 "select * from t order by a", null, new RowComparator(0));
+        checkResults(6, dataSet, stat,
+                "select * from t order by a desc", null, new RowComparator(true, 0));
         checkResults(6, dataSet, stat,
                 "select * from t order by b, c", null, new RowComparator(1, 2));
         checkResults(6, dataSet, stat,
@@ -1009,8 +1037,8 @@ public class TestTableEngines extends TestBase {
             }
 
             @Override
-            public String getTableType() {
-                return EXTERNAL_TABLE_ENGINE;
+            public TableType getTableType() {
+                return TableType.EXTERNAL_TABLE_ENGINE;
             }
 
             @Override
@@ -1260,8 +1288,8 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public String getTableType() {
-            return EXTERNAL_TABLE_ENGINE;
+        public TableType getTableType() {
+            return TableType.EXTERNAL_TABLE_ENGINE;
         }
 
         @Override
@@ -1613,8 +1641,15 @@ public class TestTableEngines extends TestBase {
      */
     private static class RowComparator implements Comparator<List<Object>> {
         private int[] cols;
+        private boolean descending;
 
         public RowComparator(int... cols) {
+            this.descending = false;
+            this.cols = cols;
+        }
+
+        public RowComparator(boolean descending, int... cols) {
+            this.descending = descending;
             this.cols = cols;
         }
 
@@ -1626,17 +1661,27 @@ public class TestTableEngines extends TestBase {
                 Comparable<Object> o1 = (Comparable<Object>) row1.get(col);
                 Comparable<Object> o2 = (Comparable<Object>) row2.get(col);
                 if (o1 == null) {
-                    return o2 == null ? 0 : -1;
+                    return applyDescending(o2 == null ? 0 : -1);
                 }
                 if (o2 == null) {
-                    return 1;
+                    return applyDescending(1);
                 }
                 int res = o1.compareTo(o2);
                 if (res != 0) {
-                    return res;
+                    return applyDescending(res);
                 }
             }
             return 0;
+        }
+
+        private int applyDescending(int v) {
+            if (!descending) {
+                return v;
+            }
+            if (v == 0) {
+                return v;
+            }
+            return -v;
         }
     }
 

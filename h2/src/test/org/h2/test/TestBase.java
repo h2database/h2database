@@ -32,6 +32,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.SimpleTimeZone;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -144,7 +146,7 @@ public abstract class TestBase {
         }
         try {
             init(conf);
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             test();
             println("");
         } catch (Throwable e) {
@@ -153,6 +155,7 @@ public abstract class TestBase {
             if (config.stopOnError) {
                 throw new AssertionError("ERROR");
             }
+            TestAll.atLeastOneTestFailed = true;
             if (e instanceof OutOfMemoryError) {
                 throw (OutOfMemoryError) e;
             }
@@ -256,10 +259,10 @@ public abstract class TestBase {
             // name = addOption(name, "RETENTION_TIME", "10");
             // name = addOption(name, "WRITE_DELAY", "10");
         }
-        if (config.memory) {
+        int idx = name.indexOf(':');
+        if (idx == -1 && config.memory) {
             name = "mem:" + name;
         } else {
-            int idx = name.indexOf(':');
             if (idx < 0 || idx > 10) {
                 // index > 10 if in options
                 name = getBaseDir() + "/" + name;
@@ -518,10 +521,10 @@ public abstract class TestBase {
      * @param s the message
      */
     public void println(String s) {
-        long now = System.currentTimeMillis();
-        if (now > lastPrint + 1000) {
+        long now = System.nanoTime();
+        if (now > lastPrint + TimeUnit.SECONDS.toNanos(1)) {
             lastPrint = now;
-            long time = now - start;
+            long time = TimeUnit.NANOSECONDS.toMillis(now - start);
             printlnWithTime(time, getClass().getName() + " " + s);
         }
     }
@@ -661,7 +664,9 @@ public abstract class TestBase {
     }
 
     /**
-     * Check if two values are equal, and if not throw an exception.
+     * Check if two arrays are equal, and if not throw an exception.
+     * If some of the elements in the arrays are themselves arrays this
+     * check is called recursively.
      *
      * @param expected the expected value
      * @param actual the actual value
@@ -678,6 +683,8 @@ public abstract class TestBase {
                 if (expected[i] != actual[i]) {
                     fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
                 }
+            } else if (expected[i] instanceof Object[] && actual[i] instanceof Object[]) {
+                assertEquals((Object[]) expected[i], (Object[]) actual[i]);
             } else if (!expected[i].equals(actual[i])) {
                 fail("[" + i + "]: expected: " + expected[i] + " actual: " + actual[i]);
             }
@@ -1489,7 +1496,9 @@ public abstract class TestBase {
                 if (errorCode != expectedErrorCode) {
                     AssertionError ae = new AssertionError(
                             "Expected an SQLException or DbException with error code "
-                                    + expectedErrorCode);
+                                    + expectedErrorCode
+                                    + ", but got a " + t.getClass().getName() + " exception "
+                                    + " with error code " + errorCode);
                     ae.initCause(t);
                     throw ae;
                 }

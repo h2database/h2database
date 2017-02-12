@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.Ref;
@@ -56,6 +57,8 @@ public class TestCallableStatement extends TestBase {
         testCallWithResult(conn);
         testPrepare(conn);
         testClassLoader(conn);
+        testArrayArgument(conn);
+        testArrayReturnValue(conn);
         conn.close();
         deleteDb("callableStatement");
     }
@@ -419,6 +422,88 @@ public class TestCallableStatement extends TestBase {
         }
     }
 
+    private void testArrayArgument(Connection connection) throws SQLException {
+        Array array = connection.createArrayOf("Int", new Object[] {0, 1, 2});
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("CREATE ALIAS getArrayLength FOR \"" +
+                            getClass().getName() + ".getArrayLength\"");
+
+            // test setArray
+            try (CallableStatement callableStatement = connection.prepareCall("{call getArrayLength(?)}")) {
+                callableStatement.setArray(1, array);
+                assertTrue(callableStatement.execute());
+
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    assertTrue(resultSet.next());
+                    assertEquals(3, resultSet.getInt(1));
+                    assertFalse(resultSet.next());
+                }
+            }
+
+            // test setObject
+            try (CallableStatement callableStatement = connection.prepareCall("{call getArrayLength(?)}")) {
+                callableStatement.setObject(1, array);
+                assertTrue(callableStatement.execute());
+
+                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                    assertTrue(resultSet.next());
+                    assertEquals(3, resultSet.getInt(1));
+                    assertFalse(resultSet.next());
+                }
+            }
+        } finally {
+            array.free();
+        }
+    }
+
+    private void testArrayReturnValue(Connection connection) throws SQLException {
+        Object[][] arraysToTest = new Object[][] {
+            new Object[] {0, 1, 2},
+            new Object[] {0, "1", 2},
+            new Object[] {0, null, 2},
+            new Object[] {0, new Object[] {"s", 1}, new Object[] {null, 1L}},
+        };
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("CREATE ALIAS arrayIdentiy FOR \"" +
+                            getClass().getName() + ".arrayIdentiy\"");
+
+            for (Object[] arrayToTest : arraysToTest) {
+                Array sqlInputArray = connection.createArrayOf("ignored",arrayToTest);
+                try {
+                    try (CallableStatement callableStatement = connection.prepareCall("{call arrayIdentiy(?)}")) {
+                        callableStatement.setArray(1, sqlInputArray);
+                        assertTrue(callableStatement.execute());
+
+                        try (ResultSet resultSet = callableStatement.getResultSet()) {
+                            assertTrue(resultSet.next());
+
+                            // test getArray()
+                            Array sqlReturnArray = resultSet.getArray(1);
+                            try {
+                                assertEquals((Object[]) sqlInputArray.getArray(), (Object[]) sqlReturnArray.getArray());
+                            } finally {
+                                sqlReturnArray.free();
+                            }
+
+                            // test getObject(Array.class)
+                            sqlReturnArray = resultSet.getObject(1, Array.class);
+                            try {
+                                assertEquals((Object[]) sqlInputArray.getArray(), (Object[]) sqlReturnArray.getArray());
+                            } finally {
+                                sqlReturnArray.free();
+                            }
+
+                            assertFalse(resultSet.next());
+                        }
+                    }
+                } finally {
+                    sqlInputArray.free();
+                }
+
+            }
+        }
+    }
+
     /**
      * Class factory unit test
      * @param b boolean value
@@ -426,6 +511,26 @@ public class TestCallableStatement extends TestBase {
      */
     public static Boolean testClassF(Boolean b) {
         return !b;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param array the array
+     * @return the length of the array
+     */
+    public static int getArrayLength(Object[] array) {
+        return array == null ? 0 : array.length;
+    }
+
+    /**
+     * This method is called via reflection from the database.
+     *
+     * @param array the array
+     * @return the array
+     */
+    public static Object[] arrayIdentiy(Object[] array) {
+        return array;
     }
 
     /**

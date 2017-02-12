@@ -9,6 +9,9 @@ import java.lang.management.ManagementFactory;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -36,6 +39,7 @@ import org.h2.test.db.TestFullText;
 import org.h2.test.db.TestFunctionOverload;
 import org.h2.test.db.TestFunctions;
 import org.h2.test.db.TestIndex;
+import org.h2.test.db.TestIndexHints;
 import org.h2.test.db.TestLargeBlob;
 import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
@@ -224,6 +228,7 @@ import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
+import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
 /**
@@ -340,7 +345,7 @@ java org.h2.test.TestAll timer
     public boolean splitFileSystem;
 
     /**
-     * If only fast tests should be run. If enabled, SSL is not tested.
+     * If only fast/CI/Jenkins/Travis tests should be run.
      */
     public boolean fast;
 
@@ -410,6 +415,11 @@ java org.h2.test.TestAll timer
      */
     ArrayList<TestBase> tests = New.arrayList();
 
+    /**
+     * Set to true if any of the tests fail. Used to return an error code from the whole program.
+     */
+    static boolean atLeastOneTestFailed;
+
     private Server server;
 
     /**
@@ -422,11 +432,14 @@ java org.h2.test.TestAll timer
         run(args);
         catcher.stop();
         catcher.writeTo("Test Output", "docs/html/testOutput.html");
+        if (atLeastOneTestFailed) {
+            System.exit(1);
+        }
     }
 
     private static void run(String... args) throws Exception {
         SelfDestructor.startCountdown(4 * 60);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         printSystemInfo();
 
         // use lower values, to better test those cases,
@@ -522,19 +535,21 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             test.testAll();
         }
         System.out.println(TestBase.formatTime(
-                System.currentTimeMillis() - time) + " total");
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time)) + " total");
     }
 
     private void testAll() throws Exception {
         runTests();
-        Profiler prof = new Profiler();
-        prof.depth = 16;
-        prof.interval = 1;
-        prof.startCollecting();
-        TestPerformance.main("-init", "-db", "1", "-size", "1000");
-        prof.stopCollecting();
-        System.out.println(prof.getTop(5));
-        TestPerformance.main("-init", "-db", "1", "-size", "1000");
+        if (!fast) {
+            Profiler prof = new Profiler();
+            prof.depth = 16;
+            prof.interval = 1;
+            prof.startCollecting();
+            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+            prof.stopCollecting();
+            System.out.println(prof.getTop(5));
+            TestPerformance.main("-init", "-db", "1", "-size", "1000");
+        }
     }
 
     /**
@@ -575,18 +590,33 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         smallLog = big = networked = memory = ssl = false;
         diskResult = traceSystemOut = diskUndo = false;
-        mvcc = mvStore;
         traceTest = stopOnError = false;
         defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
-        // splitFileSystem = true;
+
+        // memory is a good match for multi-threaded, makes things happen faster, more change of exposing
+        // race conditions
+        memory = true;
+        multiThreaded = true;
         test();
         testUnit();
 
-        networked = true;
+        // but sometimes race conditions need bigger windows
+        memory = false;
+        multiThreaded = true;
+        test();
+        testUnit();
+
+        // a more normal setup
+        memory = false;
+        multiThreaded = false;
+        test();
+        testUnit();
+
         memory = true;
-        splitFileSystem = false;
+        multiThreaded = false;
+        networked = true;
         test();
 
         memory = false;
@@ -608,16 +638,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = true;
         test();
 
-        traceLevelFile = 0;
-        smallLog = true;
-        networked = true;
         if (!fast) {
+            traceLevelFile = 0;
+            smallLog = true;
+            networked = true;
+            defrag = false;
             ssl = true;
-        }
-        defrag = false;
-        test();
+            test();
 
-        if (!fast) {
             big = true;
             smallLog = false;
             networked = false;
@@ -625,18 +653,14 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             traceLevelFile = 0;
             test();
             testUnit();
+
+            big = false;
+            cipher = "AES";
+            test();
+            cipher = null;
+            test();
         }
 
-        big = false;
-        cipher = "AES";
-        test();
-
-        mvcc = true;
-        cipher = null;
-        test();
-
-        memory = true;
-        test();
     }
 
     /**
@@ -686,6 +710,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestFunctions());
         addTest(new TestInit());
         addTest(new TestIndex());
+        addTest(new TestIndexHints());
         addTest(new TestLargeBlob());
         addTest(new TestLinkedTable());
         addTest(new TestListener());
@@ -901,7 +926,20 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // tests.add(test);
         // run directly for now, because concurrently running tests
         // fails on Raspberry Pi quite often (seems to be a JVM problem)
-        test.runTest(this);
+
+        // event queue watchdog for tests that get stuck when running in Jenkins CI
+        final java.util.Timer watchdog = new java.util.Timer();
+        watchdog.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                ThreadDeadlockDetector.dumpAllThreadsAndLocks("test watchdog timed out");
+            }
+        }, 5 * 60 * 1000); // 5 minutes
+        try {
+            test.runTest(this);
+        } finally {
+            watchdog.cancel();
+        }
     }
 
     private void runAddedTests() {
@@ -1028,6 +1066,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, memory, "memory");
         appendIf(buff, codeCoverage, "codeCoverage");
         appendIf(buff, mvcc, "mvcc");
+        appendIf(buff, multiThreaded, "multiThreaded");
         appendIf(buff, cipher != null, cipher);
         appendIf(buff, cacheType != null, cacheType);
         appendIf(buff, smallLog, "smallLog");

@@ -36,5 +36,7 @@ public class ThreadDumpFilter {
                 } while(s != null && (s.length() == 0 || " \t\"".indexOf(s.charAt(0)) >= 0));
             }
         }
+        writer.close();
+        in.close();
     }
 }

@@ -566,8 +566,8 @@ public class TableLink extends Table {
     }
 
     @Override
-    public String getTableType() {
-        return Table.TABLE_LINK;
+    public TableType getTableType() {
+        return TableType.TABLE_LINK;
     }
 
     @Override

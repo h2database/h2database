@@ -15,6 +15,7 @@ import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
@@ -57,7 +58,7 @@ public class Analyze extends DefineCommand {
      */
     public static void analyzeTable(Session session, Table table, int sample,
             boolean manual) {
-        if (!(table.getTableType().equals(Table.TABLE)) ||
+        if (table.getTableType() != TableType.TABLE ||
                 table.isHidden() || session == null) {
             return;
         }
@@ -130,10 +131,10 @@ public class Analyze extends DefineCommand {
                 // then we can't update the statistics because
                 // that would unlock all locked objects
                 synchronized (sysSession) {
-                    synchronized (db) {
-                        db.updateMeta(sysSession, table);
-                        sysSession.commit(true);
-                    }
+                    // can't take the db lock yet, updateMeta needs to call lockMeta,
+                    // and then it will take the db lock
+                    db.updateMeta(sysSession, table);
+                    sysSession.commit(true);
                 }
             }
         }

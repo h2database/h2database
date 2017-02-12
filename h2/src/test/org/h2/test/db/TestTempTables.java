@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
@@ -48,6 +47,7 @@ public class TestTempTables extends TestBase {
         c1.close();
         c2.close();
         testLotsOfTables();
+        testCreateAsSelectDistinct();
         deleteDb("tempTables");
     }
 
@@ -331,6 +331,26 @@ public class TestTempTables extends TestBase {
             stat.executeUpdate("create local temporary table t(id int)");
             stat.executeUpdate("drop table t");
         }
+        conn.close();
+    }
+
+    /**
+     * Issue #401: NPE in "SELECT DISTINCT * ORDER BY"
+     */
+    private void testCreateAsSelectDistinct() throws SQLException {
+        deleteDb("tempTables");
+        Connection conn = getConnection("tempTables;MAX_MEMORY_ROWS=1000");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE ONE(S1 VARCHAR(255), S2 VARCHAR(255))");
+        PreparedStatement prep = conn
+                .prepareStatement("insert into one values(?,?)");
+        for (int row = 0; row < 10000; row++) {
+            prep.setString(1, "abc");
+            prep.setString(2, "def" + row);
+            prep.execute();
+        }
+        stat.execute(
+                "CREATE TABLE TWO AS SELECT DISTINCT * FROM ONE ORDER BY S1");
         conn.close();
     }
 }

@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.build.code.SwitchSource;
 import org.h2.build.doc.XMLParser;
@@ -924,16 +925,23 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-api-1.6.0.jar" +
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + javaToolsJar;
+        int ret;
         if (fast) {
-            execJava(args(
+            ret = execJava(args(
+                    "-ea",
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll", "fast"));
         } else {
-            execJava(args(
+            ret = execJava(args(
+                    "-ea",
                     "-Xmx128m",
                     "-cp", cp,
                     "org.h2.test.TestAll"));
+        }
+        // return a failure code for Jenkins/Travis/CI builds
+        if (ret != 0) {
+            System.exit(ret);
         }
     }
 
@@ -955,7 +963,7 @@ public class Build extends BuildBase {
     @Description(summary = "Test the local network of this machine.")
     public void testNetwork() {
         try {
-            long start = System.currentTimeMillis();
+            long start = System.nanoTime();
             System.out.println("localhost:");
             System.out.println("  " + InetAddress.getByName("localhost"));
             for (InetAddress address : InetAddress.getAllByName("localhost")) {
@@ -979,7 +987,7 @@ public class Build extends BuildBase {
             System.out.println(serverSocket);
             int port = serverSocket.getLocalPort();
             final ServerSocket accept = serverSocket;
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             Thread thread = new Thread() {
                 @Override
                 public void run() {
@@ -1001,9 +1009,9 @@ public class Build extends BuildBase {
                 }
             };
             thread.start();
-            System.out.println("time: " + (System.currentTimeMillis() - start));
+            System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
             Thread.sleep(1000);
-            start = System.currentTimeMillis();
+            start = System.nanoTime();
             final Socket socket = new Socket();
             socket.setSoTimeout(2000);
             final InetSocketAddress socketAddress = new InetSocketAddress(address, port);
@@ -1028,21 +1036,21 @@ public class Build extends BuildBase {
                             + socketAddress);
                     socket.connect(localhostAddress, 2000);
                 }
-                System.out.println("time: " + (System.currentTimeMillis() - start));
+                System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
                 Thread.sleep(200);
-                start = System.currentTimeMillis();
+                start = System.nanoTime();
                 System.out.println("client:" + socket.toString());
                 socket.getOutputStream().write(123);
-                System.out.println("time: " + (System.currentTimeMillis() - start));
+                System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
                 Thread.sleep(100);
-                start = System.currentTimeMillis();
+                start = System.nanoTime();
                 System.out.println("client read:" + socket.getInputStream().read());
                 socket.close();
             } catch (Throwable t) {
                 t.printStackTrace();
             }
             thread.join(5000);
-            System.out.println("time: " + (System.currentTimeMillis() - start));
+            System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
             if (thread.isAlive()) {
                 System.out.println("thread is still alive, interrupting");
                 thread.interrupt();

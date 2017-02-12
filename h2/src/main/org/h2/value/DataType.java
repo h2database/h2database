@@ -23,12 +23,12 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcArray;
 import org.h2.jdbc.JdbcBlob;
 import org.h2.jdbc.JdbcClob;
 import org.h2.jdbc.JdbcConnection;
@@ -320,10 +320,14 @@ public class DataType {
                 // 24 for ValueTimestamp, 32 for java.sql.Timestamp
                 56
         );
-        add(Value.TIMESTAMP_TZ, Types.OTHER, "TimestampTimeZone",
+        // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
+        // use the value instead of the reference because the code has to compile
+        // on Java 1.7
+        // can be replaced with Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required
+        add(Value.TIMESTAMP_TZ, 2014, "TimestampTimeZone",
                 createDate(ValueTimestampTimeZone.PRECISION, "TIMESTAMP_TZ",
                         ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.DISPLAY_SIZE),
-                new String[]{"TIMESTAMP WITH TIMEZONE"},
+                new String[]{"TIMESTAMP WITH TIME ZONE"},
                 // 26 for ValueTimestampUtc, 32 for java.sql.Timestamp
                 58
         );
@@ -344,7 +348,8 @@ public class DataType {
         );
         add(Value.UUID, Types.BINARY, "Bytes",
                 createString(false),
-                new String[]{"UUID"},
+                // UNIQUEIDENTIFIER is the MSSQL mode equivalent
+                new String[]{"UUID", "UNIQUEIDENTIFIER"},
                 32
         );
         add(Value.JAVA_OBJECT, Types.OTHER, "Object",
@@ -648,9 +653,7 @@ public class DataType {
                 InputStream in = rs.getBinaryStream(columnIndex);
                 v = (in == null) ? (Value) ValueNull.INSTANCE :
                     session.getDataHandler().getLobStorage().createBlob(in, -1);
-                if (session != null) {
-                    session.addTemporaryLob(v);
-                }
+                session.addTemporaryLob(v);
                 break;
             }
             case Value.JAVA_OBJECT: {
@@ -1081,6 +1084,13 @@ public class DataType {
             } catch (SQLException e) {
                 throw DbException.convert(e);
             }
+        } else if (x instanceof java.sql.Array) {
+            java.sql.Array array = (java.sql.Array) x;
+            try {
+                return convertToValue(session, array.getArray(), Value.ARRAY);
+            } catch (SQLException e) {
+                throw DbException.convert(e);
+            }
         } else if (x instanceof ResultSet) {
             if (x instanceof SimpleResultSet) {
                 return ValueResultSet.get((ResultSet) x);
@@ -1268,6 +1278,8 @@ public class DataType {
             return new JdbcBlob(conn, v, 0);
         } else if (paramClass == Clob.class) {
             return new JdbcClob(conn, v, 0);
+        } else if (paramClass == Array.class) {
+            return new JdbcArray(conn, v, 0);
         }
         if (v.getType() == Value.JAVA_OBJECT) {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),

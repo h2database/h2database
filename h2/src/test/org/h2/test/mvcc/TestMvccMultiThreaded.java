@@ -31,10 +31,11 @@ public class TestMvccMultiThreaded extends TestBase {
     @Override
     public void test() throws Exception {
         testMergeWithUniqueKeyViolation();
-        testConcurrentMerge();
-        testConcurrentUpdate("");
         // not supported currently
-        // testConcurrentUpdate(";MULTI_THREADED=TRUE");
+        if (!config.multiThreaded) {
+            testConcurrentMerge();
+            testConcurrentUpdate();
+        }
     }
 
     private void testMergeWithUniqueKeyViolation() throws Exception {
@@ -91,13 +92,13 @@ public class TestMvccMultiThreaded extends TestBase {
         deleteDb(getTestName());
     }
 
-    private void testConcurrentUpdate(String suffix) throws Exception {
+    private void testConcurrentUpdate() throws Exception {
         deleteDb(getTestName());
         int len = 2;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
             connList[i] = getConnection(
-                    getTestName() + ";MVCC=TRUE" + suffix);
+                    getTestName() + ";MVCC=TRUE");
         }
         Connection conn = connList[0];
         conn.createStatement().execute(

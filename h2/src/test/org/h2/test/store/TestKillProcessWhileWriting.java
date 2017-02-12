@@ -6,7 +6,6 @@
 package org.h2.test.store;
 
 import java.util.Random;
-
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FileUtils;
@@ -47,6 +46,7 @@ public class TestKillProcessWhileWriting extends TestBase {
                 fs.setPartialWrites(false);
             }
         }
+        FileUtils.delete("unstable:memFS:killProcess.h3");
     }
 
     private void test(String fileName) throws Exception {

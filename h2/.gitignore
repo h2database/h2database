@@ -12,3 +12,4 @@ temp
 test.out.txt
 .idea/
 *.log
+target/

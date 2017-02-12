@@ -23,6 +23,8 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
@@ -1133,7 +1135,7 @@ public class TestLob extends TestBase {
         conn.createStatement().execute("CREATE TABLE TEST(ID INT PRIMARY KEY, C CLOB)");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, ?)");
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         int len = getSize(10, 40);
         if (config.networked && config.big) {
             len = 5;
@@ -1161,8 +1163,8 @@ public class TestLob extends TestBase {
                 }
             }
         }
-        time = System.currentTimeMillis() - time;
-        trace("time: " + time + " compress: " + compress);
+        time = System.nanoTime() - time;
+        trace("time: " + TimeUnit.NANOSECONDS.toMillis(time) + " compress: " + compress);
         conn.close();
         if (!config.memory) {
             long length = new File(getBaseDir() + "/lob.h2.db").length();
@@ -1285,12 +1287,12 @@ public class TestLob extends TestBase {
     }
 
     private Connection reconnect(Connection conn) throws SQLException {
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         if (conn != null) {
             JdbcUtils.closeSilently(conn);
         }
         conn = getConnection("lob");
-        trace("re-connect=" + (System.currentTimeMillis() - time));
+        trace("re-connect=" + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         return conn;
     }
 
@@ -1396,7 +1398,7 @@ public class TestLob extends TestBase {
             len = 100;
         }
 
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         prep = conn.prepareStatement("INSERT INTO TEST VALUES(?, ?)");
         for (int i = 0; i < len; i += i + i + 1) {
             prep.setInt(1, i);
@@ -1408,11 +1410,11 @@ public class TestLob extends TestBase {
             }
             prep.execute();
         }
-        trace("insert=" + (System.currentTimeMillis() - time));
+        trace("insert=" + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         traceMemory();
         conn = reconnect(conn);
 
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         prep = conn.prepareStatement("SELECT ID, VALUE FROM TEST");
         rs = prep.executeQuery();
         while (rs.next()) {
@@ -1438,18 +1440,18 @@ public class TestLob extends TestBase {
                         (InputStream) obj, -1);
             }
         }
-        trace("select=" + (System.currentTimeMillis() - time));
+        trace("select=" + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         traceMemory();
 
         conn = reconnect(conn);
 
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         prep = conn.prepareStatement("DELETE FROM TEST WHERE ID=?");
         for (int i = 0; i < len; i++) {
             prep.setInt(1, i);
             prep.executeUpdate();
         }
-        trace("delete=" + (System.currentTimeMillis() - time));
+        trace("delete=" + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         traceMemory();
         conn = reconnect(conn);
 

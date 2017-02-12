@@ -414,7 +414,7 @@ public class Column {
         while (true) {
             ValueUuid uuid = ValueUuid.getNewRandom();
             String s = uuid.getString();
-            s = s.replace('-', '_').toUpperCase();
+            s = StringUtils.toUpperEnglish(s.replace('-', '_'));
             sequenceName = "SYSTEM_SEQUENCE_" + s;
             if (schema.findSequence(sequenceName) == null) {
                 break;
@@ -436,7 +436,8 @@ public class Column {
      */
     public void prepareExpression(Session session) {
         if (defaultExpression != null) {
-            computeTableFilter = new TableFilter(session, table, null, false, null, 0);
+            computeTableFilter = new TableFilter(session, table, null, false, null, 0,
+                    null);
             defaultExpression.mapColumns(computeTableFilter, 0);
             defaultExpression = defaultExpression.optimize(session);
         }

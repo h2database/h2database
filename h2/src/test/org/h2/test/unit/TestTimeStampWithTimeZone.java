@@ -7,6 +7,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.h2.api.TimestampWithTimeZone;
@@ -41,7 +42,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
     private void test1() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, t1 timestamp with timezone)");
+        stat.execute("create table test(id identity, t1 timestamp with time zone)");
         stat.execute("insert into test(t1) values('1970-01-01 12:00:00.00+00:15')");
         // verify NanosSinceMidnight is in local time and not UTC
         stat.execute("insert into test(t1) values('2016-09-24 00:00:00.000000001+00:01')");
@@ -102,6 +103,15 @@ public class TestTimeStampWithTimeZone extends TestBase {
             assertEquals("2015-12-31T19:00-10:00", rs.getObject(1,
                             LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
         }
+
+        ResultSetMetaData metaData = rs.getMetaData();
+        int columnType = metaData.getColumnType(1);
+        // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
+        // use the value instead of the reference because the code has to compile
+        // on Java 1.7
+        // can be replaced with Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required
+        assertEquals(2014, columnType);
+
         rs.close();
         stat.close();
         conn.close();
@@ -131,7 +141,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
     private void testOrder() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
-        stat.execute("create table test_order(id identity, t1 timestamp with timezone)");
+        stat.execute("create table test_order(id identity, t1 timestamp with time zone)");
         stat.execute("insert into test_order(t1) values('1970-01-01 12:00:00.00+00:15')");
         stat.execute("insert into test_order(t1) values('1970-01-01 12:00:01.00+01:15')");
         ResultSet rs = stat.executeQuery("select t1 from test_order order by t1");

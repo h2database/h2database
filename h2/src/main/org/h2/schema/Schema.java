@@ -28,6 +28,7 @@ import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * A schema as created by the SQL statement
@@ -37,6 +38,7 @@ public class Schema extends DbObjectBase {
 
     private User owner;
     private final boolean system;
+    private ArrayList<String> tableEngineParams;
 
     private final ConcurrentHashMap<String, Table> tablesAndViews;
     private final ConcurrentHashMap<String, Index> indexes;
@@ -88,7 +90,7 @@ public class Schema extends DbObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -173,6 +175,23 @@ public class Schema extends DbObjectBase {
      */
     public User getOwner() {
         return owner;
+    }
+
+    /**
+     * Get table engine params of this schema.
+     *
+     * @return default table engine params
+     */
+    public ArrayList<String> getTableEngineParams() {
+        return tableEngineParams;
+    }
+
+    /**
+     * Set table engine params of this schema.
+     * @param tableEngineParams default table engine params
+     */
+    public void setTableEngineParams(ArrayList<String> tableEngineParams) {
+        this.tableEngineParams = tableEngineParams;
     }
 
     @SuppressWarnings("unchecked")
@@ -359,7 +378,7 @@ public class Schema extends DbObjectBase {
 
     private String getUniqueName(DbObject obj,
             Map<String, ? extends SchemaObject> map, String prefix) {
-        String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
+        String hash = StringUtils.toUpperEnglish(Integer.toHexString(obj.getName().hashCode()));
         String name = null;
         synchronized (temporaryUniqueNames) {
             for (int i = 1, len = hash.length(); i < len; i++) {
@@ -587,6 +606,9 @@ public class Schema extends DbObjectBase {
                 }
             }
             if (data.tableEngine != null) {
+                if (data.tableEngineParams == null)
+                    data.tableEngineParams = this.tableEngineParams;
+
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);

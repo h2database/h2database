@@ -14,6 +14,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.table.TableView;
 
 /**
@@ -54,7 +55,7 @@ public class DropView extends SchemaCommand {
                 throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
         } else {
-            if (!Table.VIEW.equals(view.getTableType())) {
+            if (TableType.VIEW != view.getTableType()) {
                 throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
             }
             session.getUser().checkRight(view, Right.ALL);

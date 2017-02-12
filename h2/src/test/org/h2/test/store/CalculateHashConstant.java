@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.security.AES;
 
@@ -339,7 +340,7 @@ public class CalculateHashConstant implements Runnable {
         BitSet set = new BitSet();
         BitSet neg = new BitSet();
         long collisions = 0;
-        long t = System.currentTimeMillis();
+        long t = System.nanoTime();
         for (int i = Integer.MIN_VALUE; i != Integer.MAX_VALUE; i++) {
             int x = hash(i);
             if (x >= 0) {
@@ -357,8 +358,8 @@ public class CalculateHashConstant implements Runnable {
                 }
             }
             if ((i & 0xfffff) == 0) {
-                long n = System.currentTimeMillis();
-                if (n - t > 5000) {
+                long n = System.nanoTime();
+                if (n - t > TimeUnit.SECONDS.toNanos(5)) {
                     System.out.println(Integer.toHexString(constant) + " " +
                             Integer.toHexString(i) + " collisions: " + collisions);
                     t = n;

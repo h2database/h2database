@@ -85,7 +85,7 @@ public class TestMVStoreCachePerformance extends TestBase {
             // System.out.println(prof.getTop(5));
             // System.out.println("  " + counter.get() / (i + 1) + " op/s");
         }
-        // long time = System.currentTimeMillis();
+        // long time = System.nanoTime();
         for (Task t : tasks) {
             t.get();
         }

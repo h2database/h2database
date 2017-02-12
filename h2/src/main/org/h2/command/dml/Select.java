@@ -922,8 +922,9 @@ public class Select extends Query {
                         // another order
                         sortUsingIndex = true;
                     }
-                } else if (index.getIndexColumns().length >=
-                        current.getIndexColumns().length) {
+                } else if (index.getIndexColumns() != null
+                        && index.getIndexColumns().length >= current
+                                .getIndexColumns().length) {
                     IndexColumn[] sortColumns = index.getIndexColumns();
                     IndexColumn[] currentColumns = current.getIndexColumns();
                     boolean swapIndex = false;

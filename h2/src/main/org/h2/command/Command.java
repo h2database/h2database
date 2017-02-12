@@ -299,6 +299,7 @@ public abstract class Command implements CommandInterface {
     private long filterConcurrentUpdate(DbException e, long start) {
         int errorCode = e.getErrorCode();
         if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 &&
+                errorCode != ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX &&
                 errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }

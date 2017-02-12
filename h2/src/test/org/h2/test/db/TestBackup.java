@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.h2.api.DatabaseEventListener;
@@ -64,7 +65,7 @@ public class TestBackup extends TestBase {
             @Override
             public void call() throws Exception {
                 while (!stop) {
-                    if (System.currentTimeMillis() < updateEnd.get()) {
+                    if (System.nanoTime() < updateEnd.get()) {
                         stat.execute("update test set name = 'Hallo'");
                         stat1.execute("checkpoint");
                         stat.execute("update test set name = 'Hello'");
@@ -82,7 +83,7 @@ public class TestBackup extends TestBase {
         Statement stat2 = conn2.createStatement();
         task.execute();
         for (int i = 0; i < 10; i++) {
-            updateEnd.set(System.currentTimeMillis() + 2000);
+            updateEnd.set(System.nanoTime() + TimeUnit.SECONDS.toNanos(2));
             stat2.execute("backup to '"+getBaseDir()+"/backup.zip'");
             stat2.execute("checkpoint");
             Restore.execute(getBaseDir() + "/backup.zip", getBaseDir() + "/t" + i, "backup");

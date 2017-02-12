@@ -6,7 +6,6 @@
 package org.h2.schema;
 
 import java.math.BigInteger;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
@@ -208,7 +207,7 @@ public class Sequence extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -291,7 +290,7 @@ public class Sequence extends SchemaObjectBase {
             return;
         }
         if (session == null || !database.isSysTableLockedBy(session)) {
-            // This session may not lock the sys table (except if it already has
+            // This session may not lock the sys table (except if it has already
             // locked it) because it must be committed immediately, otherwise
             // other threads can not access the sys table.
             Session sysSession = database.getSystemSession();

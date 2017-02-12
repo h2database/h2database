@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.Session;
@@ -107,7 +106,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void testDeleteInTrigger() throws SQLException {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         Connection conn;

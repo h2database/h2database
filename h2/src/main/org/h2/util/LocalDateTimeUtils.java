@@ -10,7 +10,6 @@ package org.h2.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Date;
-import java.sql.Time;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -51,93 +50,87 @@ import org.h2.value.ValueTimestampTimeZone;
 public class LocalDateTimeUtils {
 
     // Class<java.time.LocalDate>
-    private static Class<?> LOCAL_DATE;
+    private static final Class<?> LOCAL_DATE;
     // Class<java.time.LocalTime>
-    private static Class<?> LOCAL_TIME;
+    private static final Class<?> LOCAL_TIME;
     // Class<java.time.LocalDateTime>
-    private static Class<?> LOCAL_DATE_TIME;
+    private static final Class<?> LOCAL_DATE_TIME;
     // Class<java.time.OffsetDateTime>
-    private static Class<?> OFFSET_DATE_TIME;
+    private static final Class<?> OFFSET_DATE_TIME;
     // Class<java.time.ZoneOffset>
-    private static Class<?> ZONE_OFFSET;
+    private static final Class<?> ZONE_OFFSET;
 
     // java.sql.Date#toLocalDate()
-    private static Method TO_LOCAL_DATE;
+    private static final Method TO_LOCAL_DATE;
 
     // java.time.LocalTime#ofNanoOfDay()
-    private static Method LOCAL_TIME_OF_NANO;
+    private static final Method LOCAL_TIME_OF_NANO;
 
     // java.sql.Date#valueOf(LocalDate)
-    private static Method DATE_VALUE_OF;
+    private static final Method DATE_VALUE_OF;
 
     // java.time.LocalTime#toNanoOfDay()
-    private static Method LOCAL_TIME_TO_NANO;
+    private static final Method LOCAL_TIME_TO_NANO;
 
     // java.time.LocalDate#of(int, int, int)
-    private static Method LOCAL_DATE_OF_YEAR_MONTH_DAY;
+    private static final Method LOCAL_DATE_OF_YEAR_MONTH_DAY;
     // java.time.LocalDate#parse(CharSequence)
-    private static Method LOCAL_DATE_PARSE;
+    private static final Method LOCAL_DATE_PARSE;
     // java.time.LocalDate#getYear()
-    private static Method LOCAL_DATE_GET_YEAR;
+    private static final Method LOCAL_DATE_GET_YEAR;
     // java.time.LocalDate#getMonthValue()
-    private static Method LOCAL_DATE_GET_MONTH_VALUE;
+    private static final Method LOCAL_DATE_GET_MONTH_VALUE;
     // java.time.LocalDate#getDayOfMonth()
-    private static Method LOCAL_DATE_GET_DAY_OF_MONTH;
+    private static final Method LOCAL_DATE_GET_DAY_OF_MONTH;
     // java.time.LocalDate#atStartOfDay()
-    private static Method LOCAL_DATE_AT_START_OF_DAY;
+    private static final Method LOCAL_DATE_AT_START_OF_DAY;
 
     // java.time.LocalTime#parse(CharSequence)
-    private static Method LOCAL_TIME_PARSE;
+    private static final Method LOCAL_TIME_PARSE;
 
     // java.time.LocalDateTime#plusNanos(long)
-    private static Method LOCAL_DATE_TIME_PLUS_NANOS;
+    private static final Method LOCAL_DATE_TIME_PLUS_NANOS;
     // java.time.LocalDateTime#toLocalDate()
-    private static Method LOCAL_DATE_TIME_TO_LOCAL_DATE;
+    private static final Method LOCAL_DATE_TIME_TO_LOCAL_DATE;
     // java.time.LocalDateTime#truncatedTo(TemporalUnit)
-    private static Method LOCAL_DATE_TIME_TRUNCATED_TO;
+    private static final Method LOCAL_DATE_TIME_TRUNCATED_TO;
     // java.time.LocalDateTime#parse(CharSequence)
-    private static Method LOCAL_DATE_TIME_PARSE;
+    private static final Method LOCAL_DATE_TIME_PARSE;
 
     // java.time.ZoneOffset#ofTotalSeconds(int)
-    private static Method ZONE_OFFSET_OF_TOTAL_SECONDS;
+    private static final Method ZONE_OFFSET_OF_TOTAL_SECONDS;
 
     // java.time.OffsetDateTime#of(LocalDateTime, ZoneOffset)
-    private static Method OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET;
+    private static final Method OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET;
     // java.time.OffsetDateTime#parse(CharSequence)
-    private static Method OFFSET_DATE_TIME_PARSE;
+    private static final Method OFFSET_DATE_TIME_PARSE;
     // java.time.OffsetDateTime#toLocalDateTime()
-    private static Method OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME;
+    private static final Method OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME;
     // java.time.OffsetDateTime#getOffset()
-    private static Method OFFSET_DATE_TIME_GET_OFFSET;
+    private static final Method OFFSET_DATE_TIME_GET_OFFSET;
 
     // java.time.ZoneOffset#getTotalSeconds()
-    private static Method ZONE_OFFSET_GET_TOTAL_SECONDS;
+    private static final Method ZONE_OFFSET_GET_TOTAL_SECONDS;
 
     // java.time.Duration#between(Temporal, Temporal)
-    private static Method DURATION_BETWEEN;
+    private static final Method DURATION_BETWEEN;
     // java.time.Duration#toNanos()
-    private static Method DURATION_TO_NANOS;
+    private static final Method DURATION_TO_NANOS;
 
     // java.time.temporal.ChronoUnit#DAYS
-    private static Object CHRONO_UNIT_DAYS;
+    private static final Object CHRONO_UNIT_DAYS;
 
     private static final boolean IS_JAVA8_DATE_API_PRESENT;
 
 
     static {
-        boolean isJava8DateApiPresent;
-        try {
-            LOCAL_DATE = Class.forName("java.time.LocalDate");
-            LOCAL_TIME = Class.forName("java.time.LocalTime");
-            LOCAL_DATE_TIME = Class.forName("java.time.LocalDateTime");
-            OFFSET_DATE_TIME = Class.forName("java.time.OffsetDateTime");
-            ZONE_OFFSET = Class.forName("java.time.ZoneOffset");
-            isJava8DateApiPresent = true;
-        } catch (ClassNotFoundException e) {
-            // older than Java 8
-            isJava8DateApiPresent = false;
-        }
-        IS_JAVA8_DATE_API_PRESENT = isJava8DateApiPresent;
+        LOCAL_DATE = tryGetClass("java.time.LocalDate");
+        LOCAL_TIME = tryGetClass("java.time.LocalTime");
+        LOCAL_DATE_TIME = tryGetClass("java.time.LocalDateTime");
+        OFFSET_DATE_TIME = tryGetClass("java.time.OffsetDateTime");
+        ZONE_OFFSET = tryGetClass("java.time.ZoneOffset");
+        IS_JAVA8_DATE_API_PRESENT = LOCAL_DATE != null && LOCAL_TIME != null
+                        && LOCAL_DATE_TIME != null && OFFSET_DATE_TIME != null && ZONE_OFFSET != null;
 
         if (IS_JAVA8_DATE_API_PRESENT) {
 
@@ -184,6 +177,31 @@ public class LocalDateTimeUtils {
             DURATION_TO_NANOS = getMethod(duration, "toNanos");
 
             CHRONO_UNIT_DAYS = getFieldValue(chronoUnit, "DAYS");
+        } else {
+            TO_LOCAL_DATE = null;
+            LOCAL_TIME_OF_NANO = null;
+            DATE_VALUE_OF = null;
+            LOCAL_TIME_TO_NANO = null;
+            LOCAL_DATE_OF_YEAR_MONTH_DAY = null;
+            LOCAL_DATE_PARSE = null;
+            LOCAL_DATE_GET_YEAR = null;
+            LOCAL_DATE_GET_MONTH_VALUE = null;
+            LOCAL_DATE_GET_DAY_OF_MONTH = null;
+            LOCAL_DATE_AT_START_OF_DAY = null;
+            LOCAL_TIME_PARSE = null;
+            LOCAL_DATE_TIME_PLUS_NANOS = null;
+            LOCAL_DATE_TIME_TO_LOCAL_DATE = null;
+            LOCAL_DATE_TIME_TRUNCATED_TO = null;
+            LOCAL_DATE_TIME_PARSE = null;
+            ZONE_OFFSET_OF_TOTAL_SECONDS = null;
+            OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME = null;
+            OFFSET_DATE_TIME_GET_OFFSET = null;
+            OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = null;
+            OFFSET_DATE_TIME_PARSE = null;
+            ZONE_OFFSET_GET_TOTAL_SECONDS = null;
+            DURATION_BETWEEN = null;
+            DURATION_TO_NANOS = null;
+            CHRONO_UNIT_DAYS = null;
         }
     }
 
@@ -293,6 +311,14 @@ public class LocalDateTimeUtils {
             return OFFSET_DATE_TIME_PARSE.invoke(null, text);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        }
+    }
+
+    private static Class<?> tryGetClass(String className) {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            return null;
         }
     }
 

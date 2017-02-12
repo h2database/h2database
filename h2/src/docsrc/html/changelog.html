@@ -21,7 +21,48 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>PR #389, Handle LocalTime with nanosecond resolution, patch by katzyn 
+<li>Issue #448: Newly added TO_DATE and TO_TIMESTAMP functions have wrong datatype 
+</li>
+<li>The "nioMemLZF" filesystem now supports an extra option "nioMemLZF:12:" to tweak the size of the compress later cache.
+</li>
+<li>Various multi-threading fixes and optimisations to the "nioMemLZF" filesystem.
+</li>
+<li><strong>[API CHANGE]</strong> #439: the JDBC type of TIMESTAMP WITH TIME ZONE
+changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
+</li>
+<li>#430: Subquery not cached if number of rows exceeds MAX_MEMORY_ROWS
+</li>
+<li>#411: "TIMEZONE" should be "TIME ZONE" in type "TIMESTAMP WITH TIMEZONE"
+</li>
+<li>PR #418, Implement Connection#createArrayOf and PreparedStatement#setArray
+</li>
+<li>PR #427, Add MySQL compatibility functions UNIX_TIMESTAMP, FROM_UNIXTIME and DATE
+</li>
+<li>#429: Tables not found : Fix some turkish locale bugs around uppercasing
+</li>
+<li>Fixed bug in metadata locking, obscure combination of DDL and SELECT SEQUENCE.NEXTVAL required
+</li>
+<li>Added index hints: SELECT * FROM TEST USE INDEX (idx1, idx2)
+</li>
+<li>Add a test case to ensure that spatial index is used with and order by command by Fortin N
+</li>
+<li>Fix multi-threaded mode update exception "NullPointerException", test case by Anatolii K
+</li>
+<li>Fix multi-threaded mode insert exception "Unique index or primary key violation", test case by Anatolii K
+</li>
+<li>Implement ILIKE operator for case-insensitive matching
+</li>
+<li>Optimise LIKE queries for the common cases of '%Foo' and '%Foo%'
+</li>
+<li>Issue #387: H2 MSSQL Compatibility Mode - Support uniqueidentifier
+</li>
+<li>Issue #401: NPE in "SELECT DISTINCT * ORDER BY"
+</li>
+<li>Added BITGET function
+</li>
+<li>Fixed bug in FilePathRetryOnInterrupt that caused infinite loop
+</li>
+<li>PR #389, Handle LocalTime with nanosecond resolution, patch by katzyn
 </li>
 <li>PR #382, Recover for "page store" H2 breaks LOBs consistency, patch by vitalus
 </li>
@@ -35,6 +76,8 @@ Change Log
 
 <h2>Version 1.4.193 Beta (2016-10-31)</h2>
 <ul>
+<li>PR #386: Add JSR-310 Support (introduces JTS dependency fixed in 1.4.194)
+</li>
 <li>WARNING: THE MERGE BELOW WILL AFFECT ANY 'TIMESTAMP WITH TIMEZONE' INDEXES. You will need to drop and recreate any such indexes.
 </li>
 <li>PR #364: fix compare TIMESTAMP WITH TIMEZONE

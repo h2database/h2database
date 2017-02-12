@@ -16,6 +16,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -134,15 +135,15 @@ public class RunScript extends Tool {
             showUsage();
             throw new SQLException("URL not set");
         }
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         if (options != null) {
             processRunscript(url, user, password, script, options);
         } else {
             process(url, user, password, script, null, continueOnError);
         }
         if (showTime) {
-            time = System.currentTimeMillis() - time;
-            out.println("Done in " + time + " ms");
+            time = System.nanoTime() - time;
+            out.println("Done in " + TimeUnit.NANOSECONDS.toMillis(time) + " ms");
         }
     }
 

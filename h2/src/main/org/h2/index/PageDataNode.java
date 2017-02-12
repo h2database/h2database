@@ -388,7 +388,7 @@ public class PageDataNode extends PageData {
         entryCount--;
         length -= 4 + Data.getVarLongLen(keys[removedKeyIndex]);
         if (entryCount < 0) {
-            DbException.throwInternalError();
+            DbException.throwInternalError("" + entryCount);
         }
         keys = remove(keys, entryCount + 1, removedKeyIndex);
         childPageIds = remove(childPageIds, entryCount + 2, i);
@@ -453,7 +453,7 @@ public class PageDataNode extends PageData {
                 return;
             }
         }
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(oldPos + " " + newPos);
     }
 
 }

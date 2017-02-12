@@ -56,31 +56,6 @@ public abstract class Table extends SchemaObjectBase {
     public static final int TYPE_MEMORY = 1;
 
     /**
-     * The table type name for linked tables.
-     */
-    public static final String TABLE_LINK = "TABLE LINK";
-
-    /**
-     * The table type name for system tables.
-     */
-    public static final String SYSTEM_TABLE = "SYSTEM TABLE";
-
-    /**
-     * The table type name for regular data tables.
-     */
-    public static final String TABLE = "TABLE";
-
-    /**
-     * The table type name for views.
-     */
-    public static final String VIEW = "VIEW";
-
-    /**
-     * The table type name for external table engines.
-     */
-    public static final String EXTERNAL_TABLE_ENGINE = "EXTERNAL";
-
-    /**
      * The columns of this table.
      */
     protected Column[] columns;
@@ -230,7 +205,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @return the table type name
      */
-    public abstract String getTableType();
+    public abstract TableType getTableType();
 
     /**
      * Get the scan index to iterate through all rows.
@@ -270,6 +245,25 @@ public abstract class Table extends SchemaObjectBase {
      * @return the list of indexes
      */
     public abstract ArrayList<Index> getIndexes();
+
+    /**
+     * Get an index by name.
+     *
+     * @param indexName the index name to search for
+     * @return the found index
+     */
+    public Index getIndex(String indexName) {
+        ArrayList<Index> indexes = getIndexes();
+        if (indexes != null) {
+            for (int i = 0; i < indexes.size(); i++) {
+                Index index = indexes.get(i);
+                if (index.getName().equals(indexName)) {
+                    return index;
+                }
+            }
+        }
+        throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
+    }
 
     /**
      * Check if this table is locked exclusively.
@@ -343,7 +337,7 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     /**
@@ -718,9 +712,16 @@ public abstract class Table extends SchemaObjectBase {
                     item.cost, item.getIndex().getPlanSQL());
         }
         ArrayList<Index> indexes = getIndexes();
+        IndexHints indexHints = getIndexHints(filters, filter);
+
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
+
+                if (isIndexExcludedByHints(indexHints, index)) {
+                    continue;
+                }
+
                 double cost = index.getCost(session, masks, filters, filter,
                         sortOrder, allColumnsSet);
                 if (t.isDebugEnabled()) {
@@ -734,6 +735,14 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         return item;
+    }
+
+    private static boolean isIndexExcludedByHints(IndexHints indexHints, Index index) {
+        return indexHints != null && !indexHints.allowIndex(index);
+    }
+
+    private static IndexHints getIndexHints(TableFilter[] filters, int filter) {
+        return filters == null ? null : filters[filter].getIndexHints();
     }
 
     /**

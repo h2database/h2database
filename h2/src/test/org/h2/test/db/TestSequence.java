@@ -393,7 +393,7 @@ public class TestSequence extends TestBase {
                 getNext(stat);
                 fail("Expected error: " + finalError);
             } catch (SQLException e) {
-                assertTrue(e.getMessage().contains(finalError));
+                assertContains(e.getMessage(), finalError);
             }
         }
 
@@ -405,7 +405,7 @@ public class TestSequence extends TestBase {
             stat.execute(sql);
             fail("Expected error: " + error);
         } catch (SQLException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains(error));
+            assertContains(e.getMessage(), error);
         }
     }
 

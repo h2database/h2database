@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Locale;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
 
@@ -144,6 +145,9 @@ public class TestCompatibilityOracle extends TestBase {
     }
 
     private void testToDate() throws SQLException {
+        if (Locale.getDefault() != Locale.ENGLISH) {
+            return;
+        }
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.h2.dev.fs.FilePathZip2;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -86,6 +85,7 @@ public class TestFileSystem extends TestBase {
         testFileSystem("memLZF:");
         testFileSystem("nioMemFS:");
         testFileSystem("nioMemLZF:");
+        testFileSystem("nioMemLZF:12:"); // 12% compressLaterCache
         testFileSystem("rec:memFS:");
         testUserHome();
         try {

@@ -366,7 +366,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         ResultSet rs;
         rs = stat.executeQuery("select * from information_schema.views");
         rs.next();
-        assertTrue(rs.getString("VIEW_DEFINITION").contains("SCHEMA2.FUNC"));
+        assertContains(rs.getString("VIEW_DEFINITION"), "SCHEMA2.FUNC");
 
         stat.execute("drop view test");
         stat.execute("drop schema schema2");
@@ -1300,6 +1300,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private void testToDate() throws ParseException {
+        if (Locale.getDefault() != Locale.ENGLISH) {
+            return;
+        }
 
         final int month = Calendar.getInstance().get(Calendar.MONTH);
 
@@ -1543,7 +1546,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         expected = expected.substring(0, 1).toUpperCase() + expected.substring(1);
         String spaces = "         ";
         String first9 = (expected + spaces).substring(0, 9);
-        assertResult(first9.toUpperCase(),
+        assertResult(StringUtils.toUpperEnglish(first9),
                 stat, "SELECT TO_CHAR(X, 'DAY') FROM T");
         assertResult(first9,
                 stat, "SELECT TO_CHAR(X, 'Day') FROM T");

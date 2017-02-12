@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -314,7 +313,7 @@ public class TestConcurrent extends TestMVStore {
         }
     }
 
-    private void testConcurrentChangeAndGetVersion() throws InterruptedException {
+    private static void testConcurrentChangeAndGetVersion() throws InterruptedException {
         for (int test = 0; test < 10; test++) {
             final MVStore s = new MVStore.Builder().
                     autoCommitDisabled().open();
@@ -522,7 +521,7 @@ public class TestConcurrent extends TestMVStore {
     /**
      * Test the concurrent map implementation.
      */
-    private void testConcurrentMap() throws InterruptedException {
+    private static void testConcurrentMap() throws InterruptedException {
         final MVStore s = openStore(null);
         final MVMap<Integer, Integer> m = s.openMap("data");
         try {
@@ -644,7 +643,7 @@ public class TestConcurrent extends TestMVStore {
         in.close();
     }
 
-    private void testConcurrentIterate() {
+    private static void testConcurrentIterate() {
         MVStore s = new MVStore.Builder().pageSplitSize(3).open();
         s.setVersionsToKeep(100);
         final MVMap<Integer, Integer> map = s.openMap("test");
@@ -697,7 +696,7 @@ public class TestConcurrent extends TestMVStore {
         assertTrue(notDetected.get() * 10 <= detected.get());
     }
 
-    private void testConcurrentWrite(final AtomicInteger detected,
+    private static void testConcurrentWrite(final AtomicInteger detected,
             final AtomicInteger notDetected) throws InterruptedException {
         final MVStore s = openStore(null);
         final MVMap<Integer, Integer> m = s.openMap("data");
@@ -761,7 +760,7 @@ public class TestConcurrent extends TestMVStore {
         s.close();
     }
 
-    private void testConcurrentRead() throws InterruptedException {
+    private static void testConcurrentRead() throws InterruptedException {
         final MVStore s = openStore(null);
         final MVMap<Integer, Integer> m = s.openMap("data");
         final int size = 3;

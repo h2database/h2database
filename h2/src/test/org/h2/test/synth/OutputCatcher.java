@@ -8,6 +8,7 @@ package org.h2.test.synth;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.util.IOUtils;
 
@@ -29,7 +30,7 @@ public class OutputCatcher extends Thread {
      * @return the line
      */
     public String readLine(long wait) {
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         while (true) {
             synchronized (list) {
                 if (list.size() > 0) {
@@ -40,8 +41,8 @@ public class OutputCatcher extends Thread {
                 } catch (InterruptedException e) {
                     // ignore
                 }
-                long time = System.currentTimeMillis() - start;
-                if (time >= wait) {
+                long time = System.nanoTime() - start;
+                if (time >= TimeUnit.MILLISECONDS.toNanos(wait)) {
                     return null;
                 }
             }

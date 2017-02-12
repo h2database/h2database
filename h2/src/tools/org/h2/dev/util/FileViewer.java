@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.message.DbException;
 import org.h2.util.Tool;
@@ -129,7 +130,7 @@ public class FileViewer extends Tool {
         long length = file.length();
         int bufferSize = 4 * 1024;
         byte[] data = new byte[bufferSize * 2];
-        long last = System.currentTimeMillis();
+        long last = System.nanoTime();
         while (pos < length) {
             System.arraycopy(data, bufferSize, data, 0, bufferSize);
             if (pos + bufferSize > length) {
@@ -137,8 +138,8 @@ public class FileViewer extends Tool {
                 return find(data, find, (int) (bufferSize + length - pos - find.length));
             }
             if (!quiet) {
-                long now = System.currentTimeMillis();
-                if (now > last + 5000) {
+                long now = System.nanoTime();
+                if (now > last + TimeUnit.SECONDS.toNanos(5)) {
                     System.out.println((100 * pos / length) + "%");
                     last = now;
                 }

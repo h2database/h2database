@@ -577,10 +577,13 @@ CREATE ROLE READONLY
 
 "Commands (DDL)","CREATE SCHEMA","
 CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
+[ WITH tableEngineParamName [,...] ]
 ","
 Creates a new schema. If no owner is specified, the current user is used. The
 user that executes the command must have admin rights, as well as the owner.
 Specifying the owner currently has no effect.
+Optional table engine parameters are used when CREATE TABLE command
+is run on this schema without having its engine params set.
 
 This command commits an open transaction in this connection.
 ","
@@ -613,7 +616,8 @@ CREATE SEQUENCE SEQ_ID
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 [ ( { columnDefinition | constraint } [,...] ) ]
-[ ENGINE tableEngineName [ WITH tableEngineParamName [,...] ] ]
+[ ENGINE tableEngineName ]
+[ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
 [ AS select ]","
 Creates a new table.
@@ -634,6 +638,9 @@ unless the temporary table is created using CREATE CACHED TABLE.
 The ENGINE option is only required when custom table implementations are used.
 The table engine class must implement the interface ""org.h2.api.TableEngine"".
 Any table engine parameters are passed down in the tableEngineParams field of the CreateTableData object.
+
+Either ENGINE, or WITH (table engine params), or both may be specified. If ENGINE is not specified
+in CREATE TABLE, then the engine specified by DEFAULT_TABLE_ENGINE option of database params is used.
 
 Tables with the NOT PERSISTENT modifier are kept fully in memory, and all
 rows are lost when the database is closed.
@@ -1809,7 +1816,7 @@ compare { { { ALL | ANY | SOME } ( select ) } | operand }
     | IS [ NOT ] [ DISTINCT FROM ] operand
     | BETWEEN operand AND operand
     | IN ( { select | expression [,...] } )
-    | [ NOT ] LIKE operand [ ESCAPE string ]
+    | [ NOT ] [ LIKE | ILIKE ] operand [ ESCAPE string ]
     | [ NOT ] REGEXP operand
 ","
 The right hand side of a condition.
@@ -1825,6 +1832,8 @@ To select no escape character, use ""ESCAPE ''"" (empty string).
 At most one escape character is allowed.
 Each character that follows the escape character in the pattern needs to match exactly.
 Patterns that end with an escape character are invalid and the expression returns NULL.
+
+ILIKE does a case-insensitive compare.
 
 When comparing with REGEXP, regular expression matching is used.
 See Java ""Matcher.find"" for details.
@@ -2139,6 +2148,7 @@ ID + 20
 
 "Other Grammar","Table Expression","
 { [ schemaName. ] tableName | ( select ) | valuesExpression } [ [ AS ] newTableAlias ]
+[ USE INDEX ([ indexName [,...] ]) ]
 [ { { LEFT | RIGHT } [ OUTER ] | [ INNER ] | CROSS | NATURAL }
     JOIN tableExpression [ ON expression ] ]
 ","
@@ -2332,17 +2342,17 @@ Mapped to ""java.sql.Timestamp"" (""java.util.Date"" is also supported).
 TIMESTAMP
 "
 
-"Data Types","TIMESTAMP WITH TIMEZONE Type","
-TIMESTAMP WITH TIMEZONE
+"Data Types","TIMESTAMP WITH TIME ZONE Type","
+TIMESTAMP WITH TIME ZONE
 ","
 VERY MUCH STILL IN TESTING.
-The timestamp with timezone data type.
+The timestamp with time zone data type.
 Stored internally as a BCD-encoded date, nano-seconds since midnight, and timezone offset in minutes.
 Note that range queries on this datatype may do some weird stuff close to DST boundaries.
 
 Mapped to ""org.h2.api.TimestampWithTimeZone""
 ","
-TIMESTAMP WITH TIMEZONE
+TIMESTAMP WITH TIME ZONE
 "
 
 "Data Types","BINARY Type","
@@ -2794,6 +2804,17 @@ This method returns a long.
 See also Java operator &.
 ","
 BITAND(A, B)
+"
+
+"Functions (Numeric)","BITGET","
+BITGET(long, int)
+","
+Returns true if and only if the first parameter has a bit set in the
+position specified by the second parameter.
+This method returns a boolean.
+The second parameter is zero-indexed; the least significant bit has position 0.
+","
+BITGET(A, 1)
 "
 
 "Functions (Numeric)","BITOR","

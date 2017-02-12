@@ -67,6 +67,7 @@ public interface ResultInterface extends AutoCloseable {
     /**
      * Close the result and delete any temporary files
      */
+    @Override
     void close();
 
     /**

@@ -37,7 +37,7 @@ public class ConditionAndOr extends Condition {
         this.left = left;
         this.right = right;
         if (SysProperties.CHECK && (left == null || right == null)) {
-            DbException.throwInternalError();
+            DbException.throwInternalError(left + " " + right);
         }
     }
 

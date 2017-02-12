@@ -37,6 +37,9 @@ public class TestRecovery extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.memory) {
+            return;
+        }
         if (!config.mvStore) {
             testRecoverTestMode();
         }
@@ -50,9 +53,6 @@ public class TestRecovery extends TestBase {
     }
 
     private void testRecoverTestMode() throws Exception {
-        if (config.memory) {
-            return;
-        }
         String recoverTestLog = getBaseDir() + "/recovery.h2.db.log";
         FileUtils.delete(recoverTestLog);
         deleteDb("recovery");
@@ -290,7 +290,7 @@ public class TestRecovery extends TestBase {
         rec.setOut(new PrintStream(buff));
         rec.runTool("-dir", getBaseDir(), "-db", "recovery", "-trace");
         String out = new String(buff.toByteArray());
-        assertTrue(out.contains("Created file"));
+        assertContains(out, "Created file");
 
         Connection conn2 = getConnection("recovery2");
         Statement stat2 = conn2.createStatement();

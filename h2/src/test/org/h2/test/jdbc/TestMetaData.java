@@ -578,8 +578,10 @@ public class TestMetaData extends TestBase {
                 Connection.TRANSACTION_NONE));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_READ_COMMITTED));
-        assertTrue(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_READ_UNCOMMITTED));
+        if (!config.multiThreaded) {
+            assertTrue(meta.supportsTransactionIsolationLevel(
+                    Connection.TRANSACTION_READ_UNCOMMITTED));
+        }
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_REPEATABLE_READ));
         assertTrue(meta.supportsTransactionIsolationLevel(

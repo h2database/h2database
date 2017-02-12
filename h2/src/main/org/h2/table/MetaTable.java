@@ -718,7 +718,7 @@ public class MetaTable extends Table {
                         // TABLE_NAME
                         tableName,
                         // TABLE_TYPE
-                        table.getTableType(),
+                        table.getTableType().toString(),
                         // STORAGE_TYPE
                         storageType,
                         // SQL
@@ -920,11 +920,11 @@ public class MetaTable extends Table {
             break;
         }
         case TABLE_TYPES: {
-            add(rows, Table.TABLE);
-            add(rows, Table.TABLE_LINK);
-            add(rows, Table.SYSTEM_TABLE);
-            add(rows, Table.VIEW);
-            add(rows, Table.EXTERNAL_TABLE_ENGINE);
+            add(rows, TableType.TABLE.toString());
+            add(rows, TableType.TABLE_LINK.toString());
+            add(rows, TableType.SYSTEM_TABLE.toString());
+            add(rows, TableType.VIEW.toString());
+            add(rows, TableType.EXTERNAL_TABLE_ENGINE.toString());
             break;
         }
         case CATALOGS: {
@@ -1422,7 +1422,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 Table table = (Table) object;
-                if (table == null || hideTable(table, session)) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1441,7 +1441,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 Table table = (Table) object;
-                if (table == null || hideTable(table, session)) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1470,7 +1470,7 @@ public class MetaTable extends Table {
         }
         case VIEWS: {
             for (Table table : getAllTables(session)) {
-                if (!table.getTableType().equals(Table.VIEW)) {
+                if (table.getTableType() != TableType.VIEW) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -2000,7 +2000,7 @@ public class MetaTable extends Table {
 
     @Override
     public long getRowCount(Session session) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -2014,8 +2014,8 @@ public class MetaTable extends Table {
     }
 
     @Override
-    public String getTableType() {
-        return Table.SYSTEM_TABLE;
+    public TableType getTableType() {
+        return TableType.SYSTEM_TABLE;
     }
 
     @Override

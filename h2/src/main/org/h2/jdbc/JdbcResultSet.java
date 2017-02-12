@@ -1184,7 +1184,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             int id = getNextId(TraceObject.ARRAY);
             if (isDebugEnabled()) {
-                debugCodeAssign("Clob", TraceObject.ARRAY, id, "getArray(" + columnIndex + ")");
+                debugCodeAssign("Array", TraceObject.ARRAY, id, "getArray(" + columnIndex + ")");
             }
             Value v = get(columnIndex);
             return v == ValueNull.INSTANCE ? null : new JdbcArray(conn, v, id);
@@ -1206,7 +1206,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             int id = getNextId(TraceObject.ARRAY);
             if (isDebugEnabled()) {
-                debugCodeAssign("Clob", TraceObject.ARRAY, id, "getArray(" +
+                debugCodeAssign("Array", TraceObject.ARRAY, id, "getArray(" +
                                 quote(columnLabel) + ")");
             }
             Value v = get(columnLabel);
@@ -3683,10 +3683,14 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface)) {
-            return (T) this;
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        throw DbException.getInvalidValueException("iface", iface);
     }
 
     /**
@@ -3778,6 +3782,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getObject());
         } else if (type == byte[].class) {
             return type.cast(value.getBytes());
+        } else if (type == java.sql.Array.class) {
+            int id = getNextId(TraceObject.ARRAY);
+            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
         } else if (DataType.isGeometryClass(type)) {

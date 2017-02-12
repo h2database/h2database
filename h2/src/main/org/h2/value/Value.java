@@ -163,7 +163,7 @@ public abstract class Value {
      * 23 was a short-lived experiment "TIMESTAMP UTC" which has been removed.
      */
     /**
-     * The value type for TIMESTAMP WITH TIMEZONE values.
+     * The value type for TIMESTAMP WITH TIME ZONE values.
      */
     public static final int TIMESTAMP_TZ = 24;
 

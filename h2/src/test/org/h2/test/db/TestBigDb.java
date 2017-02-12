@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
 import org.h2.util.Utils;
@@ -86,11 +87,11 @@ public class TestBigDb extends TestBase {
         try {
             PreparedStatement prep = conn.prepareStatement(
                     "INSERT INTO TEST(PRD_CODE) VALUES('abc' || ?)");
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             for (int i = 0; i < len; i++) {
                 if ((i % 1000) == 0) {
-                    long t = System.currentTimeMillis();
-                    if (t - time > 1000) {
+                    long t = System.nanoTime();
+                    if (t - time > TimeUnit.SECONDS.toNanos(1)) {
                         time = t;
                         int free = Utils.getMemoryFree();
                         println("i: " + i + " free: " + free + " used: " + Utils.getMemoryUsed());

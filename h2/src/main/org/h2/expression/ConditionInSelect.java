@@ -46,33 +46,32 @@ public class ConditionInSelect extends Condition {
         if (!query.hasOrder()) {
             query.setDistinct(true);
         }
-        try (LocalResult rows = query.query(0)) {
-            Value l = left.getValue(session);
-            if (rows.getRowCount() == 0) {
-                return ValueBoolean.get(all);
-            } else if (l == ValueNull.INSTANCE) {
-                return l;
-            }
-            if (!session.getDatabase().getSettings().optimizeInSelect) {
-                return getValueSlow(rows, l);
-            }
-            if (all || (compareType != Comparison.EQUAL &&
-                    compareType != Comparison.EQUAL_NULL_SAFE)) {
-                return getValueSlow(rows, l);
-            }
-            int dataType = rows.getColumnType(0);
-            if (dataType == Value.NULL) {
-                return ValueBoolean.get(false);
-            }
-            l = l.convertTo(dataType);
-            if (rows.containsDistinct(new Value[] { l })) {
-                return ValueBoolean.get(true);
-            }
-            if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
-                return ValueNull.INSTANCE;
-            }
+        LocalResult rows = query.query(0);
+        Value l = left.getValue(session);
+        if (rows.getRowCount() == 0) {
+            return ValueBoolean.get(all);
+        } else if (l == ValueNull.INSTANCE) {
+            return l;
+        }
+        if (!session.getDatabase().getSettings().optimizeInSelect) {
+            return getValueSlow(rows, l);
+        }
+        if (all || (compareType != Comparison.EQUAL &&
+                compareType != Comparison.EQUAL_NULL_SAFE)) {
+            return getValueSlow(rows, l);
+        }
+        int dataType = rows.getColumnType(0);
+        if (dataType == Value.NULL) {
             return ValueBoolean.get(false);
         }
+        l = l.convertTo(dataType);
+        if (rows.containsDistinct(new Value[] { l })) {
+            return ValueBoolean.get(true);
+        }
+        if (rows.containsDistinct(new Value[] { ValueNull.INSTANCE })) {
+            return ValueNull.INSTANCE;
+        }
+        return ValueBoolean.get(false);
     }
 
     private Value getValueSlow(LocalResult rows, Value l) {

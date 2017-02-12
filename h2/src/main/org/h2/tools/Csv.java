@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -354,7 +353,7 @@ public class Csv implements SimpleRowSource {
                 if (v.length() == 0) {
                     v = "COLUMN" + list.size();
                 } else if (!caseSensitiveColumnNames && isSimpleColumnName(v)) {
-                    v = v.toUpperCase();
+                    v = StringUtils.toUpperEnglish(v);
                 }
                 list.add(v);
                 if (endOfLine) {

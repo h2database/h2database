@@ -62,8 +62,7 @@ public class QueryStatisticsData {
             int rowCount) {
         QueryEntry entry = map.get(sqlStatement);
         if (entry == null) {
-            entry = new QueryEntry();
-            entry.sqlStatement = sqlStatement;
+            entry = new QueryEntry(sqlStatement);
             map.put(sqlStatement, entry);
         }
         entry.update(executionTimeNanos, rowCount);
@@ -98,7 +97,7 @@ public class QueryStatisticsData {
         /**
          * The SQL statement.
          */
-        public String sqlStatement;
+        public final String sqlStatement;
 
         /**
          * The number of times the statement was executed.
@@ -157,6 +156,10 @@ public class QueryStatisticsData {
 
         private double executionTimeM2Nanos;
         private double rowCountM2;
+
+        public QueryEntry(String sql) {
+            this.sqlStatement = sql;
+        }
 
         /**
          * Update the statistics entry.

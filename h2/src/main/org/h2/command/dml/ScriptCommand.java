@@ -52,6 +52,7 @@ import org.h2.schema.TriggerObject;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
@@ -277,7 +278,7 @@ public class ScriptCommand extends ScriptBase {
                     // null for metadata tables
                     continue;
                 }
-                final String tableType = table.getTableType();
+                final TableType tableType = table.getTableType();
                 add(createTableSql, false);
                 final ArrayList<Constraint> constraints = table.getConstraints();
                 if (constraints != null) {
@@ -288,7 +289,7 @@ public class ScriptCommand extends ScriptBase {
                         }
                     }
                 }
-                if (Table.TABLE.equals(tableType)) {
+                if (TableType.TABLE == tableType) {
                     if (table.canGetRowCount()) {
                         String rowcount = "-- " +
                                 table.getRowCountApproximation() +

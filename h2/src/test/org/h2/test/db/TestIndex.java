@@ -79,15 +79,15 @@ public class TestIndex extends TestBase {
         testLargeIndex();
         testMultiColumnIndex();
         // long time;
-        // time = System.currentTimeMillis();
+        // time = System.nanoTime();
         testHashIndex(true, false);
 
         testHashIndex(false, false);
-        // System.out.println("b-tree="+(System.currentTimeMillis()-time));
-        // time = System.currentTimeMillis();
+        // System.out.println("b-tree="+TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-time));
+        // time = System.nanoTime();
         testHashIndex(true, true);
         testHashIndex(false, true);
-        // System.out.println("hash="+(System.currentTimeMillis()-time));
+        // System.out.println("hash="+TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-time));
 
         testMultiColumnHashIndex();
 
@@ -164,7 +164,7 @@ public class TestIndex extends TestBase {
             int start = m.indexOf('\"'), end = m.indexOf('\"', start + 1);
             String s = m.substring(start + 1, end);
             for (String t : expected) {
-                assertTrue(t + " not in " + s, s.contains(t));
+                assertContains(s, t);
             }
         }
         stat.execute("drop table test");

@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
@@ -24,8 +23,7 @@ import org.h2.mvstore.type.ObjectDataType;
  * @param <K> the key type
  * @param <V> the value type
  */
-public class ShardedMap<K, V> extends AbstractMap<K, V>
-        implements Map<K, V> {
+public class ShardedMap<K, V> extends AbstractMap<K, V> {
 
     private final DataType keyType;
 

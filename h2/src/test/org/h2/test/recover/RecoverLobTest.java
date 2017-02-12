@@ -3,17 +3,16 @@ package org.h2.test.recover;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 
-public class RecoverLobTest  extends TestBase {
+public class RecoverLobTest extends TestBase {
 
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
-    
+
     @Override
     public TestBase init() throws Exception {
         TestBase tb = super.init();
@@ -23,11 +22,12 @@ public class RecoverLobTest  extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.mvStore || config.memory) {
+            return;
+        }
         testRecoverClob();
     }
-   
-    
-    
+
     public void testRecoverClob() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
@@ -41,7 +41,7 @@ public class RecoverLobTest  extends TestBase {
         stat.execute("insert into test values(6, space(60000))");
         stat.execute("insert into test values(7, space(70000))");
         stat.execute("insert into test values(8, space(80000))");
-        
+
         conn.close();
         Recover.main("-dir", getBaseDir(), "-db", "recovery");
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
@@ -49,16 +49,16 @@ public class RecoverLobTest  extends TestBase {
                 "recovery;init=runscript from '" +
                 getBaseDir() + "/recovery.h2.sql'");
         stat = conn.createStatement();
-        
+
         ResultSet rs = stat.executeQuery("select * from test");
         while(rs.next()){
-            
+
             int id = rs.getInt(1);
             String data = rs.getString(2);
-            
+
             assertTrue(data != null);
             assertTrue(data.length() == 10000 * id);
-            
+
         }
         rs.close();
         conn.close();

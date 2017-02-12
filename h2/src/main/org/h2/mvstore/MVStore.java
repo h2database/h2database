@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -889,11 +888,8 @@ public class MVStore {
         // could result in a deadlock
         stopBackgroundThread();
         closed = true;
-        if (fileStore == null) {
-            return;
-        }
         synchronized (this) {
-            if (shrinkIfPossible) {
+            if (fileStore != null && shrinkIfPossible) {
                 shrinkFileIfPossible(0);
             }
             // release memory early - this is important when called
@@ -906,12 +902,14 @@ public class MVStore {
             meta = null;
             chunks.clear();
             maps.clear();
-            try {
-                if (!fileStoreIsProvided) {
-                    fileStore.close();
+            if (fileStore != null) {
+                try {
+                    if (!fileStoreIsProvided) {
+                        fileStore.close();
+                    }
+                } finally {
+                    fileStore = null;
                 }
-            } finally {
-                fileStore = null;
             }
         }
     }
@@ -919,7 +917,7 @@ public class MVStore {
     /**
      * Whether the chunk at the given position is live.
      *
-     * @param the chunk id
+     * @param chunkId the chunk id
      * @return true if it is live
      */
     boolean isChunkLive(int chunkId) {

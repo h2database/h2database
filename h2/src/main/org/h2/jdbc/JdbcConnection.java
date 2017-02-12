@@ -48,6 +48,7 @@ import org.h2.util.CloseWatcher;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Utils;
 import org.h2.value.CompareMode;
+import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
@@ -1634,12 +1635,22 @@ public class JdbcConnection extends TraceObject implements Connection,
     }
 
     /**
-     * [Not supported] Create a new empty Array object.
+     * Create a new Array object.
+     *
+     * @return the array
      */
     @Override
     public Array createArrayOf(String typeName, Object[] elements)
             throws SQLException {
-        throw unsupported("createArray");
+        try {
+            int id = getNextId(TraceObject.ARRAY);
+            debugCodeAssign("Array", TraceObject.ARRAY, id, "createArrayOf()");
+            checkClosed();
+            Value value = DataType.convertToValue(session, elements, Value.ARRAY);
+            return new JdbcArray(this, value, id);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**
@@ -1799,7 +1810,6 @@ public class JdbcConnection extends TraceObject implements Connection,
                 p.setProperty(PREFIX_SERVER + String.valueOf(i), serverList.get(i));
             }
 
-
             return p;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1820,6 +1830,9 @@ public class JdbcConnection extends TraceObject implements Connection,
                 debugCodeCall("getClientInfo", name);
             }
             checkClosed();
+            if (name == null) {
+                throw DbException.getInvalidValueException("name", null);
+            }
             return getClientInfo().getProperty(name);
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -1835,10 +1848,14 @@ public class JdbcConnection extends TraceObject implements Connection,
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface)) {
-            return (T) this;
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        throw DbException.getInvalidValueException("iface", iface);
     }
 
     /**

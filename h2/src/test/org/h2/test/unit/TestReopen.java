@@ -8,6 +8,7 @@ package org.h2.test.unit;
 import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.ConnectionInfo;
@@ -58,12 +59,12 @@ public class TestReopen extends TestBase implements Recorder {
         FilePathRec.setRecorder(this);
         config.reopen = true;
 
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         Profiler p = new Profiler();
         p.startCollecting();
         new TestPageStoreCoverage().init(config).test();
         System.out.println(p.getTop(3));
-        System.out.println(System.currentTimeMillis() - time);
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         System.out.println("counter: " + writeCount);
     }
 

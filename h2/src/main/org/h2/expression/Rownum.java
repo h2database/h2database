@@ -21,6 +21,9 @@ public class Rownum extends Expression {
     private final Prepared prepared;
 
     public Rownum(Prepared prepared) {
+        if (prepared == null) {
+            throw DbException.throwInternalError();
+        }
         this.prepared = prepared;
     }
 

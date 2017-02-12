@@ -85,7 +85,7 @@ public class PageDelegateIndex extends PageIndex {
 
     @Override
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override

@@ -68,7 +68,7 @@ public class HashIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
             // TODO hash index: should additionally check if values are the same
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(first + " " + last);
         }
         Value v = first.getValue(indexColumn);
         /*

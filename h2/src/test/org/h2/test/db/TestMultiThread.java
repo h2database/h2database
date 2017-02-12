@@ -6,6 +6,7 @@
 package org.h2.test.db;
 
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
@@ -24,6 +25,7 @@ import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SynchronizedVerifier;
 import org.h2.util.Task;
@@ -71,12 +73,14 @@ public class TestMultiThread extends TestBase implements Runnable {
         testConcurrentInsertUpdateSelect();
         testLockModeWithMultiThreaded();
         testViews();
+        testConcurrentInsert();
+        testConcurrentUpdate();
     }
 
     private void testConcurrentSchemaChange() throws Exception {
         String db = getTestName();
         deleteDb(db);
-        final String url = getURL(db + ";MULTI_THREADED=1", true);
+        final String url = getURL(db + ";MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
         Connection conn = getConnection(url);
         Task[] tasks = new Task[2];
         for (int i = 0; i < tasks.length; i++) {
@@ -138,7 +142,7 @@ public class TestMultiThread extends TestBase implements Runnable {
     }
 
     private void testConcurrentView() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         String db = getTestName();
@@ -316,61 +320,174 @@ public class TestMultiThread extends TestBase implements Runnable {
                 "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
 
         stat.close();
-        conn.close();
+
         // create views that reference the common views in different threads
         final ExecutorService executor = Executors.newFixedThreadPool(8);
-        final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
-        for (int i = 0; i < 1000; i++) {
-            final int j = i;
-            jobs.add(executor.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    final Connection conn2 = getConnection(url);
-                    Statement stat2 = conn2.createStatement();
+        try {
+            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            for (int i = 0; i < 1000; i++) {
+                final int j = i;
+                jobs.add(executor.submit(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        final Connection conn2 = getConnection(url);
+                        Statement stat2 = conn2.createStatement();
 
-                    stat2.execute("CREATE VIEW INVOICE_VIEW" + j
-                            + " as SELECT * FROM INVOICE_VIEW");
+                        stat2.execute("CREATE VIEW INVOICE_VIEW" + j
+                                + " as SELECT * FROM INVOICE_VIEW");
 
-                    // the following query intermittently results in a
-                    // NullPointerException
-                    stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
-                            + " as SELECT DTL.* FROM INVOICE_VIEW" + j
-                            + " INV JOIN INVOICE_DETAIL_VIEW DTL "
-                            + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
-                            + " WHERE DESCRIPTION='TEST'");
+                        // the following query intermittently results in a
+                        // NullPointerException
+                        stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
+                                + " as SELECT DTL.* FROM INVOICE_VIEW" + j
+                                + " INV JOIN INVOICE_DETAIL_VIEW DTL "
+                                + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
+                                + " WHERE DESCRIPTION='TEST'");
 
-                    ResultSet rs = stat2
-                            .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
-                    rs.next();
-                    rs.close();
+                        ResultSet rs = stat2
+                                .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
+                        rs.next();
+                        rs.close();
 
-                    rs = stat2.executeQuery(
-                            "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
-                    rs.next();
-                    rs.close();
+                        rs = stat2.executeQuery(
+                                "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
+                        rs.next();
+                        rs.close();
 
-                    stat.close();
-                    conn.close();
-                    return null;
-                }
-            }));
-        }
-        // check for exceptions
-        for (Future<Void> job : jobs) {
-            try {
-                job.get();
-            } catch (ExecutionException ex) {
-                // ignore timeout exceptions, happens periodically when the machine is really
-                // busy and it's not the thing we are trying to test
-                if (!(ex.getCause() instanceof JdbcSQLException)
-                        || ((JdbcSQLException) ex.getCause())
-                                .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
-                    throw ex;
+                        stat.close();
+                        conn.close();
+                        return null;
+                    }
+                }));
+            }
+            // check for exceptions
+            for (Future<Void> job : jobs) {
+                try {
+                    job.get();
+                } catch (ExecutionException ex) {
+                    // ignore timeout exceptions, happens periodically when the machine is really
+                    // busy and it's not the thing we are trying to test
+                    if (!(ex.getCause() instanceof JdbcSQLException)
+                            || ((JdbcSQLException) ex.getCause())
+                                    .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
+                        throw ex;
+                    }
                 }
             }
+        } finally {
+            IOUtils.closeSilently(conn);
+            executor.shutdown();
+            executor.awaitTermination(20, TimeUnit.SECONDS);
         }
-        executor.shutdown();
-        executor.awaitTermination(20, TimeUnit.SECONDS);
+
+        deleteDb("lockMode");
+    }
+
+    private void testConcurrentInsert() throws Exception {
+        deleteDb("lockMode");
+
+        final String url = getURL("lockMode;MULTI_THREADED=1", true);
+        final Connection conn = getConnection(url);
+        conn.createStatement().execute(
+                "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
+
+        final int threadCount = 25;
+        final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+        for (int i = 0; i < threadCount; i++) {
+            final Connection taskConn = getConnection(url);
+            taskConn.setAutoCommit(false);
+            final PreparedStatement insertTranStmt = taskConn
+                    .prepareStatement("INSERT INTO tran (id) values(?)");
+            // to guarantee uniqueness
+            final long initialTransactionId = i * 1000000L;
+            callables.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    long tranId = initialTransactionId;
+                    for (int j = 0; j < 1000; j++) {
+                        insertTranStmt.setLong(1, tranId++);
+                        insertTranStmt.execute();
+                        taskConn.commit();
+                    }
+                    taskConn.close();
+                    return null;
+                }
+            });
+        }
+
+        final ExecutorService executor = Executors
+                .newFixedThreadPool(threadCount);
+        try {
+            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            for (int i = 0; i < threadCount; i++) {
+                jobs.add(executor.submit(callables.get(i)));
+            }
+            // check for exceptions
+            for (Future<Void> job : jobs) {
+                job.get(5, TimeUnit.MINUTES);
+            }
+        } finally {
+            IOUtils.closeSilently(conn);
+            executor.shutdown();
+            executor.awaitTermination(20, TimeUnit.SECONDS);
+        }
+
+        deleteDb("lockMode");
+    }
+
+    private void testConcurrentUpdate() throws Exception {
+        deleteDb("lockMode");
+
+        final int OBJ_CNT = 10000;
+        final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
+        final Connection conn = getConnection(url);
+        conn.createStatement().execute(
+                "CREATE TABLE IF NOT EXISTS ACCOUNT ( ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
+        final PreparedStatement mergeAcctStmt = conn
+                .prepareStatement("MERGE INTO Account(id, balance) key (id) VALUES (?, ?)");
+        for (int i = 0; i < OBJ_CNT; i++) {
+            mergeAcctStmt.setLong(1, i);
+            mergeAcctStmt.setBigDecimal(2, BigDecimal.ZERO);
+            mergeAcctStmt.execute();
+        }
+
+        final int threadCount = 25;
+        final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+        for (int i = 0; i < threadCount; i++) {
+            final Connection taskConn = getConnection(url);
+            taskConn.setAutoCommit(false);
+            final PreparedStatement updateAcctStmt = taskConn
+                    .prepareStatement("UPDATE account set balance = ? where id = ?");
+            callables.add(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    for (int j = 0; j < 1000; j++) {
+                        updateAcctStmt.setDouble(1, Math.random());
+                        updateAcctStmt.setLong(2, (int) (Math.random() * OBJ_CNT));
+                        updateAcctStmt.execute();
+                        taskConn.commit();
+                    }
+                    taskConn.close();
+                    return null;
+                }
+            });
+        }
+
+        final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        try {
+            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            for (int i = 0; i < threadCount; i++) {
+                jobs.add(executor.submit(callables.get(i)));
+            }
+            // check for exceptions
+            for (Future<Void> job : jobs) {
+                job.get(5, TimeUnit.MINUTES);
+            }
+        } finally {
+            IOUtils.closeSilently(conn);
+            executor.shutdown();
+            executor.awaitTermination(20, TimeUnit.SECONDS);
+        }
 
         deleteDb("lockMode");
     }

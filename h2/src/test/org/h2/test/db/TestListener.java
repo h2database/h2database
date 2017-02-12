@@ -10,6 +10,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
 
@@ -23,7 +25,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
     private String databaseUrl;
 
     public TestListener() {
-        start = last = System.currentTimeMillis();
+        start = last = System.nanoTime();
     }
 
     /**
@@ -67,8 +69,8 @@ public class TestListener extends TestBase implements DatabaseEventListener {
 
     @Override
     public void setProgress(int state, String name, int current, int max) {
-        long time = System.currentTimeMillis();
-        if (state == lastState && time < last + 1000) {
+        long time = System.nanoTime();
+        if (state == lastState && time < last + TimeUnit.SECONDS.toNanos(1)) {
             return;
         }
         if (state == STATE_STATEMENT_START ||
@@ -102,7 +104,7 @@ public class TestListener extends TestBase implements DatabaseEventListener {
             // ignore
         }
         printTime("state: " + stateName + " " +
-                (100 * current / max) + " " + (time - start));
+                (100 * current / max) + " " + TimeUnit.NANOSECONDS.toMillis(time - start));
     }
 
     @Override

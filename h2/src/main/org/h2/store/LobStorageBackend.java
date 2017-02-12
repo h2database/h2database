@@ -15,7 +15,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.SysProperties;
@@ -614,7 +613,7 @@ public class LobStorageBackend implements LobStorageInterface {
 
     private static void assertNotHolds(Object lock) {
         if (Thread.holdsLock(lock)) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(lock.toString());
         }
     }
 
@@ -625,7 +624,7 @@ public class LobStorageBackend implements LobStorageInterface {
      */
     static void assertHoldsLock(Object lock) {
         if (!Thread.holdsLock(lock)) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(lock.toString());
         }
     }
 

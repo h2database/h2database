@@ -13,7 +13,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -38,6 +37,11 @@ public class TestKillRestartMulti extends TestBase {
     @Override
     public void test() throws Exception {
         if (config.networked) {
+            return;
+        }
+        if (config.fast) {
+            // using fast as a proxy for "running on Jenkins CI" where this test gets stuck waiting
+            // for the sub-process after killing it
             return;
         }
         if (getBaseDir().indexOf(':') > 0) {

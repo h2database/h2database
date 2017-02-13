@@ -57,6 +57,7 @@ public class TestPreparedStatement extends TestBase {
         testToString(conn);
         testExecuteUpdateCall(conn);
         testPrepareExecute(conn);
+        testEnum(conn);
         testUUID(conn);
         testUUIDAsJavaObject(conn);
         testScopedGeneratedKey(conn);
@@ -441,6 +442,36 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         assertEquals("2", rs.getString(1));
         assertFalse(rs.next());
+    }
+
+    private void testEnum(Connection conn) throws SQLException {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE test_enum(size ENUM('small', 'medium', 'large'))");
+
+        String[] badSizes = new String[]{"green", "wool", "discount"};
+        for (int i = 0; i < badSizes.length; i++) {
+            PreparedStatement prep = conn.prepareStatement(
+                    "INSERT INTO test_enum VALUES(?)");
+            prep.setObject(1, badSizes[i]);
+            assertThrows(ErrorCode.VALUE_NOT_PERMITTED, prep).execute();
+        }
+
+        String[] goodSizes = new String[]{"small", "medium", "large"};
+        for (int i = 0; i < goodSizes.length; i++) {
+            PreparedStatement prep = conn.prepareStatement(
+                    "INSERT INTO test_enum VALUES(?)");
+            prep.setObject(1, goodSizes[i]);
+            prep.execute();
+            ResultSet rs = stat.executeQuery("SELECT * FROM test_enum");
+            for (int j = 0; j <= i; j++) {
+                rs.next();
+            }
+            assertEquals(goodSizes[i], rs.getString(1));
+            Object o = rs.getObject(1);
+            assertEquals("java.lang.String", o.getClass().getName());
+        }
+
+        stat.execute("DROP TABLE test_enum");
     }
 
     private void testUUID(Connection conn) throws SQLException {

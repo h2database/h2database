@@ -2525,9 +2525,14 @@ public class MVStore {
      * @param mb the cache size in MB.
      */
     public void setCacheSize(int mb) {
+        final long bytes = (long) mb * 1024 * 1024;
         if (cache != null) {
-            cache.setMaxMemory((long) mb * 1024 * 1024);
+            cache.setMaxMemory(bytes);
             cache.clear();
+        }
+        if (cacheChunkRef != null) {
+            cacheChunkRef.setMaxMemory(bytes / 4);
+            cacheChunkRef.clear();
         }
     }
 
@@ -2637,6 +2642,8 @@ public class MVStore {
 
     /**
      * Get the amount of memory used for caching, in MB.
+     * Note that this does not include the page chunk references cache, which is
+     * 25% of the size of the page cache.
      *
      * @return the amount of memory used for caching
      */
@@ -2649,6 +2656,8 @@ public class MVStore {
 
     /**
      * Get the maximum cache size, in MB.
+     * Note that this does not include the page chunk references cache, which is
+     * 25% of the size of the page cache.
      *
      * @return the cache size
      */

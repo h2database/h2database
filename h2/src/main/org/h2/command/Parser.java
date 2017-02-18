@@ -4122,7 +4122,7 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
-        java.util.Set<String> permittedValues = new HashSet<>();
+        java.util.List<String> enumerators = new ArrayList<String>();
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
@@ -4196,11 +4196,11 @@ public class Parser {
                 }
                 read(")");
             }
-        } else if (dataType.supportsPermittedValues) {
+        } else if (dataType.enumerated) {
             if (readIf("(")) {
-                permittedValues.add(readString());
+                enumerators.add(readString());
                 while(readIf(","))
-                    permittedValues.add(readString());
+                    enumerators.add(readString());
                 read(")");
             }
         } else if (readIf("(")) {
@@ -4223,13 +4223,8 @@ public class Parser {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
-        Column column;
-        if (permittedValues.isEmpty()) {
-            column = new Column(columnName, type, precision, scale,
-                displaySize);
-        } else {
-            column = new Column(columnName, type, permittedValues);
-        }
+        Column column = new Column(columnName, type, precision, scale,
+            displaySize, enumerators);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

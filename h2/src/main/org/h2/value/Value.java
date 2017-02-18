@@ -852,6 +852,11 @@ public abstract class Value {
                 }
                 break;
             }
+            case ENUM:
+                switch (getType()) {
+                    case INT:
+                        return this;
+                }
             case BLOB: {
                 switch (getType()) {
                 case BYTES:
@@ -944,6 +949,7 @@ public abstract class Value {
             case JAVA_OBJECT:
                 return ValueJavaObject.getNoCopy(null,
                         StringUtils.convertHexToBytes(s.trim()), getDataHandler());
+            case ENUM:
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:
@@ -973,8 +979,6 @@ public abstract class Value {
                 return ValueUuid.get(s);
             case GEOMETRY:
                 return ValueGeometry.get(s);
-            case ENUM:
-                return ValueEnum.get(s);
             default:
                 throw DbException.throwInternalError("type=" + targetType);
             }

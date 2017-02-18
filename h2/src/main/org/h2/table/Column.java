@@ -7,7 +7,7 @@ package org.h2.table;
 
 import java.sql.ResultSetMetaData;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -68,7 +68,7 @@ public class Column {
     private final int type;
     private long precision;
     private int scale;
-    private Set<String> permittedValues;
+    private List<String> enumerators;
     private int displaySize;
     private Table table;
     private String name;
@@ -94,8 +94,8 @@ public class Column {
         this(name, type, -1, -1, -1, null);
     }
 
-    public Column(String name, int type, Set<String> permittedValues) {
-        this(name, type, -1, -1, -1, permittedValues);
+    public Column(String name, int type, List<String> enumerators) {
+        this(name, type, -1, -1, -1, enumerators);
     }
 
     public Column(String name, int type, long precision, int scale,
@@ -104,7 +104,7 @@ public class Column {
     }
 
     public Column(String name, int type, long precision, int scale,
-            int displaySize, Set<String> permittedValues) {
+            int displaySize, List<String> enumerators) {
         this.name = name;
         this.type = type;
         if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
@@ -116,7 +116,7 @@ public class Column {
         this.precision = precision;
         this.scale = scale;
         this.displaySize = displaySize;
-        this.permittedValues = permittedValues;
+        this.enumerators = enumerators;
     }
 
     @Override
@@ -146,7 +146,7 @@ public class Column {
     }
 
     public Column getClone() {
-        Column newColumn = new Column(name, type, precision, scale, displaySize, permittedValues);
+        Column newColumn = new Column(name, type, precision, scale, displaySize, enumerators);
         newColumn.copy(this);
         return newColumn;
     }
@@ -270,12 +270,12 @@ public class Column {
         nullable = b;
     }
 
-    public Set<String> getPermittedValues() {
-        return permittedValues;
+    public List<String> getEnumerators() {
+        return enumerators;
     }
 
-    public void setPermittedValues(Set<String> permittedValues) {
-        this.permittedValues = permittedValues;
+    public void setEnumerators(List<String> enumerators) {
+        this.enumerators = enumerators;
     }
 
     /**
@@ -357,14 +357,23 @@ public class Column {
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
-        if (permittedValues != null) {
-            if (!value.checkPermitted(permittedValues)) {
+        if (!enumerators.isEmpty()) {
+            int index;
+            if (DataType.isStringType(value.getType())) {
+                index = enumerators.indexOf(value.getString());
+            } else {
+                index = value.getInt() < enumerators.size() ? value.getInt() : -1;
+            }
+
+            if (index == -1) {
                 String s = value.getTraceSQL();
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
                 throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
                         getCreateSQL(), s + " (" + value.getString() + ")");
+            } else {
+                value = ValueInt.get(index);
             }
         }
         updateSequenceIfRequired(session, value);
@@ -458,7 +467,7 @@ public class Column {
                 break;
             case Value.ENUM:
                 buff.append('(');
-                Iterator<String> it = permittedValues.iterator();
+                Iterator<String> it = enumerators.iterator();
                 while(it.hasNext()) {
                     buff.append('\'').append(it.next()).append('\'');
                     if(it.hasNext()) {
@@ -774,7 +783,7 @@ public class Column {
         displaySize = source.displaySize;
         name = source.name;
         precision = source.precision;
-        permittedValues = source.permittedValues;
+        enumerators = source.enumerators;
         scale = source.scale;
         // table is not set
         // columnId is not set

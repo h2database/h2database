@@ -143,7 +143,7 @@ public class DataType {
     /**
      * If permitted values are supports.
      */
-    public boolean supportsPermittedValues;
+    public boolean enumerated;
 
     /**
      * If the precision parameter is supported.
@@ -416,7 +416,7 @@ public class DataType {
             dt.params = dataType.params;
             dt.prefix = dataType.prefix;
             dt.suffix = dataType.suffix;
-            dt.supportsPermittedValues = dataType.supportsPermittedValues;
+            dt.enumerated = dataType.enumerated;
             dt.supportsPrecision = dataType.supportsPrecision;
             dt.supportsScale = dataType.supportsScale;
             dt.defaultPrecision = dataType.defaultPrecision;
@@ -472,7 +472,7 @@ public class DataType {
 
     private static DataType createEnum() {
         DataType dataType = createString(false);
-        dataType.supportsPermittedValues = true;
+        dataType.enumerated = true;
         dataType.supportsPrecision = false;
         dataType.supportsScale = false;
         return dataType;
@@ -1183,7 +1183,7 @@ public class DataType {
      * @return true if the value type is a String type
      */
     public static boolean isStringType(int type) {
-        if (type == Value.ENUM || type == Value.STRING
+        if (type == Value.STRING
                 || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE) {
             return true;
         }

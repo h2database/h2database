@@ -4198,10 +4198,18 @@ public class Parser {
             }
         } else if (dataType.enumerated) {
             if (readIf("(")) {
-                enumerators.add(readString());
-                while(readIf(","))
-                    enumerators.add(readString());
+                original += '(';
+                String enumerator0 = readString();
+                enumerators.add(enumerator0);
+                original += "'" + enumerator0 + "'";
+                while(readIf(",")) {
+                    original += ',';
+                    String enumeratorN = readString();
+                    original += "'" + enumeratorN + "'";
+                    enumerators.add(enumeratorN);
+                }
                 read(")");
+                original += ')';
             }
         } else if (readIf("(")) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.

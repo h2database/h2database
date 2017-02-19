@@ -175,7 +175,7 @@ public abstract class Value {
     /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = TIMESTAMP_TZ;
+    public static final int TYPE_COUNT = ENUM;
 
     private static SoftReference<Value[]> softCache =
             new SoftReference<Value[]>(null);

@@ -686,11 +686,10 @@ public class DataType {
                 break;
             }
             case Value.ENUM: {
-                Object x = rs.getObject(columnIndex);
-                if (x == null) {
-                    return ValueNull.INSTANCE;
-                }
-                return ValueEnum.get((String)x);
+                int value = rs.getInt(columnIndex);
+                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
+                    ValueInt.get(value);
+                break;
             }
             case Value.RESULT_SET: {
                 ResultSet x = (ResultSet) rs.getObject(columnIndex);
@@ -1026,9 +1025,6 @@ public class DataType {
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
         if (x instanceof String) {
-            if (type == Value.ENUM) {
-                return ValueEnum.get((String) x);
-            }
             return ValueString.get((String) x);
         } else if (x instanceof Value) {
             return (Value) x;

@@ -1296,7 +1296,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         try {
             ToDateParser.toDate("1-DEC-0000", "DD-MON-RRRR");
             fail("Oracle to_date should reject year 0 (ORA-01841)");
-        } catch (Exception e) { }
+        } catch (Exception e) {
+            // expected
+        }
     }
 
     private void testToDate() throws ParseException {

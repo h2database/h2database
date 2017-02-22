@@ -7,6 +7,9 @@ import org.h2.test.TestBase;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Recover;
 
+/**
+ * Tests BLOB/CLOB recovery.
+ */
 public class RecoverLobTest extends TestBase {
 
     public static void main(String... a) throws Exception {
@@ -16,7 +19,7 @@ public class RecoverLobTest extends TestBase {
     @Override
     public TestBase init() throws Exception {
         TestBase tb = super.init();
-        config.mvStore=false;
+        config.mvStore = false;
         return tb;
     }
 

@@ -468,7 +468,7 @@ public class TestCallableStatement extends TestBase {
                             getClass().getName() + ".arrayIdentiy\"");
 
             for (Object[] arrayToTest : arraysToTest) {
-                Array sqlInputArray = connection.createArrayOf("ignored",arrayToTest);
+                Array sqlInputArray = connection.createArrayOf("ignored", arrayToTest);
                 try {
                     try (CallableStatement callableStatement = connection.prepareCall("{call arrayIdentiy(?)}")) {
                         callableStatement.setArray(1, sqlInputArray);

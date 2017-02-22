@@ -180,19 +180,25 @@ public class TimestampWithTimeZone implements Serializable, Cloneable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
+        if (this == obj) {
             return true;
-        if (obj == null)
+        }
+        if (obj == null) {
             return false;
-        if (getClass() != obj.getClass())
+        }
+        if (getClass() != obj.getClass()) {
             return false;
+        }
         TimestampWithTimeZone other = (TimestampWithTimeZone) obj;
-        if (dateValue != other.dateValue)
+        if (dateValue != other.dateValue) {
             return false;
-        if (timeNanos != other.timeNanos)
+        }
+        if (timeNanos != other.timeNanos) {
             return false;
-        if (timeZoneOffsetMins != other.timeZoneOffsetMins)
+        }
+        if (timeZoneOffsetMins != other.timeZoneOffsetMins) {
             return false;
+        }
         return true;
     }
 

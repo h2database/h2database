@@ -226,8 +226,9 @@ public class CommandRemote implements CommandInterface {
         for (ParameterInterface p : parameters) {
             Value pVal = p.getParamValue();
 
-            if (pVal == null && cmdType == EXPLAIN)
+            if (pVal == null && cmdType == EXPLAIN) {
                 pVal = ValueNull.INSTANCE;
+            }
 
             transfer.writeValue(pVal);
         }

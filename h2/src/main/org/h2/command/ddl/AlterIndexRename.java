@@ -55,9 +55,8 @@ public class AlterIndexRename extends DefineCommand {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1,
                         newIndexName);
-            } else {
-                return 0;
             }
+            return 0;
         }
         if (oldSchema.findIndex(session, newIndexName) != null ||
                 newIndexName.equals(oldIndexName)) {

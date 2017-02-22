@@ -5,6 +5,9 @@
  */
 package org.h2.table;
 
+/**
+ * The table types.
+ */
 public enum TableType {
 
     /**

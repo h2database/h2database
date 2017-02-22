@@ -192,7 +192,8 @@ public class TestReorderWrites  extends TestBase {
         }
         assertTrue(minSize < maxSize);
         assertTrue(minWritten < maxWritten);
-        FileUtils.delete(fileName); // release the static data this test generates
+        // release the static data this test generates
+        FileUtils.delete(fileName);
     }
 
 }

@@ -283,8 +283,10 @@ public class CompareLike extends Condition {
 
     private static boolean containsIgnoreCase(String src, String what) {
         final int length = what.length();
-        if (length == 0)
-            return true; // Empty string is contained
+        if (length == 0) {
+            // Empty string is contained
+            return true;
+        }
 
         final char firstLo = Character.toLowerCase(what.charAt(0));
         final char firstUp = Character.toUpperCase(what.charAt(0));
@@ -292,11 +294,13 @@ public class CompareLike extends Condition {
         for (int i = src.length() - length; i >= 0; i--) {
             // Quick check before calling the more expensive regionMatches() method:
             final char ch = src.charAt(i);
-            if (ch != firstLo && ch != firstUp)
+            if (ch != firstLo && ch != firstUp) {
                 continue;
+            }
 
-            if (src.regionMatches(true, i, what, 0, length))
+            if (src.regionMatches(true, i, what, 0, length)) {
                 return true;
+            }
         }
 
         return false;

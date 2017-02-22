@@ -14,8 +14,8 @@ import java.util.concurrent.Future;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.Select;
 import org.h2.command.dml.SelectUnion;
+import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
-import org.h2.index.Index;
 import org.h2.index.IndexCursor;
 import org.h2.index.IndexLookupBatch;
 import org.h2.index.ViewCursor;
@@ -33,7 +33,7 @@ import org.h2.value.ValueLong;
 /**
  * Support for asynchronous batched index lookups on joins.
  *
- * @see Index#createLookupBatch(org.h2.table.TableFilter[], int)
+ * @see BaseIndex#createLookupBatch(org.h2.table.TableFilter[], int)
  * @see IndexLookupBatch
  * @author Sergi Vladykin
  */

@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
-import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
 import org.h2.engine.Constants;
 import org.h2.engine.Engine;

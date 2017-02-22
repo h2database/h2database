@@ -456,7 +456,7 @@ public class LobStorageBackend implements LobStorageInterface {
                 try {
                     init();
                     ValueLobDb v = null;
-                    if(!old.isRecoveryReference()){
+                    if (!old.isRecoveryReference()) {
                         long lobId = getNextLobId();
                         String sql = "INSERT INTO " + LOB_MAP + "(LOB, SEQ, POS, HASH, BLOCK) " +
                                 "SELECT ?, SEQ, POS, HASH, BLOCK FROM " + LOB_MAP + " WHERE LOB = ?";
@@ -476,7 +476,7 @@ public class LobStorageBackend implements LobStorageInterface {
                         reuse(sql, prep);
 
                         v = ValueLobDb.create(type, database, tableId, lobId, null, length);
-                    }else{
+                    } else {
                         //Recovery process, no need to copy LOB using normal infrastructure
                         v = ValueLobDb.create(type, database, tableId, oldLobId, null, length);
                     }

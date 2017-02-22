@@ -11,4 +11,6 @@ package org.h2.jdbc;
  */
 public interface JdbcStatementBackwardsCompat {
 
+    // compatibility interface
+
 }

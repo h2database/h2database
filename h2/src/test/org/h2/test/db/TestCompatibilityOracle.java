@@ -176,6 +176,7 @@ public class TestCompatibilityOracle extends TestBase {
             stat.executeQuery("SELECT * FROM A WHERE ID IN ()");
             fail();
         } catch (SQLException e) {
+            // expected
         } finally {
             conn.close();
         }

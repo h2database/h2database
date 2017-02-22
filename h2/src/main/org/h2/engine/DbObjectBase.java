@@ -37,6 +37,8 @@ public abstract class DbObjectBase implements DbObject {
     private long modificationId;
     private boolean temporary;
 
+    private String invalidateStackTrace;
+
     /**
      * Initialize some attributes of this object.
      *
@@ -126,7 +128,6 @@ public abstract class DbObjectBase implements DbObject {
         return objectName;
     }
 
-    private String invalidateStackTrace;
     /**
      * Set the main attributes to null to make sure the object is no longer
      * used.
@@ -145,7 +146,7 @@ public abstract class DbObjectBase implements DbObject {
         new Throwable().printStackTrace(pw);
         invalidateStackTrace = sw.toString();
     }
-    
+
     public final boolean isValid() {
         return id != -1;
     }

@@ -92,9 +92,8 @@ public class AlterSequence extends SchemaCommand {
             if (sequence == null) {
                 if (!ifExists) {
                     throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
-                } else {
-                    return 0;
                 }
+                return 0;
             }
         }
         if (table != null) {

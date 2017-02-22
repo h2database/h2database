@@ -309,7 +309,7 @@ public class TestFullText extends TestBase {
             }
             trace("sleeping");
             Thread.sleep(1000);
-    
+
             trace("setting stop to true");
             for (Task t : task) {
                 trace("joining " + t);
@@ -482,7 +482,7 @@ public class TestFullText extends TestBase {
             }
         }
         println("search " + prefix + ": " +
-        		TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " count: " + count);
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " count: " + count);
         stat.execute("CALL " + prefix + "_DROP_ALL()");
         conn.close();
     }

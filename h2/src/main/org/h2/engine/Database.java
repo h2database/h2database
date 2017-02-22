@@ -454,8 +454,7 @@ public class Database implements DataHandler {
             }
             reconnectLastLock = old;
             reconnectChangePending = pending;
-            reconnectCheckNext = System.nanoTime() +
-            		reconnectCheckDelayNs;
+            reconnectCheckNext = System.nanoTime() + reconnectCheckDelayNs;
             return true;
         } catch (Exception e) {
             trace.error(e, "pending {0}", pending);

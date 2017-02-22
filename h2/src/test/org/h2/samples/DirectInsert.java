@@ -70,8 +70,8 @@ public class DirectInsert {
                 (optimize ? "(optimized)" : ""));
         long time = System.nanoTime();
         stat.execute("CREATE TABLE TEST2 AS SELECT * FROM TEST");
-        System.out.printf("%.3f sec.\n",
-                (double)(System.nanoTime() - time) / TimeUnit.SECONDS.toNanos(1));
+        System.out.printf("%.3f sec.\n", (double) (System.nanoTime() - time) /
+                TimeUnit.SECONDS.toNanos(1));
         stat.execute("INSERT INTO TEST2 SELECT * FROM TEST2");
         stat.close();
         conn.close();

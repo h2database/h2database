@@ -34,27 +34,23 @@ public abstract class FileBase extends FileChannel {
     public abstract int write(ByteBuffer src) throws IOException;
 
     @Override
-    public int read(ByteBuffer dst, long position)
+    public synchronized int read(ByteBuffer dst, long position)
             throws IOException {
-        synchronized(this) {
-            long oldPos = position();
-            position(position);
-            int len = read(dst);
-            position(oldPos);
-            return len;
-        }
+        long oldPos = position();
+        position(position);
+        int len = read(dst);
+        position(oldPos);
+        return len;
     }
 
     @Override
-    public int write(ByteBuffer src, long position)
+    public synchronized int write(ByteBuffer src, long position)
             throws IOException {
-        synchronized(this) {
-            long oldPos = position();
-            position(position);
-            int len = write(src);
-            position(oldPos);
-            return len;
-        }
+        long oldPos = position();
+        position(position);
+        int len = write(src);
+        position(oldPos);
+        return len;
     }
 
     @Override

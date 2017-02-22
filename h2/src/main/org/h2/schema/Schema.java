@@ -606,9 +606,9 @@ public class Schema extends DbObjectBase {
                 }
             }
             if (data.tableEngine != null) {
-                if (data.tableEngineParams == null)
+                if (data.tableEngineParams == null) {
                     data.tableEngineParams = this.tableEngineParams;
-
+                }
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);

@@ -270,6 +270,11 @@ java org.h2.test.TestAll timer
 */
 
     /**
+     * Set to true if any of the tests fail. Used to return an error code from the whole program.
+     */
+    static boolean atLeastOneTestFailed;
+
+    /**
      * Whether the MVStore storage is used.
      */
     public boolean mvStore = Constants.VERSION_MINOR >= 4;
@@ -414,11 +419,6 @@ java org.h2.test.TestAll timer
      * The list of tests.
      */
     ArrayList<TestBase> tests = New.arrayList();
-
-    /**
-     * Set to true if any of the tests fail. Used to return an error code from the whole program.
-     */
-    static boolean atLeastOneTestFailed;
 
     private Server server;
 
@@ -929,12 +929,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
         // event queue watchdog for tests that get stuck when running in Jenkins CI
         final java.util.Timer watchdog = new java.util.Timer();
+        // 5 minutes
         watchdog.schedule(new TimerTask() {
             @Override
             public void run() {
                 ThreadDeadlockDetector.dumpAllThreadsAndLocks("test watchdog timed out");
             }
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 5 * 60 * 1000);
         try {
             test.runTest(this);
         } finally {

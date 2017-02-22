@@ -61,8 +61,9 @@ public class Explain extends Prepared {
     @Override
     protected void checkParameters() {
         // Check params only in case of EXPLAIN ANALYZE
-        if (executeCommand)
+        if (executeCommand) {
             super.checkParameters();
+        }
     }
 
     @Override

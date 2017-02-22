@@ -199,8 +199,9 @@ public class Comparison extends Condition {
                     int resType = Value.getHigherOrder(colType, constType);
                     // If not the column values will need to be promoted
                     // to constant type, but vise versa, then let's do this here once.
-                    if (constType != resType)
+                    if (constType != resType) {
                         right = ValueExpression.get(r.convertTo(resType));
+                    }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(
                             ((ExpressionColumn) left).getColumn());

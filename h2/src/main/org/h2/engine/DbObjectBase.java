@@ -5,8 +5,6 @@
  */
 package org.h2.engine;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import org.h2.command.Parser;
 import org.h2.message.DbException;
@@ -36,8 +34,6 @@ public abstract class DbObjectBase implements DbObject {
     private String objectName;
     private long modificationId;
     private boolean temporary;
-
-    private String invalidateStackTrace;
 
     /**
      * Initialize some attributes of this object.
@@ -141,10 +137,6 @@ public abstract class DbObjectBase implements DbObject {
         database = null;
         trace = null;
         objectName = null;
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        new Throwable().printStackTrace(pw);
-        invalidateStackTrace = sw.toString();
     }
 
     public final boolean isValid() {

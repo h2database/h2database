@@ -74,6 +74,9 @@ changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
 </li>
 <li>ResultSet.getObject(..., Class) threw a ClassNotFoundException if the JTS suite was not in the classpath.
 </li>
+<li>File systems: the "cache:" file system, and the
+    compressed in-memory file systems memLZF and nioMemLZF did not
+    correctly support concurrent reading and writing.
 </ul>
 
 <h2>Version 1.4.193 Beta (2016-10-31)</h2>

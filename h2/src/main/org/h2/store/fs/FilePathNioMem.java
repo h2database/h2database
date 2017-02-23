@@ -432,11 +432,12 @@ class FileNioMemData {
         }
     };
 
+    final int nameHashCode;
+
     private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
         new CompressLaterCache<CompressItem, CompressItem>(CACHE_MIN_SIZE);
 
     private String name;
-    private final int nameHashCode;
     private final boolean compress;
     private final float compressLaterCachePercent;
     private long length;
@@ -516,6 +517,11 @@ class FileNioMemData {
         }
 
         @Override
+        public synchronized V put(K key, V value) {
+            return super.put(key, value);
+        }
+
+        @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
             if (size() < size) {
                 return false;
@@ -577,8 +583,7 @@ class FileNioMemData {
             // already expanded, or not compressed
             return d;
         }
-        synchronized (d)
-        {
+        synchronized (d) {
             if (d.capacity() == BLOCK_SIZE) {
                 return d;
             }
@@ -599,10 +604,10 @@ class FileNioMemData {
      */
     void compressPage(int page) {
         final ByteBuffer d = buffers[page].get();
-        synchronized (d)
-        {
+        synchronized (d) {
             if (d.capacity() != BLOCK_SIZE) {
-                return; // already compressed
+                // already compressed
+                return;
             }
             final byte[] compressOutputBuffer = COMPRESS_OUT_BUF_THREAD_LOCAL.get();
             int len = LZF_THREAD_LOCAL.get().compress(d, 0, compressOutputBuffer, 0);
@@ -671,7 +676,8 @@ class FileNioMemData {
             }
             buffers = newBuffers;
         }
-        compressLaterCache.setCacheSize(Math.max(CACHE_MIN_SIZE, (int)(blocks * compressLaterCachePercent / 100)));
+        compressLaterCache.setCacheSize(Math.max(CACHE_MIN_SIZE, (int) (blocks *
+                compressLaterCachePercent / 100)));
     }
 
     /**

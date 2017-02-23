@@ -13,10 +13,13 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
@@ -433,7 +436,7 @@ class FileMemData {
     private final int id;
     private final boolean compress;
     private long length;
-    private byte[][] data;
+    private AtomicReference<byte[]>[] buffers;
     private long lastModified;
     private boolean isReadOnly;
     private boolean isLockedExclusive;
@@ -446,12 +449,33 @@ class FileMemData {
         System.arraycopy(BUFFER, 0, COMPRESSED_EMPTY_BLOCK, 0, len);
     }
 
+    @SuppressWarnings("unchecked")
     FileMemData(String name, boolean compress) {
         this.name = name;
         this.id = name.hashCode();
         this.compress = compress;
-        data = new byte[0][];
+        this.buffers = new AtomicReference[0];
         lastModified = System.currentTimeMillis();
+    }
+
+    byte[] getPage(int page) {
+        AtomicReference<byte[]>[] b = buffers;
+        if (page >= b.length) {
+            return null;
+        }
+        return b[page].get();
+    }
+
+    void setPage(int page, byte[] oldData, byte[] newData, boolean force) {
+        AtomicReference<byte[]>[] b = buffers;
+        if (page >= b.length) {
+            return;
+        }
+        if (force) {
+            b[page].set(newData);
+        } else {
+            b[page].compareAndSet(oldData, newData);
+        }
     }
 
     int getId() {
@@ -509,12 +533,17 @@ class FileMemData {
         }
 
         @Override
+        public synchronized V put(K key, V value) {
+            return super.put(key, value);
+        }
+
+        @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
             if (size() < size) {
                 return false;
             }
             CompressItem c = (CompressItem) eldest.getKey();
-            c.file.compress(c.page, c.data);
+            c.file.compress(c.page);
             return true;
         }
     }
@@ -528,11 +557,6 @@ class FileMemData {
          * The file.
          */
         FileMemData file;
-
-        /**
-         * The data array.
-         */
-        byte[] data;
 
         /**
          * The page to compress.
@@ -559,16 +583,15 @@ class FileMemData {
         CompressItem c = new CompressItem();
         c.file = this;
         c.page = page;
-        c.data = data[page];
         synchronized (LZF) {
             COMPRESS_LATER.put(c, c);
         }
     }
 
-    private void expand(int page) {
-        byte[] d = data[page];
+    private byte[] expand(int page) {
+        byte[] d = getPage(page);
         if (d.length == BLOCK_SIZE) {
-            return;
+            return d;
         }
         byte[] out = new byte[BLOCK_SIZE];
         if (d != COMPRESSED_EMPTY_BLOCK) {
@@ -576,7 +599,8 @@ class FileMemData {
                 LZF.expand(d, 0, d.length, out, 0, BLOCK_SIZE);
             }
         }
-        data[page] = out;
+        setPage(page, d, out, false);
+        return out;
     }
 
     /**
@@ -585,26 +609,19 @@ class FileMemData {
      * @param page which page to compress
      * @param old the page array
      */
-    void compress(int page, byte[] old) {
-        byte[][] array = data;
-        if (page >= array.length) {
-            return;
-        }
-        byte[] d = array[page];
-        if (d != old) {
+    void compress(int page) {
+        byte[] old = getPage(page);
+        if (old == null || old.length != BLOCK_SIZE) {
+            // not yet initialized or already compressed
             return;
         }
         synchronized (LZF) {
-            int len = LZF.compress(d, BLOCK_SIZE, BUFFER, 0);
+            int len = LZF.compress(old, BLOCK_SIZE, BUFFER, 0);
             if (len <= BLOCK_SIZE) {
-                d = new byte[len];
+                byte[] d = new byte[len];
                 System.arraycopy(BUFFER, 0, d, 0, len);
                 // maybe data was changed in the meantime
-                byte[] o = array[page];
-                if (o != old) {
-                    return;
-                }
-                array[page] = d;
+                setPage(page, old, d, false);
             }
         }
     }
@@ -640,11 +657,12 @@ class FileMemData {
         long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
         if (end != newLength) {
             int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
-            expand(lastPage);
-            byte[] d = data[lastPage];
+            byte[] d = expand(lastPage);
+            byte[] d2 = Arrays.copyOf(d, d.length);
             for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
-                d[i] = 0;
+                d2[i] = 0;
             }
+            setPage(lastPage, d, d2, true);
             if (compress) {
                 compressLater(lastPage);
             }
@@ -655,13 +673,12 @@ class FileMemData {
         length = len;
         len = MathUtils.roundUpLong(len, BLOCK_SIZE);
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
-        if (blocks != data.length) {
-            byte[][] n = new byte[blocks][];
-            System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
-            for (int i = data.length; i < blocks; i++) {
-                n[i] = COMPRESSED_EMPTY_BLOCK;
+        if (blocks != buffers.length) {
+            AtomicReference<byte[]>[] n = Arrays.copyOf(buffers, blocks);
+            for (int i = buffers.length; i < blocks; i++) {
+                n[i] = new AtomicReference<byte[]>(COMPRESSED_EMPTY_BLOCK);
             }
-            data = n;
+            buffers = n;
         }
     }
 
@@ -687,11 +704,12 @@ class FileMemData {
         while (len > 0) {
             int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
             int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(page);
-            byte[] block = data[page];
+            byte[] block = expand(page);
             int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
             if (write) {
-                System.arraycopy(b, off, block, blockOffset, l);
+                byte[] p2 = Arrays.copyOf(block, block.length);
+                System.arraycopy(b, off, p2, blockOffset, l);
+                setPage(page, block, p2, true);
             } else {
                 System.arraycopy(block, blockOffset, b, off, l);
             }

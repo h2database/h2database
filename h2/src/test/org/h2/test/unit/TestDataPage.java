@@ -41,6 +41,7 @@ import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 
 /**
@@ -167,6 +168,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(ValueTime.get(new Time(0)));
         testValue(ValueTimestamp.fromMillis(System.currentTimeMillis()));
         testValue(ValueTimestamp.fromMillis(0));
+        testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00"));
         testValue(ValueJavaObject.getNoCopy(null, new byte[0], this));
         testValue(ValueJavaObject.getNoCopy(null, new byte[100], this));
         for (int i = 0; i < 300; i++) {

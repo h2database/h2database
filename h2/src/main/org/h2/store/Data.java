@@ -544,6 +544,7 @@ public class Data {
             writeVarLong(ts.getDateValue());
             writeVarLong(ts.getTimeNanos());
             writeVarInt(ts.getTimeZoneOffsetMins());
+            break;
         }
         case Value.GEOMETRY:
             // fall though

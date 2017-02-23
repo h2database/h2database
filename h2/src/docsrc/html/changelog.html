@@ -77,6 +77,9 @@ changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
 <li>File systems: the "cache:" file system, and the
     compressed in-memory file systems memLZF and nioMemLZF did not
     correctly support concurrent reading and writing.
+</li>
+<li>TIMESTAMP WITH TIMEZONE: serialization for the PageStore was broken.
+</li>
 </ul>
 
 <h2>Version 1.4.193 Beta (2016-10-31)</h2>

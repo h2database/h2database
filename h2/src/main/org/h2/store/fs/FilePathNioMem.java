@@ -33,6 +33,10 @@ public class FilePathNioMem extends FilePath {
 
     private static final TreeMap<String, FileNioMemData> MEMORY_FILES =
             new TreeMap<String, FileNioMemData>();
+
+    /**
+     * The percentage of uncompressed (cached) entries.
+     */
     float compressLaterCachePercent = 1;
 
     @Override
@@ -432,6 +436,9 @@ class FileNioMemData {
         }
     };
 
+    /**
+     * The hash code of the name.
+     */
     final int nameHashCode;
 
     private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =

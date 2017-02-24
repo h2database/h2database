@@ -26,6 +26,12 @@ public final class IndexHints {
         this.allowedIndexes = allowedIndexes;
     }
 
+    /**
+     * Create an index hint object.
+     *
+     * @param allowedIndexes the set of allowed indexes
+     * @return the hint object
+     */
     public static IndexHints createUseIndexHints(LinkedHashSet<String> allowedIndexes) {
         return new IndexHints(allowedIndexes);
     }
@@ -39,6 +45,12 @@ public final class IndexHints {
         return "IndexHints{allowedIndexes=" + allowedIndexes + '}';
     }
 
+    /**
+     * Allow an index to be used.
+     *
+     * @param index the index
+     * @return whether it was already allowed
+     */
     public boolean allowIndex(Index index) {
         return allowedIndexes.contains(index.getName());
     }

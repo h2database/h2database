@@ -458,6 +458,12 @@ class FileMemData {
         lastModified = System.currentTimeMillis();
     }
 
+    /**
+     * Get the page if it exists.
+     *
+     * @param page the page id
+     * @return the byte array, or null
+     */
     byte[] getPage(int page) {
         AtomicReference<byte[]>[] b = buffers;
         if (page >= b.length) {
@@ -466,6 +472,15 @@ class FileMemData {
         return b[page].get();
     }
 
+    /**
+     * Set the page data.
+     *
+     * @param page the page id
+     * @param oldData the old data
+     * @param newData the new data
+     * @param force whether the data should be overwritten even if the old data
+     *            doesn't match
+     */
     void setPage(int page, byte[] oldData, byte[] newData, boolean force) {
         AtomicReference<byte[]>[] b = buffers;
         if (page >= b.length) {
@@ -607,7 +622,6 @@ class FileMemData {
      * Compress the data in a byte array.
      *
      * @param page which page to compress
-     * @param old the page array
      */
     void compress(int page) {
         byte[] old = getPage(page);

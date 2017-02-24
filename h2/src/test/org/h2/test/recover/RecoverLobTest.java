@@ -12,6 +12,11 @@ import org.h2.tools.Recover;
  */
 public class RecoverLobTest extends TestBase {
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
@@ -31,7 +36,7 @@ public class RecoverLobTest extends TestBase {
         testRecoverClob();
     }
 
-    public void testRecoverClob() throws Exception {
+    private void testRecoverClob() throws Exception {
         DeleteDbFiles.execute(getBaseDir(), "recovery", true);
         Connection conn = getConnection("recovery");
         Statement stat = conn.createStatement();

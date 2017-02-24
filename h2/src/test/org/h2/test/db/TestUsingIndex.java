@@ -22,6 +22,11 @@ public class TestUsingIndex extends TestBase {
     private Connection conn;
     private Statement stat;
 
+    /**
+     * Run just this test.
+     *
+     * @param a ignored
+     */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }

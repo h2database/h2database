@@ -1637,6 +1637,8 @@ public class JdbcConnection extends TraceObject implements Connection,
     /**
      * Create a new Array object.
      *
+     * @param typeName the type name
+     * @param elements the values
      * @return the array
      */
     @Override

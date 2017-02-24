@@ -436,7 +436,7 @@ class FileMemData {
     private final int id;
     private final boolean compress;
     private long length;
-    private AtomicReference<byte[]>[] buffers;
+    private AtomicReference<byte[]>[] data;
     private long lastModified;
     private boolean isReadOnly;
     private boolean isLockedExclusive;
@@ -454,7 +454,7 @@ class FileMemData {
         this.name = name;
         this.id = name.hashCode();
         this.compress = compress;
-        this.buffers = new AtomicReference[0];
+        this.data = new AtomicReference[0];
         lastModified = System.currentTimeMillis();
     }
 
@@ -465,7 +465,7 @@ class FileMemData {
      * @return the byte array, or null
      */
     byte[] getPage(int page) {
-        AtomicReference<byte[]>[] b = buffers;
+        AtomicReference<byte[]>[] b = data;
         if (page >= b.length) {
             return null;
         }
@@ -482,7 +482,7 @@ class FileMemData {
      *            doesn't match
      */
     void setPage(int page, byte[] oldData, byte[] newData, boolean force) {
-        AtomicReference<byte[]>[] b = buffers;
+        AtomicReference<byte[]>[] b = data;
         if (page >= b.length) {
             return;
         }
@@ -687,12 +687,12 @@ class FileMemData {
         length = len;
         len = MathUtils.roundUpLong(len, BLOCK_SIZE);
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
-        if (blocks != buffers.length) {
-            AtomicReference<byte[]>[] n = Arrays.copyOf(buffers, blocks);
-            for (int i = buffers.length; i < blocks; i++) {
+        if (blocks != data.length) {
+            AtomicReference<byte[]>[] n = Arrays.copyOf(data, blocks);
+            for (int i = data.length; i < blocks; i++) {
                 n[i] = new AtomicReference<byte[]>(COMPRESSED_EMPTY_BLOCK);
             }
-            buffers = n;
+            data = n;
         }
     }
 

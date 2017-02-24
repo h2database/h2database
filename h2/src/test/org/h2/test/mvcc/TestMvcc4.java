@@ -129,7 +129,8 @@ public class TestMvcc4 extends TestBase {
      */
     void waitForThreadToBlockOnDB(Thread t) {
         while (true) {
-            // sleep the first time through the loop so we give the main thread a chance
+            // sleep the first time through the loop so we give the main thread
+            // a chance
             try {
                 Thread.sleep(20);
             } catch (InterruptedException e1) {
@@ -140,9 +141,13 @@ public class TestMvcc4 extends TestBase {
             Map<Thread, StackTraceElement[]> threadMap = Thread.getAllStackTraces();
             StackTraceElement[] elements = threadMap.get(t);
             if (elements != null
-                    && elements.length > 1
-                    && (config.multiThreaded ? "sleep".equals(elements[0].getMethodName()) : "wait".equals(elements[0].getMethodName()))
-                    && "filterConcurrentUpdate".equals(elements[1].getMethodName())) {
+                    &&
+                    elements.length > 1 &&
+                    (config.multiThreaded ? "sleep".equals(elements[0]
+                            .getMethodName()) : "wait".equals(elements[0]
+                            .getMethodName())) &&
+                    "filterConcurrentUpdate"
+                            .equals(elements[1].getMethodName())) {
                 return;
             }
         }

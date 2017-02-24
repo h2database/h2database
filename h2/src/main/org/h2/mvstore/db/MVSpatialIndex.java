@@ -126,11 +126,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public void add(Session session, Row row) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         SpatialKey key = getKey(row);
-        
+
         if (key.isNull()) {
             return;
         }
-        
+
         if (indexType.isUnique()) {
             // this will detect committed entries only
             RTreeCursor cursor = spatialMap.findContainedKeys(key);
@@ -171,11 +171,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     @Override
     public void remove(Session session, Row row) {
         SpatialKey key = getKey(row);
-        
+
         if (key.isNull()) {
             return;
         }
-        
+
         TransactionMap<SpatialKey, Value> map = getMap(session);
         try {
             Value old = map.remove(key);

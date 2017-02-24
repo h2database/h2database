@@ -105,7 +105,8 @@ public class TestStringCache extends TestBase {
             long time = System.nanoTime();
             testSingleThread(100000);
             time = System.nanoTime() - time;
-            System.out.println(TimeUnit.NANOSECONDS.toMillis(time) + " ms (useIntern=" + useIntern + ")");
+            System.out.println(TimeUnit.NANOSECONDS.toMillis(time) +
+                    " ms (useIntern=" + useIntern + ")");
         }
 
     }

@@ -94,7 +94,9 @@ public class TestDataPage extends TestBase implements DataHandler {
             //                    data.writeVarInt(k * k);
             //                }
             //            }
-            System.out.println("write: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
+            System.out.println("write: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) +
+                    " ms");
         }
         for (int j = 0; j < 4; j++) {
             long time = System.nanoTime();
@@ -116,7 +118,9 @@ public class TestDataPage extends TestBase implements DataHandler {
             //                    data.readInt();
             //                }
             //            }
-            System.out.println("read: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
+            System.out.println("read: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) +
+                    " ms");
         }
     }
 

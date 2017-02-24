@@ -192,6 +192,7 @@ CREATE ROLE [ IF NOT EXISTS ] newRoleName
 Creates a new role."
 "Commands (DDL)","CREATE SCHEMA","
 CREATE SCHEMA [ IF NOT EXISTS ] name [ AUTHORIZATION ownerUserName ]
+[ WITH tableEngineParamName [,...] ]
 ","
 Creates a new schema."
 "Commands (DDL)","CREATE SEQUENCE","
@@ -207,7 +208,8 @@ Creates a new sequence."
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
 [ ( { columnDefinition | constraint } [,...] ) ]
-[ ENGINE tableEngineName [ WITH tableEngineParamName [,...] ] ]
+[ ENGINE tableEngineName ]
+[ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
 [ AS select ]","
 Creates a new table."

@@ -1420,7 +1420,8 @@ public class Database implements DataHandler {
                 // otherwise other connections can not detect that
                 if (lock.load().containsKey("changePending")) {
                     try {
-                        Thread.sleep(TimeUnit.NANOSECONDS.toMillis((long) (reconnectCheckDelayNs * 1.1)));
+                        Thread.sleep(TimeUnit.NANOSECONDS
+                                .toMillis((long) (reconnectCheckDelayNs * 1.1)));
                     } catch (InterruptedException e) {
                         trace.error(e, "close");
                     }

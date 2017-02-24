@@ -107,7 +107,8 @@ public class TestConnectionPool extends TestBase {
         } catch (SQLException e) {
             assertContains(e.toString().toLowerCase(), "timeout");
             time = System.nanoTime() - time;
-            assertTrue("timeout after " + TimeUnit.NANOSECONDS.toMillis(time) + " ms", time > TimeUnit.SECONDS.toNanos(1));
+            assertTrue("timeout after " + TimeUnit.NANOSECONDS.toMillis(time) +
+                    " ms", time > TimeUnit.SECONDS.toNanos(1));
         } finally {
             conn.close();
             t.get();

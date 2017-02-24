@@ -129,8 +129,9 @@ public class LocalDateTimeUtils {
         LOCAL_DATE_TIME = tryGetClass("java.time.LocalDateTime");
         OFFSET_DATE_TIME = tryGetClass("java.time.OffsetDateTime");
         ZONE_OFFSET = tryGetClass("java.time.ZoneOffset");
-        IS_JAVA8_DATE_API_PRESENT = LOCAL_DATE != null && LOCAL_TIME != null
-                        && LOCAL_DATE_TIME != null && OFFSET_DATE_TIME != null && ZONE_OFFSET != null;
+        IS_JAVA8_DATE_API_PRESENT = LOCAL_DATE != null && LOCAL_TIME != null &&
+                LOCAL_DATE_TIME != null && OFFSET_DATE_TIME != null &&
+                ZONE_OFFSET != null;
 
         if (IS_JAVA8_DATE_API_PRESENT) {
 
@@ -421,7 +422,8 @@ public class LocalDateTimeUtils {
      */
     public static Object valueToLocalTime(Value value) {
         try {
-            return LOCAL_TIME_OF_NANO.invoke(null, ((ValueTime) value.convertTo(Value.TIME)).getNanos());
+            return LOCAL_TIME_OF_NANO.invoke(null,
+                    ((ValueTime) value.convertTo(Value.TIME)).getNanos());
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

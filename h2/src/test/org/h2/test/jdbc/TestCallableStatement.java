@@ -429,7 +429,8 @@ public class TestCallableStatement extends TestBase {
                             getClass().getName() + ".getArrayLength\"");
 
             // test setArray
-            try (CallableStatement callableStatement = connection.prepareCall("{call getArrayLength(?)}")) {
+            try (CallableStatement callableStatement = connection
+                    .prepareCall("{call getArrayLength(?)}")) {
                 callableStatement.setArray(1, array);
                 assertTrue(callableStatement.execute());
 
@@ -441,7 +442,8 @@ public class TestCallableStatement extends TestBase {
             }
 
             // test setObject
-            try (CallableStatement callableStatement = connection.prepareCall("{call getArrayLength(?)}")) {
+            try (CallableStatement callableStatement = connection
+                    .prepareCall("{call getArrayLength(?)}")) {
                 callableStatement.setObject(1, array);
                 assertTrue(callableStatement.execute());
 
@@ -470,7 +472,8 @@ public class TestCallableStatement extends TestBase {
             for (Object[] arrayToTest : arraysToTest) {
                 Array sqlInputArray = connection.createArrayOf("ignored", arrayToTest);
                 try {
-                    try (CallableStatement callableStatement = connection.prepareCall("{call arrayIdentiy(?)}")) {
+                    try (CallableStatement callableStatement = connection
+                            .prepareCall("{call arrayIdentiy(?)}")) {
                         callableStatement.setArray(1, sqlInputArray);
                         assertTrue(callableStatement.execute());
 
@@ -480,7 +483,9 @@ public class TestCallableStatement extends TestBase {
                             // test getArray()
                             Array sqlReturnArray = resultSet.getArray(1);
                             try {
-                                assertEquals((Object[]) sqlInputArray.getArray(), (Object[]) sqlReturnArray.getArray());
+                                assertEquals(
+                                        (Object[]) sqlInputArray.getArray(),
+                                        (Object[]) sqlReturnArray.getArray());
                             } finally {
                                 sqlReturnArray.free();
                             }
@@ -488,7 +493,9 @@ public class TestCallableStatement extends TestBase {
                             // test getObject(Array.class)
                             sqlReturnArray = resultSet.getObject(1, Array.class);
                             try {
-                                assertEquals((Object[]) sqlInputArray.getArray(), (Object[]) sqlReturnArray.getArray());
+                                assertEquals(
+                                        (Object[]) sqlInputArray.getArray(),
+                                        (Object[]) sqlReturnArray.getArray());
                             } finally {
                                 sqlReturnArray.free();
                             }

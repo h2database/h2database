@@ -407,7 +407,8 @@ public class TestDeadlock extends TestBase {
         Statement stmt = conn.createStatement();
         conn.setAutoCommit(false);
         stmt.execute("CREATE SEQUENCE IF NOT EXISTS SEQ1 START WITH 1000000");
-        stmt.execute("CREATE FORCE VIEW V1 AS WITH RECURSIVE TEMP(X) AS (SELECT x FROM DUAL) SELECT * FROM TEMP");
+        stmt.execute("CREATE FORCE VIEW V1 AS WITH RECURSIVE TEMP(X) AS " +
+                "(SELECT x FROM DUAL) SELECT * FROM TEMP");
         stmt.executeQuery("SELECT SEQ1.NEXTVAL");
         conn.close();
     }

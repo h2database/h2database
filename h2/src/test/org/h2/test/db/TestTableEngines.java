@@ -140,7 +140,8 @@ public class TestTableEngines extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE SCHEMA s1 WITH \"param1\", \"param2\"");
 
-        stat.execute("CREATE TABLE s1.t1(id int, name varchar) ENGINE \"" + EndlessTableEngine.class.getName() + '\"');
+        stat.execute("CREATE TABLE s1.t1(id int, name varchar) ENGINE \"" +
+                EndlessTableEngine.class.getName() + '\"');
         assertEquals(2,
             EndlessTableEngine.createTableData.tableEngineParams.size());
         assertEquals("param1",

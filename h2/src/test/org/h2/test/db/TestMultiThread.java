@@ -365,8 +365,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                 try {
                     job.get();
                 } catch (ExecutionException ex) {
-                    // ignore timeout exceptions, happens periodically when the machine is really
-                    // busy and it's not the thing we are trying to test
+                    // ignore timeout exceptions, happens periodically when the
+                    // machine is really busy and it's not the thing we are
+                    // trying to test
                     if (!(ex.getCause() instanceof JdbcSQLException)
                             || ((JdbcSQLException) ex.getCause())
                                     .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
@@ -442,7 +443,8 @@ public class TestMultiThread extends TestBase implements Runnable {
         final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
         final Connection conn = getConnection(url);
         conn.createStatement().execute(
-                "CREATE TABLE IF NOT EXISTS ACCOUNT ( ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
+                "CREATE TABLE IF NOT EXISTS ACCOUNT" +
+                "(ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
         final PreparedStatement mergeAcctStmt = conn
                 .prepareStatement("MERGE INTO Account(id, balance) key (id) VALUES (?, ?)");
         for (int i = 0; i < objectCount; i++) {

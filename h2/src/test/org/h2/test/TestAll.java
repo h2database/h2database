@@ -270,7 +270,8 @@ java org.h2.test.TestAll timer
 */
 
     /**
-     * Set to true if any of the tests fail. Used to return an error code from the whole program.
+     * Set to true if any of the tests fail. Used to return an error code from
+     * the whole program.
      */
     static boolean atLeastOneTestFailed;
 
@@ -595,8 +596,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         traceLevelFile = throttle = 0;
         cipher = null;
 
-        // memory is a good match for multi-threaded, makes things happen faster, more change of exposing
-        // race conditions
+        // memory is a good match for multi-threaded, makes things happen
+        // faster, more change of exposing race conditions
         memory = true;
         multiThreaded = true;
         test();
@@ -927,7 +928,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // run directly for now, because concurrently running tests
         // fails on Raspberry Pi quite often (seems to be a JVM problem)
 
-        // event queue watchdog for tests that get stuck when running in Jenkins CI
+        // event queue watchdog for tests that get stuck when running in Jenkins
         final java.util.Timer watchdog = new java.util.Timer();
         // 5 minutes
         watchdog.schedule(new TimerTask() {

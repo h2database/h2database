@@ -39,7 +39,8 @@ public class TestMemoryUsage extends TestBase {
             // can't test in-memory databases
             return;
         }
-        // comment this out for now, not reliable when running on my 64-bit Java1.8 VM
+        // comment this out for now, not reliable when running on my 64-bit
+        // Java1.8 VM
         // testCreateDropLoop();
         testCreateIndex();
         testClob();
@@ -204,10 +205,12 @@ public class TestMemoryUsage extends TestBase {
             Connection conn2 = getConnection("memoryUsage");
             conn2.close();
             if (i % 10000 == 0) {
-                printTimeMemory("connect", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+                printTimeMemory("connect",
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
             }
         }
-        printTimeMemory("connect", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+        printTimeMemory("connect",
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         conn1.close();
     }
 
@@ -259,7 +262,8 @@ public class TestMemoryUsage extends TestBase {
                 trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("select", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+        printTimeMemory("select",
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
 
         // select randomized
         Random random = new Random(1);
@@ -274,7 +278,8 @@ public class TestMemoryUsage extends TestBase {
                 trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("select randomized", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+        printTimeMemory("select randomized",
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
 
         // delete
         time = System.nanoTime();
@@ -286,7 +291,8 @@ public class TestMemoryUsage extends TestBase {
                 trace("  " + (100 * i / len) + "%");
             }
         }
-        printTimeMemory("delete", TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+        printTimeMemory("delete",
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
     }
 
 }

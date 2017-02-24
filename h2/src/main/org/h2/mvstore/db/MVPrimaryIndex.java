@@ -145,7 +145,8 @@ public class MVPrimaryIndex extends BaseIndex {
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }
-        // because it's possible to directly update the key using the _rowid_ syntax
+        // because it's possible to directly update the key using the _rowid_
+        // syntax
         if (row.getKey() > lastKey.get()) {
             lastKey.set(row.getKey());
         }

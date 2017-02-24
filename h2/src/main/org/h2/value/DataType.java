@@ -316,9 +316,9 @@ public class DataType {
                 56
         );
         // 2014 is the value of Types.TIMESTAMP_WITH_TIMEZONE
-        // use the value instead of the reference because the code has to compile
-        // on Java 1.7
-        // can be replaced with Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required
+        // use the value instead of the reference because the code has to
+        // compile (on Java 1.7). Can be replaced with
+        // Types.TIMESTAMP_WITH_TIMEZONE once Java 1.8 is required.
         add(Value.TIMESTAMP_TZ, 2014, "TimestampTimeZone",
                 createDate(ValueTimestampTimeZone.PRECISION, "TIMESTAMP_TZ",
                         ValueTimestampTimeZone.DEFAULT_SCALE, ValueTimestampTimeZone.DISPLAY_SIZE),

@@ -18,7 +18,7 @@ Check docs, versions and links in main, downloads, build numbers
 Check the PDF file size
 
 Upload (http and https) to ftp://h2database.com/javadoc
-Upload (http and https) to ftp://h2database.com 
+Upload (http and https) to ftp://h2database.com
 Upload (http and https) to ftp://h2database.com/m2-repo
 Github: create a release
 Newsletter: prepare (always to BCC)

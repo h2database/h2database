@@ -1591,8 +1591,12 @@ The following file systems are included:
 </li><li><code>nioMemFS:</code> stores data outside of the VM's heap - useful for large memory DBs without incurring GC costs.
 </li>
 <li>
-    <code>nioMemLZF:</code> stores compressed data outside of the VM's heap - useful for large memory DBs without incurring GC costs.
-    <p>use "nioMemLZF:12:" to tweak the % of blocks that are stored uncompressed. If you size this to your working set correctly, compressed storage is roughly the same performance as uncompressed. The default value is 1%.
+    <code>nioMemLZF:</code> stores compressed data outside of the VM's heap -
+    useful for large memory DBs without incurring GC costs.
+    Use "nioMemLZF:12:" to tweak the % of blocks that are stored uncompressed.
+    If you size this to your working set correctly,
+    compressed storage is roughly the same performance as uncompressed.
+    The default value is 1%.
 </li></ul>
 <p>
 As an example, to use the the <code>nio</code> file system, use the following database URL:

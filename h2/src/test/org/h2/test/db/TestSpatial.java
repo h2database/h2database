@@ -1139,7 +1139,7 @@ public class TestSpatial extends TestBase {
         }
 
     }
-    
+
     private void testSpatialIndexWithOrder() throws SQLException {
         deleteDb("spatial");
         Connection conn = getConnection(URL);

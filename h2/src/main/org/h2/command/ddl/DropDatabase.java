@@ -101,9 +101,9 @@ public class DropDatabase extends DefineCommand {
         }
         ArrayList<SchemaObject> list = New.arrayList();
         for (SchemaObject obj : db.getAllSchemaObjects(DbObject.SEQUENCE))  {
-            // ignore these. the ones we want to drop will get dropped when we drop
-            // their associated tables, and we will ignore the problematic ones
-            // that belong to session-local temp tables.
+            // ignore these. the ones we want to drop will get dropped when we
+            // drop their associated tables, and we will ignore the problematic
+            // ones that belong to session-local temp tables.
             if (!((Sequence) obj).getBelongsToTable()) {
                 list.add(obj);
             }

@@ -422,14 +422,16 @@ class FileNioMemData {
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL = new ThreadLocal<CompressLZF>() {
+    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL =
+            new ThreadLocal<CompressLZF>() {
         @Override
         protected CompressLZF initialValue() {
             return new CompressLZF();
         }
     };
     /** the output buffer when compressing */
-    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL = new ThreadLocal<byte[] >() {
+    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL =
+            new ThreadLocal<byte[] >() {
         @Override
         protected byte[] initialValue() {
             return new byte[BLOCK_SIZE * 2];
@@ -677,7 +679,8 @@ class FileNioMemData {
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
         if (blocks != buffers.length) {
             final AtomicReference<ByteBuffer>[] newBuffers = new AtomicReference[blocks];
-            System.arraycopy(buffers, 0, newBuffers, 0, Math.min(buffers.length, newBuffers.length));
+            System.arraycopy(buffers, 0, newBuffers, 0,
+                    Math.min(buffers.length, newBuffers.length));
             for (int i = buffers.length; i < blocks; i++) {
                 newBuffers[i] = new AtomicReference<ByteBuffer>(COMPRESSED_EMPTY_BLOCK);
             }
@@ -697,8 +700,9 @@ class FileNioMemData {
      * @param write true for writing
      * @return the new position
      */
-     long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
-        final java.util.concurrent.locks.Lock lock = write ? rwLock.writeLock() : rwLock.readLock();
+    long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
+        final java.util.concurrent.locks.Lock lock = write ? rwLock.writeLock()
+                : rwLock.readLock();
         lock.lock();
         try {
 

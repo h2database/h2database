@@ -98,7 +98,7 @@ public class TestRights extends TestBase {
             }
             assertTrue(foundPassword);
             conn2.close();
-    
+
             stat.execute("drop table test");
         }
     }

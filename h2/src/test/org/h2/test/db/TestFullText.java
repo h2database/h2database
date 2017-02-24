@@ -255,8 +255,6 @@ public class TestFullText extends TestBase {
             int len = 2;
             Task[] task = new Task[len];
             for (int i = 0; i < len; i++) {
-                // final Connection conn =
-                // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
                 final Connection conn = getConnection("fullText", connList);
                 Statement stat = conn.createStatement();
                 initFullText(stat, lucene);
@@ -458,7 +456,8 @@ public class TestFullText extends TestBase {
         stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
         long time = System.nanoTime();
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
-        println("create " + prefix + ": " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+        println("create " + prefix + ": " +
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
         time = System.nanoTime();

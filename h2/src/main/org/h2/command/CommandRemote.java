@@ -63,10 +63,12 @@ public class CommandRemote implements CommandInterface {
                 boolean v16 = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_16;
 
                 if (createParams) {
-                    s.traceOperation(v16 ? "SESSION_PREPARE_READ_PARAMS2" : "SESSION_PREPARE_READ_PARAMS", id);
-                    transfer.
-                        writeInt(v16 ? SessionRemote.SESSION_PREPARE_READ_PARAMS2 : SessionRemote.SESSION_PREPARE_READ_PARAMS).
-                        writeInt(id).writeString(sql);
+                    s.traceOperation(v16 ? "SESSION_PREPARE_READ_PARAMS2"
+                            : "SESSION_PREPARE_READ_PARAMS", id);
+                    transfer.writeInt(
+                            v16 ? SessionRemote.SESSION_PREPARE_READ_PARAMS2
+                                    : SessionRemote.SESSION_PREPARE_READ_PARAMS)
+                            .writeInt(id).writeString(sql);
                 } else {
                     s.traceOperation("SESSION_PREPARE", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE).

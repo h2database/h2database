@@ -47,7 +47,8 @@ public class TestReorderWrites  extends TestBase {
         try {
             for (int i = 0; i < 1000; i++) {
                 log(i + " --------------------------------");
-                // this test is not interested in power off failures during initial creation
+                // this test is not interested in power off failures during
+                // initial creation
                 fs.setPowerOffCountdown(0, 0);
                 // release the static data this test generates
                 FileUtils.delete("memFS:test.mv");
@@ -137,7 +138,8 @@ public class TestReorderWrites  extends TestBase {
 
     private void testFileSystem() throws IOException {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
-        FilePathReorderWrites.setPartialWrites(false); // disable this for now, still a bug somewhere
+        // disable this for now, still a bug somewhere
+        FilePathReorderWrites.setPartialWrites(false);
         String fileName = "reorder:memFS:test";
         ByteBuffer empty = ByteBuffer.allocate(1024);
         Random r = new Random(1);

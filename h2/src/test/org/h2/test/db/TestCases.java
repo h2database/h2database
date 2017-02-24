@@ -913,8 +913,10 @@ public class TestCases extends TestBase {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE ORGANIZATION(id int primary key, name varchar(100))");
-        stat.execute("CREATE TABLE PERSON(id int primary key, orgId int, name varchar(100), salary int)");
+        stat.execute("CREATE TABLE ORGANIZATION" +
+                "(id int primary key, name varchar(100))");
+        stat.execute("CREATE TABLE PERSON" +
+                "(id int primary key, orgId int, name varchar(100), salary int)");
 
         checkExplain(stat, "/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?",
             "SELECT\n" +
@@ -992,7 +994,8 @@ public class TestCases extends TestBase {
                 "    /* PUBLIC.PERSON.tableScan */\n" +
                 "WHERE NAME = 'smith'");
 
-        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = ? AND p.salary > ?",
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p " +
+            "INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = ? AND p.salary > ?",
             "SELECT\n" +
                 "    P.ID,\n" +
                 "    P.ORGID,\n" +
@@ -1011,7 +1014,8 @@ public class TestCases extends TestBase {
                 "    AND ((O.ID = ?1)\n" +
                 "    AND (P.SALARY > ?2))");
 
-        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = 10 AND p.salary > 1000",
+        checkExplain(stat, "EXPLAIN SELECT * FROM PERSON p " +
+            "INNER JOIN ORGANIZATION o ON p.id = o.id WHERE o.id = 10 AND p.salary > 1000",
             "SELECT\n" +
                 "    P.ID,\n" +
                 "    P.ORGID,\n" +
@@ -1030,7 +1034,8 @@ public class TestCases extends TestBase {
                 "    AND ((O.ID = 10)\n" +
                 "    AND (P.SALARY > 1000))");
 
-        PreparedStatement pStat = conn.prepareStatement("/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?");
+        PreparedStatement pStat = conn.prepareStatement(
+                "/* bla-bla */ EXPLAIN SELECT ID FROM ORGANIZATION WHERE id = ?");
 
         ResultSet rs = pStat.executeQuery();
 
@@ -1051,8 +1056,10 @@ public class TestCases extends TestBase {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
 
-        stat.execute("CREATE TABLE ORGANIZATION(id int primary key, name varchar(100))");
-        stat.execute("CREATE TABLE PERSON(id int primary key, orgId int, name varchar(100), salary int)");
+        stat.execute("CREATE TABLE ORGANIZATION" +
+                "(id int primary key, name varchar(100))");
+        stat.execute("CREATE TABLE PERSON" +
+                "(id int primary key, orgId int, name varchar(100), salary int)");
 
         stat.execute("INSERT INTO ORGANIZATION VALUES(1, 'org1')");
         stat.execute("INSERT INTO ORGANIZATION VALUES(2, 'org2')");
@@ -1062,9 +1069,11 @@ public class TestCases extends TestBase {
         stat.execute("INSERT INTO PERSON VALUES(3, 2, 'person3', 3000)");
         stat.execute("INSERT INTO PERSON VALUES(4, 2, 'person4', 4000)");
 
-        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, stat, "/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
+        assertThrows(ErrorCode.PARAMETER_NOT_SET_1, stat,
+                "/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
 
-        PreparedStatement pStat = conn.prepareStatement("/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
+        PreparedStatement pStat = conn.prepareStatement(
+                "/* bla-bla */ EXPLAIN ANALYZE SELECT ID FROM ORGANIZATION WHERE id = ?");
 
         assertThrows(ErrorCode.PARAMETER_NOT_SET_1, pStat).executeQuery();
 

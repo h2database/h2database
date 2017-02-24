@@ -462,7 +462,8 @@ public class Shell extends Tool implements Runnable {
                 } else {
                     int updateCount = stat.getUpdateCount();
                     time = System.nanoTime() - time;
-                    println("(Update count: " + updateCount + ", " + TimeUnit.NANOSECONDS.toMillis(time) + " ms)");
+                    println("(Update count: " + updateCount + ", " +
+                            TimeUnit.NANOSECONDS.toMillis(time) + " ms)");
                 }
             } finally {
                 JdbcUtils.closeSilently(rs);

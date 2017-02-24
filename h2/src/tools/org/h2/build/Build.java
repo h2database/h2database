@@ -1010,7 +1010,8 @@ public class Build extends BuildBase {
                 }
             };
             thread.start();
-            System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+            System.out.println("time: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
             Thread.sleep(1000);
             start = System.nanoTime();
             final Socket socket = new Socket();
@@ -1037,12 +1038,14 @@ public class Build extends BuildBase {
                             + socketAddress);
                     socket.connect(localhostAddress, 2000);
                 }
-                System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+                System.out.println("time: " +
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
                 Thread.sleep(200);
                 start = System.nanoTime();
                 System.out.println("client:" + socket.toString());
                 socket.getOutputStream().write(123);
-                System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+                System.out.println("time: " +
+                        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
                 Thread.sleep(100);
                 start = System.nanoTime();
                 System.out.println("client read:" + socket.getInputStream().read());
@@ -1051,7 +1054,8 @@ public class Build extends BuildBase {
                 t.printStackTrace();
             }
             thread.join(5000);
-            System.out.println("time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+            System.out.println("time: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
             if (thread.isAlive()) {
                 System.out.println("thread is still alive, interrupting");
                 thread.interrupt();

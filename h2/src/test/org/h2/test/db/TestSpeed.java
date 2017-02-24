@@ -69,7 +69,6 @@ public class TestSpeed extends TestBase {
         // rs.getString(2);
         // }
         // }
-        // System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-time));
 
         //
         // stat.execute("CREATE TABLE TEST_B(ID INT PRIMARY KEY, NAME

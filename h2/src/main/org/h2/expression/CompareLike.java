@@ -267,7 +267,8 @@ public class CompareLike extends Condition {
         } else if (shortcutToStartsWith) {
             result = value.regionMatches(ignoreCase, 0, patternString, 0, patternLength - 1);
         } else if (shortcutToEndsWith) {
-            result = value.regionMatches(ignoreCase, value.length() - patternLength + 1, patternString, 1, patternLength - 1);
+            result = value.regionMatches(ignoreCase, value.length() -
+                    patternLength + 1, patternString, 1, patternLength - 1);
         } else if (shortcutToContains) {
             String p = patternString.substring(1, patternString.length() - 1);
             if (ignoreCase) {
@@ -292,12 +293,11 @@ public class CompareLike extends Condition {
         final char firstUp = Character.toUpperCase(what.charAt(0));
 
         for (int i = src.length() - length; i >= 0; i--) {
-            // Quick check before calling the more expensive regionMatches() method:
+            // Quick check before calling the more expensive regionMatches()
             final char ch = src.charAt(i);
             if (ch != firstLo && ch != firstUp) {
                 continue;
             }
-
             if (src.regionMatches(true, i, what, 0, length)) {
                 return true;
             }

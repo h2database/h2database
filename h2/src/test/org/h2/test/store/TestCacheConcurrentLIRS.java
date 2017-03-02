@@ -11,10 +11,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /**
  * Tests the cache algorithm.
  */
+@RunWith(JUnit4.class)
 public class TestCacheConcurrentLIRS extends TestBase {
 
     /**
@@ -31,7 +36,13 @@ public class TestCacheConcurrentLIRS extends TestBase {
         testConcurrent();
     }
 
-    private void testConcurrent() {
+    @Before
+    public void setUp() throws Exception {
+        init();
+    }
+
+    @Test
+    public void testConcurrent() {
         CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
         cc.maxMemory = 100;
         final CacheLongKeyLIRS<Integer> test = new CacheLongKeyLIRS<Integer>(cc);

@@ -13,10 +13,15 @@ import java.util.Random;
 import org.h2.dev.cache.CacheLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.New;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /**
  * Tests the cache algorithm.
  */
+@RunWith(JUnit4.class)
 public class TestCacheLIRS extends TestBase {
 
     /**
@@ -31,6 +36,11 @@ public class TestCacheLIRS extends TestBase {
     @Override
     public void test() throws Exception {
         testCache();
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        init();
     }
 
     private void testCache() {
@@ -48,7 +58,8 @@ public class TestCacheLIRS extends TestBase {
         testRandomOperations();
     }
 
-    private static void testRandomSmallCache() {
+    @Test
+    public void testRandomSmallCache() {
         Random r = new Random(1);
         for (int i = 0; i < 10000; i++) {
             int j = 0;
@@ -75,7 +86,8 @@ public class TestCacheLIRS extends TestBase {
         }
     }
 
-    private void testEdgeCases() {
+    @Test
+    public void testEdgeCases() {
         CacheLIRS<Integer, Integer> test = createCache(1);
         test.put(1, 10, 100);
         assertEquals(0, test.size());
@@ -99,7 +111,8 @@ public class TestCacheLIRS extends TestBase {
         }
     }
 
-    private void testSize() {
+    @Test
+    public void testSize() {
         verifyMapSize(7, 16);
         verifyMapSize(13, 32);
         verifyMapSize(25, 64);
@@ -144,7 +157,8 @@ public class TestCacheLIRS extends TestBase {
                 test.sizeMapArray() > expectedMapSize);
     }
 
-    private void testGetPutPeekRemove() {
+    @Test
+    public void testGetPutPeekRemove() {
         CacheLIRS<Integer, Integer> test = createCache(4);
         test.put(1,  10);
         test.put(2,  20);
@@ -261,7 +275,8 @@ public class TestCacheLIRS extends TestBase {
         verify(test, "mem: 4 stack: 6 3 4 cold: 2 non-resident: 5 1");
     }
 
-    private void testPruneStack() {
+    @Test
+    public void testPruneStack() {
         CacheLIRS<Integer, Integer> test = createCache(5);
         for (int i = 0; i < 7; i++) {
             test.put(i, i * 10);
@@ -280,7 +295,8 @@ public class TestCacheLIRS extends TestBase {
         verify(test, "mem: 5 stack: 1 0 2 3 4 cold: 1 non-resident: 6 5");
     }
 
-    private void testClear() {
+    @Test
+    public void testClear() {
         CacheLIRS<Integer, Integer> test = createCache(40);
         for (int i = 0; i < 5; i++) {
             test.put(i, 10 * i, 9);
@@ -323,7 +339,8 @@ public class TestCacheLIRS extends TestBase {
         assertTrue(test.isEmpty());
     }
 
-    private void testLimitHot() {
+    @Test
+    public void testLimitHot() {
         CacheLIRS<Integer, Integer> test = createCache(100);
         for (int i = 0; i < 300; i++) {
             test.put(i, 10 * i);
@@ -333,7 +350,8 @@ public class TestCacheLIRS extends TestBase {
         assertEquals(93, test.sizeHot());
     }
 
-    private void testLimitNonResident() {
+    @Test
+    public void testLimitNonResident() {
         CacheLIRS<Integer, Integer> test = createCache(4);
         for (int i = 0; i < 20; i++) {
             test.put(i, 10 * i);
@@ -342,7 +360,8 @@ public class TestCacheLIRS extends TestBase {
                 "cold: 19 non-resident: 18 17 16");
     }
 
-    private void testBadHashMethod() {
+    @Test
+    public void testBadHashMethod() {
         // ensure an 2^n cache size
         final int size = 4;
 
@@ -408,7 +427,8 @@ public class TestCacheLIRS extends TestBase {
         }
     }
 
-    private void testLimitMemory() {
+    @Test
+    public void testLimitMemory() {
         CacheLIRS<Integer, Integer> test = createCache(4);
         for (int i = 0; i < 5; i++) {
             test.put(i, 10 * i, 1);
@@ -426,7 +446,8 @@ public class TestCacheLIRS extends TestBase {
         assertTrue("" + test.getUsedMemory(), test.getUsedMemory() <= 4);
     }
 
-    private void testScanResistance() {
+    @Test
+    public void testScanResistance() {
         boolean log = false;
         int size = 20;
         // cache size 11 (10 hot, 1 cold)
@@ -479,7 +500,8 @@ public class TestCacheLIRS extends TestBase {
         }
     }
 
-    private void testRandomOperations() {
+    @Test
+    public void testRandomOperations() {
         boolean log = false;
         int size = 10;
         Random r = new Random(1);

@@ -287,6 +287,7 @@ public class TestFileSystem extends TestBase {
         conn.close();
         deleteDb("fsMem");
         FileUtils.delete(getBaseDir() + "/fsMem.zip");
+        FileUtils.delete("memFS:fsMem.mv.db");
     }
 
     private void testDatabaseInJar() throws Exception {
@@ -811,7 +812,7 @@ public class TestFileSystem extends TestBase {
         RandomAccessFile ra = new RandomAccessFile(file, "rw");
         FileUtils.delete(s);
         final FileChannel f = FileUtils.open(s, "rw");
-        final int size = getSize(100, 500);
+        final int size = getSize(10, 50);
         f.write(ByteBuffer.allocate(size * 64 *  1024));
         Random random = new Random(1);
         Task task = new Task() {

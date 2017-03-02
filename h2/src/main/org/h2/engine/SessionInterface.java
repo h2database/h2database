@@ -141,7 +141,7 @@ public interface SessionInterface extends Closeable {
     boolean isRemote();
 
     /**
-     * Set current schema.l
+     * Set current schema.
      *
      * @param schema the schema name
      */

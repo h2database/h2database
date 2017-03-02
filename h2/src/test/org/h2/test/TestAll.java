@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -597,7 +596,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         cipher = null;
 
         // memory is a good match for multi-threaded, makes things happen
-        // faster, more change of exposing race conditions
+        // faster, more chance of exposing race conditions
         memory = true;
         multiThreaded = true;
         test();

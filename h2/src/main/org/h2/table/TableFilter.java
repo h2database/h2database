@@ -838,7 +838,7 @@ public class TableFilter implements ColumnResolver {
                 } else {
                     first = false;
                 }
-                buff.append(index);
+                buff.append(Parser.quoteIdentifier(index));
             }
             buff.append(")");
         }

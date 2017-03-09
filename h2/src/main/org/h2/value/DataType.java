@@ -779,6 +779,9 @@ public class DataType {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?");
         }
         DataType dt = TYPES_BY_VALUE_TYPE.get(type);
+        if (dt == null && JdbcUtils.customDataTypesHandler != null) {
+            dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+        }
         if (dt == null) {
             dt = TYPES_BY_VALUE_TYPE.get(Value.NULL);
         }
@@ -1132,7 +1135,11 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getTypeByName(String s) {
-        return TYPES_BY_NAME.get(s);
+        DataType result = TYPES_BY_NAME.get(s);
+        if (result == null && JdbcUtils.customDataTypesHandler != null) {
+            result = JdbcUtils.customDataTypesHandler.getDataTypeByName(s);
+        }
+        return result;
     }
 
     /**

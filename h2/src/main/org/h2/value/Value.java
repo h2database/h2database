@@ -274,56 +274,59 @@ public abstract class Value {
     static int getOrder(int type) {
         switch (type) {
         case UNKNOWN:
-            return 1;
+            return 1_000;
         case NULL:
-            return 2;
+            return 2_000;
         case STRING:
-            return 10;
+            return 10_000;
         case CLOB:
-            return 11;
+            return 11_000;
         case STRING_FIXED:
-            return 12;
+            return 12_000;
         case STRING_IGNORECASE:
-            return 13;
+            return 13_000;
         case BOOLEAN:
-            return 20;
+            return 20_000;
         case BYTE:
-            return 21;
+            return 21_000;
         case SHORT:
-            return 22;
+            return 22_000;
         case INT:
-            return 23;
+            return 23_000;
         case LONG:
-            return 24;
+            return 24_000;
         case DECIMAL:
-            return 25;
+            return 25_000;
         case FLOAT:
-            return 26;
+            return 26_000;
         case DOUBLE:
-            return 27;
+            return 27_000;
         case TIME:
-            return 30;
+            return 30_000;
         case DATE:
-            return 31;
+            return 31_000;
         case TIMESTAMP:
-            return 32;
+            return 32_000;
         case TIMESTAMP_TZ:
-            return 34;
+            return 34_000;
         case BYTES:
-            return 40;
+            return 40_000;
         case BLOB:
-            return 41;
+            return 41_000;
         case JAVA_OBJECT:
-            return 42;
+            return 42_000;
         case UUID:
-            return 43;
+            return 43_000;
         case GEOMETRY:
-            return 44;
+            return 44_000;
         case ARRAY:
-            return 50;
+            return 50_000;
         case RESULT_SET:
-            return 51;
+            return 51_000;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);
+            }
             throw DbException.throwInternalError("type:"+type);
         }
     }
@@ -967,6 +970,9 @@ public abstract class Value {
             case GEOMETRY:
                 return ValueGeometry.get(s);
             default:
+                if (JdbcUtils.customDataTypesHandler != null) {
+                    return JdbcUtils.customDataTypesHandler.convert(this, targetType);
+                }
                 throw DbException.throwInternalError("type=" + targetType);
             }
         } catch (NumberFormatException e) {

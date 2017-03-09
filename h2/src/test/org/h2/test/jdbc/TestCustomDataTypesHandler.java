@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.text.DecimalFormat;
+import java.util.Locale;
 
 /**
  * Tests {@link CustomDataTypesHandler}.
@@ -53,14 +54,14 @@ public class TestCustomDataTypesHandler extends TestBase {
         test.config.beforeTest();
         test.test();
         test.config.afterTest();
-        System.clearProperty(HANDLER_NAME_PROPERTY);        
+        System.clearProperty(HANDLER_NAME_PROPERTY);
     }
 
     @Override
-    public void test() throws Exception {        
+    public void test() throws Exception {
         try {
-            JdbcUtils.customDataTypesHandler = new TestOnlyCustomDataTypesHandler();            
-            
+            JdbcUtils.customDataTypesHandler = new TestOnlyCustomDataTypesHandler();
+
             deleteDb(DB_NAME);
             Connection conn = getConnection(DB_NAME);
 
@@ -79,9 +80,9 @@ public class TestCustomDataTypesHandler extends TestBase {
             assertEquals(rs.getInt("DATA_TYPE"), Value.JAVA_OBJECT);
 
             //Test insert
-            PreparedStatement stmt = conn.prepareStatement("insert into t(id, val) values (0, '1+1i'), (1, ?), (2, ?), (3, ?)");
+            PreparedStatement stmt = conn.prepareStatement("insert into t(id, val) values (0, '1.0+1.0i'), (1, ?), (2, ?), (3, ?)");
             stmt.setObject(1, new ComplexNumber(1, -1));
-            stmt.setObject(2, "5+2i");
+            stmt.setObject(2, "5.0+2.0i");
             stmt.setObject(3, 100.1);
             stmt.executeUpdate();
 
@@ -109,7 +110,7 @@ public class TestCustomDataTypesHandler extends TestBase {
             }
 
             // Repeat selects with index
-            stat.execute("create index vix on t(val)");
+            stat.execute("create index val_idx on t(val)");
 
             for (int id = 0; id < expected.length; ++id) {
                 PreparedStatement prepStat = conn.prepareStatement("select id from t where val = ?");
@@ -150,7 +151,7 @@ public class TestCustomDataTypesHandler extends TestBase {
         /** {@inheritDoc} */
         @Override
         public DataType getDataTypeByName(String name) {
-            if (name.toLowerCase().equals(COMPLEX_DATA_TYPE_NAME)) {
+            if (name.toLowerCase(Locale.ENGLISH).equals(COMPLEX_DATA_TYPE_NAME)) {
                 return complexDataType;
             }
 
@@ -191,7 +192,7 @@ public class TestCustomDataTypesHandler extends TestBase {
                         return ValueComplex.get(new ComplexNumber(source.getDouble(), 0));
                     }
                 }
-                
+
                 throw DbException.get(
                         ErrorCode.DATA_CONVERSION_ERROR_1, source.getString());
             } else {
@@ -334,7 +335,7 @@ public class TestCustomDataTypesHandler extends TestBase {
                     return ValueJavaObject.getNoCopy(JdbcUtils.serialize(val, null));
                 }
             }
-            
+
             throw DbException.get(
                     ErrorCode.DATA_CONVERSION_ERROR_1, getString());
         }

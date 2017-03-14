@@ -815,6 +815,7 @@ public class TestFileSystem extends TestBase {
         final int size = getSize(10, 50);
         f.write(ByteBuffer.allocate(size * 64 *  1024));
         Random random = new Random(1);
+        System.gc();
         Task task = new Task() {
             @Override
             public void call() throws Exception {
@@ -864,6 +865,7 @@ public class TestFileSystem extends TestBase {
             ra.close();
             file.delete();
             FileUtils.delete(s);
+            System.gc();
         }
     }
 

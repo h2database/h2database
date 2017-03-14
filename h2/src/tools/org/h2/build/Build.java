@@ -931,6 +931,7 @@ public class Build extends BuildBase {
             ret = execJava(args(
                     "-ea",
                     "-Xmx128m",
+                    "-XX:MaxDirectMemorySize=256m",
                     "-cp", cp,
                     "org.h2.test.TestAll", "fast"));
         } else {

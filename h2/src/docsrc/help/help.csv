@@ -258,13 +258,14 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
-{ { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
+{ { dataType [ VISIBLE | INVISIBLE ] [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }
     | { RESTART WITH long }
     | { SELECTIVITY int }
     | { SET DEFAULT expression }
     | { SET NULL }
-    | { SET NOT NULL } }
+    | { SET NOT NULL }
+    | { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity.
@@ -287,6 +288,9 @@ Single column indexes on this column are dropped.
 
 SET NOT NULL sets a column to not allow NULL. Rows may not contains NULL in this column.
 
+SET INVISIBLE makes the column hidden, i.e. it will not appear in SELECT * results.
+SET VISIBLE has the reverse effect.
+
 This command commits an open transaction in this connection.
 ","
 ALTER TABLE TEST ALTER COLUMN NAME CLOB;
@@ -296,6 +300,8 @@ ALTER TABLE TEST ALTER COLUMN NAME SELECTIVITY 100;
 ALTER TABLE TEST ALTER COLUMN NAME SET DEFAULT '';
 ALTER TABLE TEST ALTER COLUMN NAME SET NOT NULL;
 ALTER TABLE TEST ALTER COLUMN NAME SET NULL;
+ALTER TABLE TEST ALTER COLUMN NAME SET VISIBLE;
+ALTER TABLE TEST ALTER COLUMN NAME SET INVISIBLE;
 "
 
 "Commands (DDL)","ALTER TABLE DROP COLUMN","
@@ -1759,6 +1765,7 @@ AES
 
 "Other Grammar","Column Definition","
 columnName dataType
+[ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]
@@ -1771,12 +1778,16 @@ Identity and auto-increment columns are columns with a sequence as the
 default. The column declared as the identity columns is implicitly the
 primary key column of this table (unlike auto-increment columns).
 
+The invisible column will not be displayed as a result of SELECT * query.
+Otherwise, it works as normal column.
+
 The options PRIMARY KEY, UNIQUE, and CHECK are not supported for ALTER statements.
 
 Check constraints can reference columns of the table,
 and they can reference objects that exist while the statement is executed.
 Conditions are only checked when a row is added or modified
 in the table where the constraint exists.
+
 ","
 CREATE TABLE TEST(ID INT PRIMARY KEY, NAME VARCHAR(255) DEFAULT '');
 CREATE TABLE TEST(ID BIGINT IDENTITY);

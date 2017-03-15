@@ -98,13 +98,14 @@ ALTER TABLE [ IF EXISTS ] tableName RENAME oldConstraintName TO newConstraintNam
 Renames a constraint."
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
-{ { dataType [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
+{ { dataType [ VISIBLE | INVISIBLE ] [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
     | { RENAME TO name }
     | { RESTART WITH long }
     | { SELECTIVITY int }
     | { SET DEFAULT expression }
     | { SET NULL }
-    | { SET NOT NULL } }
+    | { SET NOT NULL }
+    | { SET { VISIBLE | INVISIBLE } } }
 ","
 Changes the data type of a column, rename a column,
 change the identity value, or change the selectivity."
@@ -555,6 +556,7 @@ AES
 Only the algorithm AES (""AES-128"") is supported currently."
 "Other Grammar","Column Definition","
 columnName dataType
+[ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]

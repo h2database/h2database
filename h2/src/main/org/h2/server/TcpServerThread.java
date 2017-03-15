@@ -38,6 +38,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
 import org.h2.value.ValueLobDb;
+import org.h2.value.ValueString;
 
 /**
  * One server thread is opened per client connection.

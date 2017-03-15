@@ -32,6 +32,7 @@ import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueLong;
+import org.h2.value.ValueString;
 import org.h2.value.ValueNull;
 
 /**

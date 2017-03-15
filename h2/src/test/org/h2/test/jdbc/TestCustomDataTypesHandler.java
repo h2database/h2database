@@ -8,6 +8,7 @@ package org.h2.test.jdbc;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
+import org.h2.store.DataHandler;
 import org.h2.test.TestBase;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -77,7 +78,10 @@ public class TestCustomDataTypesHandler extends TestBase {
             rs = conn.getMetaData().getColumns(null, null, "T", "VAL");
             rs.next();
             assertEquals(rs.getString("TYPE_NAME"), "complex");
-            assertEquals(rs.getInt("DATA_TYPE"), Value.JAVA_OBJECT);
+            assertEquals(rs.getInt("DATA_TYPE"), Types.JAVA_OBJECT);
+
+            rs = stat.executeQuery("select val from t");
+            assertEquals(ComplexNumber.class.getName(), rs.getMetaData().getColumnClassName(1));
 
             //Test insert
             PreparedStatement stmt = conn.prepareStatement("insert into t(id, val) values (0, '1.0+1.0i'), (1, ?), (2, ?), (3, ?)");
@@ -120,10 +124,29 @@ public class TestCustomDataTypesHandler extends TestBase {
                 assertEquals(rs.getInt(1), id);
             }
 
+            // sum function
+            rs = stat.executeQuery("select sum(val) from t");
+            rs.next();
+            assertTrue(rs.getObject(1).equals(new ComplexNumber(107.1, 2)));
+
+            // user function
+            stat.execute("create alias complex_mod for \""+ getClass().getName() + ".complexMod\"");
+            rs = stat.executeQuery("select complex_mod(val) from t where id=2");
+            rs.next();
+            assertEquals(complexMod(expected[2]), rs.getDouble(1));
         } finally {
             deleteDb(DB_NAME);
             JdbcUtils.customDataTypesHandler = null;
         }
+    }
+
+    /**
+      * modulus function
+      * @param val complex number
+      * @return result
+      */
+    public static double complexMod(ComplexNumber val) {
+        return val.mod();
     }
 
     /**
@@ -169,6 +192,25 @@ public class TestCustomDataTypesHandler extends TestBase {
 
         /** {@inheritDoc} */
         @Override
+        public String getDataTypeClassName(int type) {
+            if (type == COMPLEX_DATA_TYPE_ID) {
+                return ComplexNumber.class.getName();
+            }
+            throw DbException.get(
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + type);
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public int getTypeIdFromClass(Class<?> cls) {
+            if (cls == ComplexNumber.class) {
+                return COMPLEX_DATA_TYPE_ID;
+            }
+            return Value.JAVA_OBJECT;
+        }
+
+        /** {@inheritDoc} */
+        @Override
         public Value convert(Value source, int targetType) {
             if (source.getType() == targetType) {
                 return source;
@@ -210,12 +252,54 @@ public class TestCustomDataTypesHandler extends TestBase {
                     ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + type);
         }
 
+        /** {@inheritDoc} */
+        @Override
+        public Value getValue(int type, Object data, DataHandler dataHandler) {
+            if (type == COMPLEX_DATA_TYPE_ID) {
+                assert data instanceof ComplexNumber;
+                return ValueComplex.get((ComplexNumber)data);
+            }
+            return ValueJavaObject.getNoCopy(data, null, dataHandler);
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public Object getObject(Value value, Class<?> cls) {
+            if (cls.equals(ComplexNumber.class)) {
+                if (value.getType() == COMPLEX_DATA_TYPE_ID) {
+                    return value.getObject();
+                }
+                return convert(value, COMPLEX_DATA_TYPE_ID).getObject();
+            }
+            throw DbException.get(
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + value.getType());
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public boolean supportsAdd(int type) {
+            if (type == COMPLEX_DATA_TYPE_ID) {
+                return true;
+            }
+            return false;
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public int getAddProofType(int type) {
+            if (type == COMPLEX_DATA_TYPE_ID) {
+                return type;
+            }
+            throw DbException.get(
+                    ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + type);
+        }
+
         /** Constructs data type instance for complex number type */
         private DataType createComplex() {
             DataType result = new DataType();
             result.type = COMPLEX_DATA_TYPE_ID;
             result.name = COMPLEX_DATA_TYPE_NAME;
-            result.sqlType = Value.JAVA_OBJECT;
+            result.sqlType = Types.JAVA_OBJECT;
             return result;
         }
     }
@@ -311,7 +395,7 @@ public class TestCustomDataTypesHandler extends TestBase {
                 return false;
             }
             ValueComplex complex = (ValueComplex)other;
-            return complex.equals(val);
+            return complex.val.equals(val);
         }
 
         /** {@inheritDoc} */
@@ -387,6 +471,14 @@ public class TestCustomDataTypesHandler extends TestBase {
          */
         public ComplexNumber add(ComplexNumber other) {
             return new ComplexNumber(re + other.re, im + other.im);
+        }
+
+        /**
+         * Returns modulus
+         * @return result
+         */
+        public double mod() {
+            return Math.sqrt(re * re + im * im);
         }
 
         /**

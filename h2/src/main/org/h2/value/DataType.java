@@ -682,6 +682,11 @@ public class DataType {
                 return ValueGeometry.getFromGeometry(x);
             }
             default:
+                if (JdbcUtils.customDataTypesHandler != null) {
+                    return JdbcUtils.customDataTypesHandler.getValue(type,
+                        rs.getObject(columnIndex),
+                        session.getDataHandler());
+                }
                 throw DbException.throwInternalError("type="+type);
             }
             return v;
@@ -764,6 +769,9 @@ public class DataType {
         case Value.GEOMETRY:
             return GEOMETRY_CLASS_NAME;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);
+            }
             throw DbException.throwInternalError("type="+type);
         }
     }
@@ -974,6 +982,9 @@ public class DataType {
         } else if (LocalDateTimeUtils.isOffsetDateTime(x)) {
             return Value.TIMESTAMP_TZ;
         } else {
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getTypeIdFromClass(x);
+            }
             return Value.JAVA_OBJECT;
         }
     }
@@ -1097,6 +1108,9 @@ public class DataType {
         } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else {
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getValue(type, x, session.getDataHandler());
+            }
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
     }
@@ -1186,6 +1200,9 @@ public class DataType {
         case Value.SHORT:
             return true;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.supportsAdd(type);
+            }
             return false;
         }
     }
@@ -1210,6 +1227,9 @@ public class DataType {
         case Value.SHORT:
             return Value.LONG;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getAddProofType(type);
+            }
             return type;
         }
     }
@@ -1266,6 +1286,9 @@ public class DataType {
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }
+        }
+        if (JdbcUtils.customDataTypesHandler != null) {
+            return JdbcUtils.customDataTypesHandler.getObject(v, paramClass);
         }
         throw DbException.getUnsupportedException("converting to class " + paramClass.getName());
     }

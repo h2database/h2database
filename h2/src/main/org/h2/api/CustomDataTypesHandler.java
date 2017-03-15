@@ -5,6 +5,7 @@
  */
 package org.h2.api;
 
+import org.h2.store.DataHandler;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 
@@ -46,4 +47,57 @@ public interface CustomDataTypesHandler {
      * @return converted value
      */
     Value convert(Value source, int targetType);
+
+    /**
+     * Get custom data type class name given its integer id
+     *
+     * @param type identifier of a data type
+     * @return class name
+     */
+    String getDataTypeClassName(int type);
+
+    /**
+     * Get custom data type identifier given corresponding Java class
+     * @param cls Java class object
+     * @return type identifier
+     */
+    int getTypeIdFromClass(Class<?> cls);
+
+    /**
+     * Get {@link org.h2.value.Value} object
+     * corresponding to given data type identifier and data.
+     *
+     * @param type custom data type identifier
+     * @param data underlying data type value
+     * @param dataHandler data handler object
+     * @return Value object
+     */
+    Value getValue(int type, Object data, DataHandler dataHandler);
+
+    /**
+     * Converts {@link org.h2.value.Value} object
+     * to the specified class.
+     *
+     * @param value
+     * @param cls
+     * @return result
+     */
+    Object getObject(Value value, Class<?> cls);
+
+    /**
+     * Checks if type supports add operation
+     *
+     * @param type custom data type identifier
+     * @return True, if custom data type supports add operation
+     */
+    boolean supportsAdd(int type);
+
+    /**
+     * Get compatible type identifier that would not overflow
+     * after many add operations.
+     *
+     * @param type identifier of a type
+     * @return resulting type identifier
+     */
+    int getAddProofType(int type);
 }

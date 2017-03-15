@@ -97,7 +97,7 @@ classifications classloader classloaders classname classpath clause clauses claz
 clean cleaned cleaner cleaning cleanup clear cleared clearer clearing clearly
 clears cleartext click clicked clicking client clients clinton clip clipboard
 clob clobs clock clocks clone cloneable cloned closable close closeable closed
-closely closer closes closest closing cloud clubs clue clunky cluster clustered
+closely closer closes closest closing cloud cls clubs clue clunky cluster clustered
 clustering cmd cms cnf cnrs cnt coalesce code codebase codebook coded codegen
 codehaus codes coding codist coffee cognitect col cold coldrick coll
 collaborative collapse collate collateral collation collations collator collators

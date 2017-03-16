@@ -134,8 +134,10 @@ public class TestCustomDataTypesHandler extends TestBase {
             rs = stat.executeQuery("select complex_mod(val) from t where id=2");
             rs.next();
             assertEquals(complexMod(expected[2]), rs.getDouble(1));
-        } finally {
+
+            conn.close();
             deleteDb(DB_NAME);
+        } finally {
             JdbcUtils.customDataTypesHandler = null;
         }
     }

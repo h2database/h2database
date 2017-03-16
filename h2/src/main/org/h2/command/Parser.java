@@ -4200,13 +4200,13 @@ public class Parser {
             if (readIf("(")) {
                 original += '(';
                 String enumerator0 = readString();
-                enumerators.add(enumerator0);
+                enumerators.add(enumerator0.toLowerCase().trim());
                 original += "'" + enumerator0 + "'";
                 while(readIf(",")) {
                     original += ',';
                     String enumeratorN = readString();
                     original += "'" + enumeratorN + "'";
-                    enumerators.add(enumeratorN);
+                    enumerators.add(enumeratorN.toLowerCase().trim());
                 }
                 read(")");
                 original += ')';
@@ -4232,7 +4232,7 @@ public class Parser {
                     Integer.toString(scale), Long.toString(precision));
         }
         Column column = new Column(columnName, type, precision, scale,
-            displaySize, enumerators);
+            displaySize, enumerators.toArray(new String[enumerators.size()]));
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

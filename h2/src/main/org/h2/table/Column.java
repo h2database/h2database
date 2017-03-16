@@ -7,7 +7,6 @@ package org.h2.table;
 
 import java.sql.ResultSetMetaData;
 import java.util.Iterator;
-import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -28,6 +27,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -68,7 +68,7 @@ public class Column {
     private final int type;
     private long precision;
     private int scale;
-    private List<String> enumerators;
+    private String[] enumerators;
     private int displaySize;
     private Table table;
     private String name;
@@ -94,7 +94,7 @@ public class Column {
         this(name, type, -1, -1, -1, null);
     }
 
-    public Column(String name, int type, List<String> enumerators) {
+    public Column(String name, int type, String[] enumerators) {
         this(name, type, -1, -1, -1, enumerators);
     }
 
@@ -104,7 +104,7 @@ public class Column {
     }
 
     public Column(String name, int type, long precision, int scale,
-            int displaySize, List<String> enumerators) {
+            int displaySize, String[] enumerators) {
         this.name = name;
         this.type = type;
         if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
@@ -143,6 +143,10 @@ public class Column {
             return 0;
         }
         return table.getId() ^ name.hashCode();
+    }
+
+    public boolean isEnumerated() {
+        return enumerators != null && enumerators.length > 0;
     }
 
     public Column getClone() {
@@ -270,11 +274,11 @@ public class Column {
         nullable = b;
     }
 
-    public List<String> getEnumerators() {
+    public String[] getEnumerators() {
         return enumerators;
     }
 
-    public void setEnumerators(List<String> enumerators) {
+    public void setEnumerators(String[] enumerators) {
         this.enumerators = enumerators;
     }
 
@@ -357,24 +361,17 @@ public class Column {
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
-        if (!enumerators.isEmpty()) {
-            int index;
-            if (DataType.isStringType(value.getType())) {
-                index = enumerators.indexOf(value.getString());
-            } else {
-                index = value.getInt() < enumerators.size() ? value.getInt() : -1;
-            }
-
-            if (index == -1) {
+        if (isEnumerated()) {
+            if (!ValueEnum.isValid(enumerators, value)) {
                 String s = value.getTraceSQL();
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
                 throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
                         getCreateSQL(), s + " (" + value.getString() + ")");
-            } else {
-                value = ValueInt.get(index);
             }
+
+            value = ValueEnum.get(enumerators, value);
         }
         updateSequenceIfRequired(session, value);
         return value;
@@ -467,10 +464,9 @@ public class Column {
                 break;
             case Value.ENUM:
                 buff.append('(');
-                Iterator<String> it = enumerators.iterator();
-                while(it.hasNext()) {
-                    buff.append('\'').append(it.next()).append('\'');
-                    if(it.hasNext()) {
+                for (int i = 0; i < enumerators.length; i++) {
+                    buff.append('\'').append(enumerators[i]).append('\'');
+                    if(i < enumerators.length - 1) {
                         buff.append(',');
                     }
                 }

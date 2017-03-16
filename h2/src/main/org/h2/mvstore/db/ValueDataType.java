@@ -199,6 +199,7 @@ public class ValueDataType implements DataType {
         case Value.SHORT:
             buff.put((byte) type).putShort(v.getShort());
             break;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {

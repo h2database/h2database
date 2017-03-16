@@ -189,9 +189,7 @@ public class ExpressionColumn extends Expression {
             throw DbException.get(ErrorCode.MUST_GROUP_BY_COLUMN_1, getSQL());
         }
         if (column.getEnumerators() != null) {
-            final int ordinal = value.getInt();
-            return new ValueEnum(column.getEnumerators()
-                    .toArray(new String[column.getEnumerators().size()]), ordinal);
+            return ValueEnum.get(column.getEnumerators(), value);
         }
         return value;
     }

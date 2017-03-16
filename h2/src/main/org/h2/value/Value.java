@@ -852,11 +852,13 @@ public abstract class Value {
                 }
                 break;
             }
-            case ENUM:
+            case ENUM: {
                 switch (getType()) {
                     case INT:
+                    case STRING:
                         return this;
                 }
+            }
             case BLOB: {
                 switch (getType()) {
                 case BYTES:
@@ -984,7 +986,7 @@ public abstract class Value {
             }
         } catch (NumberFormatException e) {
             throw DbException.get(
-                    ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
+                    ErrorCode.DATA_CONVERSION_ERROR_1, e, getString() + " type=" + getType());
         }
     }
 

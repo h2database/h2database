@@ -30,7 +30,10 @@ public class TestIndexHints extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("indexhints");
-        createDb();
+        // need to keep a strong reference to a connection in order
+        // to prevent it from garbage collection and subsequent pemature
+        // database closure (test failure due to missing tables)
+        Connection conn = createDb();
         testQuotedIdentifier();
         testWithSingleIndexName();
         testWithEmptyIndexHintsList();
@@ -39,16 +42,18 @@ public class TestIndexHints extends TestBase {
         testPlanSqlHasIndexesInCorrectOrder();
         testWithTableAlias();
         testWithTableAliasCalledUse();
+        conn.close();
         deleteDb("indexhints");
     }
 
-    private void createDb() throws SQLException {
+    private Connection createDb() throws SQLException {
         Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         stat.execute("create table test (x int, y int)");
         stat.execute("create index idx1 on test (x)");
         stat.execute("create index idx2 on test (x, y)");
         stat.execute("create index \"Idx3\" on test (y, x)");
+        return conn;
     }
 
     private void testQuotedIdentifier() throws SQLException {

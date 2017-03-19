@@ -1216,45 +1216,47 @@ public class Database implements DataHandler {
      * @param fromShutdownHook true if this method is called from the shutdown
      *            hook
      */
-    synchronized void close(boolean fromShutdownHook) {
-        if (closing) {
-            return;
-        }
-        throwLastBackgroundException();
-        if (fileLockMethod == FileLock.LOCK_SERIALIZED &&
-                !reconnectChangePending) {
-            // another connection may have written something - don't write
-            try {
-                closeOpenFilesAndUnlock(false);
-            } catch (DbException e) {
-                // ignore
-            }
-            traceSystem.close();
-            Engine.getInstance().close(databaseName);
-            return;
-        }
-        closing = true;
-        stopServer();
-        if (userSessions.size() > 0) {
-            if (!fromShutdownHook) {
+    void close(boolean fromShutdownHook) {
+        synchronized (this) {
+            if (closing) {
                 return;
             }
-            trace.info("closing {0} from shutdown hook", databaseName);
-            closeAllSessionsException(null);
-        }
-        trace.info("closing {0}", databaseName);
-        if (eventListener != null) {
-            // allow the event listener to connect to the database
-            closing = false;
-            DatabaseEventListener e = eventListener;
-            // set it to null, to make sure it's called only once
-            eventListener = null;
-            e.closingDatabase();
-            if (userSessions.size() > 0) {
-                // if a connection was opened, we can't close the database
+            throwLastBackgroundException();
+            if (fileLockMethod == FileLock.LOCK_SERIALIZED &&
+                    !reconnectChangePending) {
+                // another connection may have written something - don't write
+                try {
+                    closeOpenFilesAndUnlock(false);
+                } catch (DbException e) {
+                    // ignore
+                }
+                traceSystem.close();
+                Engine.getInstance().close(databaseName);
                 return;
             }
             closing = true;
+            stopServer();
+            if (userSessions.size() > 0) {
+                if (!fromShutdownHook) {
+                    return;
+                }
+                trace.info("closing {0} from shutdown hook", databaseName);
+                closeAllSessionsException(null);
+            }
+            trace.info("closing {0}", databaseName);
+            if (eventListener != null) {
+                // allow the event listener to connect to the database
+                closing = false;
+                DatabaseEventListener e = eventListener;
+                // set it to null, to make sure it's called only once
+                eventListener = null;
+                e.closingDatabase();
+                if (userSessions.size() > 0) {
+                    // if a connection was opened, we can't close the database
+                    return;
+                }
+                closing = true;
+            }
         }
         removeOrphanedLobs();
         try {

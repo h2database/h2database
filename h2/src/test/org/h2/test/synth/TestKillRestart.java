@@ -26,11 +26,6 @@ public class TestKillRestart extends TestBase {
         if (config.networked) {
             return;
         }
-        if (config.fast) {
-            // using fast as a proxy for "running on Jenkins CI" where this test
-            // gets stuck waiting for the sub-process after killing it
-            return;
-        }
         if (getBaseDir().indexOf(':') > 0) {
             return;
         }

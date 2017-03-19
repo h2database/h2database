@@ -1875,10 +1875,10 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        calendar.setTimeInMillis(t1);
+        calendar.setTime(d1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);
-        calendar.setTimeInMillis(t2);
+        calendar.setTime(d2);
         int year2 = calendar.get(Calendar.YEAR);
         int month2 = calendar.get(Calendar.MONTH);
         int result = year2 - year1;

@@ -1179,8 +1179,8 @@ public class DataType {
      * @return true if the value type is a String type
      */
     public static boolean isStringType(int type) {
-        if (type == Value.STRING
-                || type == Value.STRING_FIXED || type == Value.STRING_IGNORECASE) {
+        if (type == Value.STRING || type == Value.STRING_FIXED
+                || type == Value.STRING_IGNORECASE) {
             return true;
         }
         return false;

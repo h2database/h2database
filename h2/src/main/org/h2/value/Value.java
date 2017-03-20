@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.Set;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -986,7 +985,7 @@ public abstract class Value {
             }
         } catch (NumberFormatException e) {
             throw DbException.get(
-                    ErrorCode.DATA_CONVERSION_ERROR_1, e, getString() + " type=" + getType());
+                    ErrorCode.DATA_CONVERSION_ERROR_1, e, getString());
         }
     }
 
@@ -1134,16 +1133,6 @@ public abstract class Value {
      */
     public void remove() {
         // nothing to do
-    }
-
-    /**
-     * Check to see if this value is one of the given permitted values.
-     *
-     * @param permittedValues the permitted values
-     * @return true if this value is one of the permitted values
-     */
-    public boolean checkPermitted(Set<String> permittedValues) {
-        return permittedValues.contains(getString());
     }
 
     /**

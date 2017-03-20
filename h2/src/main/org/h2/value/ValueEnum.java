@@ -80,7 +80,7 @@ public class ValueEnum extends Value {
                 return;
             default:
                 throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
-                        "Provided value does not match any enumerators", value.toString());
+                        "Provided value does not match any enumerators " + toString(enumerators), value.toString());
         }
     }
 
@@ -192,6 +192,18 @@ public class ValueEnum extends Value {
     public void set(final PreparedStatement prep, final int parameterIndex)
             throws SQLException {
          prep.setInt(parameterIndex, ordinal);
+    }
+
+    private static String toString(final String[] enumerators) {
+        String result = "(";
+        for (int i = 0; i < enumerators.length; i++) {
+            result += "'" + enumerators[i] + "'";
+            if (i < enumerators.length - 1) {
+                result += ", ";
+            }
+        }
+        result += ")";
+        return result;
     }
 
     private static Validation validate(final String[] enumerators, final String label) {

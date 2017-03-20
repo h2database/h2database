@@ -4122,7 +4122,7 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
-        java.util.List<String> enumerators = new ArrayList<String>();
+        java.util.List<String> enumerators = null;
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
@@ -4198,6 +4198,7 @@ public class Parser {
             }
         } else if (dataType.enumerated) {
             if (readIf("(")) {
+                enumerators = new ArrayList<String>();
                 original += '(';
                 String enumerator0 = readString();
                 enumerators.add(enumerator0.toLowerCase().trim());
@@ -4232,7 +4233,7 @@ public class Parser {
                     Integer.toString(scale), Long.toString(precision));
         }
         Column column = new Column(columnName, type, precision, scale,
-            displaySize, enumerators.toArray(new String[enumerators.size()]));
+            displaySize, enumerators == null ? null : enumerators.toArray(new String[enumerators.size()]));
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

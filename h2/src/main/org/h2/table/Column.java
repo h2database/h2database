@@ -794,7 +794,8 @@ public class Column {
         displaySize = source.displaySize;
         name = source.name;
         precision = source.precision;
-        enumerators = Arrays.copyOf(source.enumerators, source.enumerators.length);
+        enumerators = source.enumerators == null ? null :
+            Arrays.copyOf(source.enumerators, source.enumerators.length);
         scale = source.scale;
         // table is not set
         // columnId is not set

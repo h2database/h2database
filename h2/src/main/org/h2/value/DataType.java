@@ -1199,6 +1199,25 @@ public class DataType {
         case Value.LONG:
         case Value.SHORT:
             return true;
+        case Value.BOOLEAN:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.BYTES:
+        case Value.UUID:
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.NULL:
+        case Value.JAVA_OBJECT:
+        case Value.UNKNOWN:
+        case Value.ARRAY:
+        case Value.RESULT_SET:
+        case Value.GEOMETRY:
+            return false;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.supportsAdd(type);
@@ -1226,6 +1245,27 @@ public class DataType {
             return Value.DECIMAL;
         case Value.SHORT:
             return Value.LONG;
+        case Value.BOOLEAN:
+        case Value.DECIMAL:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.BYTES:
+        case Value.UUID:
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.DOUBLE:
+        case Value.NULL:
+        case Value.JAVA_OBJECT:
+        case Value.UNKNOWN:
+        case Value.ARRAY:
+        case Value.RESULT_SET:
+        case Value.GEOMETRY:
+            return type;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getAddProofType(type);
@@ -1280,15 +1320,44 @@ public class DataType {
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
         }
-        if (v.getType() == Value.JAVA_OBJECT) {
+        switch (v.getType()) {
+        case Value.JAVA_OBJECT: {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
                     conn.getSession().getDataHandler()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
             }
+            break;
         }
-        if (JdbcUtils.customDataTypesHandler != null) {
-            return JdbcUtils.customDataTypesHandler.getObject(v, paramClass);
+        case Value.BOOLEAN:
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+        case Value.LONG:
+        case Value.DECIMAL:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.BYTES:
+        case Value.UUID:
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.DOUBLE:
+        case Value.FLOAT:
+        case Value.NULL:
+        case Value.UNKNOWN:
+        case Value.ARRAY:
+        case Value.RESULT_SET:
+        case Value.GEOMETRY:
+            break;
+        default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getObject(v, paramClass);
+            }
         }
         throw DbException.getUnsupportedException("converting to class " + paramClass.getName());
     }

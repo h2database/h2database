@@ -283,9 +283,8 @@ class FileReorderWrites extends FileBase {
             x += addOperation(
                     new FileWriteOperation(id++, position + len1, buf2));
             return x;
-        } else {
-            return addOperation(new FileWriteOperation(id++, position, src));
         }
+        return addOperation(new FileWriteOperation(id++, position, src));
     }
 
     private void checkError() throws IOException {

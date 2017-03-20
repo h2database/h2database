@@ -613,7 +613,7 @@ public class StringUtils {
      * The data is indented with 4 spaces if it contains a newline character.
      *
      * @param data the comment text
-     * @return <!-- data -->
+     * @return &lt;!-- data --&gt;
      */
     public static String xmlComment(String data) {
         int idx = 0;
@@ -634,10 +634,10 @@ public class StringUtils {
 
     /**
      * Converts the data to a CDATA element.
-     * If the data contains ']]>', it is escaped as a text element.
+     * If the data contains ']]&gt;', it is escaped as a text element.
      *
      * @param data the text data
-     * @return <![CDATA[data]]>
+     * @return &lt;![CDATA[data]]&gt;
      */
     public static String xmlCData(String data) {
         if (data.contains("]]>")) {
@@ -649,8 +649,8 @@ public class StringUtils {
     }
 
     /**
-     * Returns <?xml version="1.0"?>
-     * @return <?xml version="1.0"?>
+     * Returns &lt;?xml version="1.0"?&gt;
+     * @return &lt;?xml version="1.0"?&gt;
      */
     public static String xmlStartDoc() {
         return "<?xml version=\"1.0\"?>\n";

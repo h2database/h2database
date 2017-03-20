@@ -87,8 +87,8 @@ public class ResultTempTable implements ResultExternal {
 
     private void createIndex() {
         IndexColumn[] indexCols = null;
-        // If we need to do distinct, the distinct columns may not match the sort columns
-        // so we need to disregard the sort. Not ideal.
+        // If we need to do distinct, the distinct columns may not match the
+        // sort columns. So we need to disregard the sort. Not ideal.
         if (sort != null && !distinct) {
             int[] colIndex = sort.getQueryColumnIndexes();
             indexCols = new IndexColumn[colIndex.length];

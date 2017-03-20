@@ -113,12 +113,12 @@ public class TestPerfectHash extends TestBase {
         s = test(size, true);
         time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key (minimal old) in " +
-        		TimeUnit.NANOSECONDS.toMillis(time) + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
         time = System.nanoTime();
         s = test(size, false);
         time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key (not minimal) in " +
-        		TimeUnit.NANOSECONDS.toMillis(time) + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
     }
 
     @Override

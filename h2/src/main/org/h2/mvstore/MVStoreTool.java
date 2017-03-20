@@ -34,7 +34,7 @@ public class MVStoreTool {
     /**
      * Runs this tool.
      * Options are case sensitive. Supported options are:
-     * <table>
+     * <table summary="command line options">
      * <tr><td>[-dump &lt;fileName&gt;]</td>
      * <td>Dump the contends of the file</td></tr>
      * <tr><td>[-info &lt;fileName&gt;]</td>

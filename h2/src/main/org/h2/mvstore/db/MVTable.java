@@ -237,7 +237,8 @@ public class MVTable extends TableBase {
                     }
                 }
                 // don't wait too long so that deadlocks are detected early
-                long sleep = Math.min(Constants.DEADLOCK_CHECK, TimeUnit.NANOSECONDS.toMillis(max - now));
+                long sleep = Math.min(Constants.DEADLOCK_CHECK,
+                        TimeUnit.NANOSECONDS.toMillis(max - now));
                 if (sleep == 0) {
                     sleep = 1;
                 }

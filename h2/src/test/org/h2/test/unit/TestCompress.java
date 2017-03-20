@@ -173,7 +173,9 @@ public class TestCompress extends TestBase {
                 }
                 in.close();
             }
-            System.out.println("compress: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
+            System.out.println("compress: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) +
+                    " ms");
         }
 
         for (int j = 0; j < 4; j++) {
@@ -198,7 +200,9 @@ public class TestCompress extends TestBase {
                     compress.expand(data, 0, data.length, result, 0, pageSize);
                 }
             }
-            System.out.println("expand: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
+            System.out.println("expand: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) +
+                    " ms");
         }
     }
 
@@ -248,8 +252,13 @@ public class TestCompress extends TestBase {
                 byte[] out = utils.compress(b, a);
                 byte[] test = utils.expand(out);
                 if (testPerformance) {
-                    System.out.println("p:" + pattern + " len: " + out.length +
-                            " time: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " " + a);
+                    System.out.println("p:" +
+                            pattern +
+                            " len: " +
+                            out.length +
+                            " time: " +
+                            TimeUnit.NANOSECONDS.toMillis(System.nanoTime() -
+                                    time) + " " + a);
                 }
                 assertEquals(b.length, test.length);
                 assertEquals(b, test);

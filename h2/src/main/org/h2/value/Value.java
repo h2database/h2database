@@ -158,9 +158,11 @@ public abstract class Value {
      * The value type for string values with a fixed size.
      */
     public static final int GEOMETRY = 22;
+
     /**
      * 23 was a short-lived experiment "TIMESTAMP UTC" which has been removed.
      */
+
     /**
      * The value type for TIMESTAMP WITH TIME ZONE values.
      */
@@ -880,9 +882,8 @@ public abstract class Value {
                         java.util.UUID uuid = (java.util.UUID) object;
                         return ValueUuid.get(uuid.getMostSignificantBits(),
                                 uuid.getLeastSignificantBits());
-                    } else {
-                        throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                     }
+                    throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 case TIMESTAMP_TZ:
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());

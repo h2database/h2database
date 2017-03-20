@@ -145,7 +145,8 @@ public class MVPrimaryIndex extends BaseIndex {
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }
-        // because it's possible to directly update the key using the _rowid_ syntax
+        // because it's possible to directly update the key using the _rowid_
+        // syntax
         if (row.getKey() > lastKey.get()) {
             lastKey.set(row.getKey());
         }
@@ -215,7 +216,7 @@ public class MVPrimaryIndex extends BaseIndex {
         Value v = map.get(ValueLong.get(key));
         if (v == null) {
             throw DbException.get(ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX,
-                    getSQL() + ": " + key);            
+                    getSQL() + ": " + key);
         }
         ValueArray array = (ValueArray) v;
         Row row = session.createRow(array.getList(), 0);
@@ -274,7 +275,6 @@ public class MVPrimaryIndex extends BaseIndex {
         }
         Value value = map.get(v);
         Entry<Value, Value> e = new DataUtils.MapEntry<Value, Value>(v, value);
-        @SuppressWarnings("unchecked")
         List<Entry<Value, Value>> list = Arrays.asList(e);
         MVStoreCursor c = new MVStoreCursor(session, list.iterator(), v);
         c.next();

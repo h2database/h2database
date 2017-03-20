@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -270,6 +269,12 @@ java org.h2.test.TestAll timer
 */
 
     /**
+     * Set to true if any of the tests fail. Used to return an error code from
+     * the whole program.
+     */
+    static boolean atLeastOneTestFailed;
+
+    /**
      * Whether the MVStore storage is used.
      */
     public boolean mvStore = Constants.VERSION_MINOR >= 4;
@@ -414,11 +419,6 @@ java org.h2.test.TestAll timer
      * The list of tests.
      */
     ArrayList<TestBase> tests = New.arrayList();
-
-    /**
-     * Set to true if any of the tests fail. Used to return an error code from the whole program.
-     */
-    static boolean atLeastOneTestFailed;
 
     private Server server;
 
@@ -595,8 +595,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         traceLevelFile = throttle = 0;
         cipher = null;
 
-        // memory is a good match for multi-threaded, makes things happen faster, more change of exposing
-        // race conditions
+        // memory is a good match for multi-threaded, makes things happen
+        // faster, more chance of exposing race conditions
         memory = true;
         multiThreaded = true;
         test();
@@ -927,14 +927,15 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         // run directly for now, because concurrently running tests
         // fails on Raspberry Pi quite often (seems to be a JVM problem)
 
-        // event queue watchdog for tests that get stuck when running in Jenkins CI
+        // event queue watchdog for tests that get stuck when running in Jenkins
         final java.util.Timer watchdog = new java.util.Timer();
+        // 5 minutes
         watchdog.schedule(new TimerTask() {
             @Override
             public void run() {
                 ThreadDeadlockDetector.dumpAllThreadsAndLocks("test watchdog timed out");
             }
-        }, 5 * 60 * 1000); // 5 minutes
+        }, 5 * 60 * 1000);
         try {
             test.runTest(this);
         } finally {

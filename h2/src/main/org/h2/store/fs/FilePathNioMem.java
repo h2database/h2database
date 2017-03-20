@@ -33,6 +33,10 @@ public class FilePathNioMem extends FilePath {
 
     private static final TreeMap<String, FileNioMemData> MEMORY_FILES =
             new TreeMap<String, FileNioMemData>();
+
+    /**
+     * The percentage of uncompressed (cached) entries.
+     */
     float compressLaterCachePercent = 1;
 
     @Override
@@ -418,25 +422,31 @@ class FileNioMemData {
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL = new ThreadLocal<CompressLZF>() {
+    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL =
+            new ThreadLocal<CompressLZF>() {
         @Override
         protected CompressLZF initialValue() {
             return new CompressLZF();
         }
     };
     /** the output buffer when compressing */
-    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL = new ThreadLocal<byte[] >() {
+    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL =
+            new ThreadLocal<byte[] >() {
         @Override
         protected byte[] initialValue() {
             return new byte[BLOCK_SIZE * 2];
         }
     };
 
+    /**
+     * The hash code of the name.
+     */
+    final int nameHashCode;
+
     private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
         new CompressLaterCache<CompressItem, CompressItem>(CACHE_MIN_SIZE);
 
     private String name;
-    private final int nameHashCode;
     private final boolean compress;
     private final float compressLaterCachePercent;
     private long length;
@@ -516,6 +526,11 @@ class FileNioMemData {
         }
 
         @Override
+        public synchronized V put(K key, V value) {
+            return super.put(key, value);
+        }
+
+        @Override
         protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
             if (size() < size) {
                 return false;
@@ -577,8 +592,7 @@ class FileNioMemData {
             // already expanded, or not compressed
             return d;
         }
-        synchronized (d)
-        {
+        synchronized (d) {
             if (d.capacity() == BLOCK_SIZE) {
                 return d;
             }
@@ -599,10 +613,10 @@ class FileNioMemData {
      */
     void compressPage(int page) {
         final ByteBuffer d = buffers[page].get();
-        synchronized (d)
-        {
+        synchronized (d) {
             if (d.capacity() != BLOCK_SIZE) {
-                return; // already compressed
+                // already compressed
+                return;
             }
             final byte[] compressOutputBuffer = COMPRESS_OUT_BUF_THREAD_LOCAL.get();
             int len = LZF_THREAD_LOCAL.get().compress(d, 0, compressOutputBuffer, 0);
@@ -665,13 +679,15 @@ class FileNioMemData {
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
         if (blocks != buffers.length) {
             final AtomicReference<ByteBuffer>[] newBuffers = new AtomicReference[blocks];
-            System.arraycopy(buffers, 0, newBuffers, 0, Math.min(buffers.length, newBuffers.length));
+            System.arraycopy(buffers, 0, newBuffers, 0,
+                    Math.min(buffers.length, newBuffers.length));
             for (int i = buffers.length; i < blocks; i++) {
                 newBuffers[i] = new AtomicReference<ByteBuffer>(COMPRESSED_EMPTY_BLOCK);
             }
             buffers = newBuffers;
         }
-        compressLaterCache.setCacheSize(Math.max(CACHE_MIN_SIZE, (int)(blocks * compressLaterCachePercent / 100)));
+        compressLaterCache.setCacheSize(Math.max(CACHE_MIN_SIZE, (int) (blocks *
+                compressLaterCachePercent / 100)));
     }
 
     /**
@@ -684,8 +700,9 @@ class FileNioMemData {
      * @param write true for writing
      * @return the new position
      */
-     long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
-        final java.util.concurrent.locks.Lock lock = write ? rwLock.writeLock() : rwLock.readLock();
+    long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
+        final java.util.concurrent.locks.Lock lock = write ? rwLock.writeLock()
+                : rwLock.readLock();
         lock.lock();
         try {
 

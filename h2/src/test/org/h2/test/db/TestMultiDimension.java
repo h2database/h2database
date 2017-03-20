@@ -160,7 +160,8 @@ public class TestMultiDimension extends TestBase {
         }
         conn.close();
         deleteDb("multiDimension");
-        trace("2d: regular: " + TimeUnit.NANOSECONDS.toMillis(timeRegular) + " MultiDimension: " + TimeUnit.NANOSECONDS.toMillis(timeMulti));
+        trace("2d: regular: " + TimeUnit.NANOSECONDS.toMillis(timeRegular) +
+                " MultiDimension: " + TimeUnit.NANOSECONDS.toMillis(timeMulti));
     }
 
     private void testPerformance3d() throws SQLException {
@@ -239,7 +240,8 @@ public class TestMultiDimension extends TestBase {
         }
         conn.close();
         deleteDb("multiDimension");
-        trace("3d: regular: " + TimeUnit.NANOSECONDS.toMillis(timeRegular) + " MultiDimension: " + TimeUnit.NANOSECONDS.toMillis(timeMulti));
+        trace("3d: regular: " + TimeUnit.NANOSECONDS.toMillis(timeRegular) +
+                " MultiDimension: " + TimeUnit.NANOSECONDS.toMillis(timeMulti));
     }
 
     /**

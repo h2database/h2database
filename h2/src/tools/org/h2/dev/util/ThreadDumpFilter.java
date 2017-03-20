@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 public class ThreadDumpFilter {
 
     /**
-     * Usage: java ThreadDumpFilter <log.txt >threadDump.txt
+     * Usage: java ThreadDumpFilter &lt;log.txt &gt;threadDump.txt
      *
      * @param a the file name
      */

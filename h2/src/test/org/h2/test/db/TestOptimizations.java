@@ -476,7 +476,8 @@ public class TestOptimizations extends TestBase {
             "EXPLAIN SELECT x FROM test WHERE x = '5'");
 
         assertTrue(resultSet.next());
-        // String constant '5' has been converted to int constant 5 on optimization
+        // String constant '5' has been converted to int constant 5 on
+        // optimization
         assertTrue(resultSet.getString(1).endsWith("X = 5"));
 
         stat.execute("drop table test");
@@ -812,7 +813,9 @@ public class TestOptimizations extends TestBase {
         stat.execute(sql);
         time2 = System.nanoTime() - time2;
         if (time2 > time * 2) {
-            fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(time) + " optimized: " + TimeUnit.NANOSECONDS.toMillis(time2) + " sql:" + sql);
+            fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(time) +
+                    " optimized: " + TimeUnit.NANOSECONDS.toMillis(time2) +
+                    " sql:" + sql);
         }
     }
 

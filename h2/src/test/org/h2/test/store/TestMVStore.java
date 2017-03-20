@@ -1619,28 +1619,19 @@ public class TestMVStore extends TestBase {
         for (int j = 0; j < 1; j++) {
             MVStore s = openStore(null);
             // s.setMaxPageSize(10);
-            // long t;
             int len = 100;
             // TreeMap<Integer, String> m = new TreeMap<Integer, String>();
             // HashMap<Integer, String> m = New.hashMap();
             MVMap<Integer, String> m = s.openMap("data");
-            // t = System.nanoTime();
             for (int i = 0; i < len; i++) {
                 assertNull(m.put(i, "Hello World"));
             }
-            // System.out.println("put: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
-            // t = System.nanoTime();
             for (int i = 0; i < len; i++) {
                 assertEquals("Hello World", m.get(i));
             }
-            // System.out.println("get: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
-            // t = System.nanoTime();
             for (int i = 0; i < len; i++) {
                 assertEquals("Hello World", m.remove(i));
             }
-            // System.out.println("remove: " +
-            //         TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
-            // System.out.println();
             assertEquals(null, m.get(0));
             assertEquals(0, m.size());
             s.close();
@@ -1693,21 +1684,11 @@ public class TestMVStore extends TestBase {
         s = openStore(fileName);
         MVMap<Integer, String> m = s.openMap("data");
         int count = 2000;
-        // Profiler p = new Profiler();
-        // p.startCollecting();
-        // long t = System.nanoTime();
         for (int i = 0; i < count; i++) {
             assertNull(m.put(i, "hello " + i));
             assertEquals("hello " + i, m.get(i));
         }
-        // System.out.println("put: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
-        // System.out.println(p.getTop(5));
-        // p = new Profiler();
-        //p.startCollecting();
-        // t = System.nanoTime();
         s.commit();
-        // System.out.println("store: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
-        // System.out.println(p.getTop(5));
         assertEquals("hello 0", m.remove(0));
         assertNull(m.get(0));
         for (int i = 1; i < count; i++) {

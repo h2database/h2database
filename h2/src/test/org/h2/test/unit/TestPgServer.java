@@ -63,8 +63,9 @@ public class TestPgServer extends TestBase {
                 "mem:pgserver;DATABASE_TO_UPPER=false", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
-        Server server = Server.createPgServer(
-                "-baseDir", getBaseDir(), "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        Server server = Server.createPgServer("-baseDir", getBaseDir(),
+                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver",
+                "mem:pgserver");
         server.start();
         try {
             Connection conn2;

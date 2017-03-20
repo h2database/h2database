@@ -365,8 +365,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                 try {
                     job.get();
                 } catch (ExecutionException ex) {
-                    // ignore timeout exceptions, happens periodically when the machine is really
-                    // busy and it's not the thing we are trying to test
+                    // ignore timeout exceptions, happens periodically when the
+                    // machine is really busy and it's not the thing we are
+                    // trying to test
                     if (!(ex.getCause() instanceof JdbcSQLException)
                             || ((JdbcSQLException) ex.getCause())
                                     .getErrorCode() != ErrorCode.LOCK_TIMEOUT_1) {
@@ -438,14 +439,15 @@ public class TestMultiThread extends TestBase implements Runnable {
     private void testConcurrentUpdate() throws Exception {
         deleteDb("lockMode");
 
-        final int OBJ_CNT = 10000;
+        final int objectCount = 10000;
         final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
         final Connection conn = getConnection(url);
         conn.createStatement().execute(
-                "CREATE TABLE IF NOT EXISTS ACCOUNT ( ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
+                "CREATE TABLE IF NOT EXISTS ACCOUNT" +
+                "(ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
         final PreparedStatement mergeAcctStmt = conn
                 .prepareStatement("MERGE INTO Account(id, balance) key (id) VALUES (?, ?)");
-        for (int i = 0; i < OBJ_CNT; i++) {
+        for (int i = 0; i < objectCount; i++) {
             mergeAcctStmt.setLong(1, i);
             mergeAcctStmt.setBigDecimal(2, BigDecimal.ZERO);
             mergeAcctStmt.execute();
@@ -463,7 +465,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 public Void call() throws Exception {
                     for (int j = 0; j < 1000; j++) {
                         updateAcctStmt.setDouble(1, Math.random());
-                        updateAcctStmt.setLong(2, (int) (Math.random() * OBJ_CNT));
+                        updateAcctStmt.setLong(2, (int) (Math.random() * objectCount));
                         updateAcctStmt.execute();
                         taskConn.commit();
                     }

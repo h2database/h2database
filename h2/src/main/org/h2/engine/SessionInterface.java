@@ -8,7 +8,6 @@ package org.h2.engine;
 import java.io.Closeable;
 import java.util.ArrayList;
 import org.h2.command.CommandInterface;
-import org.h2.jdbc.JdbcConnection;
 import org.h2.message.Trace;
 import org.h2.store.DataHandler;
 import org.h2.value.Value;
@@ -142,14 +141,14 @@ public interface SessionInterface extends Closeable {
     boolean isRemote();
 
     /**
-     * Set current schema as in {@link org.h2.jdbc.JdbcConnection#setSchema(String)}.
+     * Set current schema.
      *
      * @param schema the schema name
      */
     void setCurrentSchemaName(String schema);
 
     /**
-     * Get current schema as in {@link JdbcConnection#getSchema()}.
+     * Get current schema.
      *
      * @return the current schema name
      */

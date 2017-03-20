@@ -25,8 +25,6 @@ import org.h2.util.StringUtils;
  */
 public class ValueTimestampTimeZone extends Value {
 
-    private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
-
     /**
      * The precision in digits.
      */
@@ -42,6 +40,8 @@ public class ValueTimestampTimeZone extends Value {
      * The default scale for timestamps.
      */
     static final int DEFAULT_SCALE = 10;
+
+    private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
 
     /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for

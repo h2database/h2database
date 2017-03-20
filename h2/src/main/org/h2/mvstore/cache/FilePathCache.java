@@ -87,7 +87,7 @@ public class FilePathCache extends FilePathWrapper {
         }
 
         @Override
-        public int read(ByteBuffer dst, long position) throws IOException {
+        public synchronized int read(ByteBuffer dst, long position) throws IOException {
             long cachePos = getCachePos(position);
             int off = (int) (position - cachePos);
             int len = CACHE_BLOCK_SIZE - off;
@@ -130,20 +130,20 @@ public class FilePathCache extends FilePathWrapper {
         }
 
         @Override
-        public FileChannel truncate(long newSize) throws IOException {
+        public synchronized FileChannel truncate(long newSize) throws IOException {
             cache.clear();
             base.truncate(newSize);
             return this;
         }
 
         @Override
-        public int write(ByteBuffer src, long position) throws IOException {
+        public synchronized int write(ByteBuffer src, long position) throws IOException {
             clearCache(src, position);
             return base.write(src, position);
         }
 
         @Override
-        public int write(ByteBuffer src) throws IOException {
+        public synchronized int write(ByteBuffer src) throws IOException {
             clearCache(src, position());
             return base.write(src);
         }

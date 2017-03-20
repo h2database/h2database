@@ -264,7 +264,7 @@ public class PrepareTranslation {
                         || "b".equals(tag) || "code".equals(tag)
                         || "form".equals(tag) || "span".equals(tag)
                         || "em".equals(tag) || "div".equals(tag)
-                        || "label".equals(tag)) {
+                        || "strong".equals(tag) || "label".equals(tag)) {
                     if (buff.length() == 0) {
                         nextKey = documentName + "_" + (1000 + id++) + "_"
                                 + tag;
@@ -318,7 +318,7 @@ public class PrepareTranslation {
             } else if (event == XMLParser.END_ELEMENT) {
                 String name = parser.getName();
                 if ("code".equals(name) || "a".equals(name) || "b".equals(name)
-                        || "span".equals(name) || "em".equals(name)) {
+                        || "span".equals(name) || "em".equals(name) || "strong".equals(name)) {
                     if (ignoreEnd) {
                         if (buff.length() > 0) {
                             if (templateIsCopy) {

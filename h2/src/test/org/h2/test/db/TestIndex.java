@@ -83,11 +83,8 @@ public class TestIndex extends TestBase {
         testHashIndex(true, false);
 
         testHashIndex(false, false);
-        // System.out.println("b-tree="+TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-time));
-        // time = System.nanoTime();
         testHashIndex(true, true);
         testHashIndex(false, true);
-        // System.out.println("hash="+TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-time));
 
         testMultiColumnHashIndex();
 

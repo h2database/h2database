@@ -124,7 +124,8 @@ public class ArchiveTool {
         if (title.get()) {
             log.println();
         }
-        log.println("Compressing " + size / MB + " MB at " + new java.sql.Time(startMs).toString());
+        log.println("Compressing " + size / MB + " MB at " +
+                new java.sql.Time(startMs).toString());
         InputStream in = getDirectoryInputStream(fromDir);
         String temp = toFile + ".temp";
         OutputStream out =
@@ -1096,6 +1097,8 @@ public class ArchiveTool {
 
         /**
          * Print the progress.
+         *
+         * @param offset the offset since the last operation
          */
         void printProgress(long offset) {
             current += offset;

@@ -349,7 +349,7 @@ public class DbSettings extends SettingsBase {
      * (default: false).<br />
      */
     public final boolean multiThreaded = get("MULTI_THREADED", false);
-    
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
     }

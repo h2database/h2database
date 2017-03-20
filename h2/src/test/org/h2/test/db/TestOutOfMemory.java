@@ -71,8 +71,8 @@ public class TestOutOfMemory extends TestBase {
             map = store.openMap("test");
             store.close();
         } finally {
-            // just in case, otherwise if this test suffers a spurious failure, succeeding tests will too
-            // because they will OOM
+            // just in case, otherwise if this test suffers a spurious failure,
+            // succeeding tests will too, because they will OOM
             store.closeImmediately();
             FileUtils.delete(fileName);
         }
@@ -100,7 +100,8 @@ public class TestOutOfMemory extends TestBase {
         stat = conn.createStatement();
         stat.execute("select 1");
         conn.close();
-        FileUtils.delete(filename); // release the static data this test generates
+        // release the static data this test generates
+        FileUtils.delete(filename);
     }
 
     private void testUpdateWhenNearlyOutOfMemory() throws SQLException {

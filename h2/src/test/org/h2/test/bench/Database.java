@@ -196,7 +196,7 @@ class Database {
             }
         } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
-            try (Statement s = newConn.createStatement()){
+            try (Statement s = newConn.createStatement()) {
                 s.execute("SET WRITE_DELAY 1");
             }
         }

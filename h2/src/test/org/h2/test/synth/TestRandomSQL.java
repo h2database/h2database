@@ -71,8 +71,10 @@ public class TestRandomSQL extends TestBase {
                     success++;
                 } catch (SQLException e) {
                     if (e.getSQLState().equals("HY000")) {
-                        TestBase.logError("new TestRandomSQL().init(test).testCase(" + seed + ");  " +
-                                "// FAIL: " + e.toString() + " sql: " + sql, e);
+                        TestBase.logError(
+                                "new TestRandomSQL().init(test).testCase(" +
+                                        seed + ");  " + "// FAIL: " +
+                                        e.toString() + " sql: " + sql, e);
                     }
                 }
             }

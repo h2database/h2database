@@ -56,7 +56,7 @@ public class TestFreeSpace extends TestBase {
             for (int j = 0; j < 100000; j++) {
                 f.allocate(4096 * 2);
             }
-            System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));            
+            System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
         }
     }
 

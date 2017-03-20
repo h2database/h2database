@@ -131,7 +131,8 @@ public class TestBenchmark extends TestBase {
         Statement stat;
         String url = "mvstore";
         if (mvStore) {
-            url += ";MV_STORE=TRUE"; // ;COMPRESS=TRUE";
+            // ;COMPRESS=TRUE";
+            url += ";MV_STORE=TRUE";
         }
 
         url = getURL(url, true);

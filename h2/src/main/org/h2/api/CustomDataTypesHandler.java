@@ -12,6 +12,12 @@ import org.h2.value.Value;
 /**
  * Custom data type handler
  * Provides means to plug-in custom data types support
+ *
+ * Please keep in mind that this feature may not possibly
+ * provide the same ABI stability level as other features
+ * as it  exposes many of the H2 internals.  You may be
+ * required to update your code occasionally due to internal
+ * changes in H2 if you are going to use this feature
  */
 public interface CustomDataTypesHandler {
     /**

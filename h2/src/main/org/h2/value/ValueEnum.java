@@ -127,6 +127,10 @@ public class ValueEnum extends Value {
         return DISPLAY_SIZE;
     }
 
+    public String[] getEnumerators() {
+        return enumerators;
+    }
+
     @Override
     public int getInt() {
         return ordinal;

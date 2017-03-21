@@ -10589,3 +10589,46 @@ create table z.z (id int);
 
 drop schema z;
 > ok
+
+--- enum support
+create table card (rank int, suit enum('hearts', 'clubs', 'spades', 'diamonds'));
+> ok
+
+insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts');
+> update count: 2
+
+select * from card;
+> RANK SUIT
+> ---- ------
+> 0    clubs
+> 3    hearts
+
+select * from card order by suit;
+> RANK SUIT
+> ---- ------
+> 3    hearts
+> 0    clubs
+
+insert into card (rank, suit) values (8, 'diamonds'), (10, 'clubs'), (7, 'hearts');
+> update count: 3
+
+select suit, count(rank) from card group by suit order by suit, count(rank);
+> SUIT     COUNT(RANK)
+> -------- -----------
+> hearts   2
+> clubs    2
+> diamonds 1
+
+select rank from card where suit = 'diamonds';
+> RANK
+> ----
+> 8
+
+select rank from card where suit = 1;
+> RANK
+> ----
+> 0
+> 10
+
+drop table card;
+> ok

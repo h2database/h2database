@@ -467,8 +467,9 @@ public class TestPreparedStatement extends TestBase {
                 rs.next();
             }
             assertEquals(goodSizes[i], rs.getString(1));
+            assertEquals(i, rs.getInt(1));
             Object o = rs.getObject(1);
-            assertEquals("java.lang.String", o.getClass().getName());
+            assertEquals(Integer.class, o.getClass());
         }
 
         stat.execute("DROP TABLE test_enum");

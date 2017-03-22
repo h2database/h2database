@@ -80,7 +80,7 @@ public class ValueEnum extends Value {
                 return;
             default:
                 throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
-                        "Provided value is does not match any enumerators");
+                        "Provided value does not match any enumerators", value.toString());
         }
     }
 

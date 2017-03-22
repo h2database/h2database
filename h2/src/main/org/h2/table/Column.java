@@ -6,7 +6,7 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
-import java.util.Iterator;
+import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -470,6 +470,7 @@ public class Column {
                         buff.append(',');
                     }
                 }
+                buff.append(')');
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:
@@ -779,7 +780,7 @@ public class Column {
         displaySize = source.displaySize;
         name = source.name;
         precision = source.precision;
-        enumerators = source.enumerators;
+        enumerators = Arrays.copyOf(source.enumerators, source.enumerators.length);
         scale = source.scale;
         // table is not set
         // columnId is not set

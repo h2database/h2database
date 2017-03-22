@@ -16,6 +16,7 @@ import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -248,7 +249,18 @@ public class CreateTable extends SchemaCommand {
             if (scale > precision) {
                 precision = scale;
             }
-            Column col = new Column(name, type, precision, scale, displaySize);
+            String[] enumerators = null;
+            if (dt.enumerated) {
+                /**
+                 * Only columns of tables may be enumerated.
+                 */
+                if(!(expr instanceof ExpressionColumn)) {
+                    throw DbException.get(ErrorCode.GENERAL_ERROR_1,
+                            "Unable to resolve enumerators of expression");
+                }
+                enumerators = ((ExpressionColumn)expr).getColumn().getEnumerators();
+            }
+            Column col = new Column(name, type, precision, scale, displaySize, enumerators);
             addColumn(col);
         }
     }

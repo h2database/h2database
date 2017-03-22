@@ -27,6 +27,7 @@ Add to http://twitter.com
 - tweet: add @geospatialnews for the new geometry type and disk spatial index
 
 Sign files and publish files on Maven Central
+(check java version is 1.7)
 ./build.sh compile jar mavenDeployCentral
 cd /data/h2database/m2-repo/com/h2database
 # remove sha and md5 files:

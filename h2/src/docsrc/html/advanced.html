@@ -438,7 +438,7 @@ Example: To get the 2nd server in the connection list one uses <code>getClientIn
 Read-only queries are only executed against the first cluster node, but all other statements are
 executed against all nodes. There is currently no load balancing made to avoid problems with
 transactions. The following functions may yield different results on different cluster nodes and must be
-executed with care: <code>RANDOM_UUID(), SECURE_RAND(), SESSION_ID(),
+executed with care: <code>UUID(), RANDOM_UUID(), SECURE_RAND(), SESSION_ID(),
 MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not using a seed].
 Those functions should not be used directly in modifying statements
 (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used
@@ -1397,7 +1397,7 @@ using the probability theory. See also 'Birthday Paradox'.
 Standardized randomly generated UUIDs have 122 random bits.
 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz).
 This database supports generating such UUIDs using the built-in function
-<code>RANDOM_UUID()</code>.
+<code>RANDOM_UUID()</code> or <code>UUID()</code>.
 Here is a small program to estimate the probability of having two identical UUIDs
 after generating a number of values:
 </p>

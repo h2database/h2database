@@ -706,6 +706,11 @@ public class DataType {
                 return ValueGeometry.getFromGeometry(x);
             }
             default:
+                if (JdbcUtils.customDataTypesHandler != null) {
+                    return JdbcUtils.customDataTypesHandler.getValue(type,
+                        rs.getObject(columnIndex),
+                        session.getDataHandler());
+                }
                 throw DbException.throwInternalError("type="+type);
             }
             return v;
@@ -788,6 +793,9 @@ public class DataType {
         case Value.GEOMETRY:
             return GEOMETRY_CLASS_NAME;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getDataTypeClassName(type);
+            }
             throw DbException.throwInternalError("type="+type);
         }
     }
@@ -803,6 +811,9 @@ public class DataType {
             throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "?");
         }
         DataType dt = TYPES_BY_VALUE_TYPE.get(type);
+        if (dt == null && JdbcUtils.customDataTypesHandler != null) {
+            dt = JdbcUtils.customDataTypesHandler.getDataTypeById(type);
+        }
         if (dt == null) {
             dt = TYPES_BY_VALUE_TYPE.get(Value.NULL);
         }
@@ -995,6 +1006,9 @@ public class DataType {
         } else if (LocalDateTimeUtils.isOffsetDateTime(x)) {
             return Value.TIMESTAMP_TZ;
         } else {
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getTypeIdFromClass(x);
+            }
             return Value.JAVA_OBJECT;
         }
     }
@@ -1118,6 +1132,9 @@ public class DataType {
         } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else {
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getValue(type, x, session.getDataHandler());
+            }
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }
     }
@@ -1156,7 +1173,11 @@ public class DataType {
      * @return the data type object
      */
     public static DataType getTypeByName(String s) {
-        return TYPES_BY_NAME.get(s);
+        DataType result = TYPES_BY_NAME.get(s);
+        if (result == null && JdbcUtils.customDataTypesHandler != null) {
+            result = JdbcUtils.customDataTypesHandler.getDataTypeByName(s);
+        }
+        return result;
     }
 
     /**
@@ -1202,7 +1223,29 @@ public class DataType {
         case Value.LONG:
         case Value.SHORT:
             return true;
+        case Value.BOOLEAN:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.BYTES:
+        case Value.UUID:
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.NULL:
+        case Value.JAVA_OBJECT:
+        case Value.UNKNOWN:
+        case Value.ARRAY:
+        case Value.RESULT_SET:
+        case Value.GEOMETRY:
+            return false;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.supportsAdd(type);
+            }
             return false;
         }
     }
@@ -1226,7 +1269,31 @@ public class DataType {
             return Value.DECIMAL;
         case Value.SHORT:
             return Value.LONG;
+        case Value.BOOLEAN:
+        case Value.DECIMAL:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.BYTES:
+        case Value.UUID:
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.DOUBLE:
+        case Value.NULL:
+        case Value.JAVA_OBJECT:
+        case Value.UNKNOWN:
+        case Value.ARRAY:
+        case Value.RESULT_SET:
+        case Value.GEOMETRY:
+            return type;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getAddProofType(type);
+            }
             return type;
         }
     }
@@ -1277,11 +1344,43 @@ public class DataType {
         } else if (paramClass == Array.class) {
             return new JdbcArray(conn, v, 0);
         }
-        if (v.getType() == Value.JAVA_OBJECT) {
+        switch (v.getType()) {
+        case Value.JAVA_OBJECT: {
             Object o = SysProperties.serializeJavaObject ? JdbcUtils.deserialize(v.getBytes(),
                     conn.getSession().getDataHandler()) : v.getObject();
             if (paramClass.isAssignableFrom(o.getClass())) {
                 return o;
+            }
+            break;
+        }
+        case Value.BOOLEAN:
+        case Value.BYTE:
+        case Value.SHORT:
+        case Value.INT:
+        case Value.LONG:
+        case Value.DECIMAL:
+        case Value.TIME:
+        case Value.DATE:
+        case Value.TIMESTAMP:
+        case Value.TIMESTAMP_TZ:
+        case Value.BYTES:
+        case Value.UUID:
+        case Value.STRING:
+        case Value.STRING_IGNORECASE:
+        case Value.STRING_FIXED:
+        case Value.BLOB:
+        case Value.CLOB:
+        case Value.DOUBLE:
+        case Value.FLOAT:
+        case Value.NULL:
+        case Value.UNKNOWN:
+        case Value.ARRAY:
+        case Value.RESULT_SET:
+        case Value.GEOMETRY:
+            break;
+        default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.getObject(v, paramClass);
             }
         }
         throw DbException.getUnsupportedException("converting to class " + paramClass.getName());

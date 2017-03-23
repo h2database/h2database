@@ -1548,6 +1548,10 @@ public class ObjectDataType implements DataType {
         public Object read(ByteBuffer buff, int tag) {
             int len = DataUtils.readVarInt(buff);
             byte[] data = DataUtils.newBytes(len);
+            int size = data.length * 2;
+            // adjust the average size
+            // using an exponential moving average
+            averageSize = (size + 15 * averageSize) / 16;
             buff.get(data);
             return deserialize(data);
         }

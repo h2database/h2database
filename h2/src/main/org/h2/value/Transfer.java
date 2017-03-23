@@ -544,6 +544,10 @@ public class Transfer {
             }
             break;
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                writeBytes(v.getBytesNoCopy());
+                break;
+            }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }
@@ -728,6 +732,9 @@ public class Transfer {
             }
             return ValueGeometry.get(readString());
         default:
+            if (JdbcUtils.customDataTypesHandler != null) {
+                return JdbcUtils.customDataTypesHandler.convert(ValueBytes.getNoCopy(readBytes()), type);
+            }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }
     }

@@ -453,7 +453,7 @@ public class TestPreparedStatement extends TestBase {
             PreparedStatement prep = conn.prepareStatement(
                     "INSERT INTO test_enum VALUES(?)");
             prep.setObject(1, badSizes[i]);
-            assertThrows(ErrorCode.VALUE_NOT_PERMITTED, prep).execute();
+            assertThrows(ErrorCode.ENUM_VALUE_NOT_PERMITTED_1, prep).execute();
         }
 
         String[] goodSizes = new String[]{"small", "medium", "large"};

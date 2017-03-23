@@ -161,16 +161,62 @@ public class ErrorCode {
 
     /**
      * The error with code <code>22030</code> is thrown when
-     * an attempt is made to insert or update an ENUM value,
-     * but the target value is not one of the values permitted
-     * by the column.
+     * an attempt is made to INSERT or UPDATE an ENUM-typed cell,
+     * but the value is not one of the values enumerated by the
+     * type.
+     *
+     * This error is best thrown in a context when the column name
+     * and it's enumerated values are known.
+     *
      * Example:
      * <pre>
-     * CREATE TABLE TEST(ID INT, CASE ENUM('sensitive','insensitive'));
-     * INSERT INTO TEST VALUES(1, 'Hello');
+     * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
+     * INSERT INTO TEST VALUES('snake');
      * </pre>
      */
-    public static final int VALUE_NOT_PERMITTED = 22030;
+    public static final int ENUM_VALUE_NOT_PERMITTED_1 = 22030;
+
+    /**
+     * The error with code <code>22031</code> is typically thrown
+     * when a math operation is attempted on an ENUM-typed cell,
+     * but the value resulting from the operation is not one of
+     * values enumerated by the type.
+     *
+     * This error is best thrown in a context when the column name
+     * is not known, but the enumerated values of the type are known.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
+     * INSERT INTO TEST VALUES('sensitive');
+     * UPDATE TEST SET CASE = CASE + 100;
+     * </pre>
+     */
+    public static final int ENUM_VALUE_NOT_PERMITTED_2 = 22031;
+
+    /**
+     * The error with code <code>22032</code> is thrown when an
+     * attempt is made to add or modify an ENUM-typed column so
+     * that it would not have any enumerated values.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM());
+     * </pre>
+     */
+    public static final int ENUM_EMPTY = 22032;
+
+    /**
+     * The error with code <code>22033</code> is thrown when an
+     * attempt is made to add or modify an ENUM-typed column so
+     * that it would have duplicate values.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive', 'sensitive'));
+     * </pre>
+     */
+    public static final int ENUM_DUPLICATE = 22033;
 
     // 23: constraint violation
 

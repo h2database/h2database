@@ -622,6 +622,8 @@ public abstract class Value {
                     return ValueInt.get(getBoolean().booleanValue() ? 1 : 0);
                 case BYTE:
                     return ValueInt.get(getByte());
+                case ENUM:
+                    return ValueInt.get(getInt());
                 case SHORT:
                     return ValueInt.get(getShort());
                 case LONG:

@@ -29,19 +29,24 @@ public class ValueEnum extends Value {
         this.ordinal = ordinal;
     }
 
+    @Override
+    public Value add(final Value v) {
+        final Value iv = v.convertTo(Value.INT);
+        return convertTo(Value.INT).add(iv);
+    }
+
     private static final void check(final String[] enumerators) {
         switch (validate(enumerators)) {
             case VALID:
                 return;
             case EMPTY:
-                throw DbException.get(ErrorCode.INVALID_VALUE_2,
-                        "Empty enum is not allowed");
+                throw DbException.get(ErrorCode.ENUM_EMPTY);
             case DUPLICATE:
-                throw DbException.get(ErrorCode.INVALID_VALUE_2,
-                        "Enum with duplicate enumerator is not allowed");
+                throw DbException.get(ErrorCode.ENUM_DUPLICATE,
+                        toString(enumerators));
             default:
                 throw DbException.get(ErrorCode.INVALID_VALUE_2,
-                        "Invalid enumerator list for enum");
+                        toString(enumerators));
         }
     }
 
@@ -51,12 +56,9 @@ public class ValueEnum extends Value {
         switch (validate(enumerators, label)) {
             case VALID:
                 return;
-            case EMPTY:
-                throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
-                        "Enumerator label may not be empty");
             default:
-                throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
-                        "Enumerator label is invalid");
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_2,
+                        toString(enumerators), "'" + label + "'");
         }
     }
 
@@ -67,8 +69,8 @@ public class ValueEnum extends Value {
             case VALID:
                 return;
             default:
-                throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
-                        "Provided enumerator label does not match any member of enum");
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_2,
+                        toString(enumerators), Integer.toString(ordinal));
         }
     }
 
@@ -79,15 +81,21 @@ public class ValueEnum extends Value {
             case VALID:
                 return;
             default:
-                throw DbException.get(ErrorCode.VALUE_NOT_PERMITTED,
-                        "Provided value does not match any enumerators " + toString(enumerators), value.toString());
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_2,
+                        toString(enumerators), value.toString());
         }
     }
 
     @Override
-    protected int compareSecure(final Value o, final CompareMode mode) {
-        final ValueEnum v = ValueEnum.get(enumerators, o);
-        return MathUtils.compareInt(ordinal(), v.ordinal());
+    protected int compareSecure(final Value v, final CompareMode mode) {
+        final ValueEnum ev = ValueEnum.get(enumerators, v);
+        return MathUtils.compareInt(ordinal(), ev.ordinal());
+    }
+
+    @Override
+    public Value divide(final Value v) {
+        final Value iv = v.convertTo(Value.INT);
+        return convertTo(Value.INT).divide(iv);
     }
 
     @Override
@@ -167,6 +175,11 @@ public class ValueEnum extends Value {
     }
 
     @Override
+    public int getType() {
+        return Value.ENUM;
+    }
+
+    @Override
     public int hashCode() {
         return enumerators.hashCode() + ordinal;
     }
@@ -183,19 +196,32 @@ public class ValueEnum extends Value {
         return validate(enumerators, value).equals(Validation.VALID);
     }
 
-    @Override
-    public int getType() {
-        return Value.ENUM;
-    }
-
     protected int ordinal() {
         return ordinal;
+    }
+
+    @Override
+    public Value modulus(final Value v) {
+        final Value iv = v.convertTo(Value.INT);
+        return convertTo(Value.INT).modulus(iv);
+    }
+
+    @Override
+    public Value multiply(final Value v) {
+        final Value iv = v.convertTo(Value.INT);
+        return convertTo(Value.INT).multiply(iv);
     }
 
     @Override
     public void set(final PreparedStatement prep, final int parameterIndex)
             throws SQLException {
          prep.setInt(parameterIndex, ordinal);
+    }
+
+    @Override
+    public Value subtract(final Value v) {
+        final Value iv = v.convertTo(Value.INT);
+        return convertTo(Value.INT).subtract(iv);
     }
 
     private static String toString(final String[] enumerators) {
@@ -213,12 +239,10 @@ public class ValueEnum extends Value {
     private static Validation validate(final String[] enumerators, final String label) {
         check(enumerators);
 
-        if (label == null || label.trim().length() == 0) {
-            return Validation.EMPTY;
-        }
+        final String cleanLabel = label.trim().toLowerCase();
 
         for (int i = 0; i < enumerators.length; i++) {
-            if (label.equals(enumerators[i])) {
+            if (cleanLabel.equals(enumerators[i])) {
                 return Validation.VALID;
             }
         }
@@ -228,7 +252,7 @@ public class ValueEnum extends Value {
 
     private static Validation validate(final String[] enumerators) {
         for (int i = 0; i < enumerators.length; i++) {
-            if (enumerators[i] == null || enumerators[i].equals("")) {
+            if (enumerators[i] == null || enumerators[i].trim().equals("")) {
                 return Validation.EMPTY;
             }
 

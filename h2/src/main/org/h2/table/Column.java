@@ -377,7 +377,7 @@ public class Column {
                     s = s.substring(0, 128) + "...";
                 }
                 throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_1,
-                        getCreateSQL(), s + " (" + value.getInt() + ")");
+                        getCreateSQL(), s);
             }
 
             value = ValueEnum.get(enumerators, value);

@@ -448,7 +448,7 @@ public class TestPreparedStatement extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE test_enum(size ENUM('small', 'medium', 'large'))");
 
-        String[] badSizes = new String[]{"green", "wool", "discount"};
+        String[] badSizes = new String[]{"green", "smalll", "0"};
         for (int i = 0; i < badSizes.length; i++) {
             PreparedStatement prep = conn.prepareStatement(
                     "INSERT INTO test_enum VALUES(?)");

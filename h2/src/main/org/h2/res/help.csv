@@ -1014,7 +1014,7 @@ See also Java ""Math."
 ","
 Calling the function without parameter returns the next a pseudo random number."
 "Functions (Numeric)","RANDOM_UUID","
-RANDOM_UUID()
+{ RANDOM_UUID | UUID } ()
 ","
 Returns a new UUID with 122 pseudo random bits."
 "Functions (Numeric)","ROUND","

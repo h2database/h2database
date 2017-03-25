@@ -711,7 +711,8 @@ public class Transfer {
             return ValueGeometry.get(readString());
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.convert(ValueBytes.getNoCopy(readBytes()), type);
+                return JdbcUtils.customDataTypesHandler.convert(
+                        ValueBytes.getNoCopy(readBytes()), type);
             }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }

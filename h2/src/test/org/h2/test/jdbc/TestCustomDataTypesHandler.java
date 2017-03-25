@@ -84,7 +84,8 @@ public class TestCustomDataTypesHandler extends TestBase {
             assertEquals(ComplexNumber.class.getName(), rs.getMetaData().getColumnClassName(1));
 
             //Test insert
-            PreparedStatement stmt = conn.prepareStatement("insert into t(id, val) values (0, '1.0+1.0i'), (1, ?), (2, ?), (3, ?)");
+            PreparedStatement stmt = conn.prepareStatement(
+                    "insert into t(id, val) values (0, '1.0+1.0i'), (1, ?), (2, ?), (3, ?)");
             stmt.setObject(1, new ComplexNumber(1, -1));
             stmt.setObject(2, "5.0+2.0i");
             stmt.setObject(3, 100.1);
@@ -98,7 +99,8 @@ public class TestCustomDataTypesHandler extends TestBase {
             expected[3] = new ComplexNumber(100.1, 0);
 
             for (int id = 0; id < expected.length; ++id) {
-                PreparedStatement prepStat = conn.prepareStatement("select val from t where id = ?");
+                PreparedStatement prepStat =conn.prepareStatement(
+                        "select val from t where id = ?");
                 prepStat.setInt(1, id);
                 rs = prepStat.executeQuery();
                 assertTrue(rs.next());
@@ -106,7 +108,8 @@ public class TestCustomDataTypesHandler extends TestBase {
             }
 
             for (int id = 0; id < expected.length; ++id) {
-                PreparedStatement prepStat = conn.prepareStatement("select id from t where val = ?");
+                PreparedStatement prepStat = conn.prepareStatement(
+                        "select id from t where val = ?");
                 prepStat.setObject(1, expected[id]);
                 rs = prepStat.executeQuery();
                 assertTrue(rs.next());
@@ -117,7 +120,8 @@ public class TestCustomDataTypesHandler extends TestBase {
             stat.execute("create index val_idx on t(val)");
 
             for (int id = 0; id < expected.length; ++id) {
-                PreparedStatement prepStat = conn.prepareStatement("select id from t where val = ?");
+                PreparedStatement prepStat = conn.prepareStatement(
+                        "select id from t where val = ?");
                 prepStat.setObject(1, expected[id]);
                 rs = prepStat.executeQuery();
                 assertTrue(rs.next());
@@ -130,7 +134,8 @@ public class TestCustomDataTypesHandler extends TestBase {
             assertTrue(rs.getObject(1).equals(new ComplexNumber(107.1, 2)));
 
             // user function
-            stat.execute("create alias complex_mod for \""+ getClass().getName() + ".complexMod\"");
+            stat.execute("create alias complex_mod for \""
+                + getClass().getName() + ".complexMod\"");
             rs = stat.executeQuery("select complex_mod(val) from t where id=2");
             rs.next();
             assertEquals(complexMod(expected[2]), rs.getDouble(1));
@@ -143,10 +148,10 @@ public class TestCustomDataTypesHandler extends TestBase {
     }
 
     /**
-      * modulus function
-      * @param val complex number
-      * @return result
-      */
+     * modulus function
+     * @param val complex number
+     * @return result
+     */
     public static double complexMod(ComplexNumber val) {
         return val.mod();
     }
@@ -221,15 +226,18 @@ public class TestCustomDataTypesHandler extends TestBase {
                 switch (source.getType()) {
                     case Value.JAVA_OBJECT: {
                         assert source instanceof ValueJavaObject;
-                        return ValueComplex.get((ComplexNumber)JdbcUtils.deserialize(source.getBytesNoCopy(), null));
+                        return ValueComplex.get((ComplexNumber)
+                                JdbcUtils.deserialize(source.getBytesNoCopy(), null));
                     }
                     case Value.STRING: {
                         assert source instanceof  ValueString;
-                        return ValueComplex.get(ComplexNumber.parseComplexNumber(source.getString()));
+                        return ValueComplex.get(
+                                ComplexNumber.parseComplexNumber(source.getString()));
                     }
                     case Value.BYTES: {
                         assert source instanceof  ValueBytes;
-                        return ValueComplex.get((ComplexNumber)JdbcUtils.deserialize(source.getBytesNoCopy(), null));
+                        return ValueComplex.get((ComplexNumber)
+                                JdbcUtils.deserialize(source.getBytesNoCopy(), null));
                     }
                     case Value.DOUBLE: {
                         assert source instanceof ValueDouble;
@@ -527,13 +535,13 @@ public class TestCustomDataTypesHandler extends TestBase {
         /** {@inheritDoc} */
         @Override
         public String toString() {
-           if (im == 0.0) {
-               return REAL_FMT.format(re);
-           }
-           if (re == 0.0) {
-               return IMG_FMT.format(im);
-           }
-           return REAL_FMT.format(re) + "" + IMG_FMT.format(im);
+            if (im == 0.0) {
+                return REAL_FMT.format(re);
+            }
+            if (re == 0.0) {
+                return IMG_FMT.format(im);
+            }
+            return REAL_FMT.format(re) + "" + IMG_FMT.format(im);
         }
 
         /**

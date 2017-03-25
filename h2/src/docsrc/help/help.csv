@@ -7,7 +7,7 @@ SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ [ LIMIT expression ] [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ { { LIMIT expression } | { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } } [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -16,7 +16,7 @@ HAVING filter rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
-LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
+LIMIT and FETCH FIRST/NEXT ROW(S) ONLY limits the number of rows returned by the query (no limit if null or smaller than zero).
 OFFSET specified how many rows to skip.
 Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.

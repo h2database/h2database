@@ -1109,7 +1109,8 @@ public class DataType {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getValue(type, x, session.getDataHandler());
+                return JdbcUtils.customDataTypesHandler.getValue(type, x,
+                        session.getDataHandler());
             }
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }

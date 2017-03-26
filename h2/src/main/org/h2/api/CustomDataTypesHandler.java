@@ -84,8 +84,8 @@ public interface CustomDataTypesHandler {
      * Converts {@link org.h2.value.Value} object
      * to the specified class.
      *
-     * @param value
-     * @param cls
+     * @param value the value to convert
+     * @param cls the target class
      * @return result
      */
     Object getObject(Value value, Class<?> cls);

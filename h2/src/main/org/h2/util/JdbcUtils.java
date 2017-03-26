@@ -127,7 +127,8 @@ public class JdbcUtils {
         String customTypeHandlerClass = SysProperties.CUSTOM_DATA_TYPES_HANDLER;
         if (customTypeHandlerClass != null) {
             try {
-                customDataTypesHandler = (CustomDataTypesHandler) loadUserClass(customTypeHandlerClass).newInstance();
+                customDataTypesHandler = (CustomDataTypesHandler)
+                        loadUserClass(customTypeHandlerClass).newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }

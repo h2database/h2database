@@ -146,6 +146,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
+import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -4127,7 +4128,8 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
-        java.util.List<String> enumerators = null;
+        java.util.List<String> enumeratorList = null;
+        String[] enumerators = null;
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
@@ -4203,19 +4205,26 @@ public class Parser {
             }
         } else if (dataType.enumerated) {
             if (readIf("(")) {
-                enumerators = new ArrayList<String>();
+                enumeratorList = new ArrayList<String>();
                 original += '(';
                 String enumerator0 = readString();
-                enumerators.add(enumerator0.toLowerCase().trim());
+                enumeratorList.add(enumerator0.toLowerCase().trim());
                 original += "'" + enumerator0 + "'";
                 while(readIf(",")) {
                     original += ',';
                     String enumeratorN = readString();
                     original += "'" + enumeratorN + "'";
-                    enumerators.add(enumeratorN.toLowerCase().trim());
+                    enumeratorList.add(enumeratorN.toLowerCase().trim());
                 }
                 read(")");
                 original += ')';
+            }
+            enumerators
+                = enumeratorList.toArray(new String[enumeratorList.size()]);
+            try {
+                ValueEnum.check(enumerators);
+            } catch(DbException e) {
+                throw e.addSQL(original);
             }
         } else if (readIf("(")) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
@@ -4237,8 +4246,10 @@ public class Parser {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
+
+
         Column column = new Column(columnName, type, precision, scale,
-            displaySize, enumerators == null ? null : enumerators.toArray(new String[enumerators.size()]));
+            displaySize, enumerators == null ? null : enumerators);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

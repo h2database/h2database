@@ -197,11 +197,11 @@ public class ErrorCode {
     /**
      * The error with code <code>22032</code> is thrown when an
      * attempt is made to add or modify an ENUM-typed column so
-     * that it would not have any enumerated values.
+     * that one or more of its enumerators would be empty.
      *
      * Example:
      * <pre>
-     * CREATE TABLE TEST(CASE ENUM());
+     * CREATE TABLE TEST(CASE ENUM(' '));
      * </pre>
      */
     public static final int ENUM_EMPTY = 22032;

@@ -35,7 +35,7 @@ public class ValueEnum extends Value {
         return convertTo(Value.INT).add(iv);
     }
 
-    private static final void check(final String[] enumerators) {
+    public static final void check(final String[] enumerators) {
         switch (validate(enumerators)) {
             case VALID:
                 return;
@@ -251,6 +251,10 @@ public class ValueEnum extends Value {
     }
 
     private static Validation validate(final String[] enumerators) {
+        if (enumerators == null || enumerators.length == 0) {
+            return Validation.EMPTY;
+        }
+
         for (int i = 0; i < enumerators.length; i++) {
             if (enumerators[i] == null || enumerators[i].trim().equals("")) {
                 return Validation.EMPTY;

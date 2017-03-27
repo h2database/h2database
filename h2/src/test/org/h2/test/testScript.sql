@@ -10590,12 +10590,20 @@ create table z.z (id int);
 drop schema z;
 > ok
 
---- enum support
-create table card (rank int, suit enum('hearts', 'clubs', 'spades', 'diamonds'));
+----------------
+--- ENUM support
+----------------
+
+--- ENUM basic operations
+
+create table card (rank int, suit enum('hearts', 'clubs', 'spades'));
 > ok
 
 insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts');
 > update count: 2
+
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
+> ok
 
 select * from card;
 > RANK SUIT
@@ -10624,11 +10632,32 @@ select rank from card where suit = 'diamonds';
 > ----
 > 8
 
+--- ENUM integer-based operations
+
 select rank from card where suit = 1;
 > RANK
 > ----
 > 0
 > 10
+
+insert into card (rank, suit) values(5, 2);
+> update count: 1
+
+select * from card where rank = 5;
+> RANK SUIT
+> ---- ------
+> 5    spades
+
+--- ENUM edge cases
+
+insert into card (rank, suit) values(6, ' ');
+> exception
+
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds', 'clubs');
+> exception
+
+alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds', '');
+> exception
 
 drop table card;
 > ok

@@ -192,6 +192,24 @@ Lists the schemas, tables, or the columns of a table.
 SHOW TABLES
 "
 
+"Commands (DML)","WITH","
+WITH [ RECURSIVE ] name ( columnName [,...] )
+    AS ( select )
+    select
+","
+Can be used to create a recursive query. The first select has to be a UNION.
+Currently only one result set can be referred to by name.
+","
+WITH RECURSIVE t(n) AS (
+        SELECT 1
+    UNION ALL
+        SELECT n + 1
+        FROM t
+        WHERE n < 100
+)
+SELECT sum(n) FROM t;
+"
+
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","

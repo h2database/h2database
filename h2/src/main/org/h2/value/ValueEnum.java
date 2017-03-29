@@ -1,17 +1,11 @@
 package org.h2.value;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 import org.h2.value.DataType;
 
-public class ValueEnum extends Value {
-    public static final int PRECISION = 10;
-    public static final int DISPLAY_SIZE = 11;
-
+public class ValueEnum extends ValueEnumBase {
     private static enum Validation {
         DUPLICATE,
         EMPTY,
@@ -20,19 +14,10 @@ public class ValueEnum extends Value {
     }
 
     private final String[] enumerators;
-    private final String label;
-    private final int ordinal;
 
     private ValueEnum(final String[] enumerators, final int ordinal) {
-        this.label = enumerators[ordinal];
+        super(enumerators[ordinal], ordinal);
         this.enumerators = enumerators;
-        this.ordinal = ordinal;
-    }
-
-    @Override
-    public Value add(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).add(iv);
     }
 
     public static final void check(final String[] enumerators) {
@@ -92,18 +77,6 @@ public class ValueEnum extends Value {
         return MathUtils.compareInt(ordinal(), ev.ordinal());
     }
 
-    @Override
-    public Value divide(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).divide(iv);
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        return other instanceof ValueEnum &&
-            ordinal() == ((ValueEnum) other).ordinal();
-    }
-
     public static ValueEnum get(final String[] enumerators, final String label) {
         check(enumerators, label);
 
@@ -130,58 +103,13 @@ public class ValueEnum extends Value {
         }
     }
 
-    @Override
-    public int getDisplaySize() {
-        return DISPLAY_SIZE;
-    }
-
     public String[] getEnumerators() {
         return enumerators;
     }
 
     @Override
-    public int getInt() {
-        return ordinal;
-    }
-
-    @Override
-    public long getLong() {
-        return ordinal;
-    }
-
-    @Override
-    public Object getObject() {
-        return ordinal;
-    }
-
-    @Override
-    public long getPrecision() {
-        return PRECISION;
-    }
-
-    @Override
-    public int getSignum() {
-        return Integer.signum(ordinal);
-    }
-
-    @Override
-    public String getSQL() {
-        return getString();
-    }
-
-    @Override
-    public String getString() {
-        return label;
-    }
-
-    @Override
-    public int getType() {
-        return Value.ENUM;
-    }
-
-    @Override
     public int hashCode() {
-        return enumerators.hashCode() + ordinal;
+        return enumerators.hashCode() + ordinal();
     }
 
     public static boolean isValid(final String enumerators[], final String label) {
@@ -194,34 +122,6 @@ public class ValueEnum extends Value {
 
     public static boolean isValid(final String enumerators[], final Value value) {
         return validate(enumerators, value).equals(Validation.VALID);
-    }
-
-    protected int ordinal() {
-        return ordinal;
-    }
-
-    @Override
-    public Value modulus(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).modulus(iv);
-    }
-
-    @Override
-    public Value multiply(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).multiply(iv);
-    }
-
-    @Override
-    public void set(final PreparedStatement prep, final int parameterIndex)
-            throws SQLException {
-         prep.setInt(parameterIndex, ordinal);
-    }
-
-    @Override
-    public Value subtract(final Value v) {
-        final Value iv = v.convertTo(Value.INT);
-        return convertTo(Value.INT).subtract(iv);
     }
 
     private static String toString(final String[] enumerators) {

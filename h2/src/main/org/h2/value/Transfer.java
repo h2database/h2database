@@ -495,17 +495,8 @@ public class Transfer {
             break;
         }
         case Value.ENUM: {
-            ValueEnum ve = (ValueEnum) v;
-            String[] enumerators = ve.getEnumerators();
-
-            writeInt(enumerators.length);
-
-            for (String member : enumerators) {
-                writeString(member);
-            }
-
-            writeInt(ve.getInt());
-
+            writeInt(v.getInt());
+            writeString(v.getString());
             break;
         }
         case Value.RESULT_SET: {
@@ -609,12 +600,9 @@ public class Transfer {
         case Value.FLOAT:
             return ValueFloat.get(readFloat());
         case Value.ENUM: {
-            int len = readInt();
-            String[] enumerators = new String[len];
-            for (int i = 0; i < len; i++) {
-                enumerators[i] = readString();
-            }
-            return ValueEnum.get(enumerators, readInt());
+            final int ordinal = readInt();
+            final String label = readString();
+            return ValueEnumBase.get(label, ordinal);
         }
         case Value.INT:
             return ValueInt.get(readInt());

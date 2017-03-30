@@ -4202,7 +4202,7 @@ public class Parser {
                 }
                 read(")");
             }
-        } else if (dataType.enumerated) {
+        } else if (dataType.type == Value.ENUM) {
             if (readIf("(")) {
                 java.util.List<String> enumeratorList = new ArrayList<String>();
                 original += '(';

@@ -25,6 +25,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * This class represents the statement
@@ -250,7 +251,7 @@ public class CreateTable extends SchemaCommand {
                 precision = scale;
             }
             String[] enumerators = null;
-            if (dt.enumerated) {
+            if (dt.type == Value.ENUM) {
                 /**
                  * Only columns of tables may be enumerated.
                  */

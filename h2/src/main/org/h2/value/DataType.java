@@ -141,11 +141,6 @@ public class DataType {
     public boolean caseSensitive;
 
     /**
-     * If enumerated values are supported.
-     */
-    public boolean enumerated;
-
-    /**
      * If the precision parameter is supported.
      */
     public boolean supportsPrecision;
@@ -390,8 +385,11 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 400
         );
+        dataType = createString(false);
+        dataType.supportsPrecision = false;
+        dataType.supportsScale = false;
         add(Value.ENUM, Types.OTHER, "Enum",
-                createEnum(),
+                dataType,
                 new String[]{"ENUM"},
                 48
         );
@@ -416,7 +414,6 @@ public class DataType {
             dt.params = dataType.params;
             dt.prefix = dataType.prefix;
             dt.suffix = dataType.suffix;
-            dt.enumerated = dataType.enumerated;
             dt.supportsPrecision = dataType.supportsPrecision;
             dt.supportsScale = dataType.supportsScale;
             dt.defaultPrecision = dataType.defaultPrecision;
@@ -470,13 +467,6 @@ public class DataType {
         return dataType;
     }
 
-    private static DataType createEnum() {
-        DataType dataType = createString(false);
-        dataType.enumerated = true;
-        dataType.supportsPrecision = false;
-        dataType.supportsScale = false;
-        return dataType;
-    }
     private static DataType createString(boolean caseSensitive) {
         DataType dataType = new DataType();
         dataType.prefix = "'";

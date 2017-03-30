@@ -6,6 +6,7 @@
 package org.h2.table;
 
 import java.sql.ResultSetMetaData;
+import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.engine.Constants;
@@ -26,6 +27,7 @@ import org.h2.util.StringUtils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
+import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -66,6 +68,7 @@ public class Column {
     private final int type;
     private long precision;
     private int scale;
+    private String[] enumerators;
     private int displaySize;
     private Table table;
     private String name;
@@ -89,11 +92,20 @@ public class Column {
     private boolean visible = true;
 
     public Column(String name, int type) {
-        this(name, type, -1, -1, -1);
+        this(name, type, -1, -1, -1, null);
+    }
+
+    public Column(String name, int type, String[] enumerators) {
+        this(name, type, -1, -1, -1, enumerators);
     }
 
     public Column(String name, int type, long precision, int scale,
             int displaySize) {
+        this(name, type, precision, scale, displaySize, null);
+    }
+
+    public Column(String name, int type, long precision, int scale,
+            int displaySize, String[] enumerators) {
         this.name = name;
         this.type = type;
         if (precision == -1 && scale == -1 && displaySize == -1 && type != Value.UNKNOWN) {
@@ -105,6 +117,7 @@ public class Column {
         this.precision = precision;
         this.scale = scale;
         this.displaySize = displaySize;
+        this.enumerators = enumerators;
     }
 
     @Override
@@ -133,8 +146,12 @@ public class Column {
         return table.getId() ^ name.hashCode();
     }
 
+    public boolean isEnumerated() {
+        return type == Value.ENUM;
+    }
+
     public Column getClone() {
-        Column newColumn = new Column(name, type, precision, scale, displaySize);
+        Column newColumn = new Column(name, type, precision, scale, displaySize, enumerators);
         newColumn.copy(this);
         return newColumn;
     }
@@ -258,6 +275,14 @@ public class Column {
         nullable = b;
     }
 
+    public String[] getEnumerators() {
+        return enumerators;
+    }
+
+    public void setEnumerators(String[] enumerators) {
+        this.enumerators = enumerators;
+    }
+
     public boolean getVisible() {
         return visible;
     }
@@ -344,6 +369,18 @@ public class Column {
                 throw DbException.get(ErrorCode.VALUE_TOO_LONG_2,
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
+        }
+        if (isEnumerated()) {
+            if (!ValueEnum.isValid(enumerators, value)) {
+                String s = value.getTraceSQL();
+                if (s.length() > 127) {
+                    s = s.substring(0, 128) + "...";
+                }
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_1,
+                        getCreateSQL(), s);
+            }
+
+            value = ValueEnum.get(enumerators, value);
         }
         updateSequenceIfRequired(session, value);
         return value;
@@ -434,6 +471,15 @@ public class Column {
             case Value.DECIMAL:
                 buff.append('(').append(precision).append(", ").append(scale).append(')');
                 break;
+            case Value.ENUM:
+                buff.append('(');
+                for (int i = 0; i < enumerators.length; i++) {
+                    buff.append('\'').append(enumerators[i]).append('\'');
+                    if(i < enumerators.length - 1) {
+                        buff.append(',');
+                    }
+                }
+                buff.append(')');
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:
@@ -748,6 +794,8 @@ public class Column {
         displaySize = source.displaySize;
         name = source.name;
         precision = source.precision;
+        enumerators = source.enumerators == null ? null :
+            Arrays.copyOf(source.enumerators, source.enumerators.length);
         scale = source.scale;
         // table is not set
         // columnId is not set

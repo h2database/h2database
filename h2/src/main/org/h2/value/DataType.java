@@ -141,6 +141,11 @@ public class DataType {
     public boolean caseSensitive;
 
     /**
+     * If enumerated values are supported.
+     */
+    public boolean enumerated;
+
+    /**
      * If the precision parameter is supported.
      */
     public boolean supportsPrecision;
@@ -385,6 +390,11 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 400
         );
+        add(Value.ENUM, Types.OTHER, "Enum",
+                createEnum(),
+                new String[]{"ENUM"},
+                48
+        );
         for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
             Value.getOrder(i);
         }
@@ -406,6 +416,7 @@ public class DataType {
             dt.params = dataType.params;
             dt.prefix = dataType.prefix;
             dt.suffix = dataType.suffix;
+            dt.enumerated = dataType.enumerated;
             dt.supportsPrecision = dataType.supportsPrecision;
             dt.supportsScale = dataType.supportsScale;
             dt.defaultPrecision = dataType.defaultPrecision;
@@ -459,6 +470,13 @@ public class DataType {
         return dataType;
     }
 
+    private static DataType createEnum() {
+        DataType dataType = createString(false);
+        dataType.enumerated = true;
+        dataType.supportsPrecision = false;
+        dataType.supportsScale = false;
+        return dataType;
+    }
     private static DataType createString(boolean caseSensitive) {
         DataType dataType = new DataType();
         dataType.prefix = "'";
@@ -665,6 +683,12 @@ public class DataType {
                     values[i] = DataType.convertToValue(session, list[i], Value.NULL);
                 }
                 v = ValueArray.get(values);
+                break;
+            }
+            case Value.ENUM: {
+                int value = rs.getInt(columnIndex);
+                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
+                    ValueInt.get(value);
                 break;
             }
             case Value.RESULT_SET: {

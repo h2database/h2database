@@ -1939,7 +1939,7 @@ CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
     | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType
+    | blobType | clobType | uuidType | arrayType | enumType
 ","
 A data type definition.
 ","
@@ -2527,6 +2527,20 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the va
 ARRAY
 "
 
+"Data Types","ENUM Type","
+{ ENUM (string [, ... ]) }
+","
+A type with enumerated values.
+Mapped to ""java.lang.Integer"".
+
+The first provided value is mapped to 0, the
+second mapped to 1, and so on.
+
+Duplicate and empty values are not permitted.
+","
+
+ENUM('clubs', 'diamonds', 'hearts', 'spades')
+"
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","

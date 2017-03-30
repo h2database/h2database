@@ -22,6 +22,12 @@ public class ValueEnum extends ValueEnumBase {
         this.enumerators = enumerators;
     }
 
+    /**
+     * Check for any violations, such as empty
+     * values, duplicate values.
+     *
+     * @param enumerators the enumerators
+     */
     public static final void check(final String[] enumerators) {
         switch (validate(enumerators)) {
             case VALID:
@@ -52,9 +58,17 @@ public class ValueEnum extends ValueEnumBase {
     @Override
     protected int compareSecure(final Value v, final CompareMode mode) {
         final ValueEnum ev = ValueEnum.get(enumerators, v);
-        return MathUtils.compareInt(ordinal(), ev.ordinal());
+        return MathUtils.compareInt(getInt(), ev.getInt());
     }
 
+    /**
+     * Create an ENUM value from the provided enumerators
+     * and value.
+     *
+     * @param enumerators the enumerators
+     * @param value a value
+     * @return the ENUM value
+     */
     public static ValueEnum get(final String[] enumerators, final Value value) {
         check(enumerators, value);
 
@@ -76,6 +90,14 @@ public class ValueEnum extends ValueEnumBase {
         return enumerators;
     }
 
+    /**
+     * Evaluates whether a valid ENUM can be constructed
+     * from the provided enumerators and value.
+     *
+     * @param enumerators the enumerators
+     * @param value the value
+     * @return whether a valid ENUM can be constructed from the provided values
+     */
     public static boolean isValid(final String enumerators[], final Value value) {
         return validate(enumerators, value).equals(Validation.VALID);
     }
@@ -84,7 +106,7 @@ public class ValueEnum extends ValueEnumBase {
         return label == null ? null : label.trim().toUpperCase(Locale.ENGLISH);
     }
 
-    public static String[] sanitize(final String[] enumerators) {
+    private static String[] sanitize(final String[] enumerators) {
         if (enumerators == null || enumerators.length == 0) return null;
 
         final String[] clean = new String[enumerators.length];

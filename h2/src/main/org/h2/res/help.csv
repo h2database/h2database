@@ -606,7 +606,7 @@ Optional parameters for CSVREAD and CSVWRITE."
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
     | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType
+    | blobType | clobType | uuidType | arrayType | enumType
 ","
 A data type definition."
 "Other Grammar","Date","
@@ -834,6 +834,10 @@ Universally unique identifier."
 ARRAY
 ","
 An array of values."
+"Data Types","ENUM Type","
+{ ENUM (string [, ... ]) }
+","
+A type with enumerated values."
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","

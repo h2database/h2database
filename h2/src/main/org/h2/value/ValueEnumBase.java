@@ -7,9 +7,15 @@ import java.util.Locale;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
 
+/**
+ * Base implementation of the ENUM data type.
+ *
+ * Currently, this class is used primarily for
+ * client-server communication.
+ */
 public class ValueEnumBase extends Value {
-    public static final int PRECISION = 10;
-    public static final int DISPLAY_SIZE = 11;
+    private static final int PRECISION = 10;
+    private static final int DISPLAY_SIZE = 11;
 
     private final String label;
     private final int ordinal;
@@ -27,7 +33,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     protected int compareSecure(final Value v, final CompareMode mode) {
-        return MathUtils.compareInt(ordinal(), v.getInt());
+        return MathUtils.compareInt(getInt(), v.getInt());
     }
 
     @Override
@@ -39,9 +45,16 @@ public class ValueEnumBase extends Value {
     @Override
     public boolean equals(final Object other) {
         return other instanceof ValueEnumBase &&
-            ordinal() == ((ValueEnumBase) other).ordinal();
+            getInt() == ((ValueEnumBase) other).getInt();
     }
 
+    /**
+     * Get or create an enum value with the given label and ordinal.
+     *
+     * @param label the label
+     * @param ordinal the ordinal
+     * @return the value
+     */
     public static ValueEnumBase get(final String label, final int ordinal) {
         return new ValueEnumBase(label, ordinal);
     }
@@ -95,7 +108,7 @@ public class ValueEnumBase extends Value {
     public int hashCode() {
         int results = 31;
         results += getString().hashCode();
-        results += ordinal();
+        results += getInt();
         return results;
     }
 
@@ -111,10 +124,6 @@ public class ValueEnumBase extends Value {
         return convertTo(Value.INT).multiply(iv);
     }
 
-
-    protected int ordinal() {
-        return ordinal;
-    }
 
     @Override
     public void set(final PreparedStatement prep, final int parameterIndex)

@@ -1,5 +1,7 @@
 package org.h2.value;
 
+import java.util.Locale;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
@@ -35,30 +37,6 @@ public class ValueEnum extends ValueEnumBase {
         }
     }
 
-    private static final void check(final String[] enumerators, final String label) {
-        check(enumerators);
-
-        switch (validate(enumerators, label)) {
-            case VALID:
-                return;
-            default:
-                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_2,
-                        toString(enumerators), "'" + label + "'");
-        }
-    }
-
-    private static final void check(final String[] enumerators, final int ordinal) {
-        check(enumerators);
-
-        switch (validate(enumerators, ordinal)) {
-            case VALID:
-                return;
-            default:
-                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_2,
-                        toString(enumerators), Integer.toString(ordinal));
-        }
-    }
-
     private static final void check(final String[] enumerators, final Value value) {
         check(enumerators);
 
@@ -77,29 +55,20 @@ public class ValueEnum extends ValueEnumBase {
         return MathUtils.compareInt(ordinal(), ev.ordinal());
     }
 
-    public static ValueEnum get(final String[] enumerators, final String label) {
-        check(enumerators, label);
-
-        for (int i = 0; i < enumerators.length; i++) {
-            if (label.equals(enumerators[i]))
-                return new ValueEnum(enumerators, i);
-        }
-
-        throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
-    }
-
-    public static ValueEnum get(final String[] enumerators, final int ordinal) {
-        check(enumerators, ordinal);
-        return new ValueEnum(enumerators, ordinal);
-    }
-
     public static ValueEnum get(final String[] enumerators, final Value value) {
         check(enumerators, value);
 
         if (DataType.isStringType(value.getType())) {
-            return get(enumerators, value.getString());
+            final String cleanLabel = sanitize(value.getString());
+
+            for (int i = 0; i < enumerators.length; i++) {
+                if (cleanLabel.equals(sanitize(enumerators[i])))
+                    return new ValueEnum(enumerators, i);
+            }
+
+            throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
         } else {
-            return get(enumerators, value.getInt());
+            return new ValueEnum(enumerators, value.getInt());
         }
     }
 
@@ -107,21 +76,24 @@ public class ValueEnum extends ValueEnumBase {
         return enumerators;
     }
 
-    @Override
-    public int hashCode() {
-        return enumerators.hashCode() + ordinal();
-    }
-
-    public static boolean isValid(final String enumerators[], final String label) {
-        return validate(enumerators, label).equals(Validation.VALID);
-    }
-
-    public static boolean isValid(final String enumerators[], final int ordinal) {
-        return validate(enumerators, ordinal).equals(Validation.VALID);
-    }
-
     public static boolean isValid(final String enumerators[], final Value value) {
         return validate(enumerators, value).equals(Validation.VALID);
+    }
+
+    private static String sanitize(final String label) {
+        return label == null ? null : label.trim().toUpperCase(Locale.ENGLISH);
+    }
+
+    public static String[] sanitize(final String[] enumerators) {
+        if (enumerators == null || enumerators.length == 0) return null;
+
+        final String[] clean = new String[enumerators.length];
+
+        for (int i = 0; i < enumerators.length; i++) {
+            clean[i] = sanitize(enumerators[i]);
+        }
+
+        return clean;
     }
 
     private static String toString(final String[] enumerators) {
@@ -136,33 +108,21 @@ public class ValueEnum extends ValueEnumBase {
         return result;
     }
 
-    private static Validation validate(final String[] enumerators, final String label) {
-        check(enumerators);
-
-        final String cleanLabel = label.trim().toLowerCase();
-
-        for (int i = 0; i < enumerators.length; i++) {
-            if (cleanLabel.equals(enumerators[i])) {
-                return Validation.VALID;
-            }
-        }
-
-        return Validation.INVALID;
-    }
-
     private static Validation validate(final String[] enumerators) {
-        if (enumerators == null || enumerators.length == 0) {
+        final String[] cleaned = sanitize(enumerators);
+
+        if (cleaned == null || cleaned.length == 0) {
             return Validation.EMPTY;
         }
 
-        for (int i = 0; i < enumerators.length; i++) {
-            if (enumerators[i] == null || enumerators[i].trim().equals("")) {
+        for (int i = 0; i < cleaned.length; i++) {
+            if (cleaned[i] == null || cleaned[i].equals("")) {
                 return Validation.EMPTY;
             }
 
-            if (i < enumerators.length - 1) {
-                for (int j = i + 1; j < enumerators.length; j++) {
-                    if (enumerators[i].equals(enumerators[j])) {
+            if (i < cleaned.length - 1) {
+                for (int j = i + 1; j < cleaned.length; j++) {
+                    if (cleaned[i].equals(cleaned[j])) {
                         return Validation.DUPLICATE;
                     }
                 }
@@ -172,21 +132,30 @@ public class ValueEnum extends ValueEnumBase {
         return Validation.VALID;
     }
 
-    private static Validation validate(final String[] enumerators, final int ordinal) {
-        check(enumerators);
-
-        if (ordinal < 0 || ordinal >= enumerators.length) {
-            return Validation.INVALID;
+    private static Validation validate(final String[] enumerators, final Value value) {
+        final Validation validation = validate(enumerators);
+        if (!validation.equals(Validation.VALID)) {
+            return validation;
         }
 
-        return Validation.VALID;
-    }
-
-    private static Validation validate(final String[] enumerators, final Value value) {
         if (DataType.isStringType(value.getType())) {
-            return validate(enumerators, value.getString());
+            final String cleanLabel = sanitize(value.getString());
+
+            for (int i = 0; i < enumerators.length; i++) {
+                if (cleanLabel.equals(sanitize(enumerators[i]))) {
+                    return Validation.VALID;
+                }
+            }
+
+            return Validation.INVALID;
         } else {
-            return validate(enumerators, value.getInt());
+            final int ordinal = value.getInt();
+
+            if (ordinal < 0 || ordinal >= enumerators.length) {
+                return Validation.INVALID;
+            }
+
+            return Validation.VALID;
         }
     }
 }

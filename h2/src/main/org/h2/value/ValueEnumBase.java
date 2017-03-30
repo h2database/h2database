@@ -2,6 +2,7 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Locale;
 
 import org.h2.message.DbException;
 import org.h2.util.MathUtils;
@@ -38,8 +39,7 @@ public class ValueEnumBase extends Value {
     @Override
     public boolean equals(final Object other) {
         return other instanceof ValueEnumBase &&
-            ordinal() == ((ValueEnumBase) other).ordinal() &&
-            getString() == ((ValueEnumBase) other).getString();
+            ordinal() == ((ValueEnumBase) other).ordinal();
     }
 
     public static ValueEnumBase get(final String label, final int ordinal) {

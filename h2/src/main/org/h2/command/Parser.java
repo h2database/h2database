@@ -4128,7 +4128,6 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
-        java.util.List<String> enumeratorList = null;
         String[] enumerators = null;
         int scale = -1;
         String comment = null;
@@ -4205,22 +4204,21 @@ public class Parser {
             }
         } else if (dataType.enumerated) {
             if (readIf("(")) {
-                enumeratorList = new ArrayList<String>();
+                java.util.List<String> enumeratorList = new ArrayList<String>();
                 original += '(';
                 String enumerator0 = readString();
-                enumeratorList.add(enumerator0.toLowerCase().trim());
+                enumeratorList.add(enumerator0);
                 original += "'" + enumerator0 + "'";
                 while(readIf(",")) {
                     original += ',';
                     String enumeratorN = readString();
                     original += "'" + enumeratorN + "'";
-                    enumeratorList.add(enumeratorN.toLowerCase().trim());
+                    enumeratorList.add(enumeratorN);
                 }
                 read(")");
                 original += ')';
+                enumerators = enumeratorList.toArray(new String[enumeratorList.size()]);
             }
-            enumerators
-                = enumeratorList.toArray(new String[enumeratorList.size()]);
             try {
                 ValueEnum.check(enumerators);
             } catch(DbException e) {
@@ -4249,7 +4247,7 @@ public class Parser {
 
 
         Column column = new Column(columnName, type, precision, scale,
-            displaySize, enumerators == null ? null : enumerators);
+            displaySize, enumerators);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

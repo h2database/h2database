@@ -147,7 +147,7 @@ public class Column {
     }
 
     public boolean isEnumerated() {
-        return enumerators != null && enumerators.length > 0;
+        return type == Value.ENUM;
     }
 
     public Column getClone() {

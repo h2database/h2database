@@ -141,7 +141,7 @@ public class DataType {
     public boolean caseSensitive;
 
     /**
-     * If permitted values are supports.
+     * If enumerated values are supported.
      */
     public boolean enumerated;
 

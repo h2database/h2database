@@ -10661,3 +10661,26 @@ alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds',
 
 drop table card;
 > ok
+
+--- ENUM as custom user data type
+
+create type CARD_SUIT as enum('hearts', 'clubs', 'spades', 'diamonds');
+> ok
+
+create table card (rank int, suit CARD_SUIT);
+> ok
+
+insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts');
+> update count: 2
+
+select * from card;
+> RANK SUIT
+> ---- ------
+> 0    clubs
+> 3    hearts
+
+drop table card;
+> ok
+
+drop type CARD_SUIT;
+> ok

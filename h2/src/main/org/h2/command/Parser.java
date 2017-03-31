@@ -4145,6 +4145,7 @@ public class Parser {
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
             scale = templateColumn.getScale();
+            enumerators = templateColumn.getEnumerators();
         } else {
             dataType = DataType.getTypeByName(original);
             if (dataType == null) {

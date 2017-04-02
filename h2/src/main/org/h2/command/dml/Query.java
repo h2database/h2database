@@ -19,7 +19,7 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
 import org.h2.table.ColumnResolver;
@@ -60,15 +60,21 @@ public abstract class Query extends Prepared {
      */
     protected boolean randomAccessResult;
 
+    protected boolean neverLazy;
+
     private boolean noCache;
     private int lastLimit;
     private long lastEvaluated;
-    private LocalResult lastResult;
+    private ResultInterface lastResult;
     private Value[] lastParameters;
     private boolean cacheableChecked;
 
     Query(Session session) {
         super(session);
+    }
+
+    public void setNeverLazy(boolean b) {
+        this.neverLazy = b;
     }
 
     /**
@@ -92,8 +98,23 @@ public abstract class Query extends Prepared {
      * @param target the target to write results to
      * @return the result
      */
-    protected abstract LocalResult queryWithoutCache(int limit,
+    protected abstract ResultInterface queryWithoutCache(int limit,
             ResultTarget target);
+
+    protected final ResultInterface queryWithoutCache0(int limit,
+            ResultTarget target) {
+        boolean disableLazy = neverLazy && session.isLazyQueryExecution();
+        if (disableLazy) {
+            session.setLazyQueryExecution(false);
+        }
+        try {
+            return queryWithoutCache(limit, target);
+        } finally {
+            if (disableLazy) {
+                session.setLazyQueryExecution(true);
+            }
+        }
+    }
 
     /**
      * Initialize the query.
@@ -305,7 +326,7 @@ public abstract class Query extends Prepared {
     }
 
     @Override
-    public LocalResult query(int maxrows) {
+    public final ResultInterface query(int maxrows) {
         return query(maxrows, null);
     }
 
@@ -316,10 +337,11 @@ public abstract class Query extends Prepared {
      * @param target the target result (null will return the result)
      * @return the result set (if the target is not set).
      */
-    LocalResult query(int limit, ResultTarget target) {
+    ResultInterface query(int limit, ResultTarget target) {
         fireBeforeSelectTriggers();
-        if (noCache || !session.getDatabase().getOptimizeReuseResults()) {
-            return queryWithoutCache(limit, target);
+        if (noCache || !session.getDatabase().getOptimizeReuseResults() ||
+                session.isLazyQueryExecution()) {
+            return queryWithoutCache0(limit, target);
         }
         Value[] params = getParameterValues();
         long now = session.getDatabase().getModificationDataId();
@@ -338,7 +360,7 @@ public abstract class Query extends Prepared {
         }
         lastParameters = params;
         closeLastResult();
-        LocalResult r = queryWithoutCache(limit, target);
+        ResultInterface r = queryWithoutCache0(limit, target);
         lastResult = r;
         this.lastEvaluated = now;
         lastLimit = limit;
@@ -565,5 +587,4 @@ public abstract class Query extends Prepared {
         isEverything(visitor);
         return visitor.getMaxDataModificationId();
     }
-
 }

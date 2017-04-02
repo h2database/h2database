@@ -56,7 +56,7 @@ public class H2Cursor extends AbstractWindowedCursor {
 
     @Override
     public int getCount() {
-        return result.getRowCount();
+        return result.isLazy() ? -1 : result.getRowCount();
     }
 
     /**

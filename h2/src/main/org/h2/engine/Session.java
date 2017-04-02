@@ -31,7 +31,7 @@ import org.h2.message.TraceSystem;
 import org.h2.mvstore.db.MVTable;
 import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
@@ -108,7 +108,7 @@ public class Session extends SessionWithState {
     private long transactionStart;
     private long currentCommandStart;
     private HashMap<String, Value> variables;
-    private HashSet<LocalResult> temporaryResults;
+    private HashSet<ResultInterface> temporaryResults;
     private int queryTimeout;
     private boolean commitOrRollbackDisabled;
     private Table waitForLock;
@@ -116,7 +116,7 @@ public class Session extends SessionWithState {
     private int modificationId;
     private int objectId;
     private final int queryCacheSize;
-    private SmallLRUCache<String, Command> queryCache;
+    private final SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
@@ -125,6 +125,7 @@ public class Session extends SessionWithState {
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
+    private boolean lazyQueryExecution;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -148,6 +149,9 @@ public class Session extends SessionWithState {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
         this.queryCacheSize = database.getSettings().queryCacheSize;
+        this.queryCache = queryCacheSize <= 0 ? null :
+                SmallLRUCache.<String, Command>newInstance(queryCacheSize);
+        this.modificationMetaID = database.getModificationMetaId();
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
@@ -156,6 +160,14 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+    }
+
+    public void setLazyQueryExecution(boolean lazyQueryExecution) {
+        this.lazyQueryExecution = lazyQueryExecution;
+    }
+
+    public boolean isLazyQueryExecution() {
+        return lazyQueryExecution;
     }
 
     public void setForceJoinOrder(boolean forceJoinOrder) {
@@ -542,11 +554,8 @@ public class Session extends SessionWithState {
                     "session closed");
         }
         Command command;
-        if (queryCacheSize > 0) {
-            if (queryCache == null) {
-                queryCache = SmallLRUCache.newInstance(queryCacheSize);
-                modificationMetaID = database.getModificationMetaId();
-            } else {
+        if (queryCache != null) {
+            synchronized (queryCache) {
                 long newModificationMetaID = database.getModificationMetaId();
                 if (newModificationMetaID != modificationMetaID) {
                     queryCache.clear();
@@ -567,8 +576,8 @@ public class Session extends SessionWithState {
             subQueryIndexCache = null;
         }
         command.prepareJoinBatch();
-        if (queryCache != null) {
-            if (command.isCacheable()) {
+        if (queryCache != null && command.isCacheable()) {
+            synchronized (queryCache) {
                 queryCache.put(sql, command);
             }
         }
@@ -1469,7 +1478,7 @@ public class Session extends SessionWithState {
      *
      * @param result the temporary result set
      */
-    public void addTemporaryResult(LocalResult result) {
+    public void addTemporaryResult(ResultInterface result) {
         if (!result.needToClose()) {
             return;
         }
@@ -1484,7 +1493,7 @@ public class Session extends SessionWithState {
 
     private void closeTemporaryResults() {
         if (temporaryResults != null) {
-            for (LocalResult result : temporaryResults) {
+            for (ResultInterface result : temporaryResults) {
                 result.close();
             }
             temporaryResults = null;

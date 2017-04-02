@@ -372,11 +372,11 @@ public class TestPreparedStatement extends TestBase {
             prepareStatement("SELECT * FROM (SELECT ? FROM DUAL)");
         PreparedStatement prep = conn.prepareStatement("SELECT -?");
         prep.setInt(1, 1);
-        prep.execute();
+        execute(prep);
         prep = conn.prepareStatement("SELECT ?-?");
         prep.setInt(1, 1);
         prep.setInt(2, 2);
-        prep.execute();
+        execute(prep);
     }
 
     private void testCancelReuse(Connection conn) throws Exception {
@@ -390,7 +390,7 @@ public class TestPreparedStatement extends TestBase {
         Task t = new Task() {
             @Override
             public void call() throws SQLException {
-                prep.execute();
+                TestPreparedStatement.this.execute(prep);
             }
         };
         t.execute();

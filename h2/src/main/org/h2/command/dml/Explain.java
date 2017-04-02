@@ -38,6 +38,9 @@ public class Explain extends Prepared {
 
     public void setCommand(Prepared command) {
         this.command = command;
+        if (command instanceof Query) {
+            ((Query) command).setNeverLazy(true);
+        }
     }
 
     public Prepared getCommand() {

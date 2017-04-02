@@ -31,6 +31,7 @@ import java.util.UUID;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
+import org.h2.command.CommandInterface;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
@@ -91,13 +92,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     private HashMap<String, Integer> columnLabelMap;
     private HashMap<Integer, Value[]> patchedRows;
     private JdbcPreparedStatement preparedStatement;
+    private CommandInterface command;
 
-    JdbcResultSet(JdbcConnection conn, JdbcStatement stat,
+    JdbcResultSet(JdbcConnection conn, JdbcStatement stat, CommandInterface command,
             ResultInterface result, int id, boolean closeStatement,
             boolean scrollable, boolean updatable) {
         setTrace(conn.getSession().getTrace(), TraceObject.RESULT_SET, id);
         this.conn = conn;
         this.stat = stat;
+        this.command = command;
         this.result = result;
         columnCount = result.getVisibleColumnCount();
         this.closeStatement = closeStatement;
@@ -106,10 +109,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     JdbcResultSet(JdbcConnection conn, JdbcPreparedStatement preparedStatement,
-            ResultInterface result, int id, boolean closeStatement,
+            CommandInterface command, ResultInterface result, int id, boolean closeStatement,
             boolean scrollable, boolean updatable,
             HashMap<String, Integer> columnLabelMap) {
-        this(conn, preparedStatement, result, id, closeStatement, scrollable,
+        this(conn, preparedStatement, command, result, id, closeStatement, scrollable,
                 updatable);
         this.columnLabelMap = columnLabelMap;
         this.preparedStatement = preparedStatement;
@@ -208,6 +211,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     void closeInternal() throws SQLException {
         if (result != null) {
             try {
+                if (result.isLazy()) {
+                    stat.onLazyResultSetClose(command, preparedStatement == null);
+                }
                 result.close();
                 if (closeStatement && stat != null) {
                     stat.close();
@@ -2525,10 +2531,10 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("getRow");
             checkClosed();
-            int rowId = result.getRowId();
-            if (rowId >= result.getRowCount()) {
+            if (result.isAfterLast()) {
                 return 0;
             }
+            int rowId = result.getRowId();
             return rowId + 1;
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -2674,9 +2680,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("isBeforeFirst");
             checkClosed();
-            int row = result.getRowId();
-            int count = result.getRowCount();
-            return count > 0 && row < 0;
+            return result.getRowId() < 0 && result.hasNext();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2695,9 +2699,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("isAfterLast");
             checkClosed();
-            int row = result.getRowId();
-            int count = result.getRowCount();
-            return count > 0 && row >= count;
+            return result.getRowId() > 0 && result.isAfterLast();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2715,8 +2717,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("isFirst");
             checkClosed();
-            int row = result.getRowId();
-            return row == 0 && row < result.getRowCount();
+            return result.getRowId() == 0 && !result.isAfterLast();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2734,8 +2735,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("isLast");
             checkClosed();
-            int row = result.getRowId();
-            return row >= 0 && row == result.getRowCount() - 1;
+            int rowId = result.getRowId();
+            return rowId >= 0 && !result.isAfterLast() && !result.hasNext();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2791,10 +2792,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("first");
             checkClosed();
-            if (result.getRowId() < 0) {
-                return nextRow();
+            if (result.getRowId() >= 0) {
+                resetResult();
             }
-            resetResult();
             return nextRow();
         } catch (Exception e) {
             throw logAndConvert(e);
@@ -2812,7 +2812,13 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("last");
             checkClosed();
-            return absolute(-1);
+            if (result.isAfterLast()) {
+                resetResult();
+            }
+            while (result.hasNext()) {
+                nextRow();
+            }
+            return isOnValidRow();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2836,17 +2842,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             checkClosed();
             if (rowNumber < 0) {
                 rowNumber = result.getRowCount() + rowNumber + 1;
-            } else if (rowNumber > result.getRowCount() + 1) {
-                rowNumber = result.getRowCount() + 1;
             }
-            if (rowNumber <= result.getRowId()) {
+            if (--rowNumber < result.getRowId()) {
                 resetResult();
             }
-            while (result.getRowId() + 1 < rowNumber) {
-                nextRow();
+            while (result.getRowId() < rowNumber) {
+                if (!nextRow()) {
+                    return false;
+                }
             }
-            int row = result.getRowId();
-            return row >= 0 && row < result.getRowCount();
+            return isOnValidRow();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -2867,13 +2872,16 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         try {
             debugCodeCall("relative", rowCount);
             checkClosed();
-            int row = result.getRowId() + 1 + rowCount;
-            if (row < 0) {
-                row = 0;
-            } else if (row > result.getRowCount()) {
-                row = result.getRowCount() + 1;
+            if (rowCount < 0) {
+                rowCount = result.getRowId() + rowCount + 1;
+                resetResult();
             }
-            return absolute(row);
+            for (int i = 0; i < rowCount; i++) {
+                if (!nextRow()) {
+                    return false;
+                }
+            }
+            return isOnValidRow();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -3207,8 +3215,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         }
     }
 
+    private boolean isOnValidRow() {
+        return result.getRowId() >= 0 && !result.isAfterLast();
+    }
+
     private void checkOnValidRow() {
-        if (result.getRowId() < 0 || result.getRowId() >= result.getRowCount()) {
+        if (!isOnValidRow()) {
             throw DbException.get(ErrorCode.NO_DATA_AVAILABLE);
         }
     }
@@ -3254,6 +3266,9 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     }
 
     private boolean nextRow() {
+        if (result.isLazy() && stat.isCancelled()) {
+            throw DbException.get(ErrorCode.STATEMENT_WAS_CANCELED);
+        }
         boolean next = result.next();
         if (!next && !scrollable) {
             result.close();

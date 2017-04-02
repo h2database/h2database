@@ -220,6 +220,9 @@ public class TestOptimizations extends TestBase {
     }
 
     private void testQueryCacheConcurrentUse() throws Exception {
+        if (config.lazy) {
+            return;
+        }
         final Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, data clob)");

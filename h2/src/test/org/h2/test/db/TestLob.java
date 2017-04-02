@@ -163,6 +163,9 @@ public class TestLob extends TestBase {
     }
 
     private void testRemovedAfterTimeout() throws Exception {
+        if (config.lazy) {
+            return;
+        }
         deleteDb("lob");
         final String url = getURL("lob;lob_timeout=50", true);
         Connection conn = getConnection(url);
@@ -199,6 +202,9 @@ public class TestLob extends TestBase {
     }
 
     private void testConcurrentRemoveRead() throws Exception {
+        if (config.lazy) {
+            return;
+        }
         deleteDb("lob");
         final String url = getURL("lob", true);
         Connection conn = getConnection(url);

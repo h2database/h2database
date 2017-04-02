@@ -274,10 +274,10 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             /*
              * The (20-x) calculation makes sure that when we pick a covering
              * index, we pick the covering index that has the smallest number of
-             * columns. This is faster because a smaller index will fit into
-             * fewer data blocks.
+             * columns (the more columns we have in index - the higher cost).
+             * This is faster because a smaller index will fit into fewer data blocks.
              */
-            rc = rowsCost + sortingCost + (20 - columns.length);
+            rc = rowsCost + sortingCost + columns.length;
         }
         return rc;
     }

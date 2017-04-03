@@ -191,6 +191,14 @@ public interface Index extends SchemaObject {
     int getColumnIndex(Column col);
 
     /**
+     * Check if the given column is the first for this index
+     *
+     * @param column the column
+     * @return true if the given columns is the first
+     */
+    boolean isFirstColumn(Column column);
+
+    /**
      * Get the indexed columns as index columns (with ordering information).
      *
      * @return the index columns

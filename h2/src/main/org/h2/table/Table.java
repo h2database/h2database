@@ -1069,10 +1069,9 @@ public abstract class Table extends SchemaObjectBase {
                 if (needFindNext && !index.canFindNext()) {
                     continue;
                 }
-                int idx = index.getColumnIndex(column);
                 // choose the minimal covering index with the needed first column
                 // to work consistently with execution plan from Optimizer
-                if (idx == 0 && (result == null ||
+                if (index.isFirstColumn(column) && (result == null ||
                         result.getColumns().length > index.getColumns().length)) {
                     result = index;
                 }

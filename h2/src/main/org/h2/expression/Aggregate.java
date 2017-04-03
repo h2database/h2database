@@ -287,7 +287,7 @@ public class Aggregate extends Expression {
             case MIN:
             case MAX:
                 boolean first = type == MIN;
-                Index index = getColumnIndex();
+                Index index = getMinMaxColumnIndex();
                 int sortType = index.getIndexColumns()[0].sortType;
                 if ((sortType & SortOrder.DESCENDING) != 0) {
                     first = !first;
@@ -575,14 +575,14 @@ public class Aggregate extends Expression {
         return text + StringUtils.enclose(on.getSQL());
     }
 
-    private Index getColumnIndex() {
+    private Index getMinMaxColumnIndex() {
         if (on instanceof ExpressionColumn) {
             ExpressionColumn col = (ExpressionColumn) on;
             Column column = col.getColumn();
             TableFilter filter = col.getTableFilter();
             if (filter != null) {
                 Table table = filter.getTable();
-                Index index = table.getIndexForColumn(column);
+                Index index = table.getIndexForColumn(column, true, false);
                 return index;
             }
         }
@@ -602,7 +602,7 @@ public class Aggregate extends Expression {
                 return visitor.getTable().canGetRowCount();
             case MIN:
             case MAX:
-                Index index = getColumnIndex();
+                Index index = getMinMaxColumnIndex();
                 return index != null;
             default:
                 return false;

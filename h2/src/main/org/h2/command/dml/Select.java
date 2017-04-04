@@ -84,6 +84,11 @@ public class Select extends Query {
     private SortOrder sort;
     private int currentGroupRowId;
 
+    /**
+     * Indicate to this query that it is wrapped inside an EXISTS().
+     */
+    private boolean isExistsSubquery;
+
     public Select(Session session) {
         super(session);
     }
@@ -544,9 +549,15 @@ public class Select extends Query {
             if (condition == null ||
                     Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                 Value[] row = new Value[columnCount];
-                for (int i = 0; i < columnCount; i++) {
-                    Expression expr = expressions.get(i);
-                    row[i] = expr.getValue(session);
+                if (!isExistsSubquery) {
+                    for (int i = 0; i < columnCount; i++) {
+                        Expression expr = expressions.get(i);
+                        row[i] = expr.getValue(session);
+                    }
+                } else {
+                    for (int i = 0; i < columnCount; i++) {
+                        row[i] = ValueNull.INSTANCE;
+                    }
                 }
                 if (isForUpdateMvcc) {
                     topTableFilter.lockRowAdd(forUpdateRows);
@@ -851,9 +862,11 @@ public class Select extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        for (int i = 0; i < expressions.size(); i++) {
-            Expression e = expressions.get(i);
-            expressions.set(i, e.optimize(session));
+        if (!isExistsSubquery) {
+            for (int i = 0; i < expressions.size(); i++) {
+                Expression e = expressions.get(i);
+                expressions.set(i, e.optimize(session));
+            }
         }
         if (condition != null) {
             condition = condition.optimize(session);
@@ -1006,6 +1019,11 @@ public class Select extends Query {
             TableFilter filter = filters.get(i);
             filter.getTable().fire(session, Trigger.SELECT, true);
         }
+    }
+
+    @Override
+    public void setExistsSubquery(boolean b) {
+        isExistsSubquery = b;
     }
 
     private double preparePlan(boolean parse) {

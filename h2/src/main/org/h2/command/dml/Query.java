@@ -224,6 +224,11 @@ public abstract class Query extends Prepared {
     public abstract void fireBeforeSelectTriggers();
 
     /**
+     * Indicate to this query that it is wrapped inside an EXISTS().
+     */
+    public abstract void setExistsSubquery(boolean isExistsSubquery);
+
+    /**
      * Set the distinct flag.
      *
      * @param b the new value
@@ -565,5 +570,4 @@ public abstract class Query extends Prepared {
         isEverything(visitor);
         return visitor.getMaxDataModificationId();
     }
-
 }

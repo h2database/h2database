@@ -43,7 +43,7 @@ public abstract class Command implements CommandInterface {
 
     private final String sql;
 
-    private volatile boolean canReuse;
+    private boolean canReuse;
 
     Command(Parser parser, String sql) {
         this.session = parser.getSession();

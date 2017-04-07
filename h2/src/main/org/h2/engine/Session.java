@@ -116,7 +116,7 @@ public class Session extends SessionWithState {
     private int modificationId;
     private int objectId;
     private final int queryCacheSize;
-    private final SmallLRUCache<String, Command> queryCache;
+    private SmallLRUCache<String, Command> queryCache;
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
@@ -149,9 +149,6 @@ public class Session extends SessionWithState {
         this.database = database;
         this.queryTimeout = database.getSettings().maxQueryTimeout;
         this.queryCacheSize = database.getSettings().queryCacheSize;
-        this.queryCache = queryCacheSize <= 0 ? null :
-                SmallLRUCache.<String, Command>newInstance(queryCacheSize);
-        this.modificationMetaID = database.getModificationMetaId();
         this.undoLog = new UndoLog(this);
         this.user = user;
         this.id = id;
@@ -554,8 +551,11 @@ public class Session extends SessionWithState {
                     "session closed");
         }
         Command command;
-        if (queryCache != null) {
-            synchronized (queryCache) {
+        if (queryCacheSize > 0) {
+            if (queryCache == null) {
+                queryCache = SmallLRUCache.newInstance(queryCacheSize);
+                modificationMetaID = database.getModificationMetaId();
+            } else {
                 long newModificationMetaID = database.getModificationMetaId();
                 if (newModificationMetaID != modificationMetaID) {
                     queryCache.clear();
@@ -576,8 +576,8 @@ public class Session extends SessionWithState {
             subQueryIndexCache = null;
         }
         command.prepareJoinBatch();
-        if (queryCache != null && command.isCacheable()) {
-            synchronized (queryCache) {
+        if (queryCache != null) {
+            if (command.isCacheable()) {
                 queryCache.put(sql, command);
             }
         }

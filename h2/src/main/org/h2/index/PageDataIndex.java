@@ -465,6 +465,11 @@ public class PageDataIndex extends PageIndex {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        return false;
+    }
+
+    @Override
     public void close(Session session) {
         if (trace.isDebugEnabled()) {
             trace.debug("{0} close", this);

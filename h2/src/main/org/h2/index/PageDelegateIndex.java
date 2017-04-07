@@ -97,6 +97,11 @@ public class PageDelegateIndex extends PageIndex {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        return getColumnIndex(column) == 0;
+    }
+
+    @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {

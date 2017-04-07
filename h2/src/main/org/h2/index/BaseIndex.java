@@ -377,6 +377,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return -1;
     }
 
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return column.equals(columns[0]);
+    }
+
     /**
      * Get the list of columns as a string.
      *

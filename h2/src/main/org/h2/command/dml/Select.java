@@ -872,7 +872,7 @@ public class Select extends Query {
                 Column column = ((ExpressionColumn) expr).getColumn();
                 int selectivity = column.getSelectivity();
                 Index columnIndex = topTableFilter.getTable().
-                        getIndexForColumn(column);
+                        getIndexForColumn(column, false, true);
                 if (columnIndex != null &&
                         selectivity != Constants.SELECTIVITY_DEFAULT &&
                         selectivity < 20) {

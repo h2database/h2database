@@ -1,4 +1,4 @@
-#H2
+# H2
 
 Welcome to H2, the Java SQL database. The main features of H2 are:
 
@@ -7,9 +7,9 @@ Welcome to H2, the Java SQL database. The main features of H2 are:
 * Browser based Console application
 * Small footprint: around 1.5 MB jar file size
 
-##Experimental Building & Testing with Maven
+## Experimental Building & Testing with Maven
 
-###Setup JDK
+### Setup JDK
 
 Maven requires at minimum the JDK 1.7 whereas H2 is designed to be compiled against the JDK 1.6; the way in which this is
 resolved is through [maven toolchains](https://maven.apache.org/guides/mini/guide-using-toolchains.html).
@@ -34,7 +34,7 @@ Here is a sample file
 </toolchains>
 ```
 
-###Building
+### Building
 
 H2 uses [Maven Wrapper](https://github.com/takari/maven-wrapper) setup, you can instruct users to run wrapper scripts:
 
@@ -44,7 +44,7 @@ or
 
 > $ ./mvnw.cmd clean test
 
-###Running
+### Running
 
 You can run the server like this
 

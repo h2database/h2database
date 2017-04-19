@@ -169,9 +169,14 @@ public abstract class Value {
     public static final int TIMESTAMP_TZ = 24;
 
     /**
+     * The value type for ENUM values.
+     */
+    public static final int ENUM = 25;
+
+    /**
      * The number of value types.
      */
-    public static final int TYPE_COUNT = TIMESTAMP_TZ;
+    public static final int TYPE_COUNT = ENUM;
 
     private static SoftReference<Value[]> softCache =
             new SoftReference<Value[]>(null);
@@ -323,6 +328,8 @@ public abstract class Value {
             return 50_000;
         case RESULT_SET:
             return 51_000;
+        case ENUM:
+            return 52_000;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);
@@ -618,6 +625,8 @@ public abstract class Value {
                     return ValueInt.get(getBoolean().booleanValue() ? 1 : 0);
                 case BYTE:
                     return ValueInt.get(getByte());
+                case ENUM:
+                    return ValueInt.get(getInt());
                 case SHORT:
                     return ValueInt.get(getShort());
                 case LONG:
@@ -849,6 +858,13 @@ public abstract class Value {
                 }
                 break;
             }
+            case ENUM: {
+                switch (getType()) {
+                    case INT:
+                    case STRING:
+                        return this;
+                }
+            }
             case BLOB: {
                 switch (getType()) {
                 case BYTES:
@@ -940,6 +956,7 @@ public abstract class Value {
             case JAVA_OBJECT:
                 return ValueJavaObject.getNoCopy(null,
                         StringUtils.convertHexToBytes(s.trim()), getDataHandler());
+            case ENUM:
             case STRING:
                 return ValueString.get(s);
             case STRING_IGNORECASE:

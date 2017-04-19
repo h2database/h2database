@@ -494,6 +494,11 @@ public class Transfer {
             }
             break;
         }
+        case Value.ENUM: {
+            writeInt(v.getInt());
+            writeString(v.getString());
+            break;
+        }
         case Value.RESULT_SET: {
             try {
                 ResultSet rs = ((ValueResultSet) v).getResultSet();
@@ -594,6 +599,11 @@ public class Transfer {
             return ValueDouble.get(readDouble());
         case Value.FLOAT:
             return ValueFloat.get(readFloat());
+        case Value.ENUM: {
+            final int ordinal = readInt();
+            final String label = readString();
+            return ValueEnumBase.get(label, ordinal);
+        }
         case Value.INT:
             return ValueInt.get(readInt());
         case Value.LONG:
@@ -711,7 +721,8 @@ public class Transfer {
             return ValueGeometry.get(readString());
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.convert(ValueBytes.getNoCopy(readBytes()), type);
+                return JdbcUtils.customDataTypesHandler.convert(
+                        ValueBytes.getNoCopy(readBytes()), type);
             }
             throw DbException.get(ErrorCode.CONNECTION_BROKEN_1, "type=" + type);
         }

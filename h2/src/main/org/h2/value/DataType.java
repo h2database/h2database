@@ -385,6 +385,14 @@ public class DataType {
                 new String[]{"RESULT_SET"},
                 400
         );
+        dataType = createString(false);
+        dataType.supportsPrecision = false;
+        dataType.supportsScale = false;
+        add(Value.ENUM, Types.OTHER, "Enum",
+                dataType,
+                new String[]{"ENUM"},
+                48
+        );
         for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
             Value.getOrder(i);
         }
@@ -665,6 +673,12 @@ public class DataType {
                     values[i] = DataType.convertToValue(session, list[i], Value.NULL);
                 }
                 v = ValueArray.get(values);
+                break;
+            }
+            case Value.ENUM: {
+                int value = rs.getInt(columnIndex);
+                v = rs.wasNull() ? (Value) ValueNull.INSTANCE :
+                    ValueInt.get(value);
                 break;
             }
             case Value.RESULT_SET: {
@@ -1109,7 +1123,8 @@ public class DataType {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
-                return JdbcUtils.customDataTypesHandler.getValue(type, x, session.getDataHandler());
+                return JdbcUtils.customDataTypesHandler.getValue(type, x,
+                        session.getDataHandler());
             }
             return ValueJavaObject.getNoCopy(x, null, session.getDataHandler());
         }

@@ -76,7 +76,7 @@ calculation calculations calendar calendars call callable callback callbacks
 called caller calling calls cally caload came camel can cancel canceled canceling
 cancellation cancelled cancels candidates cannot canonical cap capabilities
 capability capacity capitalization capitalize capitalized capone caps capture
-captured car cardinal cardinality care careful carriage carrier cars cartesian
+captured car card cardinal cardinality care careful carriage carrier cars cartesian
 cascade cascading case cases casesensitive casewhen cash casing casqueiro cast
 casting castore cat catalina catalog catalogs cataloguing catch catcher catches
 catching category catlog caucho caught cause caused causes causing cavestro
@@ -181,8 +181,8 @@ detailed details detect detected detecting detection detector detects determine
 determining deterministic detrimental deusen deutsch dev develop developed
 developer developers developing development devenish deviation device devices
 dfile dgenerate dgroup dhe dhis diabetes diagnostic diagnostics diagram diagrams
-dialect dialog diams dick dictionary did didn died dieguez diehard dies diff
-differ difference differences different differential differentiate differently
+dialect dialog diamonds diams dick dictionary did didn died dieguez diehard dies
+diff differ difference differences different differential differentiate differently
 differs dig digest digit digital digits diligence dim dimension dimensional
 dimensions dimitrijs dinamica dining dip dips dir direct direction directly
 directories directory directs dirname dirs dirty disable disabled
@@ -218,14 +218,14 @@ encrypting encryption encrypts end ended enderbury endif ending endings endless
 endlessly endorse ends enforce enforceability enforceable enforced engine engines
 english enhance enhanced enhancement enhancer enlarge enough enqueued ensp ensure
 ensures ensuring enter entered entering enterprise entire entities entity entries
-entry enum enumerate enumeration env envelope environment environments enwiki eof
-eol epl epoch epoll epsilon equal equality equally equals equipment equitable
-equiv equivalent equivalents era erable eremainder eric erik err error errorlevel
-errors erwan ery esc escape escaped escapes escaping escargots ese espa essential
-essentials established estimate estimated estimates estimating estimation
-estoppel eta etc eth etl euml euro europe europeu euros eva eval evaluatable
-evaluate evaluated evaluates evaluating evaluation evdokimov even evenly event
-events eventually ever every everybody everyone everything everywhere evict
+entry enum enumerate enumerated enumerator enumerators enumeration env envelope
+environment environments enwiki eof eol epl epoch epoll epsilon equal equality equally
+equals equipment equitable equiv equivalent equivalents era erable eremainder eric
+erik err error errorlevel errors erwan ery esc escape escaped escapes escaping
+escargots ese espa essential essentials established estimate estimated estimates
+estimating estimation estoppel eta etc eth etl euml euro europe europeu euros eva eval
+evaluatable evaluate evaluated evaluates evaluating evaluation evdokimov even evenly
+event events eventually ever every everybody everyone everything everywhere evict
 evicted eviction evolving exact exactly example examples exceed exceeded exceeds
 excel except exception exceptions exchange exclude excluded excludes excluding
 exclusion exclusive exclusively exe exec executable executables execute executed
@@ -277,7 +277,7 @@ google googlegroups got goto goubard governed governing government gpg grabbing
 graceful graf grails grained grains grajcar grammar grammars grandin grandma
 grant grantable granted grantedrole grantee granteetype granting grantor grants
 granularity graph graphic graphical graphics grass gray great greater greatest
-greatly gredler greece greedy gregorian grep grew grid gridwidth gridx gridy
+greatly gredler greece greedy green gregorian grep grew grid gridwidth gridx gridy
 groove groovy gross group grouped grouping groups groupware grover grow growing
 grows growth guarantee guaranteed guard guardian guess guesses guest gui guid
 guide guidelines guides gumbo gustav gutierrez gzip hack had haidinyak half hallo
@@ -485,9 +485,9 @@ predict predicted prediction prefer preferable preferdoslikelineends preferences
 preferred prefix prefixes prefs premain premature prep prepare prepared prepares
 preparing prepended prepending pres presence present presentation preserve
 preserved preserving press pressed pretty prev prevent prevented prevention
-prevents previous previously pri price prices primary prime primitive primitives
-principal print printable printed printf printing println prints prio prior
-prioritize priority private privilege privileges pro prob probability probable
+prevents previous previously pri price prices primarily primary prime primitive
+primitives principal print printable printed printf printing println prints prio
+prior prioritize priority private privilege privileges pro prob probability probable
 probably problem problematic problems proc procedural procedure procedures
 proceed process processed processes processing processor processors procurement
 prod produce produced produces product production products prof profile profiler
@@ -558,7 +558,7 @@ routines row rowcount rowid rowlock rownum rows rowscn rowsize roy royalty rpad 
 rsaquo rsquo rss rtree rtrim ruby ruebezahl rule rules run rund rundll runnable
 runner runners running runs runscript runtime rwd rws sabine safari safe safely
 safes safety said sainsbury salary sale sales saload salt salz sam same
-sameorigin samp sample samples sanity sans sastore sat satisfy saturday sauce
+sameorigin samp sample samples sanitize sanity sans sastore sat satisfy saturday sauce
 sauerkraut sava save saved savepoint savepoints saves saving savings say saying
 says sbquo scala scalability scalable scalar scale scaled scales scan scanned
 scanner scanners scanning scans scapegoat scc schedule scheduler schem schema
@@ -591,7 +591,7 @@ sites situation situations six sixty size sized sizeof sizes sizing skeletons sk
 skiing skill skip skipped skipping skips sky slash slashdot slashes slave sleep
 sleeping sleeps slept slice sliced slight slightly slist slot slots slovensky
 slow slowed slower slowest slowing slowly slows small smalldatetime smaller
-smallest smallint smart smith smtp smtps smuggled snapshot snapshots snipped
+smallest smallint smart smith smol smtp smtps smuggled snake snapshot snapshots snipped
 snippet snippets soap social socket sockets soerensen soffice soft software sold
 sole solely solid solo solution solutions solve solved solves solving some
 somebody somehow someone something sometime sometimes somewhat somewhere song
@@ -621,8 +621,8 @@ subscribe subselect subsequent subsequently subset substance substitute
 substituted substitution substr substring substrings substructure subsystem
 subtract subtracted subtracting subtraction subversion succeed succeeded succeeds
 success successful successfully succession such suddenly sudo sue sufficient
-sufficiently suffix sugar suggest suggested suggestion suggestions suitable suite
-suites sullivan sum summand summary summer summertime sums sun sunday sup supe
+sufficiently suffix sugar suggest suggested suggestion suggestions suit suitable
+suite suites sullivan sum summand summary summer summertime sums sun sunday sup supe
 super superclass superfluous superinterfaces superior superseded supertable
 superuser supplemental supplied supplier supply support supported supporter
 supporters supporting supports supposed suppress sure surname surrogate
@@ -666,7 +666,7 @@ trick tricky tried tries trig trigger triggered triggers trigonometric trim
 trimmed trims trip trivial trouble true trunc truncate truncated truncates
 truncating truncation trunk trust trusted trx try trying tsi tsmsys tsv tucc
 tucker tuesday tune tunes tuning turkel turkish turn turned turns tutorial tweak
-tweaking tweet twelve twice twitter two txt tymczak type typeof types typesafe
+tweaking tweet twelve twice twitter two txt tymczak type typed typeof types typesafe
 typical typically typing typlen typname typo typos typtypmod tzd tzh tzm tzr
 uacute uarr ubuntu ucase ucb ucirc ucs udt udts uffff ugly ugrave uid uint ujint
 ujlong ulimit uml umlaut umr unable unaligned unary unavailability unbound

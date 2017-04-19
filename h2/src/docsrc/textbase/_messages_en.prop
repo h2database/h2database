@@ -9,6 +9,10 @@
 22012=Division by zero: {0}
 22018=Data conversion error converting {0}
 22025=Error in LIKE ESCAPE: {0}
+22030=Value not permitted for column {0}: {1}
+22031=Value not a member of enumerators {0}: {1}
+22032=Empty enums are not allowed
+22033=Duplicate enumerators are not allowed for enum types: {0}
 23502=NULL not allowed for column {0}
 23503=Referential integrity constraint violation: {0}
 23505=Unique index or primary key violation: {0}

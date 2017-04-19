@@ -7,7 +7,7 @@ SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ [ LIMIT expression ] [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] } | { [ OFFSET expression { ROW | ROWS } ] [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables.
@@ -16,7 +16,7 @@ HAVING filter rows after grouping.
 ORDER BY sorts the result by the given column(s) or expression(s).
 UNION combines the result of this query with the results of another query.
 
-LIMIT limits the number of rows returned by the query (no limit if null or smaller than zero).
+LIMIT and FETCH FIRST/NEXT ROW(S) ONLY limits the number of rows returned by the query (no limit if null or smaller than zero).
 OFFSET specified how many rows to skip.
 Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.
@@ -190,6 +190,24 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
 Lists the schemas, tables, or the columns of a table.
 ","
 SHOW TABLES
+"
+
+"Commands (DML)","WITH","
+WITH [ RECURSIVE ] name ( columnName [,...] )
+    AS ( select )
+    select
+","
+Can be used to create a recursive query. The first select has to be a UNION.
+Currently only one result set can be referred to by name.
+","
+WITH RECURSIVE t(n) AS (
+        SELECT 1
+    UNION ALL
+        SELECT n + 1
+        FROM t
+        WHERE n < 100
+)
+SELECT sum(n) FROM t;
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
@@ -1921,7 +1939,7 @@ CALL CSVWRITE('test2.csv', 'SELECT * FROM TEST', 'charset=UTF-8 fieldSeparator=|
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
     | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType
+    | blobType | clobType | uuidType | arrayType | enumType
 ","
 A data type definition.
 ","
@@ -2509,6 +2527,20 @@ and ""ResultSet.getObject(..)"" or ""ResultSet.getArray(..)"" to retrieve the va
 ARRAY
 "
 
+"Data Types","ENUM Type","
+{ ENUM (string [, ... ]) }
+","
+A type with enumerated values.
+Mapped to ""java.lang.Integer"".
+
+The first provided value is mapped to 0, the
+second mapped to 1, and so on.
+
+Duplicate and empty values are not permitted.
+","
+
+ENUM('clubs', 'diamonds', 'hearts', 'spades')
+"
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
@@ -2960,7 +2992,7 @@ RAND()
 "
 
 "Functions (Numeric)","RANDOM_UUID","
-RANDOM_UUID()
+{ RANDOM_UUID | UUID } ()
 ","
 Returns a new UUID with 122 pseudo random bits.
 

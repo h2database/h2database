@@ -18,6 +18,8 @@ import java.sql.Statement;
  */
 public class TestIndexHints extends TestBase {
 
+    private Connection conn;
+
     /**
      * Run just this test.
      *
@@ -30,10 +32,7 @@ public class TestIndexHints extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("indexhints");
-        // need to keep a strong reference to a connection in order
-        // to prevent it from garbage collection and subsequent pemature
-        // database closure (test failure due to missing tables)
-        Connection conn = createDb();
+        createDb();
         testQuotedIdentifier();
         testWithSingleIndexName();
         testWithEmptyIndexHintsList();
@@ -46,18 +45,16 @@ public class TestIndexHints extends TestBase {
         deleteDb("indexhints");
     }
 
-    private Connection createDb() throws SQLException {
-        Connection conn = getConnection("indexhints");
+    private void createDb() throws SQLException {
+        conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         stat.execute("create table test (x int, y int)");
         stat.execute("create index idx1 on test (x)");
         stat.execute("create index idx2 on test (x, y)");
         stat.execute("create index \"Idx3\" on test (y, x)");
-        return conn;
     }
 
     private void testQuotedIdentifier() throws SQLException {
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain analyze select * " +
                 "from test use index(\"Idx3\") where x=1 and y=1");
@@ -71,54 +68,44 @@ public class TestIndexHints extends TestBase {
         plan = rs.getString(1);
         assertTrue(plan.contains("/* PUBLIC.\"Idx3\":"));
         assertTrue(plan.contains("USE INDEX (\"Idx3\")"));
-        conn.close();
     }
 
     private void testWithSingleIndexName() throws SQLException {
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain analyze select * " +
                 "from test use index(idx1) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX1:"));
-        conn.close();
     }
 
     private void testWithTableAlias() throws SQLException {
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain analyze select * " +
                 "from test t use index(idx2) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX2:"));
-        conn.close();
     }
 
     private void testWithTableAliasCalledUse() throws SQLException {
         // make sure that while adding new syntax for table hints, code
         // that uses "USE" as a table alias still works
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         stat.executeQuery("explain analyze select * " +
                 "from test use where use.x=1 and use.y=1");
-        conn.close();
     }
 
     private void testWithMultipleIndexNames() throws SQLException {
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain analyze select * " +
                 "from test use index(idx1, idx2) where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.IDX2:"));
-        conn.close();
     }
 
     private void testPlanSqlHasIndexesInCorrectOrder() throws SQLException {
-        Connection conn = getConnection("indexhints");
         ResultSet rs = conn.createStatement().executeQuery("explain analyze select * " +
                 "from test use index(idx1, idx2) where x=1 and y=1");
         rs.next();
@@ -128,23 +115,18 @@ public class TestIndexHints extends TestBase {
                 "from test use index(idx2, idx1) where x=1 and y=1");
         rs2.next();
         assertTrue(rs2.getString(1).contains("USE INDEX (IDX2, IDX1)"));
-
-        conn.close();
     }
 
     private void testWithEmptyIndexHintsList() throws SQLException {
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery("explain analyze select * " +
                 "from test use index () where x=1 and y=1");
         rs.next();
         String result = rs.getString(1);
         assertTrue(result.contains("/* PUBLIC.TEST.tableScan"));
-        conn.close();
     }
 
     private void testWithInvalidIndexName() throws SQLException {
-        Connection conn = getConnection("indexhints");
         Statement stat = conn.createStatement();
         try {
             stat.executeQuery("explain analyze select * " +
@@ -153,8 +135,6 @@ public class TestIndexHints extends TestBase {
                     + "Index \"IDX_DOESNT_EXIST\" not found");
         } catch (SQLException e) {
             assertEquals(ErrorCode.INDEX_NOT_FOUND_1, e.getErrorCode());
-        } finally {
-            conn.close();
         }
     }
 

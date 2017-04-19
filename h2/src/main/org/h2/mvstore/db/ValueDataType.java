@@ -201,6 +201,7 @@ public class ValueDataType implements DataType {
         case Value.SHORT:
             buff.put((byte) type).putShort(v.getShort());
             break;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {
@@ -608,9 +609,11 @@ public class ValueDataType implements DataType {
                 int len = readVarInt(buff);
                 byte[] b = DataUtils.newBytes(len);
                 buff.get(b, 0, len);
-                return JdbcUtils.customDataTypesHandler.convert(ValueBytes.getNoCopy(b), customType);
+                return JdbcUtils.customDataTypesHandler.convert(
+                        ValueBytes.getNoCopy(b), customType);
             }
-            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, "No CustomDataTypesHandler has been set up");
+            throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
+                    "No CustomDataTypesHandler has been set up");
         }
         default:
             if (type >= INT_0_15 && type < INT_0_15 + 16) {

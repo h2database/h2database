@@ -455,13 +455,6 @@ public class SelectUnion extends Query {
     }
 
     @Override
-    public ResultInterface query(int limit, ResultTarget target) {
-        // union doesn't always know the parameter list of the left and right
-        // queries
-        return queryWithoutCache0(limit, target);
-    }
-
-    @Override
     public boolean isEverything(ExpressionVisitor visitor) {
         return left.isEverything(visitor) && right.isEverything(visitor);
     }

@@ -224,7 +224,6 @@ public class Parser {
     private ArrayList<Parameter> indexedParameterList;
     private int orderInFrom;
     private ArrayList<Parameter> suppliedParameterList;
-    private boolean hasRecursive;
 
     public Parser(Session session) {
         this.database = session.getDatabase();
@@ -301,9 +300,6 @@ public class Parser {
         }
         p.setPrepareAlways(recompileAlways);
         p.setParameterList(parameters);
-        if (hasRecursive && p.isQuery() && p instanceof Query) {
-            ((Query) p).setNeverLazy(true);
-        }
         return p;
     }
 
@@ -1719,7 +1715,9 @@ public class Parser {
             }
         }
         if (isToken("SELECT") || isToken("FROM") || isToken("(") || isToken("WITH")) {
-            command.setCommand(parseSelect());
+            Query query = parseSelect();
+            query.setNeverLazy(true);
+            command.setCommand(query);
         } else if (readIf("DELETE")) {
             command.setCommand(parseDelete());
         } else if (readIf("UPDATE")) {
@@ -1928,7 +1926,10 @@ public class Parser {
             return command;
         }
         if (readIf("WITH")) {
-            return parseWith();
+            Query query = parseWith();
+            // recursive can not be lazy
+            query.setNeverLazy(true);
+            return query;
         }
         Select select = parseSelectSimple();
         return select;
@@ -2239,6 +2240,7 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
+                        query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
                     } else {
@@ -4837,7 +4839,6 @@ public class Parser {
     }
 
     private Query parseWith() {
-        hasRecursive = true;
         readIf("RECURSIVE");
         String tempViewName = readIdentifierWithSchema();
         Schema schema = getSchema();

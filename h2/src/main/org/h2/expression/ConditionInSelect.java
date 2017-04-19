@@ -38,7 +38,6 @@ public class ConditionInSelect extends Condition {
         this.query = query;
         this.all = all;
         this.compareType = compareType;
-        query.setNeverLazy(true);
     }
 
     @Override

@@ -60,14 +60,13 @@ public abstract class Query extends Prepared {
      */
     protected boolean randomAccessResult;
 
-    protected boolean neverLazy;
-
     private boolean noCache;
     private int lastLimit;
     private long lastEvaluated;
     private ResultInterface lastResult;
     private Value[] lastParameters;
     private boolean cacheableChecked;
+    private boolean neverLazy;
 
     Query(Session session) {
         super(session);
@@ -75,6 +74,10 @@ public abstract class Query extends Prepared {
 
     public void setNeverLazy(boolean b) {
         this.neverLazy = b;
+    }
+
+    public boolean isNeverLazy() {
+        return neverLazy;
     }
 
     /**

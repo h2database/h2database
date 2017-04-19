@@ -120,7 +120,7 @@ MVStore:
 /**
  * A persistent storage for maps.
  */
-public class MVStore {
+public final class MVStore {
 
     /**
      * Whether assertions are enabled.
@@ -292,12 +292,15 @@ public class MVStore {
         Object o = config.get("compress");
         this.compressionLevel = o == null ? 0 : (Integer) o;
         String fileName = (String) config.get("fileName");
-        o = config.get("pageSplitSize");
-        if (o == null) {
-            pageSplitSize = fileName == null ? 4 * 1024 : 16 * 1024;
-        } else {
-            pageSplitSize = (Integer) o;
+        fileStore = (FileStore) config.get("fileStore");
+        fileStoreIsProvided = fileStore != null;
+        if(fileStore == null && fileName != null) {
+            fileStore = new FileStore();
         }
+        o = config.get("pageSplitSize");
+        pageSplitSize = o != null         ? (Integer) o :
+                        fileStore == null ? 48 :
+                                            16 * 1024;
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
         meta = new MVMap<String, String>(StringDataType.INSTANCE,
@@ -306,17 +309,10 @@ public class MVStore {
         c.put("id", 0);
         c.put("createVersion", currentVersion);
         meta.init(this, c);
-        fileStore = (FileStore) config.get("fileStore");
-        if (fileName == null && fileStore == null) {
+        if (fileStore == null) {
             cache = null;
             cacheChunkRef = null;
             return;
-        }
-        if (fileStore == null) {
-            fileStoreIsProvided = false;
-            fileStore = new FileStore();
-        } else {
-            fileStoreIsProvided = true;
         }
         retentionTime = fileStore.getDefaultRetentionTime();
         boolean readOnly = config.containsKey("readOnly");
@@ -995,7 +991,7 @@ public class MVStore {
      *
      * @return the new version
      */
-    public long commit() {
+    public synchronized long commit() {
         if (fileStore != null) {
             return commitAndSave();
         }

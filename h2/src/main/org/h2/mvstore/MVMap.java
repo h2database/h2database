@@ -72,7 +72,6 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     protected MVMap(DataType keyType, DataType valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
-        this.root = Page.createEmpty(this,  -1);
     }
 
     /**
@@ -106,6 +105,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
         this.id = DataUtils.readHexInt(config, "id", 0);
         this.createVersion = DataUtils.readHexLong(config, "createVersion", 0);
         this.writeVersion = store.getCurrentVersion();
+        this.root = Page.createEmpty(this,  -1);
     }
 
     /**

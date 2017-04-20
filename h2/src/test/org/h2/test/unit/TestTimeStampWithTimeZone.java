@@ -6,13 +6,16 @@
 package org.h2.test.unit;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.test.TestBase;
 import org.h2.util.LocalDateTimeUtils;
+import org.h2.value.Value;
 import org.h2.value.ValueTimestampTimeZone;
 
 /**
@@ -35,6 +38,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         test2();
         test3();
         test4();
+        test5();
         testOrder();
         deleteDb(getTestName());
     }
@@ -137,6 +141,31 @@ public class TestTimeStampWithTimeZone extends TestBase {
         ValueTimestampTimeZone b = ValueTimestampTimeZone.parse("1970-01-01 23:00:01.00+00:15");
         int c = a.compareTo(b, null);
         assertEquals(c, 0);
+    }
+
+    private void test5() throws SQLException {
+        Connection conn = getConnection(getTestName());
+        Statement stat = conn.createStatement();
+        stat.execute("create table test5(id identity, t1 timestamp with time zone)");
+        stat.execute("insert into test5(t1) values('2016-09-24 00:00:00.000000001+00:01')");
+        stat.execute("insert into test5(t1) values('2017-04-20 00:00:00.000000001+00:01')");
+
+        PreparedStatement preparedStatement = conn.prepareStatement("select id"
+                        + " from test5"
+                        + " where (t1 < ?)");
+        Value value = ValueTimestampTimeZone.parse("2016-12-24 00:00:00.000000001+00:01");
+        preparedStatement.setObject(1, value.getObject());
+
+        ResultSet rs = preparedStatement.executeQuery();
+
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertFalse(rs.next());
+
+        rs.close();
+        preparedStatement.close();
+        stat.close();
+        conn.close();
     }
 
     private void testOrder() throws SQLException {

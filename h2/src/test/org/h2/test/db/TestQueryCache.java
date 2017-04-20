@@ -52,10 +52,11 @@ public class TestQueryCache extends TestBase {
             // stat.execute("drop table x");
             time = System.nanoTime();
             prep = conn.prepareStatement("select count(*) from test t1, test t2");
-            prep.executeQuery();
+            execute(prep);
             rs = stat.executeQuery("select count(*) from test t1, test t2");
             rs.next();
             int c = rs.getInt(1);
+            rs.close();
             assertEquals(1000000, c);
             time = System.nanoTime() - time;
             if (first == 0) {

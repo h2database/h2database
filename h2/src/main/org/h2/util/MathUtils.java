@@ -10,7 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * This is a utility class with mathematical helper functions.
@@ -26,8 +26,6 @@ public class MathUtils {
      * True if the secure random object is seeded.
      */
     static volatile boolean seeded;
-
-    private static final Random RANDOM  = new Random();
 
     private MathUtils() {
         // utility class
@@ -289,7 +287,7 @@ public class MathUtils {
      * @param bytes the target array
      */
     public static void randomBytes(byte[] bytes) {
-        RANDOM.nextBytes(bytes);
+        ThreadLocalRandom.current().nextBytes(bytes);
     }
 
     /**
@@ -318,7 +316,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int randomInt(int lowerThan) {
-        return RANDOM.nextInt(lowerThan);
+        return ThreadLocalRandom.current().nextInt(lowerThan);
     }
 
     /**

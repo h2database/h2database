@@ -102,14 +102,16 @@ public class JdbcPreparedStatement extends JdbcStatement implements
             synchronized (session) {
                 checkClosed();
                 closeOldResultSet();
-                ResultInterface result = null;
+                ResultInterface result;
+                boolean lazy = false;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                 boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                 try {
                     setExecutingStatement(command);
                     result = command.executeQuery(maxRows, scrollable);
+                    lazy = result.isLazy();
                 } finally {
-                    if (result == null || !result.isLazy()) {
+                    if (!lazy) {
                         setExecutingStatement(null);
                     }
                 }

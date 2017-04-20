@@ -957,11 +957,13 @@ public final class JoinBatch {
             }
             viewIndex.setupQueryParameters(viewIndex.getSession(), first, last, null);
             JoinBatch.this.viewTopFutureCursor = topFutureCursor;
-            ResultInterface localResult = null;
+            ResultInterface localResult;
+            boolean lazy = false;
             try {
                 localResult = viewIndex.getQuery().query(0);
+                lazy = localResult.isLazy();
             } finally {
-                if (localResult == null || !localResult.isLazy()) {
+                if (!lazy) {
                     resetViewTopFutureCursorAfterQuery();
                 }
             }
@@ -1094,11 +1096,13 @@ public final class JoinBatch {
                 assert topFutureCursors[i] != null;
                 joinBatches.get(i).viewTopFutureCursor = topFutureCursors[i];
             }
-            ResultInterface localResult = null;
+            ResultInterface localResult;
+            boolean lazy = false;
             try {
                 localResult = viewIndex.getQuery().query(0);
+                lazy = localResult.isLazy();
             } finally {
-                if (localResult == null || !localResult.isLazy()) {
+                if (!lazy) {
                     resetViewTopFutureCursorAfterQuery();
                 }
             }

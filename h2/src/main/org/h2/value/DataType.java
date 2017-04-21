@@ -1121,6 +1121,8 @@ public class DataType {
             return LocalDateTimeUtils.localDateTimeToValue(x);
         } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
+        } else if (x instanceof TimestampWithTimeZone) {
+            return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getValue(type, x,

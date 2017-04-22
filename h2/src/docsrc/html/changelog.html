@@ -27,6 +27,10 @@ Change Log
 </li>
 <li>Added an ENUM data type, with syntax similar to that of MySQL and Oracle.
 </li>
+<li>MVStore: for object data types, the cache size memory estimation
+	was sometimes far off in a read-only scenario.
+	This could result in inefficient cache usage.
+</li>
 </ul>
 
 <h2>Version 1.4.194 (2017-03-10)</h2>

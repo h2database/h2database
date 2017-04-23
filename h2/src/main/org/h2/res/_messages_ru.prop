@@ -9,6 +9,10 @@
 22012=Деление на ноль: {0}
 22018=Ошибка преобразования данных при конвертации {0}
 22025=Ошибка в LIKE ESCAPE: {0}
+22030=#Value not permitted for column {0}: {1}
+22031=#Value not a member of enumerators {0}: {1}
+22032=#Empty enums are not allowed
+22033=#Duplicate enumerators are not allowed for enum types: {0}
 23502=Значение NULL не разрешено для поля {0}
 23503=Нарушение ссылочной целостности: {0}
 23505=Нарушение уникального индекса или первичного ключа: {0}

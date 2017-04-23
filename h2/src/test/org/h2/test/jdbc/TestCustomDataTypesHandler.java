@@ -32,13 +32,17 @@ import java.util.Locale;
 
 /**
  * Tests {@link CustomDataTypesHandler}.
- *
  */
 public class TestCustomDataTypesHandler extends TestBase {
-    /** */
+
+    /**
+     * The database name.
+     */
     public final static String DB_NAME = "customDataTypes";
 
-    /** */
+    /**
+     * The system property name.
+     */
     public final static String HANDLER_NAME_PROPERTY = "h2.customDataTypesHandler";
 
     /**
@@ -148,7 +152,8 @@ public class TestCustomDataTypesHandler extends TestBase {
     }
 
     /**
-     * modulus function
+     * The modulus function.
+     *
      * @param val complex number
      * @return result
      */
@@ -178,7 +183,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             complexDataType = createComplex();
         }
 
-        /** {@inheritDoc} */
         @Override
         public DataType getDataTypeByName(String name) {
             if (name.toLowerCase(Locale.ENGLISH).equals(COMPLEX_DATA_TYPE_NAME)) {
@@ -188,7 +192,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public DataType getDataTypeById(int type) {
             if (type == COMPLEX_DATA_TYPE_ID) {
@@ -197,7 +200,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return null;
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getDataTypeClassName(int type) {
             if (type == COMPLEX_DATA_TYPE_ID) {
@@ -207,7 +209,6 @@ public class TestCustomDataTypesHandler extends TestBase {
                     ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + type);
         }
 
-        /** {@inheritDoc} */
         @Override
         public int getTypeIdFromClass(Class<?> cls) {
             if (cls == ComplexNumber.class) {
@@ -216,7 +217,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return Value.JAVA_OBJECT;
         }
 
-        /** {@inheritDoc} */
         @Override
         public Value convert(Value source, int targetType) {
             if (source.getType() == targetType) {
@@ -252,7 +252,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public int getDataTypeOrder(int type) {
             if (type == COMPLEX_DATA_TYPE_ID) {
@@ -262,7 +261,6 @@ public class TestCustomDataTypesHandler extends TestBase {
                     ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + type);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Value getValue(int type, Object data, DataHandler dataHandler) {
             if (type == COMPLEX_DATA_TYPE_ID) {
@@ -272,7 +270,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return ValueJavaObject.getNoCopy(data, null, dataHandler);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Object getObject(Value value, Class<?> cls) {
             if (cls.equals(ComplexNumber.class)) {
@@ -285,7 +282,6 @@ public class TestCustomDataTypesHandler extends TestBase {
                     ErrorCode.UNKNOWN_DATA_TYPE_1, "type:" + value.getType());
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean supportsAdd(int type) {
             if (type == COMPLEX_DATA_TYPE_ID) {
@@ -294,7 +290,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return false;
         }
 
-        /** {@inheritDoc} */
         @Override
         public int getAddProofType(int type) {
             if (type == COMPLEX_DATA_TYPE_ID) {
@@ -318,9 +313,7 @@ public class TestCustomDataTypesHandler extends TestBase {
      * Value type implementation that holds the complex number
      */
     public static class ValueComplex extends Value {
-        /**
-         * data itself
-         */
+
         private ComplexNumber val;
 
         /**
@@ -332,70 +325,61 @@ public class TestCustomDataTypesHandler extends TestBase {
         }
 
         /**
-         * Get ValueComplex instance for given ComplexNumber
+         * Get ValueComplex instance for given ComplexNumber.
+         *
          * @param val complex number
-         * @result resulting instance
+         * @return resulting instance
          */
         public static ValueComplex get(ComplexNumber val) {
             return new ValueComplex(val);
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getSQL() {
             return val.toString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public int getType() {
             return TestOnlyCustomDataTypesHandler.COMPLEX_DATA_TYPE_ID;
         }
 
-        /** {@inheritDoc} */
         @Override
         public long getPrecision() {
             return 0;
         }
 
-        /** {@inheritDoc} */
         @Override
         public int getDisplaySize() {
             return 0;
         }
 
-        /** {@inheritDoc} */
         @Override
         public String getString() {
             return val.toString();
         }
 
-        /** {@inheritDoc} */
         @Override
         public Object getObject() {
             return val;
         }
 
-        /** {@inheritDoc} */
         @Override
         public void set(PreparedStatement prep, int parameterIndex) throws SQLException {
             Object obj = JdbcUtils.deserialize(getBytesNoCopy(), getDataHandler());
             prep.setObject(parameterIndex, obj, Types.JAVA_OBJECT);
         }
 
-        /** {@inheritDoc} */
         @Override
         protected int compareSecure(Value v, CompareMode mode) {
             return val.compare((ComplexNumber) v.getObject());
         }
 
-        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             return val.hashCode();
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean equals(Object other) {
             if (other == null) {
@@ -408,7 +392,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return complex.val.equals(val);
         }
 
-        /** {@inheritDoc} */
         @Override
         public Value convertTo(int targetType) {
             if (getType() == targetType) {
@@ -434,7 +417,6 @@ public class TestCustomDataTypesHandler extends TestBase {
                     ErrorCode.DATA_CONVERSION_ERROR_1, getString());
         }
 
-        /** {@inheritDoc} */
         @Override
         public Value add(Value value) {
             ValueComplex v = (ValueComplex)value;
@@ -513,13 +495,11 @@ public class TestCustomDataTypesHandler extends TestBase {
             }
         }
 
-        /** {@inheritDoc} */
         @Override
         public int hashCode() {
             return (int)re | (int)im;
         }
 
-        /** {@inheritDoc} */
         @Override
         public boolean equals(Object other) {
             if (other == null) {
@@ -532,7 +512,6 @@ public class TestCustomDataTypesHandler extends TestBase {
             return (re==complex.re) && (im == complex.im);
         }
 
-        /** {@inheritDoc} */
         @Override
         public String toString() {
             if (im == 0.0) {

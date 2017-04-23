@@ -7,7 +7,7 @@ SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ [ LIMIT expression ] [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] } | { [ OFFSET expression { ROW | ROWS } ] [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables."
@@ -66,6 +66,12 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
     COLUMNS FROM tableName [ FROM schemaName ] }
 ","
 Lists the schemas, tables, or the columns of a table."
+"Commands (DML)","WITH","
+WITH [ RECURSIVE ] name ( columnName [,...] )
+    AS ( select )
+    select
+","
+Can be used to create a recursive query."
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","

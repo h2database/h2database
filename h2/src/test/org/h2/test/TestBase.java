@@ -1067,10 +1067,21 @@ public abstract class TestBase {
         }
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @param stat the statement
+     */
     protected void execute(PreparedStatement stat) throws SQLException {
         execute(stat, null);
     }
 
+    /**
+     * Execute the statement.
+     *
+     * @param stat the statement
+     * @param sql the SQL command
+     */
     protected void execute(Statement stat, String sql) throws SQLException {
         boolean query = sql == null ? ((PreparedStatement) stat).execute() :
             stat.execute(sql);

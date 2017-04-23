@@ -1044,6 +1044,12 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         executingCommand = c;
     }
 
+    /**
+     * Called when the result set is closed.
+     *
+     * @param command the command
+     * @param closeCommand whether to close the command
+     */
     void onLazyResultSetClose(CommandInterface command, boolean closeCommand) {
         setExecutingStatement(null);
         command.stop();

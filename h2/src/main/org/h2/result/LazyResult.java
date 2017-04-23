@@ -12,7 +12,7 @@ import org.h2.value.Value;
 
 /**
  * Lazy execution support for queries.
- * 
+ *
  * @author Sergi Vladykin
  */
 public abstract class LazyResult implements ResultInterface {
@@ -83,7 +83,7 @@ public abstract class LazyResult implements ResultInterface {
 
     /**
      * Fetch next row or null if none available.
-     * 
+     *
      * @return next row or null
      */
     protected abstract Value[] fetchNextRow();

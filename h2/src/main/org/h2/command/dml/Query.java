@@ -342,8 +342,8 @@ public abstract class Query extends Prepared {
      */
     public final ResultInterface query(int limit, ResultTarget target) {
         if (isUnion()) {
-            // union doesn't always know the parameter list of the left and right
-            // queries
+            // union doesn't always know the parameter list of the left and
+            // right queries
             return queryWithoutCacheLazyCheck(limit, target);
         }
         fireBeforeSelectTriggers();

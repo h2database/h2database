@@ -11,7 +11,7 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -46,9 +46,9 @@ public class ConditionInSelect extends Condition {
         if (!query.hasOrder()) {
             query.setDistinct(true);
         }
-        LocalResult rows = query.query(0);
+        ResultInterface rows = query.query(0);
         Value l = left.getValue(session);
-        if (rows.getRowCount() == 0) {
+        if (!rows.hasNext()) {
             return ValueBoolean.get(all);
         } else if (l == ValueNull.INSTANCE) {
             return l;
@@ -74,7 +74,7 @@ public class ConditionInSelect extends Condition {
         return ValueBoolean.get(false);
     }
 
-    private Value getValueSlow(LocalResult rows, Value l) {
+    private Value getValueSlow(ResultInterface rows, Value l) {
         // this only returns the correct result if the result has at least one
         // row, and if l is not null
         boolean hasNull = false;

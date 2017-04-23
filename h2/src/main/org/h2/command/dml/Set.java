@@ -510,9 +510,18 @@ public class Set extends Prepared {
             int value = getIntValue();
             if (value != 0 && value != 1) {
                 throw DbException.getInvalidValueException("FORCE_JOIN_ORDER",
-                        getIntValue());
+                        value);
             }
             session.setForceJoinOrder(value == 1);
+            break;
+        }
+        case SetTypes.LAZY_QUERY_EXECUTION: {
+            int value = getIntValue();
+            if (value != 0 && value != 1) {
+                throw DbException.getInvalidValueException("LAZY_QUERY_EXECUTION",
+                        value);
+            }
+            session.setLazyQueryExecution(value == 1);
             break;
         }
         default:

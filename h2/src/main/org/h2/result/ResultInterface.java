@@ -5,6 +5,7 @@
  */
 package org.h2.result;
 
+import org.h2.engine.Session;
 import org.h2.value.Value;
 
 /**
@@ -42,6 +43,13 @@ public interface ResultInterface extends AutoCloseable {
     int getRowId();
 
     /**
+     * Check if the current position is after last row.
+     *
+     * @return true if after last
+     */
+    boolean isAfterLast();
+
+    /**
      * Get the number of visible columns.
      * More columns may exist internally for sorting or grouping.
      *
@@ -55,6 +63,13 @@ public interface ResultInterface extends AutoCloseable {
      * @return the number of rows
      */
     int getRowCount();
+
+    /**
+     * Check if this result has more rows to fetch.
+     *
+     * @return true if it has
+     */
+    boolean hasNext();
 
     /**
      * Check if this result set should be closed, for example because it is
@@ -164,4 +179,34 @@ public interface ResultInterface extends AutoCloseable {
      */
     int getFetchSize();
 
+    /**
+     * Check if this a lazy execution result.
+     *
+     * @return true if it is a lazy result
+     */
+    boolean isLazy();
+
+    /**
+     * Check if this result set is closed.
+     *
+     * @return true if it is
+     */
+    boolean isClosed();
+
+    /**
+     * Create a shallow copy of the result set. The data and a temporary table
+     * (if there is any) is not copied.
+     *
+     * @param targetSession the session of the copy
+     * @return the copy if possible, or null if copying is not possible
+     */
+    ResultInterface createShallowCopy(Session targetSession);
+
+    /**
+     * Check if this result set contains the given row.
+     *
+     * @param values the row
+     * @return true if the row exists
+     */
+    boolean containsDistinct(Value[] values);
 }

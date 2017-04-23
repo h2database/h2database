@@ -284,12 +284,6 @@ public class TestScript extends TestBase {
         ResultSetMetaData meta = rs.getMetaData();
         int len = meta.getColumnCount();
         int[] max = new int[len];
-        String[] head = new String[len];
-        for (int i = 0; i < len; i++) {
-            String label = formatString(meta.getColumnLabel(i + 1));
-            max[i] = label.length();
-            head[i] = label;
-        }
         result.clear();
         while (rs.next()) {
             String[] row = new String[len];
@@ -301,6 +295,14 @@ public class TestScript extends TestBase {
                 row[i] = data;
             }
             result.add(row);
+        }
+        String[] head = new String[len];
+        for (int i = 0; i < len; i++) {
+            String label = formatString(meta.getColumnLabel(i + 1));
+            if (max[i] < label.length()) {
+                max[i] = label.length();
+            }
+            head[i] = label;
         }
         rs.close();
         writeResult(sql, format(head, max), null);

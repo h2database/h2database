@@ -38,9 +38,9 @@ public class TestHaltApp extends TestHalt {
         }
     }
 
-    private void execute(Statement stat, String sql) throws SQLException {
+    protected void execute(Statement stat, String sql) throws SQLException {
         traceOperation("execute: " + sql);
-        stat.execute(sql);
+        super.execute(stat, sql);
     }
 
     /**

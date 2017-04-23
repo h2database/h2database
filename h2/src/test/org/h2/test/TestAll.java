@@ -316,6 +316,11 @@ java org.h2.test.TestAll timer
     public boolean multiThreaded;
 
     /**
+     * If lazy queries should be used.
+     */
+    public boolean lazy;
+
+    /**
      * The cipher to use (null for unencrypted).
      */
     public String cipher;
@@ -602,6 +607,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         multiThreaded = true;
         test();
         testUnit();
+
+        // lazy
+        lazy = true;
+        memory = true;
+        multiThreaded = true;
+        test();
+        lazy = false;
 
         // but sometimes race conditions need bigger windows
         memory = false;
@@ -1063,6 +1075,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     public String toString() {
         StringBuilder buff = new StringBuilder();
         appendIf(buff, fast, "fast");
+        appendIf(buff, lazy, "lazy");
         appendIf(buff, mvStore, "mvStore");
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");

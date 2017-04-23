@@ -26,6 +26,7 @@ import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
@@ -167,49 +168,18 @@ public class Select extends Query {
         }
     }
 
-    private void queryGroupSorted(int columnCount, ResultTarget result) {
-        int rowNumber = 0;
-        setCurrentRowNumber(0);
-        currentGroup = null;
-        Value[] previousKeyValues = null;
-        while (topTableFilter.next()) {
-            setCurrentRowNumber(rowNumber + 1);
-            if (condition == null ||
-                    Boolean.TRUE.equals(condition.getBooleanValue(session))) {
-                rowNumber++;
-                Value[] keyValues = new Value[groupIndex.length];
-                // update group
-                for (int i = 0; i < groupIndex.length; i++) {
-                    int idx = groupIndex[i];
-                    Expression expr = expressions.get(idx);
-                    keyValues[i] = expr.getValue(session);
-                }
-
-                if (previousKeyValues == null) {
-                    previousKeyValues = keyValues;
-                    currentGroup = New.hashMap();
-                } else if (!Arrays.equals(previousKeyValues, keyValues)) {
-                    addGroupSortedRow(previousKeyValues, columnCount, result);
-                    previousKeyValues = keyValues;
-                    currentGroup = New.hashMap();
-                }
-                currentGroupRowId++;
-
-                for (int i = 0; i < columnCount; i++) {
-                    if (groupByExpression == null || !groupByExpression[i]) {
-                        Expression expr = expressions.get(i);
-                        expr.updateAggregate(session);
-                    }
-                }
-            }
+    private LazyResult queryGroupSorted(int columnCount, ResultTarget result) {
+        LazyResultGroupSorted lazyResult = new LazyResultGroupSorted(expressionArray, columnCount);
+        if (result == null) {
+            return lazyResult;
         }
-        if (previousKeyValues != null) {
-            addGroupSortedRow(previousKeyValues, columnCount, result);
+        while (lazyResult.next()) {
+            result.addRow(lazyResult.currentRow());
         }
+        return null;
     }
 
-    private void addGroupSortedRow(Value[] keyValues, int columnCount,
-            ResultTarget result) {
+    private Value[] createGroupSortedRow(Value[] keyValues, int columnCount) {
         Value[] row = new Value[columnCount];
         for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
             row[groupIndex[j]] = keyValues[j];
@@ -222,10 +192,10 @@ public class Select extends Query {
             row[j] = expr.getValue(session);
         }
         if (isHavingNullOrFalse(row)) {
-            return;
+            return null;
         }
         row = keepOnlyDistinct(row, columnCount);
-        result.addRow(row);
+        return row;
     }
 
     private Value[] keepOnlyDistinct(Value[] row, int columnCount) {
@@ -325,6 +295,11 @@ public class Select extends Query {
         return count;
     }
 
+    private boolean isConditionMet() {
+        return condition == null ||
+                Boolean.TRUE.equals(condition.getBooleanValue(session));
+    }
+
     private void queryGroup(int columnCount, LocalResult result) {
         ValueHashMap<HashMap<Expression, Object>> groups =
                 ValueHashMap.newInstance();
@@ -335,8 +310,7 @@ public class Select extends Query {
         int sampleSize = getSampleSizeValue(session);
         while (topTableFilter.next()) {
             setCurrentRowNumber(rowNumber + 1);
-            if (condition == null ||
-                    Boolean.TRUE.equals(condition.getBooleanValue(session))) {
+            if (isConditionMet()) {
                 Value key;
                 rowNumber++;
                 if (groupIndex == null) {
@@ -522,7 +496,7 @@ public class Select extends Query {
         }
     }
 
-    private void queryFlat(int columnCount, ResultTarget result, long limitRows) {
+    private LazyResult queryFlat(int columnCount, ResultTarget result, long limitRows) {
         // limitRows must be long, otherwise we get an int overflow
         // if limitRows is at or near Integer.MAX_VALUE
         // limitRows is never 0 here
@@ -532,39 +506,30 @@ public class Select extends Query {
                 limitRows += offset;
             }
         }
-        int rowNumber = 0;
-        setCurrentRowNumber(0);
         ArrayList<Row> forUpdateRows = null;
         if (isForUpdateMvcc) {
             forUpdateRows = New.arrayList();
         }
         int sampleSize = getSampleSizeValue(session);
-        while (topTableFilter.next()) {
-            setCurrentRowNumber(rowNumber + 1);
-            if (condition == null ||
-                    Boolean.TRUE.equals(condition.getBooleanValue(session))) {
-                Value[] row = new Value[columnCount];
-                for (int i = 0; i < columnCount; i++) {
-                    Expression expr = expressions.get(i);
-                    row[i] = expr.getValue(session);
-                }
-                if (isForUpdateMvcc) {
-                    topTableFilter.lockRowAdd(forUpdateRows);
-                }
-                result.addRow(row);
-                rowNumber++;
-                if ((sort == null || sortUsingIndex) && limitRows > 0 &&
-                        result.getRowCount() >= limitRows) {
-                    break;
-                }
-                if (sampleSize > 0 && rowNumber >= sampleSize) {
-                    break;
-                }
+        LazyResultQueryFlat lazyResult = new LazyResultQueryFlat(expressionArray,
+                sampleSize, columnCount);
+        if (result == null) {
+            return lazyResult;
+        }
+        while (lazyResult.next()) {
+            if (isForUpdateMvcc) {
+                topTableFilter.lockRowAdd(forUpdateRows);
+            }
+            result.addRow(lazyResult.currentRow());
+            if ((sort == null || sortUsingIndex) && limitRows > 0 &&
+                    result.getRowCount() >= limitRows) {
+                break;
             }
         }
         if (isForUpdateMvcc) {
             topTableFilter.lockRows(forUpdateRows);
         }
+        return null;
     }
 
     private void queryQuick(int columnCount, ResultTarget result) {
@@ -585,7 +550,7 @@ public class Select extends Query {
     }
 
     @Override
-    protected LocalResult queryWithoutCache(int maxRows, ResultTarget target) {
+    protected ResultInterface queryWithoutCache(int maxRows, ResultTarget target) {
         int limitRows = maxRows == 0 ? -1 : maxRows;
         if (limitExpr != null) {
             Value v = limitExpr.getValue(session);
@@ -596,10 +561,13 @@ public class Select extends Query {
                 limitRows = Math.min(l, limitRows);
             }
         }
+        boolean lazy = session.isLazyQueryExecution() &&
+                target == null && !isForUpdate && !isQuickAggregateQuery &&
+                limitRows != 0 && offsetExpr == null && isReadOnly();
         int columnCount = expressions.size();
         LocalResult result = null;
-        if (target == null ||
-                !session.getDatabase().getSettings().optimizeInsertFromSelect) {
+        if (!lazy && (target == null ||
+                !session.getDatabase().getSettings().optimizeInsertFromSelect)) {
             result = createLocalResult(result);
         }
         if (sort != null && (!sortUsingIndex || distinct)) {
@@ -616,7 +584,7 @@ public class Select extends Query {
         if (isGroupQuery && !isGroupSortedQuery) {
             result = createLocalResult(result);
         }
-        if (limitRows >= 0 || offsetExpr != null) {
+        if (!lazy && (limitRows >= 0 || offsetExpr != null)) {
             result = createLocalResult(result);
         }
         topTableFilter.startQuery(session);
@@ -639,27 +607,35 @@ public class Select extends Query {
         }
         topTableFilter.lock(session, exclusive, exclusive);
         ResultTarget to = result != null ? result : target;
+        lazy &= to == null;
+        LazyResult lazyResult = null;
         if (limitRows != 0) {
             try {
                 if (isQuickAggregateQuery) {
                     queryQuick(columnCount, to);
                 } else if (isGroupQuery) {
                     if (isGroupSortedQuery) {
-                        queryGroupSorted(columnCount, to);
+                        lazyResult = queryGroupSorted(columnCount, to);
                     } else {
                         queryGroup(columnCount, result);
                     }
                 } else if (isDistinctQuery) {
                     queryDistinct(to, limitRows);
                 } else {
-                    queryFlat(columnCount, to, limitRows);
+                    lazyResult = queryFlat(columnCount, to, limitRows);
                 }
             } finally {
-                JoinBatch jb = getJoinBatch();
-                if (jb != null) {
-                    jb.reset(false);
+                if (!lazy) {
+                    resetJoinBatchAfterQuery();
                 }
             }
+        }
+        assert lazy == (lazyResult != null): lazy;
+        if (lazyResult != null) {
+            if (limitRows > 0) {
+                lazyResult.setLimit(limitRows);
+            }
+            return lazyResult;
         }
         if (offsetExpr != null) {
             result.setOffset(offsetExpr.getValue(session).getInt());
@@ -679,6 +655,13 @@ public class Select extends Query {
             return result;
         }
         return null;
+    }
+
+    private void resetJoinBatchAfterQuery() {
+        JoinBatch jb = getJoinBatch();
+        if (jb != null) {
+            jb.reset(false);
+        }
     }
 
     private LocalResult createLocalResult(LocalResult old) {
@@ -1415,4 +1398,133 @@ public class Select extends Query {
         return sort;
     }
 
+    /**
+     * Lazy execution for this select.
+     */
+    private abstract class LazyResultSelect extends LazyResult {
+
+        int rowNumber;
+        int columnCount;
+
+        LazyResultSelect(Expression[] expressions, int columnCount) {
+            super(expressions);
+            this.columnCount = columnCount;
+            setCurrentRowNumber(0);
+        }
+
+        @Override
+        public final int getVisibleColumnCount() {
+            return visibleColumnCount;
+        }
+
+        @Override
+        public void close() {
+            if (!isClosed()) {
+                super.close();
+                resetJoinBatchAfterQuery();
+            }
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            resetJoinBatchAfterQuery();
+            topTableFilter.reset();
+            setCurrentRowNumber(0);
+            rowNumber = 0;
+        }
+    }
+
+    /**
+     * Lazy execution for a flat query.
+     */
+    private final class LazyResultQueryFlat extends LazyResultSelect {
+
+        int sampleSize;
+
+        LazyResultQueryFlat(Expression[] expressions, int sampleSize, int columnCount) {
+            super(expressions, columnCount);
+            this.sampleSize = sampleSize;
+        }
+
+        @Override
+        protected Value[] fetchNextRow() {
+            while ((sampleSize <= 0 || rowNumber < sampleSize) &&
+                    topTableFilter.next()) {
+                setCurrentRowNumber(++rowNumber);
+                if (isConditionMet()) {
+                    Value[] row = new Value[columnCount];
+                    for (int i = 0; i < columnCount; i++) {
+                        Expression expr = expressions.get(i);
+                        row[i] = expr.getValue(session);
+                    }
+                    return row;
+                }
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Lazy execution for a group sorted query.
+     */
+    private final class LazyResultGroupSorted extends LazyResultSelect {
+
+        Value[] previousKeyValues;
+
+        LazyResultGroupSorted(Expression[] expressions, int columnCount) {
+            super(expressions, columnCount);
+            currentGroup = null;
+        }
+
+        @Override
+        public void reset() {
+            super.reset();
+            currentGroup = null;
+        }
+
+        @Override
+        protected Value[] fetchNextRow() {
+            while (topTableFilter.next()) {
+                setCurrentRowNumber(rowNumber + 1);
+                if (isConditionMet()) {
+                    rowNumber++;
+                    Value[] keyValues = new Value[groupIndex.length];
+                    // update group
+                    for (int i = 0; i < groupIndex.length; i++) {
+                        int idx = groupIndex[i];
+                        Expression expr = expressions.get(idx);
+                        keyValues[i] = expr.getValue(session);
+                    }
+
+                    Value[] row = null;
+                    if (previousKeyValues == null) {
+                        previousKeyValues = keyValues;
+                        currentGroup = New.hashMap();
+                    } else if (!Arrays.equals(previousKeyValues, keyValues)) {
+                        row = createGroupSortedRow(previousKeyValues, columnCount);
+                        previousKeyValues = keyValues;
+                        currentGroup = New.hashMap();
+                    }
+                    currentGroupRowId++;
+
+                    for (int i = 0; i < columnCount; i++) {
+                        if (groupByExpression == null || !groupByExpression[i]) {
+                            Expression expr = expressions.get(i);
+                            expr.updateAggregate(session);
+                        }
+                    }
+                    if (row != null) {
+                        return row;
+                    }
+                }
+            }
+            Value[] row = null;
+            if (previousKeyValues != null) {
+                row = createGroupSortedRow(previousKeyValues, columnCount);
+                previousKeyValues = null;
+            }
+            return row;
+        }
+    }
 }

@@ -1256,7 +1256,7 @@ public class TestMetaData extends TestBase {
         stat.execute("SET QUERY_STATISTICS TRUE");
         int count = 100;
         for (int i = 0; i < count; i++) {
-            stat.execute("select * from test limit 10");
+            execute(stat, "select * from test limit 10");
         }
         // The "order by" makes the result set more stable on windows, where the
         // timer resolution is not that great
@@ -1266,7 +1266,7 @@ public class TestMetaData extends TestBase {
         assertTrue(rs.next());
         assertEquals("select * from test limit 10", rs.getString("SQL_STATEMENT"));
         assertEquals(count, rs.getInt("EXECUTION_COUNT"));
-        assertEquals(10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
+        assertEquals(config.lazy ? 0 : 10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
         rs.close();
         conn.close();
         deleteDb("metaData");

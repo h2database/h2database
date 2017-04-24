@@ -1715,7 +1715,9 @@ public class Parser {
             }
         }
         if (isToken("SELECT") || isToken("FROM") || isToken("(") || isToken("WITH")) {
-            command.setCommand(parseSelect());
+            Query query = parseSelect();
+            query.setNeverLazy(true);
+            command.setCommand(query);
         } else if (readIf("DELETE")) {
             command.setCommand(parseDelete());
         } else if (readIf("UPDATE")) {
@@ -1924,7 +1926,10 @@ public class Parser {
             return command;
         }
         if (readIf("WITH")) {
-            return parseWith();
+            Query query = parseWith();
+            // recursive can not be lazy
+            query.setNeverLazy(true);
+            return query;
         }
         Select select = parseSelectSimple();
         return select;
@@ -2235,6 +2240,10 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
+                        // can not be lazy because we have to call
+                        // method ResultInterface.containsDistinct
+                        // which is not supported for lazy execution
+                        query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
                     } else {

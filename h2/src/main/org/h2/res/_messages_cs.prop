@@ -9,6 +9,10 @@
 22012=Dělení nulou: {0}
 22018=Chyba při převodu dat {0}
 22025=Chyba v LIKE escapování: {0}
+22030=#Value not permitted for column {0}: {1}
+22031=#Value not a member of enumerators {0}: {1}
+22032=#Empty enums are not allowed
+22033=#Duplicate enumerators are not allowed for enum types: {0}
 23502=Pro sloupec {0} není hodnota NULL povolena
 23503=Nedodržení omezení referenční integrity: {0}
 23505=Nedodržení unikátního indexu nebo primárního klíče: {0}

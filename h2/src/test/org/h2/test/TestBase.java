@@ -22,6 +22,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -317,6 +318,9 @@ public abstract class TestBase {
         }
         if (config.multiThreaded) {
             url = addOption(url, "MULTI_THREADED", "TRUE");
+        }
+        if (config.lazy) {
+            url = addOption(url, "LAZY_QUERY_EXECUTION", "1");
         }
         if (config.cacheType != null && admin) {
             url = addOption(url, "CACHE_TYPE", config.cacheType);
@@ -1056,10 +1060,38 @@ public abstract class TestBase {
     protected void assertThrows(int expectedErrorCode, Statement stat,
             String sql) {
         try {
-            stat.execute(sql);
+            execute(stat, sql);
             fail("Expected error: " + expectedErrorCode);
         } catch (SQLException ex) {
             assertEquals(expectedErrorCode, ex.getErrorCode());
+        }
+    }
+
+    /**
+     * Execute the statement.
+     *
+     * @param stat the statement
+     */
+    protected void execute(PreparedStatement stat) throws SQLException {
+        execute(stat, null);
+    }
+
+    /**
+     * Execute the statement.
+     *
+     * @param stat the statement
+     * @param sql the SQL command
+     */
+    protected void execute(Statement stat, String sql) throws SQLException {
+        boolean query = sql == null ? ((PreparedStatement) stat).execute() :
+            stat.execute(sql);
+
+        if (query && config.lazy) {
+            try (ResultSet rs = stat.getResultSet()) {
+                while (rs.next()) {
+                    // just loop
+                }
+            }
         }
     }
 
@@ -1497,8 +1529,9 @@ public abstract class TestBase {
                     AssertionError ae = new AssertionError(
                             "Expected an SQLException or DbException with error code "
                                     + expectedErrorCode
-                                    + ", but got a " + t.getClass().getName() + " exception "
-                                    + " with error code " + errorCode);
+                                    + ", but got a " + (t == null ? "null" :
+                                            t.getClass().getName() + " exception "
+                                    + " with error code " + errorCode));
                     ae.initCause(t);
                     throw ae;
                 }

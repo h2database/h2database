@@ -130,7 +130,7 @@ public class ValueEnumBase extends Value {
     @Override
     public void set(final PreparedStatement prep, final int parameterIndex)
             throws SQLException {
-         prep.setInt(parameterIndex, ordinal);
+            prep.setInt(parameterIndex, ordinal);
     }
 
     @Override

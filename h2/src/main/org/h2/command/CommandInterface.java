@@ -504,6 +504,11 @@ public interface CommandInterface {
     int executeUpdate();
 
     /**
+     * Stop the command execution, release all locks and resources
+     */
+    void stop();
+
+    /**
      * Close the statement.
      */
     void close();

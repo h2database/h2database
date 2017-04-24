@@ -271,12 +271,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         } else if (needsToReadFromScanIndex) {
             rc = rowsCost + rowsCost + sortingCost + 20;
         } else {
-            /*
-             * The (20-x) calculation makes sure that when we pick a covering
-             * index, we pick the covering index that has the smallest number of
-             * columns (the more columns we have in index - the higher cost).
-             * This is faster because a smaller index will fit into fewer data blocks.
-             */
+            // The (20-x) calculation makes sure that when we pick a covering
+            // index, we pick the covering index that has the smallest number of
+            // columns (the more columns we have in index - the higher cost).
+            // This is faster because a smaller index will fit into fewer data
+            // blocks.
             rc = rowsCost + sortingCost + columns.length;
         }
         return rc;

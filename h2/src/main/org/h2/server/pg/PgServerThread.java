@@ -376,7 +376,7 @@ public class PgServerThread implements Runnable {
                     sendCommandComplete(prep, prep.getUpdateCount());
                 }
             } catch (Exception e) {
-                if (prep.wasCancelled()) {
+                if (prep.isCancelled()) {
                     sendCancelQueryResponse();
                 } else {
                     sendErrorResponse(e);
@@ -423,7 +423,7 @@ public class PgServerThread implements Runnable {
                         sendCommandComplete(stat, stat.getUpdateCount());
                     }
                 } catch (SQLException e) {
-                    if (stat != null && stat.wasCancelled()) {
+                    if (stat != null && stat.isCancelled()) {
                         sendCancelQueryResponse();
                     } else {
                         sendErrorResponse(e);

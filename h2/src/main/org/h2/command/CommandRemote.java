@@ -54,6 +54,12 @@ public class CommandRemote implements CommandInterface {
         created = session.getLastReconnect();
     }
 
+    @Override
+    public void stop() {
+        // Must never be called, because remote result is not lazy.
+        throw DbException.throwInternalError();
+    }
+
     private void prepare(SessionRemote s, boolean createParams) {
         id = s.getNextId();
         for (int i = 0, count = 0; i < transferList.size(); i++) {

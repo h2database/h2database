@@ -231,6 +231,11 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        return base.isFirstColumn(column);
+    }
+
+    @Override
     public Column[] getColumns() {
         return base.getColumns();
     }

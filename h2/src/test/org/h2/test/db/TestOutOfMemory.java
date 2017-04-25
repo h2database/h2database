@@ -37,9 +37,16 @@ public class TestOutOfMemory extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        testMVStoreUsingInMemoryFileSystem();
-        testDatabaseUsingInMemoryFileSystem();
-        testUpdateWhenNearlyOutOfMemory();
+        try {
+            System.gc();
+            testMVStoreUsingInMemoryFileSystem();
+            System.gc();
+            testDatabaseUsingInMemoryFileSystem();
+            System.gc();
+            testUpdateWhenNearlyOutOfMemory();
+        } finally {
+            System.gc();
+        }
     }
 
     private void testMVStoreUsingInMemoryFileSystem() {

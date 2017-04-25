@@ -41,6 +41,8 @@ public class TestCases extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testMinimalCoveringIndexPlan();
+        testMinMaxDirectLookupIndex();
         testReferenceLaterTable();
         testAutoCommitInDatabaseURL();
         testReferenceableIndexUsage();
@@ -1715,6 +1717,96 @@ public class TestCases extends TestBase {
         List<String> list = FileUtils.newDirectoryStream(getBaseDir() +
                 "/cases.lobs.db");
         assertEquals("Lob file was not deleted: " + list, 0, list.size());
+    }
+
+    private void testMinimalCoveringIndexPlan() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table t(a int, b int, c int)");
+        stat.execute("create index a_idx on t(a)");
+        stat.execute("create index b_idx on t(b)");
+        stat.execute("create index ab_idx on t(a, b)");
+        stat.execute("create index abc_idx on t(a, b, c)");
+
+        ResultSet rs;
+        String plan;
+
+        rs = stat.executeQuery("explain select a from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.A_IDX */");
+        rs.close();
+
+        rs = stat.executeQuery("explain select b from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.B_IDX */");
+        rs.close();
+
+        rs = stat.executeQuery("explain select b, a from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.AB_IDX */");
+        rs.close();
+
+        rs = stat.executeQuery("explain select b, a, c from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.ABC_IDX */");
+        rs.close();
+
+        conn.close();
+    }
+
+    private void testMinMaxDirectLookupIndex() throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+
+        stat.execute("create table t(a int, b int)");
+        stat.execute("create index b_idx on t(b desc)");
+        stat.execute("create index ab_idx on t(a, b)");
+
+        final int count = 100;
+
+        PreparedStatement p = conn.prepareStatement("insert into t values (?,?)");
+        for (int i = 0; i <= count; i++) {
+            p.setInt(1, i);
+            p.setInt(2, count - i);
+            assertEquals(1, p.executeUpdate());
+        }
+        p.close();
+
+        ResultSet rs;
+        String plan;
+
+        rs = stat.executeQuery("select max(b) from t");
+        assertTrue(rs.next());
+        assertEquals(count, rs.getInt(1));
+        rs.close();
+
+        rs = stat.executeQuery("explain select max(b) from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.B_IDX */");
+        assertContains(plan, "/* direct lookup */");
+        rs.close();
+
+        rs = stat.executeQuery("select min(b) from t");
+        assertTrue(rs.next());
+        assertEquals(0, rs.getInt(1));
+        rs.close();
+
+        rs = stat.executeQuery("explain select min(b) from t");
+        assertTrue(rs.next());
+        plan = rs.getString(1);
+        assertContains(plan, "/* PUBLIC.B_IDX */");
+        assertContains(plan, "/* direct lookup */");
+        rs.close();
+
+        conn.close();
     }
 
     private void testDeleteTop() throws SQLException {

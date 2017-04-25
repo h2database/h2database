@@ -9,6 +9,10 @@
 22012=ゼロで除算しました: {0}
 22018=データ変換中にエラーが発生しました {0}
 22025=LIKE ESCAPE にエラーがあります: {0}
+22030=#Value not permitted for column {0}: {1}
+22031=#Value not a member of enumerators {0}: {1}
+22032=#Empty enums are not allowed
+22033=#Duplicate enumerators are not allowed for enum types: {0}
 23502=列 {0} にはnull値が許されていません
 23503=参照整合性制約違反: {0}
 23505=ユニークインデックス、またはプライマリキー違反: {0}

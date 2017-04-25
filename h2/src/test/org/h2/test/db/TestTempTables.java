@@ -90,6 +90,9 @@ public class TestTempTables extends TestBase {
     }
 
     private void testTempFileResultSet() throws SQLException {
+        if (config.lazy) {
+            return;
+        }
         deleteDb("tempTables");
         Connection conn = getConnection("tempTables;MAX_MEMORY_ROWS=10");
         ResultSet rs1, rs2;
@@ -100,10 +103,10 @@ public class TestTempTables extends TestBase {
         rs1 = stat1.executeQuery("select * from system_range(1, 20)");
         rs2 = stat2.executeQuery("select * from system_range(1, 20)");
         for (int i = 0; i < 20; i++) {
-            rs1.next();
-            rs2.next();
-            rs1.getInt(1);
-            rs2.getInt(1);
+            assertTrue(rs1.next());
+            assertTrue(rs2.next());
+            assertEquals(i + 1, rs1.getInt(1));
+            assertEquals(i + 1, rs2.getInt(1));
         }
         rs2.close();
         // verify the temp table is not deleted yet

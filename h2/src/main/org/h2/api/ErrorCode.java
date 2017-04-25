@@ -159,6 +159,65 @@ public class ErrorCode {
      */
     public static final int LIKE_ESCAPE_ERROR_1 = 22025;
 
+    /**
+     * The error with code <code>22030</code> is thrown when
+     * an attempt is made to INSERT or UPDATE an ENUM-typed cell,
+     * but the value is not one of the values enumerated by the
+     * type.
+     *
+     * This error is best thrown in a context when the column name
+     * and it's enumerated values are known.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
+     * INSERT INTO TEST VALUES('snake');
+     * </pre>
+     */
+    public static final int ENUM_VALUE_NOT_PERMITTED_1 = 22030;
+
+    /**
+     * The error with code <code>22031</code> is typically thrown
+     * when a math operation is attempted on an ENUM-typed cell,
+     * but the value resulting from the operation is not one of
+     * values enumerated by the type.
+     *
+     * This error is best thrown in a context when the column name
+     * is not known, but the enumerated values of the type are known.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
+     * INSERT INTO TEST VALUES('sensitive');
+     * UPDATE TEST SET CASE = CASE + 100;
+     * </pre>
+     */
+    public static final int ENUM_VALUE_NOT_PERMITTED_2 = 22031;
+
+    /**
+     * The error with code <code>22032</code> is thrown when an
+     * attempt is made to add or modify an ENUM-typed column so
+     * that one or more of its enumerators would be empty.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM(' '));
+     * </pre>
+     */
+    public static final int ENUM_EMPTY = 22032;
+
+    /**
+     * The error with code <code>22033</code> is thrown when an
+     * attempt is made to add or modify an ENUM-typed column so
+     * that it would have duplicate values.
+     *
+     * Example:
+     * <pre>
+     * CREATE TABLE TEST(CASE ENUM('sensitive', 'sensitive'));
+     * </pre>
+     */
+    public static final int ENUM_DUPLICATE = 22033;
+
     // 23: constraint violation
 
     /**

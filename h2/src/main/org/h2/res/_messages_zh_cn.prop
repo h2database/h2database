@@ -9,6 +9,10 @@
 22012=除数为零: {0}
 22018=转换数据{0}期间出现转换错误
 22025=LIKE ESCAPE(转义符)存在错误: {0}
+22030=#Value not permitted for column {0}: {1}
+22031=#Value not a member of enumerators {0}: {1}
+22032=#Empty enums are not allowed
+22033=#Duplicate enumerators are not allowed for enum types: {0}
 23502=字段 {0} 不允许为NULL值
 23503=违反引用完整性约束: {0}
 23505=违反唯一索引或逐渐约束: {0}

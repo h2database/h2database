@@ -146,6 +146,7 @@ import org.h2.value.ValueBoolean;
 import org.h2.value.ValueBytes;
 import org.h2.value.ValueDate;
 import org.h2.value.ValueDecimal;
+import org.h2.value.ValueEnum;
 import org.h2.value.ValueInt;
 import org.h2.value.ValueLong;
 import org.h2.value.ValueNull;
@@ -1714,7 +1715,9 @@ public class Parser {
             }
         }
         if (isToken("SELECT") || isToken("FROM") || isToken("(") || isToken("WITH")) {
-            command.setCommand(parseSelect());
+            Query query = parseSelect();
+            query.setNeverLazy(true);
+            command.setCommand(query);
         } else if (readIf("DELETE")) {
             command.setCommand(parseDelete());
         } else if (readIf("UPDATE")) {
@@ -1923,7 +1926,10 @@ public class Parser {
             return command;
         }
         if (readIf("WITH")) {
-            return parseWith();
+            Query query = parseWith();
+            // recursive can not be lazy
+            query.setNeverLazy(true);
+            return query;
         }
         Select select = parseSelectSimple();
         return select;
@@ -2234,6 +2240,10 @@ public class Parser {
                 } else {
                     if (isSelect()) {
                         Query query = parseSelect();
+                        // can not be lazy because we have to call
+                        // method ResultInterface.containsDistinct
+                        // which is not supported for lazy execution
+                        query.setNeverLazy(true);
                         r = new ConditionInSelect(database, r, query, false,
                                 Comparison.EQUAL);
                     } else {
@@ -4127,6 +4137,7 @@ public class Parser {
         }
         long precision = -1;
         int displaySize = -1;
+        String[] enumerators = null;
         int scale = -1;
         String comment = null;
         Column templateColumn = null;
@@ -4143,6 +4154,7 @@ public class Parser {
             precision = templateColumn.getPrecision();
             displaySize = templateColumn.getDisplaySize();
             scale = templateColumn.getScale();
+            enumerators = templateColumn.getEnumerators();
         } else {
             dataType = DataType.getTypeByName(original);
             if (dataType == null) {
@@ -4200,6 +4212,28 @@ public class Parser {
                 }
                 read(")");
             }
+        } else if (dataType.type == Value.ENUM) {
+            if (readIf("(")) {
+                java.util.List<String> enumeratorList = new ArrayList<String>();
+                original += '(';
+                String enumerator0 = readString();
+                enumeratorList.add(enumerator0);
+                original += "'" + enumerator0 + "'";
+                while(readIf(",")) {
+                    original += ',';
+                    String enumeratorN = readString();
+                    original += "'" + enumeratorN + "'";
+                    enumeratorList.add(enumeratorN);
+                }
+                read(")");
+                original += ')';
+                enumerators = enumeratorList.toArray(new String[enumeratorList.size()]);
+            }
+            try {
+                ValueEnum.check(enumerators);
+            } catch(DbException e) {
+                throw e.addSQL(original);
+            }
         } else if (readIf("(")) {
             // Support for MySQL: INT(11), MEDIUMINT(8) and so on.
             // Just ignore the precision.
@@ -4220,8 +4254,10 @@ public class Parser {
             throw DbException.get(ErrorCode.INVALID_VALUE_SCALE_PRECISION,
                     Integer.toString(scale), Long.toString(precision));
         }
+
+
         Column column = new Column(columnName, type, precision, scale,
-                displaySize);
+            displaySize, enumerators);
         if (templateColumn != null) {
             column.setNullable(templateColumn.isNullable());
             column.setDefaultExpression(session,

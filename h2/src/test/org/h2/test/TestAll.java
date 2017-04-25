@@ -91,6 +91,7 @@ import org.h2.test.jdbc.TestCallableStatement;
 import org.h2.test.jdbc.TestCancel;
 import org.h2.test.jdbc.TestConcurrentConnectionUsage;
 import org.h2.test.jdbc.TestConnection;
+import org.h2.test.jdbc.TestCustomDataTypesHandler;
 import org.h2.test.jdbc.TestDatabaseEventListener;
 import org.h2.test.jdbc.TestDriver;
 import org.h2.test.jdbc.TestJavaObject;
@@ -313,6 +314,11 @@ java org.h2.test.TestAll timer
      * If the multi-threaded mode should be used.
      */
     public boolean multiThreaded;
+
+    /**
+     * If lazy queries should be used.
+     */
+    public boolean lazy;
 
     /**
      * The cipher to use (null for unencrypted).
@@ -602,6 +608,13 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         test();
         testUnit();
 
+        // lazy
+        lazy = true;
+        memory = true;
+        multiThreaded = true;
+        test();
+        lazy = false;
+
         // but sometimes race conditions need bigger windows
         memory = false;
         multiThreaded = true;
@@ -772,6 +785,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestTransactionIsolation());
         addTest(new TestUpdatableResultSet());
         addTest(new TestZloty());
+        addTest(new TestCustomDataTypesHandler());
 
         // jdbcx
         addTest(new TestConnectionPool());
@@ -1061,6 +1075,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     public String toString() {
         StringBuilder buff = new StringBuilder();
         appendIf(buff, fast, "fast");
+        appendIf(buff, lazy, "lazy");
         appendIf(buff, mvStore, "mvStore");
         appendIf(buff, big, "big");
         appendIf(buff, networked, "net");

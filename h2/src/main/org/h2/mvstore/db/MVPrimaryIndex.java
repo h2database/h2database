@@ -243,6 +243,11 @@ public class MVPrimaryIndex extends BaseIndex {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        return false;
+    }
+
+    @Override
     public void remove(Session session) {
         TransactionMap<Value, Value> map = getMap(session);
         if (!map.isClosed()) {

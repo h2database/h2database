@@ -16,22 +16,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2017-03-10";
+    public static final String BUILD_DATE = "2017-04-23";
 
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2016-10-31";
+    public static final String BUILD_DATE_STABLE = "2017-03-10";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 194;
+    public static final int BUILD_ID = 195;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 193;
+    public static final int BUILD_ID_STABLE = 194;
 
     /**
      * Whether this is a snapshot version.
@@ -542,7 +542,7 @@ public class Constants {
      * @return the version number
      */
     public static Object getVersionStable() {
-        return "1.3." + BUILD_ID_STABLE;
+        return "1.4." + BUILD_ID_STABLE;
     }
 
     /**

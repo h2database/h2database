@@ -85,6 +85,8 @@ Advanced
     Database Upgrade</a><br />
 <a href="#java_objects_serialization">
     Java Objects Serialization</a><br />
+<a href="#custom_data_types_handler_api">
+    Custom Data Types Handler API</a><br />
 <a href="#limits_limitations">
     Limits and Limitations</a><br />
 <a href="#glossary_links">
@@ -436,7 +438,7 @@ Example: To get the 2nd server in the connection list one uses <code>getClientIn
 Read-only queries are only executed against the first cluster node, but all other statements are
 executed against all nodes. There is currently no load balancing made to avoid problems with
 transactions. The following functions may yield different results on different cluster nodes and must be
-executed with care: <code>RANDOM_UUID(), SECURE_RAND(), SESSION_ID(),
+executed with care: <code>UUID(), RANDOM_UUID(), SECURE_RAND(), SESSION_ID(),
 MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not using a seed].
 Those functions should not be used directly in modifying statements
 (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used
@@ -1395,7 +1397,7 @@ using the probability theory. See also 'Birthday Paradox'.
 Standardized randomly generated UUIDs have 122 random bits.
 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz).
 This database supports generating such UUIDs using the built-in function
-<code>RANDOM_UUID()</code>.
+<code>RANDOM_UUID()</code> or <code>UUID()</code>.
 Here is a small program to estimate the probability of having two identical UUIDs
 after generating a number of values:
 </p>
@@ -1690,6 +1692,29 @@ Please note that this SQL statement can only be executed before any tables are d
 </li>
 </ul>
 </p>
+
+<h2 id="custom_data_types_handler_api">Custom Data Types Handler API</h2>
+<p>
+It is possible to extend the type system of the database by providing your own implementation
+of minimal required API basically consisting of type identification and conversion routines.
+</p>
+<p>
+In order to enable this feature, set the system property <code>h2.customDataTypesHandler</code> (default: null) to the fully qualified name of the class providing <a href="../javadoc/org/h2/api/CustomDataTypesHandler.html">CustomDataTypesHandler</a> interface implementation. <br />
+The instance of that class will be created by H2 and used to:
+<ul>
+<li>resolve the names and identifiers of extrinsic data types.
+</li>
+<li>convert values of extrinsic data types to and from values of built-in types.
+</li>
+<li>provide order of the data types.
+</li>
+</ul>
+</p>
+<p>This is a system-level setting, i.e. affects all the databases.</p>
+
+<p><b>Note: </b>Please keep in mind that this feature may not possibly provide the same ABI stability level as other features as it exposes many of the H2 internals. You may be required to update your code occasionally due to internal changes in H2 if you are going to use this feature.
+</p>
+
 
 <h2 id="limits_limitations">Limits and Limitations</h2>
 <p>

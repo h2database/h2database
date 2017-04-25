@@ -1548,7 +1548,8 @@ public class JdbcConnection extends TraceObject implements Connection,
                 "SELECT SCOPE_IDENTITY() " +
                 "WHERE SCOPE_IDENTITY() IS NOT NULL", getGeneratedKeys);
         ResultInterface result = getGeneratedKeys.executeQuery(0, false);
-        ResultSet rs = new JdbcResultSet(this, stat, result, id, false, true, false);
+        ResultSet rs = new JdbcResultSet(this, stat, getGeneratedKeys, result,
+                id, false, true, false);
         return rs;
     }
 

@@ -1050,22 +1050,35 @@ public abstract class Table extends SchemaObjectBase {
      * This method returns null if no matching index is found.
      *
      * @param column the column
+     * @param needGetFirstOrLast if the returned index must be able
+     *          to do {@link Index#canGetFirstOrLast()}
+     * @param needFindNext if the returned index must be able to do
+     *          {@link Index#findNext(Session, SearchRow, SearchRow)}
      * @return the index or null
      */
-    public Index getIndexForColumn(Column column) {
+    public Index getIndexForColumn(Column column,
+            boolean needGetFirstOrLast, boolean needFindNext) {
         ArrayList<Index> indexes = getIndexes();
+        Index result = null;
         if (indexes != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                if (index.canGetFirstOrLast()) {
-                    int idx = index.getColumnIndex(column);
-                    if (idx == 0) {
-                        return index;
-                    }
+                if (needGetFirstOrLast && !index.canGetFirstOrLast()) {
+                    continue;
+                }
+                if (needFindNext && !index.canFindNext()) {
+                    continue;
+                }
+                // choose the minimal covering index with the needed first
+                // column to work consistently with execution plan from
+                // Optimizer
+                if (index.isFirstColumn(column) && (result == null ||
+                        result.getColumns().length > index.getColumns().length)) {
+                    result = index;
                 }
             }
         }
-        return null;
+        return result;
     }
 
     public boolean getOnCommitDrop() {

@@ -7,7 +7,7 @@ package org.h2.expression;
 
 import org.h2.command.dml.Query;
 import org.h2.engine.Session;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
@@ -28,9 +28,9 @@ public class ConditionExists extends Condition {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        LocalResult result = query.query(1);
+        ResultInterface result = query.query(1);
         session.addTemporaryResult(result);
-        boolean r = result.getRowCount() > 0;
+        boolean r = result.hasNext();
         return ValueBoolean.get(r);
     }
 

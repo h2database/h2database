@@ -7,7 +7,7 @@ SELECT [ TOP term ] [ DISTINCT | ALL ] selectExpression [,...]
 FROM tableExpression [,...] [ WHERE expression ]
 [ GROUP BY expression [,...] ] [ HAVING expression ]
 [ { UNION [ ALL ] | MINUS | EXCEPT | INTERSECT } select ] [ ORDER BY order [,...] ]
-[ [ LIMIT expression ] [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] ]
+[ { LIMIT expression [ OFFSET expression ] [ SAMPLE_SIZE rowCountInt ] } | { [ OFFSET expression { ROW | ROWS } ] [ { FETCH { FIRST | NEXT } expression { ROW | ROWS } ONLY } ] } ]
 [ FOR UPDATE ]
 ","
 Selects data from a table or multiple tables."
@@ -66,6 +66,12 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
     COLUMNS FROM tableName [ FROM schemaName ] }
 ","
 Lists the schemas, tables, or the columns of a table."
+"Commands (DML)","WITH","
+WITH [ RECURSIVE ] name ( columnName [,...] )
+    AS ( select )
+    select
+","
+Can be used to create a recursive query."
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","
@@ -606,7 +612,7 @@ Optional parameters for CSVREAD and CSVWRITE."
 intType | booleanType | tinyintType | smallintType | bigintType | identityType
     | decimalType | doubleType | realType | dateType | timeType | timestampType
     | binaryType | otherType | varcharType | varcharIgnorecaseType | charType
-    | blobType | clobType | uuidType | arrayType
+    | blobType | clobType | uuidType | arrayType | enumType
 ","
 A data type definition."
 "Other Grammar","Date","
@@ -834,6 +840,10 @@ Universally unique identifier."
 ARRAY
 ","
 An array of values."
+"Data Types","ENUM Type","
+{ ENUM (string [, ... ]) }
+","
+A type with enumerated values."
 "Data Types","GEOMETRY Type","
 GEOMETRY
 ","
@@ -1014,7 +1024,7 @@ See also Java ""Math."
 ","
 Calling the function without parameter returns the next a pseudo random number."
 "Functions (Numeric)","RANDOM_UUID","
-RANDOM_UUID()
+{ RANDOM_UUID | UUID } ()
 ","
 Returns a new UUID with 122 pseudo random bits."
 "Functions (Numeric)","ROUND","

@@ -1200,7 +1200,7 @@ public class TestTableEngines extends TestBase {
             }
         };
 
-        public TreeSetTable(CreateTableData data) {
+        TreeSetTable(CreateTableData data) {
             super(data);
         }
 
@@ -1602,7 +1602,7 @@ public class TestTableEngines extends TestBase {
         Iterator<SearchRow> it;
         private Row current;
 
-        public IteratorCursor(Iterator<SearchRow> it) {
+        IteratorCursor(Iterator<SearchRow> it) {
             this.it = it;
         }
 
@@ -1644,12 +1644,12 @@ public class TestTableEngines extends TestBase {
         private int[] cols;
         private boolean descending;
 
-        public RowComparator(int... cols) {
+        RowComparator(int... cols) {
             this.descending = false;
             this.cols = cols;
         }
 
-        public RowComparator(boolean descending, int... cols) {
+        RowComparator(boolean descending, int... cols) {
             this.descending = descending;
             this.cols = cols;
         }

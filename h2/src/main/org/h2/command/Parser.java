@@ -4658,6 +4658,8 @@ public class Parser {
                 command.setCacheSize(ValueExpression.get(ValueLong.get(1)));
             } else if (readIf("BELONGS_TO_TABLE")) {
                 command.setBelongsToTable(true);
+            } else if (readIf("ORDER")) {
+                // Oracle compatibility
             } else {
                 break;
             }

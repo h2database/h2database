@@ -12,10 +12,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
-import org.h2.command.ddl.Analyze;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
@@ -431,8 +429,7 @@ public class RegularTable extends TableBase {
         if (n > 0) {
             nextAnalyze = n;
         }
-        int rows = session.getDatabase().getSettings().analyzeSample / 10;
-        Analyze.analyzeTable(session, this, rows, false);
+        session.markTableForAnalyze(this);
     }
 
     @Override

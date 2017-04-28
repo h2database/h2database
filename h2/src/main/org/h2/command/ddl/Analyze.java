@@ -22,8 +22,8 @@ import org.h2.value.ValueInt;
 import org.h2.value.ValueNull;
 
 /**
- * This class represents the statement
- * ANALYZE
+ * This class represents the statements
+ * ANALYZE and ANALYZE TABLE
  */
 public class Analyze extends DefineCommand {
 
@@ -31,10 +31,18 @@ public class Analyze extends DefineCommand {
      * The sample size.
      */
     private int sampleRows;
+    /**
+     * used in ANALYZE TABLE...
+     */
+    private Table table;
 
     public Analyze(Session session) {
         super(session);
         sampleRows = session.getDatabase().getSettings().analyzeSample;
+    }
+
+    public void setTable(Table table) {
+        this.table = table;
     }
 
     @Override
@@ -42,8 +50,12 @@ public class Analyze extends DefineCommand {
         session.commit(true);
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
-        for (Table table : db.getAllTablesAndViews(false)) {
+        if (table != null) {
             analyzeTable(session, table, sampleRows, true);
+        } else {
+            for (Table table : db.getAllTablesAndViews(false)) {
+                analyzeTable(session, table, sampleRows, true);
+            }
         }
         return 0;
     }

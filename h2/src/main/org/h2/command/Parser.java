@@ -550,6 +550,11 @@ public class Parser {
 
     private Prepared parseAnalyze() {
         Analyze command = new Analyze(session);
+        if (readIf("TABLE")) {
+            Table table = readTableOrView();
+            command.setTable(table);
+            command.setTop(readPositiveInt());
+        }
         if (readIf("SAMPLE_SIZE")) {
             command.setTop(readPositiveInt());
         }

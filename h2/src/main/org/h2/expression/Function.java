@@ -1234,7 +1234,11 @@ public class Function extends Expression implements FunctionCall {
             break;
         case ROUND: {
             double f = v1 == null ? 1. : Math.pow(10., v1.getDouble());
-            result = ValueDouble.get(Math.round(v0.getDouble() * f) / f);
+
+            double middleResult = v0.getDouble() * f;
+
+            int oneWithSymbol = middleResult > 0 ? 1 : -1;
+            result = ValueDouble.get(Math.round(Math.abs(middleResult)) / f * oneWithSymbol);
             break;
         }
         case TRUNCATE: {

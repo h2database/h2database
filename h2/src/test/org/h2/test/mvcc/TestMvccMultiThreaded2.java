@@ -13,6 +13,8 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.h2.test.TestBase;
+import org.h2.jdbc.JdbcSQLException;
+import org.h2.api.ErrorCode;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
@@ -20,7 +22,7 @@ import org.h2.test.TestBase;
 public class TestMvccMultiThreaded2 extends TestBase {
     
     private static final AtomicBoolean running = new AtomicBoolean(true);
-    private static final String url = "jdbc:h2:mem:qed;DB_CLOSE_DELAY=-1;MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
+    private static final String url = "jdbc:h2:mem:qed;MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
 
     /**
      * Run just this test.
@@ -62,9 +64,20 @@ public class TestMvccMultiThreaded2 extends TestBase {
         ps.executeUpdate();
         conn.commit();
 
-        for (int i = 0; i < 100; i++)
-            new SelectForUpdate().start();
+        int howManyThreads = 100;
+        Thread[] threads = new SelectForUpdate[howManyThreads];
+        for (int i = 0; i < howManyThreads; i++) {
+            threads[i] = new SelectForUpdate();
+            threads[i].start();
+        }
 
+        try {
+            for (int i = 0; i < howManyThreads; i++) {
+                threads[i].join();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class SelectForUpdate extends Thread {
@@ -73,9 +86,10 @@ public class TestMvccMultiThreaded2 extends TestBase {
         public void run() {
             long start = System.currentTimeMillis();
             boolean done = false;
+            Connection conn = null;
             while(running.get() && !done) {
                 try {
-                    Connection conn = getConnection(url);
+                    conn = getConnection(url);
                     conn.setAutoCommit(false);
 
                     PreparedStatement ps = conn.prepareStatement(
@@ -90,6 +104,18 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
                     long now = System.currentTimeMillis();
                     if (now - start  > 1000*60) done = true;
+                } catch (JdbcSQLException e1) {
+                    // skip DUPLICATE_KEY_1 to just focus on 
+                    // this bug.
+                    if (e1.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) 
+                        e1.printStackTrace();
+                } catch (SQLException e2) {
+                    e2.printStackTrace();
+                }
+            }
+            if (conn != null) {
+                try {
+                    conn.close();
                 } catch (SQLException e1) {
                     e1.printStackTrace();
                 }

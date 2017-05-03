@@ -78,6 +78,16 @@ public class TestMvccMultiThreaded2 extends TestBase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        smtm = conn.createStatement();
+        smtm.execute("DROP TABLE TEST");
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        }
     }
 
     private class SelectForUpdate extends Thread {

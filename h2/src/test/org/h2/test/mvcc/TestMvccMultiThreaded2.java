@@ -10,19 +10,18 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import org.h2.test.TestBase;
-import org.h2.jdbc.JdbcSQLException;
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
+import org.h2.jdbc.JdbcSQLException;
+import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
  */
 public class TestMvccMultiThreaded2 extends TestBase {
-    
-    private static final AtomicBoolean running = new AtomicBoolean(true);
-    private static final String url = ";MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
+
+    private static final String URL = ";MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
 
     /**
      * Run just this test.
@@ -39,98 +38,81 @@ public class TestMvccMultiThreaded2 extends TestBase {
     }
 
     @Override
-    public void test() throws SQLException {
-        if (config.cipher != null || !config.lazy) {
-            return;
-        }
+    public void test() throws SQLException, InterruptedException {
         testSelectForUpdateConcurrency();
     }
 
-    private void testSelectForUpdateConcurrency() throws SQLException {
+    private void testSelectForUpdateConcurrency()
+            throws SQLException, InterruptedException {
         deleteDb(getTestName());
-        Connection conn = getConnection(getTestName() + url);
+        Connection conn = getConnection(getTestName() + URL);
         conn.setAutoCommit(false);
 
-        String sql = "CREATE TABLE testmvccmultithreaded2 ("
-            + "entity_id INTEGER NOT NULL PRIMARY KEY, "
-            + "lastUpdated INTEGER NOT NULL)";
+        String sql = "CREATE TABLE test ("
+                + "entity_id INTEGER NOT NULL PRIMARY KEY, "
+                + "lastUpdated INTEGER NOT NULL)";
 
         Statement smtm = conn.createStatement();
         smtm.executeUpdate(sql);
 
         PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO testmvccmultithreaded2 (entity_id, lastUpdated) VALUES (?, ?)");
-        ps.setInt(1,  1);
+                "INSERT INTO test (entity_id, lastUpdated) VALUES (?, ?)");
+        ps.setInt(1, 1);
         ps.setInt(2, 100);
         ps.executeUpdate();
         conn.commit();
 
-        int howManyThreads = 100;
-        Thread[] threads = new SelectForUpdate[howManyThreads];
-        for (int i = 0; i < howManyThreads; i++) {
-            threads[i] = new SelectForUpdate();
-            threads[i].start();
+        ArrayList<SelectForUpdate> threads = new ArrayList<SelectForUpdate>();
+        for (int i = 0; i < 100; i++) {
+            SelectForUpdate sfu = new SelectForUpdate();
+            threads.add(sfu);
+            sfu.start();
         }
 
-        try {
-            for (int i = 0; i < howManyThreads; i++) {
-                threads[i].join();
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for (SelectForUpdate sfu : threads) {
+            sfu.join();
         }
 
-        smtm = conn.createStatement();
-        smtm.execute("DROP TABLE testmvccmultithreaded2");
-        if (conn != null) {
-            try {
-                conn.close();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
-        }
+        IOUtils.closeSilently(conn);
+        deleteDb(getTestName());
     }
 
     private class SelectForUpdate extends Thread {
 
         @Override
         public void run() {
-            long start = System.currentTimeMillis();
+            final long start = System.currentTimeMillis();
             boolean done = false;
             Connection conn = null;
-            while(running.get() && !done) {
-                try {
-                    conn = getConnection(getTestName() + url);
-                    conn.setAutoCommit(false);
+            try {
+                conn = getConnection(getTestName() + URL);
+                conn.setAutoCommit(false);
+                while (!done) {
+                    try {
+                        PreparedStatement ps = conn.prepareStatement(
+                                "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
+                        ps.setString(1, "1");
+                        ResultSet rs = ps.executeQuery();
 
-                    PreparedStatement ps = conn.prepareStatement(
-                            "SELECT * FROM testmvccmultithreaded2 WHERE entity_id = ? FOR UPDATE");
-                    ps.setString(1, "1");
-                    ResultSet rs = ps.executeQuery();
-                    
-                    assertTrue(rs.next());
-                    assertTrue(rs.getInt(2) == 100);
+                        assertTrue(rs.next());
+                        assertTrue(rs.getInt(2) == 100);
 
-                    conn.commit();
+                        conn.commit();
 
-                    long now = System.currentTimeMillis();
-                    if (now - start  > 1000*60) done = true;
-                } catch (JdbcSQLException e1) {
-                    // skip DUPLICATE_KEY_1 to just focus on 
-                    // this bug.
-                    if (e1.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) 
-                        e1.printStackTrace();
-                } catch (SQLException e2) {
-                    e2.printStackTrace();
+                        long now = System.currentTimeMillis();
+                        if (now - start > 1000 * 60)
+                            done = true;
+                    } catch (JdbcSQLException e1) {
+                        // skip DUPLICATE_KEY_1 to just focus on this bug.
+                        if (e1.getErrorCode() != ErrorCode.DUPLICATE_KEY_1) {
+                            throw e1;
+                        }
+                    }
                 }
+            } catch (SQLException e) {
+                TestBase.logError("error", e);
             }
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException e1) {
-                    e1.printStackTrace();
-                }
-            }
+            IOUtils.closeSilently(conn);
         }
     }
 }

@@ -40,7 +40,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (config.networked) {
+        if (config.cipher != null) {
             return;
         }
         testSelectForUpdateConcurrency();

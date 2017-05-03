@@ -59,7 +59,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
         smtm.executeUpdate(sql);
 
         PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO test (entity_id, lastUpdated) VALUES (?, ?)");
+                "INSERT INTO testmvccmultithreaded2 (entity_id, lastUpdated) VALUES (?, ?)");
         ps.setInt(1,  1);
         ps.setInt(2, 100);
         ps.executeUpdate();
@@ -104,7 +104,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
                     conn.setAutoCommit(false);
 
                     PreparedStatement ps = conn.prepareStatement(
-                            "SELECT * FROM test WHERE entity_id = ? FOR UPDATE");
+                            "SELECT * FROM testmvccmultithreaded2 WHERE entity_id = ? FOR UPDATE");
                     ps.setString(1, "1");
                     ResultSet rs = ps.executeQuery();
                     

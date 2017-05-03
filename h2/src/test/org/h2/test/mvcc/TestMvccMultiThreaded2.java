@@ -22,7 +22,7 @@ import org.h2.api.ErrorCode;
 public class TestMvccMultiThreaded2 extends TestBase {
     
     private static final AtomicBoolean running = new AtomicBoolean(true);
-    private static final String url = "jdbc:h2:mem:qed;MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
+    private static final String url = ";MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
 
     /**
      * Run just this test.
@@ -47,10 +47,11 @@ public class TestMvccMultiThreaded2 extends TestBase {
     }
 
     private void testSelectForUpdateConcurrency() throws SQLException {
-        Connection conn = getConnection(url);
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName() + url);
         conn.setAutoCommit(false);
 
-        String sql = "CREATE TABLE test ("
+        String sql = "CREATE TABLE testmvccmultithreaded2 ("
             + "entity_id INTEGER NOT NULL PRIMARY KEY, "
             + "lastUpdated INTEGER NOT NULL)";
 
@@ -80,7 +81,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
         }
 
         smtm = conn.createStatement();
-        smtm.execute("DROP TABLE TEST");
+        smtm.execute("DROP TABLE testmvccmultithreaded2");
         if (conn != null) {
             try {
                 conn.close();
@@ -99,7 +100,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
             Connection conn = null;
             while(running.get() && !done) {
                 try {
-                    conn = getConnection(url);
+                    conn = getConnection(getTestName() + url);
                     conn.setAutoCommit(false);
 
                     PreparedStatement ps = conn.prepareStatement(

@@ -101,7 +101,7 @@ public class ValueDataType implements DataType {
             int bl = bx.length;
             int len = Math.min(al, bl);
             for (int i = 0; i < len; i++) {
-                int sortType = sortTypes[i];
+                int sortType = sortTypeSafely(this.sortTypes, i);
                 int comp = compareValues(ax[i], bx[i], sortType);
                 if (comp != 0) {
                     return comp;
@@ -117,6 +117,13 @@ public class ValueDataType implements DataType {
         return compareValues((Value) a, (Value) b, SortOrder.ASCENDING);
     }
 
+    private int sortTypeSafely(int[] types, int idx) {
+        if (null == types || idx < 0 || idx >= types.length) {
+            return SortOrder.ASCENDING;
+        }
+        return types[idx];
+    }
+    
     private int compareValues(Value a, Value b, int sortType) {
         if (a == b) {
             return 0;

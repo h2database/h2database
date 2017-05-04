@@ -131,7 +131,7 @@ public class TableView extends Table {
             }
         }
         ArrayList<TableView> views = getViews();
-        if (views != null) {
+        if (views == null) {
             views = New.arrayList(views);
         }
         initColumnsAndTables(session);

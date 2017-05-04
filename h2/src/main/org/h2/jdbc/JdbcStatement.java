@@ -607,7 +607,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
             if (seconds < 0) {
                 throw DbException.getInvalidValueException("seconds", seconds);
             }
-            conn.setQueryTimeout(seconds);
+            // conn.setQueryTimeout(seconds); //TODO see issue 243
         } catch (Exception e) {
             throw logAndConvert(e);
         }

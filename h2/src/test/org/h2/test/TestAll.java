@@ -117,6 +117,7 @@ import org.h2.test.mvcc.TestMvcc2;
 import org.h2.test.mvcc.TestMvcc3;
 import org.h2.test.mvcc.TestMvcc4;
 import org.h2.test.mvcc.TestMvccMultiThreaded;
+import org.h2.test.mvcc.TestMvccMultiThreaded2;
 import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.recover.RecoverLobTest;
 import org.h2.test.rowlock.TestRowLocks;
@@ -803,6 +804,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMvcc3());
         addTest(new TestMvcc4());
         addTest(new TestMvccMultiThreaded());
+        addTest(new TestMvccMultiThreaded2());
         addTest(new TestRowLocks());
 
         // synth

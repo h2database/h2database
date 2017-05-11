@@ -6123,6 +6123,8 @@ public class Parser {
                         if (readIf("CONSTRAINT")) {
                             constraintName = readColumnIdentifier();
                         }
+                        // For compatibility with Apache Ignite.
+                        boolean affinity = readIf("AFFINITY");
                         if (readIf("PRIMARY")) {
                             read("KEY");
                             boolean hash = readIf("HASH");
@@ -6138,6 +6140,12 @@ public class Parser {
                             if (readIf("AUTO_INCREMENT")) {
                                 parseAutoIncrement(column);
                             }
+                            if (affinity) {
+                                command.affinityColumnName(column.getName());
+                            }
+                        } else if (affinity) {
+                            read("KEY");
+                            command.affinityColumnName(column.getName());
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(
                                     session, schema, false);

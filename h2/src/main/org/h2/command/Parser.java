@@ -5905,6 +5905,7 @@ public class Parser {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
         boolean allowIndexDefinition = database.getMode().indexDefinitionInCreateTable;
+        boolean allowAffinityKey = database.getMode().allowAffinityKey;
         if (readIf("CONSTRAINT")) {
             ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
@@ -5955,6 +5956,17 @@ public class Parser {
             if (readIf("USING")) {
                 read("BTREE");
             }
+            return command;
+        } else if (allowAffinityKey && isToken("AFFINITY")) {
+            read("KEY");
+            IndexColumn[] indexColumns = new IndexColumn[] { new IndexColumn() };
+            indexColumns[0].columnName = readColumnIdentifier();
+            CreateIndex command = new CreateIndex(session, schema);
+            command.setComment(comment);
+            command.setTableName(tableName);
+            command.setIfTableExists(ifTableExists);
+            command.setIndexColumns(indexColumns);
+            command.setAffinity(true);
             return command;
         }
         AlterTableAddConstraint command;
@@ -6124,7 +6136,8 @@ public class Parser {
                             constraintName = readColumnIdentifier();
                         }
                         // For compatibility with Apache Ignite.
-                        boolean affinity = readIf("AFFINITY");
+                        boolean allowAffinityKey = database.getMode().allowAffinityKey;
+                        boolean affinity = allowAffinityKey && readIf("AFFINITY");
                         if (readIf("PRIMARY")) {
                             read("KEY");
                             boolean hash = readIf("HASH");
@@ -6141,11 +6154,21 @@ public class Parser {
                                 parseAutoIncrement(column);
                             }
                             if (affinity) {
-                                command.affinityColumnName(column.getName());
+                                CreateIndex idx = new CreateIndex(session, schema);
+                                idx.setTableName(tableName);
+                                idx.setIndexColumns(cols);
+                                idx.setAffinity(true);
+                                command.addConstraintCommand(idx);
                             }
                         } else if (affinity) {
                             read("KEY");
-                            command.affinityColumnName(column.getName());
+                            IndexColumn[] cols = { new IndexColumn() };
+                            cols[0].columnName = column.getName();
+                            CreateIndex idx = new CreateIndex(session, schema);
+                            idx.setTableName(tableName);
+                            idx.setIndexColumns(cols);
+                            idx.setAffinity(true);
+                            command.addConstraintCommand(idx);
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(
                                     session, schema, false);

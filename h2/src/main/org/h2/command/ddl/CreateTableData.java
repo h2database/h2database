@@ -80,9 +80,4 @@ public class CreateTableData {
      * The table is hidden.
      */
     public boolean isHidden;
-
-    /**
-     * Name of the column to use as the affinity key.
-     */
-    public String affinityColumnName;
 }

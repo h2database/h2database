@@ -1789,7 +1789,7 @@ columnName dataType
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]
-[ [ [ AFFINITY ] PRIMARY KEY [ HASH ] | AFFINITY KEY | UNIQUE ] ] [ CHECK condition ]
+[ PRIMARY KEY [ HASH ] | UNIQUE ] [ CHECK condition ]
 ","
 Default expressions are used if no explicit value was used when adding a row.
 The computed column expression is evaluated and assigned whenever the row changes.
@@ -1801,7 +1801,7 @@ primary key column of this table (unlike auto-increment columns).
 The invisible column will not be displayed as a result of SELECT * query.
 Otherwise, it works as normal column.
 
-The options PRIMARY KEY, AFFINITY KEY, UNIQUE, and CHECK are not supported for ALTER statements.
+The options PRIMARY KEY, UNIQUE, and CHECK are not supported for ALTER statements.
 
 Check constraints can reference columns of the table,
 and they can reference objects that exist while the statement is executed.

@@ -339,10 +339,6 @@ public class CreateTable extends SchemaCommand {
         data.isHidden = isHidden;
     }
 
-    public void affinityColumnName(String affinityColumnName) {
-        data.affinityColumnName = affinityColumnName;
-    }
-
     @Override
     public int getType() {
         return CommandInterface.CREATE_TABLE;

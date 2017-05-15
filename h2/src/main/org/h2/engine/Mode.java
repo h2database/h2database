@@ -155,6 +155,11 @@ public class Mode {
      */
     public boolean prohibitEmptyInPredicate;
 
+    /**
+     * Whether AFFINITY KEY keywords are supported.
+     */
+    public boolean allowAffinityKey;
+
     private final String name;
 
     static {
@@ -255,6 +260,7 @@ public class Mode {
 
         mode = new Mode("Ignite");
         mode.nullConcatIsNull = true;
+        mode.allowAffinityKey = true;
         add(mode);
     }
 

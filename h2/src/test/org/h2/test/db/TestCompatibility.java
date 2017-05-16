@@ -498,5 +498,7 @@ public class TestCompatibility extends TestBase {
         stat.execute("create table test(id int affinity primary key)");
         stat.execute("DROP TABLE IF EXISTS TEST");
         stat.execute("create table test(id int, v1 varchar, v2 long affinity key, primary key(v1, id))");
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("create table test(id int, v1 varchar, v2 long, primary key(v1, id), affinity key id)");
     }
 }

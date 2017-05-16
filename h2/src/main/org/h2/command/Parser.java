@@ -5957,7 +5957,7 @@ public class Parser {
                 read("BTREE");
             }
             return command;
-        } else if (allowAffinityKey && isToken("AFFINITY")) {
+        } else if (allowAffinityKey && readIf("AFFINITY")) {
             read("KEY");
             IndexColumn[] indexColumns = new IndexColumn[] { new IndexColumn() };
             indexColumns[0].columnName = readColumnIdentifier();

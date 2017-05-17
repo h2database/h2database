@@ -445,7 +445,7 @@ public class TableLink extends Table {
 
     @Override
     public synchronized long getRowCount(Session session) {
-        String sql = "SELECT COUNT(*) FROM " + qualifiedTableName;
+        String sql = "SELECT COUNT(*) FROM " + qualifiedTableName + " as foo";
         try {
             PreparedStatement prep = execute(sql, null, false);
             ResultSet rs = prep.getResultSet();

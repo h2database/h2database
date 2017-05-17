@@ -52,7 +52,7 @@ public class LinkSchema {
             stat = conn.createStatement();
             stat.execute("CREATE SCHEMA IF NOT EXISTS " +
                         StringUtils.quoteIdentifier(targetSchema));
-            rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
+            rs = c2.getMetaData().getTables(null, sourceSchema, null, new String[]{"TABLE","LINKED TABLE","VIEW","EXTERNAL"});
             while (rs.next()) {
                 String table = rs.getString("TABLE_NAME");
                 StringBuilder buff = new StringBuilder();

@@ -327,7 +327,8 @@ public class TransactionStore {
         // TODO could synchronize on blocks (100 at a time or so)
         synchronized (undoLog) {
             t.setStatus(Transaction.STATUS_COMMITTING);
-            for (long logId = 0; logId < maxLogId; logId++) {
+            for (long logId = maxLogId - 1; logId >= 0; logId--) {
+//            for (long logId = 0; logId < maxLogId; logId++) {
                 Long undoKey = getOperationId(t.getId(), logId);
                 Object[] op = undoLog.get(undoKey);
                 if (op == null) {

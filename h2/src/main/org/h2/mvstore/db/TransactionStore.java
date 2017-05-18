@@ -328,17 +328,16 @@ public class TransactionStore {
         synchronized (undoLog) {
             t.setStatus(Transaction.STATUS_COMMITTING);
             for (long logId = maxLogId - 1; logId >= 0; logId--) {
-//            for (long logId = 0; logId < maxLogId; logId++) {
                 Long undoKey = getOperationId(t.getId(), logId);
                 Object[] op = undoLog.get(undoKey);
                 if (op == null) {
                     // partially committed: load next
-                    undoKey = undoLog.ceilingKey(undoKey);
+                    undoKey = undoLog.floorKey(undoKey);
                     if (undoKey == null ||
                             getTransactionId(undoKey) != t.getId()) {
                         break;
                     }
-                    logId = getLogId(undoKey) - 1;
+                    logId = getLogId(undoKey) + 1;
                     continue;
                 }
                 int mapId = (Integer) op[0];
@@ -351,7 +350,7 @@ public class TransactionStore {
                         if (tx == t.transactionId) {
                             // only remove/update value if it's transaction id is same as current transaction id
                             if (value.value == null) {
-                                    map.remove(key);
+                                map.remove(key);
                             } else {
                                 VersionedValue v2 = new VersionedValue();
                                 v2.value = value.value;
@@ -360,7 +359,18 @@ public class TransactionStore {
                         }
                     }
                 }
-                undoLog.remove(undoKey);
+            }
+            for (long logId = 0; logId < maxLogId; logId++) {
+                Long undoKey = getOperationId(t.getId(), logId);
+                if (undoLog.remove(undoKey) == null) {
+                    // partially committed: load next
+                    undoKey = undoLog.ceilingKey(undoKey);
+                    if (undoKey == null ||
+                            getTransactionId(undoKey) != t.getId()) {
+                        break;
+                    }
+                    logId = getLogId(undoKey) - 1;
+                }
             }
         }
         endTransaction(t);

@@ -327,17 +327,17 @@ public class TransactionStore {
         // TODO could synchronize on blocks (100 at a time or so)
         synchronized (undoLog) {
             t.setStatus(Transaction.STATUS_COMMITTING);
-            for (long logId = maxLogId - 1; logId >= 0; logId--) {
+            for (long logId = 0; logId < maxLogId; logId++) {
                 Long undoKey = getOperationId(t.getId(), logId);
                 Object[] op = undoLog.get(undoKey);
                 if (op == null) {
                     // partially committed: load next
-                    undoKey = undoLog.floorKey(undoKey);
+                    undoKey = undoLog.ceilingKey(undoKey);
                     if (undoKey == null ||
                             getTransactionId(undoKey) != t.getId()) {
                         break;
                     }
-                    logId = getLogId(undoKey) + 1;
+                    logId = getLogId(undoKey) - 1;
                     continue;
                 }
                 int mapId = (Integer) op[0];
@@ -346,9 +346,9 @@ public class TransactionStore {
                     Object key = op[1];
                     VersionedValue value = map.get(key);
                     if (value != null) {
-                        int tx = getTransactionId(value.operationId);
-                        if (tx == t.transactionId) {
-                            // only remove/update value if it's transaction id is same as current transaction id
+                        // only commit (remove/update) value if we've reached
+                        // last undoLog entry for a given key
+                        if (value.operationId == undoKey) {
                             if (value.value == null) {
                                 map.remove(key);
                             } else {
@@ -359,18 +359,7 @@ public class TransactionStore {
                         }
                     }
                 }
-            }
-            for (long logId = 0; logId < maxLogId; logId++) {
-                Long undoKey = getOperationId(t.getId(), logId);
-                if (undoLog.remove(undoKey) == null) {
-                    // partially committed: load next
-                    undoKey = undoLog.ceilingKey(undoKey);
-                    if (undoKey == null ||
-                            getTransactionId(undoKey) != t.getId()) {
-                        break;
-                    }
-                    logId = getLogId(undoKey) - 1;
-                }
+                undoLog.remove(undoKey);
             }
         }
         endTransaction(t);

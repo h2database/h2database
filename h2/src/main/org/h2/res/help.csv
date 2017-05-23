@@ -149,9 +149,9 @@ ALTER VIEW [ IF EXISTS ] viewName RECOMPILE
 ","
 Recompiles a view after the underlying tables have been changed or created."
 "Commands (DDL)","ANALYZE","
-ANALYZE [ SAMPLE_SIZE rowCountInt ]
+ANALYZE [ TABLE tableName ] [ SAMPLE_SIZE rowCountInt ]
 ","
-Updates the selectivity statistics of all tables."
+Updates the selectivity statistics of tables."
 "Commands (DDL)","COMMENT","
 COMMENT ON
 { { COLUMN [ schemaName. ] tableName.columnName }

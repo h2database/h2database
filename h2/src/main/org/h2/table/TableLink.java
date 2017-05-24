@@ -445,6 +445,7 @@ public class TableLink extends Table {
 
     @Override
     public synchronized long getRowCount(Session session) {
+        //The foo alias is used to support the PostgreSQL syntax
         String sql = "SELECT COUNT(*) FROM " + qualifiedTableName + " as foo";
         try {
             PreparedStatement prep = execute(sql, null, false);

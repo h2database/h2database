@@ -261,6 +261,7 @@ public class Mode {
         mode = new Mode("Ignite");
         mode.nullConcatIsNull = true;
         mode.allowAffinityKey = true;
+        mode.indexDefinitionInCreateTable = true;
         add(mode);
     }
 

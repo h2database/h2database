@@ -199,9 +199,9 @@ public class MetaTable extends Table {
                     "SQL",
                     "ID INT",
                     "SORT_TYPE INT",
-                    "AFFINITY BIT",
                     "CONSTRAINT_NAME",
-                    "INDEX_CLASS"
+                    "INDEX_CLASS",
+                    "AFFINITY BIT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -910,13 +910,13 @@ public class MetaTable extends Table {
                                 "" + index.getId(),
                                 // SORT_TYPE
                                 "" + idxCol.sortType,
-                                // AFFINITY
-                                index.getIndexType().isAffinity() ?
-                                        "TRUE" : "FALSE",
                                 // CONSTRAINT_NAME
                                 constraintName,
                                 // INDEX_CLASS
-                                indexClass
+                                indexClass,
+                                // AFFINITY
+                                index.getIndexType().isAffinity() ?
+                                        "TRUE" : "FALSE"
                             );
                     }
                 }

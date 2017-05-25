@@ -68,6 +68,7 @@ public class DataType {
     private static final ArrayList<DataType> TYPES = New.arrayList();
     private static final HashMap<String, DataType> TYPES_BY_NAME = New.hashMap();
     private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = New.hashMap();
+    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_SQL_TYPE = New.hashMap();
 
     /**
      * The value type of this data type.
@@ -430,6 +431,7 @@ public class DataType {
             TYPES_BY_NAME.put(dt.name, dt);
             if (TYPES_BY_VALUE_TYPE.get(type) == null) {
                 TYPES_BY_VALUE_TYPE.put(type, dt);
+                TYPES_BY_VALUE_SQL_TYPE.put(sqlType, dt);
             }
             TYPES.add(dt);
         }
@@ -914,6 +916,10 @@ public class DataType {
         case DataType.TYPE_RESULT_SET:
             return Value.RESULT_SET;
         default:
+            DataType dt = TYPES_BY_VALUE_SQL_TYPE.get(sqlType);
+            if (dt != null){
+                return dt.type;
+            }
             throw DbException.get(
                     ErrorCode.UNKNOWN_DATA_TYPE_1, "" + sqlType);
         }

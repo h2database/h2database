@@ -252,6 +252,10 @@ public class Mode {
                 Pattern.compile("ApplicationName");
         mode.prohibitEmptyInPredicate = true;
         add(mode);
+
+        mode = new Mode("Ignite");
+        mode.nullConcatIsNull = true;
+        add(mode);
     }
 
     private Mode(String name) {

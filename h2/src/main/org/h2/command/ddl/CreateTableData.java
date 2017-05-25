@@ -81,4 +81,8 @@ public class CreateTableData {
      */
     public boolean isHidden;
 
+    /**
+     * Name of the column to use as the affinity key.
+     */
+    public String affinityColumnName;
 }

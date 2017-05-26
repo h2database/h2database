@@ -282,13 +282,14 @@ public class Parser {
         try {
             String modeName = database.getMode().getName();
             if(!modeName.equals("REGULAR")) {
-                System.out.println("INPUT SQL:\n"+sql);
                 JdbcOptionProperties.Data data = JdbcOptionProperties.getInstance().getModeData(modeName);
                 for(int i=0; i < data.getMatcher().length; ++i) {
                     Matcher matcher = data.getMatcher()[i].matcher(sql);
-
-                    sql = matcher.replaceAll(data.getReplacer()[i]);
-                    System.out.println("OUTPUT SQL:" +i+"\n"+sql);
+                    if(matcher.find()) {
+                        database.getTraceSystem().getTrace(8/*TraceObject.STATEMENT*/).debug("Statement: "+sql);
+                        sql = matcher.replaceAll(data.getReplacer()[i]);
+                        database.getTraceSystem().getTrace(8/*TraceObject.STATEMENT*/).debug("was changed to: " + sql);
+                    }
                 }
             }
             // first, try the fast variant

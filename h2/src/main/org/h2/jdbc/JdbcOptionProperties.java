@@ -206,12 +206,11 @@ public class JdbcOptionProperties {
 
     @Override
     public int hashCode() {
-      StringBuilder sb = new StringBuilder();
+      int h = 0;
       for(int i=0; i < arr.length; ++i) {
-        sb.append(arr[i]);
-        sb.append('\u0009');
+        h=31*h+arr[i].hashCode();
       }
-      return sb.toString().hashCode();
+      return h;
     }
 
     @Override

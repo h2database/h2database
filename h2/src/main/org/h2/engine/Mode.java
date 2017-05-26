@@ -155,6 +155,11 @@ public class Mode {
      */
     public boolean prohibitEmptyInPredicate;
 
+    /**
+     * Whether AFFINITY KEY keywords are supported.
+     */
+    public boolean allowAffinityKey;
+
     private final String name;
 
     static {
@@ -251,6 +256,12 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
         mode.prohibitEmptyInPredicate = true;
+        add(mode);
+
+        mode = new Mode("Ignite");
+        mode.nullConcatIsNull = true;
+        mode.allowAffinityKey = true;
+        mode.indexDefinitionInCreateTable = true;
         add(mode);
     }
 

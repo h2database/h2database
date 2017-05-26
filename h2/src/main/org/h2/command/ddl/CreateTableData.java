@@ -80,5 +80,4 @@ public class CreateTableData {
      * The table is hidden.
      */
     public boolean isHidden;
-
 }

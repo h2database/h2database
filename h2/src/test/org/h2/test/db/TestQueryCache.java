@@ -54,7 +54,7 @@ public class TestQueryCache extends TestBase {
         ResultSet rs;
         long first = 0;
         // 1000 iterations to warm up and avoid JIT effects
-        for (int i = 0; i < 1010; i++) {
+        for (int i = 0; i < 1005; i++) {
             // this should both ensure results are not re-used
             // stat.execute("set mode regular");
             // stat.execute("create table x()");
@@ -74,6 +74,8 @@ public class TestQueryCache extends TestBase {
                 prep = conn.prepareStatement(query);
             } else if (i == 1001) {
                 first = time;
+                // try to avoid pauses in subsequent iterations
+                System.gc();
             } else if (i > 1001) {
                 assertSmaller(time, first);
             }

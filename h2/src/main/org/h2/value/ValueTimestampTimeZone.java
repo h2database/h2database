@@ -206,7 +206,7 @@ public class ValueTimestampTimeZone extends Value {
 
     @Override
     public Timestamp getTimestamp() {
-        throw new UnsupportedOperationException("unimplemented");
+       return DateTimeUtils.convertDateValueToTimestamp(dateValue, timeNanos);
     }
 
     @Override

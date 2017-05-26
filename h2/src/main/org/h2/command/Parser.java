@@ -286,9 +286,9 @@ public class Parser {
                 for(int i=0; i < data.getMatcher().length; ++i) {
                     Matcher matcher = data.getMatcher()[i].matcher(sql);
                     if(matcher.find()) {
-                        database.getTraceSystem().getTrace(8/*TraceObject.STATEMENT*/).debug("Statement: "+sql);
+                        database.getTraceSystem().getTrace(8/*TraceObject.STATEMENT*/).info("Statement: "+sql);
                         sql = matcher.replaceAll(data.getReplacer()[i]);
-                        database.getTraceSystem().getTrace(8/*TraceObject.STATEMENT*/).debug("was changed to: " + sql);
+                        database.getTraceSystem().getTrace(8/*TraceObject.STATEMENT*/).info("was changed to: " + sql);
                     }
                 }
             }

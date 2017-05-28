@@ -200,7 +200,8 @@ public class MetaTable extends Table {
                     "ID INT",
                     "SORT_TYPE INT",
                     "CONSTRAINT_NAME",
-                    "INDEX_CLASS"
+                    "INDEX_CLASS",
+                    "AFFINITY BIT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -912,7 +913,10 @@ public class MetaTable extends Table {
                                 // CONSTRAINT_NAME
                                 constraintName,
                                 // INDEX_CLASS
-                                indexClass
+                                indexClass,
+                                // AFFINITY
+                                index.getIndexType().isAffinity() ?
+                                        "TRUE" : "FALSE"
                             );
                     }
                 }

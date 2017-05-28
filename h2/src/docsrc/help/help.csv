@@ -415,9 +415,11 @@ ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
 
 "Commands (DDL)","ANALYZE","
-ANALYZE [ SAMPLE_SIZE rowCountInt ]
+ANALYZE [ TABLE tableName ] [ SAMPLE_SIZE rowCountInt ]
 ","
-Updates the selectivity statistics of all tables. The selectivity is used by the
+Updates the selectivity statistics of tables.
+If no table name is given, all tables are analyzed.
+The selectivity is used by the
 cost based optimizer to select the best index for a given query. If no sample
 size is set, up to 10000 rows per table are read. The value 0 means all rows are
 read. The selectivity can be set manually using ALTER TABLE ALTER COLUMN

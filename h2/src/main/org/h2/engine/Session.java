@@ -13,12 +13,12 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.ddl.Analyze;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
@@ -126,6 +126,11 @@ public class Session extends SessionWithState {
     private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
+    /**
+     * Tables marked for ANALYZE after the current transaction is committed.
+     * Prevents us calling ANALYZE repeatedly in large transactions.
+     */
+    private HashSet<Table> tablesToAnalyze;
 
     /**
      * Temporary LOBs from result sets. Those are kept for some time. The
@@ -659,6 +664,14 @@ public class Session extends SessionWithState {
             }
         }
         endTransaction();
+
+        int rows = getDatabase().getSettings().analyzeSample / 10;
+        if (tablesToAnalyze != null) {
+            for (Table table : tablesToAnalyze) {
+                Analyze.analyzeTable(this, table, rows, false);
+            }
+        }
+        tablesToAnalyze = null;
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {
@@ -1680,6 +1693,13 @@ public class Session extends SessionWithState {
     @Override
     public boolean isRemote() {
         return false;
+    }
+
+    public void markTableForAnalyze(Table table) {
+        if (tablesToAnalyze == null) {
+            tablesToAnalyze = New.hashSet();
+        }
+        tablesToAnalyze.add(table);
     }
 
     /**

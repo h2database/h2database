@@ -32,13 +32,19 @@ public class TestTraceSystem extends TestBase {
         testAdapter();
     }
 
-    private static void testAdapter() {
+    private void testAdapter() {
         TraceSystem ts = new TraceSystem(null);
         ts.setName("test");
         ts.setLevelFile(TraceSystem.ADAPTER);
         ts.getTrace("test").debug("test");
         ts.getTrace("test").info("test");
         ts.getTrace("test").error(new Exception(), "test");
+
+        // The used SLF4J-nop logger has all log levels disabled,
+        // so this should be reflected in the trace system.
+        assertFalse(ts.isEnabled(TraceSystem.INFO));
+        assertFalse(ts.getTrace("test").isInfoEnabled());
+
         ts.close();
     }
 

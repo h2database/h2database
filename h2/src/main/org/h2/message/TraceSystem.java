@@ -146,6 +146,9 @@ public class TraceSystem implements TraceWriter {
 
     @Override
     public boolean isEnabled(int level) {
+        if (levelMax == ADAPTER) {
+            return writer.isEnabled(level);
+        }
         return level <= this.levelMax;
     }
 

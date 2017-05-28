@@ -3879,7 +3879,9 @@ public class Parser {
     private static int getSaveTokenType(String s, boolean supportOffsetFetch) {
         switch (s.charAt(0)) {
         case 'C':
-            if (s.equals("CURRENT_TIMESTAMP")) {
+            if (s.equals("CHECK")) {
+                return KEYWORD;
+            } else if (s.equals("CURRENT_TIMESTAMP")) {
                 return CURRENT_TIMESTAMP;
             } else if (s.equals("CURRENT_TIME")) {
                 return CURRENT_TIME;

@@ -3884,7 +3884,9 @@ public class Parser {
     private static int getSaveTokenType(String s, boolean supportOffsetFetch) {
         switch (s.charAt(0)) {
         case 'C':
-            if (s.equals("CURRENT_TIMESTAMP")) {
+            if (s.equals("CHECK")) {
+                return KEYWORD;
+            } else if (s.equals("CURRENT_TIMESTAMP")) {
                 return CURRENT_TIMESTAMP;
             } else if (s.equals("CURRENT_TIME")) {
                 return CURRENT_TIME;
@@ -4679,6 +4681,10 @@ public class Parser {
             return true;
         }
         return false;
+    }
+
+    private boolean readIfAffinity() {
+        return readIf("AFFINITY") || readIf("SHARD");
     }
 
     private CreateConstant parseCreateConstant() {
@@ -5905,6 +5911,7 @@ public class Parser {
         String constraintName = null, comment = null;
         boolean ifNotExists = false;
         boolean allowIndexDefinition = database.getMode().indexDefinitionInCreateTable;
+        boolean allowAffinityKey = database.getMode().allowAffinityKey;
         if (readIf("CONSTRAINT")) {
             ifNotExists = readIfNotExists();
             constraintName = readIdentifierWithSchema(schema.getName());
@@ -5955,6 +5962,12 @@ public class Parser {
             if (readIf("USING")) {
                 read("BTREE");
             }
+            return command;
+        } else if (allowAffinityKey && readIfAffinity()) {
+            read("KEY");
+            read("(");
+            CreateIndex command = createAffinityIndex(schema, tableName, parseIndexColumnList());
+            command.setIfTableExists(ifTableExists);
             return command;
         }
         AlterTableAddConstraint command;
@@ -6123,6 +6136,9 @@ public class Parser {
                         if (readIf("CONSTRAINT")) {
                             constraintName = readColumnIdentifier();
                         }
+                        // For compatibility with Apache Ignite.
+                        boolean allowAffinityKey = database.getMode().allowAffinityKey;
+                        boolean affinity = allowAffinityKey && readIfAffinity();
                         if (readIf("PRIMARY")) {
                             read("KEY");
                             boolean hash = readIf("HASH");
@@ -6138,6 +6154,16 @@ public class Parser {
                             if (readIf("AUTO_INCREMENT")) {
                                 parseAutoIncrement(column);
                             }
+                            if (affinity) {
+                                CreateIndex idx = createAffinityIndex(schema, tableName, cols);
+                                command.addConstraintCommand(idx);
+                            }
+                        } else if (affinity) {
+                            read("KEY");
+                            IndexColumn[] cols = { new IndexColumn() };
+                            cols[0].columnName = column.getName();
+                            CreateIndex idx = createAffinityIndex(schema, tableName, cols);
+                            command.addConstraintCommand(idx);
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(
                                     session, schema, false);
@@ -6254,6 +6280,14 @@ public class Parser {
             }
         }
         return command;
+    }
+
+    private CreateIndex createAffinityIndex(Schema schema, String tableName, IndexColumn[] indexColumns) {
+        CreateIndex idx = new CreateIndex(session, schema);
+        idx.setTableName(tableName);
+        idx.setIndexColumns(indexColumns);
+        idx.setAffinity(true);
+        return idx;
     }
 
     private static int getCompareType(int tokenType) {

@@ -2018,7 +2018,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         Statement stat = conn.createStatement();
 
         final ResultSet rs = stat.executeQuery(
-                "select ROUND(-1.2), ROUND(-1.5), ROUND(-1.6), ROUND(2), ROUND(1.5), ROUND(1.8), ROUND(1.1) from dual");
+                "select ROUND(-1.2), ROUND(-1.5), ROUND(-1.6), " +
+                "ROUND(2), ROUND(1.5), ROUND(1.8), ROUND(1.1) from dual");
 
         rs.next();
         assertEquals(-1, rs.getInt(1));

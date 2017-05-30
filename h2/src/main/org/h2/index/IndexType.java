@@ -74,6 +74,7 @@ public class IndexType {
     /**
      * Create an affinity index.
      *
+     * @return the index type
      */
     public static IndexType createAffinity() {
         IndexType type = new IndexType();

@@ -1173,8 +1173,8 @@ public class TestTableEngines extends TestBase {
 
                 @Override
                 public double getCost(Session session, int[] masks,
-                      TableFilter[] filters, int filter, SortOrder sortOrder,
-                      HashSet<Column> allColumnsSet) {
+                        TableFilter[] filters, int filter, SortOrder sortOrder,
+                        HashSet<Column> allColumnsSet) {
                     return 0;
                 }
 

@@ -52,9 +52,10 @@ public class LinkSchema {
             stat = conn.createStatement();
             stat.execute("CREATE SCHEMA IF NOT EXISTS " +
                         StringUtils.quoteIdentifier(targetSchema));
-            //Workaround for PostgreSQL to avoid index names 
+            //Workaround for PostgreSQL to avoid index names
             if (url.startsWith("jdbc:postgresql:")) {
-                rs = c2.getMetaData().getTables(null, sourceSchema, null, new String[]{"TABLE", "LINKED TABLE", "VIEW", "EXTERNAL"});
+                rs = c2.getMetaData().getTables(null, sourceSchema, null,
+                        new String[] { "TABLE", "LINKED TABLE", "VIEW", "EXTERNAL" });
             } else {
                 rs = c2.getMetaData().getTables(null, sourceSchema, null, null);
             }

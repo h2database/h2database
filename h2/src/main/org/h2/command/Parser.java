@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -4854,70 +4855,6 @@ public class Parser {
         return command;
     }
 
-    private Query parseWithOriginal() {
-        readIf("RECURSIVE");
-        String tempViewName = readIdentifierWithSchema();
-        Schema schema = getSchema();
-        Table recursiveTable;
-        read("(");
-        ArrayList<Column> columns = New.arrayList();
-        String[] cols = parseColumnList();
-        for (String c : cols) {
-            columns.add(new Column(c, Value.STRING));
-        }
-        Table old = session.findLocalTempTable(tempViewName);
-        if (old != null) {
-            if (!(old instanceof TableView)) {
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                        tempViewName);
-            }
-            TableView tv = (TableView) old;
-            if (!tv.isTableExpression()) {
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                        tempViewName);
-            }
-            session.removeLocalTempTable(old);
-        }
-        CreateTableData data = new CreateTableData();
-        data.id = database.allocateObjectId();
-        data.columns = columns;
-        data.tableName = tempViewName;
-        data.temporary = true;
-        data.persistData = true;
-        data.persistIndexes = false;
-        data.create = true;
-        data.session = session;
-        recursiveTable = schema.createTable(data);
-        session.addLocalTempTable(recursiveTable);
-        String querySQL;
-        Column[] columnTemplates = new Column[cols.length];
-        try {
-            read("AS");
-            read("(");
-            Query withQuery = parseSelect();
-            read(")");
-            withQuery.prepare();
-            querySQL = StringUtils.cache(withQuery.getPlanSQL());
-            ArrayList<Expression> withExpressions = withQuery.getExpressions();
-            for (int i = 0; i < cols.length; ++i) {
-                columnTemplates[i] = new Column(cols[i], withExpressions.get(i).getType());
-            }
-        } finally {
-            session.removeLocalTempTable(recursiveTable);
-        }
-        int id = database.allocateObjectId();
-        TableView view = new TableView(schema, id, tempViewName, querySQL,
-                parameters, columnTemplates, session, true);
-        view.setTableExpression(true);
-        view.setTemporary(true);
-        session.addLocalTempTable(view);
-        view.setOnCommitDrop(true);
-        Query q = parseSelectUnion();
-        q.setPrepareAlways(true);
-        return q;
-    }
-    
-    // SBM THis is where we work !
     private Query parseWith() {
         readIf("RECURSIVE");
         
@@ -4925,11 +4862,14 @@ public class Parser {
 	        String tempViewName = readIdentifierWithSchema();
 	        Schema schema = getSchema();
 	        Table recursiveTable;
-	        read("(");
 	        ArrayList<Column> columns = New.arrayList();
-	        String[] cols = parseColumnList();
-	        for (String c : cols) {
-	            columns.add(new Column(c, Value.STRING));
+	        String[] cols = null;
+	        // column names are now optiona;
+	        if(readIf("(")){
+		        cols = parseColumnList();
+		        for (String c : cols) {
+		            columns.add(new Column(c, Value.STRING));
+		        }
 	        }
 	        Table old = session.findLocalTempTable(tempViewName);
 	        if (old != null) {
@@ -4956,7 +4896,7 @@ public class Parser {
 	        recursiveTable = schema.createTable(data);
 	        session.addLocalTempTable(recursiveTable);
 	        String querySQL;
-	        Column[] columnTemplates = new Column[cols.length];
+	        List<Column> columnTemplateList = new ArrayList<Column>();
 	        try {
 	            read("AS");
 	            read("(");
@@ -4965,15 +4905,22 @@ public class Parser {
 	            withQuery.prepare();
 	            querySQL = StringUtils.cache(withQuery.getPlanSQL());
 	            ArrayList<Expression> withExpressions = withQuery.getExpressions();
-	            for (int i = 0; i < cols.length; ++i) {
-	                columnTemplates[i] = new Column(cols[i], withExpressions.get(i).getType());
+	            for (int i = 0; i < withExpressions.size(); ++i) {
+	            	String columnName = cols !=null ? cols[i] : withExpressions.get(i).getColumnName();
+	            	columnTemplateList.add(new Column(columnName, withExpressions.get(i).getType()));
 	            }
 	        } finally {
 	            session.removeLocalTempTable(recursiveTable);
 	        }
 	        int id = database.allocateObjectId();
+	        boolean isRecursive = RecursiveQuery.isRecursive(tempViewName,querySQL);
+	        System.out.println("tempViewName=>"+tempViewName+"<");
+	        System.out.println("columnTemplateList="+columnTemplateList);
+	        System.out.println("isRecursive="+isRecursive);
+	        System.out.println("querySQL="+querySQL);
 	        TableView view = new TableView(schema, id, tempViewName, querySQL,
-	                parameters, columnTemplates, session, RecursiveQuery.isRecursive(tempViewName,querySQL));
+	                parameters, columnTemplateList.toArray(new Column[0]), session, 
+	                isRecursive);
 	        view.setTableExpression(true);
 	        view.setTemporary(true);
 	        session.addLocalTempTable(view);

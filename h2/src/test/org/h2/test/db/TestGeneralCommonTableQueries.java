@@ -47,8 +47,6 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testSimple();
     }
 
- 
-
     private void testSimple() throws Exception {
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");

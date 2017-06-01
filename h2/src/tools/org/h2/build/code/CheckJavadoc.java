@@ -16,8 +16,8 @@ import java.io.RandomAccessFile;
  */
 public class CheckJavadoc {
 
-    private static final int MAX_COMMENT_LINE_SIZE = 80;
-    private static final int MAX_SOURCE_LINE_SIZE = 100;
+    private static final int MAX_COMMENT_LINE_SIZE = 100;
+    private static final int MAX_SOURCE_LINE_SIZE = 120;
     private int errorCount;
 
     /**

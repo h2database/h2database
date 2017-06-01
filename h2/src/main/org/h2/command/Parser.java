@@ -3887,7 +3887,11 @@ public class Parser {
     private static int getSaveTokenType(String s, boolean supportOffsetFetch) {
         switch (s.charAt(0)) {
         case 'C':
-            if (s.equals("CURRENT_TIMESTAMP")) {
+            if (s.equals("CHECK")) {
+                return KEYWORD;
+            } if (s.equals("CONSTRAINT")) {
+                return KEYWORD;
+            } else if (s.equals("CURRENT_TIMESTAMP")) {
                 return CURRENT_TIMESTAMP;
             } else if (s.equals("CURRENT_TIME")) {
                 return CURRENT_TIME;
@@ -3907,6 +3911,8 @@ public class Parser {
                 return KEYWORD;
             } else if ("FOR".equals(s)) {
                 return KEYWORD;
+            } else if ("FOREIGN".equals(s)) {
+                return KEYWORD;
             } else if ("FULL".equals(s)) {
                 return KEYWORD;
             } else if (supportOffsetFetch && "FETCH".equals(s)) {
@@ -3918,7 +3924,9 @@ public class Parser {
         case 'H':
             return getKeywordOrIdentifier(s, "HAVING", KEYWORD);
         case 'I':
-            if ("INNER".equals(s)) {
+            if ("INDEX".equals(s)) {
+                return KEYWORD;
+            } if ("INNER".equals(s)) {
                 return KEYWORD;
             } else if ("INTERSECT".equals(s)) {
                 return KEYWORD;
@@ -3926,6 +3934,8 @@ public class Parser {
             return getKeywordOrIdentifier(s, "IS", KEYWORD);
         case 'J':
             return getKeywordOrIdentifier(s, "JOIN", KEYWORD);
+        case 'K':
+            return getKeywordOrIdentifier(s, "KEY", KEYWORD);
         case 'L':
             if ("LIMIT".equals(s)) {
                 return KEYWORD;
@@ -3935,6 +3945,8 @@ public class Parser {
             return getKeywordOrIdentifier(s, "MINUS", KEYWORD);
         case 'N':
             if ("NOT".equals(s)) {
+                return KEYWORD;
+            } else if ("NOCHECK".equals(s)) {
                 return KEYWORD;
             } else if ("NATURAL".equals(s)) {
                 return KEYWORD;

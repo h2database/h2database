@@ -17,7 +17,7 @@ import java.util.Arrays;
  */
 public class CheckTextFiles {
 
-    private static final int MAX_SOURCE_LINE_SIZE = 100;
+    private static final int MAX_SOURCE_LINE_SIZE = 120;
 
     // must contain "+" otherwise this here counts as well
     private static final String COPYRIGHT = "Copyright 2004-2014 " +

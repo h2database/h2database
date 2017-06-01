@@ -4907,9 +4907,9 @@ public class Parser {
 	            querySQL = StringUtils.cache(withQuery.getPlanSQL());
 	            ArrayList<Expression> withExpressions = withQuery.getExpressions();
 	            for (int i = 0; i < withExpressions.size(); ++i) {
-	            	System.out.println("columnName="+withExpressions.get(i).getColumnName());
-	            	System.out.println("alias="+withExpressions.get(i).getAlias());
-	            	System.out.println("nonAliasExpression="+withExpressions.get(i).getNonAliasExpression());
+	            	//System.out.println("columnName="+withExpressions.get(i).getColumnName());
+	            	//System.out.println("alias="+withExpressions.get(i).getAlias());
+	            	//System.out.println("nonAliasExpression="+withExpressions.get(i).getNonAliasExpression());
 	            	String columnName = cols != null ? cols[i] : withExpressions.get(i).getColumnName();
 	            	columnTemplateList.add(new Column(columnName, withExpressions.get(i).getType()));
 	            }
@@ -4918,10 +4918,10 @@ public class Parser {
 	        }
 	        int id = database.allocateObjectId();
 	        boolean isRecursive = RecursiveQuery.isRecursive(tempViewName,querySQL);
-	        System.out.println("tempViewName=>"+tempViewName+"<");
-	        System.out.println("columnTemplateList="+columnTemplateList.stream().map(Column::toStringWithType).collect(Collectors.toList()));
-	        System.out.println("isRecursive="+isRecursive);
-	        System.out.println("querySQL="+querySQL);
+	        //System.out.println("tempViewName=>"+tempViewName+"<");
+	        //System.out.println("columnTemplateList="+columnTemplateList.stream().map(Column::toStringWithType).collect(Collectors.toList()));
+	        //System.out.println("isRecursive="+isRecursive);
+	        //System.out.println("querySQL="+querySQL);
 	        TableView view = new TableView(schema, id, tempViewName, querySQL,
 	                parameters, columnTemplateList.toArray(new Column[0]), session, 
 	                isRecursive);

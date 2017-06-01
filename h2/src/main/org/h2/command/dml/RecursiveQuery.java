@@ -8,7 +8,7 @@ public class RecursiveQuery {
 	// A query is recursive if it references it's own name in its definition
 	public static boolean isRecursive(String tempViewName, String querySQL) {
 		boolean foundAny = RecursiveQuery.foundAny(tempViewName,querySQL);
-		System.out.println("foundAny="+foundAny);
+		//System.out.println("foundAny="+foundAny);
 		return foundAny;
 	}
 

@@ -37,6 +37,14 @@ public class TestGeneralCommonTableQueries extends TestBase {
             ",t2 as (select first_col+1 from t1) " +
             ",t3 as (select 4 as first_col) " +
             "select * from t1 union all select * from t2 union all select * from t3 where first_col<>?";
+    
+    private static final String PARAMETERIZED_CHAINED_QUERY = "    WITH t1 AS ("
+    	    +"        SELECT 1 AS FIRST_COLUMN"
+    	    +"),"
+    	    +"     t2 AS ("
+    	    +"        SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM t1 "
+    	    +") "
+    	    +"SELECT sum(FIRST_COLUMN) FROM t2";
 	/**
      * Run just this test.
      *
@@ -44,13 +52,14 @@ public class TestGeneralCommonTableQueries extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
-        System.out.println("Testing done");
+        //System.out.println("Testing done");
     }
 
     @Override
     public void test() throws Exception {
         testSimple();
         testImpliedColumnNames();
+        testChainedQuery();
     }
 
     private void testSimple() throws Exception {
@@ -118,4 +127,20 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
+        
+    private void testChainedQuery() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+      
+        prep = conn.prepareStatement(PARAMETERIZED_CHAINED_QUERY);
+        rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertFalse(rs.next());
+        
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }    
 }

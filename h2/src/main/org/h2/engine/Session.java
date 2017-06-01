@@ -1695,6 +1695,10 @@ public class Session extends SessionWithState {
         return false;
     }
 
+    /**
+     * Marks a table as changed, needing re-analysis.
+     * @param table the table to be marked
+     */
     public void markTableForAnalyze(Table table) {
         if (tablesToAnalyze == null) {
             tablesToAnalyze = New.hashSet();

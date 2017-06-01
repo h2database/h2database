@@ -738,6 +738,9 @@ public class Column {
     public String toString() {
         return name;
     }
+    public String toStringWithType() {
+        return DataType.getTypeClassName(type)+":"+name;
+    }
 
     /**
      * Check whether the new column is of the same type and not more restricted

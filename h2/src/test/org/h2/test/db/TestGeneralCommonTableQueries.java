@@ -32,6 +32,11 @@ public class TestGeneralCommonTableQueries extends TestBase {
             ",t3(n) as (select 4 as first) " +
             "select * from t1 union all select * from t2 union all select * from t3 where n<>?";
 
+    private static final String PARAMETERIZED_THREE_COMMON_QUERY_IMPLIED_COLUMN_NAMES = "with " +
+            "t1 as (select 2 as first_col) " +
+            ",t2 as (select first_col+1 from t1) " +
+            ",t3 as (select 4 as first_col) " +
+            "select * from t1 union all select * from t2 union all select * from t3 where first_col<>?";
 	/**
      * Run just this test.
      *
@@ -45,6 +50,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
     @Override
     public void test() throws Exception {
         testSimple();
+        testImpliedColumnNames();
     }
 
     private void testSimple() throws Exception {
@@ -92,4 +98,24 @@ public class TestGeneralCommonTableQueries extends TestBase {
         deleteDb("commonTableExpressionQueries");
     }
 
+    private void testImpliedColumnNames() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+      
+        prep = conn.prepareStatement(PARAMETERIZED_THREE_COMMON_QUERY_IMPLIED_COLUMN_NAMES);
+        prep.setInt(1, 4); // omit 4 line (last)
+        rs = prep.executeQuery();
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt("FIRST_COL"));
+        assertFalse(rs.next());
+        assertEquals("rsMeta0: columns=1",rs.getMetaData().toString());
+        assertEquals("FIRST_COL",rs.getMetaData().getColumnLabel(1));
+        
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
 }

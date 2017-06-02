@@ -121,7 +121,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         assertTrue(rs.next());
         assertEquals(3, rs.getInt("FIRST_COL"));
         assertFalse(rs.next());
-        assertEquals("rsMeta0: columns=1",rs.getMetaData().toString());
+        assertEquals(rs.getMetaData().getColumnCount(),1);
         assertEquals("FIRST_COL",rs.getMetaData().getColumnLabel(1));
         
         conn.close();

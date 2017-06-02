@@ -4858,79 +4858,88 @@ public class Parser {
     }
 
     private Query parseWith() {
-        readIf("RECURSIVE");
-        
+    	List<TableView> viewsCreated = new ArrayList<TableView>();
+        readIf("RECURSIVE");        
         do{
-	        String tempViewName = readIdentifierWithSchema();
-	        Schema schema = getSchema();
-	        Table recursiveTable;
-	        ArrayList<Column> columns = New.arrayList();
-	        String[] cols = null;
-	        
-	        // column names are now optional - they can be inferred from the named
-	        // query if not supplied
-	        if(readIf("(")){
-		        cols = parseColumnList();
-		        for (String c : cols) {
-		            columns.add(new Column(c, Value.STRING));
-		        }
-	        }
-	        Table old = session.findLocalTempTable(tempViewName);
-	        if (old != null) {
-	            if (!(old instanceof TableView)) {
-	                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-	                        tempViewName);
-	            }
-	            TableView tv = (TableView) old;
-	            if (!tv.isTableExpression()) {
-	                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-	                        tempViewName);
-	            }
-	            session.removeLocalTempTable(old);
-	        }
-	        CreateTableData data = new CreateTableData();
-	        data.id = database.allocateObjectId();
-	        data.columns = columns;
-	        data.tableName = tempViewName;
-	        data.temporary = true;
-	        data.persistData = true;
-	        data.persistIndexes = false;
-	        data.create = true;
-	        data.session = session;
-	        recursiveTable = schema.createTable(data);
-	        session.addLocalTempTable(recursiveTable);
-	        String querySQL;
-	        List<Column> columnTemplateList = new ArrayList<Column>();
-	        try {
-	            read("AS");
-	            read("(");
-	            Query withQuery = parseSelect();
-	            read(")");
-	            withQuery.prepare();
-	            querySQL = StringUtils.cache(withQuery.getPlanSQL());
-	            ArrayList<Expression> withExpressions = withQuery.getExpressions();
-	            for (int i = 0; i < withExpressions.size(); ++i) {
-	            	String columnName = cols != null ? cols[i] : withExpressions.get(i).getColumnName();
-	            	columnTemplateList.add(new Column(columnName, withExpressions.get(i).getType()));
-	            }
-	        } finally {
-	            session.removeLocalTempTable(recursiveTable);
-	        }
-	        int id = database.allocateObjectId();
-	        boolean isRecursive = RecursiveQuery.isRecursive(tempViewName,querySQL);
-	        TableView view = new TableView(schema, id, tempViewName, querySQL,
-	                parameters, columnTemplateList.toArray(new Column[0]), session, 
-	                isRecursive);
-	        view.setTableExpression(true);
-	        view.setTemporary(true);
-	        session.addLocalTempTable(view);
-	        view.setOnCommitDrop(true);
+        	viewsCreated.add(parseSingleCommonTableExression());
         } while(readIf(","));
         
         Query q = parseSelectUnion();
         q.setPrepareAlways(true);
         return q;
     }
+
+	private TableView parseSingleCommonTableExression() {
+		String tempViewName = readIdentifierWithSchema();
+		Schema schema = getSchema();
+		Table recursiveTable;
+		ArrayList<Column> columns = New.arrayList();
+		String[] cols = null;
+		
+		// column names are now optional - they can be inferred from the named
+		// query if not supplied
+		if(readIf("(")){
+		    cols = parseColumnList();
+		    for (String c : cols) {
+		    	// we dont really know the type of the column, so string will have to do
+		        columns.add(new Column(c, Value.STRING));
+		    }
+		}
+		Table old = session.findLocalTempTable(tempViewName);
+		if (old != null) {
+		    if (!(old instanceof TableView)) {
+		        throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
+		                tempViewName);
+		    }
+		    TableView tv = (TableView) old;
+		    if (!tv.isTableExpression()) {
+		        throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
+		                tempViewName);
+		    }
+		    session.removeLocalTempTable(old);
+		}
+		// this table is created as a work around because recursive 
+		// table expressions need to reference something that look like themselves
+		// to work (its removed after creation in this method)
+		CreateTableData data = new CreateTableData();
+		data.id = database.allocateObjectId();
+		data.columns = columns;
+		data.tableName = tempViewName;
+		data.temporary = true;
+		data.persistData = true;
+		data.persistIndexes = false;
+		data.create = true;
+		data.session = session;
+		recursiveTable = schema.createTable(data);
+		session.addLocalTempTable(recursiveTable);
+		String querySQL;
+		List<Column> columnTemplateList = new ArrayList<Column>();
+		try {
+		    read("AS");
+		    read("(");
+		    Query withQuery = parseSelect();
+		    read(")");
+		    withQuery.prepare();
+		    querySQL = StringUtils.cache(withQuery.getPlanSQL());
+		    ArrayList<Expression> withExpressions = withQuery.getExpressions();
+		    for (int i = 0; i < withExpressions.size(); ++i) {
+		    	String columnName = cols != null ? cols[i] : withExpressions.get(i).getColumnName();
+		    	columnTemplateList.add(new Column(columnName, withExpressions.get(i).getType()));
+		    }
+		} finally {
+		    session.removeLocalTempTable(recursiveTable);
+		}
+		int id = database.allocateObjectId();
+		boolean isRecursive = RecursiveQuery.isRecursive(tempViewName,querySQL);
+		TableView view = new TableView(schema, id, tempViewName, querySQL,
+		        parameters, columnTemplateList.toArray(new Column[0]), session, 
+		        isRecursive);
+		view.setTableExpression(true);
+		view.setTemporary(true);
+		session.addLocalTempTable(view);
+		view.setOnCommitDrop(true);
+		return view;
+	}
 
     private CreateView parseCreateView(boolean force, boolean orReplace) {
         boolean ifNotExists = readIfNotExists();

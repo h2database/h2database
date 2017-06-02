@@ -11,6 +11,9 @@ import java.io.LineNumberReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
 
@@ -42,6 +45,7 @@ public class TestScriptSimple extends TestBase {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         LineNumberReader lineReader = new LineNumberReader(
                 new InputStreamReader(is, "Cp1252"));
+        List<Throwable> exceptions = new ArrayList<>();
         try (ScriptReader reader = new ScriptReader(lineReader)) {
             while (true) {
                 String sql = reader.readStatement();
@@ -64,14 +68,22 @@ public class TestScriptSimple extends TestBase {
                     } else {
                         conn.createStatement().execute(sql);
                     }
-                } catch (SQLException e) {
+                } catch (Throwable e) {
                     System.out.println(sql);
-                    throw e;
+                    System.out.println(" at line#"+lineReader.getLineNumber()+" of file "+inFile);
+                    e.printStackTrace();
+                    exceptions.add(e);
                 }
             }
         }
         conn.close();
         deleteDb("scriptSimple");
+        
+        if(exceptions.size()!=0){
+        	String message = "Failed test, detected assertions="+exceptions.size();
+            System.out.println(message);
+        	throw new AssertionError(message);
+        }
     }
 
     private void reconnect() throws SQLException {

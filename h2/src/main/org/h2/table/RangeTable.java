@@ -145,7 +145,6 @@ public class RangeTable extends Table {
     @Override
     public TableType getTableType() {
     	return TableType.SYSTEM_TABLE;
-        //throw DbException.throwInternalError(toString());
     }
 
     @Override

@@ -352,23 +352,12 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Add all objects that this table depends on to the hash set, including this object.
+     * Add all objects that this table depends on to the hash set.
      *
      * @param dependencies the current set of dependencies
      */
     public void addDependencies(HashSet<DbObject> dependencies) {
-        addStrictSubDependencies(dependencies,false);
-        dependencies.add(this);
-    }
-
-    /**
-     * Add all objects that this table depends on to the hash set, excluding 
-     * this object (unless it is has recursive references).
-     *
-     * @param dependencies the current set of dependencies
-     */
-    public void addStrictSubDependencies(HashSet<DbObject> dependencies, boolean visitColumnTables) {
-		if (dependencies.contains(this)) {
+        if (dependencies.contains(this)) {
             // avoid endless recursion
             return;
         }
@@ -381,16 +370,14 @@ public abstract class Table extends SchemaObjectBase {
                 dependencies);
         for (Column col : columns) {
             col.isEverything(visitor);
-            if(visitColumnTables && col.getTable()!=null){
-            	dependencies.add(col.getTable());
-            }
         }
         if (constraints != null) {
             for (Constraint c : constraints) {
                 c.isEverything(visitor);
             }
         }
-	}
+        dependencies.add(this);
+    }
 
     @Override
     public ArrayList<DbObject> getChildren() {

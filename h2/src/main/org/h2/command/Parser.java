@@ -76,7 +76,6 @@ import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
 import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.Query;
-import org.h2.command.dml.RecursiveQueryHeuristic;
 import org.h2.command.dml.Replace;
 import org.h2.command.dml.RunScriptCommand;
 import org.h2.command.dml.ScriptCommand;
@@ -126,7 +125,6 @@ import org.h2.expression.Variable;
 import org.h2.expression.Wildcard;
 import org.h2.index.Index;
 import org.h2.message.DbException;
-import org.h2.message.DbNotRecursiveException;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
@@ -4862,7 +4860,7 @@ public class Parser {
     	List<TableView> viewsCreated = new ArrayList<TableView>();
         readIf("RECURSIVE");        
         do{
-        	viewsCreated.add(parseSingleCommonTableExression());
+        	viewsCreated.add(parseSingleCommonTableExpression());
         } while(readIf(","));
         
         Query q = parseSelectUnion();
@@ -4870,7 +4868,7 @@ public class Parser {
         return q;
     }
 
-	private TableView parseSingleCommonTableExression() {
+	private TableView parseSingleCommonTableExpression() {
 		String tempViewName = readIdentifierWithSchema();
 		Schema schema = getSchema();
 		Table recursiveTable;
@@ -4931,34 +4929,15 @@ public class Parser {
 		    session.removeLocalTempTable(recursiveTable);
 		}
 		int id = database.allocateObjectId();
-		boolean isRecursive = true;//RecursiveQueryHeuristic.isRecursive(tempViewName,querySQL);
+		boolean isRecursive = true;
 		TableView view = null;
 		do{
-			try{
 			view = new TableView(schema, id, tempViewName, querySQL,
 		        parameters, columnTemplateList.toArray(new Column[0]), session, 
 		        isRecursive);
-			}catch(DbNotRecursiveException e){
-				if(isRecursive==false){
-					throw e;
-				}
-				isRecursive = false;
-				view=null;
-				System.out.println("repeat new table by exeception");
-				continue;
-			}
-			HashSet<DbObject> subDependencies = new HashSet<DbObject>();
-			view.addStrictSubDependencies(subDependencies,false);
-			System.out.println("tempViewName="+tempViewName);
-			System.out.println("subDependencies="+subDependencies);
-			System.out.println("isRecursiveQueryDetected="+view.isRecursiveQueryDetected());
-			boolean isRecursiveByDeepAnalysis = subDependencies.contains(recursiveTable);
-			System.out.println("isRecursiveByDeepAnalysis="+isRecursiveByDeepAnalysis);
-			
 			if(view.isRecursiveQueryDetected()!=isRecursive){
 				isRecursive = view.isRecursiveQueryDetected();
 				view = null;
-				System.out.println("repeat new table creation by view.isRecursiveQueryDetected()");
 				continue;
 			}
 		

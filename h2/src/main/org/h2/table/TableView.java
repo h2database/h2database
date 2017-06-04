@@ -8,9 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -210,6 +208,8 @@ public class TableView extends Table {
             // if it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
             // database
+            
+            // if it can not be compiled - it could also be a recursive common table expression query
             if(isRecursiveQueryExceptionDetected(createException)){
             	this.isRecursiveQueryDetected = true;
             }
@@ -674,19 +674,17 @@ public class TableView extends Table {
     }
     
     /**
-     * Get a list of the tables used by this query (for recursion detection)
-     * @return
+     * If query recursion is detected (for recursion detection)
+     * @return is Recursive Query Flag Set
      */
-    public List<Table> getTables(){
-    	return tables;
-    	
-    }
-    
     public boolean isRecursiveQueryDetected(){
     	return isRecursiveQueryDetected;
     }
     
-    
+    /**
+     * If query an exception indicates query recursion
+     * @return is Recursive Query Exception Detected
+     */    
     private boolean isRecursiveQueryExceptionDetected(DbException exception){
     	if (exception==null){
     		return false;

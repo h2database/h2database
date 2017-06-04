@@ -19,7 +19,6 @@ import org.h2.engine.Session;
 import org.h2.expression.Comparison;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
-import org.h2.message.DbNotRecursiveException;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -196,12 +195,12 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             query.setNeverLazy(true);
         }
         if (!query.isUnion()) {
-            throw DbNotRecursiveException.get(ErrorCode.SYNTAX_ERROR_2,
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
                     "recursive queries without UNION ALL");
         }
         SelectUnion union = (SelectUnion) query;
         if (union.getUnionType() != SelectUnion.UNION_ALL) {
-            throw DbNotRecursiveException.get(ErrorCode.SYNTAX_ERROR_2,
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
                     "recursive queries without UNION ALL");
         }
         Query left = union.getLeft();

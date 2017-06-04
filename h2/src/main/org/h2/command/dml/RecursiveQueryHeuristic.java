@@ -3,11 +3,11 @@ package org.h2.command.dml;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RecursiveQuery {
+public class RecursiveQueryHeuristic {
 	
 	// A query is recursive if it references it's own name in its definition
 	public static boolean isRecursive(String tempViewName, String querySQL) {
-		boolean foundAny = RecursiveQuery.foundAny(tempViewName,querySQL);
+		boolean foundAny = RecursiveQueryHeuristic.foundAny(tempViewName,querySQL);
 		//System.out.println("foundAny="+foundAny);
 		return foundAny;
 	}

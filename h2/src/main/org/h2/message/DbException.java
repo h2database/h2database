@@ -70,11 +70,11 @@ public class DbException extends RuntimeException {
         }
     }
 
-    private DbException(SQLException e) {
+    protected DbException(SQLException e) {
         super(e.getMessage(), e);
     }
 
-    private static String translate(String key, String... params) {
+    protected static String translate(String key, String... params) {
         String message = null;
         if (MESSAGES != null) {
             // Tomcat sets final static fields to null sometimes

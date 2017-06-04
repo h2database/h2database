@@ -8,7 +8,9 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -57,6 +59,7 @@ public class TableView extends Table {
     private Query topQuery;
     private ResultInterface recursiveResult;
     private boolean tableExpression;
+	private boolean isRecursiveQueryDetected;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
@@ -94,6 +97,7 @@ public class TableView extends Table {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.recursive = recursive;
+        this.isRecursiveQueryDetected = false;
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
@@ -206,6 +210,9 @@ public class TableView extends Table {
             // if it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
             // database
+            if(isRecursiveQueryExceptionDetected(createException)){
+            	this.isRecursiveQueryDetected = true;
+            }
             tables = New.arrayList();
             cols = new Column[0];
             if (recursive && columnTemplates != null) {
@@ -664,6 +671,33 @@ public class TableView extends Table {
             }
             return true;
         }
+    }
+    
+    /**
+     * Get a list of the tables used by this query (for recursion detection)
+     * @return
+     */
+    public List<Table> getTables(){
+    	return tables;
+    	
+    }
+    
+    public boolean isRecursiveQueryDetected(){
+    	return isRecursiveQueryDetected;
+    }
+    
+    
+    private boolean isRecursiveQueryExceptionDetected(DbException exception){
+    	if (exception==null){
+    		return false;
+    	}
+    	if (exception.getErrorCode()!=ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1){
+    		return false;
+    	}
+    	if (! exception.getMessage().contains("\""+this.getName()+"\"")){
+    		return false;
+    	}
+    	return true;
     }
 
 }

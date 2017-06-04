@@ -51,8 +51,9 @@ public class TestGeneralCommonTableQueries extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
+        System.out.println("Testing starting");
         TestBase.createCaller().init().test();
-        //System.out.println("Testing done");
+        System.out.println("Testing done");
     }
 
     @Override

@@ -1,7 +1,5 @@
 language: java
 
-before_script: cd h2
-
 script: ./build.sh jar testFast
 
 cache:
@@ -18,6 +16,10 @@ matrix:
         apt:
           packages:
             - oracle-java8-installer
+      before_script: 
+        - "cd h2"
+        - "echo $JAVA_OPTS"
+        - "export JAVA_OPTS=-Xmx512m"
     - jdk: openjdk7 
       dist: trusty
       group: edge
@@ -26,3 +28,5 @@ matrix:
         apt:
           packages:
             - openjdk-7-jdk
+      before_script: 
+        - "cd h2"

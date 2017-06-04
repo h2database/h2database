@@ -16,35 +16,6 @@ import org.h2.test.TestBase;
  */
 public class TestGeneralCommonTableQueries extends TestBase {
 
-    private static final String SIMPLE_TWO_COMMON_QUERY = "with " +
-            "t1(n) as (select 1 as first) " +
-            ",t2(n) as (select 2 as first) " +
-            "select * from t1 union all select * from t2";
-    
-    private static final String PARAMETERIZED_TWO_COMMON_QUERY = "with " +
-            "t1(n) as (select 2 as first) " +
-            ",t2(n) as (select 3 as first) " +
-            "select * from t1 union all select * from t2 where n<>?";
-    
-    private static final String PARAMETERIZED_THREE_COMMON_QUERY = "with " +
-            "t1(n) as (select 2 as first) " +
-            ",t2(n) as (select 3 as first) " +
-            ",t3(n) as (select 4 as first) " +
-            "select * from t1 union all select * from t2 union all select * from t3 where n<>?";
-
-    private static final String PARAMETERIZED_THREE_COMMON_QUERY_IMPLIED_COLUMN_NAMES = "with " +
-            "t1 as (select 2 as first_col) " +
-            ",t2 as (select first_col+1 from t1) " +
-            ",t3 as (select 4 as first_col) " +
-            "select * from t1 union all select * from t2 union all select * from t3 where first_col<>?";
-    
-    private static final String PARAMETERIZED_CHAINED_QUERY = "    WITH t1 AS ("
-    	    +"        SELECT 1 AS FIRST_COLUMN"
-    	    +"),"
-    	    +"     t2 AS ("
-    	    +"        SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM t1 "
-    	    +") "
-    	    +"SELECT sum(FIRST_COLUMN) FROM t2";
 	/**
      * Run just this test.
      *
@@ -69,14 +40,18 @@ public class TestGeneralCommonTableQueries extends TestBase {
         ResultSet rs;
 
         stat = conn.createStatement();
-        rs = stat.executeQuery(SIMPLE_TWO_COMMON_QUERY);
+        final String simple_two_column_query = "with " +
+            "t1(n) as (select 1 as first) " +
+            ",t2(n) as (select 2 as first) " +
+            "select * from t1 union all select * from t2";        
+        rs = stat.executeQuery(simple_two_column_query);
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
         
-        prep = conn.prepareStatement(SIMPLE_TWO_COMMON_QUERY);
+        prep = conn.prepareStatement(simple_two_column_query);
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
@@ -84,7 +59,10 @@ public class TestGeneralCommonTableQueries extends TestBase {
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
         
-        prep = conn.prepareStatement(PARAMETERIZED_TWO_COMMON_QUERY);
+        prep = conn.prepareStatement("with " +
+            "t1(n) as (select 2 as first) " +
+            ",t2(n) as (select 3 as first) " +
+            "select * from t1 union all select * from t2 where n<>?");
         prep.setInt(1, 0); // omit no lines since zero is not in list
         rs = prep.executeQuery();
         assertTrue(rs.next());
@@ -93,7 +71,11 @@ public class TestGeneralCommonTableQueries extends TestBase {
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
         
-        prep = conn.prepareStatement(PARAMETERIZED_THREE_COMMON_QUERY);
+        prep = conn.prepareStatement("with " +
+            "t1(n) as (select 2 as first) " +
+            ",t2(n) as (select 3 as first) " +
+            ",t3(n) as (select 4 as first) " +
+            "select * from t1 union all select * from t2 union all select * from t3 where n<>?");
         prep.setInt(1, 4); // omit 4 line (last)
         rs = prep.executeQuery();
         assertTrue(rs.next());
@@ -112,7 +94,11 @@ public class TestGeneralCommonTableQueries extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
       
-        prep = conn.prepareStatement(PARAMETERIZED_THREE_COMMON_QUERY_IMPLIED_COLUMN_NAMES);
+        prep = conn.prepareStatement("with " +
+            "t1 as (select 2 as first_col) " +
+            ",t2 as (select first_col+1 from t1) " +
+            ",t3 as (select 4 as first_col) " +
+            "select * from t1 union all select * from t2 union all select * from t3 where first_col<>?");
         prep.setInt(1, 4); // omit 4 line (last)
         rs = prep.executeQuery();
         assertTrue(rs.next());
@@ -133,7 +119,13 @@ public class TestGeneralCommonTableQueries extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
       
-        prep = conn.prepareStatement(PARAMETERIZED_CHAINED_QUERY);
+        prep = conn.prepareStatement("    WITH t1 AS ("
+    	    +"        SELECT 1 AS FIRST_COLUMN"
+    	    +"),"
+    	    +"     t2 AS ("
+    	    +"        SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM t1 "
+    	    +") "
+    	    +"SELECT sum(FIRST_COLUMN) FROM t2");
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));

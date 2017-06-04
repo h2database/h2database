@@ -1,10 +1,4 @@
-sudo: false
-
 language: java
-
-jdk:
-  - openjdk7
-  - oraclejdk8
 
 before_script: cd h2
 
@@ -14,3 +8,21 @@ cache:
   directories:
     - $HOME/.m2/repository
 
+matrix:
+  include:
+    - jdk: oraclejdk8 
+      dist: trusty
+      group: edge
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - oracle-java8-installer
+    - jdk: openjdk7 
+      dist: trusty
+      group: edge
+      sudo: required
+      addons:
+        apt:
+          packages:
+            - openjdk-7-jdk

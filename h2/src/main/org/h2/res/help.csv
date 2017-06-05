@@ -67,8 +67,8 @@ SHOW { SCHEMAS | TABLES [ FROM schemaName ] |
 ","
 Lists the schemas, tables, or the columns of a table."
 "Commands (DML)","WITH","
-WITH [ RECURSIVE ] name ( columnName [,...] )
-    AS ( select )
+WITH [ RECURSIVE ] { name [( columnName [,...] )]
+    AS ( select ) [,...] }
     select
 ","
 Can be used to create a recursive query."

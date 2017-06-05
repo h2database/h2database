@@ -5,6 +5,9 @@
  */
 package org.h2.jaqu;
 
+import static org.h2.jaqu.ValidationRemark.consider;
+import static org.h2.jaqu.ValidationRemark.error;
+import static org.h2.jaqu.ValidationRemark.warn;
 import java.lang.reflect.Modifier;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -27,10 +30,6 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
-
-import static org.h2.jaqu.ValidationRemark.consider;
-import static org.h2.jaqu.ValidationRemark.error;
-import static org.h2.jaqu.ValidationRemark.warn;
 
 /**
  * Class to inspect the contents of a particular table including its indexes.
@@ -423,6 +422,7 @@ public class TableInspector {
      * Validates an inspected index from the database against the
      * IndexDefinition within the TableDefinition.
      */
+    @SuppressWarnings("unused")
     private <T> void validate(List<ValidationRemark> remarks,
             TableDefinition<T> def, IndexInspector index, boolean throwError) {
         List<IndexDefinition> defIndexes = def.getIndexes(IndexType.STANDARD);

@@ -477,7 +477,7 @@ public abstract class Value {
      * @param v the value to add
      * @return the result
      */
-    public Value add(Value v) {
+    public Value add(@SuppressWarnings("unused") Value v) {
         throw throwUnsupportedExceptionForType("+");
     }
 
@@ -500,7 +500,7 @@ public abstract class Value {
      * @param v the value to subtract
      * @return the result
      */
-    public Value subtract(Value v) {
+    public Value subtract(@SuppressWarnings("unused") Value v) {
         throw throwUnsupportedExceptionForType("-");
     }
 
@@ -510,7 +510,7 @@ public abstract class Value {
      * @param v the value to divide by
      * @return the result
      */
-    public Value divide(Value v) {
+    public Value divide(@SuppressWarnings("unused") Value v) {
         throw throwUnsupportedExceptionForType("/");
     }
 
@@ -520,7 +520,7 @@ public abstract class Value {
      * @param v the value to multiply with
      * @return the result
      */
-    public Value multiply(Value v) {
+    public Value multiply(@SuppressWarnings("unused") Value v) {
         throw throwUnsupportedExceptionForType("*");
     }
 
@@ -530,7 +530,7 @@ public abstract class Value {
      * @param v the value to take the modulus with
      * @return the result
      */
-    public Value modulus(Value v) {
+    public Value modulus(@SuppressWarnings("unused") Value v) {
         throw throwUnsupportedExceptionForType("%");
     }
 
@@ -1054,6 +1054,7 @@ public abstract class Value {
      * @param targetScale the requested scale
      * @return the value
      */
+    @SuppressWarnings("unused")
     public Value convertScale(boolean onlyToSmallerScale, int targetScale) {
         return this;
     }
@@ -1067,6 +1068,7 @@ public abstract class Value {
      * @param force true if losing numeric precision is allowed
      * @return the new value
      */
+    @SuppressWarnings("unused")
     public Value convertPrecision(long precision, boolean force) {
         return this;
     }
@@ -1122,6 +1124,7 @@ public abstract class Value {
      * @param tableId the table where this object is used
      * @return the new value or itself
      */
+    @SuppressWarnings("unused")
     public Value copy(DataHandler handler, int tableId) {
         return this;
     }

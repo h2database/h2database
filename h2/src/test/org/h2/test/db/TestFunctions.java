@@ -179,7 +179,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return a result set
      */
-    public static ResultSet simpleFunctionTable(Connection conn) {
+    public static ResultSet simpleFunctionTable(@SuppressWarnings("unused") Connection conn) {
         SimpleResultSet result = new SimpleResultSet();
         result.addColumn("A", Types.INTEGER, 0, 0);
         result.addColumn("B", Types.CHAR, 0, 0);
@@ -2259,7 +2259,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet nullResultSet(Connection conn) {
+    public static ResultSet nullResultSet(@SuppressWarnings("unused") Connection conn) {
         return null;
     }
 

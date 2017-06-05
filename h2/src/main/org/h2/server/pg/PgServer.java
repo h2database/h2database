@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -311,6 +310,7 @@ public class PgServer implements Service {
      * @param pretty this flag is ignored
      * @return the SQL statement or the column name
      */
+    @SuppressWarnings("unused")
     public static String getIndexColumn(Connection conn, int indexId,
             Integer ordinalPosition, Boolean pretty) throws SQLException {
         if (ordinalPosition == null || ordinalPosition.intValue() == 0) {
@@ -438,6 +438,7 @@ public class PgServer implements Service {
      * @param privilege the privilege to check
      * @return true
      */
+    @SuppressWarnings("unused")
     public static boolean hasDatabasePrivilege(int id, String privilege) {
         return true;
     }
@@ -450,6 +451,7 @@ public class PgServer implements Service {
      * @param privilege the privilege to check
      * @return true
      */
+    @SuppressWarnings("unused")
     public static boolean hasTablePrivilege(String table, String privilege) {
         return true;
     }
@@ -462,6 +464,7 @@ public class PgServer implements Service {
      * @param id the id
      * @return 1
      */
+    @SuppressWarnings("unused")
     public static int getCurrentTid(String table, String id) {
         return 1;
     }
@@ -475,6 +478,7 @@ public class PgServer implements Service {
      * @param relationOid the relation object id
      * @return always null
      */
+    @SuppressWarnings("unused")
     public static String getPgExpr(String exprText, int relationOid) {
         return null;
     }

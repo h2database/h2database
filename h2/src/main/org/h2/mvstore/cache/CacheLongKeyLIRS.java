@@ -174,6 +174,7 @@ public class CacheLongKeyLIRS<V> {
      * @param value the value
      * @return the size
      */
+    @SuppressWarnings("unused")
     protected int sizeOf(V value) {
         return 1;
     }

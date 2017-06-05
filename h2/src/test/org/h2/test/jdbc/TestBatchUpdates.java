@@ -13,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
@@ -138,7 +137,7 @@ public class TestBatchUpdates extends TestBase {
      * @param f the float
      * @return the float converted to an int
      */
-    public static int updatePrices(String message, double f) {
+    public static int updatePrices(@SuppressWarnings("unused") String message, double f) {
         return (int) f;
     }
 

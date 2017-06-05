@@ -147,6 +147,7 @@ public class FileStore {
      *
      * @param salt the salt
      */
+    @SuppressWarnings("unused")
     protected void initKey(byte[] salt) {
         // do nothing
     }

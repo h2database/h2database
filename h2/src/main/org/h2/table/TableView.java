@@ -71,12 +71,11 @@ public class TableView extends Table {
      * dependent views.
      *
      * @param querySQL the SQL statement
-     * @param columnNames the column names
      * @param session the session
      * @param recursive whether this is a recursive view
      * @param force if errors should be ignored
      */
-    public void replace(String querySQL, String[] columnNames, Session session,
+    public void replace(String querySQL,  Session session,
             boolean recursive, boolean force) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;

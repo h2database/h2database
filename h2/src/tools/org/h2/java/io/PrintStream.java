@@ -15,6 +15,7 @@ public class PrintStream {
      *
      * @param s the string
      */
+    @SuppressWarnings("unused")
     public void println(String s) {
         // c: int x = s->chars->length();
         // c: printf("%.*S\n", x, s->chars->getPointer());

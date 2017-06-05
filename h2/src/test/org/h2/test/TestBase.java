@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -130,6 +129,7 @@ public abstract class TestBase {
      *
      * @param seed the random seed value
      */
+    @SuppressWarnings("unused")
     public void testCase(int seed) throws Exception {
         // do nothing
     }

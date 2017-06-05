@@ -102,7 +102,7 @@ public class Profiler implements Runnable {
      * @param agentArgs the agent arguments
      * @param inst the instrumentation object
      */
-    public static void premain(String agentArgs, Instrumentation inst) {
+    public static void premain(@SuppressWarnings("unused") String agentArgs, Instrumentation inst) {
         instrumentation = inst;
     }
 

@@ -50,6 +50,8 @@ public class TestQueryCache extends TestBase {
         }
         String query = queryBuilder.toString();
         conn.prepareStatement(query);
+        int firstGreater = 0;
+        int firstSmaller = 0;
         long time;
         ResultSet rs;
         long first = 0;
@@ -77,9 +79,17 @@ public class TestQueryCache extends TestBase {
                 // try to avoid pauses in subsequent iterations
                 System.gc();
             } else if (i > 1001) {
-                assertSmaller(time, first);
+                if (first > time) {
+                    firstGreater++;
+                } else {
+                    firstSmaller++;
+                }
             }
         }
+        // first prepare time must be always greater because of query cache,
+        // but JVM is too unpredictable to assert that, so just check that
+        // usually this is true
+        assertSmaller(firstSmaller, firstGreater);
         stat.execute("drop table test");
         conn.close();
     }

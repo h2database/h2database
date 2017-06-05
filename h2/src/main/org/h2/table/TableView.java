@@ -57,7 +57,7 @@ public class TableView extends Table {
     private Query topQuery;
     private ResultInterface recursiveResult;
     private boolean tableExpression;
-	private boolean isRecursiveQueryDetected;
+    private boolean isRecursiveQueryDetected;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
@@ -205,13 +205,12 @@ public class TableView extends Table {
         } catch (DbException e) {
             e.addSQL(getCreateSQL());
             createException = e;
-            // if it can't be compiled, then it's a 'zero column table'
+            // If it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
-            // database
-            
-            // if it can not be compiled - it could also be a recursive common table expression query
-            if(isRecursiveQueryExceptionDetected(createException)){
-            	this.isRecursiveQueryDetected = true;
+            // database.
+            // If it can not be compiled - it could also be a recursive common table expression query.
+            if (isRecursiveQueryExceptionDetected(createException)) {
+                this.isRecursiveQueryDetected = true;
             }
             tables = New.arrayList();
             cols = new Column[0];
@@ -672,30 +671,28 @@ public class TableView extends Table {
             return true;
         }
     }
-    
+
     /**
-     * If query recursion is detected (for recursion detection)
-     * @return is Recursive Query Flag Set
+     * Was query recursion detected during compiling.
      */
-    public boolean isRecursiveQueryDetected(){
-    	return isRecursiveQueryDetected;
+    public boolean isRecursiveQueryDetected() {
+        return isRecursiveQueryDetected;
     }
-    
+
     /**
-     * If query an exception indicates query recursion
-     * @return is Recursive Query Exception Detected
-     */    
-    private boolean isRecursiveQueryExceptionDetected(DbException exception){
-    	if (exception==null){
-    		return false;
-    	}
-    	if (exception.getErrorCode()!=ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1){
-    		return false;
-    	}
-    	if (! exception.getMessage().contains("\""+this.getName()+"\"")){
-    		return false;
-    	}
-    	return true;
+     * Does exception indicate query recursion?
+     */
+    private boolean isRecursiveQueryExceptionDetected(DbException exception) {
+        if (exception == null) {
+            return false;
+        }
+        if (exception.getErrorCode() != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
+            return false;
+        }
+        if (!exception.getMessage().contains("\"" + this.getName() + "\"")) {
+            return false;
+        }
+        return true;
     }
 
 }

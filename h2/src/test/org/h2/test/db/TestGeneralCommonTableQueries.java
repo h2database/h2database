@@ -30,6 +30,8 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testSimple();
         testImpliedColumnNames();
         testChainedQuery();
+        testParameterizedQuery();
+        testNumberedParameterizedQuery();
     }
 
     private void testSimple() throws Exception {
@@ -126,6 +128,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
     	    +"        SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM t1 "
     	    +") "
     	    +"SELECT sum(FIRST_COLUMN) FROM t2");
+        
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -134,4 +137,78 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }    
+
+    private void testParameterizedQuery() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+      
+        prep = conn.prepareStatement("WITH t1 AS ("
+    	    +"     SELECT X, 'T1' FROM SYSTEM_RANGE(?,?)"
+    	    +"),"
+    	    +"t2 AS ("
+    	    +"     SELECT X, 'T2' FROM SYSTEM_RANGE(?,?)"
+    	    +") "
+    	    +"SELECT * FROM t1 UNION ALL SELECT * FROM t2 UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(?,?)");
+        prep.setInt(1, 1); 
+        prep.setInt(2, 2); 
+        prep.setInt(3, 3); 
+        prep.setInt(4, 4); 
+        prep.setInt(5, 5); 
+        prep.setInt(6, 6); 
+        rs = prep.executeQuery();
+        
+        for(int n: new int[]{1,2,3,4,5,6} ){
+	        assertTrue(rs.next());
+	        assertEquals(n, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+        
+        // call it twice
+        rs = prep.executeQuery();
+        
+        for(int n: new int[]{1,2,3,4,5,6} ){
+	        assertTrue(rs.next());
+	        assertEquals(n, rs.getInt(1));
+        }
+        assertFalse(rs.next());
+        
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+    
+    private void testNumberedParameterizedQuery() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+      
+        prep = conn.prepareStatement("WITH t1 AS ("
+    	    +"     SELECT R.X, 'T1' FROM SYSTEM_RANGE(?1,?2) R"
+    	    +"),"
+    	    +"t2 AS ("
+    	    +"     SELECT R.X, 'T2' FROM SYSTEM_RANGE(?3,?4) R"
+    	    +") "
+    	    +"SELECT * FROM t1 UNION ALL SELECT * FROM t2 UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(?5,?6)");
+        prep.setInt(1, 1); 
+        prep.setInt(2, 2); 
+        prep.setInt(3, 3); 
+        prep.setInt(4, 4); 
+        prep.setInt(5, 5); 
+        prep.setInt(6, 6); 
+        rs = prep.executeQuery();
+        
+        for(int n: new int[]{1,2,3,4,5,6} ){
+	        assertTrue(rs.next());
+	        assertEquals(n, rs.getInt(1));
+        }
+        assertEquals("X",rs.getMetaData().getColumnLabel(1));
+        assertEquals("'T1'",rs.getMetaData().getColumnLabel(2));
+
+        assertFalse(rs.next());
+
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }            
 }

@@ -49,20 +49,26 @@ public class TestMvccMultiThreaded extends TestBase {
         stat.execute("insert into test(id, updated) values(1, 100)");
         ArrayList<Task> tasks = new ArrayList<>();
         int count = 3;
-        for(int i=0; i<count; i++) {
+        for (int i = 0; i < count; i++) {
             Task task = new Task() {
                 @Override
                 public void call() throws Exception {
                     Connection conn = getConnection(getTestName());
                     Statement stat = conn.createStatement();
-                    while(!stop) {
-                        try {
-                            stat.execute("select * from test where id=1 for update");
-                        } catch (SQLException e) {
-                            assertEquals(ErrorCode.DEADLOCK_1, e.getErrorCode());
+                    try {
+                        while (!stop) {
+                            try {
+                                stat.execute("select * from test where id=1 for update");
+                            } catch (SQLException e) {
+                                int errorCode = e.getErrorCode();
+                                assertEquals(e.getMessage(),
+                                        errorCode == ErrorCode.DEADLOCK_1 ||
+                                        errorCode == ErrorCode.LOCK_TIMEOUT_1);
+                            }
                         }
+                    } finally {
+                        conn.close();
                     }
-                    conn.close();
                 }
             }.execute();
             tasks.add(task);
@@ -72,7 +78,7 @@ public class TestMvccMultiThreaded extends TestBase {
             ResultSet rs = stat.executeQuery("select * from test");
             assertTrue(rs.next());
         }
-        for(Task t : tasks) {
+        for (Task t : tasks) {
             t.get();
         }
         conn.close();

@@ -71,7 +71,7 @@ WITH [ RECURSIVE ] { name [( columnName [,...] )]
     AS ( select ) [,...] }
     select
 ","
-Can be used to create a recursive query."
+Can be used to create a recursive or non-recursive query (common table expression)."
 "Commands (DDL)","ALTER INDEX RENAME","
 ALTER INDEX [ IF EXISTS ] indexName RENAME TO newIndexName
 ","

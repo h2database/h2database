@@ -207,7 +207,8 @@ public class TableView extends Table {
             // If it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
             // database.
-            // If it can not be compiled - it could also be a recursive common table expression query.
+            // If it can not be compiled - it could also be a recursive common
+            // table expression query.
             if (isRecursiveQueryExceptionDetected(createException)) {
                 this.isRecursiveQueryDetected = true;
             }
@@ -673,6 +674,8 @@ public class TableView extends Table {
 
     /**
      * Was query recursion detected during compiling.
+     *
+     * @return true if yes
      */
     public boolean isRecursiveQueryDetected() {
         return isRecursiveQueryDetected;

@@ -5,6 +5,9 @@
  */
 package org.h2.value;
 
+import java.util.Arrays;
+
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.util.StringUtils;
 
@@ -12,6 +15,18 @@ import org.h2.util.StringUtils;
  * Implementation of the CHAR data type.
  */
 public class ValueStringFixed extends ValueString {
+
+    /**
+     * Special value for the precision in {@link #get(String, int, Mode)} to indicate that the value
+     * should <i>not</i> be trimmed.
+     */
+    public static final int PRECISION_DO_NOT_TRIM = Integer.MIN_VALUE;
+
+    /**
+     * Special value for the precision in {@link #get(String, int, Mode)} to indicate that the default
+     * behaviour should of trimming the value should apply.
+     */
+    public static final int PRECISION_TRIM = -1;
 
     private static final ValueStringFixed EMPTY = new ValueStringFixed("");
 
@@ -29,6 +44,19 @@ public class ValueStringFixed extends ValueString {
         return s;
     }
 
+    private static String rightPadWithSpaces(String s, int length) {
+        int pad = length - s.length();
+        if (pad <= 0) {
+            return s;
+        }
+        char[] res = new char[length];
+        for (int i = 0; i < s.length(); i++) {
+            res[i] = s.charAt(i);
+        }
+        Arrays.fill(res, s.length(), length, ' ');
+        return new String(res);
+    }
+
     @Override
     public int getType() {
         return Value.STRING_FIXED;
@@ -42,7 +70,14 @@ public class ValueStringFixed extends ValueString {
      * @return the value
      */
     public static ValueStringFixed get(String s) {
-        s = trimRight(s);
+        return get(s, PRECISION_TRIM, null);
+    }
+    public static ValueStringFixed get(String s, int precision, Mode mode) {
+        if (mode != null && mode.padFixedStrings && precision < Integer.MAX_VALUE) {
+            s = rightPadWithSpaces(s, precision);
+        } else if (precision != PRECISION_DO_NOT_TRIM) {
+            s = trimRight(s);
+        }
         if (s.length() == 0) {
             return EMPTY;
         }

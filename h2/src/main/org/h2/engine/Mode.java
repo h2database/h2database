@@ -160,6 +160,11 @@ public class Mode {
      */
     public boolean allowAffinityKey;
 
+    /**
+     * Whether to right-pad fixed strings with spaces.
+     */
+    public boolean padFixedStrings;
+
     private final String name;
 
     static {
@@ -256,6 +261,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
         mode.prohibitEmptyInPredicate = true;
+        mode.padFixedStrings = true;
         add(mode);
 
         mode = new Mode("Ignite");

@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -443,7 +444,7 @@ public class ValueLob extends Value {
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t) {
+    public Value convertTo(int t, int precision, Mode mode) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -453,7 +454,7 @@ public class ValueLob extends Value {
             ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
             return copy;
         }
-        return super.convertTo(t);
+        return super.convertTo(t, precision, mode);
     }
 
     @Override

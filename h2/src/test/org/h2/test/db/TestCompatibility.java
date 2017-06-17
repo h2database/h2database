@@ -245,6 +245,14 @@ public class TestCompatibility extends TestBase {
 
         assertResult("ABC", stat, "SELECT SUBSTRING('ABCDEF' FOR 3)");
         assertResult("ABCD", stat, "SELECT SUBSTRING('0ABCDEF' FROM 2 FOR 4)");
+
+        /* Test right-padding of CHAR(N) at INSERT */
+        stat.execute("CREATE TABLE TEST(CH CHAR(10))");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('Hello')");
+        assertResult("Hello     ", stat, "SELECT CH FROM TEST");
+
+        /* Test that WHERE clauses accept unpadded values and will pad before comparison */
+        assertResult("Hello     ", stat, "SELECT CH FROM TEST WHERE CH = 'Hello'");
     }
 
     private void testMySQL() throws SQLException {

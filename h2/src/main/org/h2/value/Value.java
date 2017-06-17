@@ -20,6 +20,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.DataHandler;
@@ -534,13 +535,17 @@ public abstract class Value {
         throw throwUnsupportedExceptionForType("%");
     }
 
+    public Value convertTo(int targetType) {
+        return convertTo(targetType, -1, null);
+    }
+
     /**
      * Compare a value to the specified type.
      *
      * @param targetType the type of the returned value
      * @return the converted value
      */
-    public Value convertTo(int targetType) {
+    public Value convertTo(int targetType, int precision, Mode mode) {
         // converting NULL is done in ValueNull
         // converting BLOB to CLOB and vice versa is done in ValueLob
         if (getType() == targetType) {
@@ -962,7 +967,7 @@ public abstract class Value {
             case STRING_IGNORECASE:
                 return ValueStringIgnoreCase.get(s);
             case STRING_FIXED:
-                return ValueStringFixed.get(s);
+                return ValueStringFixed.get(s, precision, mode);
             case DOUBLE:
                 return ValueDouble.get(Double.parseDouble(s.trim()));
             case FLOAT:

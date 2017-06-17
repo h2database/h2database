@@ -140,7 +140,7 @@ public class Insert extends Prepared implements ResultTarget {
                         // e can be null (DEFAULT)
                         e = e.optimize(session);
                         try {
-                            Value v = c.convert(e.getValue(session));
+                            Value v = c.convert(e.getValue(session), session.getDatabase().getMode());
                             newRow.setValue(index, v);
                         } catch (DbException ex) {
                             throw setRow(ex, x, getSQL(expr));
@@ -186,7 +186,7 @@ public class Insert extends Prepared implements ResultTarget {
             Column c = columns[j];
             int index = c.getColumnId();
             try {
-                Value v = c.convert(values[j]);
+                Value v = c.convert(values[j], session.getDatabase().getMode());
                 newRow.setValue(index, v);
             } catch (DbException ex) {
                 throw setRow(ex, rowNumber, getSQL(values));

@@ -2907,7 +2907,7 @@ public class Parser {
                         String timestamp = currentValue.getString();
                         read();
                         r = ValueExpression
-                                .get(ValueTimestamp.parse(timestamp));
+                                .get(ValueTimestamp.parse(timestamp, session.getDatabase().getMode()));
                     } else if (equalsToken("X", name)) {
                         read();
                         byte[] buffer = StringUtils

@@ -1263,7 +1263,7 @@ public class Function extends Expression implements FunctionCall {
             } else if (v0.getType() == Value.STRING) {
                 ValueString vd = (ValueString) v0;
                 Calendar c = Calendar.getInstance();
-                c.setTime(ValueTimestamp.parse(vd.getString()).getDate());
+                c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
                 c.set(Calendar.SECOND, 0);

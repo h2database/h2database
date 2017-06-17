@@ -165,6 +165,11 @@ public class Mode {
      */
     public boolean padFixedLengthStrings;
 
+    /**
+     * Whether DB2 TIMESTAMP formats are allowed.
+     */
+    public boolean allowDB2TimestampFormat;
+
     private final String name;
 
     static {
@@ -184,6 +189,7 @@ public class Mode {
                 Pattern.compile("ApplicationName|ClientAccountingInformation|" +
                         "ClientUser|ClientCorrelationToken");
         mode.prohibitEmptyInPredicate = true;
+        mode.allowDB2TimestampFormat = true;
         add(mode);
 
         mode = new Mode("Derby");

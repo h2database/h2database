@@ -495,7 +495,7 @@ public class XMLParser {
      * @param name the local name of the attribute
      * @return the value or null
      */
-    public String getAttributeValue(String namespaceURI, String name) {
+    public String getAttributeValue(@SuppressWarnings("unused") String namespaceURI, String name) {
         int len = getAttributeCount();
         for (int i = 0; i < len; i++) {
             if (getAttributeLocalName(i).equals(name)) {

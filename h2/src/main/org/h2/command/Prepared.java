@@ -208,6 +208,7 @@ public abstract class Prepared {
      * @return the result set
      * @throws DbException if it is not a query
      */
+    @SuppressWarnings("unused")
     public ResultInterface query(int maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }

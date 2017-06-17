@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -4855,15 +4856,33 @@ public class Parser {
     }
 
     private Query parseWith() {
+        List<TableView> viewsCreated = new ArrayList<TableView>();
         readIf("RECURSIVE");
+        do {
+            viewsCreated.add(parseSingleCommonTableExpression());
+        } while (readIf(","));
+
+        Query q = parseSelectUnion();
+        q.setPrepareAlways(true);
+        return q;
+    }
+
+    private TableView parseSingleCommonTableExpression() {
         String tempViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
         Table recursiveTable;
-        read("(");
         ArrayList<Column> columns = New.arrayList();
-        String[] cols = parseColumnList();
-        for (String c : cols) {
-            columns.add(new Column(c, Value.STRING));
+        String[] cols = null;
+
+        // column names are now optional - they can be inferred from the named
+        // query if not supplied
+        if (readIf("(")) {
+            cols = parseColumnList();
+            for (String c : cols) {
+                // we dont really know the type of the column, so string will
+                // have to do
+                columns.add(new Column(c, Value.STRING));
+            }
         }
         Table old = session.findLocalTempTable(tempViewName);
         if (old != null) {
@@ -4878,6 +4897,10 @@ public class Parser {
             }
             session.removeLocalTempTable(old);
         }
+        // this table is created as a work around because recursive
+        // table expressions need to reference something that look like
+        // themselves
+        // to work (its removed after creation in this method)
         CreateTableData data = new CreateTableData();
         data.id = database.allocateObjectId();
         data.columns = columns;
@@ -4890,7 +4913,7 @@ public class Parser {
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
         String querySQL;
-        Column[] columnTemplates = new Column[cols.length];
+        List<Column> columnTemplateList = new ArrayList<Column>();
         try {
             read("AS");
             read("(");
@@ -4899,22 +4922,32 @@ public class Parser {
             withQuery.prepare();
             querySQL = StringUtils.cache(withQuery.getPlanSQL());
             ArrayList<Expression> withExpressions = withQuery.getExpressions();
-            for (int i = 0; i < cols.length; ++i) {
-                columnTemplates[i] = new Column(cols[i], withExpressions.get(i).getType());
+            for (int i = 0; i < withExpressions.size(); ++i) {
+                String columnName = cols != null ? cols[i]
+                        : withExpressions.get(i).getColumnName();
+                columnTemplateList.add(new Column(columnName,
+                        withExpressions.get(i).getType()));
             }
         } finally {
             session.removeLocalTempTable(recursiveTable);
         }
         int id = database.allocateObjectId();
+        // No easy way to determine if this is a recursive query up front, so we just compile
+        // it twice - once without the flag set, and if we didn't see a recursive term,
+        // then we just compile it again.
         TableView view = new TableView(schema, id, tempViewName, querySQL,
-                parameters, columnTemplates, session, true);
+                parameters, columnTemplateList.toArray(new Column[0]), session,
+                true/* recursive */);
+        if (!view.isRecursiveQueryDetected()) {
+            view = new TableView(schema, id, tempViewName, querySQL, parameters,
+                    columnTemplateList.toArray(new Column[0]), session,
+                    false/* recursive */);
+        }
         view.setTableExpression(true);
         view.setTemporary(true);
         session.addLocalTempTable(view);
         view.setOnCommitDrop(true);
-        Query q = parseSelectUnion();
-        q.setPrepareAlways(true);
-        return q;
+        return view;
     }
 
     private CreateView parseCreateView(boolean force, boolean orReplace) {

@@ -21,6 +21,14 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>-
+</li>
+</ul>
+
+<h2>Version 1.4.196 (2017-06-10)</h2>
+<ul>
+<li>Issue#479 Allow non-recursive CTEs (WITH statements), patch from stumc
+</li>
 <li>Fix startup issue when using "CHECK" as a column name.
 </li>
 <li>Issue #423: ANALYZE performed multiple times on one table during execution of the same statement.
@@ -30,6 +38,10 @@ Change Log
 <li>Issue #438: Fix slow logging via SLF4J (TRACE_LEVEL_FILE=4).
 </li>
 <li>Issue #472: Support CREATE SEQUENCE ... ORDER as a NOOP for Oracle compatibility
+</li>
+<li>Issue #479: Allow non-recursive Common Table Expressions (CTE)
+</li>
+<li>On Mac OS X, with IPv6 and no network connection, the Console tool was not working as expected.
 </li>
 </ul>
 
@@ -201,6 +213,8 @@ changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
 
 <h2>Version 1.4.192 Beta (2016-05-26)</h2>
 <ul>
+<li>Java 6 is no longer supported (the jar files are compiled for Java 7).
+</li>
 <li>Garbage collection of unused chunks should now be faster.
 </li>
 <li>Prevent people using unsupported combination of auto-increment columns and clustering mode.

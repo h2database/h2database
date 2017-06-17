@@ -11,5 +11,9 @@
 /test.out.txt
 .DS_Store
 /.idea/
+*.iml
+*.ipr
+*.iws
 .checkstyle
 /temp/
+/h2web/

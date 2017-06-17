@@ -194,6 +194,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @param value the value
      * @return the size
      */
+    @SuppressWarnings("unused")
     protected int sizeOf(K key, V value) {
         return 1;
     }
@@ -204,7 +205,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      *
      * @param key the key
      */
-    protected void onRemove(K key) {
+    protected void onRemove(@SuppressWarnings("unused") K key) {
         // do nothing
     }
 

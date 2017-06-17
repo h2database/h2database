@@ -192,7 +192,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      * @return true if every visited expression returned true, or if there are
      *         no expressions
      */
-    public boolean isEverything(ExpressionVisitor visitor) {
+    public boolean isEverything(@SuppressWarnings("unused") ExpressionVisitor visitor) {
         return true;
     }
 

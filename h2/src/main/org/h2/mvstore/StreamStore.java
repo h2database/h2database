@@ -206,6 +206,7 @@ public class StreamStore {
      *
      * @param len the length of the stored block.
      */
+    @SuppressWarnings("unused")
     protected void onStore(int len) {
         // do nothing by default
     }

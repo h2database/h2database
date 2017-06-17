@@ -1695,6 +1695,11 @@ public class Session extends SessionWithState {
         return false;
     }
 
+    /**
+     * Mark that the given table needs to be analyzed on commit.
+     *
+     * @param table the table
+     */
     public void markTableForAnalyze(Table table) {
         if (tablesToAnalyze == null) {
             tablesToAnalyze = New.hashSet();

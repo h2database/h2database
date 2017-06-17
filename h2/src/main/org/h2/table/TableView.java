@@ -57,6 +57,7 @@ public class TableView extends Table {
     private Query topQuery;
     private ResultInterface recursiveResult;
     private boolean tableExpression;
+    private boolean isRecursiveQueryDetected;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
@@ -70,12 +71,11 @@ public class TableView extends Table {
      * dependent views.
      *
      * @param querySQL the SQL statement
-     * @param columnNames the column names
      * @param session the session
      * @param recursive whether this is a recursive view
      * @param force if errors should be ignored
      */
-    public void replace(String querySQL, String[] columnNames, Session session,
+    public void replace(String querySQL,  Session session,
             boolean recursive, boolean force) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
@@ -94,6 +94,7 @@ public class TableView extends Table {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.recursive = recursive;
+        this.isRecursiveQueryDetected = false;
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
@@ -203,9 +204,14 @@ public class TableView extends Table {
         } catch (DbException e) {
             e.addSQL(getCreateSQL());
             createException = e;
-            // if it can't be compiled, then it's a 'zero column table'
+            // If it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
-            // database
+            // database.
+            // If it can not be compiled - it could also be a recursive common
+            // table expression query.
+            if (isRecursiveQueryExceptionDetected(createException)) {
+                this.isRecursiveQueryDetected = true;
+            }
             tables = New.arrayList();
             cols = new Column[0];
             if (recursive && columnTemplates != null) {
@@ -664,6 +670,31 @@ public class TableView extends Table {
             }
             return true;
         }
+    }
+
+    /**
+     * Was query recursion detected during compiling.
+     *
+     * @return true if yes
+     */
+    public boolean isRecursiveQueryDetected() {
+        return isRecursiveQueryDetected;
+    }
+
+    /**
+     * Does exception indicate query recursion?
+     */
+    private boolean isRecursiveQueryExceptionDetected(DbException exception) {
+        if (exception == null) {
+            return false;
+        }
+        if (exception.getErrorCode() != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
+            return false;
+        }
+        if (!exception.getMessage().contains("\"" + this.getName() + "\"")) {
+            return false;
+        }
+        return true;
     }
 
 }

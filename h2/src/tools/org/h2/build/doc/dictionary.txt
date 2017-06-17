@@ -12,7 +12,7 @@ adapting adaptive add added addiction adding addition additional additionally
 additions addon addr address addressed addresses adds adeptia adjacent adjust
 adjusted adjusts admin administration administrator admins admission ado adopt
 advanced advances advantage advantages advised aeiou aejaks aelig aes afaik
-affect affected affects affero affine after afterwards again against agar age
+affect affected affects affero affine affinity after afterwards again against agar age
 agent agentlib agg aggregate aggregated aggregates aggregating aggressive agile
 agrave agree agreeable agreed agreement agreements agrees ahead
 ahilmnqbjkcdeopfrsg aid ajax alan alarm ale alefsym alert alessio alexander alfki
@@ -300,7 +300,7 @@ icmpgt icmple icmplt icmpne ico icon iconified icons iconst icu ide idea ideal
 ideas identical identification identified identifier identifiers identify identifying
 identities identity idiomatic idiv idle ids idx idxname iee ieee iexcl iface ifeq
 ifexists ifge ifgt ifle iflt ifne ifnonnull ifnull iframe ifx ignore ignorecase ignored
-ignoredriverprivileges ignorelist ignores ignoring igrave iinc ikura ikvm ikvmc
+ignoredriverprivileges ignorelist ignores ignoring ignite igrave iinc ikura ikvm ikvmc
 illegal iload image imageio images imaginary img iml immediately immutable imola imp
 impact imperial impersonate impl imple implement implementation implementations
 implemented implementing implements implication implicit implicitly implied
@@ -315,7 +315,7 @@ indemnified indemnify indemnity indent indentation indentations indented indents
 independent independently index indexdef indexed indexer indexers indexes indexid
 indexing indicate indicated indicates indicating indication indicator indices
 indirect indirectly individual individually indkey indonesia industries
-inefficient ineg inet inf infin infinite infinity infix inflate inflater info
+inefficient ineg inet inf inferred infin infinite infinity infix inflate inflater info
 inform information informational informed informix informs informtn infos
 infrastructure infringe infringed infringement infringements infringes infringing
 inherent inherit inheritance inherited inherits ini init initial initialization
@@ -434,7 +434,7 @@ obligation obligations observer obsolete obtain obtained obtains obviously
 occasionally occupied occupies occupy occur occurred occurrence occurrences occurs
 ocirc octal octet october octype odbc odbcad odd odg off offending offer offered
 offering offers office official offline offset offsets often ogc ograve ohloh oid okay
-okra olap olapsys old older oldest oline oliver olivier omega omicron omissions
+okra olap olapsys old older oldest oline oliver olivier omega omicron omissions omit
 omitted omitting once onchange onclick one ones onfocus ongoing onkeydown onkeyup
 online onload only onmousedown onmousemove onmouseout onmouseover onmouseup
 onreadystatechange onresize onscroll onsubmit onto ontology ontoprise oome oops
@@ -477,7 +477,7 @@ pointing points poker poland polar pole poleposition policies policy polish poll
 polling polski poly polygon pom pondered poodle pool poolable pooled pooling
 pools poor poormans pop popular populate populated population popup port
 portability portable portal portals ported porting portion portions portlet ports
-portugal portugu pos position positioned positions positive pospichal possibility
+portugal portugu pos position positioned positions positional positive pospichal possibility
 possible possibly post postal postfix postgre postgres postgresql posting
 postmaster potential potentially poultry pound pow power powerful poweroff
 practicable practice prd pre prec precedence precision precisions predicate
@@ -735,3 +735,5 @@ optimisations roughly contractid succeeding tran fixme iters ovain orgid chosen
 arbonaut exposing obscure determined turkey buildings indexhints acct
 choosing optimise arte preparator katzyn bla jenkins tot artes pgserver npe
 suffers closeablem mni significance vise identiy vitalus aka ilike uppercasing reentrant
+aff ignite warm upstream producing sfu jit smtm affinity stashed tbl
+stumc numbered

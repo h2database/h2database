@@ -44,12 +44,9 @@ public class NetUtils {
      */
     public static Socket createLoopbackSocket(int port, boolean ssl)
             throws IOException {
-        InetAddress address = getBindAddress();
-        if (address == null) {
-            address = InetAddress.getLocalHost();
-        }
+        String local = getLocalAddress();
         try {
-            return createSocket(getHostAddress(address), port, ssl);
+            return createSocket(local, port, ssl);
         } catch (IOException e) {
             try {
                 return createSocket("localhost", port, ssl);
@@ -58,23 +55,6 @@ public class NetUtils {
                 throw e;
             }
         }
-    }
-
-    /**
-     * Get the host address. This method adds '[' and ']' if required for
-     * Inet6Address that contain a ':'.
-     *
-     * @param address the address
-     * @return the host address
-     */
-    private static String getHostAddress(InetAddress address) {
-        String host = address.getHostAddress();
-        if (address instanceof Inet6Address) {
-            if (host.indexOf(':') >= 0 && !host.startsWith("[")) {
-                host = "[" + host + "]";
-            }
-        }
-        return host;
     }
 
     /**
@@ -274,7 +254,21 @@ public class NetUtils {
                 throw DbException.convert(e);
             }
         }
-        String address = bind == null ? "localhost" : getHostAddress(bind);
+        String address;
+        if (bind == null) {
+            address = "localhost";
+        } else {
+            address = bind.getHostAddress();
+            if (bind instanceof Inet6Address) {
+                if (address.indexOf("%") >= 0) {
+                    address = "localhost";
+                } else if (address.indexOf(':') >= 0 && !address.startsWith("[")) {
+                    // adds'[' and ']' if required for
+                    // Inet6Address that contain a ':'.
+                    address = "[" + address + "]";
+                }
+            }
+        }
         if (address.equals("127.0.0.1")) {
             address = "localhost";
         }

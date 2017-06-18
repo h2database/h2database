@@ -35,9 +35,12 @@ public class ValueStringFixed extends ValueString {
     }
 
     private static String trimRight(String s) {
+        return trimRight(s, 0);
+    }
+    private static String trimRight(String s, int minLength) {
         int endIndex = s.length() - 1;
         int i = endIndex;
-        while (i >= 0 && s.charAt(i) == ' ') {
+        while (i >= minLength && s.charAt(i) == ' ') {
             i--;
         }
         s = i == endIndex ? s : s.substring(0, i + 1);
@@ -87,9 +90,21 @@ public class ValueStringFixed extends ValueString {
      * @return the value
      */
     public static ValueStringFixed get(String s, int precision, Mode mode) {
-        if (mode != null && mode.padFixedLengthStrings && precision < Integer.MAX_VALUE) {
-            s = rightPadWithSpaces(s, precision);
+        // Should fixed strings be padded?
+        if (mode != null && mode.padFixedLengthStrings) {
+            if (precision == Integer.MAX_VALUE) {
+                // CHAR without a length specification is identical to CHAR(1)
+                precision = 1;
+            }
+            if (s.length() < precision) {
+                // We have to pad
+                s = rightPadWithSpaces(s, precision);
+            } else {
+                // We should trim, because inserting 'A   ' into a CHAR(1) is possible!
+                s = trimRight(s, precision);
+            }
         } else if (precision != PRECISION_DO_NOT_TRIM) {
+            // Default behaviour of H2
             s = trimRight(s);
         }
         if (s.length() == 0) {

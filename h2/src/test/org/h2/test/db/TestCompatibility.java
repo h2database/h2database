@@ -253,6 +253,26 @@ public class TestCompatibility extends TestBase {
 
         /* Test that WHERE clauses accept unpadded values and will pad before comparison */
         assertResult("Hello     ", stat, "SELECT CH FROM TEST WHERE CH = 'Hello'");
+
+        /* Test CHAR which is identical to CHAR(1) */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(CH CHAR)");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('')");
+        assertResult(" ", stat, "SELECT CH FROM TEST");
+        assertResult(" ", stat, "SELECT CH FROM TEST WHERE CH = ''");
+
+        /* Test that excessive spaces are trimmed */
+        stat.execute("DELETE FROM TEST");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('1   ')");
+        assertResult("1", stat, "SELECT CH FROM TEST");
+        assertResult("1", stat, "SELECT CH FROM TEST WHERE CH = '1      '");
+
+        /* Test that we do not trim too far */
+        stat.execute("DROP TABLE IF EXISTS TEST");
+        stat.execute("CREATE TABLE TEST(CH CHAR(2))");
+        stat.execute("INSERT INTO TEST (CH) VALUES ('1   ')");
+        assertResult("1 ", stat, "SELECT CH FROM TEST");
+        assertResult("1 ", stat, "SELECT CH FROM TEST WHERE CH = '1      '");
     }
 
     private void testMySQL() throws SQLException {

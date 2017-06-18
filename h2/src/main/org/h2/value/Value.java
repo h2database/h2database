@@ -535,7 +535,15 @@ public abstract class Value {
         throw throwUnsupportedExceptionForType("%");
     }
 
+    /**
+     * Compare a value to the specified type.
+     *
+     * @param targetType the type of the returned value
+     * @return the converted value
+     */
     public Value convertTo(int targetType) {
+        // Use -1 to indicate "default behaviour" where value conversion should not 
+        // depend on any datatype precision.
         return convertTo(targetType, -1, null);
     }
 
@@ -543,6 +551,9 @@ public abstract class Value {
      * Compare a value to the specified type.
      *
      * @param targetType the type of the returned value
+     * @param the precision of the column to convert this value to.
+     *        The special constant <code>-1</code> is used to indicate that
+     *        the precision plays no role when converting the value
      * @return the converted value
      */
     public Value convertTo(int targetType, int precision, Mode mode) {

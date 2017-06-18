@@ -163,7 +163,7 @@ public class Mode {
     /**
      * Whether to right-pad fixed strings with spaces.
      */
-    public boolean padFixedStrings;
+    public boolean padFixedLengthStrings;
 
     private final String name;
 
@@ -261,7 +261,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
         mode.prohibitEmptyInPredicate = true;
-        mode.padFixedStrings = true;
+        mode.padFixedLengthStrings = true;
         add(mode);
 
         mode = new Mode("Ignite");

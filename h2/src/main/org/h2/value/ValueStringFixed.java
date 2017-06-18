@@ -50,9 +50,7 @@ public class ValueStringFixed extends ValueString {
             return s;
         }
         char[] res = new char[length];
-        for (int i = 0; i < s.length(); i++) {
-            res[i] = s.charAt(i);
-        }
+        s.getChars(0, s.length(), res, 0);
         Arrays.fill(res, s.length(), length, ' ');
         return new String(res);
     }
@@ -70,10 +68,26 @@ public class ValueStringFixed extends ValueString {
      * @return the value
      */
     public static ValueStringFixed get(String s) {
+        // Use the special precision constant PRECISION_TRIM to indicate
+        // default H2 behaviour of trimming the value.
         return get(s, PRECISION_TRIM, null);
     }
+
+    /**
+     * Get or create a fixed length string value for the given string.
+     * <p>
+     * This method will use a {@link Mode}-specific conversion when <code>mode</code> is not <code>null</code>.
+     * Otherwise it will use the default H2 behaviour of trimming the given string if <code>precision</code>
+     * is not {@link #PRECISION_DO_NOT_TRIM}.
+     *
+     * @param s the string
+     * @param precision if the {@link Mode#padFixedLengthStrings} indicates that strings should be padded, this
+     *        defines the overall length of the (potentially padded) string.
+     *        If the special constant {@link #PRECISION_DO_NOT_TRIM} is used the value will not be trimmed.
+     * @return the value
+     */
     public static ValueStringFixed get(String s, int precision, Mode mode) {
-        if (mode != null && mode.padFixedStrings && precision < Integer.MAX_VALUE) {
+        if (mode != null && mode.padFixedLengthStrings && precision < Integer.MAX_VALUE) {
             s = rightPadWithSpaces(s, precision);
         } else if (precision != PRECISION_DO_NOT_TRIM) {
             s = trimRight(s);

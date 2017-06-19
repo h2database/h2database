@@ -963,7 +963,7 @@ public abstract class Value {
             case DATE:
                 return ValueDate.parse(s.trim());
             case TIMESTAMP:
-                return ValueTimestamp.parse(s.trim());
+                return ValueTimestamp.parse(s.trim(), mode);
             case TIMESTAMP_TZ:
                 return ValueTimestampTimeZone.parse(s.trim());
             case BYTES:

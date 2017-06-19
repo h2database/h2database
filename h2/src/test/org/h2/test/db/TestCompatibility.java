@@ -497,6 +497,14 @@ public class TestCompatibility extends TestBase {
                 "fetch next 2 rows only with rs use and keep update locks");
         res = stat.executeQuery("select * from test order by id " +
                 "fetch next 2 rows only with rr use and keep exclusive locks");
+
+        // Test DB2 TIMESTAMP format with dash separating date and time
+        stat.execute("drop table test if exists");
+        stat.execute("create table test(date TIMESTAMP)");
+        stat.executeUpdate("insert into test (date) values ('2014-04-05-09.48.28.020005')");
+        assertResult("2014-04-05 09:48:28.020005", stat, "select date from test"); // <- result is always H2 format timestamp!
+        assertResult("2014-04-05 09:48:28.020005", stat, "select date from test where date = '2014-04-05-09.48.28.020005'");
+        assertResult("2014-04-05 09:48:28.020005", stat, "select date from test where date = '2014-04-05 09:48:28.020005'");
     }
 
     private void testDerby() throws SQLException {

@@ -682,6 +682,15 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         Object offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
         assertEquals(offsetDateTime, offsetDateTime2);
+        assertFalse(rs.next());
+        rs.close();
+
+        prep.setObject(1, offsetDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
+        rs = prep.executeQuery();
+        rs.next();
+        offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
+        assertEquals(offsetDateTime, offsetDateTime2);
+        assertFalse(rs.next());
         rs.close();
     }
 

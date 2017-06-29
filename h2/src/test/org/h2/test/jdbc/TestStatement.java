@@ -40,15 +40,15 @@ public class TestStatement extends TestBase {
     public void test() throws Exception {
         deleteDb("statement");
         conn = getConnection("statement");
-//        testUnwrap();
-//        testUnsupportedOperations();
-//        testTraceError();
-//        testSavepoint();
-//        testConnectionRollback();
-//        testStatement();
+        testUnwrap();
+        testUnsupportedOperations();
+        testTraceError();
+        testSavepoint();
+        testConnectionRollback();
+        testStatement();
         testPreparedStatement();
-//        testIdentityMerge();
-//        testIdentity();
+        testIdentityMerge();
+        testIdentity();
         conn.close();
         deleteDb("statement");
     }

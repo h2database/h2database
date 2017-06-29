@@ -178,6 +178,7 @@
           <include>**/*.ico</include>
           <include>**/*.gif</include>
           <include>**/*.css</include>
+          <include>**/*.js</include>
           <include>org/h2/res/help.csv</include>
           <include>org/h2/res/javadoc.properties</include>
           <include>org/h2/server/pg/pg_catalog.sql</include>

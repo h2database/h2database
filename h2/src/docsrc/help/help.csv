@@ -197,12 +197,10 @@ WITH [ RECURSIVE ] { name [( columnName [,...] )]
     AS ( select ) [,...] }
     select
 ","
-Can be used to create a recursive query. 
+Can be used to create a recursive or non-recursive query (common table expression).
 For recursive queries the first select has to be a UNION.
-Non-recursive queries are also supported.
-One or more common table entries can be use referred to by name..
+One or more common table entries can be referred to by name.
 Column name declarations are now optional - the column names will be inferred from the named select queries.
-Positional parameters are not currently supported.
 ","
 WITH RECURSIVE t(n) AS (
         SELECT 1
@@ -215,8 +213,7 @@ SELECT sum(n) FROM t;
 ","
 WITH t1 AS (
         SELECT 1 AS FIRST_COLUMN
-),
-     t2 AS (
+), t2 AS (
         SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM t1
 )
 SELECT sum(FIRST_COLUMN) FROM t2;

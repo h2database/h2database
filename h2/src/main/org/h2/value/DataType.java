@@ -902,6 +902,8 @@ public class DataType {
             return Value.TIME;
         case Types.TIMESTAMP:
             return Value.TIMESTAMP;
+        case 2014: // Types.TIMESTAMP_WITH_TIMEZONE
+            return Value.TIMESTAMP_TZ;
         case Types.BLOB:
             return Value.BLOB;
         case Types.CLOB:

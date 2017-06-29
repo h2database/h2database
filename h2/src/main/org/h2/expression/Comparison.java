@@ -13,6 +13,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -201,7 +202,7 @@ public class Comparison extends Condition {
                     // to constant type, but vise versa, then let's do this here
                     // once.
                     if (constType != resType) {
-                        right = ValueExpression.get(r.convertTo(resType));
+                        right = ValueExpression.get(r.convertTo(resType, MathUtils.convertLongToInt(left.getPrecision()), session.getDatabase().getMode()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(

@@ -4,7 +4,7 @@
 
   <groupId>com.h2database</groupId>
   <artifactId>h2</artifactId>
-  <version>1.4.195-SNAPSHOT</version>
+  <version>1.4.196-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>H2 Database Engine</name>
   <url>http://www.h2database.com</url>

@@ -23,6 +23,14 @@ Change Log
 <ul>
 <li>Fix bug in parsing ANALYZE TABLE xxx SAMPLE_SIZE yyy
 </li>
+<li>Add padding for CHAR(N) values in PostgreSQL mode
+</li>
+<li>Issue #89: Add DB2 timestamp format compatibility
+</li>
+</ul>
+
+<h2>Version 1.4.196 (2017-06-10)</h2>
+<ul>
 <li>Issue#479 Allow non-recursive CTEs (WITH statements), patch from stumc
 </li>
 <li>Fix startup issue when using "CHECK" as a column name.
@@ -36,6 +44,8 @@ Change Log
 <li>Issue #472: Support CREATE SEQUENCE ... ORDER as a NOOP for Oracle compatibility
 </li>
 <li>Issue #479: Allow non-recursive Common Table Expressions (CTE)
+</li>
+<li>On Mac OS X, with IPv6 and no network connection, the Console tool was not working as expected.
 </li>
 </ul>
 

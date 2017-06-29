@@ -160,6 +160,16 @@ public class Mode {
      */
     public boolean allowAffinityKey;
 
+    /**
+     * Whether to right-pad fixed strings with spaces.
+     */
+    public boolean padFixedLengthStrings;
+
+    /**
+     * Whether DB2 TIMESTAMP formats are allowed.
+     */
+    public boolean allowDB2TimestampFormat;
+
     private final String name;
 
     static {
@@ -179,6 +189,7 @@ public class Mode {
                 Pattern.compile("ApplicationName|ClientAccountingInformation|" +
                         "ClientUser|ClientCorrelationToken");
         mode.prohibitEmptyInPredicate = true;
+        mode.allowDB2TimestampFormat = true;
         add(mode);
 
         mode = new Mode("Derby");
@@ -256,6 +267,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile("ApplicationName");
         mode.prohibitEmptyInPredicate = true;
+        mode.padFixedLengthStrings = true;
         add(mode);
 
         mode = new Mode("Ignite");

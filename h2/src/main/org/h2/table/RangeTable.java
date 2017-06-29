@@ -144,7 +144,7 @@ public class RangeTable extends Table {
 
     @Override
     public TableType getTableType() {
-    	return TableType.SYSTEM_TABLE;
+        return TableType.SYSTEM_TABLE;
     }
 
     @Override

@@ -19,6 +19,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.engine.Constants;
 import org.h2.server.web.ConnectionInfo;
 import org.h2.util.JdbcUtils;
@@ -447,20 +449,21 @@ public class Shell extends Tool implements Runnable {
         if (sql.trim().length() == 0) {
             return;
         }
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         try {
             ResultSet rs = null;
             try {
                 if (stat.execute(sql)) {
                     rs = stat.getResultSet();
                     int rowCount = printResult(rs, listMode);
-                    time = System.currentTimeMillis() - time;
+                    time = System.nanoTime() - time;
                     println("(" + rowCount + (rowCount == 1 ?
-                            " row, " : " rows, ") + time + " ms)");
+                            " row, " : " rows, ") + TimeUnit.NANOSECONDS.toMillis(time) + " ms)");
                 } else {
                     int updateCount = stat.getUpdateCount();
-                    time = System.currentTimeMillis() - time;
-                    println("(Update count: " + updateCount + ", " + time + " ms)");
+                    time = System.nanoTime() - time;
+                    println("(Update count: " + updateCount + ", " +
+                            TimeUnit.NANOSECONDS.toMillis(time) + " ms)");
                 }
             } finally {
                 JdbcUtils.closeSilently(rs);

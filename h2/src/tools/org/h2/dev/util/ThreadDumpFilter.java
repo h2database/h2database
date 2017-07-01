@@ -18,7 +18,7 @@ import java.io.PrintWriter;
 public class ThreadDumpFilter {
 
     /**
-     * Usage: java ThreadDumpFilter <log.txt >threadDump.txt
+     * Usage: java ThreadDumpFilter &lt;log.txt &gt;threadDump.txt
      *
      * @param a the file name
      */
@@ -36,5 +36,7 @@ public class ThreadDumpFilter {
                 } while(s != null && (s.length() == 0 || " \t\"".indexOf(s.charAt(0)) >= 0));
             }
         }
+        writer.close();
+        in.close();
     }
 }

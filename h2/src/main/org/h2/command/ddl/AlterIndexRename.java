@@ -20,6 +20,9 @@ import org.h2.schema.Schema;
  */
 public class AlterIndexRename extends DefineCommand {
 
+    private boolean ifExists;
+    private Schema oldSchema;
+    private String oldIndexName;
     private Index oldIndex;
     private String newIndexName;
 
@@ -27,8 +30,16 @@ public class AlterIndexRename extends DefineCommand {
         super(session);
     }
 
-    public void setOldIndex(Index index) {
-        oldIndex = index;
+    public void setIfExists(boolean b) {
+        ifExists = b;
+    }
+
+    public void setOldSchema(Schema old) {
+        oldSchema = old;
+    }
+
+    public void setOldName(String name) {
+        oldIndexName = name;
     }
 
     public void setNewName(String name) {
@@ -39,9 +50,16 @@ public class AlterIndexRename extends DefineCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        Schema schema = oldIndex.getSchema();
-        if (schema.findIndex(session, newIndexName) != null ||
-                newIndexName.equals(oldIndex.getName())) {
+        oldIndex = oldSchema.findIndex(session, oldIndexName);
+        if (oldIndex == null) {
+            if (!ifExists) {
+                throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1,
+                        newIndexName);
+            }
+            return 0;
+        }
+        if (oldSchema.findIndex(session, newIndexName) != null ||
+                newIndexName.equals(oldIndexName)) {
             throw DbException.get(ErrorCode.INDEX_ALREADY_EXISTS_1,
                     newIndexName);
         }

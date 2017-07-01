@@ -134,7 +134,7 @@ public abstract class Expression {
      * @param session the session
      * @return the negated expression, or null
      */
-    public Expression getNotIfPossible(Session session) {
+    public Expression getNotIfPossible(@SuppressWarnings("unused") Session session) {
         // by default it is not possible
         return null;
     }
@@ -184,6 +184,7 @@ public abstract class Expression {
      * @param session the session
      * @param filter the table filter
      */
+    @SuppressWarnings("unused")
     public void createIndexConditions(Session session, TableFilter filter) {
         // default is do nothing
     }
@@ -292,6 +293,7 @@ public abstract class Expression {
      * @param session the session
      * @return array of expression columns if applicable, null otherwise
      */
+    @SuppressWarnings("unused")
     public Expression[] getExpressionColumns(Session session) {
         return null;
     }

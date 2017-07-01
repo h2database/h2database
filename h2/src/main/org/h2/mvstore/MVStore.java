@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.h2.compress.CompressDeflate;
 import org.h2.compress.CompressLZF;
 import org.h2.compress.Compressor;
@@ -279,6 +278,8 @@ public class MVStore {
 
     private long lastTimeAbsolute;
 
+    private long lastFreeUnusedChunks;
+
     /**
      * Create and open the store.
      *
@@ -324,6 +325,10 @@ public class MVStore {
         if (mb > 0) {
             CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
             cc.maxMemory = mb * 1024L * 1024L;
+            o = config.get("cacheConcurrency");
+            if (o != null) {
+                cc.segmentCount = (Integer) o;
+            }
             cache = new CacheLongKeyLIRS<Page>(cc);
             cc.maxMemory /= 4;
             cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(cc);
@@ -883,11 +888,8 @@ public class MVStore {
         // could result in a deadlock
         stopBackgroundThread();
         closed = true;
-        if (fileStore == null) {
-            return;
-        }
         synchronized (this) {
-            if (shrinkIfPossible) {
+            if (fileStore != null && shrinkIfPossible) {
                 shrinkFileIfPossible(0);
             }
             // release memory early - this is important when called
@@ -900,12 +902,14 @@ public class MVStore {
             meta = null;
             chunks.clear();
             maps.clear();
-            try {
-                if (!fileStoreIsProvided) {
-                    fileStore.close();
+            if (fileStore != null) {
+                try {
+                    if (!fileStoreIsProvided) {
+                        fileStore.close();
+                    }
+                } finally {
+                    fileStore = null;
                 }
-            } finally {
-                fileStore = null;
             }
         }
     }
@@ -913,7 +917,7 @@ public class MVStore {
     /**
      * Whether the chunk at the given position is live.
      *
-     * @param the chunk id
+     * @param chunkId the chunk id
      * @return true if it is live
      */
     boolean isChunkLive(int chunkId) {
@@ -1051,13 +1055,19 @@ public class MVStore {
     }
 
     private long storeNowTry() {
-        freeUnusedChunks();
-
+        long time = getTimeSinceCreation();
+        int freeDelay = retentionTime / 10;
+        if (time >= lastFreeUnusedChunks + freeDelay) {
+            // set early in case it fails (out of memory or so)
+            lastFreeUnusedChunks = time;
+            freeUnusedChunks();
+            // set it here as well, to avoid calling it often if it was slow
+            lastFreeUnusedChunks = getTimeSinceCreation();
+        }
         int currentUnsavedPageCount = unsavedMemory;
         long storeVersion = currentStoreVersion;
         long version = ++currentVersion;
         setWriteVersion(version);
-        long time = getTimeSinceCreation();
         lastCommitTime = time;
         retainChunk = null;
 
@@ -1509,6 +1519,9 @@ public class MVStore {
      * @param minPercent the minimum percentage to save
      */
     private void shrinkFileIfPossible(int minPercent) {
+        if (fileStore.isReadOnly()) {
+            return;
+        }
         long end = getFileLengthInUse();
         long fileSize = fileStore.size();
         if (end >= fileSize) {
@@ -2512,9 +2525,14 @@ public class MVStore {
      * @param mb the cache size in MB.
      */
     public void setCacheSize(int mb) {
+        final long bytes = (long) mb * 1024 * 1024;
         if (cache != null) {
-            cache.setMaxMemory((long) mb * 1024 * 1024);
+            cache.setMaxMemory(bytes);
             cache.clear();
+        }
+        if (cacheChunkRef != null) {
+            cacheChunkRef.setMaxMemory(bytes / 4);
+            cacheChunkRef.clear();
         }
     }
 
@@ -2624,6 +2642,8 @@ public class MVStore {
 
     /**
      * Get the amount of memory used for caching, in MB.
+     * Note that this does not include the page chunk references cache, which is
+     * 25% of the size of the page cache.
      *
      * @return the amount of memory used for caching
      */
@@ -2636,6 +2656,8 @@ public class MVStore {
 
     /**
      * Get the maximum cache size, in MB.
+     * Note that this does not include the page chunk references cache, which is
+     * 25% of the size of the page cache.
      *
      * @return the cache size
      */
@@ -2653,6 +2675,15 @@ public class MVStore {
      */
     public CacheLongKeyLIRS<Page> getCache() {
         return cache;
+    }
+
+    /**
+     * Whether the store is read-only.
+     *
+     * @return true if it is
+     */
+    public boolean isReadOnly() {
+        return fileStore == null ? false : fileStore.isReadOnly();
     }
 
     /**
@@ -2804,6 +2835,17 @@ public class MVStore {
          */
         public Builder cacheSize(int mb) {
             return set("cacheSize", mb);
+        }
+
+        /**
+         * Set the read cache concurrency. The default is 16, meaning 16
+         * segments are used.
+         *
+         * @param concurrency the cache concurrency
+         * @return this
+         */
+        public Builder cacheConcurrency(int concurrency) {
+            return set("cacheConcurrency", concurrency);
         }
 
         /**

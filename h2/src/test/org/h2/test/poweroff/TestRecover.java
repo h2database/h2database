@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.Date;
 import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -23,11 +22,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 
@@ -133,12 +132,9 @@ public class TestRecover {
                     }
                     ZipEntry entry = new ZipEntry(basePath + entryName);
                     zipOut.putNextEntry(entry);
-                    InputStream in = null;
-                    try {
-                        in = new FileInputStream(fileName);
+
+                    try (InputStream in = new FileInputStream(fileName)) {
                         IOUtils.copyAndCloseInput(in, zipOut);
-                    } finally {
-                        IOUtils.closeSilently(in);
                     }
                     zipOut.closeEntry();
                 }

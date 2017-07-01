@@ -14,8 +14,8 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.UUID;
-
 import org.h2.api.ErrorCode;
+import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
@@ -26,6 +26,7 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDecimal;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueFloat;
+import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueLobDb;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueResultSet;
@@ -67,8 +68,12 @@ public class TestValue extends TestBase {
         rs.addRow(new Object[]{null});
         rs.next();
         for (int type = Value.NULL; type < Value.TYPE_COUNT; type++) {
-            Value v = DataType.readValue(null, rs, 1, type);
-            assertTrue(v == ValueNull.INSTANCE);
+            if (type == 23) {
+                // a defunct experimental type
+            } else {
+                Value v = DataType.readValue(null, rs, 1, type);
+                assertTrue(v == ValueNull.INSTANCE);
+            }
         }
         testResultSetOperation(new byte[0]);
         testResultSetOperation(1);
@@ -282,6 +287,20 @@ public class TestValue extends TestBase {
         assertEquals("ffffffff-ffff-4fff-bfff-ffffffffffff", max.getString());
         ValueUuid min = ValueUuid.get(minHigh, minLow);
         assertEquals("00000000-0000-4000-8000-000000000000", min.getString());
+
+        // Test conversion from ValueJavaObject to ValueUuid
+        String uuidStr = "12345678-1234-4321-8765-123456789012";
+
+        UUID origUUID = UUID.fromString(uuidStr);
+        ValueJavaObject valObj = ValueJavaObject.getNoCopy(origUUID, null, null);
+        Value valUUID = valObj.convertTo(Value.UUID);
+        assertTrue(valUUID instanceof ValueUuid);
+        assertTrue(valUUID.getString().equals(uuidStr));
+        assertTrue(valUUID.getObject().equals(origUUID));
+
+        ValueJavaObject voString = ValueJavaObject.getNoCopy(
+                new String("This is not a ValueUuid object"), null, null);
+        assertThrows(DbException.class, voString).convertTo(Value.UUID);
     }
 
     private void testModulusDouble() {

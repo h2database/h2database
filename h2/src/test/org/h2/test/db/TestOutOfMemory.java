@@ -13,14 +13,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Map;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.mvstore.MVStore;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FilePathMem;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.tools.DeleteDbFiles;
 
 /**
  * Tests out of memory situations. The database must not get corrupted, and
@@ -39,42 +37,57 @@ public class TestOutOfMemory extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        testMVStoreUsingInMemoryFileSystem();
-        testDatabaseUsingInMemoryFileSystem();
-        testUpdateWhenNearlyOutOfMemory();
+        try {
+            System.gc();
+            testMVStoreUsingInMemoryFileSystem();
+            System.gc();
+            testDatabaseUsingInMemoryFileSystem();
+            System.gc();
+            testUpdateWhenNearlyOutOfMemory();
+        } finally {
+            System.gc();
+        }
     }
 
     private void testMVStoreUsingInMemoryFileSystem() {
         FilePath.register(new FilePathMem());
         String fileName = "memFS:" + getTestName();
         MVStore store = MVStore.open(fileName);
-        Map<Integer, byte[]> map = store.openMap("test");
-        Random r = new Random(1);
         try {
-            for (int i = 0; i < 100; i++) {
-                byte[] data = new byte[10 * 1024 * 1024];
-                r.nextBytes(data);
-                map.put(i, data);
+            Map<Integer, byte[]> map = store.openMap("test");
+            Random r = new Random(1);
+            try {
+                for (int i = 0; i < 100; i++) {
+                    byte[] data = new byte[10 * 1024 * 1024];
+                    r.nextBytes(data);
+                    map.put(i, data);
+                }
+                fail();
+            } catch (OutOfMemoryError e) {
+                // expected
+            } catch (IllegalStateException e) {
+                // expected
             }
-            fail();
-        } catch (OutOfMemoryError e) {
-            // expected
-        }
-        try {
+            try {
+                store.close();
+            } catch (IllegalStateException e) {
+                // expected
+            }
+            store.closeImmediately();
+            store = MVStore.open(fileName);
+            map = store.openMap("test");
             store.close();
-            fail();
-        } catch (IllegalStateException e) {
-            // expected
+        } finally {
+            // just in case, otherwise if this test suffers a spurious failure,
+            // succeeding tests will too, because they will OOM
+            store.closeImmediately();
+            FileUtils.delete(fileName);
         }
-        store.closeImmediately();
-        store = MVStore.open(fileName);
-        map = store.openMap("test");
-        store.close();
-        FileUtils.delete(fileName);
     }
 
     private void testDatabaseUsingInMemoryFileSystem() throws SQLException {
-        String url = "jdbc:h2:memFS:" + getTestName();
+        String filename = "memFS:" + getTestName();
+        String url = "jdbc:h2:" + filename;
         Connection conn = DriverManager.getConnection(url);
         Statement stat = conn.createStatement();
         try {
@@ -94,11 +107,12 @@ public class TestOutOfMemory extends TestBase {
         stat = conn.createStatement();
         stat.execute("select 1");
         conn.close();
-        DeleteDbFiles.execute("memLZF:", getTestName(), true);
+        // release the static data this test generates
+        FileUtils.delete(filename);
     }
 
     private void testUpdateWhenNearlyOutOfMemory() throws SQLException {
-        if (config.memory || config.mvcc) {
+        if (config.memory || config.mvcc || config.mvStore) {
             return;
         }
         for (int i = 0; i < 5; i++) {

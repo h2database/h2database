@@ -56,36 +56,6 @@ public abstract class Table extends SchemaObjectBase {
     public static final int TYPE_MEMORY = 1;
 
     /**
-     * The table type name for linked tables.
-     */
-    public static final String TABLE_LINK = "TABLE LINK";
-
-    /**
-     * The table type name for system tables.
-     */
-    public static final String SYSTEM_TABLE = "SYSTEM TABLE";
-
-    /**
-     * The table type name for regular data tables.
-     */
-    public static final String TABLE = "TABLE";
-
-    /**
-     * The table type name for views.
-     */
-    public static final String VIEW = "VIEW";
-
-    /**
-     * The table type name for synonyms.
-     */
-    public static final String SYNONYM = "SYNONYM";
-
-    /**
-     * The table type name for external table engines.
-     */
-    public static final String EXTERNAL_TABLE_ENGINE = "EXTERNAL";
-
-    /**
      * The columns of this table.
      */
     protected Column[] columns;
@@ -185,6 +155,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param key the primary key
      * @return the row
      */
+    @SuppressWarnings("unused")
     public Row getRow(Session session, long key) {
         return null;
     }
@@ -219,6 +190,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param operation the operation
      * @param row the row
      */
+    @SuppressWarnings("unused")
     public void commit(short operation, Row row) {
         // nothing to do
     }
@@ -235,7 +207,7 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @return the table type name
      */
-    public abstract String getTableType();
+    public abstract TableType getTableType();
 
     /**
      * Get the scan index to iterate through all rows.
@@ -253,8 +225,10 @@ public abstract class Table extends SchemaObjectBase {
      * @param filters the table filters
      * @param filter the filter index
      * @param sortOrder the sort order
+     * @param allColumnsSet all columns
      * @return the scan index
      */
+    @SuppressWarnings("unused")
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
@@ -274,6 +248,25 @@ public abstract class Table extends SchemaObjectBase {
      * @return the list of indexes
      */
     public abstract ArrayList<Index> getIndexes();
+
+    /**
+     * Get an index by name.
+     *
+     * @param indexName the index name to search for
+     * @return the found index
+     */
+    public Index getIndex(String indexName) {
+        ArrayList<Index> indexes = getIndexes();
+        if (indexes != null) {
+            for (int i = 0; i < indexes.size(); i++) {
+                Index index = indexes.get(i);
+                if (index.getName().equals(indexName)) {
+                    return index;
+                }
+            }
+        }
+        throw DbException.get(ErrorCode.INDEX_NOT_FOUND_1, indexName);
+    }
 
     /**
      * Check if this table is locked exclusively.
@@ -347,7 +340,7 @@ public abstract class Table extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     /**
@@ -466,6 +459,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
+    @SuppressWarnings("unused")
     public boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
@@ -707,6 +701,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param filters all joined table filters
      * @param filter the current table filter index
      * @param sortOrder the sort order
+     * @param allColumnsSet the set of all columns
      * @return the plan item
      */
     public PlanItem getBestPlanItem(Session session, int[] masks,
@@ -721,10 +716,18 @@ public abstract class Table extends SchemaObjectBase {
                     item.cost, item.getIndex().getPlanSQL());
         }
         ArrayList<Index> indexes = getIndexes();
+        IndexHints indexHints = getIndexHints(filters, filter);
+
         if (indexes != null && masks != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                double cost = index.getCost(session, masks, filters, filter, sortOrder, allColumnsSet);
+
+                if (isIndexExcludedByHints(indexHints, index)) {
+                    continue;
+                }
+
+                double cost = index.getCost(session, masks, filters, filter,
+                        sortOrder, allColumnsSet);
                 if (t.isDebugEnabled()) {
                     t.debug("Table      :     potential plan item cost {0} index {1}",
                             cost, index.getPlanSQL());
@@ -736,6 +739,14 @@ public abstract class Table extends SchemaObjectBase {
             }
         }
         return item;
+    }
+
+    private static boolean isIndexExcludedByHints(IndexHints indexHints, Index index) {
+        return indexHints != null && !indexHints.allowIndex(index);
+    }
+
+    private static IndexHints getIndexHints(TableFilter[] filters, int filter) {
+        return filters == null ? null : filters[filter].getIndexHints();
     }
 
     /**
@@ -1043,22 +1054,35 @@ public abstract class Table extends SchemaObjectBase {
      * This method returns null if no matching index is found.
      *
      * @param column the column
+     * @param needGetFirstOrLast if the returned index must be able
+     *          to do {@link Index#canGetFirstOrLast()}
+     * @param needFindNext if the returned index must be able to do
+     *          {@link Index#findNext(Session, SearchRow, SearchRow)}
      * @return the index or null
      */
-    public Index getIndexForColumn(Column column) {
+    public Index getIndexForColumn(Column column,
+            boolean needGetFirstOrLast, boolean needFindNext) {
         ArrayList<Index> indexes = getIndexes();
+        Index result = null;
         if (indexes != null) {
             for (int i = 1, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
-                if (index.canGetFirstOrLast()) {
-                    int idx = index.getColumnIndex(column);
-                    if (idx == 0) {
-                        return index;
-                    }
+                if (needGetFirstOrLast && !index.canGetFirstOrLast()) {
+                    continue;
+                }
+                if (needFindNext && !index.canFindNext()) {
+                    continue;
+                }
+                // choose the minimal covering index with the needed first
+                // column to work consistently with execution plan from
+                // Optimizer
+                if (index.isFirstColumn(column) && (result == null ||
+                        result.getColumns().length > index.getColumns().length)) {
+                    result = index;
                 }
             }
         }
-        return null;
+        return result;
     }
 
     public boolean getOnCommitDrop() {
@@ -1116,6 +1140,7 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
+    @SuppressWarnings("unused")
     public ArrayList<Session> checkDeadlock(Session session, Session clash,
             Set<Session> visited) {
         return null;

@@ -218,8 +218,10 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        return ValueLobDb.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLobDb lob = ValueLobDb.create(Value.BLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
+        lob.setRecoveryReference(true);
+        return lob;
     }
 
     private static void verifyPageStore(DataHandler h) {
@@ -237,8 +239,10 @@ public class Recover extends Tool implements DataHandler {
             long precision) {
         DataHandler h = ((JdbcConnection) conn).getSession().getDataHandler();
         verifyPageStore(h);
-        return ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
+        ValueLobDb lob =  ValueLobDb.create(Value.CLOB, h, LobStorageFrontend.TABLE_TEMP,
                 lobId, null, precision);
+        lob.setRecoveryReference(true);
+        return lob;
     }
 
     /**

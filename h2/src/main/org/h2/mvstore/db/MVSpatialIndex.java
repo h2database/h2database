@@ -126,6 +126,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public void add(Session session, Row row) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         SpatialKey key = getKey(row);
+
+        if (key.isNull()) {
+            return;
+        }
+
         if (indexType.isUnique()) {
             // this will detect committed entries only
             RTreeCursor cursor = spatialMap.findContainedKeys(key);
@@ -166,6 +171,11 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     @Override
     public void remove(Session session, Row row) {
         SpatialKey key = getKey(row);
+
+        if (key.isNull()) {
+            return;
+        }
+
         TransactionMap<SpatialKey, Value> map = getMap(session);
         try {
             Value old = map.remove(key);
@@ -197,7 +207,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     }
 
     @Override
-    public Cursor findByGeometry(TableFilter filter, SearchRow first, SearchRow last, SearchRow intersection) {
+    public Cursor findByGeometry(TableFilter filter, SearchRow first,
+            SearchRow last, SearchRow intersection) {
         Session session = filter.getSession();
         if (intersection == null) {
             return find(session, first, last);
@@ -242,8 +253,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public double getCost(Session session, int[] masks, TableFilter[] filters,
             int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
-        return SpatialTreeIndex.getCostRangeIndex(masks,
-                table.getRowCountApproximation(), columns);
+        return SpatialTreeIndex.getCostRangeIndex(masks, columns);
     }
 
     @Override

@@ -254,6 +254,7 @@ public abstract class FilePath {
      * @param inTempDir if the file should be stored in the temporary directory
      * @return the name of the created file
      */
+    @SuppressWarnings("unused")
     public FilePath createTempFile(String suffix, boolean deleteOnExit,
             boolean inTempDir) throws IOException {
         while (true) {

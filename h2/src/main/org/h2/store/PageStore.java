@@ -10,8 +10,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
@@ -41,6 +41,7 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.util.BitField;
 import org.h2.util.Cache;
 import org.h2.util.CacheLRU;
@@ -506,7 +507,7 @@ public class PageStore implements CacheWriter {
         } finally {
             recoveryRunning = false;
         }
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         boolean isCompactFully = compactMode ==
                 CommandInterface.SHUTDOWN_COMPACT;
         boolean isDefrag = compactMode ==
@@ -537,8 +538,8 @@ public class PageStore implements CacheWriter {
                         }
                         if (compact(full, firstFree)) {
                             j++;
-                            long now = System.currentTimeMillis();
-                            if (now > start + maxCompactTime) {
+                            long now = System.nanoTime();
+                            if (now > start + TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
                                 j = maxMove;
                                 break;
                             }
@@ -557,7 +558,7 @@ public class PageStore implements CacheWriter {
             recordPageReads = true;
             Session sysSession = database.getSystemSession();
             for (Table table : tables) {
-                if (!table.isTemporary() && Table.TABLE.equals(table.getTableType())) {
+                if (!table.isTemporary() && TableType.TABLE == table.getTableType()) {
                     Index scanIndex = table.getScanIndex(sysSession);
                     Cursor cursor = scanIndex.find(sysSession, null, null);
                     while (cursor.next()) {

@@ -35,7 +35,6 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.FileLister;
@@ -504,6 +503,9 @@ public class TestTools extends TestBase {
     }
 
     private void testDeleteFiles() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         deleteDb("testDeleteFiles");
         Connection conn = getConnection("testDeleteFiles");
         Statement stat = conn.createStatement();
@@ -534,23 +536,23 @@ public class TestTools extends TestBase {
 
         try {
             result = runServer(0, new String[]{"-?"});
-            assertTrue(result.contains("Starts the H2 Console"));
+            assertContains(result, "Starts the H2 Console");
             assertTrue(result.indexOf("Unknown option") < 0);
 
             result = runServer(1, new String[]{"-xy"});
-            assertTrue(result.contains("Starts the H2 Console"));
-            assertTrue(result.contains("Feature not supported"));
+            assertContains(result, "Starts the H2 Console");
+            assertContains(result, "Feature not supported");
             result = runServer(0, new String[]{"-tcp",
                     "-tcpPort", "9001", "-tcpPassword", "abc"});
-            assertTrue(result.contains("tcp://"));
-            assertTrue(result.contains(":9001"));
-            assertTrue(result.contains("only local"));
+            assertContains(result, "tcp://");
+            assertContains(result, ":9001");
+            assertContains(result, "only local");
             assertTrue(result.indexOf("Starts the H2 Console") < 0);
             conn = getConnection("jdbc:h2:tcp://localhost:9001/mem:", "sa", "sa");
             conn.close();
             result = runServer(0, new String[]{"-tcpShutdown",
                     "tcp://localhost:9001", "-tcpPassword", "abc", "-tcpShutdownForce"});
-            assertTrue(result.contains("Shutting down"));
+            assertContains(result, "Shutting down");
         } finally {
             shutdownServers();
         }
@@ -563,16 +565,16 @@ public class TestTools extends TestBase {
         try {
             result = runServer(0, new String[]{"-tcp",
                     "-tcpAllowOthers", "-tcpPort", "9001", "-tcpPassword", "abcdef", "-tcpSSL"});
-            assertTrue(result.contains("ssl://"));
-            assertTrue(result.contains(":9001"));
-            assertTrue(result.contains("others can"));
+            assertContains(result, "ssl://");
+            assertContains(result, ":9001");
+            assertContains(result, "others can");
             assertTrue(result.indexOf("Starts the H2 Console") < 0);
             conn = getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
             conn.close();
 
             result = runServer(0, new String[]{"-tcpShutdown",
                     "ssl://localhost:9001", "-tcpPassword", "abcdef"});
-            assertTrue(result.contains("Shutting down"));
+            assertContains(result, "Shutting down");
             assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
             getConnection("jdbc:h2:ssl://localhost:9001/mem:", "sa", "sa");
 
@@ -581,21 +583,21 @@ public class TestTools extends TestBase {
                     "-pg", "-pgAllowOthers", "-pgPort", "9003",
                     "-tcp", "-tcpAllowOthers", "-tcpPort", "9006", "-tcpPassword", "abc"});
             Server stop = server;
-            assertTrue(result.contains("https://"));
-            assertTrue(result.contains(":9002"));
-            assertTrue(result.contains("pg://"));
-            assertTrue(result.contains(":9003"));
-            assertTrue(result.contains("others can"));
+            assertContains(result, "https://");
+            assertContains(result, ":9002");
+            assertContains(result, "pg://");
+            assertContains(result, ":9003");
+            assertContains(result, "others can");
             assertTrue(result.indexOf("only local") < 0);
-            assertTrue(result.contains("tcp://"));
-            assertTrue(result.contains(":9006"));
+            assertContains(result, "tcp://");
+            assertContains(result, ":9006");
 
             conn = getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
             conn.close();
 
             result = runServer(0, new String[]{"-tcpShutdown",
                     "tcp://localhost:9006", "-tcpPassword", "abc", "-tcpShutdownForce"});
-            assertTrue(result.contains("Shutting down"));
+            assertContains(result, "Shutting down");
             stop.shutdown();
             assertThrows(ErrorCode.CONNECTION_BROKEN_1, this).
             getConnection("jdbc:h2:tcp://localhost:9006/mem:", "sa", "sa");
@@ -750,6 +752,9 @@ public class TestTools extends TestBase {
     }
 
     private void testRecover() throws SQLException {
+        if (config.memory) {
+            return;
+        }
         deleteDb("toolsRecover");
         org.h2.Driver.load();
         String url = getURL("toolsRecover", true);
@@ -921,7 +926,7 @@ public class TestTools extends TestBase {
         tool.setOut(new PrintStream(buff));
         tool.runTool("-url", url, "-user", user, "-password", password,
                 "-script", fileName + ".txt", "-showResults");
-        assertTrue(buff.toString().contains("Hello"));
+        assertContains(buff.toString(), "Hello");
 
 
         // test parsing of BLOCKSIZE option

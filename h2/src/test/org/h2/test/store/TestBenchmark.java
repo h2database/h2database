@@ -9,10 +9,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.Random;
-
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.h2.mvstore.MVMap;
+import org.h2.mvstore.MVStore;
 import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.Task;
 
 /**
  * Tests performance and helps analyze bottlenecks.
@@ -30,8 +36,8 @@ public class TestBenchmark extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testConcurrency();
 
-        ;
         // TODO this test is currently disabled
 
         test(true);
@@ -40,6 +46,77 @@ public class TestBenchmark extends TestBase {
         test(false);
         test(true);
         test(false);
+    }
+
+    private void testConcurrency() throws Exception {
+        // String fileName = getBaseDir() + "/" + getTestName();
+        String fileName = "nioMemFS:/" + getTestName();
+        FileUtils.delete(fileName);
+        MVStore store = new MVStore.Builder().cacheSize(16).
+                fileName(fileName).open();
+        MVMap<Integer, byte[]> map = store.openMap("test");
+        byte[] data = new byte[1024];
+        int count = 1000000;
+        for (int i = 0; i < count; i++) {
+            map.put(i, data);
+        }
+        store.close();
+        for (int concurrency = 1024; concurrency > 0; concurrency /= 2) {
+            testConcurrency(fileName, concurrency, count);
+            testConcurrency(fileName, concurrency, count);
+            testConcurrency(fileName, concurrency, count);
+        }
+        FileUtils.delete(fileName);
+    }
+
+    private void testConcurrency(String fileName,
+            int concurrency, final int count) throws Exception {
+        Thread.sleep(1000);
+            final MVStore store = new MVStore.Builder().cacheSize(256).
+                    cacheConcurrency(concurrency).
+                    fileName(fileName).open();
+        int threadCount = 128;
+        final CountDownLatch wait = new CountDownLatch(1);
+        final AtomicInteger counter = new AtomicInteger();
+        final AtomicBoolean stopped = new AtomicBoolean();
+        Task[] tasks = new Task[threadCount];
+        // Profiler prof = new Profiler().startCollecting();
+        for (int i = 0; i < threadCount; i++) {
+            final int x = i;
+            Task t = new Task() {
+                @Override
+                public void call() throws Exception {
+                    MVMap<Integer, byte[]> map = store.openMap("test");
+                    Random random = new Random(x);
+                    wait.await();
+                    while (!stopped.get()) {
+                        int key = random.nextInt(count);
+                        byte[] data = map.get(key);
+                        if (data.length > 1) {
+                            counter.incrementAndGet();
+                        }
+                    }
+                }
+            };
+            t.execute("t" + i);
+            tasks[i] = t;
+        }
+        wait.countDown();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        stopped.set(true);
+        for (Task t : tasks) {
+            t.get();
+        }
+        // System.out.println(prof.getTop(5));
+        String msg = "concurrency " + concurrency +
+                " threads " + threadCount + " requests: " + counter;
+        System.out.println(msg);
+        trace(msg);
+        store.close();
     }
 
     private void test(boolean mvStore) throws Exception {
@@ -54,7 +131,8 @@ public class TestBenchmark extends TestBase {
         Statement stat;
         String url = "mvstore";
         if (mvStore) {
-            url += ";MV_STORE=TRUE"; // ;COMPRESS=TRUE";
+            // ;COMPRESS=TRUE";
+            url += ";MV_STORE=TRUE";
         }
 
         url = getURL(url, true);
@@ -80,12 +158,12 @@ public class TestBenchmark extends TestBase {
             }
         }
 
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         // Profiler prof = new Profiler().startCollecting();
         stat.execute("create index on test(data)");
         // System.out.println(prof.getTop(5));
 
-        System.out.println((System.currentTimeMillis() - start) + " "
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
         conn.createStatement().execute("shutdown compact");
         conn.close();
@@ -115,7 +193,7 @@ public class TestBenchmark extends TestBase {
         int rowCount = 100;
         int readCount = 20 * rowCount;
 
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
 
         for (int i = 0; i < rowCount; i++) {
             prep.setInt(1, i);
@@ -133,12 +211,12 @@ public class TestBenchmark extends TestBase {
             prep.executeQuery();
         }
 
-        System.out.println((System.currentTimeMillis() - start) + " "
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
         conn.close();
     }
 
-    private void randomize(byte[] data, int i) {
+    private static void randomize(byte[] data, int i) {
         Random r = new Random(i);
         r.nextBytes(data);
     }
@@ -173,7 +251,7 @@ public class TestBenchmark extends TestBase {
                 conn.commit();
             }
         }
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
 
         prep = conn.prepareStatement("select * from test where id = ?");
         for (int i = 0; i < readCount; i++) {
@@ -181,7 +259,7 @@ public class TestBenchmark extends TestBase {
             prep.executeQuery();
         }
 
-        System.out.println((System.currentTimeMillis() - start) + " "
+        System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) + " "
                 + (mvStore ? "mvstore" : "default"));
         conn.createStatement().execute("shutdown compact");
         conn.close();

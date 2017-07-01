@@ -210,11 +210,8 @@ public class FileLock implements Runnable {
      */
     public Properties save() {
         try {
-            OutputStream out = FileUtils.newOutputStream(fileName, false);
-            try {
+            try (OutputStream out = FileUtils.newOutputStream(fileName, false)) {
                 properties.store(out, MAGIC);
-            } finally {
-                out.close();
             }
             lastWrite = FileUtils.lastModified(fileName);
             if (trace.isDebugEnabled()) {
@@ -241,7 +238,7 @@ public class FileLock implements Runnable {
             transfer.setSocket(socket);
             transfer.init();
             transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
-            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_15);
+            transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
             transfer.writeString(null);
             transfer.writeString(null);
             transfer.writeString(id);

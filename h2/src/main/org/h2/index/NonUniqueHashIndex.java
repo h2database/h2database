@@ -86,7 +86,7 @@ public class NonUniqueHashIndex extends BaseIndex {
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         if (first == null || last == null) {
-            throw DbException.throwInternalError();
+            throw DbException.throwInternalError(first + " " + last);
         }
         if (first != last) {
             if (compareKeys(first, last) != 0) {

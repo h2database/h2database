@@ -5,17 +5,16 @@
  */
 package org.h2.test.unit;
 
+import java.sql.Connection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbContextRule;
 import org.h2.bnf.context.DbProcedure;
 import org.h2.bnf.context.DbSchema;
 import org.h2.test.TestBase;
-
-import java.sql.Connection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Test Bnf Sql parser
@@ -35,18 +34,12 @@ public class TestBnf extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("bnf");
-        Connection conn = getConnection("bnf");
-        try {
+        try (Connection conn = getConnection("bnf")) {
             testModes(conn);
             testProcedures(conn, false);
-        } finally {
-            conn.close();
         }
-        conn = getConnection("bnf;mode=mysql");
-        try {
+        try (Connection conn = getConnection("bnf;mode=mysql")) {
             testProcedures(conn, true);
-        } finally {
-            conn.close();
         }
     }
 

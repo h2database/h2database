@@ -11,6 +11,7 @@ import android.content.Context;
  * This helper class helps creating and managing databases. A subclass typically
  * implements the "on" methods.
  */
+@SuppressWarnings("unused")
 public abstract class H2OpenHelper {
 
     /**

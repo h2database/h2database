@@ -33,27 +33,22 @@ public class Subquery extends Expression {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        ResultInterface result = query.query(2);
-        try {
-            int rowcount = result.getRowCount();
-            if (rowcount > 1) {
-                throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
-            }
+        try (ResultInterface result = query.query(2)) {
             Value v;
-            if (rowcount <= 0) {
+            if (!result.next()) {
                 v = ValueNull.INSTANCE;
             } else {
-                result.next();
                 Value[] values = result.currentRow();
                 if (result.getVisibleColumnCount() == 1) {
                     v = values[0];
                 } else {
                     v = ValueArray.get(values);
                 }
+                if (result.hasNext()) {
+                    throw DbException.get(ErrorCode.SCALAR_SUBQUERY_CONTAINS_MORE_THAN_ONE_ROW);
+                }
             }
             return v;
-        } finally {
-            result.close();
         }
     }
 

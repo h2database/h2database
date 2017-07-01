@@ -7,6 +7,7 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 import org.h2.command.Parser;
+import org.h2.message.DbException;
 import org.h2.message.Trace;
 
 /**
@@ -128,11 +129,18 @@ public abstract class DbObjectBase implements DbObject {
      * used.
      */
     protected void invalidate() {
+        if (SysProperties.CHECK && id == -1) {
+            throw DbException.throwInternalError();
+        }
         setModified();
         id = -1;
         database = null;
         trace = null;
         objectName = null;
+    }
+
+    public final boolean isValid() {
+        return id != -1;
     }
 
     @Override

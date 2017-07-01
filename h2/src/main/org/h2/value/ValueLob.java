@@ -13,8 +13,8 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
 import org.h2.engine.Constants;
+import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -222,9 +222,8 @@ public class ValueLob extends Value {
 
     private void createFromReader(char[] buff, int len, Reader in,
             long remaining, DataHandler h) throws IOException {
-        FileStoreOutputStream out = initLarge(h);
-        boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
-        try {
+        try (FileStoreOutputStream out = initLarge(h)) {
+            boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
             while (true) {
                 precision += len;
                 byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
@@ -239,8 +238,6 @@ public class ValueLob extends Value {
                     break;
                 }
             }
-        } finally {
-            out.close();
         }
     }
 
@@ -421,9 +418,8 @@ public class ValueLob extends Value {
 
     private void createFromStream(byte[] buff, int len, InputStream in,
             long remaining, DataHandler h) throws IOException {
-        FileStoreOutputStream out = initLarge(h);
-        boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
-        try {
+        try (FileStoreOutputStream out = initLarge(h)) {
+            boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
             while (true) {
                 precision += len;
                 out.write(buff, 0, len);
@@ -437,8 +433,6 @@ public class ValueLob extends Value {
                     break;
                 }
             }
-        } finally {
-            out.close();
         }
     }
 
@@ -450,7 +444,7 @@ public class ValueLob extends Value {
      * @return the converted value
      */
     @Override
-    public Value convertTo(int t) {
+    public Value convertTo(int t, int precision, Mode mode) {
         if (t == type) {
             return this;
         } else if (t == Value.CLOB) {
@@ -460,7 +454,7 @@ public class ValueLob extends Value {
             ValueLob copy = ValueLob.createBlob(getInputStream(), -1, handler);
             return copy;
         }
-        return super.convertTo(t);
+        return super.convertTo(t, precision, mode);
     }
 
     @Override
@@ -730,7 +724,7 @@ public class ValueLob extends Value {
                 }
                 Value v2 = copy(h, tabId);
                 if (SysProperties.CHECK && v2 != this) {
-                    DbException.throwInternalError();
+                    DbException.throwInternalError(v2.toString());
                 }
             }
         } catch (IOException e) {

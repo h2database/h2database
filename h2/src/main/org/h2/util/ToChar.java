@@ -17,7 +17,6 @@ import java.util.Currency;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
@@ -123,10 +122,10 @@ public class ToChar {
      * @return the formatted number
      */
     public static String toChar(BigDecimal number, String format,
-            String nlsParam) {
+            @SuppressWarnings("unused") String nlsParam) {
 
         // short-circuit logic for formats that don't follow common logic below
-        String formatUp = format != null ? format.toUpperCase() : null;
+        String formatUp = format != null ? StringUtils.toUpperEnglish(format) : null;
         if (formatUp == null || formatUp.equals("TM") || formatUp.equals("TM9")) {
             String s = number.toPlainString();
             return s.startsWith("0.") ? s.substring(1) : s;
@@ -428,7 +427,7 @@ public class ToChar {
 
     private static String toHex(BigDecimal number, String format) {
 
-        boolean fillMode = !format.toUpperCase().startsWith("FM");
+        boolean fillMode = !StringUtils.toUpperEnglish(format).startsWith("FM");
         boolean uppercase = !format.contains("x");
         boolean zeroPadded = format.startsWith("0");
         int digits = 0;
@@ -445,7 +444,7 @@ public class ToChar {
             hex = StringUtils.pad("", digits + 1, "#", true);
         } else {
             if (uppercase) {
-                hex = hex.toUpperCase();
+                hex = StringUtils.toUpperEnglish(hex);
             }
             if (zeroPadded) {
                 hex = StringUtils.pad(hex, digits, "0", false);
@@ -595,7 +594,7 @@ public class ToChar {
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted timestamp
      */
-    public static String toChar(Timestamp ts, String format, String nlsParam) {
+    public static String toChar(Timestamp ts, String format, @SuppressWarnings("unused") String nlsParam) {
 
         if (format == null) {
             format = "DD-MON-YY HH.MI.SS.FF PM";
@@ -654,7 +653,7 @@ public class ToChar {
                         cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = new SimpleDateFormat("EEE").format(ts).toUpperCase();
+                String day = StringUtils.toUpperEnglish(new SimpleDateFormat("EEE").format(ts));
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
@@ -936,12 +935,12 @@ public class ToChar {
             }
             switch (this) {
             case UPPERCASE:
-                return s.toUpperCase();
+                return StringUtils.toUpperEnglish(s);
             case LOWERCASE:
-                return s.toLowerCase();
+                return StringUtils.toLowerEnglish(s);
             case CAPITALIZE:
                 return Character.toUpperCase(s.charAt(0)) +
-                        (s.length() > 1 ? s.toLowerCase().substring(1) : "");
+                        (s.length() > 1 ? StringUtils.toLowerEnglish(s).substring(1) : "");
             default:
                 throw new IllegalArgumentException(
                         "Unknown capitalization strategy: " + this);

@@ -223,7 +223,7 @@ H2 1.3,
 <td class="compareN">No</td>
 <td class="compareY">Partially *1</td>
 <td class="compareY">Partially *2</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 </tr><tr>
 <td>ODBC Driver</td>
 <td class="compareY">Yes</td>
@@ -234,7 +234,7 @@ H2 1.3,
 </tr><tr>
 <td>Fulltext Search</td>
 <td class="compareY">Yes</td>
-<td class="compareN">Yes</td>
+<td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -267,7 +267,7 @@ H2 1.3,
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 </tr><tr>
-<td>Multi-Threaded Statement Processing</td>
+<td>Multi-Threaded Processing</td>
 <td class="compareN">No *11</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
@@ -327,7 +327,7 @@ H2 1.3,
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
 <td class="compareY">Yes</td>
-<td class="compareN">No</td>
+<td class="compareY">Yes</td>
 <td class="compareY">Yes *6</td>
 </tr><tr>
 <td>Case Insensitive Columns</td>
@@ -341,7 +341,7 @@ H2 1.3,
 <td class="compareY">Yes</td>
 <td class="compareN">No</td>
 <td class="compareY">Yes</td>
-<td class="compareY">Yes</td>
+<td class="compareN">No</td>
 <td class="compareY">Yes</td>
 </tr><tr>
 <td>CLOB/BLOB Compression</td>
@@ -643,7 +643,13 @@ To keep the content of an in-memory database as long as the virtual machine is a
 
 <h2 id="file_encryption">Database Files Encryption</h2>
 <p>
-The database files can be encrypted. Two encryption algorithm AES is supported.
+The database files can be encrypted.
+Three encryption algorithms are supported:
+<ul>
+<li>"AES" - also known as Rijndael, only AES-128 is implemented.</li>
+<li>"XTEA" - the 32 round version.</li>
+<li>"FOG" - pseudo-encryption only useful for hiding data from a text editor.</li>
+</ul>
 To use file encryption, you need to specify the encryption algorithm (the 'cipher')
 and the file password (in addition to the user password) when connecting to the database.
 </p>
@@ -1676,6 +1682,15 @@ CREATE TABLE TEST(ID INT, NAME VARCHAR) ENGINE "acme.MyTableEngine" WITH "param1
 </pre>
 <p>
 In which case the parameters are passed down in the tableEngineParams field of the CreateTableData object.
+</p>
+<p>
+It is also possible to specify default table engine params on schema creation:
+</p>
+<pre>
+CREATE SCHEMA TEST_SCHEMA WITH "param1", "param2";
+</pre>
+<p>
+Params from the schema are used when CREATE TABLE issued on this schema does not have its own engine params specified.
 </p>
 
 <h2 id="triggers">Triggers</h2>

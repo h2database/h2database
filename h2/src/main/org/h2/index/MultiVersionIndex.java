@@ -57,7 +57,7 @@ public class MultiVersionIndex implements Index {
         synchronized (sync) {
             base.add(session, row);
             if (removeIfExists(session, row)) {
-                // for example rolling back an delete operation
+                // for example rolling back a delete operation
             } else if (row.getSessionId() != 0) {
                 // don't insert rows that are added when creating an index
                 delta.add(session, row);
@@ -93,7 +93,7 @@ public class MultiVersionIndex implements Index {
 
     @Override
     public Cursor findNext(Session session, SearchRow first, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -228,6 +228,11 @@ public class MultiVersionIndex implements Index {
     @Override
     public int getColumnIndex(Column col) {
         return base.getColumnIndex(col);
+    }
+
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return base.isFirstColumn(column);
     }
 
     @Override
@@ -389,7 +394,7 @@ public class MultiVersionIndex implements Index {
     }
 
     @Override
-    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+    public IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
         // Lookup batching is not supported.
         return null;
     }

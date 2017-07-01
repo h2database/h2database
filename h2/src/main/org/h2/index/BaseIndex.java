@@ -141,7 +141,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      */
     @Override
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     /**
@@ -156,6 +156,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      * @param filter the current table filter index
      * @param sortOrder the sort order
      * @param isScanIndex whether this is a "table scan" index
+     * @param allColumnsSet the set of all columns
      * @return the estimated cost
      */
     protected final long getCostRangeIndex(int[] masks, long rowCount,
@@ -240,8 +241,8 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             }
         }
         // If we have two indexes with the same cost, and one of the indexes can
-        // satisfy the query without needing to read from the primary table (scan index),
-        // make that one slightly lower cost.
+        // satisfy the query without needing to read from the primary table
+        // (scan index), make that one slightly lower cost.
         boolean needsToReadFromScanIndex = true;
         if (!isScanIndex && allColumnsSet != null && !allColumnsSet.isEmpty()) {
             boolean foundAllColumnsWeNeed = true;
@@ -270,13 +271,12 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         } else if (needsToReadFromScanIndex) {
             rc = rowsCost + rowsCost + sortingCost + 20;
         } else {
-            /*
-             * The (20-x) calculation makes sure that when we pick a covering
-             * index, we pick the covering index that has the smallest number of
-             * columns. This is faster because a smaller index will fit into
-             * fewer data blocks.
-             */
-            rc = rowsCost + sortingCost + (20 - columns.length);
+            // The (20-x) calculation makes sure that when we pick a covering
+            // index, we pick the covering index that has the smallest number of
+            // columns (the more columns we have in index - the higher cost).
+            // This is faster because a smaller index will fit into fewer data
+            // blocks.
+            rc = rowsCost + sortingCost + columns.length;
         }
         return rc;
     }
@@ -376,6 +376,11 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
         return -1;
     }
 
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return column.equals(columns[0]);
+    }
+
     /**
      * Get the list of columns as a string.
      *
@@ -472,7 +477,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public IndexLookupBatch createLookupBatch(TableFilter filter) {
+    public IndexLookupBatch createLookupBatch(TableFilter[] filters, int filter) {
         // Lookup batching is not supported.
         return null;
     }

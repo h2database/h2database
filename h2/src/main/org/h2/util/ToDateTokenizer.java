@@ -6,7 +6,6 @@
 package org.h2.util;
 
 import static java.lang.String.format;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
@@ -143,11 +141,16 @@ class ToDateTokenizer {
                 case IYYY:
                     inputFragmentStr = matchStringOrThrow(
                             PATTERN_FOUR_DIGITS, params, formatTokenEnum);
+                    // only necessary for Java1.6
+                    if (inputFragmentStr.startsWith("+")) {
+                        inputFragmentStr = inputFragmentStr.substring(1);
+                    }
                     dateNr = Integer.parseInt(inputFragmentStr);
                     // Gregorian calendar does not have a year 0.
                     // 0 = 0001 BC, -1 = 0002 BC, ... so we adjust
-                    if (dateNr==0)
+                    if (dateNr == 0) {
                         throwException(params, "Year may not be zero");
+                    }
                     result.set(Calendar.YEAR, dateNr >= 0 ? dateNr : dateNr + 1);
                     break;
                 case YYY:
@@ -164,13 +167,15 @@ class ToDateTokenizer {
                             PATTERN_TWO_TO_FOUR_DIGITS, params, formatTokenEnum);
                     dateNr = Integer.parseInt(inputFragmentStr);
                     if (inputFragmentStr.length() < 4) {
-                        if (dateNr < 50)
+                        if (dateNr < 50) {
                             dateNr += 2000;
-                        else if (dateNr < 100)
+                        } else if (dateNr < 100) {
                             dateNr += 1900;
+                        }
                     }
-                    if (dateNr==0)
+                    if (dateNr == 0) {
                         throwException(params, "Year may not be zero");
+                    }
                     result.set(Calendar.YEAR, dateNr);
                     break;
                 case RR:

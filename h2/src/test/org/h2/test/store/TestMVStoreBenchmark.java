@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.mvstore.MVStore;
 import org.h2.test.TestBase;
@@ -175,7 +176,7 @@ public class TestMVStoreBenchmark extends TestBase {
         System.gc();
         long time = 0;
         for (int t = 0; t < 3; t++) {
-            time = System.currentTimeMillis();
+            time = System.nanoTime();
             for (int b = 0; b < 3; b++) {
                 for (int i = 0; i < size; i++) {
                     map.put(i, "Hello World");
@@ -191,9 +192,9 @@ public class TestMVStoreBenchmark extends TestBase {
                 }
                 assertEquals(0, map.size());
             }
-            time = System.currentTimeMillis() - time;
+            time = System.nanoTime() - time;
         }
-        trace(map.getClass().getName() + ": " + time);
+        trace(map.getClass().getName() + ": " + TimeUnit.NANOSECONDS.toMillis(time));
         return time;
     }
 

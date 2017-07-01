@@ -26,7 +26,7 @@ import org.h2.util.StringUtils;
  * Represents the meta data for a database.
  */
 public class JdbcDatabaseMetaData extends TraceObject implements
-        DatabaseMetaData {
+        DatabaseMetaData, JdbcDatabaseMetaDataBackwardsCompat {
 
     private final JdbcConnection conn;
 
@@ -3094,10 +3094,14 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface)) {
-            return (T) this;
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        throw DbException.getInvalidValueException("iface", iface);
     }
 
     /**
@@ -3133,12 +3137,10 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     /**
      * [Not supported]
      */
-    /*## Java 1.7 ##
     @Override
     public boolean generatedKeyAlwaysReturned() {
         return true;
     }
-    //*/
 
     /**
      * [Not supported]
@@ -3151,13 +3153,11 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @param columnNamePattern null (to get all objects) or a column name
      *            (uppercase for unquoted names)
      */
-    /*## Java 1.7 ##
     @Override
     public ResultSet getPseudoColumns(String catalog, String schemaPattern,
             String tableNamePattern, String columnNamePattern) {
         return null;
     }
-    //*/
 
     /**
      * INTERNAL

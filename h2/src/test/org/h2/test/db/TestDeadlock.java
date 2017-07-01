@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
@@ -48,6 +49,7 @@ public class TestDeadlock extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("deadlock");
+        testTemporaryTablesAndMetaDataLocking();
         testDeadlockInFulltextSearch();
         testConcurrentLobReadAndTempResultTableDelete();
         testDiningPhilosophers();
@@ -80,8 +82,8 @@ public class TestDeadlock extends TestBase {
             }
         };
         t.execute();
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 1000) {
+        long start = System.nanoTime();
+        while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
             stat2.execute("insert into test values(1, 'Hello')");
             stat2.execute("delete from test");
         }
@@ -117,8 +119,8 @@ public class TestDeadlock extends TestBase {
             }
         };
         t.execute();
-        long start = System.currentTimeMillis();
-        while (System.currentTimeMillis() - start < 1000) {
+        long start = System.nanoTime();
+        while (System.nanoTime() - start < TimeUnit.SECONDS.toNanos(1)) {
             Reader r = rs2.getCharacterStream(2);
             char[] buff = new char[1024];
             while (true) {
@@ -233,7 +235,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testThreePhilosophers() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -279,7 +281,7 @@ public class TestDeadlock extends TestBase {
     // test case for issue # 61
     // http://code.google.com/p/h2database/issues/detail?id=61)
     private void testThreeSome() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -324,7 +326,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testLockUpgrade() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -358,7 +360,7 @@ public class TestDeadlock extends TestBase {
     }
 
     private void testDiningPhilosophers() throws Exception {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         initTest();
@@ -396,6 +398,19 @@ public class TestDeadlock extends TestBase {
             // we have two exception, but there should only be one
             throw new SQLException("Expected one exception, got multiple", e2);
         }
+    }
+
+    // there was a bug in the meta data locking here
+    private void testTemporaryTablesAndMetaDataLocking() throws Exception {
+        deleteDb("deadlock");
+        Connection conn = getConnection("deadlock");
+        Statement stmt = conn.createStatement();
+        conn.setAutoCommit(false);
+        stmt.execute("CREATE SEQUENCE IF NOT EXISTS SEQ1 START WITH 1000000");
+        stmt.execute("CREATE FORCE VIEW V1 AS WITH RECURSIVE TEMP(X) AS " +
+                "(SELECT x FROM DUAL) SELECT * FROM TEMP");
+        stmt.executeQuery("SELECT SEQ1.NEXTVAL");
+        conn.close();
     }
 
 }

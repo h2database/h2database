@@ -6,8 +6,9 @@
 package org.h2.schema;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateSynonymData;
 import org.h2.command.ddl.CreateTableData;
@@ -29,6 +30,7 @@ import org.h2.table.TableSynonym;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * A schema as created by the SQL statement
@@ -38,14 +40,15 @@ public class Schema extends DbObjectBase {
 
     private User owner;
     private final boolean system;
+    private ArrayList<String> tableEngineParams;
 
-    private final HashMap<String, Table> tablesAndViews;
-    private final HashMap<String, Index> indexes;
-    private final HashMap<String, Sequence> sequences;
-    private final HashMap<String, TriggerObject> triggers;
-    private final HashMap<String, Constraint> constraints;
-    private final HashMap<String, Constant> constants;
-    private final HashMap<String, FunctionAlias> functions;
+    private final ConcurrentHashMap<String, Table> tablesAndViews;
+    private final ConcurrentHashMap<String, Index> indexes;
+    private final ConcurrentHashMap<String, Sequence> sequences;
+    private final ConcurrentHashMap<String, TriggerObject> triggers;
+    private final ConcurrentHashMap<String, Constraint> constraints;
+    private final ConcurrentHashMap<String, Constant> constants;
+    private final ConcurrentHashMap<String, FunctionAlias> functions;
 
     /**
      * The set of returned unique names that are not yet stored. It is used to
@@ -66,13 +69,13 @@ public class Schema extends DbObjectBase {
      */
     public Schema(Database database, int id, String schemaName, User owner,
             boolean system) {
-        tablesAndViews = database.newStringMap();
-        indexes = database.newStringMap();
-        sequences = database.newStringMap();
-        triggers = database.newStringMap();
-        constraints = database.newStringMap();
-        constants = database.newStringMap();
-        functions = database.newStringMap();
+        tablesAndViews = database.newConcurrentStringMap();
+        indexes = database.newConcurrentStringMap();
+        sequences = database.newConcurrentStringMap();
+        triggers = database.newConcurrentStringMap();
+        constraints = database.newConcurrentStringMap();
+        constants = database.newConcurrentStringMap();
+        functions = database.newConcurrentStringMap();
         initDbObjectBase(database, id, schemaName, Trace.SCHEMA);
         this.owner = owner;
         this.system = system;
@@ -89,7 +92,7 @@ public class Schema extends DbObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -176,9 +179,26 @@ public class Schema extends DbObjectBase {
         return owner;
     }
 
+    /**
+     * Get table engine params of this schema.
+     *
+     * @return default table engine params
+     */
+    public ArrayList<String> getTableEngineParams() {
+        return tableEngineParams;
+    }
+
+    /**
+     * Set table engine params of this schema.
+     * @param tableEngineParams default table engine params
+     */
+    public void setTableEngineParams(ArrayList<String> tableEngineParams) {
+        this.tableEngineParams = tableEngineParams;
+    }
+
     @SuppressWarnings("unchecked")
-    private HashMap<String, SchemaObject> getMap(int type) {
-        HashMap<String, ? extends SchemaObject> result;
+    private Map<String, SchemaObject> getMap(int type) {
+        Map<String, ? extends SchemaObject> result;
         switch (type) {
         case DbObject.TABLE_OR_VIEW:
             result = tablesAndViews;
@@ -204,7 +224,7 @@ public class Schema extends DbObjectBase {
         default:
             throw DbException.throwInternalError("type=" + type);
         }
-        return (HashMap<String, SchemaObject>) result;
+        return (Map<String, SchemaObject>) result;
     }
 
     /**
@@ -219,7 +239,7 @@ public class Schema extends DbObjectBase {
             throw DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();
-        HashMap<String, SchemaObject> map = getMap(obj.getType());
+        Map<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && map.get(name) != null) {
             throw DbException.throwInternalError("object already exists: " + name);
         }
@@ -235,7 +255,7 @@ public class Schema extends DbObjectBase {
      */
     public void rename(SchemaObject obj, String newName) {
         int type = obj.getType();
-        HashMap<String, SchemaObject> map = getMap(type);
+        Map<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
                 throw DbException.throwInternalError("not found: " + obj.getName());
@@ -359,8 +379,8 @@ public class Schema extends DbObjectBase {
     }
 
     private String getUniqueName(DbObject obj,
-            HashMap<String, ? extends SchemaObject> map, String prefix) {
-        String hash = Integer.toHexString(obj.getName().hashCode()).toUpperCase();
+            Map<String, ? extends SchemaObject> map, String prefix) {
+        String hash = StringUtils.toUpperEnglish(Integer.toHexString(obj.getName().hashCode()));
         String name = null;
         synchronized (temporaryUniqueNames) {
             for (int i = 1, len = hash.length(); i < len; i++) {
@@ -392,7 +412,7 @@ public class Schema extends DbObjectBase {
      * @return the unique name
      */
     public String getUniqueConstraintName(Session session, Table table) {
-        HashMap<String, Constraint> tableConstraints;
+        Map<String, Constraint> tableConstraints;
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableConstraints = session.getLocalTempTableConstraints();
         } else {
@@ -410,7 +430,7 @@ public class Schema extends DbObjectBase {
      * @return the unique name
      */
     public String getUniqueIndexName(Session session, Table table, String prefix) {
-        HashMap<String, Index> tableIndexes;
+        Map<String, Index> tableIndexes;
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableIndexes = session.getLocalTempTableIndexes();
         } else {
@@ -525,7 +545,7 @@ public class Schema extends DbObjectBase {
      * @return a (possible empty) list of all objects
      */
     public ArrayList<SchemaObject> getAll(int type) {
-        HashMap<String, SchemaObject> map = getMap(type);
+        Map<String, SchemaObject> map = getMap(type);
         return New.arrayList(map.values());
     }
 
@@ -559,7 +579,7 @@ public class Schema extends DbObjectBase {
      */
     public void remove(SchemaObject obj) {
         String objName = obj.getName();
-        HashMap<String, SchemaObject> map = getMap(obj.getType());
+        Map<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && !map.containsKey(objName)) {
             DbException.throwInternalError("not found: " + objName);
         }
@@ -588,6 +608,9 @@ public class Schema extends DbObjectBase {
                 }
             }
             if (data.tableEngine != null) {
+                if (data.tableEngineParams == null) {
+                    data.tableEngineParams = this.tableEngineParams;
+                }
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);

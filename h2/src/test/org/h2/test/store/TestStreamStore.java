@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
@@ -68,7 +67,7 @@ public class TestStreamStore extends TestBase {
             if (max == -1) {
                 assertTrue(map.isEmpty());
             } else {
-                assertEquals(map.lastKey(), max);
+                assertEquals(map.lastKey(), (Long) max);
             }
         }
     }

@@ -7,6 +7,8 @@ package org.h2.command;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
+import org.h2.engine.Constants;
 import org.h2.engine.SessionRemote;
 import org.h2.engine.SysProperties;
 import org.h2.expression.ParameterInterface;
@@ -18,6 +20,7 @@ import org.h2.result.ResultRemote;
 import org.h2.util.New;
 import org.h2.value.Transfer;
 import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * Represents the client-side part of a SQL statement.
@@ -33,6 +36,7 @@ public class CommandRemote implements CommandInterface {
     private SessionRemote session;
     private int id;
     private boolean isQuery;
+    private int cmdType = UNKNOWN;
     private boolean readonly;
     private final int created;
 
@@ -50,16 +54,27 @@ public class CommandRemote implements CommandInterface {
         created = session.getLastReconnect();
     }
 
+    @Override
+    public void stop() {
+        // Must never be called, because remote result is not lazy.
+        throw DbException.throwInternalError();
+    }
+
     private void prepare(SessionRemote s, boolean createParams) {
         id = s.getNextId();
         for (int i = 0, count = 0; i < transferList.size(); i++) {
             try {
                 Transfer transfer = transferList.get(i);
+
+                boolean v16 = s.getClientVersion() >= Constants.TCP_PROTOCOL_VERSION_16;
+
                 if (createParams) {
-                    s.traceOperation("SESSION_PREPARE_READ_PARAMS", id);
-                    transfer.
-                        writeInt(SessionRemote.SESSION_PREPARE_READ_PARAMS).
-                        writeInt(id).writeString(sql);
+                    s.traceOperation(v16 ? "SESSION_PREPARE_READ_PARAMS2"
+                            : "SESSION_PREPARE_READ_PARAMS", id);
+                    transfer.writeInt(
+                            v16 ? SessionRemote.SESSION_PREPARE_READ_PARAMS2
+                                    : SessionRemote.SESSION_PREPARE_READ_PARAMS)
+                            .writeInt(id).writeString(sql);
                 } else {
                     s.traceOperation("SESSION_PREPARE", id);
                     transfer.writeInt(SessionRemote.SESSION_PREPARE).
@@ -68,6 +83,9 @@ public class CommandRemote implements CommandInterface {
                 s.done(transfer);
                 isQuery = transfer.readBoolean();
                 readonly = transfer.readBoolean();
+
+                cmdType = v16 && createParams ? transfer.readInt() : UNKNOWN;
+
                 int paramCount = transfer.readInt();
                 if (createParams) {
                     parameters.clear();
@@ -203,8 +221,10 @@ public class CommandRemote implements CommandInterface {
     }
 
     private void checkParameters() {
-        for (ParameterInterface p : parameters) {
-            p.checkSet();
+        if (cmdType != EXPLAIN) {
+            for (ParameterInterface p : parameters) {
+                p.checkSet();
+            }
         }
     }
 
@@ -212,7 +232,13 @@ public class CommandRemote implements CommandInterface {
         int len = parameters.size();
         transfer.writeInt(len);
         for (ParameterInterface p : parameters) {
-            transfer.writeValue(p.getParamValue());
+            Value pVal = p.getParamValue();
+
+            if (pVal == null && cmdType == EXPLAIN) {
+                pVal = ValueNull.INSTANCE;
+            }
+
+            transfer.writeValue(pVal);
         }
     }
 
@@ -260,7 +286,7 @@ public class CommandRemote implements CommandInterface {
 
     @Override
     public int getCommandType() {
-        return UNKNOWN;
+        return cmdType;
     }
 
 }

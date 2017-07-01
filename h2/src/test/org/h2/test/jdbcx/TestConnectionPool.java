@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
+
 import javax.sql.DataSource;
 
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -95,7 +97,7 @@ public class TestConnectionPool extends TestBase {
             }
         };
         t.execute();
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         try {
             // connection 2 (of 1 or 2) may fail
             man.getConnection();
@@ -103,9 +105,10 @@ public class TestConnectionPool extends TestBase {
             man.getConnection();
             fail();
         } catch (SQLException e) {
-            assertTrue(e.toString().toLowerCase().contains("timeout"));
-            time = System.currentTimeMillis() - time;
-            assertTrue("timeout after " + time + " ms", time > 1000);
+            assertContains(e.toString().toLowerCase(), "timeout");
+            time = System.nanoTime() - time;
+            assertTrue("timeout after " + TimeUnit.NANOSECONDS.toMillis(time) +
+                    " ms", time > TimeUnit.SECONDS.toNanos(1));
         } finally {
             conn.close();
             t.get();
@@ -151,17 +154,17 @@ public class TestConnectionPool extends TestBase {
         JdbcConnectionPool man = JdbcConnectionPool.create(url, user, password);
         Connection conn = man.getConnection();
         int len = 1000;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         for (int i = 0; i < len; i++) {
             man.getConnection().close();
         }
         man.dispose();
-        trace((int) (System.currentTimeMillis() - time));
-        time = System.currentTimeMillis();
+        trace((int) TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
+        time = System.nanoTime();
         for (int i = 0; i < len; i++) {
             DriverManager.getConnection(url, user, password).close();
         }
-        trace((int) (System.currentTimeMillis() - time));
+        trace((int) TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         conn.close();
     }
 

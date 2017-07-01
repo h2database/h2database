@@ -85,7 +85,7 @@ public class PageDelegateIndex extends PageIndex {
 
     @Override
     public Cursor findNext(Session session, SearchRow higherThan, SearchRow last) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -94,6 +94,11 @@ public class PageDelegateIndex extends PageIndex {
             return 0;
         }
         return -1;
+    }
+
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return getColumnIndex(column) == 0;
     }
 
     @Override

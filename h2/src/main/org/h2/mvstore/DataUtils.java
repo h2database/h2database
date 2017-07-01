@@ -172,11 +172,6 @@ public class DataUtils {
     private static final byte[] EMPTY_BYTES = {};
 
     /**
-     * The maximum byte to grow a buffer at a time.
-     */
-    private static final int MAX_GROW = 16 * 1024 * 1024;
-
-    /**
      * Get the length of the variable size int.
      *
      * @param x the value
@@ -300,14 +295,12 @@ public class DataUtils {
     /**
      * Write characters from a string (without the length).
      *
-     * @param buff the target buffer
+     * @param buff the target buffer (must be large enough)
      * @param s the string
      * @param len the number of characters
-     * @return the byte buffer
      */
-    public static ByteBuffer writeStringData(ByteBuffer buff,
+    public static void writeStringData(ByteBuffer buff,
             String s, int len) {
-        buff = DataUtils.ensureCapacity(buff, 3 * len);
         for (int i = 0; i < len; i++) {
             int c = s.charAt(i);
             if (c < 0x80) {
@@ -321,7 +314,6 @@ public class DataUtils {
                 buff.put((byte) (c & 0x3f));
             }
         }
-        return buff;
     }
 
     /**
@@ -858,32 +850,6 @@ public class DataUtils {
             e2.initCause(e);
             throw e2;
         }
-    }
-
-    /**
-     * Ensure the byte buffer has the given capacity, plus 1 KB. If not, a new,
-     * larger byte buffer is created and the data is copied.
-     *
-     * @param buff the byte buffer
-     * @param len the minimum remaining capacity
-     * @return the byte buffer (possibly a new one)
-     */
-    public static ByteBuffer ensureCapacity(ByteBuffer buff, int len) {
-        len += 1024;
-        if (buff.remaining() > len) {
-            return buff;
-        }
-        return grow(buff, len);
-    }
-
-    private static ByteBuffer grow(ByteBuffer buff, int len) {
-        len = buff.remaining() + len;
-        int capacity = buff.capacity();
-        len = Math.max(len, Math.min(capacity + MAX_GROW, capacity * 2));
-        ByteBuffer temp = ByteBuffer.allocate(len);
-        buff.flip();
-        temp.put(buff);
-        return temp;
     }
 
     /**

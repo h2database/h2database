@@ -83,6 +83,14 @@ public class MetaIndex extends BaseIndex {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        if (scan) {
+            return false;
+        }
+        return super.isFirstColumn(column);
+    }
+
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("META");
     }

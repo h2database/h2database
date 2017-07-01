@@ -16,6 +16,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -316,13 +317,13 @@ public class Utils {
     private static synchronized void collectGarbage() {
         Runtime runtime = Runtime.getRuntime();
         long total = runtime.totalMemory();
-        long time = System.currentTimeMillis();
-        if (lastGC + GC_DELAY < time) {
+        long time = System.nanoTime();
+        if (lastGC + TimeUnit.MILLISECONDS.toNanos(GC_DELAY) < time) {
             for (int i = 0; i < MAX_GC; i++) {
                 runtime.gc();
                 long now = runtime.totalMemory();
                 if (now == total) {
-                    lastGC = System.currentTimeMillis();
+                    lastGC = System.nanoTime();
                     break;
                 }
                 total = now;
@@ -478,8 +479,8 @@ public class Utils {
             }
             return IOUtils.readBytesAndClose(in, 0);
         }
-        ZipInputStream zipIn = new ZipInputStream(in);
-        try {
+
+        try (ZipInputStream zipIn = new ZipInputStream(in)) {
             while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
                 if (entry == null) {
@@ -500,8 +501,6 @@ public class Utils {
         } catch (IOException e) {
             // if this happens we have a real problem
             e.printStackTrace();
-        } finally {
-            zipIn.close();
         }
         return null;
     }

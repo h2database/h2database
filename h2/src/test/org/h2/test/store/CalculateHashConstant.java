@@ -14,12 +14,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.security.AES;
 
 /**
- * Calculate the constant for the secondary hash function, so that the hash
- * function mixes the input bits as much as possible.
+ * Calculate the constant for the secondary / supplemental hash function, so
+ * that the hash function mixes the input bits as much as possible.
  */
 public class CalculateHashConstant implements Runnable {
 
@@ -228,6 +229,30 @@ public class CalculateHashConstant implements Runnable {
     }
 
     /**
+     * Calculate the multiplicative inverse of a value (int).
+     *
+     * @param a the value
+     * @return the multiplicative inverse
+     */
+    static long calcMultiplicativeInverse(long a) {
+        return BigInteger.valueOf(a).modPow(
+                BigInteger.valueOf((1 << 31) - 1), BigInteger.valueOf(1L << 32)).longValue();
+    }
+
+    /**
+     * Calculate the multiplicative inverse of a value (long).
+     *
+     * @param a the value
+     * @return the multiplicative inverse
+     */
+    static long calcMultiplicativeInverseLong(long a) {
+        BigInteger oneShift64 = BigInteger.valueOf(1).shiftLeft(64);
+        BigInteger oneShift63 = BigInteger.valueOf(1).shiftLeft(63);
+        return BigInteger.valueOf(a).modPow(
+                oneShift63.subtract(BigInteger.ONE),
+                oneShift64).longValue();
+    }
+    /**
      * Store a random file to be analyzed by the Diehard test.
      */
     void storeRandomFile() throws Exception {
@@ -315,7 +340,7 @@ public class CalculateHashConstant implements Runnable {
         BitSet set = new BitSet();
         BitSet neg = new BitSet();
         long collisions = 0;
-        long t = System.currentTimeMillis();
+        long t = System.nanoTime();
         for (int i = Integer.MIN_VALUE; i != Integer.MAX_VALUE; i++) {
             int x = hash(i);
             if (x >= 0) {
@@ -333,8 +358,8 @@ public class CalculateHashConstant implements Runnable {
                 }
             }
             if ((i & 0xfffff) == 0) {
-                long n = System.currentTimeMillis();
-                if (n - t > 5000) {
+                long n = System.nanoTime();
+                if (n - t > TimeUnit.SECONDS.toNanos(5)) {
                     System.out.println(Integer.toHexString(constant) + " " +
                             Integer.toHexString(i) + " collisions: " + collisions);
                     t = n;

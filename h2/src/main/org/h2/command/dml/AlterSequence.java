@@ -24,7 +24,9 @@ import org.h2.table.Table;
  */
 public class AlterSequence extends SchemaCommand {
 
+    private boolean ifExists;
     private Table table;
+    private String sequenceName;
     private Sequence sequence;
     private Expression start;
     private Expression increment;
@@ -37,8 +39,12 @@ public class AlterSequence extends SchemaCommand {
         super(session, schema);
     }
 
-    public void setSequence(Sequence sequence) {
-        this.sequence = sequence;
+    public void setIfExists(boolean b) {
+        ifExists = b;
+    }
+
+    public void setSequenceName(String sequenceName) {
+        this.sequenceName = sequenceName;
     }
 
     @Override
@@ -49,7 +55,7 @@ public class AlterSequence extends SchemaCommand {
     public void setColumn(Column column) {
         table = column.getTable();
         sequence = column.getSequence();
-        if (sequence == null) {
+        if (sequence == null && !ifExists) {
             throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, column.getSQL());
         }
     }
@@ -81,6 +87,15 @@ public class AlterSequence extends SchemaCommand {
     @Override
     public int update() {
         Database db = session.getDatabase();
+        if (sequence == null) {
+            sequence = getSchema().findSequence(sequenceName);
+            if (sequence == null) {
+                if (!ifExists) {
+                    throw DbException.get(ErrorCode.SEQUENCE_NOT_FOUND_1, sequenceName);
+                }
+                return 0;
+            }
+        }
         if (table != null) {
             session.getUser().checkRight(table, Right.ALL);
         }

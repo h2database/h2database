@@ -16,8 +16,8 @@ import java.io.RandomAccessFile;
  */
 public class CheckJavadoc {
 
-    private static final int MAX_COMMENT_LINE_SIZE = 80;
-    private static final int MAX_SOURCE_LINE_SIZE = 100;
+    private static final int MAX_COMMENT_LINE_SIZE = 100;
+    private static final int MAX_SOURCE_LINE_SIZE = 120;
     private int errorCount;
 
     /**
@@ -99,8 +99,9 @@ public class CheckJavadoc {
             }
             if (inComment) {
                 if (rawLine.length() > MAX_COMMENT_LINE_SIZE
-                        && !line.trim().startsWith("* http://")) {
-                    System.out.println("Long line : " + file.getAbsolutePath()
+                        && !line.trim().startsWith("* http://")
+                        && !line.trim().startsWith("* https://")) {
+                    System.out.println("Long line: " + file.getAbsolutePath()
                             + " (" + file.getName() + ":" + lineNumber + ")");
                     errorCount++;
                 }
@@ -108,12 +109,14 @@ public class CheckJavadoc {
                     inComment = false;
                 }
             }
-            if (!inComment && line.startsWith("//")
-                    && rawLine.length() > MAX_COMMENT_LINE_SIZE
-                    && !line.trim().startsWith("// http://")) {
-                System.out.println("Long line: " + file.getAbsolutePath()
-                        + " (" + file.getName() + ":" + lineNumber + ")");
-                errorCount++;
+            if (!inComment && line.startsWith("//")) {
+                if (rawLine.length() > MAX_COMMENT_LINE_SIZE
+                        && !line.trim().startsWith("// http://")
+                        && !line.trim().startsWith("// https://")) {
+                    System.out.println("Long line: " + file.getAbsolutePath()
+                            + " (" + file.getName() + ":" + lineNumber + ")");
+                    errorCount++;
+                }
             } else if (!inComment && rawLine.length() > MAX_SOURCE_LINE_SIZE) {
                 System.out.println("Long line: " + file.getAbsolutePath()
                         + " (" + file.getName() + ":" + lineNumber + ")");

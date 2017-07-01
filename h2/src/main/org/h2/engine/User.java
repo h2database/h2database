@@ -7,7 +7,6 @@ package org.h2.engine;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -16,6 +15,7 @@ import org.h2.security.SHA256;
 import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
 import org.h2.table.Table;
+import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
@@ -76,7 +76,7 @@ public class User extends RightOwner {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -128,8 +128,8 @@ public class User extends RightOwner {
             if (hasRight(null, Right.ALTER_ANY_SCHEMA)) {
                 return true;
             }
-            String tableType = table.getTableType();
-            if (Table.VIEW.equals(tableType)) {
+            TableType tableType = table.getTableType();
+            if (TableType.VIEW == tableType) {
                 TableView v = (TableView) table;
                 if (v.getOwner() == this) {
                     // the owner of a view has access:

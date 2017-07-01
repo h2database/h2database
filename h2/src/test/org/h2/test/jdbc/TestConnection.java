@@ -5,11 +5,12 @@
  */
 package org.h2.test.jdbc;
 
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
-
 import java.sql.Connection;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
 
 /**
@@ -34,10 +35,12 @@ public class TestConnection extends TestBase {
         testSetSupportedClientInfoProperties();
         testSetUnsupportedClientInfoProperties();
         testSetInternalProperty();
+        testSetGetSchema();
     }
 
     private void testSetInternalProperty() throws SQLException {
-        // Use MySQL-mode since this allows all property names (apart from h2 internal names).
+        // Use MySQL-mode since this allows all property names
+        // (apart from h2 internal names).
         Connection conn = getConnection("clientInfoMySQL;MODE=MySQL");
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("numServers", "SomeValue");
@@ -48,7 +51,7 @@ public class TestConnection extends TestBase {
         Connection conn = getConnection("clientInfo");
 
         Properties properties = new Properties();
-        properties.put("ClientUser", "someuser");
+        properties.put("ClientUser", "someUser");
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo(properties);
     }
@@ -58,12 +61,12 @@ public class TestConnection extends TestBase {
         conn.setClientInfo("ApplicationName", "Connection Test");
 
         Properties properties = new Properties();
-        properties.put("ClientUser", "someuser");
+        properties.put("ClientUser", "someUser");
         conn.setClientInfo(properties);
         // old property should have been removed
         assertNull(conn.getClientInfo("ApplicationName"));
         // new property has been set
-        assertEquals(conn.getClientInfo("ClientUser"), "someuser");
+        assertEquals(conn.getClientInfo("ClientUser"), "someUser");
     }
 
     private void testSetSupportedClientInfo() throws SQLException {
@@ -75,7 +78,8 @@ public class TestConnection extends TestBase {
 
     private void testSetUnsupportedClientInfo() throws SQLException {
         Connection conn = getConnection("clientInfoDB2;MODE=DB2");
-        assertThrows(SQLClientInfoException.class, conn).setClientInfo("UnsupportedName", "SomeValue");
+        assertThrows(SQLClientInfoException.class, conn).setClientInfo(
+                "UnsupportedName", "SomeValue");
     }
 
     private void testGetUnsupportedClientInfo() throws SQLException {
@@ -83,4 +87,27 @@ public class TestConnection extends TestBase {
         assertNull(conn.getClientInfo("UnknownProperty"));
     }
 
+    private void testSetGetSchema() throws SQLException {
+        if (config.networked) {
+            return;
+        }
+        deleteDb("schemaSetGet");
+        Connection conn = getConnection("schemaSetGet");
+        Statement s = conn.createStatement();
+        s.executeUpdate("create schema my_test_schema");
+        s.executeUpdate("create table my_test_schema.my_test_table(id uuid, nave varchar)");
+        assertEquals("PUBLIC", conn.getSchema());
+        assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, s, "select * from my_test_table");
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("my_test_table");
+        conn.setSchema("MY_TEST_SCHEMA");
+        assertEquals("MY_TEST_SCHEMA", conn.getSchema());
+        s.executeQuery("select * from my_test_table");
+        assertThrows(ErrorCode.SCHEMA_NOT_FOUND_1, conn).setSchema("NON_EXISTING_SCHEMA");
+        assertEquals("MY_TEST_SCHEMA", conn.getSchema());
+        s.executeUpdate("create schema \"otheR_schEma\"");
+        conn.setSchema("otheR_schEma");
+        assertEquals("otheR_schEma", conn.getSchema());
+        s.close();
+        conn.close();
+    }
 }

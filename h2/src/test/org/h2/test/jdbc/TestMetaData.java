@@ -578,8 +578,10 @@ public class TestMetaData extends TestBase {
                 Connection.TRANSACTION_NONE));
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_READ_COMMITTED));
-        assertTrue(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_READ_UNCOMMITTED));
+        if (!config.multiThreaded) {
+            assertTrue(meta.supportsTransactionIsolationLevel(
+                    Connection.TRANSACTION_READ_UNCOMMITTED));
+        }
         assertTrue(meta.supportsTransactionIsolationLevel(
                 Connection.TRANSACTION_REPEATABLE_READ));
         assertTrue(meta.supportsTransactionIsolationLevel(
@@ -1200,8 +1202,17 @@ public class TestMetaData extends TestBase {
         assertNull(conn.getClientInfo("xxx"));
         DatabaseMetaData meta = conn.getMetaData();
         ResultSet rs = meta.getClientInfoProperties();
-        assertTrue(rs.next());
-        assertFalse(rs.next());
+        int count = 0;
+        while (rs.next()) {
+            count++;
+        }
+        if (config.networked) {
+            // server0, numServers
+            assertEquals(2, count);
+        } else {
+            // numServers
+            assertEquals(1, count);
+        }
         conn.close();
         deleteDb("metaData");
     }
@@ -1245,7 +1256,7 @@ public class TestMetaData extends TestBase {
         stat.execute("SET QUERY_STATISTICS TRUE");
         int count = 100;
         for (int i = 0; i < count; i++) {
-            stat.execute("select * from test limit 10");
+            execute(stat, "select * from test limit 10");
         }
         // The "order by" makes the result set more stable on windows, where the
         // timer resolution is not that great
@@ -1255,7 +1266,7 @@ public class TestMetaData extends TestBase {
         assertTrue(rs.next());
         assertEquals("select * from test limit 10", rs.getString("SQL_STATEMENT"));
         assertEquals(count, rs.getInt("EXECUTION_COUNT"));
-        assertEquals(10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
+        assertEquals(config.lazy ? 0 : 10 * count, rs.getInt("CUMULATIVE_ROW_COUNT"));
         rs.close();
         conn.close();
         deleteDb("metaData");

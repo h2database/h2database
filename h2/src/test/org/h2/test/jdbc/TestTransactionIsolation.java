@@ -7,7 +7,6 @@ package org.h2.test.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 
@@ -29,7 +28,7 @@ public class TestTransactionIsolation extends TestBase {
 
     @Override
     public void test() throws SQLException {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             // no tests yet
         } else {
             testTableLevelLocking();

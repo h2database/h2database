@@ -73,19 +73,7 @@ public class WriteBuffer {
      */
     public WriteBuffer putStringData(String s, int len) {
         ByteBuffer b = ensureCapacity(3 * len);
-        for (int i = 0; i < len; i++) {
-            int c = s.charAt(i);
-            if (c < 0x80) {
-                b.put((byte) c);
-            } else if (c >= 0x800) {
-                b.put((byte) (0xe0 | (c >> 12)));
-                b.put((byte) (((c >> 6) & 0x3f)));
-                b.put((byte) (c & 0x3f));
-            } else {
-                b.put((byte) (0xc0 | (c >> 6)));
-                b.put((byte) (c & 0x3f));
-            }
-        }
+        DataUtils.writeStringData(b, s, len);
         return this;
     }
 
@@ -197,7 +185,7 @@ public class WriteBuffer {
      * @return this
      */
     public WriteBuffer put(ByteBuffer src) {
-        ensureCapacity(buff.remaining()).put(src);
+        ensureCapacity(src.remaining()).put(src);
         return this;
     }
 

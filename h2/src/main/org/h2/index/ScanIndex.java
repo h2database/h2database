@@ -223,6 +223,11 @@ public class ScanIndex extends BaseIndex {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        return false;
+    }
+
+    @Override
     public void checkRename() {
         throw DbException.getUnsupportedException("SCAN");
     }

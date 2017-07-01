@@ -18,6 +18,8 @@ import java.util.Collection;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -47,6 +49,10 @@ public class TestFullText extends TestBase {
 
     @Override
     public void test() throws Exception {
+        if (config.multiThreaded) {
+            // It is even mentioned in the docs that this is not supported
+            return;
+        }
         testUuidPrimaryKey(false);
         testAutoAnalyze();
         testNativeFeatures();
@@ -245,71 +251,72 @@ public class TestFullText extends TestBase {
         trace("Testing multithreaded " + prefix);
         deleteDb("fullText");
         ArrayList<Connection> connList = new ArrayList<Connection>();
-        int len = 2;
-        Task[] task = new Task[len];
-        for (int i = 0; i < len; i++) {
-            // final Connection conn =
-            // getConnection("fullText;MULTI_THREADED=1;LOCK_TIMEOUT=10000");
-            final Connection conn = getConnection("fullText", connList);
-            Statement stat = conn.createStatement();
-            initFullText(stat, lucene);
-            initFullText(stat, lucene);
-            final String tableName = "TEST" + i;
-            stat.execute("CREATE TABLE " + tableName +
-                    "(ID INT PRIMARY KEY, DATA VARCHAR)");
-            stat.execute("CALL " + prefix +
-                    "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
-            task[i] = new Task() {
-                @Override
-                public void call() throws SQLException {
-                    trace("starting thread " + Thread.currentThread());
-                    PreparedStatement prep = conn.prepareStatement(
-                            "INSERT INTO " + tableName + " VALUES(?, ?)");
-                    Statement stat = conn.createStatement();
-                    Random random = new Random();
-                    int x = 0;
-                    while (!stop) {
-                        trace("stop = " + stop + " for " + Thread.currentThread());
-                        StringBuilder buff = new StringBuilder();
-                        for (int j = 0; j < 1000; j++) {
-                            buff.append(" ").append(random.nextInt(10000));
-                            buff.append(" x").append(j);
-                            buff.append(" ").append(KNOWN_WORDS[j % KNOWN_WORDS.length]);
+        try {
+            int len = 2;
+            Task[] task = new Task[len];
+            for (int i = 0; i < len; i++) {
+                final Connection conn = getConnection("fullText", connList);
+                Statement stat = conn.createStatement();
+                initFullText(stat, lucene);
+                initFullText(stat, lucene);
+                final String tableName = "TEST" + i;
+                stat.execute("CREATE TABLE " + tableName +
+                        "(ID INT PRIMARY KEY, DATA VARCHAR)");
+                stat.execute("CALL " + prefix +
+                        "_CREATE_INDEX('PUBLIC', '" + tableName + "', NULL)");
+                task[i] = new Task() {
+                    @Override
+                    public void call() throws SQLException {
+                        trace("starting thread " + Thread.currentThread());
+                        PreparedStatement prep = conn.prepareStatement(
+                                "INSERT INTO " + tableName + " VALUES(?, ?)");
+                        Statement stat = conn.createStatement();
+                        Random random = new Random();
+                        int x = 0;
+                        while (!stop) {
+                            trace("stop = " + stop + " for " + Thread.currentThread());
+                            StringBuilder buff = new StringBuilder();
+                            for (int j = 0; j < 1000; j++) {
+                                buff.append(" ").append(random.nextInt(10000));
+                                buff.append(" x").append(j);
+                                buff.append(" ").append(KNOWN_WORDS[j % KNOWN_WORDS.length]);
+                            }
+                            prep.setInt(1, x);
+                            prep.setString(2, buff.toString());
+                            prep.execute();
+                            x++;
+                            for (String knownWord : KNOWN_WORDS) {
+                                trace("searching for " + knownWord + " with " +
+                                        Thread.currentThread());
+                                ResultSet rs = stat.executeQuery("SELECT * FROM " +
+                                        prefix + "_SEARCH('" + knownWord +
+                                        "', 0, 0)");
+                                assertTrue(rs.next());
+                            }
                         }
-                        prep.setInt(1, x);
-                        prep.setString(2, buff.toString());
-                        prep.execute();
-                        x++;
-                        for (String knownWord : KNOWN_WORDS) {
-                            trace("searching for " + knownWord + " with " +
-                                    Thread.currentThread());
-                            ResultSet rs = stat.executeQuery("SELECT * FROM " +
-                                    prefix + "_SEARCH('" + knownWord +
-                                    "', 0, 0)");
-                            assertTrue(rs.next());
+                        trace("closing connection");
+                        if (!config.memory) {
+                            conn.close();
                         }
+                        trace("completed thread " + Thread.currentThread());
                     }
-                    trace("closing connection");
-                    if (!config.memory) {
-                        conn.close();
-                    }
-                    trace("completed thread " + Thread.currentThread());
-                }
-            };
-        }
-        for (Task t : task) {
-            t.execute();
-        }
-        trace("sleeping");
-        Thread.sleep(1000);
+                };
+            }
+            for (Task t : task) {
+                t.execute();
+            }
+            trace("sleeping");
+            Thread.sleep(1000);
 
-        trace("setting stop to true");
-        for (Task t : task) {
-            trace("joining " + t);
-            t.get();
-            trace("done joining " + t);
+            trace("setting stop to true");
+            for (Task t : task) {
+                trace("joining " + t);
+                t.get();
+                trace("done joining " + t);
+            }
+        } finally {
+            close(connList);
         }
-        close(connList);
     }
 
     private void testStreamLob() throws SQLException {
@@ -447,12 +454,13 @@ public class TestFullText extends TestBase {
                 "CREATE TABLE TEST AS SELECT * FROM INFORMATION_SCHEMA.HELP");
         stat.execute("ALTER TABLE TEST ALTER COLUMN ID INT NOT NULL");
         stat.execute("CREATE PRIMARY KEY ON TEST(ID)");
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         stat.execute("CALL " + prefix + "_CREATE_INDEX('PUBLIC', 'TEST', NULL)");
-        println("create " + prefix + ": " + (System.currentTimeMillis() - time));
+        println("create " + prefix + ": " +
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time));
         PreparedStatement prep = conn.prepareStatement(
                 "SELECT * FROM " + prefix + "_SEARCH(?, 0, 0)");
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         ResultSet rs = stat.executeQuery("SELECT TEXT FROM TEST");
         int count = 0;
         while (rs.next()) {
@@ -473,7 +481,7 @@ public class TestFullText extends TestBase {
             }
         }
         println("search " + prefix + ": " +
-                (System.currentTimeMillis() - time) + " count: " + count);
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " count: " + count);
         stat.execute("CALL " + prefix + "_DROP_ALL()");
         conn.close();
     }

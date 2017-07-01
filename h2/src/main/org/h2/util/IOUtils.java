@@ -34,11 +34,27 @@ public class IOUtils {
     }
 
     /**
-     * Close an output stream without throwing an exception.
+     * Close a Closeable without throwing an exception.
      *
-     * @param out the output stream or null
+     * @param out the Closeablem or null
      */
     public static void closeSilently(Closeable out) {
+        if (out != null) {
+            try {
+                trace("closeSilently", null, out);
+                out.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+
+    /**
+     * Close an AutoCloseable without throwing an exception.
+     *
+     * @param out the AutoCloseable or null
+     */
+    public static void closeSilently(AutoCloseable out) {
         if (out != null) {
             try {
                 trace("closeSilently", null, out);

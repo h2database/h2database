@@ -6,6 +6,7 @@
 package org.h2.test.store;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.mvstore.FreeSpaceBitSet;
 import org.h2.test.TestBase;
@@ -35,7 +36,7 @@ public class TestFreeSpace extends TestBase {
 
     private static void testPerformance() {
         for (int i = 0; i < 10; i++) {
-            long t = System.currentTimeMillis();
+            long t = System.nanoTime();
 
             FreeSpaceBitSet f = new FreeSpaceBitSet(0, 4096);
             // 75 ms
@@ -55,7 +56,7 @@ public class TestFreeSpace extends TestBase {
             for (int j = 0; j < 100000; j++) {
                 f.allocate(4096 * 2);
             }
-            System.out.println(System.currentTimeMillis() - t);
+            System.out.println(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
         }
     }
 

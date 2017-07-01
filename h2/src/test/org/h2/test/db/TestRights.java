@@ -64,43 +64,43 @@ public class TestRights extends TestBase {
 
     private void testLinkedTableMeta() throws SQLException {
         deleteDb("rights");
-        Connection conn = getConnection("rights");
-        stat = conn.createStatement();
-        stat.execute("create user test password 'test'");
-        stat.execute("create linked table test" +
-                "(null, 'jdbc:h2:mem:', 'sa', 'sa', 'DUAL')");
-        // password is invisible to non-admin
-        Connection conn2 = getConnection(
-                "rights", "test", getPassword("test"));
-        Statement stat2 = conn2.createStatement();
-        ResultSet rs = stat2.executeQuery(
-                "select * from information_schema.tables " +
-                "where table_name = 'TEST'");
-        assertTrue(rs.next());
-        ResultSetMetaData meta = rs.getMetaData();
-        for (int i = 1; i <= meta.getColumnCount(); i++) {
-            String s = rs.getString(i);
-            assertFalse(s != null && s.contains("'sa'"));
-        }
-        conn2.close();
-        // password is visible to admin
-        rs = stat.executeQuery(
-                "select * from information_schema.tables " +
-                "where table_name = 'TEST'");
-        assertTrue(rs.next());
-        meta = rs.getMetaData();
-        boolean foundPassword = false;
-        for (int i = 1; i <= meta.getColumnCount(); i++) {
-            String s = rs.getString(i);
-            if (s != null && s.contains("'sa'")) {
-                foundPassword = true;
+        try (Connection conn = getConnection("rights")) {
+            stat = conn.createStatement();
+            stat.execute("create user test password 'test'");
+            stat.execute("create linked table test" +
+                    "(null, 'jdbc:h2:mem:', 'sa', 'sa', 'DUAL')");
+            // password is invisible to non-admin
+            Connection conn2 = getConnection(
+                    "rights", "test", getPassword("test"));
+            Statement stat2 = conn2.createStatement();
+            ResultSet rs = stat2.executeQuery(
+                    "select * from information_schema.tables " +
+                    "where table_name = 'TEST'");
+            assertTrue(rs.next());
+            ResultSetMetaData meta = rs.getMetaData();
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                String s = rs.getString(i);
+                assertFalse(s != null && s.contains("'sa'"));
             }
-        }
-        assertTrue(foundPassword);
-        conn2.close();
+            conn2.close();
+            // password is visible to admin
+            rs = stat.executeQuery(
+                    "select * from information_schema.tables " +
+                    "where table_name = 'TEST'");
+            assertTrue(rs.next());
+            meta = rs.getMetaData();
+            boolean foundPassword = false;
+            for (int i = 1; i <= meta.getColumnCount(); i++) {
+                String s = rs.getString(i);
+                if (s != null && s.contains("'sa'")) {
+                    foundPassword = true;
+                }
+            }
+            assertTrue(foundPassword);
+            conn2.close();
 
-        stat.execute("drop table test");
-        conn.close();
+            stat.execute("drop table test");
+        }
     }
 
     private void testGrantMore() throws SQLException {

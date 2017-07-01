@@ -16,6 +16,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.NonWritableChannelException;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.engine.SysProperties;
 
@@ -98,9 +99,9 @@ class FileNioMapped extends FileBase {
             WeakReference<MappedByteBuffer> bufferWeakRef =
                     new WeakReference<MappedByteBuffer>(mapped);
             mapped = null;
-            long start = System.currentTimeMillis();
+            long start = System.nanoTime();
             while (bufferWeakRef.get() != null) {
-                if (System.currentTimeMillis() - start > GC_TIMEOUT_MS) {
+                if (System.nanoTime() - start > TimeUnit.MILLISECONDS.toNanos(GC_TIMEOUT_MS)) {
                     throw new IOException("Timeout (" + GC_TIMEOUT_MS
                             + " ms) reached while trying to GC mapped buffer");
                 }

@@ -7,7 +7,9 @@ package org.h2.test.mvcc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 import org.h2.api.ErrorCode;
@@ -30,11 +32,57 @@ public class TestMvccMultiThreaded extends TestBase {
 
     @Override
     public void test() throws Exception {
+        testConcurrentSelectForUpdate();
         testMergeWithUniqueKeyViolation();
-        testConcurrentMerge();
-        testConcurrentUpdate("");
         // not supported currently
-        // testConcurrentUpdate(";MULTI_THREADED=TRUE");
+        if (!config.multiThreaded) {
+            testConcurrentMerge();
+            testConcurrentUpdate();
+        }
+    }
+
+    private void testConcurrentSelectForUpdate() throws Exception {
+        deleteDb(getTestName());
+        Connection conn = getConnection(getTestName() + ";MULTI_THREADED=TRUE");
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int not null primary key, updated int not null)");
+        stat.execute("insert into test(id, updated) values(1, 100)");
+        ArrayList<Task> tasks = new ArrayList<>();
+        int count = 3;
+        for (int i = 0; i < count; i++) {
+            Task task = new Task() {
+                @Override
+                public void call() throws Exception {
+                    Connection conn = getConnection(getTestName());
+                    Statement stat = conn.createStatement();
+                    try {
+                        while (!stop) {
+                            try {
+                                stat.execute("select * from test where id=1 for update");
+                            } catch (SQLException e) {
+                                int errorCode = e.getErrorCode();
+                                assertEquals(e.getMessage(),
+                                        errorCode == ErrorCode.DEADLOCK_1 ||
+                                        errorCode == ErrorCode.LOCK_TIMEOUT_1);
+                            }
+                        }
+                    } finally {
+                        conn.close();
+                    }
+                }
+            }.execute();
+            tasks.add(task);
+        }
+        for (int i = 0; i < 10; i++) {
+            Thread.sleep(100);
+            ResultSet rs = stat.executeQuery("select * from test");
+            assertTrue(rs.next());
+        }
+        for (Task t : tasks) {
+            t.get();
+        }
+        conn.close();
+        deleteDb(getTestName());
     }
 
     private void testMergeWithUniqueKeyViolation() throws Exception {
@@ -91,13 +139,13 @@ public class TestMvccMultiThreaded extends TestBase {
         deleteDb(getTestName());
     }
 
-    private void testConcurrentUpdate(String suffix) throws Exception {
+    private void testConcurrentUpdate() throws Exception {
         deleteDb(getTestName());
         int len = 2;
         final Connection[] connList = new Connection[len];
         for (int i = 0; i < len; i++) {
             connList[i] = getConnection(
-                    getTestName() + ";MVCC=TRUE" + suffix);
+                    getTestName() + ";MVCC=TRUE");
         }
         Connection conn = connList[0];
         conn.createStatement().execute(

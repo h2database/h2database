@@ -10,6 +10,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.tools.DeleteDbFiles;
 
 /**
@@ -37,13 +39,13 @@ public class TestUndoLogLarge {
         conn.setAutoCommit(false);
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test(name) values(space(1024*1024))");
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         for (int i = 0; i < 2500; i++) {
             prep.execute();
-            long now = System.currentTimeMillis();
-            if (now > time + 5000) {
+            long now = System.nanoTime();
+            if (now > time + TimeUnit.SECONDS.toNanos(5)) {
                 System.out.println(i);
-                time = now + 5000;
+                time = now + TimeUnit.SECONDS.toNanos(5);
             }
         }
         conn.rollback();

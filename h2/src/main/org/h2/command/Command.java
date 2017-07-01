@@ -21,7 +21,6 @@ import org.h2.util.MathUtils;
  * Represents a SQL statement. This object is only used on the server side.
  */
 public abstract class Command implements CommandInterface {
-
     /**
      * The session.
      */
@@ -30,7 +29,7 @@ public abstract class Command implements CommandInterface {
     /**
      * The last start time.
      */
-    protected long startTime;
+    protected long startTimeNanos;
 
     /**
      * The trace module.
@@ -113,7 +112,7 @@ public abstract class Command implements CommandInterface {
      * @return the local result set
      * @throws DbException if the command is not a query
      */
-    public ResultInterface query(int maxrows) {
+    public ResultInterface query(@SuppressWarnings("unused") int maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
 
@@ -127,7 +126,7 @@ public abstract class Command implements CommandInterface {
      */
     void start() {
         if (trace.isInfoEnabled() || session.getDatabase().getQueryStatistics()) {
-            startTime = System.currentTimeMillis();
+            startTimeNanos = System.nanoTime();
         }
     }
 
@@ -147,7 +146,8 @@ public abstract class Command implements CommandInterface {
         }
     }
 
-    private void stop() {
+    @Override
+    public void stop() {
         session.endStatement();
         session.setCurrentCommand(null);
         if (!isTransactional()) {
@@ -162,10 +162,10 @@ public abstract class Command implements CommandInterface {
                 }
             }
         }
-        if (trace.isInfoEnabled() && startTime > 0) {
-            long time = System.currentTimeMillis() - startTime;
-            if (time > Constants.SLOW_QUERY_LIMIT_MS) {
-                trace.info("slow query: {0} ms", time);
+        if (trace.isInfoEnabled() && startTimeNanos > 0) {
+            long timeMillis = (System.nanoTime() - startTimeNanos) / 1000 / 1000;
+            if (timeMillis > Constants.SLOW_QUERY_LIMIT_MS) {
+                trace.info("slow query: {0} ms", timeMillis);
             }
         }
     }
@@ -180,7 +180,7 @@ public abstract class Command implements CommandInterface {
      */
     @Override
     public ResultInterface executeQuery(int maxrows, boolean scrollable) {
-        startTime = 0;
+        startTimeNanos = 0;
         long start = 0;
         Database database = session.getDatabase();
         Object sync = database.isMultiThreaded() ? (Object) session : (Object) database;
@@ -198,7 +198,9 @@ public abstract class Command implements CommandInterface {
                 while (true) {
                     database.checkPowerOff();
                     try {
-                        return query(maxrows);
+                        ResultInterface result = query(maxrows);
+                        callStop = !result.isLazy();
+                        return result;
                     } catch (DbException e) {
                         start = filterConcurrentUpdate(e, start);
                     } catch (OutOfMemoryError e) {
@@ -299,6 +301,7 @@ public abstract class Command implements CommandInterface {
     private long filterConcurrentUpdate(DbException e, long start) {
         int errorCode = e.getErrorCode();
         if (errorCode != ErrorCode.CONCURRENT_UPDATE_1 &&
+                errorCode != ErrorCode.ROW_NOT_FOUND_IN_PRIMARY_INDEX &&
                 errorCode != ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
             throw e;
         }

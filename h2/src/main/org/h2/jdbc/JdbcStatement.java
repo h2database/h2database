@@ -23,7 +23,7 @@ import org.h2.util.New;
 /**
  * Represents a statement.
  */
-public class JdbcStatement extends TraceObject implements Statement {
+public class JdbcStatement extends TraceObject implements Statement, JdbcStatementBackwardsCompat {
 
     protected JdbcConnection conn;
     protected SessionInterface session;
@@ -38,7 +38,7 @@ public class JdbcStatement extends TraceObject implements Statement {
     private int lastExecutedCommandType;
     private ArrayList<String> batchCommands;
     private boolean escapeProcessing = true;
-    private boolean cancelled;
+    private volatile boolean cancelled;
 
     JdbcStatement(JdbcConnection conn, int id, int resultSetType,
             int resultSetConcurrency, boolean closeWithResultSet) {
@@ -72,16 +72,22 @@ public class JdbcStatement extends TraceObject implements Statement {
                 sql = JdbcConnection.translateSQL(sql, escapeProcessing);
                 CommandInterface command = conn.prepareCommand(sql, fetchSize);
                 ResultInterface result;
+                boolean lazy = false;
                 boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                 boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                 setExecutingStatement(command);
                 try {
                     result = command.executeQuery(maxRows, scrollable);
+                    lazy = result.isLazy();
                 } finally {
-                    setExecutingStatement(null);
+                    if (!lazy) {
+                        setExecutingStatement(null);
+                    }
                 }
-                command.close();
-                resultSet = new JdbcResultSet(conn, this, result, id,
+                if (!lazy) {
+                    command.close();
+                }
+                resultSet = new JdbcResultSet(conn, this, command, result, id,
                         closedByResultSet, scrollable, updatable);
             }
             return resultSet;
@@ -168,6 +174,7 @@ public class JdbcStatement extends TraceObject implements Statement {
             closeOldResultSet();
             sql = JdbcConnection.translateSQL(sql, escapeProcessing);
             CommandInterface command = conn.prepareCommand(sql, fetchSize);
+            boolean lazy = false;
             boolean returnsResultSet;
             synchronized (session) {
                 setExecutingStatement(command);
@@ -177,17 +184,22 @@ public class JdbcStatement extends TraceObject implements Statement {
                         boolean scrollable = resultSetType != ResultSet.TYPE_FORWARD_ONLY;
                         boolean updatable = resultSetConcurrency == ResultSet.CONCUR_UPDATABLE;
                         ResultInterface result = command.executeQuery(maxRows, scrollable);
-                        resultSet = new JdbcResultSet(conn, this, result, id,
+                        lazy = result.isLazy();
+                        resultSet = new JdbcResultSet(conn, this, command, result, id,
                                 closedByResultSet, scrollable, updatable);
                     } else {
                         returnsResultSet = false;
                         updateCount = command.executeUpdate();
                     }
                 } finally {
-                    setExecutingStatement(null);
+                    if (!lazy) {
+                        setExecutingStatement(null);
+                    }
                 }
             }
-            command.close();
+            if (!lazy) {
+                command.close();
+            }
             return returnsResultSet;
         } finally {
             afterWriting();
@@ -549,7 +561,7 @@ public class JdbcStatement extends TraceObject implements Statement {
      *
      * @return true if yes
      */
-    public boolean wasCancelled() {
+    public boolean isCancelled() {
         return cancelled;
     }
 
@@ -929,22 +941,18 @@ public class JdbcStatement extends TraceObject implements Statement {
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public void closeOnCompletion() {
         // not supported
     }
-//*/
 
     /**
      * [Not supported]
      */
-/*## Java 1.7 ##
     @Override
     public boolean isCloseOnCompletion() {
         return true;
     }
-//*/
 
     // =============================================================
 
@@ -1036,6 +1044,20 @@ public class JdbcStatement extends TraceObject implements Statement {
     }
 
     /**
+     * Called when the result set is closed.
+     *
+     * @param command the command
+     * @param closeCommand whether to close the command
+     */
+    void onLazyResultSetClose(CommandInterface command, boolean closeCommand) {
+        setExecutingStatement(null);
+        command.stop();
+        if (closeCommand) {
+            command.close();
+        }
+    }
+
+    /**
      * INTERNAL.
      * Get the command type of the last executed command.
      */
@@ -1067,10 +1089,14 @@ public class JdbcStatement extends TraceObject implements Statement {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> iface) throws SQLException {
-        if (isWrapperFor(iface)) {
-            return (T) this;
+        try {
+            if (isWrapperFor(iface)) {
+                return (T) this;
+            }
+            throw DbException.getInvalidValueException("iface", iface);
+        } catch (Exception e) {
+            throw logAndConvert(e);
         }
-        throw DbException.getInvalidValueException("iface", iface);
     }
 
     /**

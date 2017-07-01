@@ -17,7 +17,6 @@ import java.io.Writer;
 import java.sql.Clob;
 import java.sql.NClob;
 import java.sql.SQLException;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -189,12 +188,9 @@ public class JdbcClob extends TraceObject implements NClob
             }
             StringWriter writer = new StringWriter(
                     Math.min(Constants.IO_BUFFER_SIZE, length));
-            Reader reader = value.getReader();
-            try {
+            try (Reader reader = value.getReader()) {
                 IOUtils.skipFully(reader, pos - 1);
                 IOUtils.copyAndCloseInput(reader, writer, length);
-            } finally {
-                reader.close();
             }
             return writer.toString();
         } catch (Exception e) {

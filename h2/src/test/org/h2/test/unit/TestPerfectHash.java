@@ -12,6 +12,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.dev.hash.MinimalPerfectHash;
 import org.h2.dev.hash.MinimalPerfectHash.LongHash;
@@ -63,6 +64,7 @@ public class TestPerfectHash extends TestBase {
             }
 
         };
+        f.close();
         HashSet<Text> set = new HashSet<Text>();
         Text t = new Text(data, 0);
         while (true) {
@@ -78,10 +80,10 @@ public class TestPerfectHash extends TestBase {
         }
         System.out.println("file: " + s);
         System.out.println("size: " + set.size());
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         byte[] desc = MinimalPerfectHash.generate(set, hf);
-        time = System.currentTimeMillis() - time;
-        System.out.println("millis: " + time);
+        time = System.nanoTime() - time;
+        System.out.println("millis: " + TimeUnit.NANOSECONDS.toMillis(time));
         System.out.println("len: " + desc.length);
         int bits = desc.length * 8;
         System.out.println(((double) bits / set.size()) + " bits/key");
@@ -94,29 +96,29 @@ public class TestPerfectHash extends TestBase {
         int size = 1000000;
         testMinimal(size / 10);
         int s;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         s = testMinimal(size);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key (minimal) in " +
-                time + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
 
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         s = testMinimalWithString(size);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         System.out.println((double) s / size +
                 " bits/key (minimal; String keys) in " +
-                time + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
 
-        time = System.currentTimeMillis();
+        time = System.nanoTime();
         s = test(size, true);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key (minimal old) in " +
-                time + " ms");
-        time = System.currentTimeMillis();
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
+        time = System.nanoTime();
         s = test(size, false);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         System.out.println((double) s / size + " bits/key (not minimal) in " +
-                time + " ms");
+                TimeUnit.NANOSECONDS.toMillis(time) + " ms");
     }
 
     @Override

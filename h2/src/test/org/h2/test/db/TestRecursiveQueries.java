@@ -103,7 +103,7 @@ public class TestRecursiveQueries extends TestBase {
         prep2.setInt(1, 10);
         prep2.setInt(2, 2);
         prep2.setInt(3, 14);
-        prep2.execute();
+        assertTrue(prep2.executeQuery().next());
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(10, rs.getInt(1));
@@ -116,7 +116,7 @@ public class TestRecursiveQueries extends TestBase {
         prep2.setInt(1, 100);
         prep2.setInt(2, 3);
         prep2.setInt(3, 103);
-        prep2.execute();
+        assertTrue(prep2.executeQuery().next());
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(100, rs.getInt(1));
@@ -148,7 +148,8 @@ public class TestRecursiveQueries extends TestBase {
                 null, null);
 
         rs = stat.executeQuery("select x from system_range(1,5) "
-                + "where x not in (with w(x) as (select 1 union all select x+1 from w where x<3) select x from w)");
+                + "where x not in (with w(x) as (select 1 union all select x+1 from w where x<3) "
+                + "select x from w)");
         assertResultSetOrdered(rs, new String[][]{{"4"}, {"5"}});
 
         conn.close();

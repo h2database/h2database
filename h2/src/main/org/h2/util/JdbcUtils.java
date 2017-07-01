@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import javax.naming.Context;
 import javax.sql.DataSource;
+import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
 import org.h2.engine.SysProperties;
@@ -37,6 +38,11 @@ public class JdbcUtils {
      * The serializer to use.
      */
     public static JavaObjectSerializer serializer;
+
+    /**
+     * Custom data types handler to use.
+     */
+    public static CustomDataTypesHandler customDataTypesHandler;
 
     private static final String[] DRIVERS = {
         "h2:", "org.h2.Driver",
@@ -113,6 +119,16 @@ public class JdbcUtils {
         if (clazz != null) {
             try {
                 serializer = (JavaObjectSerializer) loadUserClass(clazz).newInstance();
+            } catch (Exception e) {
+                throw DbException.convert(e);
+            }
+        }
+
+        String customTypeHandlerClass = SysProperties.CUSTOM_DATA_TYPES_HANDLER;
+        if (customTypeHandlerClass != null) {
+            try {
+                customDataTypesHandler = (CustomDataTypesHandler)
+                        loadUserClass(customTypeHandlerClass).newInstance();
             } catch (Exception e) {
                 throw DbException.convert(e);
             }

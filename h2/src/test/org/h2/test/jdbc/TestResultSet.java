@@ -37,6 +37,7 @@ import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.LocalDateTimeUtils;
 
 /**
  * Tests for the ResultSet implementation.
@@ -670,7 +671,15 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof Integer);
         assertTrue(((Integer) o).intValue() == -1);
+        o = rs.getObject("value", Integer.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Integer);
+        assertTrue(((Integer) o).intValue() == -1);
         o = rs.getObject(2);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Integer);
+        assertTrue(((Integer) o).intValue() == -1);
+        o = rs.getObject(2, Integer.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Integer);
         assertTrue(((Integer) o).intValue() == -1);
@@ -719,6 +728,9 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
         o = rs.getObject(2);
+        assertTrue(o == null);
+        assertTrue(rs.wasNull());
+        o = rs.getObject(2, Integer.class);
         assertTrue(o == null);
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
@@ -780,6 +792,10 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof String);
         assertTrue(o.toString().equals("Hi"));
+        o = rs.getObject("value", String.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof String);
+        assertTrue(o.equals("Hi"));
         rs.next();
         value = rs.getString(2);
         trace("Value: <" + value + "> (should be: < Hi >)");
@@ -845,6 +861,10 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof BigDecimal);
         assertTrue(((BigDecimal) o).compareTo(new BigDecimal("-1.00")) == 0);
+        o = rs.getObject(2, BigDecimal.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof BigDecimal);
+        assertTrue(((BigDecimal) o).compareTo(new BigDecimal("-1.00")) == 0);
 
         rs.next();
         assertTrue(rs.getInt(1) == 2);
@@ -905,7 +925,15 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof Double);
         assertTrue(((Double) o).compareTo(new Double("-1.00")) == 0);
+        o = rs.getObject(2, Double.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Double);
+        assertTrue(((Double) o).compareTo(new Double("-1.00")) == 0);
         o = rs.getObject(3);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof Float);
+        assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
+        o = rs.getObject(3, Float.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Float);
         assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
@@ -1009,6 +1037,12 @@ public class TestResultSet extends TestBase {
         assertTrue(((java.sql.Timestamp) o).equals(
                 java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
         assertFalse(rs.wasNull());
+        o = rs.getObject(2, java.sql.Timestamp.class);
+        trace(o.getClass().getName());
+        assertTrue(o instanceof java.sql.Timestamp);
+        assertTrue(((java.sql.Timestamp) o).equals(
+                        java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
+        assertFalse(rs.wasNull());
         rs.next();
 
         date = rs.getDate("VALUE");
@@ -1024,18 +1058,44 @@ public class TestResultSet extends TestBase {
         assertEquals("2002-02-02 02:02:02.0", ts.toString());
         rs.next();
         assertEquals("1800-01-01", rs.getDate("value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("1800-01-01", rs.getObject("value",
+                            LocalDateTimeUtils.getLocalDateClass()).toString());
+        }
         assertEquals("00:00:00", rs.getTime("value").toString());
-        assertEquals("1800-01-01 00:00:00.0",
-                rs.getTimestamp("value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("00:00", rs.getObject("value",
+                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+        }
+        assertEquals("1800-01-01 00:00:00.0", rs.getTimestamp("value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("1800-01-01T00:00", rs.getObject("value",
+                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+        }
         rs.next();
         assertEquals("9999-12-31", rs.getDate("Value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("9999-12-31", rs.getObject("Value",
+                            LocalDateTimeUtils.getLocalDateClass()).toString());
+        }
         assertEquals("23:59:59", rs.getTime("Value").toString());
-        assertEquals("9999-12-31 23:59:59.0",
-                rs.getTimestamp("Value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("23:59:59", rs.getObject("Value",
+                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+        }
+        assertEquals("9999-12-31 23:59:59.0", rs.getTimestamp("Value").toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("9999-12-31T23:59:59", rs.getObject("Value",
+                            LocalDateTimeUtils.getLocalDateTimeClass()).toString());
+        }
         rs.next();
         assertTrue(rs.getDate("Value") == null && rs.wasNull());
         assertTrue(rs.getTime("vALUe") == null && rs.wasNull());
         assertTrue(rs.getTimestamp(2) == null && rs.wasNull());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertTrue(rs.getObject(2,
+                            LocalDateTimeUtils.getLocalDateTimeClass()) == null && rs.wasNull());
+        }
         assertTrue(!rs.next());
 
         rs = stat.executeQuery("SELECT DATE '2001-02-03' D, " +
@@ -1048,6 +1108,25 @@ public class TestResultSet extends TestBase {
         assertEquals("2001-02-03", date.toString());
         assertEquals("14:15:16", time.toString());
         assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
+        date = rs.getObject(1, Date.class);
+        time = rs.getObject(2, Time.class);
+        ts = rs.getObject(3, Timestamp.class);
+        assertEquals("2001-02-03", date.toString());
+        assertEquals("14:15:16", time.toString());
+        assertEquals("2007-08-09 10:11:12.141516171", ts.toString());
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2001-02-03", rs.getObject(1,
+                            LocalDateTimeUtils.getLocalDateClass()).toString());
+        }
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("14:15:16", rs.getObject(2,
+                            LocalDateTimeUtils.getLocalTimeClass()).toString());
+        }
+        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+            assertEquals("2007-08-09T10:11:12.141516171",
+                    rs.getObject(3, LocalDateTimeUtils.getLocalDateTimeClass())
+                            .toString());
+        }
 
         stat.execute("DROP TABLE TEST");
     }
@@ -1187,10 +1266,18 @@ public class TestResultSet extends TestBase {
                 (byte) 0x01, (byte) 0x01 },
                 rs.getBytes(2));
         assertTrue(!rs.wasNull());
+        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
+                (byte) 0x01, (byte) 0x01 },
+                rs.getObject(2, byte[].class));
+        assertTrue(!rs.wasNull());
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getBytes("value"));
+        assertTrue(!rs.wasNull());
+        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
+                (byte) 0x02, (byte) 0x02 },
+                rs.getObject("value", byte[].class));
         assertTrue(!rs.wasNull());
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x00 },

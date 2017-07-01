@@ -300,7 +300,7 @@ public class PageDataIndex extends PageIndex {
 
     @Override
     public Cursor findFirstOrLast(Session session, boolean first) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     long getLastKey() {
@@ -462,6 +462,11 @@ public class PageDataIndex extends PageIndex {
     public int getColumnIndex(Column col) {
         // can not use this index - use the PageDelegateIndex instead
         return -1;
+    }
+
+    @Override
+    public boolean isFirstColumn(Column column) {
+        return false;
     }
 
     @Override

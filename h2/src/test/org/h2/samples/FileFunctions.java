@@ -80,13 +80,10 @@ public class FileFunctions {
      * @return the byte array
      */
     public static byte[] readFile(String fileName) throws IOException {
-        RandomAccessFile file = new RandomAccessFile(fileName, "r");
-        try {
+        try (RandomAccessFile file = new RandomAccessFile(fileName, "r")) {
             byte[] buff = new byte[(int) file.length()];
             file.readFully(buff);
             return buff;
-        } finally {
-            file.close();
         }
     }
 }

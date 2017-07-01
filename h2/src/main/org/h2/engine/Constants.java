@@ -16,22 +16,22 @@ public class Constants {
     /**
      * The build date is updated for each public release.
      */
-    public static final String BUILD_DATE = "2016-01-21";
+    public static final String BUILD_DATE = "2017-06-10";
 
     /**
      * The build date of the last stable release.
      */
-    public static final String BUILD_DATE_STABLE = "2014-04-05";
+    public static final String BUILD_DATE_STABLE = "2017-04-23";
 
     /**
      * The build id is incremented for each public release.
      */
-    public static final int BUILD_ID = 191;
+    public static final int BUILD_ID = 196;
 
     /**
      * The build id of the last stable release.
      */
-    public static final int BUILD_ID_STABLE = 176;
+    public static final int BUILD_ID_STABLE = 195;
 
     /**
      * Whether this is a snapshot version.
@@ -95,6 +95,11 @@ public class Constants {
      * The TCP protocol version number 15.
      */
     public static final int TCP_PROTOCOL_VERSION_15 = 15;
+
+    /**
+     * The TCP protocol version number 16.
+     */
+    public static final int TCP_PROTOCOL_VERSION_16 = 16;
 
     /**
      * The major version of this database.
@@ -537,7 +542,7 @@ public class Constants {
      * @return the version number
      */
     public static Object getVersionStable() {
-        return "1.3." + BUILD_ID_STABLE;
+        return "1.4." + BUILD_ID_STABLE;
     }
 
     /**

@@ -12,12 +12,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
+import org.h2.engine.Session;
+import org.h2.jdbc.JdbcConnection;
 import org.h2.test.TestBase;
 import org.h2.tools.TriggerAdapter;
 import org.h2.util.Task;
+import org.h2.value.ValueLong;
 
 /**
  * Tests for trigger and constraints.
@@ -44,6 +46,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggerAdapter();
         testTriggerSelectEachRow();
         testViewTrigger();
+        testViewTriggerGeneratedKeys();
         testTriggerBeforeSelect();
         testTriggerAlterTable();
         testTriggerAsSource();
@@ -103,7 +106,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
     }
 
     private void testDeleteInTrigger() throws SQLException {
-        if (config.mvcc) {
+        if (config.mvcc || config.mvStore) {
             return;
         }
         Connection conn;
@@ -203,6 +206,45 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.close();
     }
 
+    private void testViewTriggerGeneratedKeys() throws SQLException {
+        Connection conn;
+        Statement stat;
+        conn = getConnection("trigger");
+        stat = conn.createStatement();
+        stat.execute("drop table if exists test");
+        stat.execute("create table test(id int identity)");
+        stat.execute("create view test_view as select * from test");
+        stat.execute("create trigger test_view_insert " +
+                "instead of insert on test_view for each row call \"" +
+                TestViewGeneratedKeys.class.getName() + "\"");
+        if (!config.memory) {
+            conn.close();
+            conn = getConnection("trigger");
+            stat = conn.createStatement();
+        }
+
+        PreparedStatement pstat;
+        pstat = conn.prepareStatement(
+                "insert into test_view values()", Statement.RETURN_GENERATED_KEYS);
+        int count = pstat.executeUpdate();
+        assertEquals(1, count);
+
+        ResultSet gkRs;
+        gkRs = pstat.getGeneratedKeys();
+
+        assertTrue(gkRs.next());
+        assertEquals(1, gkRs.getInt(1));
+        assertFalse(gkRs.next());
+
+        ResultSet rs;
+        rs = stat.executeQuery("select * from test");
+        assertTrue(rs.next());
+        assertFalse(rs.next());
+        stat.execute("drop view test_view");
+        stat.execute("drop table test");
+        conn.close();
+    }
+
     /**
      * A test trigger adapter implementation.
      */
@@ -272,6 +314,47 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
             if (newRow != null) {
                 prepInsert.setInt(1, (Integer) newRow[0]);
                 prepInsert.execute();
+            }
+        }
+
+        @Override
+        public void close() {
+            // ignore
+        }
+
+        @Override
+        public void remove() {
+            // ignore
+        }
+
+    }
+
+    /**
+     *
+     */
+    public static class TestViewGeneratedKeys implements Trigger {
+
+        PreparedStatement prepInsert;
+
+        @Override
+        public void init(Connection conn, String schemaName,
+                String triggerName, String tableName, boolean before, int type)
+                throws SQLException {
+            prepInsert = conn.prepareStatement(
+                    "insert into test values()", Statement.RETURN_GENERATED_KEYS);
+        }
+
+        @Override
+        public void fire(Connection conn, Object[] oldRow, Object[] newRow)
+                throws SQLException {
+            if (newRow != null) {
+                prepInsert.execute();
+                ResultSet rs = prepInsert.getGeneratedKeys();
+                if (rs.next()) {
+                    JdbcConnection jconn = (JdbcConnection) conn;
+                    Session session = (Session) jconn.getSession();
+                    session.setLastTriggerIdentity(ValueLong.get(rs.getLong(1)));
+                }
             }
         }
 

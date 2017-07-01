@@ -41,12 +41,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.Column;
-import org.h2.table.IndexColumn;
-import org.h2.table.SubQueryInfo;
-import org.h2.table.Table;
-import org.h2.table.TableBase;
-import org.h2.table.TableFilter;
+import org.h2.table.*;
 import org.h2.test.TestBase;
 import org.h2.util.DoneFuture;
 import org.h2.util.New;
@@ -77,9 +72,11 @@ public class TestTableEngines extends TestBase {
         testSubQueryInfo();
         testEarlyFilter();
         testEngineParams();
+        testSchemaEngineParams();
         testSimpleQuery();
         testMultiColumnTreeSetIndex();
         testBatchedJoin();
+        testAffinityKey();
     }
 
     private void testEarlyFilter() throws SQLException {
@@ -109,6 +106,13 @@ public class TestTableEngines extends TestBase {
                 EndlessTableEngine.createTableData.tableEngineParams.get(0));
         assertEquals("param2",
                 EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        stat.execute("CREATE TABLE t2(id int, name varchar) WITH \"param1\", \"param2\"");
+        assertEquals(2,
+            EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1",
+            EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2",
+            EndlessTableEngine.createTableData.tableEngineParams.get(1));
         conn.close();
         if (!config.memory) {
             // Test serialization of table parameters
@@ -122,6 +126,24 @@ public class TestTableEngines extends TestBase {
                     EndlessTableEngine.createTableData.tableEngineParams.get(1));
             conn.close();
         }
+        deleteDb("tableEngine");
+    }
+
+    private void testSchemaEngineParams() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine");
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE SCHEMA s1 WITH \"param1\", \"param2\"");
+
+        stat.execute("CREATE TABLE s1.t1(id int, name varchar) ENGINE \"" +
+                EndlessTableEngine.class.getName() + '\"');
+        assertEquals(2,
+            EndlessTableEngine.createTableData.tableEngineParams.size());
+        assertEquals("param1",
+            EndlessTableEngine.createTableData.tableEngineParams.get(0));
+        assertEquals("param2",
+            EndlessTableEngine.createTableData.tableEngineParams.get(1));
+        conn.close();
         deleteDb("tableEngine");
     }
 
@@ -261,6 +283,8 @@ public class TestTableEngines extends TestBase {
 
         checkResults(6, dataSet, stat,
                 "select * from t order by a", null, new RowComparator(0));
+        checkResults(6, dataSet, stat,
+                "select * from t order by a desc", null, new RowComparator(true, 0));
         checkResults(6, dataSet, stat,
                 "select * from t order by b, c", null, new RowComparator(1, 2));
         checkResults(6, dataSet, stat,
@@ -473,6 +497,25 @@ public class TestTableEngines extends TestBase {
         }
         conn.close();
         deleteDb("testBatchedJoin");
+    }
+
+    private void testAffinityKey() throws SQLException {
+        deleteDb("tableEngine");
+        Connection conn = getConnection("tableEngine;mode=Ignite;MV_STORE=FALSE");
+        Statement stat = conn.createStatement();
+
+        stat.executeUpdate("CREATE TABLE T(ID INT AFFINITY PRIMARY KEY, NAME VARCHAR, AGE INT)" +
+                " ENGINE \"" + AffinityTableEngine.class.getName() + "\"");
+        Table tbl = AffinityTableEngine.createdTbl;
+        assertTrue(tbl != null);
+        assertEquals(3, tbl.getIndexes().size());
+        Index aff = tbl.getIndexes().get(2);
+        assertTrue(aff.getIndexType().isAffinity());
+        assertEquals("T_AFF", aff.getName());
+        assertEquals(1, aff.getIndexColumns().length);
+        assertEquals("ID", aff.getIndexColumns()[0].columnName);
+        conn.close();
+        deleteDb("tableEngine");
     }
 
     private static void forceJoinOrder(Statement s, boolean force) throws SQLException {
@@ -1009,8 +1052,8 @@ public class TestTableEngines extends TestBase {
             }
 
             @Override
-            public String getTableType() {
-                return EXTERNAL_TABLE_ENGINE;
+            public TableType getTableType() {
+                return TableType.EXTERNAL_TABLE_ENGINE;
             }
 
             @Override
@@ -1065,6 +1108,144 @@ public class TestTableEngines extends TestBase {
         @Override
         public OneRowTable createTable(CreateTableData data) {
             return new OneRowTable(data);
+        }
+
+    }
+
+    /**
+     * A test table factory producing affinity aware tables.
+     */
+    public static class AffinityTableEngine implements TableEngine {
+        public static Table createdTbl;
+
+        /**
+         * A table able to handle affinity indexes.
+         */
+        private static class AffinityTable extends RegularTable {
+
+            /**
+             * A (no-op) affinity index.
+             */
+            public class AffinityIndex extends BaseIndex {
+                AffinityIndex(Table table, int id, String name, IndexColumn[] newIndexColumns) {
+                    initBaseIndex(table, id, name, newIndexColumns, IndexType.createAffinity());
+                }
+
+                @Override
+                public long getRowCountApproximation() {
+                    return table.getRowCountApproximation();
+                }
+
+                @Override
+                public long getDiskSpaceUsed() {
+                    return table.getDiskSpaceUsed();
+                }
+
+                @Override
+                public long getRowCount(Session session) {
+                    return table.getRowCount(session);
+                }
+
+                @Override
+                public void checkRename() {
+                    // do nothing
+                }
+
+                @Override
+                public void truncate(Session session) {
+                    // do nothing
+                }
+
+                @Override
+                public void remove(Session session) {
+                    // do nothing
+                }
+
+                @Override
+                public void remove(Session session, Row r) {
+                    // do nothing
+                }
+
+                @Override
+                public boolean needRebuild() {
+                    return false;
+                }
+
+                @Override
+                public double getCost(Session session, int[] masks,
+                        TableFilter[] filters, int filter, SortOrder sortOrder,
+                        HashSet<Column> allColumnsSet) {
+                    return 0;
+                }
+
+                @Override
+                public Cursor findFirstOrLast(Session session, boolean first) {
+                    throw DbException.getUnsupportedException("TEST");
+                }
+
+                @Override
+                public Cursor find(Session session, SearchRow first, SearchRow last) {
+                    throw DbException.getUnsupportedException("TEST");
+                }
+
+                @Override
+                public void close(Session session) {
+                    // do nothing
+                }
+
+                @Override
+                public boolean canGetFirstOrLast() {
+                    return false;
+                }
+
+                @Override
+                public void add(Session session, Row r) {
+                    // do nothing
+                }
+            }
+
+            AffinityTable(CreateTableData data) {
+                super(data);
+            }
+
+            @Override
+            public Index addIndex(Session session, String indexName,
+                    int indexId, IndexColumn[] cols, IndexType indexType,
+                    boolean create, String indexComment) {
+                if (!indexType.isAffinity()) {
+                    return super.addIndex(session, indexName, indexId, cols, indexType, create, indexComment);
+                }
+
+                boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
+                if (!isSessionTemporary) {
+                    database.lockMeta(session);
+                }
+                AffinityIndex index = new AffinityIndex(this, indexId, getName() + "_AFF", cols);
+                index.setTemporary(isTemporary());
+                if (index.getCreateSQL() != null) {
+                    index.setComment(indexComment);
+                    if (isSessionTemporary) {
+                        session.addLocalTempTableIndex(index);
+                    } else {
+                        database.addSchemaObject(session, index);
+                    }
+                }
+                getIndexes().add(index);
+                setModified();
+                return index;
+            }
+
+        }
+
+        /**
+         * Create a new OneRowTable.
+         *
+         * @param data the meta data of the table to create
+         * @return the new table
+         */
+        @Override
+        public Table createTable(CreateTableData data) {
+            return (createdTbl = new AffinityTable(data));
         }
 
     }
@@ -1171,7 +1352,7 @@ public class TestTableEngines extends TestBase {
             }
         };
 
-        public TreeSetTable(CreateTableData data) {
+        TreeSetTable(CreateTableData data) {
             super(data);
         }
 
@@ -1260,8 +1441,8 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public String getTableType() {
-            return EXTERNAL_TABLE_ENGINE;
+        public TableType getTableType() {
+            return TableType.EXTERNAL_TABLE_ENGINE;
         }
 
         @Override
@@ -1348,7 +1529,8 @@ public class TestTableEngines extends TestBase {
         }
 
         @Override
-        public IndexLookupBatch createLookupBatch(final TableFilter filter) {
+        public IndexLookupBatch createLookupBatch(TableFilter[] filters, int f) {
+            final TableFilter filter = filters[f];
             assert0(filter.getMasks() != null || "scan".equals(getName()), "masks");
             final int preferredSize = preferredBatchSize;
             if (preferredSize == 0) {
@@ -1512,9 +1694,11 @@ public class TestTableEngines extends TestBase {
 
         @Override
         public double getCost(Session session, int[] masks,
-                TableFilter[] filters, int filter, SortOrder sortOrder, HashSet<Column> allColumnsSet) {
+                TableFilter[] filters, int filter, SortOrder sortOrder,
+                HashSet<Column> allColumnsSet) {
             doTests(session);
-            return getCostRangeIndex(masks, set.size(), filters, filter, sortOrder, false, allColumnsSet);
+            return getCostRangeIndex(masks, set.size(), filters, filter,
+                    sortOrder, false, allColumnsSet);
         }
 
         @Override
@@ -1570,7 +1754,7 @@ public class TestTableEngines extends TestBase {
         Iterator<SearchRow> it;
         private Row current;
 
-        public IteratorCursor(Iterator<SearchRow> it) {
+        IteratorCursor(Iterator<SearchRow> it) {
             this.it = it;
         }
 
@@ -1610,8 +1794,15 @@ public class TestTableEngines extends TestBase {
      */
     private static class RowComparator implements Comparator<List<Object>> {
         private int[] cols;
+        private boolean descending;
 
-        public RowComparator(int... cols) {
+        RowComparator(int... cols) {
+            this.descending = false;
+            this.cols = cols;
+        }
+
+        RowComparator(boolean descending, int... cols) {
+            this.descending = descending;
             this.cols = cols;
         }
 
@@ -1623,17 +1814,27 @@ public class TestTableEngines extends TestBase {
                 Comparable<Object> o1 = (Comparable<Object>) row1.get(col);
                 Comparable<Object> o2 = (Comparable<Object>) row2.get(col);
                 if (o1 == null) {
-                    return o2 == null ? 0 : -1;
+                    return applyDescending(o2 == null ? 0 : -1);
                 }
                 if (o2 == null) {
-                    return 1;
+                    return applyDescending(1);
                 }
                 int res = o1.compareTo(o2);
                 if (res != 0) {
-                    return res;
+                    return applyDescending(res);
                 }
             }
             return 0;
+        }
+
+        private int applyDescending(int v) {
+            if (!descending) {
+                return v;
+            }
+            if (v == 0) {
+                return v;
+            }
+            return -v;
         }
     }
 

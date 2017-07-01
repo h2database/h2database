@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarOutputStream;
 import java.util.zip.CRC32;
 import java.util.zip.Deflater;
@@ -57,7 +58,7 @@ public class BuildBase {
     @Target(ElementType.METHOD)
     @Documented
     public static @interface Description {
-      String summary() default "";
+        String summary() default "";
     }
 
     /**
@@ -192,7 +193,7 @@ public class BuildBase {
      * @param args the command line parameters
      */
     protected void run(String... args) {
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         if (args.length == 0) {
             all();
         } else {
@@ -220,7 +221,7 @@ public class BuildBase {
                 }
             }
         }
-        println("Done in " + (System.currentTimeMillis() - time) + " ms");
+        println("Done in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
     }
 
     private boolean runTarget(String target) {
@@ -254,13 +255,13 @@ public class BuildBase {
             } else if (line.length() == 0) {
                 line = last;
             }
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             try {
                 runTarget(line);
             } catch (Exception e) {
                 System.out.println(e);
             }
-            println("Done in " + (System.currentTimeMillis() - time) + " ms");
+            println("Done in " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) + " ms");
             last = line;
         }
     }
@@ -317,7 +318,8 @@ public class BuildBase {
             if (!Modifier.isStatic(mod) && Modifier.isPublic(mod)
                     && m.getParameterTypes().length == 0) {
                 if (m.isAnnotationPresent(Description.class)) {
-                    description = String.format("%1$-20s %2$s", m.getName(), m.getAnnotation(Description.class).summary());
+                    description = String.format("%1$-20s %2$s",
+                            m.getName(), m.getAnnotation(Description.class).summary());
                 } else {
                     description = m.getName();
                 }
@@ -355,7 +357,8 @@ public class BuildBase {
     }
 
     /**
-     * Execute java in a separate process, but using the java executable of the current JRE.
+     * Execute java in a separate process, but using the java executable of the
+     * current JRE.
      *
      * @param args the command line parameters for the java command
      * @return the exit value
@@ -472,7 +475,7 @@ public class BuildBase {
         }
     }
 
-    private PrintStream filter(PrintStream out, final String[] exclude) {
+    private static PrintStream filter(PrintStream out, final String[] exclude) {
         return new PrintStream(new FilterOutputStream(out) {
             private ByteArrayOutputStream buff = new ByteArrayOutputStream();
 
@@ -597,7 +600,7 @@ public class BuildBase {
         if (targetFile.exists()) {
             return;
         }
-        String repoFile = group + "/" + artifact + "/" + version + "/"
+        String repoFile = group.replace('.', '/') + "/" + artifact + "/" + version + "/"
                 + artifact + "-" + version + ".jar";
         mkdirs(targetFile.getAbsoluteFile().getParentFile());
         String localMavenDir = getLocalMavenDir();
@@ -658,11 +661,11 @@ public class BuildBase {
             println("Downloading " + fileURL);
             URL url = new URL(fileURL);
             InputStream in = new BufferedInputStream(url.openStream());
-            long last = System.currentTimeMillis();
+            long last = System.nanoTime();
             int len = 0;
             while (true) {
-                long now = System.currentTimeMillis();
-                if (now > last + 1000) {
+                long now = System.nanoTime();
+                if (now > last + TimeUnit.SECONDS.toNanos(1)) {
                     println("Downloaded " + len + " bytes");
                     last = now;
                 }

@@ -26,7 +26,7 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.index.ViewIndex;
 import org.h2.message.DbException;
-import org.h2.result.LocalResult;
+import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
@@ -55,8 +55,9 @@ public class TableView extends Table {
     private long maxDataModificationId;
     private User owner;
     private Query topQuery;
-    private LocalResult recursiveResult;
+    private ResultInterface recursiveResult;
     private boolean tableExpression;
+    private boolean isRecursiveQueryDetected;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
@@ -70,12 +71,11 @@ public class TableView extends Table {
      * dependent views.
      *
      * @param querySQL the SQL statement
-     * @param columnNames the column names
      * @param session the session
      * @param recursive whether this is a recursive view
      * @param force if errors should be ignored
      */
-    public void replace(String querySQL, String[] columnNames, Session session,
+    public void replace(String querySQL,  Session session,
             boolean recursive, boolean force) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
@@ -94,6 +94,7 @@ public class TableView extends Table {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.recursive = recursive;
+        this.isRecursiveQueryDetected = false;
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session);
     }
@@ -203,9 +204,14 @@ public class TableView extends Table {
         } catch (DbException e) {
             e.addSQL(getCreateSQL());
             createException = e;
-            // if it can't be compiled, then it's a 'zero column table'
+            // If it can't be compiled, then it's a 'zero column table'
             // this avoids problems when creating the view when opening the
-            // database
+            // database.
+            // If it can not be compiled - it could also be a recursive common
+            // table expression query.
+            if (isRecursiveQueryExceptionDetected(createException)) {
+                this.isRecursiveQueryDetected = true;
+            }
             tables = New.arrayList();
             cols = new Column[0];
             if (recursive && columnTemplates != null) {
@@ -389,7 +395,7 @@ public class TableView extends Table {
 
     @Override
     public long getRowCount(Session session) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -404,8 +410,8 @@ public class TableView extends Table {
     }
 
     @Override
-    public String getTableType() {
-        return Table.VIEW;
+    public TableType getTableType() {
+        return TableType.VIEW;
     }
 
     @Override
@@ -557,6 +563,12 @@ public class TableView extends Table {
         return 0;
     }
 
+    /**
+     * Get the index of the first parameter.
+     *
+     * @param additionalParameters additional parameters
+     * @return the index of the first parameter
+     */
     public int getParameterOffset(ArrayList<Parameter> additionalParameters) {
         int result = topQuery == null ? -1 : getMaxParameterIndex(topQuery.getParameters());
         if (additionalParameters != null) {
@@ -565,12 +577,16 @@ public class TableView extends Table {
         return result + 1;
     }
 
-    private int getMaxParameterIndex(ArrayList<Parameter> parameters) {
+    private static int getMaxParameterIndex(ArrayList<Parameter> parameters) {
         int result = -1;
         for (Parameter p : parameters) {
             result = Math.max(result, p.getIndex());
         }
         return result;
+    }
+
+    public boolean isRecursive() {
+        return recursive;
     }
 
     @Override
@@ -581,14 +597,14 @@ public class TableView extends Table {
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
     }
 
-    public void setRecursiveResult(LocalResult value) {
+    public void setRecursiveResult(ResultInterface value) {
         if (recursiveResult != null) {
             recursiveResult.close();
         }
         this.recursiveResult = value;
     }
 
-    public LocalResult getRecursiveResult() {
+    public ResultInterface getRecursiveResult() {
         return recursiveResult;
     }
 
@@ -605,7 +621,7 @@ public class TableView extends Table {
         super.addDependencies(dependencies);
         if (tables != null) {
             for (Table t : tables) {
-                if (!Table.VIEW.equals(t.getTableType())) {
+                if (TableType.VIEW != t.getTableType()) {
                     t.addDependencies(dependencies);
                 }
             }
@@ -620,7 +636,7 @@ public class TableView extends Table {
         private final int[] masks;
         private final TableView view;
 
-        public CacheKey(int[] masks, TableView view) {
+        CacheKey(int[] masks, TableView view) {
             this.masks = masks;
             this.view = view;
         }
@@ -654,6 +670,31 @@ public class TableView extends Table {
             }
             return true;
         }
+    }
+
+    /**
+     * Was query recursion detected during compiling.
+     *
+     * @return true if yes
+     */
+    public boolean isRecursiveQueryDetected() {
+        return isRecursiveQueryDetected;
+    }
+
+    /**
+     * Does exception indicate query recursion?
+     */
+    private boolean isRecursiveQueryExceptionDetected(DbException exception) {
+        if (exception == null) {
+            return false;
+        }
+        if (exception.getErrorCode() != ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1) {
+            return false;
+        }
+        if (!exception.getMessage().contains("\"" + this.getName() + "\"")) {
+            return false;
+        }
+        return true;
     }
 
 }

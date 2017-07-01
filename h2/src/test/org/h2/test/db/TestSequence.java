@@ -13,7 +13,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.h2.api.Trigger;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -64,8 +63,7 @@ public class TestSequence extends TestBase {
                 tasks[i] = new Task() {
                     @Override
                     public void call() throws Exception {
-                        Connection conn = getConnection(url);
-                        try {
+                        try (Connection conn = getConnection(url)) {
                             PreparedStatement prep = conn.prepareStatement(
                                     "insert into test(id) values(next value for test_seq)");
                             PreparedStatement prep2 = conn.prepareStatement(
@@ -79,8 +77,6 @@ public class TestSequence extends TestBase {
                                     createDropTrigger(conn);
                                 }
                             }
-                        } finally {
-                            conn.close();
                         }
                     }
 
@@ -397,7 +393,7 @@ public class TestSequence extends TestBase {
                 getNext(stat);
                 fail("Expected error: " + finalError);
             } catch (SQLException e) {
-                assertTrue(e.getMessage().contains(finalError));
+                assertContains(e.getMessage(), finalError);
             }
         }
 
@@ -409,7 +405,7 @@ public class TestSequence extends TestBase {
             stat.execute(sql);
             fail("Expected error: " + error);
         } catch (SQLException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains(error));
+            assertContains(e.getMessage(), error);
         }
     }
 

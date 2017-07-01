@@ -52,18 +52,20 @@ public class CipherFactory {
      */
     public static final String KEYSTORE_PASSWORD =
             "h2pass";
+
     /**
      * The security property which can prevent anonymous TLS connections.
-     * Introduced into Java 6,7,8 in updates from July 2015.
+     * Introduced into Java 6, 7, 8 in updates from July 2015.
      */
     public static final String LEGACY_ALGORITHMS_SECURITY_KEY =
             "jdk.tls.legacyAlgorithms";
+
     /**
      * The value of {@value #LEGACY_ALGORITHMS_SECURITY_KEY} security
      * property at the time of class initialization.
      * Null if it is not set.
      */
-    public static final String DEFAULT_LEGACY_ALGORITHMS = getLegacyAlgoritmsSilently();
+    public static final String DEFAULT_LEGACY_ALGORITHMS = getLegacyAlgorithmsSilently();
 
     private static final String KEYSTORE =
             "~/.h2.keystore";
@@ -167,23 +169,22 @@ public class CipherFactory {
      * Removes DH_anon and ECDH_anon from a comma separated list of ciphers.
      * Only the first occurrence is removed.
      * If there is nothing to remove, returns the reference to the argument.
-     * @param commaSepList  a list of names separated by commas (and spaces)
+     * @param list  a list of names separated by commas (and spaces)
      * @return  a new string without DH_anon and ECDH_anon items,
      *          or the original if none were found
      */
-    public static String removeDhAnonFromCommaSepList(String commaSepList) {
-        if (commaSepList == null) {
-            return commaSepList;
+    public static String removeDhAnonFromCommaSeparatedList(String list) {
+        if (list == null) {
+            return list;
         }
-        List<String> algos = new LinkedList<String>(Arrays.asList(commaSepList.split("\\s*,\\s*")));
-        boolean dhAnonRemoved = algos.remove("DH_anon");
-        boolean ecdhAnonRemoved = algos.remove("ECDH_anon");
+        List<String> algorithms = new LinkedList<String>(Arrays.asList(list.split("\\s*,\\s*")));
+        boolean dhAnonRemoved = algorithms.remove("DH_anon");
+        boolean ecdhAnonRemoved = algorithms.remove("ECDH_anon");
         if (dhAnonRemoved || ecdhAnonRemoved) {
-            String algosStr = Arrays.toString(algos.toArray(new String[algos.size()]));
-            return (algos.size() > 0) ? algosStr.substring(1, algosStr.length() - 1): "";
-        } else {
-            return commaSepList;
+            String string = Arrays.toString(algorithms.toArray(new String[algorithms.size()]));
+            return (algorithms.size() > 0) ? string.substring(1, string.length() - 1): "";
         }
+        return list;
     }
 
     /**
@@ -202,13 +203,13 @@ public class CipherFactory {
      * behavior.
      */
     public static synchronized void removeAnonFromLegacyAlgorithms() {
-        String legacyAlgosOrig = getLegacyAlgoritmsSilently();
-        if (legacyAlgosOrig == null) {
+        String legacyOriginal = getLegacyAlgorithmsSilently();
+        if (legacyOriginal == null) {
             return;
         }
-        String legacyAlgosNew = removeDhAnonFromCommaSepList(legacyAlgosOrig);
-        if (!legacyAlgosOrig.equals(legacyAlgosNew)) {
-            setLegacyAlgorithmsSilently(legacyAlgosNew);
+        String legacyNew = removeDhAnonFromCommaSeparatedList(legacyOriginal);
+        if (!legacyOriginal.equals(legacyNew)) {
+            setLegacyAlgorithmsSilently(legacyNew);
         }
     }
 
@@ -228,10 +229,11 @@ public class CipherFactory {
     /**
      * Returns the security property {@value #LEGACY_ALGORITHMS_SECURITY_KEY}.
      * Ignores security exceptions.
+     *
      * @return  the value of the security property, or null if not set
      *          or not accessible
      */
-    public static String getLegacyAlgoritmsSilently() {
+    public static String getLegacyAlgorithmsSilently() {
         String defaultLegacyAlgorithms = null;
         try {
             defaultLegacyAlgorithms = Security.getProperty(LEGACY_ALGORITHMS_SECURITY_KEY);
@@ -241,12 +243,12 @@ public class CipherFactory {
         return defaultLegacyAlgorithms;
     }
 
-    private static void setLegacyAlgorithmsSilently(String legacyAlgos) {
-        if (legacyAlgos == null) {
+    private static void setLegacyAlgorithmsSilently(String legacyAlgorithms) {
+        if (legacyAlgorithms == null) {
             return;
         }
         try {
-            Security.setProperty(LEGACY_ALGORITHMS_SECURITY_KEY, legacyAlgos);
+            Security.setProperty(LEGACY_ALGORITHMS_SECURITY_KEY, legacyAlgorithms);
         } catch (SecurityException e) {
             // ignore
         }

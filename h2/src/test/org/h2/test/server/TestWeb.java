@@ -28,12 +28,15 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.WriteListener;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -139,7 +142,7 @@ public class TestWeb extends TestBase {
         Server server = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         server.start();
-        assertTrue(server.getStatus().contains("server running"));
+        assertContains(server.getStatus(), "server running");
         Server server2 = Server.createWebServer(
                 "-webPort", "8182", "-properties", "null");
         assertEquals("Not started", server2.getStatus());
@@ -147,9 +150,9 @@ public class TestWeb extends TestBase {
             server2.start();
             fail();
         } catch (Exception e) {
-            assertTrue(e.toString().contains("port may be in use"));
-            assertTrue(server2.getStatus().contains(
-                    "could not be started"));
+            assertContains(e.toString(), "port may be in use");
+            assertContains(server2.getStatus(),
+                    "could not be started");
         }
         server.stop();
     }
@@ -938,6 +941,22 @@ public class TestWeb extends TestBase {
             return null;
         }
 
+        @Override
+        public long getContentLengthLong() {
+            return 0;
+        }
+
+        @Override
+        public String changeSessionId() {
+            return null;
+        }
+
+        @Override
+        public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass)
+                throws IOException, ServletException {
+            return null;
+        }
+
     }
 
     /**
@@ -1013,6 +1032,11 @@ public class TestWeb extends TestBase {
 
         @Override
         public void setContentLength(int arg0) {
+            // ignore
+        }
+
+        @Override
+        public void setContentLengthLong(long arg0) {
             // ignore
         }
 
@@ -1155,6 +1179,16 @@ public class TestWeb extends TestBase {
             } catch (UnsupportedEncodingException e) {
                 return e.toString();
             }
+        }
+
+        @Override
+        public boolean isReady() {
+            return true;
+        }
+
+        @Override
+        public void setWriteListener(WriteListener writeListener) {
+            // ignore
         }
 
     }

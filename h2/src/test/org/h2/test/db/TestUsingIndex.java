@@ -26,7 +26,6 @@ public class TestUsingIndex extends TestBase {
      * Run just this test.
      *
      * @param a ignored
-     * @throws java.lang.Exception
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();

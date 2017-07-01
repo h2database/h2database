@@ -10,6 +10,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.store.FileLister;
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
@@ -45,11 +47,11 @@ public class TestKillProcess {
             PreparedStatement prep1b = conn1.prepareStatement(
                     "UPDATE ACCOUNT SET SUM=SUM+? WHERE ID=?");
             conn1.setAutoCommit(false);
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             String d = null;
             for (int i = 0;; i++) {
-                long t = System.currentTimeMillis();
-                if (t > time + 1000) {
+                long t = System.nanoTime();
+                if (t > time + TimeUnit.SECONDS.toNanos(1)) {
                     ArrayList<String> list = FileLister.getDatabaseFiles(
                             baseDir, "kill", true);
                     System.out.println("inserting... i:" + i + " d:" + d +

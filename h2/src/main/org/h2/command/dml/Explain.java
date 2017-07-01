@@ -59,6 +59,14 @@ public class Explain extends Prepared {
     }
 
     @Override
+    protected void checkParameters() {
+        // Check params only in case of EXPLAIN ANALYZE
+        if (executeCommand) {
+            super.checkParameters();
+        }
+    }
+
+    @Override
     public ResultInterface query(int maxrows) {
         Column column = new Column("PLAN", Value.STRING);
         Database db = session.getDatabase();
@@ -146,6 +154,6 @@ public class Explain extends Prepared {
 
     @Override
     public int getType() {
-        return CommandInterface.EXPLAIN;
+        return executeCommand ? CommandInterface.EXPLAIN_ANALYZE : CommandInterface.EXPLAIN;
     }
 }

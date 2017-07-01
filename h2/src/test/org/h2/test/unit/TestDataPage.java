@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Types;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.JavaObjectSerializer;
 import org.h2.store.Data;
@@ -40,6 +41,7 @@ import org.h2.value.ValueStringFixed;
 import org.h2.value.ValueStringIgnoreCase;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 import org.h2.value.ValueUuid;
 
 /**
@@ -73,7 +75,7 @@ public class TestDataPage extends TestBase implements DataHandler {
     private static void testPerformance() {
         Data data = Data.create(null, 1024);
         for (int j = 0; j < 4; j++) {
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             for (int i = 0; i < 100000; i++) {
                 data.reset();
                 for (int k = 0; k < 30; k++) {
@@ -92,10 +94,12 @@ public class TestDataPage extends TestBase implements DataHandler {
             //                    data.writeVarInt(k * k);
             //                }
             //            }
-            System.out.println("write: " + (System.currentTimeMillis() - time) + " ms");
+            System.out.println("write: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) +
+                    " ms");
         }
         for (int j = 0; j < 4; j++) {
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             for (int i = 0; i < 1000000; i++) {
                 data.reset();
                 for (int k = 0; k < 30; k++) {
@@ -114,7 +118,9 @@ public class TestDataPage extends TestBase implements DataHandler {
             //                    data.readInt();
             //                }
             //            }
-            System.out.println("read: " + (System.currentTimeMillis() - time) + " ms");
+            System.out.println("read: " +
+                    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - time) +
+                    " ms");
         }
     }
 
@@ -166,6 +172,7 @@ public class TestDataPage extends TestBase implements DataHandler {
         testValue(ValueTime.get(new Time(0)));
         testValue(ValueTimestamp.fromMillis(System.currentTimeMillis()));
         testValue(ValueTimestamp.fromMillis(0));
+        testValue(ValueTimestampTimeZone.parse("2000-01-01 10:00:00"));
         testValue(ValueJavaObject.getNoCopy(null, new byte[0], this));
         testValue(ValueJavaObject.getNoCopy(null, new byte[100], this));
         for (int i = 0; i < 300; i++) {

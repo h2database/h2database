@@ -12,11 +12,11 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
-
 import org.h2.engine.Constants;
 
 /**
- * An input stream that reads the data from a reader.
+ * An input stream that reads the data from a reader and limits the number of
+ * bytes that can be read.
  */
 public class CountingReaderInputStream extends InputStream {
 

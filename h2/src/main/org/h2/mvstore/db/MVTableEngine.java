@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.TableEngine;
@@ -349,12 +350,12 @@ public class MVTableEngine implements TableEngine {
          */
         public void compactFile(long maxCompactTime) {
             store.setRetentionTime(0);
-            long start = System.currentTimeMillis();
+            long start = System.nanoTime();
             while (store.compact(95, 16 * 1024 * 1024)) {
                 store.sync();
                 store.compactMoveChunks(95, 16 * 1024 * 1024);
-                long time = System.currentTimeMillis() - start;
-                if (time > maxCompactTime) {
+                long time = System.nanoTime() - start;
+                if (time > TimeUnit.MILLISECONDS.toNanos(maxCompactTime)) {
                     break;
                 }
             }

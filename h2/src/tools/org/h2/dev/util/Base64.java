@@ -6,6 +6,7 @@
 package org.h2.dev.util;
 
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class converts binary to base64 and vice versa.
@@ -68,7 +69,7 @@ public class Base64 {
 
     private static void test(boolean fast, int len) {
         Random random = new Random(10);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         byte[] bin = new byte[len];
         random.nextBytes(bin);
         for (int i = 0; i < len; i++) {
@@ -82,8 +83,8 @@ public class Base64 {
             }
             test(bin, dec);
         }
-        time = System.currentTimeMillis() - time;
-        System.out.println("fast=" + fast + " time=" + time);
+        time = System.nanoTime() - time;
+        System.out.println("fast=" + fast + " time=" + TimeUnit.NANOSECONDS.toMillis(time));
     }
 
     private static void test(byte[] in, byte[] out) {

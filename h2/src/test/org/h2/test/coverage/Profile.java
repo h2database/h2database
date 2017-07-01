@@ -10,6 +10,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.util.concurrent.TimeUnit;
+
 import org.h2.util.IOUtils;
 
 /**
@@ -25,26 +27,22 @@ public class Profile extends Thread {
     private boolean stop;
     private int maxIndex;
     private int lastIndex;
-    private long lastTime;
+    private long lastTimeNs;
     private BufferedWriter trace;
 
     private Profile() {
-        LineNumberReader r = null;
-        try {
-            r = new LineNumberReader(new FileReader("profile.txt"));
+        try (LineNumberReader r = new LineNumberReader(new FileReader("profile.txt"))) {
             while (r.readLine() != null) {
                 // nothing - just count lines
             }
             maxIndex = r.getLineNumber();
             count = new int[maxIndex];
             time = new int[maxIndex];
-            lastTime = System.currentTimeMillis();
+            lastTimeNs = System.nanoTime();
             Runtime.getRuntime().addShutdownHook(this);
         } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
-        } finally {
-            IOUtils.closeSilently(r);
         }
     }
 
@@ -79,7 +77,7 @@ public class Profile extends Thread {
      */
     public static void startCollecting() {
         MAIN.stop = false;
-        MAIN.lastTime = System.currentTimeMillis();
+        MAIN.lastTimeNs = System.nanoTime();
     }
 
     /**
@@ -110,10 +108,10 @@ public class Profile extends Thread {
         if (stop) {
             return;
         }
-        long now = System.currentTimeMillis();
+        long now = System.nanoTime();
         if (TRACE) {
             if (trace != null) {
-                int duration = (int) (now - lastTime);
+                long duration = TimeUnit.NANOSECONDS.toMillis(now - lastTimeNs);
                 try {
                     trace.write(i + "\t" + duration + "\r\n");
                 } catch (Exception e) {
@@ -123,8 +121,8 @@ public class Profile extends Thread {
             }
         }
         count[i]++;
-        time[lastIndex] += (int) (now - lastTime);
-        lastTime = now;
+        time[lastIndex] += (int) TimeUnit.NANOSECONDS.toMillis(now - lastTimeNs);
+        lastTimeNs = now;
         lastIndex = i;
     }
 
@@ -195,9 +193,8 @@ public class Profile extends Thread {
             list[bigIndex] = -(big + 1);
             index[i] = bigIndex;
         }
-        LineNumberReader r = null;
-        try {
-            r = new LineNumberReader(new FileReader("profile.txt"));
+
+        try (LineNumberReader r = new LineNumberReader(new FileReader("profile.txt"))) {
             for (int i = 0; i < maxIndex; i++) {
                 String line = r.readLine();
                 int k = list[i];
@@ -215,8 +212,6 @@ public class Profile extends Thread {
             for (int i = 0; i < max; i++) {
                 print(text[i]);
             }
-        } finally {
-            IOUtils.closeSilently(r);
         }
     }
 

@@ -225,8 +225,9 @@ public class TestCacheLongKeyLIRS extends TestBase {
         test.put(5, 50);
         assertTrue(test.containsValue(50));
         verify(test, "mem: 4 stack: 5 4 3 2 cold: 5 non-resident: 1");
+        // 1 was non-resident, so this should make it hot
         test.put(1, 10);
-        verify(test, "mem: 4 stack: 1 5 4 3 2 cold: 1 non-resident: 5");
+        verify(test, "mem: 4 stack: 1 5 4 3 cold: 2 non-resident: 5");
         assertFalse(test.containsValue(50));
         test.remove(2);
         test.remove(3);

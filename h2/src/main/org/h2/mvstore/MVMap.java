@@ -60,7 +60,12 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private ConcurrentArrayList<Page> oldRoots =
             new ConcurrentArrayList<Page>();
 
-    private boolean closed;
+
+    /**
+     * Whether the map is closed. Volatile so we don't accidentally write to a
+     * closed map in multithreaded mode.
+     */
+    private volatile boolean closed;
     private boolean readOnly;
     private boolean isVolatile;
 

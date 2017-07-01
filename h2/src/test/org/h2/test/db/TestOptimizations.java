@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
@@ -58,6 +59,7 @@ public class TestOptimizations extends TestBase {
         testNestedIn();
         testConstantIn1();
         testConstantIn2();
+        testConstantTypeConversionToColumnType();
         testNestedInSelectAndLike();
         testNestedInSelect();
         testInSelectJoin();
@@ -218,6 +220,9 @@ public class TestOptimizations extends TestBase {
     }
 
     private void testQueryCacheConcurrentUse() throws Exception {
+        if (config.lazy) {
+            return;
+        }
         final Connection conn = getConnection("optimizations");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, data clob)");
@@ -338,12 +343,12 @@ public class TestOptimizations extends TestBase {
         rs = stat.executeQuery("explain select * from test " +
                 "where id > 10 order by id");
         rs.next();
-        assertTrue(rs.getString(1).contains("IDX_ID_ASC"));
+        assertContains(rs.getString(1), "IDX_ID_ASC");
 
         rs = stat.executeQuery("explain select * from test " +
                 "where id < 10 order by id desc");
         rs.next();
-        assertTrue(rs.getString(1).contains("IDX_ID_DESC"));
+        assertContains(rs.getString(1), "IDX_ID_DESC");
 
         rs.next();
         stat.execute("drop table test");
@@ -459,6 +464,26 @@ public class TestOptimizations extends TestBase {
         resultSet = stat.executeQuery(
                 "SELECT x FROM testValues WHERE x IN ('FOO','bar')");
         assertTrue(resultSet.next());
+
+        conn.close();
+    }
+
+    private void testConstantTypeConversionToColumnType() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations;IGNORECASE=TRUE");
+        Statement stat = conn.createStatement();
+
+        stat.executeUpdate("CREATE TABLE test (x int)");
+        ResultSet resultSet;
+        resultSet = stat.executeQuery(
+            "EXPLAIN SELECT x FROM test WHERE x = '5'");
+
+        assertTrue(resultSet.next());
+        // String constant '5' has been converted to int constant 5 on
+        // optimization
+        assertTrue(resultSet.getString(1).endsWith("X = 5"));
+
+        stat.execute("drop table test");
 
         conn.close();
     }
@@ -635,7 +660,7 @@ public class TestOptimizations extends TestBase {
             rs.next();
             if (!config.mvcc) {
                 String plan = rs.getString(1);
-                assertTrue(plan.indexOf("direct") > 0);
+                assertContains(plan, "direct");
             }
             rs = stat.executeQuery("select min(x), max(x) from test");
             rs.next();
@@ -667,7 +692,7 @@ public class TestOptimizations extends TestBase {
                 "WHERE id < 100 and type=2 AND id<100");
         rs.next();
         String plan = rs.getString(1);
-        assertTrue(plan.indexOf("TYPE_INDEX") > 0);
+        assertContains(plan, "TYPE_INDEX");
         conn.close();
     }
 
@@ -782,16 +807,18 @@ public class TestOptimizations extends TestBase {
     private void testQuerySpeed(Statement stat, String sql) throws SQLException {
         stat.execute("set OPTIMIZE_REUSE_RESULTS 0");
         stat.execute(sql);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         stat.execute(sql);
-        time = System.currentTimeMillis() - time;
+        time = System.nanoTime() - time;
         stat.execute("set OPTIMIZE_REUSE_RESULTS 1");
         stat.execute(sql);
-        long time2 = System.currentTimeMillis();
+        long time2 = System.nanoTime();
         stat.execute(sql);
-        time2 = System.currentTimeMillis() - time2;
+        time2 = System.nanoTime() - time2;
         if (time2 > time * 2) {
-            fail("not optimized: " + time + " optimized: " + time2 + " sql:" + sql);
+            fail("not optimized: " + TimeUnit.NANOSECONDS.toMillis(time) +
+                    " optimized: " + TimeUnit.NANOSECONDS.toMillis(time2) +
+                    " sql:" + sql);
         }
     }
 

@@ -12,7 +12,6 @@ import java.lang.reflect.Modifier;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.h2.Driver;
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
@@ -196,7 +195,7 @@ public class FunctionAlias extends SchemaObjectBase {
 
     @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -440,7 +439,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     }
                     o = objArray;
                 } else {
-                    v = v.convertTo(type);
+                    v = v.convertTo(type, -1, session.getDatabase().getMode());
                     o = v.getObject();
                 }
                 if (o == null) {

@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
 import javax.servlet.FilterRegistration.Dynamic;
@@ -30,7 +29,6 @@ import javax.servlet.ServletRegistration;
 import javax.servlet.SessionCookieConfig;
 import javax.servlet.SessionTrackingMode;
 import javax.servlet.descriptor.JspConfigDescriptor;
-
 import org.h2.api.ErrorCode;
 import org.h2.server.web.DbStarter;
 import org.h2.test.TestBase;
@@ -150,6 +148,7 @@ public class TestServlet extends TestBase {
          * @deprecated as of servlet API 2.1
          */
         @Override
+        @Deprecated
         public Servlet getServlet(String string) {
             throw new UnsupportedOperationException();
         }
@@ -162,6 +161,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Deprecated
         @Override
         public Enumeration<String> getServletNames() {
             throw new UnsupportedOperationException();
@@ -170,6 +170,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.0
          */
+        @Deprecated
         @Override
         public Enumeration<Servlet> getServlets() {
             throw new UnsupportedOperationException();
@@ -183,6 +184,7 @@ public class TestServlet extends TestBase {
         /**
          * @deprecated as of servlet API 2.1
          */
+        @Deprecated
         @Override
         public void log(Exception exception, String string) {
             throw new UnsupportedOperationException();
@@ -335,6 +337,10 @@ public class TestServlet extends TestBase {
             throw new UnsupportedOperationException();
         }
 
+        @Override
+        public String getVirtualServerName() {
+            throw new UnsupportedOperationException();
+        }
 
     }
 

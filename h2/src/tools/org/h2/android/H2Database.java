@@ -26,6 +26,7 @@ import android.database.Cursor;
 /**
  * This class represents a database connection.
  */
+@SuppressWarnings("unused")
 public class H2Database {
 
     /**
@@ -622,9 +623,10 @@ public class H2Database {
     /**
      * TODO
      *
-     * @deprecated
+     * @deprecated deprecated in API Level 3, use yieldIfContendedSafely
      * @return TODO
      */
+    @Deprecated
     public boolean yieldIfContended() {
         return false;
     }
@@ -679,7 +681,7 @@ public class H2Database {
         return prep;
     }
 
-    private Value getValue(Object o) {
+    private static Value getValue(Object o) {
         if (o == null) {
             return ValueNull.INSTANCE;
         } else if (o instanceof String) {

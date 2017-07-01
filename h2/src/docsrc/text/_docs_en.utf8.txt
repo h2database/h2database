@@ -359,7 +359,7 @@ Detect Which Cluster Instances are Running
 Clustering Algorithm and Limitations
 
 @advanced_1120_p
- Read-only queries are only executed against the first cluster node, but all other statements are executed against all nodes. There is currently no load balancing made to avoid problems with transactions. The following functions may yield different results on different cluster nodes and must be executed with care: <code>RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not using a seed]. Those functions should not be used directly in modifying statements (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used in read-only statements and the result can then be used for modifying statements. Using auto-increment and identity columns is currently not supported. Instead, sequence values need to be manually requested and then used to insert data (using two statements). 
+ Read-only queries are only executed against the first cluster node, but all other statements are executed against all nodes. There is currently no load balancing made to avoid problems with transactions. The following functions may yield different results on different cluster nodes and must be executed with care: <code>UUID(), RANDOM_UUID(), SECURE_RAND(), SESSION_ID(), MEMORY_FREE(), MEMORY_USED(), CSVREAD(), CSVWRITE(), RAND()</code> [when not using a seed]. Those functions should not be used directly in modifying statements (for example <code>INSERT, UPDATE, MERGE</code>). However, they can be used in read-only statements and the result can then be used for modifying statements. Using auto-increment and identity columns is currently not supported. Instead, sequence values need to be manually requested and then used to insert data (using two statements). 
 
 @advanced_1121_p
  When using the cluster modes, result sets are read fully in memory by the client, so that there is no problem if the server dies that executed the query. Result sets must fit in memory on the client side. 
@@ -1028,7 +1028,7 @@ TLS Connections
 Universally Unique Identifiers (UUID)
 
 @advanced_1343_p
- This database supports UUIDs. Also supported is a function to create new UUIDs using a cryptographically strong pseudo random number generator. With random UUIDs, the chance of two having the same value can be calculated using the probability theory. See also 'Birthday Paradox'. Standardized randomly generated UUIDs have 122 random bits. 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz). This database supports generating such UUIDs using the built-in function <code>RANDOM_UUID()</code>. Here is a small program to estimate the probability of having two identical UUIDs after generating a number of values: 
+ This database supports UUIDs. Also supported is a function to create new UUIDs using a cryptographically strong pseudo random number generator. With random UUIDs, the chance of two having the same value can be calculated using the probability theory. See also 'Birthday Paradox'. Standardized randomly generated UUIDs have 122 random bits. 4 bits are used for the version (Randomly generated UUID), and 2 bits for the variant (Leach-Salz). This database supports generating such UUIDs using the built-in function <code>RANDOM_UUID()</code> or <code>UUID()</code>. Here is a small program to estimate the probability of having two identical UUIDs after generating a number of values: 
 
 @advanced_1344_p
  Some values are: 
@@ -10271,7 +10271,7 @@ Issue 50: Oracle compatibility: support calling 0-parameters functions without p
 MySQL, HSQLDB compatibility: support where 'a'=1 (not supported by Derby, PostgreSQL) 
 
 @roadmap_1272_li
-Support a data type "timestamp with timezone" using java.util.Calendar. 
+Support a data type "timestamp with time zone" using java.util.Calendar. 
 
 @roadmap_1273_li
 Finer granularity for SLF4J trace - See http://code.google.com/p/h2database/issues/detail?id=62 

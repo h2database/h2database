@@ -43,19 +43,19 @@ public class TestOptimizerHints extends TestBase {
         String plan;
 
         plan = plan(s, "select * from t1, t2 where t1.id = t2.t1_id");
-        assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T2"));
+        assertContains(plan, "INNER JOIN PUBLIC.T2");
 
         plan = plan(s, "select * from t2, t1 where t1.id = t2.t1_id");
-        assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T1"));
+        assertContains(plan, "INNER JOIN PUBLIC.T1");
 
         plan = plan(s, "select * from t2, t1 where t1.id = 1");
-        assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T1"));
+        assertContains(plan, "INNER JOIN PUBLIC.T1");
 
         plan = plan(s, "select * from t2, t1 where t1.id = t2.t1_id and t2.id = 1");
-        assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T1"));
+        assertContains(plan, "INNER JOIN PUBLIC.T1");
 
         plan = plan(s, "select * from t1, t2 where t1.id = t2.t1_id and t2.id = 1");
-        assertTrue(plan, plan.contains("INNER JOIN PUBLIC.T2"));
+        assertContains(plan, "INNER JOIN PUBLIC.T2");
 
         checkPlanComma(s, "t1", "t2", "t3", "t4");
         checkPlanComma(s, "t4", "t2", "t3", "t1");

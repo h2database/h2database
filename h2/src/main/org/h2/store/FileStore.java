@@ -10,7 +10,6 @@ import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Arrays;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -148,6 +147,7 @@ public class FileStore {
      *
      * @param salt the salt
      */
+    @SuppressWarnings("unused")
     protected void initKey(byte[] salt) {
         // do nothing
     }
@@ -400,7 +400,7 @@ public class FileStore {
         if (SysProperties.CHECK2) {
             try {
                 if (file.position() != filePos) {
-                    DbException.throwInternalError();
+                    DbException.throwInternalError(file.position() + " " + filePos);
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, name);

@@ -7,7 +7,6 @@ package org.h2.constraint;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -626,7 +625,7 @@ public class ConstraintReferential extends Constraint {
         } else if (this.refIndex == index) {
             refIndexOwner = true;
         } else {
-            DbException.throwInternalError();
+            DbException.throwInternalError(index + " " + toString());
         }
     }
 

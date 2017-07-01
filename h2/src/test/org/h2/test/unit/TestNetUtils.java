@@ -11,12 +11,10 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
-
 import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.util.NetUtils;
@@ -57,7 +55,6 @@ public class TestNetUtils extends TestBase {
      * With default settings, H2 client SSL socket should be able to connect
      * to an H2 server SSL socket using an anonymous cipher suite
      * (no SSL certificate is needed).
-     * @throws Exception
      */
     private void testAnonymousTlsSession() throws Exception {
         assertTrue("Failed assumption: the default value of ENABLE_ANONYMOUS_TLS" +
@@ -98,7 +95,6 @@ public class TestNetUtils extends TestBase {
      * does not allow anonymous TLS.
      * The global property ENABLE_ANONYMOUS_TLS cannot be modified for the test;
      * instead, the server socket is altered.
-     * @throws Exception
      */
     private void testTlsSessionWithServerSideAnonymousDisabled() throws Exception {
         boolean ssl = true;
@@ -140,7 +136,7 @@ public class TestNetUtils extends TestBase {
 
     private Task createServerSocketTask(final ServerSocket serverSocket) {
         Task task = new Task() {
-            
+
             @Override
             public void call() throws Exception {
                 Socket ss = null;
@@ -148,14 +144,19 @@ public class TestNetUtils extends TestBase {
                     ss = serverSocket.accept();
                     ss.getOutputStream().write(123);
                 } finally {
-                   closeSilently(ss);
+                    closeSilently(ss);
                 }
             }
         };
         return task;
     }
 
-    private void closeSilently(Socket socket) {
+    /**
+     * Close a socket, ignoring errors
+     *
+     * @param socket the socket
+     */
+    void closeSilently(Socket socket) {
         try {
             socket.close();
         } catch (Exception e) {
@@ -163,7 +164,12 @@ public class TestNetUtils extends TestBase {
         }
     }
 
-    private void closeSilently(ServerSocket socket) {
+    /**
+     * Close a server socket, ignoring errors
+     *
+     * @param socket the server socket
+     */
+    void closeSilently(ServerSocket socket) {
         try {
             socket.close();
         } catch (Exception e) {
@@ -171,7 +177,7 @@ public class TestNetUtils extends TestBase {
         }
     }
 
-    private void testFrequentConnections(boolean ssl, int count) throws Exception {
+    private static void testFrequentConnections(boolean ssl, int count) throws Exception {
         final ServerSocket serverSocket = NetUtils.createServerSocket(PORT, ssl);
         final AtomicInteger counter = new AtomicInteger(count);
         Task serverThread = new Task() {

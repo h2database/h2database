@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.test.TestBase;
 import org.h2.tools.MultiDimension;
@@ -106,11 +107,11 @@ public class TestMultiDimension extends TestBase {
         // the MultiDimension tool is faster for 4225 (65^2) points
         // the more the bigger the difference
         int max = getSize(30, 65);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         for (int x = 0; x < max; x++) {
             for (int y = 0; y < max; y++) {
-                long t2 = System.currentTimeMillis();
-                if (t2 - time > 1000) {
+                long t2 = System.nanoTime();
+                if (t2 - time > TimeUnit.SECONDS.toNanos(1)) {
                     int percent = (int) (100.0 * ((double) x * max + y) /
                             ((double) max * max));
                     trace(percent + "%");
@@ -139,17 +140,17 @@ public class TestMultiDimension extends TestBase {
             int minX = rand.nextInt(max - size);
             int minY = rand.nextInt(max - size);
             int maxX = minX + size, maxY = minY + size;
-            time = System.currentTimeMillis();
+            time = System.nanoTime();
             ResultSet rs1 = multi.getResult(prepMulti,
                     new int[] { minX, minY }, new int[] { maxX, maxY });
-            timeMulti += System.currentTimeMillis() - time;
-            time = System.currentTimeMillis();
+            timeMulti += System.nanoTime() - time;
+            time = System.nanoTime();
             prepRegular.setInt(1, minX);
             prepRegular.setInt(2, maxX);
             prepRegular.setInt(3, minY);
             prepRegular.setInt(4, maxY);
             ResultSet rs2 = prepRegular.executeQuery();
-            timeRegular += System.currentTimeMillis() - time;
+            timeRegular += System.nanoTime() - time;
             while (rs1.next()) {
                 assertTrue(rs2.next());
                 assertEquals(rs1.getInt(1), rs2.getInt(1));
@@ -159,7 +160,8 @@ public class TestMultiDimension extends TestBase {
         }
         conn.close();
         deleteDb("multiDimension");
-        trace("2d: regular: " + timeRegular + " MultiDimension: " + timeMulti);
+        trace("2d: regular: " + TimeUnit.NANOSECONDS.toMillis(timeRegular) +
+                " MultiDimension: " + TimeUnit.NANOSECONDS.toMillis(timeMulti));
     }
 
     private void testPerformance3d() throws SQLException {
@@ -179,12 +181,12 @@ public class TestMultiDimension extends TestBase {
         // the MultiDimension tool is faster for 8000 (20^3) points
         // the more the bigger the difference
         int max = getSize(10, 20);
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         for (int x = 0; x < max; x++) {
             for (int y = 0; y < max; y++) {
                 for (int z = 0; z < max; z++) {
-                    long t2 = System.currentTimeMillis();
-                    if (t2 - time > 1000) {
+                    long t2 = System.nanoTime();
+                    if (t2 - time > TimeUnit.SECONDS.toNanos(1)) {
                         int percent = (int) (100.0 * ((double) x * max + y) /
                                 ((double) max * max));
                         trace(percent + "%");
@@ -216,11 +218,11 @@ public class TestMultiDimension extends TestBase {
             int minY = rand.nextInt(max - size);
             int minZ = rand.nextInt(max - size);
             int maxX = minX + size, maxY = minY + size, maxZ = minZ + size;
-            time = System.currentTimeMillis();
+            time = System.nanoTime();
             ResultSet rs1 = multi.getResult(prepMulti, new int[] { minX, minY,
                     minZ }, new int[] { maxX, maxY, maxZ });
-            timeMulti += System.currentTimeMillis() - time;
-            time = System.currentTimeMillis();
+            timeMulti += System.nanoTime() - time;
+            time = System.nanoTime();
             prepRegular.setInt(1, minX);
             prepRegular.setInt(2, maxX);
             prepRegular.setInt(3, minY);
@@ -228,7 +230,7 @@ public class TestMultiDimension extends TestBase {
             prepRegular.setInt(5, minZ);
             prepRegular.setInt(6, maxZ);
             ResultSet rs2 = prepRegular.executeQuery();
-            timeRegular += System.currentTimeMillis() - time;
+            timeRegular += System.nanoTime() - time;
             while (rs1.next()) {
                 assertTrue(rs2.next());
                 assertEquals(rs1.getInt(1), rs2.getInt(1));
@@ -238,7 +240,8 @@ public class TestMultiDimension extends TestBase {
         }
         conn.close();
         deleteDb("multiDimension");
-        trace("3d: regular: " + timeRegular + " MultiDimension: " + timeMulti);
+        trace("3d: regular: " + TimeUnit.NANOSECONDS.toMillis(timeRegular) +
+                " MultiDimension: " + TimeUnit.NANOSECONDS.toMillis(timeMulti));
     }
 
     /**

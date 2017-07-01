@@ -11,7 +11,6 @@ import java.io.LineNumberReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
 
@@ -43,34 +42,34 @@ public class TestScriptSimple extends TestBase {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         LineNumberReader lineReader = new LineNumberReader(
                 new InputStreamReader(is, "Cp1252"));
-        ScriptReader reader = new ScriptReader(lineReader);
-        while (true) {
-            String sql = reader.readStatement();
-            if (sql == null) {
-                break;
-            }
-            sql = sql.trim();
-            try {
-                if ("@reconnect".equals(sql.toLowerCase())) {
-                    reconnect();
-                } else if (sql.length() == 0) {
-                    // ignore
-                } else if (sql.toLowerCase().startsWith("select")) {
-                    ResultSet rs = conn.createStatement().executeQuery(sql);
-                    while (rs.next()) {
-                        String expected = reader.readStatement().trim();
-                        String got = "> " + rs.getString(1);
-                        assertEquals(sql, expected, got);
-                    }
-                } else {
-                    conn.createStatement().execute(sql);
+        try (ScriptReader reader = new ScriptReader(lineReader)) {
+            while (true) {
+                String sql = reader.readStatement();
+                if (sql == null) {
+                    break;
                 }
-            } catch (SQLException e) {
-                System.out.println(sql);
-                throw e;
+                sql = sql.trim();
+                try {
+                    if ("@reconnect".equals(sql.toLowerCase())) {
+                        reconnect();
+                    } else if (sql.length() == 0) {
+                        // ignore
+                    } else if (sql.toLowerCase().startsWith("select")) {
+                        ResultSet rs = conn.createStatement().executeQuery(sql);
+                        while (rs.next()) {
+                            String expected = reader.readStatement().trim();
+                            String got = "> " + rs.getString(1);
+                            assertEquals(sql, expected, got);
+                        }
+                    } else {
+                        conn.createStatement().execute(sql);
+                    }
+                } catch (SQLException e) {
+                    System.out.println(sql);
+                    throw e;
+                }
             }
         }
-        is.close();
         conn.close();
         deleteDb("scriptSimple");
     }

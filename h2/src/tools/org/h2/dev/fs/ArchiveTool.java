@@ -18,12 +18,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
@@ -57,13 +60,14 @@ public class ArchiveTool {
      */
     public static void main(String... args) throws Exception {
         Log log = new Log();
+        int level = Integer.getInteger("level", Deflater.BEST_SPEED);
         if (args.length == 1) {
             File f = new File(args[0]);
             if (f.exists()) {
                 if (f.isDirectory()) {
                     String fromDir = f.getAbsolutePath();
                     String toFile = fromDir + ".at";
-                    compress(fromDir, toFile);
+                    compress(fromDir, toFile, level);
                     return;
                 }
                 String fromFile = f.getAbsolutePath();
@@ -79,7 +83,7 @@ public class ArchiveTool {
         if ("-compress".equals(arg)) {
             String toFile = args[1];
             String fromDir = args[2];
-            compress(fromDir, toFile);
+            compress(fromDir, toFile, level);
         } else if ("-extract".equals(arg)) {
             String fromFile = args[1];
             String toDir = args[2];
@@ -94,9 +98,10 @@ public class ArchiveTool {
         }
     }
 
-    private static void compress(String fromDir, String toFile) throws IOException {
+    private static void compress(String fromDir, String toFile, int level) throws IOException {
         final Log log = new Log();
-        final long start = System.currentTimeMillis();
+        final long start = System.nanoTime();
+        final long startMs = System.currentTimeMillis();
         final AtomicBoolean title = new AtomicBoolean();
         long size = getSize(new File(fromDir), new Runnable() {
             int count;
@@ -105,8 +110,8 @@ public class ArchiveTool {
             public void run() {
                 count++;
                 if (count % 1000 == 0) {
-                    long now = System.currentTimeMillis();
-                    if (now - lastTime > 3000) {
+                    long now = System.nanoTime();
+                    if (now - lastTime > TimeUnit.SECONDS.toNanos(3)) {
                         if (!title.getAndSet(true)) {
                             log.println("Counting files");
                         }
@@ -119,14 +124,15 @@ public class ArchiveTool {
         if (title.get()) {
             log.println();
         }
-        log.println("Compressing " + size / MB + " MB at " + new java.sql.Time(start).toString());
+        log.println("Compressing " + size / MB + " MB at " +
+                new java.sql.Time(startMs).toString());
         InputStream in = getDirectoryInputStream(fromDir);
         String temp = toFile + ".temp";
         OutputStream out =
                 new BufferedOutputStream(
                                 new FileOutputStream(toFile), 1024 * 1024);
         Deflater def = new Deflater();
-        def.setLevel(Deflater.BEST_SPEED);
+        def.setLevel(level);
         out = new BufferedOutputStream(
                 new DeflaterOutputStream(out, def), 1024 * 1024);
         sort(log, in, out, temp, size);
@@ -135,16 +141,17 @@ public class ArchiveTool {
         log.println();
         log.println("Compressed to " +
                 new File(toFile).length() / MB + " MB in " +
-                (System.currentTimeMillis() - start) / 1000 +
+                TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start)  +
                 " seconds");
         log.println();
     }
 
     private static void extract(String fromFile, String toDir) throws IOException {
         Log log = new Log();
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
+        long startMs = System.currentTimeMillis();
         long size = new File(fromFile).length();
-        log.println("Extracting " + size / MB + " MB at " + new java.sql.Time(start).toString());
+        log.println("Extracting " + size / MB + " MB at " + new java.sql.Time(startMs).toString());
         InputStream in =
                 new BufferedInputStream(
                         new FileInputStream(fromFile), 1024 * 1024);
@@ -158,7 +165,7 @@ public class ArchiveTool {
         out.close();
         log.println();
         log.println("Extracted in " +
-                (System.currentTimeMillis() - start) / 1000 +
+                TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start) +
                 " seconds");
     }
 
@@ -535,7 +542,13 @@ public class ArchiveTool {
         long inPos = 0;
         int bufferTotal = 64 * 1024 * 1024;
         int bufferPerStream = bufferTotal / segmentStart.size();
+        // FileChannel fc = new RandomAccessFile(tempFileName, "r").
+        //     getChannel();
         for (int i = 0; i < segmentStart.size(); i++) {
+            // long end = i < segmentStart.size() - 1 ?
+            //     segmentStart.get(i+1) : fc.size();
+            // InputStream in =
+            //     new SharedInputStream(fc, segmentStart.get(i), end);
             InputStream in = new FileInputStream(tempFileName);
             in.skip(segmentStart.get(i));
             ChunkStream s = new ChunkStream(i);
@@ -607,6 +620,102 @@ public class ArchiveTool {
     private static int[] getKey(byte[] data, int start, int maxPos) {
         int minLen = 4 * 1024;
         int mask = 4 * 1024 - 1;
+        long min = Long.MAX_VALUE;
+        int pos = start;
+        for (int j = 0; pos < maxPos; pos++, j++) {
+            if (pos <= start + 10) {
+                continue;
+            }
+            long hash = getSipHash24(data, pos - 10, pos, 111, 11224);
+            if (hash < min) {
+                min = hash;
+            }
+            if (j > minLen) {
+                if ((hash & mask) == 1) {
+                    break;
+                }
+                if (j > minLen * 4 && (hash & (mask >> 1)) == 1) {
+                    break;
+                }
+                if (j > minLen * 16) {
+                    break;
+                }
+            }
+        }
+        int len = pos - start;
+        int[] counts = new int[8];
+        for (int i = start; i < pos; i++) {
+            int x = data[i] & 0xff;
+            counts[x >> 5]++;
+        }
+        int cs = 0;
+        for (int i = 0; i < 8; i++) {
+            cs *= 2;
+            if (counts[i] > (len / 32)) {
+                cs += 1;
+            }
+        }
+        int[] key = new int[4];
+        ; // TODO test if cs makes a difference
+        key[0] = (int) (min >>> 32);
+        key[1] = (int) min;
+        key[2] = cs;
+        key[3] = len;
+        return key;
+    }
+
+    private static long getSipHash24(byte[] b, int start, int end, long k0,
+            long k1) {
+        long v0 = k0 ^ 0x736f6d6570736575L;
+        long v1 = k1 ^ 0x646f72616e646f6dL;
+        long v2 = k0 ^ 0x6c7967656e657261L;
+        long v3 = k1 ^ 0x7465646279746573L;
+        int repeat;
+        for (int off = start; off <= end + 8; off += 8) {
+            long m;
+            if (off <= end) {
+                m = 0;
+                int i = 0;
+                for (; i < 8 && off + i < end; i++) {
+                    m |= ((long) b[off + i] & 255) << (8 * i);
+                }
+                if (i < 8) {
+                    m |= ((long) end - start) << 56;
+                }
+                v3 ^= m;
+                repeat = 2;
+            } else {
+                m = 0;
+                v2 ^= 0xff;
+                repeat = 4;
+            }
+            for (int i = 0; i < repeat; i++) {
+                v0 += v1;
+                v2 += v3;
+                v1 = Long.rotateLeft(v1, 13);
+                v3 = Long.rotateLeft(v3, 16);
+                v1 ^= v0;
+                v3 ^= v2;
+                v0 = Long.rotateLeft(v0, 32);
+                v2 += v1;
+                v0 += v3;
+                v1 = Long.rotateLeft(v1, 17);
+                v3 = Long.rotateLeft(v3, 21);
+                v1 ^= v2;
+                v3 ^= v0;
+                v2 = Long.rotateLeft(v2, 32);
+            }
+            v0 ^= m;
+        }
+        return v0 ^ v1 ^ v2 ^ v3;
+    }
+
+    /**
+     * Get the sort key and length of a chunk.
+     */
+    private static int[] getKeyOld(byte[] data, int start, int maxPos) {
+        int minLen = 4 * 1024;
+        int mask = 4 * 1024 - 1;
         int min = Integer.MAX_VALUE;
         int max = Integer.MIN_VALUE;
         int pos = start;
@@ -676,6 +785,7 @@ public class ArchiveTool {
         byte[] header = new byte[4];
         dataIn.readFully(header);
         if (!Arrays.equals(header, HEADER)) {
+            tempOut.close();
             throw new IOException("Invalid header");
         }
         long size = readVarLong(dataIn);
@@ -988,12 +1098,12 @@ public class ArchiveTool {
         /**
          * Print the progress.
          *
-         * @param current the current value
+         * @param offset the offset since the last operation
          */
         void printProgress(long offset) {
             current += offset;
-            long now = System.currentTimeMillis();
-            if (now - lastTime > 3000) {
+            long now = System.nanoTime();
+            if (now - lastTime > TimeUnit.SECONDS.toNanos(3)) {
                 String msg = (low + (high - low) * current / total) + "% ";
                 if (pos > 80) {
                     System.out.println();
@@ -1054,6 +1164,42 @@ public class ArchiveTool {
             }
         }
         return x;
+    }
+
+    /**
+     * An input stream that uses a shared file channel.
+     */
+    static class SharedInputStream extends InputStream {
+        private final FileChannel channel;
+        private final long endPosition;
+        private long position;
+
+        SharedInputStream(FileChannel channel, long position, long endPosition) {
+            this.channel = channel;
+            this.position = position;
+            this.endPosition = endPosition;
+        }
+
+        @Override
+        public int read() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+            len = (int) Math.min(len, endPosition - position);
+            if (len <= 0) {
+                return -1;
+            }
+            ByteBuffer buff = ByteBuffer.wrap(b, off, len);
+            len = channel.read(buff, position);
+            position += len;
+            return len;
+        }
+
     }
 
 }

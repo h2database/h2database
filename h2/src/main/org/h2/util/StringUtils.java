@@ -9,6 +9,7 @@ import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -22,7 +23,7 @@ public class StringUtils {
 
     private static SoftReference<String[]> softCache =
             new SoftReference<String[]>(null);
-    private static long softCacheCreated;
+    private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
     private static final int[] HEX_DECODE = new int['f' + 1];
@@ -62,8 +63,8 @@ public class StringUtils {
         }
         // create a new cache at most every 5 seconds
         // so that out of memory exceptions are not delayed
-        long time = System.currentTimeMillis();
-        if (softCacheCreated != 0 && time - softCacheCreated < 5000) {
+        long time = System.nanoTime();
+        if (softCacheCreatedNs != 0 && time - softCacheCreatedNs < TimeUnit.SECONDS.toNanos(5)) {
             return null;
         }
         try {
@@ -71,7 +72,7 @@ public class StringUtils {
             softCache = new SoftReference<String[]>(cache);
             return cache;
         } finally {
-            softCacheCreated = System.currentTimeMillis();
+            softCacheCreatedNs = System.nanoTime();
         }
     }
 
@@ -612,7 +613,7 @@ public class StringUtils {
      * The data is indented with 4 spaces if it contains a newline character.
      *
      * @param data the comment text
-     * @return <!-- data -->
+     * @return &lt;!-- data --&gt;
      */
     public static String xmlComment(String data) {
         int idx = 0;
@@ -633,10 +634,10 @@ public class StringUtils {
 
     /**
      * Converts the data to a CDATA element.
-     * If the data contains ']]>', it is escaped as a text element.
+     * If the data contains ']]&gt;', it is escaped as a text element.
      *
      * @param data the text data
-     * @return <![CDATA[data]]>
+     * @return &lt;![CDATA[data]]&gt;
      */
     public static String xmlCData(String data) {
         if (data.contains("]]>")) {
@@ -648,8 +649,8 @@ public class StringUtils {
     }
 
     /**
-     * Returns <?xml version="1.0"?>
-     * @return <?xml version="1.0"?>
+     * Returns &lt;?xml version="1.0"?&gt;
+     * @return &lt;?xml version="1.0"?&gt;
      */
     public static String xmlStartDoc() {
         return "<?xml version=\"1.0\"?>\n";
@@ -907,47 +908,6 @@ public class StringUtils {
             }
             cache[index] = s;
         }
-        return s;
-    }
-
-    /**
-     * Get a string from the cache, and if no such string has been found, create
-     * a new one with only this content. This solves out of memory problems if
-     * the string is a substring of another, large string. In Java, strings are
-     * shared, which could lead to memory problems. This avoid such problems.
-     *
-     * @param s the string
-     * @return a string that is guaranteed not be a substring of a large string
-     */
-    public static String fromCacheOrNew(String s) {
-        if (!SysProperties.OBJECT_CACHE) {
-            return s;
-        }
-        if (s == null) {
-            return s;
-        } else if (s.length() == 0) {
-            return "";
-        }
-        int hash = s.hashCode();
-        String[] cache = getCache();
-        int index = hash & (SysProperties.OBJECT_CACHE_SIZE - 1);
-        if (cache == null) {
-            return s;
-        }
-        String cached = cache[index];
-        if (cached != null) {
-            if (s.equals(cached)) {
-                return cached;
-            }
-        }
-        // create a new object that is not shared
-        // (to avoid out of memory if it is a substring of a big String)
-        // (not longer needed for Java 7 update 6 and newer,
-        // but the performance overhead is very small for those
-        // versions where it is not needed)
-        // NOPMD
-        s = new String(s);
-        cache[index] = s;
         return s;
     }
 

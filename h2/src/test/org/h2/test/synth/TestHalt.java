@@ -16,13 +16,11 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
-
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
-import org.h2.util.IOUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -188,11 +186,9 @@ public abstract class TestHalt extends TestBase {
      * @param e the exception or null
      */
     protected void traceOperation(String s, Exception e) {
-        FileWriter writer = null;
-        try {
-            File f = new File(getBaseDir() + "/" + TRACE_FILE_NAME);
-            f.getParentFile().mkdirs();
-            writer = new FileWriter(f, true);
+        File f = new File(getBaseDir() + "/" + TRACE_FILE_NAME);
+        f.getParentFile().mkdirs();
+        try (FileWriter writer = new FileWriter(f, true)) {
             PrintWriter w = new PrintWriter(writer);
             s = dateFormat.format(new Date()) + ": " + s;
             w.println(s);
@@ -201,8 +197,6 @@ public abstract class TestHalt extends TestBase {
             }
         } catch (IOException e2) {
             e2.printStackTrace();
-        } finally {
-            IOUtils.closeSilently(writer);
         }
     }
 

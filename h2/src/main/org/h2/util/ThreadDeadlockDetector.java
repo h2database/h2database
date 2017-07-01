@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
-
+import org.h2.engine.SysProperties;
 import org.h2.mvstore.db.MVTable;
 
 /**
@@ -60,22 +60,50 @@ public class ThreadDeadlockDetector {
      * information.
      */
     void checkForDeadlocks() {
-        long[] ids = threadBean.findDeadlockedThreads();
-        if (ids == null) {
+        long[] deadlockedThreadIds = threadBean.findDeadlockedThreads();
+        if (deadlockedThreadIds == null) {
             return;
         }
+        dumpThreadsAndLocks("ThreadDeadlockDetector - deadlock found :",
+                threadBean, deadlockedThreadIds);
+    }
 
+    /**
+     * Dump all deadlocks (if any).
+     *
+     * @param msg the message
+     */
+    public static void dumpAllThreadsAndLocks(String msg) {
+        final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+        final long[] allThreadIds = threadBean.getAllThreadIds();
+        dumpThreadsAndLocks(msg, threadBean, allThreadIds);
+    }
+
+    private static void dumpThreadsAndLocks(String msg, ThreadMXBean threadBean,
+            long[] threadIds) {
         final StringWriter stringWriter = new StringWriter();
         final PrintWriter print = new PrintWriter(stringWriter);
 
-        print.println("ThreadDeadlockDetector - deadlock found :");
-        final ThreadInfo[] infos = threadBean.getThreadInfo(ids, true, true);
-        final HashMap<Long, String> tableWaitingForLockMap =
-                MVTable.WAITING_FOR_LOCK.getSnapshotOfAllThreads();
-        final HashMap<Long, ArrayList<String>> tableExclusiveLocksMap =
-                MVTable.EXCLUSIVE_LOCKS.getSnapshotOfAllThreads();
-        final HashMap<Long, ArrayList<String>> tableSharedLocksMap =
-                MVTable.SHARED_LOCKS.getSnapshotOfAllThreads();
+        print.println(msg);
+
+        final HashMap<Long, String> tableWaitingForLockMap;
+        final HashMap<Long, ArrayList<String>> tableExclusiveLocksMap;
+        final HashMap<Long, ArrayList<String>> tableSharedLocksMap;
+        if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
+            tableWaitingForLockMap = MVTable.WAITING_FOR_LOCK
+                    .getSnapshotOfAllThreads();
+            tableExclusiveLocksMap = MVTable.EXCLUSIVE_LOCKS
+                    .getSnapshotOfAllThreads();
+            tableSharedLocksMap = MVTable.SHARED_LOCKS
+                    .getSnapshotOfAllThreads();
+        } else {
+            tableWaitingForLockMap = New.hashMap();
+            tableExclusiveLocksMap = New.hashMap();
+            tableSharedLocksMap = New.hashMap();
+        }
+
+        final ThreadInfo[] infos = threadBean.getThreadInfo(threadIds, true,
+                true);
         for (ThreadInfo ti : infos) {
             printThreadInfo(print, ti);
             printLockInfo(print, ti.getLockedSynchronizers(),

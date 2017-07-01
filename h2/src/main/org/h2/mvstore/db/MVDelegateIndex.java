@@ -89,6 +89,11 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
     }
 
     @Override
+    public boolean isFirstColumn(Column column) {
+        return getColumnIndex(column) == 0;
+    }
+
+    @Override
     public double getCost(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {

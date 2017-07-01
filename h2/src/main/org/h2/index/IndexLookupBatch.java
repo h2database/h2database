@@ -19,7 +19,7 @@ import org.h2.result.SearchRow;
  * for multiple sequential batched lookups, moreover it can be reused for
  * multiple queries for the same prepared statement.
  *
- * @see Index#createLookupBatch(org.h2.table.TableFilter)
+ * @see Index#createLookupBatch(org.h2.table.TableFilter[], int)
  * @author Sergi Vladykin
  */
 public interface IndexLookupBatch {

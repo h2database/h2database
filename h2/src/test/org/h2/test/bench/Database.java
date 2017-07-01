@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
-import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -36,7 +36,7 @@ class Database {
     private String name, url, user, password;
     private final ArrayList<String[]> replace = new ArrayList<String[]>();
     private String currentAction;
-    private long startTime;
+    private long startTimeNs;
     private Connection conn;
     private Statement stat;
     private long lastTrace;
@@ -186,26 +186,18 @@ class Database {
         Connection newConn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
-            Statement s = null;
-            try {
-                s = newConn.createStatement();
+            try (Statement s = newConn.createStatement()) {
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageCacheSize', '64')");
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageSize', '8192')");
-            } finally {
-                JdbcUtils.closeSilently(s);
             }
         } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
-            Statement s = null;
-            try {
-                s = newConn.createStatement();
+            try (Statement s = newConn.createStatement()) {
                 s.execute("SET WRITE_DELAY 1");
-            } finally {
-                JdbcUtils.closeSilently(s);
             }
         }
         return newConn;
@@ -279,7 +271,7 @@ class Database {
      */
     void start(Bench bench, String action) {
         this.currentAction = bench.getName() + ": " + action;
-        this.startTime = System.currentTimeMillis();
+        this.startTimeNs = System.nanoTime();
     }
 
     /**
@@ -287,7 +279,7 @@ class Database {
      * data.
      */
     void end() {
-        long time = System.currentTimeMillis() - startTime;
+        long time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
         log(currentAction, "ms", (int) time);
         if (test.isCollect()) {
             totalTime += time;
@@ -370,10 +362,10 @@ class Database {
      */
     void trace(String action, int i, int max) {
         if (TRACE) {
-            long time = System.currentTimeMillis();
+            long time = System.nanoTime();
             if (i == 0 || lastTrace == 0) {
                 lastTrace = time;
-            } else if (time > lastTrace + 1000) {
+            } else if (time > lastTrace + TimeUnit.SECONDS.toNanos(1)) {
                 System.out.println(action + ": " + ((100 * i / max) + "%"));
                 lastTrace = time;
             }
@@ -411,9 +403,9 @@ class Database {
      * @return the result set
      */
     ResultSet query(PreparedStatement prep) throws SQLException {
-        // long time = System.currentTimeMillis();
+        // long time = System.nanoTime();
         ResultSet rs = prep.executeQuery();
-        // time = System.currentTimeMillis() - time;
+        // time = System.nanoTime() - time;
         // if(time > 100) {
         //     System.out.println("time="+time);
         // }

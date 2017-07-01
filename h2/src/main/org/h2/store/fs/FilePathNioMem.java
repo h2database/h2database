@@ -17,7 +17,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.h2.api.ErrorCode;
 import org.h2.compress.CompressLZF;
 import org.h2.message.DbException;
@@ -32,6 +33,11 @@ public class FilePathNioMem extends FilePath {
 
     private static final TreeMap<String, FileNioMemData> MEMORY_FILES =
             new TreeMap<String, FileNioMemData>();
+
+    /**
+     * The percentage of uncompressed (cached) entries.
+     */
+    float compressLaterCachePercent = 1;
 
     @Override
     public FilePathNioMem getPath(String path) {
@@ -183,14 +189,14 @@ public class FilePathNioMem extends FilePath {
         synchronized (MEMORY_FILES) {
             FileNioMemData m = MEMORY_FILES.get(name);
             if (m == null) {
-                m = new FileNioMemData(name, compressed());
+                m = new FileNioMemData(name, compressed(), compressLaterCachePercent);
                 MEMORY_FILES.put(name, m);
             }
             return m;
         }
     }
 
-    private boolean isRoot() {
+    protected boolean isRoot() {
         return name.equals(getScheme() + ":");
     }
 
@@ -203,7 +209,7 @@ public class FilePathNioMem extends FilePath {
      */
     protected static String getCanonicalPath(String fileName) {
         fileName = fileName.replace('\\', '/');
-        int idx = fileName.indexOf(':') + 1;
+        int idx = fileName.lastIndexOf(':') + 1;
         if (fileName.length() > idx && fileName.charAt(idx) != '/') {
             fileName = fileName.substring(0, idx) + "/" + fileName.substring(idx);
         }
@@ -218,7 +224,7 @@ public class FilePathNioMem extends FilePath {
     /**
      * Whether the file should be compressed.
      *
-     * @return if it should be compressed.
+     * @return true if it should be compressed.
      */
     boolean compressed() {
         return false;
@@ -238,9 +244,23 @@ class FilePathNioMemLZF extends FilePathNioMem {
 
     @Override
     public FilePathNioMem getPath(String path) {
-        FilePathNioMemLZF p = new FilePathNioMemLZF();
+        if (!path.startsWith(getScheme())) {
+            throw new IllegalArgumentException(path +
+                    " doesn't start with " + getScheme());
+        }
+        int idx1 = path.indexOf(":");
+        int idx2 = path.lastIndexOf(":");
+        final FilePathNioMemLZF p = new FilePathNioMemLZF();
+        if (idx1 != -1 && idx1 != idx2) {
+            p.compressLaterCachePercent = Float.parseFloat(path.substring(idx1 + 1, idx2));
+        }
         p.name = getCanonicalPath(path);
         return p;
+    }
+
+    @Override
+    protected boolean isRoot() {
+        return name.lastIndexOf(":") == name.length() - 1;
     }
 
     @Override
@@ -323,6 +343,22 @@ class FileNioMem extends FileBase {
     }
 
     @Override
+    public int read(ByteBuffer dst, long position) throws IOException {
+        int len = dst.remaining();
+        if (len == 0) {
+            return 0;
+        }
+        long newPos;
+        newPos = data.readWrite(position, dst, dst.position(), len, false);
+        len = (int) (newPos - position);
+        if (len <= 0) {
+            return -1;
+        }
+        dst.position(dst.position() + len);
+        return len;
+    }
+
+    @Override
     public long position() {
         return pos;
     }
@@ -379,38 +415,63 @@ class FileNioMem extends FileBase {
  */
 class FileNioMemData {
 
-    private static final int CACHE_SIZE = 8;
+    private static final int CACHE_MIN_SIZE = 8;
     private static final int BLOCK_SIZE_SHIFT = 16;
 
     private static final int BLOCK_SIZE = 1 << BLOCK_SIZE_SHIFT;
     private static final int BLOCK_SIZE_MASK = BLOCK_SIZE - 1;
-    private static final CompressLZF LZF = new CompressLZF();
-    private static final byte[] BUFFER = new byte[BLOCK_SIZE * 2];
     private static final ByteBuffer COMPRESSED_EMPTY_BLOCK;
 
-    private static final Cache<CompressItem, CompressItem> COMPRESS_LATER =
-        new Cache<CompressItem, CompressItem>(CACHE_SIZE);
+    private static final ThreadLocal<CompressLZF> LZF_THREAD_LOCAL =
+            new ThreadLocal<CompressLZF>() {
+        @Override
+        protected CompressLZF initialValue() {
+            return new CompressLZF();
+        }
+    };
+    /** the output buffer when compressing */
+    private static final ThreadLocal<byte[] > COMPRESS_OUT_BUF_THREAD_LOCAL =
+            new ThreadLocal<byte[] >() {
+        @Override
+        protected byte[] initialValue() {
+            return new byte[BLOCK_SIZE * 2];
+        }
+    };
+
+    /**
+     * The hash code of the name.
+     */
+    final int nameHashCode;
+
+    private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
+        new CompressLaterCache<CompressItem, CompressItem>(CACHE_MIN_SIZE);
 
     private String name;
     private final boolean compress;
+    private final float compressLaterCachePercent;
     private long length;
-    private ByteBuffer[] data;
+    private AtomicReference<ByteBuffer>[] buffers;
     private long lastModified;
     private boolean isReadOnly;
     private boolean isLockedExclusive;
     private int sharedLockCount;
+    private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     static {
-        byte[] n = new byte[BLOCK_SIZE];
-        int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
+        final byte[] n = new byte[BLOCK_SIZE];
+        final byte[] output = new byte[BLOCK_SIZE * 2];
+        int len = new CompressLZF().compress(n, BLOCK_SIZE, output, 0);
         COMPRESSED_EMPTY_BLOCK = ByteBuffer.allocateDirect(len);
-        COMPRESSED_EMPTY_BLOCK.put(BUFFER, 0, len);
+        COMPRESSED_EMPTY_BLOCK.put(output, 0, len);
     }
 
-    FileNioMemData(String name, boolean compress) {
+    @SuppressWarnings("unchecked")
+    FileNioMemData(String name, boolean compress, float compressLaterCachePercent) {
         this.name = name;
+        this.nameHashCode = name.hashCode();
         this.compress = compress;
-        data = new ByteBuffer[0];
+        this.compressLaterCachePercent = compressLaterCachePercent;
+        buffers = new AtomicReference[0];
         lastModified = System.currentTimeMillis();
     }
 
@@ -454,14 +515,19 @@ class FileNioMemData {
     /**
      * This small cache compresses the data if an element leaves the cache.
      */
-    static class Cache<K, V> extends LinkedHashMap<K, V> {
+    static class CompressLaterCache<K, V> extends LinkedHashMap<K, V> {
 
         private static final long serialVersionUID = 1L;
-        private final int size;
+        private int size;
 
-        Cache(int size) {
+        CompressLaterCache(int size) {
             super(size, (float) 0.75, true);
             this.size = size;
+        }
+
+        @Override
+        public synchronized V put(K key, V value) {
+            return super.put(key, value);
         }
 
         @Override
@@ -470,8 +536,12 @@ class FileNioMemData {
                 return false;
             }
             CompressItem c = (CompressItem) eldest.getKey();
-            compress(c.data, c.page);
+            c.data.compressPage(c.page);
             return true;
+        }
+
+        public void setCacheSize(int size) {
+            this.size = size;
         }
     }
 
@@ -483,16 +553,21 @@ class FileNioMemData {
         /**
          * The file data.
          */
-        ByteBuffer[] data;
+        public final FileNioMemData data;
 
         /**
          * The page to compress.
          */
-        int page;
+        public final int page;
+
+        public CompressItem(FileNioMemData data, int page) {
+            this.data = data;
+            this.page = page;
+        }
 
         @Override
         public int hashCode() {
-            return page;
+            return page ^ data.nameHashCode;
         }
 
         @Override
@@ -506,43 +581,48 @@ class FileNioMemData {
 
     }
 
-    private static void compressLater(ByteBuffer[] data, int page) {
-        CompressItem c = new CompressItem();
-        c.data = data;
-        c.page = page;
-        synchronized (LZF) {
-            COMPRESS_LATER.put(c, c);
-        }
+    private void addToCompressLaterCache(int page) {
+        CompressItem c = new CompressItem(this, page);
+        compressLaterCache.put(c, c);
     }
 
-    private static void expand(ByteBuffer[] data, int page) {
-        ByteBuffer d = data[page];
+    private ByteBuffer expandPage(int page) {
+        final ByteBuffer d = buffers[page].get();
         if (d.capacity() == BLOCK_SIZE) {
-            return;
+            // already expanded, or not compressed
+            return d;
         }
-        ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
-        if (d != COMPRESSED_EMPTY_BLOCK) {
-            synchronized (LZF) {
+        synchronized (d) {
+            if (d.capacity() == BLOCK_SIZE) {
+                return d;
+            }
+            ByteBuffer out = ByteBuffer.allocateDirect(BLOCK_SIZE);
+            if (d != COMPRESSED_EMPTY_BLOCK) {
                 d.position(0);
                 CompressLZF.expand(d, out);
             }
+            buffers[page].compareAndSet(d, out);
+            return out;
         }
-        data[page] = out;
     }
 
     /**
      * Compress the data in a byte array.
      *
-     * @param data the page array
      * @param page which page to compress
      */
-    static void compress(ByteBuffer[] data, int page) {
-        ByteBuffer d = data[page];
-        synchronized (LZF) {
-            int len = LZF.compress(d, 0, BUFFER, 0);
-            d = ByteBuffer.allocateDirect(len);
-            d.put(BUFFER, 0, len);
-            data[page] = d;
+    void compressPage(int page) {
+        final ByteBuffer d = buffers[page].get();
+        synchronized (d) {
+            if (d.capacity() != BLOCK_SIZE) {
+                // already compressed
+                return;
+            }
+            final byte[] compressOutputBuffer = COMPRESS_OUT_BUF_THREAD_LOCAL.get();
+            int len = LZF_THREAD_LOCAL.get().compress(d, 0, compressOutputBuffer, 0);
+            ByteBuffer out = ByteBuffer.allocateDirect(len);
+            out.put(compressOutputBuffer, 0, len);
+            buffers[page].compareAndSet(d, out);
         }
     }
 
@@ -573,33 +653,41 @@ class FileNioMemData {
      * @param newLength the new length
      */
     void truncate(long newLength) {
-        changeLength(newLength);
-        long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
-        if (end != newLength) {
-            int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
-            expand(data, lastPage);
-            ByteBuffer d = data[lastPage];
-            for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
-                d.put(i, (byte) 0);
+        rwLock.writeLock().lock();
+        try {
+            changeLength(newLength);
+            long end = MathUtils.roundUpLong(newLength, BLOCK_SIZE);
+            if (end != newLength) {
+                int lastPage = (int) (newLength >>> BLOCK_SIZE_SHIFT);
+                ByteBuffer d = expandPage(lastPage);
+                for (int i = (int) (newLength & BLOCK_SIZE_MASK); i < BLOCK_SIZE; i++) {
+                    d.put(i, (byte) 0);
+                }
+                if (compress) {
+                    addToCompressLaterCache(lastPage);
+                }
             }
-            if (compress) {
-                compressLater(data, lastPage);
-            }
+        } finally {
+            rwLock.writeLock().unlock();
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void changeLength(long len) {
         length = len;
         len = MathUtils.roundUpLong(len, BLOCK_SIZE);
         int blocks = (int) (len >>> BLOCK_SIZE_SHIFT);
-        if (blocks != data.length) {
-            ByteBuffer[] n = new ByteBuffer[blocks];
-            System.arraycopy(data, 0, n, 0, Math.min(data.length, n.length));
-            for (int i = data.length; i < blocks; i++) {
-                n[i] = COMPRESSED_EMPTY_BLOCK;
+        if (blocks != buffers.length) {
+            final AtomicReference<ByteBuffer>[] newBuffers = new AtomicReference[blocks];
+            System.arraycopy(buffers, 0, newBuffers, 0,
+                    Math.min(buffers.length, newBuffers.length));
+            for (int i = buffers.length; i < blocks; i++) {
+                newBuffers[i] = new AtomicReference<ByteBuffer>(COMPRESSED_EMPTY_BLOCK);
             }
-            data = n;
+            buffers = newBuffers;
         }
+        compressLaterCache.setCacheSize(Math.max(CACHE_MIN_SIZE, (int) (blocks *
+                compressLaterCachePercent / 100)));
     }
 
     /**
@@ -613,44 +701,53 @@ class FileNioMemData {
      * @return the new position
      */
     long readWrite(long pos, ByteBuffer b, int off, int len, boolean write) {
-        long end = pos + len;
-        if (end > length) {
-            if (write) {
-                changeLength(end);
-            } else {
-                len = (int) (length - pos);
+        final java.util.concurrent.locks.Lock lock = write ? rwLock.writeLock()
+                : rwLock.readLock();
+        lock.lock();
+        try {
+
+            long end = pos + len;
+            if (end > length) {
+                if (write) {
+                    changeLength(end);
+                } else {
+                    len = (int) (length - pos);
+                }
             }
+            while (len > 0) {
+                final int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
+                final int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
+                final ByteBuffer block = expandPage(page);
+                int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
+                if (write) {
+                    final ByteBuffer srcTmp = b.slice();
+                    final ByteBuffer dstTmp = block.duplicate();
+                    srcTmp.position(off);
+                    srcTmp.limit(off + l);
+                    dstTmp.position(blockOffset);
+                    dstTmp.put(srcTmp);
+                } else {
+                    // duplicate, so this can be done concurrently
+                    final ByteBuffer tmp = block.duplicate();
+                    tmp.position(blockOffset);
+                    tmp.limit(l + blockOffset);
+                    int oldPosition = b.position();
+                    b.position(off);
+                    b.put(tmp);
+                    // restore old position
+                    b.position(oldPosition);
+                }
+                if (compress) {
+                    addToCompressLaterCache(page);
+                }
+                off += l;
+                pos += l;
+                len -= l;
+            }
+            return pos;
+        } finally {
+            lock.unlock();
         }
-        while (len > 0) {
-            int l = (int) Math.min(len, BLOCK_SIZE - (pos & BLOCK_SIZE_MASK));
-            int page = (int) (pos >>> BLOCK_SIZE_SHIFT);
-            expand(data, page);
-            ByteBuffer block = data[page];
-            int blockOffset = (int) (pos & BLOCK_SIZE_MASK);
-            if (write) {
-                ByteBuffer tmp = b.slice();
-                tmp.position(off);
-                tmp.limit(off + l);
-                block.position(blockOffset);
-                block.put(tmp);
-            } else {
-                block.position(blockOffset);
-                ByteBuffer tmp = block.slice();
-                tmp.limit(l);
-                int oldPosition = b.position();
-                b.position(off);
-                b.put(tmp);
-                // restore old position
-                b.position(oldPosition);
-            }
-            if (compress) {
-                compressLater(data, page);
-            }
-            off += l;
-            pos += l;
-            len -= l;
-        }
-        return pos;
     }
 
     /**

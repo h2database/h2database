@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -30,7 +31,6 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcConnection;
 import org.h2.store.FileLister;
@@ -308,12 +308,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
                             break;
                         }
                         try {
-long start = System.currentTimeMillis();
                             conn = getConnection(seed, false);
-long connectTime = System.currentTimeMillis() - start;
-if (connectTime > 2000) {
-    System.out.println("??? connected2 in " + connectTime);
-}
                         } catch (Throwable t) {
                             printIfBad(seed, -i, -1, t);
                         }
@@ -406,6 +401,10 @@ if (connectTime > 2000) {
         if (t instanceof BatchUpdateException) {
             // do nothing
         } else if (t.getClass().getName().contains("SQLClientInfoException")) {
+            // do nothing
+        } else if (t instanceof UnsupportedOperationException) {
+            // do nothing - new Java8/9 stuff
+        } else if (t instanceof SQLFeatureNotSupportedException) {
             // do nothing
         } else if (t instanceof SQLException) {
             SQLException s = (SQLException) t;

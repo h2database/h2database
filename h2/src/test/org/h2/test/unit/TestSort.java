@@ -88,17 +88,17 @@ public class TestSort extends TestBase {
      *
      * @param type the type of data
      */
-    private void  test(String type) throws Exception {
+    private void  test(@SuppressWarnings("unused") String type) throws Exception {
         compareCount.set(0);
 
-        // long t = System.currentTimeMillis();
+        // long t = System.nanoTime();
 
         clazz.getMethod("sort", Object[].class, Comparator.class).invoke(null,
                 array, comp);
 
         // System.out.printf(
         //    "%4d ms; %10d comparisons order: %s data: %s\n",
-        //    (System.currentTimeMillis() - t),
+        //    TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t),
         //    compareCount.get(), clazz, type);
 
         verify(array);

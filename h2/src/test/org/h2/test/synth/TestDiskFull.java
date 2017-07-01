@@ -9,8 +9,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
+import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.test.utils.FilePathUnstable;
 
@@ -128,6 +128,9 @@ public class TestDiskFull extends TestBase {
         stat = conn.createStatement();
         stat.execute("script to 'memFS:test.sql'");
         conn.close();
+
+        deleteDb("memFS:", null);
+        FileUtils.delete("memFS:test.sql");
 
         return false;
     }

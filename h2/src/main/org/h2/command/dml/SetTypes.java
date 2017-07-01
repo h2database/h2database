@@ -214,7 +214,7 @@ public class SetTypes {
     public static final int RETENTION_TIME = 40;
 
     /**
-     * The type of a SET QUERY_STATISTICS_ACTIVE statement.
+     * The type of a SET QUERY_STATISTICS statement.
      */
     public static final int QUERY_STATISTICS = 41;
 
@@ -237,6 +237,11 @@ public class SetTypes {
      * The type of SET FORCE_JOIN_ORDER statement.
      */
     public static final int FORCE_JOIN_ORDER = 45;
+
+    /**
+     * The type of SET LAZY_QUERY_EXECUTION statement.
+     */
+    public static final int LAZY_QUERY_EXECUTION = 46;
 
     private static final ArrayList<String> TYPES = New.arrayList();
 
@@ -292,6 +297,7 @@ public class SetTypes {
         list.add(ROW_FACTORY, "ROW_FACTORY");
         list.add(BATCH_JOINS, "BATCH_JOINS");
         list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
+        list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
     }
 
     /**

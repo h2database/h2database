@@ -140,7 +140,8 @@ public class Mode {
     public boolean onDuplicateKeyUpdate;
 
     /**
-     * Pattern describing the keys the java.sql.Connection.setClientInfo() method accepts.
+     * Pattern describing the keys the java.sql.Connection.setClientInfo()
+     * method accepts.
      */
     public Pattern supportedClientInfoPropertiesRegEx;
 
@@ -148,6 +149,26 @@ public class Mode {
      * Support the # for column names
      */
     public boolean supportPoundSymbolForColumnNames;
+
+    /**
+     * Whether an empty list as in "NAME IN()" results in a syntax error.
+     */
+    public boolean prohibitEmptyInPredicate;
+
+    /**
+     * Whether AFFINITY KEY keywords are supported.
+     */
+    public boolean allowAffinityKey;
+
+    /**
+     * Whether to right-pad fixed strings with spaces.
+     */
+    public boolean padFixedLengthStrings;
+
+    /**
+     * Whether DB2 TIMESTAMP formats are allowed.
+     */
+    public boolean allowDB2TimestampFormat;
 
     private final String name;
 
@@ -161,9 +182,14 @@ public class Mode {
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
         mode.isolationLevelInSelectOrInsertStatement = true;
-        // See https://www.ibm.com/support/knowledgecenter/SSEPEK_11.0.0/com.ibm.db2z11.doc.java/src/tpc/imjcc_r0052001.dita
+        // See
+        // https://www.ibm.com/support/knowledgecenter/SSEPEK_11.0.0/
+        //     com.ibm.db2z11.doc.java/src/tpc/imjcc_r0052001.dita
         mode.supportedClientInfoPropertiesRegEx =
-                Pattern.compile("ApplicationName|ClientAccountingInformation|ClientUser|ClientCorrelationToken");
+                Pattern.compile("ApplicationName|ClientAccountingInformation|" +
+                        "ClientUser|ClientCorrelationToken");
+        mode.prohibitEmptyInPredicate = true;
+        mode.allowDB2TimestampFormat = true;
         add(mode);
 
         mode = new Mode("Derby");
@@ -183,7 +209,9 @@ public class Mode {
         mode.uniqueIndexSingleNull = true;
         mode.allowPlusForStringConcat = true;
         // HSQLDB does not support client info properties. See
-        // http://hsqldb.org/doc/apidocs/org/hsqldb/jdbc/JDBCConnection.html#setClientInfo%28java.lang.String,%20java.lang.String%29
+        // http://hsqldb.org/doc/apidocs/
+        //     org/hsqldb/jdbc/JDBCConnection.html#
+        //     setClientInfo%28java.lang.String,%20java.lang.String%29
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
@@ -205,8 +233,12 @@ public class Mode {
         mode.lowerCaseIdentifiers = true;
         mode.onDuplicateKeyUpdate = true;
         // MySQL allows to use any key for client info entries. See
-        // http://grepcode.com/file/repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.24/com/mysql/jdbc/JDBC4CommentClientInfoProvider.java
-        mode.supportedClientInfoPropertiesRegEx = Pattern.compile(".*");
+        // http://grepcode.com/file/repo1.maven.org/maven2/mysql/
+        //     mysql-connector-java/5.1.24/com/mysql/jdbc/
+        //     JDBC4CommentClientInfoProvider.java
+        mode.supportedClientInfoPropertiesRegEx =
+                Pattern.compile(".*");
+        mode.prohibitEmptyInPredicate = true;
         add(mode);
 
         mode = new Mode("Oracle");
@@ -217,7 +249,9 @@ public class Mode {
         mode.supportPoundSymbolForColumnNames = true;
         // Oracle accepts keys of the form <namespace>.*. See
         // https://docs.oracle.com/database/121/JJDBC/jdbcvers.htm#JJDBC29006
-        mode.supportedClientInfoPropertiesRegEx = Pattern.compile(".*\\..*");
+        mode.supportedClientInfoPropertiesRegEx =
+                Pattern.compile(".*\\..*");
+        mode.prohibitEmptyInPredicate = true;
         add(mode);
 
         mode = new Mode("PostgreSQL");
@@ -228,8 +262,18 @@ public class Mode {
         mode.logIsLogBase10 = true;
         mode.serialColumnIsNotPK = true;
         // PostgreSQL only supports the ApplicationName property. See
-        // https://github.com/hhru/postgres-jdbc/blob/master/postgresql-jdbc-9.2-1002.src/org/postgresql/jdbc4/AbstractJdbc4Connection.java
-        mode.supportedClientInfoPropertiesRegEx = Pattern.compile("ApplicationName");
+        // https://github.com/hhru/postgres-jdbc/blob/master/postgresql-jdbc-9.2-1002.src/
+        //     org/postgresql/jdbc4/AbstractJdbc4Connection.java
+        mode.supportedClientInfoPropertiesRegEx =
+                Pattern.compile("ApplicationName");
+        mode.prohibitEmptyInPredicate = true;
+        mode.padFixedLengthStrings = true;
+        add(mode);
+
+        mode = new Mode("Ignite");
+        mode.nullConcatIsNull = true;
+        mode.allowAffinityKey = true;
+        mode.indexDefinitionInCreateTable = true;
         add(mode);
     }
 

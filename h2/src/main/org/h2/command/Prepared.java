@@ -208,6 +208,7 @@ public abstract class Prepared {
      * @return the result set
      * @throws DbException if it is not a query
      */
+    @SuppressWarnings("unused")
     public ResultInterface query(int maxrows) {
         throw DbException.get(ErrorCode.METHOD_ONLY_ALLOWED_FOR_QUERY);
     }
@@ -302,19 +303,22 @@ public abstract class Prepared {
      * Print information about the statement executed if info trace level is
      * enabled.
      *
-     * @param startTime when the statement was started
+     * @param startTimeNanos when the statement was started
      * @param rowCount the query or update row count
      */
-    void trace(long startTime, int rowCount) {
-        if (session.getTrace().isInfoEnabled() && startTime > 0) {
-            long deltaTime = System.currentTimeMillis() - startTime;
+    void trace(long startTimeNanos, int rowCount) {
+        if (session.getTrace().isInfoEnabled() && startTimeNanos > 0) {
+            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             String params = Trace.formatParams(parameters);
-            session.getTrace().infoSQL(sqlStatement, params, rowCount, deltaTime);
+            session.getTrace().infoSQL(sqlStatement, params, rowCount,
+                    deltaTimeNanos / 1000 / 1000);
         }
-        if (session.getDatabase().getQueryStatistics()) {
-            long deltaTime = System.currentTimeMillis() - startTime;
+        // startTime_nanos can be zero for the command that actually turns on
+        // statistics
+        if (session.getDatabase().getQueryStatistics() && startTimeNanos != 0) {
+            long deltaTimeNanos = System.nanoTime() - startTimeNanos;
             session.getDatabase().getQueryStatisticsData().
-                    update(toString(), deltaTime, rowCount);
+                    update(toString(), deltaTimeNanos, rowCount);
         }
     }
 

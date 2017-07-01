@@ -13,6 +13,7 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.table.ColumnResolver;
 import org.h2.table.TableFilter;
+import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -194,6 +195,15 @@ public class Comparison extends Condition {
                             return ValueExpression.getNull();
                         }
                     }
+                    int colType = left.getType();
+                    int constType = r.getType();
+                    int resType = Value.getHigherOrder(colType, constType);
+                    // If not, the column values will need to be promoted
+                    // to constant type, but vise versa, then let's do this here
+                    // once.
+                    if (constType != resType) {
+                        right = ValueExpression.get(r.convertTo(resType, MathUtils.convertLongToInt(left.getPrecision()), session.getDatabase().getMode()));
+                    }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(
                             ((ExpressionColumn) left).getColumn());
@@ -206,7 +216,7 @@ public class Comparison extends Condition {
             }
         } else {
             if (SysProperties.CHECK && (left == null || right == null)) {
-                DbException.throwInternalError();
+                DbException.throwInternalError(left + " " + right);
             }
             if (left == ValueExpression.getNull() ||
                     right == ValueExpression.getNull()) {

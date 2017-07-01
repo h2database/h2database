@@ -201,7 +201,8 @@ public class MetaTable extends Table {
                     "ID INT",
                     "SORT_TYPE INT",
                     "CONSTRAINT_NAME",
-                    "INDEX_CLASS"
+                    "INDEX_CLASS",
+                    "AFFINITY BIT"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -525,9 +526,9 @@ public class MetaTable extends Table {
             cols = createColumns(
                     "SQL_STATEMENT",
                     "EXECUTION_COUNT INT",
-                    "MIN_EXECUTION_TIME LONG",
-                    "MAX_EXECUTION_TIME LONG",
-                    "CUMULATIVE_EXECUTION_TIME LONG",
+                    "MIN_EXECUTION_TIME DOUBLE",
+                    "MAX_EXECUTION_TIME DOUBLE",
+                    "CUMULATIVE_EXECUTION_TIME DOUBLE",
                     "AVERAGE_EXECUTION_TIME DOUBLE",
                     "STD_DEV_EXECUTION_TIME DOUBLE",
                     "MIN_ROW_COUNT INT",
@@ -733,7 +734,7 @@ public class MetaTable extends Table {
                         // TABLE_NAME
                         tableName,
                         // TABLE_TYPE
-                        table.getTableType(),
+                        table.getTableType().toString(),
                         // STORAGE_TYPE
                         storageType,
                         // SQL
@@ -927,7 +928,10 @@ public class MetaTable extends Table {
                                 // CONSTRAINT_NAME
                                 constraintName,
                                 // INDEX_CLASS
-                                indexClass
+                                indexClass,
+                                // AFFINITY
+                                index.getIndexType().isAffinity() ?
+                                        "TRUE" : "FALSE"
                             );
                     }
                 }
@@ -935,11 +939,11 @@ public class MetaTable extends Table {
             break;
         }
         case TABLE_TYPES: {
-            add(rows, Table.TABLE);
-            add(rows, Table.TABLE_LINK);
-            add(rows, Table.SYSTEM_TABLE);
-            add(rows, Table.VIEW);
-            add(rows, Table.EXTERNAL_TABLE_ENGINE);
+            add(rows, TableType.TABLE.toString());
+            add(rows, TableType.TABLE_LINK.toString());
+            add(rows, TableType.SYSTEM_TABLE.toString());
+            add(rows, TableType.VIEW.toString());
+            add(rows, TableType.EXTERNAL_TABLE_ENGINE.toString());
             break;
         }
         case CATALOGS: {
@@ -1437,7 +1441,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 Table table = (Table) object;
-                if (table == null || hideTable(table, session)) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1456,7 +1460,7 @@ public class MetaTable extends Table {
                     continue;
                 }
                 Table table = (Table) object;
-                if (table == null || hideTable(table, session)) {
+                if (hideTable(table, session)) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1485,7 +1489,7 @@ public class MetaTable extends Table {
         }
         case VIEWS: {
             for (Table table : getAllTables(session)) {
-                if (!table.getTableType().equals(Table.VIEW)) {
+                if (table.getTableType() != TableType.VIEW) {
                     continue;
                 }
                 String tableName = identifier(table.getName());
@@ -1849,15 +1853,15 @@ public class MetaTable extends Table {
                             // EXECUTION_COUNT
                             "" + entry.count,
                             // MIN_EXECUTION_TIME
-                            "" + entry.executionTimeMin,
+                            "" + entry.executionTimeMinNanos / 1000d / 1000,
                             // MAX_EXECUTION_TIME
-                            "" + entry.executionTimeMax,
+                            "" + entry.executionTimeMaxNanos / 1000d / 1000,
                             // CUMULATIVE_EXECUTION_TIME
-                            "" + entry.executionTimeCumulative,
+                            "" + entry.executionTimeCumulativeNanos / 1000d / 1000,
                             // AVERAGE_EXECUTION_TIME
-                            "" + entry.executionTimeMean,
+                            "" + entry.executionTimeMeanNanos / 1000d / 1000,
                             // STD_DEV_EXECUTION_TIME
-                            "" + entry.getExecutionTimeStandardDeviation(),
+                            "" + entry.getExecutionTimeStandardDeviation() / 1000d / 1000,
                             // MIN_ROW_COUNT
                             "" + entry.rowCountMin,
                             // MAX_ROW_COUNT
@@ -2041,7 +2045,7 @@ public class MetaTable extends Table {
 
     @Override
     public long getRowCount(Session session) {
-        throw DbException.throwInternalError();
+        throw DbException.throwInternalError(toString());
     }
 
     @Override
@@ -2055,8 +2059,8 @@ public class MetaTable extends Table {
     }
 
     @Override
-    public String getTableType() {
-        return Table.SYSTEM_TABLE;
+    public TableType getTableType() {
+        return TableType.SYSTEM_TABLE;
     }
 
     @Override

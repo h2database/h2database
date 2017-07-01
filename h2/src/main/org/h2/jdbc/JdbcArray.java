@@ -28,7 +28,7 @@ public class JdbcArray extends TraceObject implements Array {
     /**
      * INTERNAL
      */
-    JdbcArray(JdbcConnection conn, Value value, int id) {
+    public JdbcArray(JdbcConnection conn, Value value, int id) {
         setTrace(conn.getSession().getTrace(), TraceObject.ARRAY, id);
         this.conn = conn;
         this.value = value;
@@ -61,7 +61,9 @@ public class JdbcArray extends TraceObject implements Array {
     @Override
     public Object getArray(Map<String, Class<?>> map) throws SQLException {
         try {
-            debugCode("getArray("+quoteMap(map)+");");
+            if (isDebugEnabled()) {
+                debugCode("getArray("+quoteMap(map)+");");
+            }
             JdbcConnection.checkMap(map);
             checkClosed();
             return get();
@@ -82,7 +84,9 @@ public class JdbcArray extends TraceObject implements Array {
     @Override
     public Object getArray(long index, int count) throws SQLException {
         try {
-            debugCode("getArray(" + index + ", " + count + ");");
+            if (isDebugEnabled()) {
+                debugCode("getArray(" + index + ", " + count + ");");
+            }
             checkClosed();
             return get(index, count);
         } catch (Exception e) {
@@ -104,7 +108,9 @@ public class JdbcArray extends TraceObject implements Array {
     public Object getArray(long index, int count, Map<String, Class<?>> map)
             throws SQLException {
         try {
-            debugCode("getArray(" + index + ", " + count + ", " + quoteMap(map)+");");
+            if (isDebugEnabled()) {
+                debugCode("getArray(" + index + ", " + count + ", " + quoteMap(map)+");");
+            }
             checkClosed();
             JdbcConnection.checkMap(map);
             return get(index, count);
@@ -175,7 +181,9 @@ public class JdbcArray extends TraceObject implements Array {
     @Override
     public ResultSet getResultSet(Map<String, Class<?>> map) throws SQLException {
         try {
-            debugCode("getResultSet("+quoteMap(map)+");");
+            if (isDebugEnabled()) {
+                debugCode("getResultSet("+quoteMap(map)+");");
+            }
             checkClosed();
             JdbcConnection.checkMap(map);
             return getResultSet(get(), 0);
@@ -197,7 +205,9 @@ public class JdbcArray extends TraceObject implements Array {
     @Override
     public ResultSet getResultSet(long index, int count) throws SQLException {
         try {
-            debugCode("getResultSet("+index+", " + count+");");
+            if (isDebugEnabled()) {
+                debugCode("getResultSet("+index+", " + count+");");
+            }
             checkClosed();
             return getResultSet(get(index, count), index - 1);
         } catch (Exception e) {
@@ -221,7 +231,9 @@ public class JdbcArray extends TraceObject implements Array {
     public ResultSet getResultSet(long index, int count,
             Map<String, Class<?>> map) throws SQLException {
         try {
-            debugCode("getResultSet("+index+", " + count+", " + quoteMap(map)+");");
+            if (isDebugEnabled()) {
+                debugCode("getResultSet("+index+", " + count+", " + quoteMap(map)+");");
+            }
             checkClosed();
             JdbcConnection.checkMap(map);
             return getResultSet(get(index, count), index - 1);

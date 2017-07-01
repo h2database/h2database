@@ -25,7 +25,6 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.api.ErrorCode;
 import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
@@ -41,7 +40,7 @@ import org.h2.value.ValueNull;
  * @author Thomas Mueller
  */
 public class JdbcCallableStatement extends JdbcPreparedStatement implements
-        CallableStatement {
+        CallableStatement, JdbcCallableStatementBackwardsCompat {
 
     private BitField outParameters;
     private int maxOutParameters;
@@ -300,6 +299,7 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @throws SQLException if the column is not found or if this object is
      *             closed
      */
+    @Deprecated
     @Override
     public BigDecimal getBigDecimal(int parameterIndex, int scale)
             throws SQLException {
@@ -1569,12 +1569,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(int parameterIndex, Class<T> type) {
-        return null;
+    public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
+        return getOpenResultSet().getObject(parameterIndex, type);
     }
-//*/
 
     /**
      * [Not supported]
@@ -1582,12 +1580,10 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param type the class of the returned value
      */
-/*## Java 1.7 ##
     @Override
-    public <T> T getObject(String parameterName, Class<T> type) {
-        return null;
+    public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
+        return getObject(getIndexForName(parameterName), type);
     }
-//*/
 
     private ResultSetMetaData getCheckedMetaData() throws SQLException {
         ResultSetMetaData meta = getMetaData();

@@ -91,7 +91,6 @@ public class IntPerfectHash {
      *
      * @param pos the start position
      * @param x the key
-     * @param isRoot whether this is the root of the tree
      * @param level the level
      * @return the hash value
      */
@@ -235,17 +234,14 @@ public class IntPerfectHash {
             split = (size - 47) / DIVIDE;
         }
         split = Math.max(2, split);
-        ArrayList<ArrayList<Integer>> lists;
-        do {
-            lists = new ArrayList<ArrayList<Integer>>(split);
-            for (int i = 0; i < split; i++) {
-                lists.add(new ArrayList<Integer>(size / split));
-            }
-            for (int x : list) {
-                ArrayList<Integer> l = lists.get(hash(x, level, 0, split));
-                l.add(x);
-            }
-        } while (lists == null);
+        ArrayList<ArrayList<Integer>> lists = new ArrayList<ArrayList<Integer>>(split);
+        for (int i = 0; i < split; i++) {
+            lists.add(new ArrayList<Integer>(size / split));
+        }
+        for (int x : list) {
+            ArrayList<Integer> l = lists.get(hash(x, level, 0, split));
+            l.add(x);
+        }
         if (split >= SPLIT_MANY) {
             out.write((byte) SPLIT_MANY);
         }

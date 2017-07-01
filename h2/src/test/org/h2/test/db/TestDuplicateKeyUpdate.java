@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.TestBase;
 
 /**
@@ -37,6 +36,7 @@ public class TestDuplicateKeyUpdate extends TestBase {
         testDuplicateExpression(conn);
         testOnDuplicateKeyInsertBatch(conn);
         testOnDuplicateKeyInsertMultiValue(conn);
+        testPrimaryKeyAndUniqueKey(conn);
         conn.close();
         deleteDb("duplicateKeyUpdate");
     }
@@ -243,4 +243,21 @@ public class TestDuplicateKeyUpdate extends TestBase {
         stat.execute("drop table test");
     }
 
+    private void testPrimaryKeyAndUniqueKey(Connection conn) throws SQLException
+    {
+        Statement stat = conn.createStatement();
+        stat.execute("CREATE TABLE test (id INT, dup INT, " +
+                "counter INT, PRIMARY KEY(id), UNIQUE(dup))");
+        stat.execute("INSERT INTO test (id, dup, counter) VALUES (1, 1, 1)");
+        stat.execute("INSERT INTO test (id, dup, counter) VALUES (2, 1, 1) " +
+                "ON DUPLICATE KEY UPDATE counter = counter + VALUES(counter)");
+
+        // Check result
+        ResultSet rs = stat.executeQuery("SELECT counter FROM test ORDER BY id");
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        assertEquals(false, rs.next());
+
+        stat.execute("drop table test");
+    }
 }

@@ -7,7 +7,6 @@ package org.h2.result;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.h2.command.ddl.CreateTableData;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -88,7 +87,9 @@ public class ResultTempTable implements ResultExternal {
 
     private void createIndex() {
         IndexColumn[] indexCols = null;
-        if (sort != null) {
+        // If we need to do distinct, the distinct columns may not match the
+        // sort columns. So we need to disregard the sort. Not ideal.
+        if (sort != null && !distinct) {
             int[] colIndex = sort.getQueryColumnIndexes();
             indexCols = new IndexColumn[colIndex.length];
             for (int i = 0; i < colIndex.length; i++) {

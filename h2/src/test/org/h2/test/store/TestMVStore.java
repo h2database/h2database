@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.h2.mvstore.Chunk;
 import org.h2.mvstore.Cursor;
 import org.h2.mvstore.DataUtils;
@@ -660,16 +660,16 @@ public class TestMVStore extends TestBase {
         m.put(2, "World");
         s.commit();
         long v = s.getCurrentVersion();
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         m.put(3, "!");
 
         for (int i = 200; i > 0; i--) {
             if (s.getCurrentVersion() > v) {
                 break;
             }
-            long diff = System.currentTimeMillis() - time;
-            if (diff > 1000) {
-                fail();
+            long diff = System.nanoTime() - time;
+            if (diff > TimeUnit.SECONDS.toNanos(1)) {
+                fail("diff=" + TimeUnit.NANOSECONDS.toMillis(diff));
             }
             sleep(10);
         }
@@ -829,7 +829,7 @@ public class TestMVStore extends TestBase {
         }
         s.close();
         int[] expectedReadsForCacheSize = {
-                3407, 2590, 1924, 1440, 1111, 956, 918
+                3407, 2590, 1924, 1440, 1330, 956, 918
         };
         for (int cacheSize = 0; cacheSize <= 6; cacheSize += 4) {
             int cacheMB = 1 + 3 * cacheSize;
@@ -1266,7 +1266,7 @@ public class TestMVStore extends TestBase {
         String fileName = getBaseDir() + "/" + getTestName();
         FileUtils.delete(fileName);
         for (int k = 0; k < 1; k++) {
-            // long t = System.currentTimeMillis();
+            // long t = System.nanoTime();
             for (int j = 0; j < 3; j++) {
                 MVStore s = openStore(fileName);
                 Map<String, Integer> m = s.openMap("data");
@@ -1278,7 +1278,7 @@ public class TestMVStore extends TestBase {
                 s.close();
             }
             // System.out.println("open/close: " +
-            //         (System.currentTimeMillis() - t));
+            //        TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
             // System.out.println("size: " + FileUtils.size(fileName));
         }
     }
@@ -1619,28 +1619,19 @@ public class TestMVStore extends TestBase {
         for (int j = 0; j < 1; j++) {
             MVStore s = openStore(null);
             // s.setMaxPageSize(10);
-            // long t;
             int len = 100;
             // TreeMap<Integer, String> m = new TreeMap<Integer, String>();
             // HashMap<Integer, String> m = New.hashMap();
             MVMap<Integer, String> m = s.openMap("data");
-            // t = System.currentTimeMillis();
             for (int i = 0; i < len; i++) {
                 assertNull(m.put(i, "Hello World"));
             }
-            // System.out.println("put: " + (System.currentTimeMillis() - t));
-            // t = System.currentTimeMillis();
             for (int i = 0; i < len; i++) {
                 assertEquals("Hello World", m.get(i));
             }
-            // System.out.println("get: " + (System.currentTimeMillis() - t));
-            // t = System.currentTimeMillis();
             for (int i = 0; i < len; i++) {
                 assertEquals("Hello World", m.remove(i));
             }
-            // System.out.println("remove: " +
-            //         (System.currentTimeMillis() - t));
-            // System.out.println();
             assertEquals(null, m.get(0));
             assertEquals(0, m.size());
             s.close();
@@ -1663,7 +1654,7 @@ public class TestMVStore extends TestBase {
 
             // Profiler prof = new Profiler();
             // prof.startCollecting();
-            // long t = System.currentTimeMillis();
+            // long t = System.nanoTime();
             for (int i = 0; i < len;) {
                 Object[] o = new Object[3];
                 o[0] = i;
@@ -1678,7 +1669,7 @@ public class TestMVStore extends TestBase {
             s.close();
             // System.out.println(prof.getTop(5));
             // System.out.println("store time " +
-            //         (System.currentTimeMillis() - t));
+            //         TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t));
             // System.out.println("store size " +
             //         FileUtils.size(fileName));
         }
@@ -1693,21 +1684,11 @@ public class TestMVStore extends TestBase {
         s = openStore(fileName);
         MVMap<Integer, String> m = s.openMap("data");
         int count = 2000;
-        // Profiler p = new Profiler();
-        // p.startCollecting();
-        // long t = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             assertNull(m.put(i, "hello " + i));
             assertEquals("hello " + i, m.get(i));
         }
-        // System.out.println("put: " + (System.currentTimeMillis() - t));
-        // System.out.println(p.getTop(5));
-        // p = new Profiler();
-        //p.startCollecting();
-        // t = System.currentTimeMillis();
         s.commit();
-        // System.out.println("store: " + (System.currentTimeMillis() - t));
-        // System.out.println(p.getTop(5));
         assertEquals("hello 0", m.remove(0));
         assertNull(m.get(0));
         for (int i = 1; i < count; i++) {
@@ -2033,14 +2014,14 @@ public class TestMVStore extends TestBase {
                 fileName(fileName).open();
         try {
             MVMap<Integer, String> map = store.openMap("test");
-            long last = System.currentTimeMillis();
+            long last = System.nanoTime();
             String data = new String(new char[2500]).replace((char) 0, 'x');
             for (int i = 0;; i++) {
                 map.put(i, data);
                 if (i % 10000 == 0) {
                     store.commit();
-                    long time = System.currentTimeMillis();
-                    if (time - last > 2000) {
+                    long time = System.nanoTime();
+                    if (time - last > TimeUnit.SECONDS.toNanos(2)) {
                         long mb = store.getFileStore().size() / 1024 / 1024;
                         trace(mb + "/4500");
                         if (mb > 4500) {
@@ -2086,6 +2067,7 @@ public class TestMVStore extends TestBase {
      *
      * @param msg the message
      */
+    @SuppressWarnings("unused")
     protected static void log(String msg) {
         // System.out.println(msg);
     }

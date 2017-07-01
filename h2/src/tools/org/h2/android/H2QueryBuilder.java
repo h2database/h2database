@@ -13,6 +13,7 @@ import android.database.Cursor;
 /**
  * This helper class is used to build SQL statements.
  */
+@SuppressWarnings("unused")
 public class H2QueryBuilder {
 
     private H2Database.CursorFactory factory;

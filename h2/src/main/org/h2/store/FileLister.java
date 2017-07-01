@@ -5,12 +5,10 @@
  */
 package org.h2.store;
 
-import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
@@ -51,23 +49,13 @@ public class FileLister {
                             message).getSQLException();
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-                FileChannel f = null;
-                try {
-                    f = FilePath.get(fileName).open("r");
+                try (FileChannel f = FilePath.get(fileName).open("r")) {
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
                 } catch (Exception e) {
                     throw DbException.get(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e,
                             message).getSQLException();
-                } finally {
-                    if (f != null) {
-                        try {
-                            f.close();
-                        } catch (IOException e) {
-                            // ignore
-                        }
-                    }
                 }
             }
         }

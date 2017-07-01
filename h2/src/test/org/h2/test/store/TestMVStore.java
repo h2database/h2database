@@ -138,8 +138,8 @@ public class TestMVStore extends TestBase {
         store.rollback();
         assertTrue(store.hasMap("test"));
         map = store.openMap("test");
-        // TODO the data should get back alive
-        assertNull(map.get("1"));
+        // the data will get back alive
+        assertEquals("Hello", map.get("1"));
         store.close();
     }
 

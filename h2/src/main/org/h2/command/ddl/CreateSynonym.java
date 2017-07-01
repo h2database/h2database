@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.Database;
-import org.h2.engine.FunctionAlias;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
@@ -59,43 +58,11 @@ public class CreateSynonym extends SchemaCommand {
 
         if (data.synonymForSchema.findTableOrView(session, data.synonymFor) != null) {
             return createTableSynonym(db);
-        } else if (data.synonymForSchema.findFunction(data.synonymFor) != null) {
-            return createFunctionSynonym(db);
-        } else if (data.synonymForSchema.findSequence(data.synonymFor) != null) {
-            // TODO Implement sequence synonym
         }
 
         throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1,
                 data.synonymForSchema.getName() + "." + data.synonymFor);
 
-    }
-
-    private int createFunctionSynonym(Database db) {
-        FunctionAlias old = getSchema().findFunction(data.synonymName);
-//        if (old != null) {
-//            if (orReplace && old instanceof TableSynonym) {
-//                // ok, we replacing the existing synonym
-//            } else if (ifNotExists && old instanceof TableSynonym) {
-//                return 0;
-//            } else {
-//                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
-//            }
-//        }
-//
-//        TableSynonym table;
-//        if (old != null) {
-//            table = (TableSynonym) old;
-//            data.schema = table.getSchema();
-//            table.updateData(data);
-//            table.setModified();
-//        } else {
-//            data.id = getObjectId();
-//            table = getSchema().createSynonym(data);
-//            table.setComment(comment);
-//            db.addSchemaObject(session, table);
-//        }
-
-        return 0;
     }
 
     private int createTableSynonym(Database db) {

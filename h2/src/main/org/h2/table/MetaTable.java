@@ -1879,7 +1879,7 @@ public class MetaTable extends Table {
         }
         case SYNONYMS: {
                 for (Table table : getAllTables(session)) {
-                    if (!table.getTableType().equals(Table.SYNONYM)) {
+                    if (!table.getTableType().equals(TableType.SYNONYM)) {
                         continue;
                     }
                     String synonymName = identifier(table.getName());

@@ -99,8 +99,8 @@ public class TableSynonym extends Table {
     }
 
     @Override
-    public String getTableType() {
-        return SYNONYM;
+    public TableType getTableType() {
+        return TableType.SYNONYM;
     }
 
     @Override

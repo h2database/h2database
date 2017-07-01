@@ -33,7 +33,12 @@ public enum TableType {
     /**
      * The table type name for external table engines.
      */
-    EXTERNAL_TABLE_ENGINE;
+    EXTERNAL_TABLE_ENGINE,
+
+    /**
+     * The table type name for synonyms.
+     */
+    SYNONYM;
 
     @Override
     public String toString() {

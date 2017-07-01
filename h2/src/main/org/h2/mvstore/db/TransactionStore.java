@@ -361,24 +361,21 @@ public class TransactionStore {
                 }
                 int mapId = (Integer) op[0];
                 MVMap<Object, VersionedValue> map = openMap(mapId);
-                if (map == null) {
-                    // map was later removed
-                } else {
+                if (map != null) { // might be null if map was removed later
                     Object key = op[1];
                     VersionedValue value = map.get(key);
-                    if (value == null) {
-                        // nothing to do
-                    } else if (value.value == null) {
-                        int tx = getTransactionId(value.operationId);
-                        if (tx == t.transactionId) {
-                            // remove the value
-                            // only if it's transaction id is same as current transaction id
-                            map.remove(key);
+                    if (value != null) {
+                        // only commit (remove/update) value if we've reached
+                        // last undoLog entry for a given key
+                        if (value.operationId == undoKey) {
+                            if (value.value == null) {
+                                map.remove(key);
+                            } else {
+                                VersionedValue v2 = new VersionedValue();
+                                v2.value = value.value;
+                                map.put(key, v2);
+                            }
                         }
-                    } else {
-                        VersionedValue v2 = new VersionedValue();
-                        v2.value = value.value;
-                        map.put(key, v2);
                     }
                 }
                 undoLog.remove(undoKey);

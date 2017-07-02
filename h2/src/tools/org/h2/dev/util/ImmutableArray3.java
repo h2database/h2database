@@ -84,8 +84,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
-    @SafeVarargs
-	public static <K> ImmutableArray3<K> create(K... array) {
+    public static <K> ImmutableArray3<K> create(K... array) {
         return new Plain<K>(array);
     }
 

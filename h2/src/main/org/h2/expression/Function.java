@@ -1887,11 +1887,11 @@ public class Function extends Expression implements FunctionCall {
         calendar.setTimeInMillis(t2);
         int year2 = calendar.get(Calendar.YEAR);
         int month2 = calendar.get(Calendar.MONTH);
-        int yearResult = year2 - year1;
+        int result = year2 - year1;
         if (field == Calendar.MONTH) {
-            return 12 * yearResult + (month2 - month1);
+            return 12 * result + (month2 - month1);
         } else if (field == Calendar.YEAR) {
-            return (12 * yearResult + (month2 - month1))/12;
+            return result;
         } else {
             throw DbException.getUnsupportedException("DATEDIFF " + part);
         }

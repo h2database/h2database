@@ -111,8 +111,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
-    @SafeVarargs
-	public static <K> ImmutableArray<K> create(K... array) {
+    public static <K> ImmutableArray<K> create(K... array) {
         return new ImmutableArray<K>(array);
     }
 

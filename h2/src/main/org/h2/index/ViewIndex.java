@@ -196,13 +196,9 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         }
         if (!query.isUnion()) {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
-                    "recursive queries without UNION ALL");
+                    "recursive queries without UNION");
         }
         SelectUnion union = (SelectUnion) query;
-        if (union.getUnionType() != SelectUnion.UNION_ALL) {
-            throw DbException.get(ErrorCode.SYNTAX_ERROR_2,
-                    "recursive queries without UNION ALL");
-        }
         Query left = union.getLeft();
         // to ensure the last result is not closed
         left.disableCache();

@@ -151,7 +151,8 @@ public final class ImmutableArray2<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
-    public static <K> ImmutableArray2<K> create(K... array) {
+    @SafeVarargs
+	public static <K> ImmutableArray2<K> create(K... array) {
         return new ImmutableArray2<K>(array, array.length);
     }
 

@@ -11,6 +11,7 @@ import java.io.LineNumberReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import org.h2.test.TestBase;
 import org.h2.util.ScriptReader;
 
@@ -72,6 +73,7 @@ public class TestScriptSimple extends TestBase {
         }
         conn.close();
         deleteDb("scriptSimple");
+        
     }
 
     private void reconnect() throws SQLException {

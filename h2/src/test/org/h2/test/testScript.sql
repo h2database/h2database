@@ -9935,6 +9935,12 @@ select datediff('year', timestamp '2003-12-01 10:20:30.0', timestamp '2004-12-01
 > 1
 > rows: 1
 
+select datediff('yy', timestamp '2002-12-31 23:59:59.0', timestamp '2003-01-01 13:00:00.0') d1 from test;
+  > D1
+  > --
+ > 0
+ > rows: 1
+
 select datediff('mm', timestamp '2003-11-01 10:20:30.0', timestamp '2004-01-01 10:00:00.0') d2 from test;
 > D2
 > --

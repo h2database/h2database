@@ -91,7 +91,7 @@ public class TestSynonymForTable extends TestBase {
         assertEquals("INVALID", synonyms.getString("STATUS"));
         conn.close();
 
-        // Reopending should work with invalid synonym
+        // Reopening should work with invalid synonym
         Connection conn2 = getConnection("synonym");
         assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
         conn2.close();
@@ -110,7 +110,7 @@ public class TestSynonymForTable extends TestBase {
         // Dropping with "if exists" should succeed even if the synonym does not exist anymore.
         stat.execute("DROP SYNONYM IF EXISTS testsynonym");
 
-        // Without "if exists" the command should fail.
+        // Without "if exists" the command should fail if the synonym does not exist.
         assertThrows(JdbcSQLException.class, stat).execute("DROP SYNONYM testsynonym");
     }
 

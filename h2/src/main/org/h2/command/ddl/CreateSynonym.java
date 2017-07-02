@@ -82,6 +82,7 @@ public class CreateSynonym extends SchemaCommand {
             table = (TableSynonym) old;
             data.schema = table.getSchema();
             table.updateData(data);
+            table.setComment(comment);
             table.setModified();
         } else {
             data.id = getObjectId();

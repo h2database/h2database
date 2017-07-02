@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
- * Sysonym for an existing table or view. All DML requests are forwarded to the backing table. Adding indices
+ * Synonym for an existing table or view. All DML requests are forwarded to the backing table. Adding indices
  * to a synonym or altering the table is not supported.
  */
 public class TableSynonym extends Table {
@@ -182,12 +182,7 @@ public class TableSynonym extends Table {
     }
 
     public boolean isInvalid() {
-        try {
-            getSynonymFor();
-            return false;
-        } catch (DbException e) {
-            return true;
-        }
+        return data.synonymForSchema.findTableOrView(data.session, data.synonymFor) != null;
     }
 
 }

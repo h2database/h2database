@@ -236,12 +236,12 @@ public class Schema extends DbObjectBase {
      */
     public void add(SchemaObject obj) {
         if (SysProperties.CHECK && obj.getSchema() != this) {
-            throw DbException.throwInternalError("wrong schema");
+            DbException.throwInternalError("wrong schema");
         }
         String name = obj.getName();
         Map<String, SchemaObject> map = getMap(obj.getType());
         if (SysProperties.CHECK && map.get(name) != null) {
-            throw DbException.throwInternalError("object already exists: " + name);
+            DbException.throwInternalError("object already exists: " + name);
         }
         map.put(name, obj);
         freeUniqueName(name);
@@ -258,10 +258,10 @@ public class Schema extends DbObjectBase {
         Map<String, SchemaObject> map = getMap(type);
         if (SysProperties.CHECK) {
             if (!map.containsKey(obj.getName())) {
-                throw DbException.throwInternalError("not found: " + obj.getName());
+                DbException.throwInternalError("not found: " + obj.getName());
             }
             if (obj.getName().equals(newName) || map.containsKey(newName)) {
-                throw DbException.throwInternalError("object already exists: " + newName);
+                DbException.throwInternalError("object already exists: " + newName);
             }
         }
         obj.checkRename();

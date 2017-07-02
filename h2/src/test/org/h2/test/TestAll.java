@@ -72,6 +72,7 @@ import org.h2.test.db.TestShow;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpatial;
 import org.h2.test.db.TestSpeed;
+import org.h2.test.db.TestSynonymForTable;
 import org.h2.test.db.TestTableEngines;
 import org.h2.test.db.TestTempTables;
 import org.h2.test.db.TestTransaction;
@@ -761,6 +762,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestViewAlterTable());
         addTest(new TestViewDropView());
         addTest(new TestReplace());
+        addTest(new TestSynonymForTable());
 
         // jaqu
         addTest(new AliasMapTest());

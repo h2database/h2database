@@ -7,16 +7,12 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.constraint.ConstraintReferential;
-import org.h2.engine.Database;
-import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.table.TableType;
-import org.h2.table.TableView;
 
 /**
  * This class represents the statement
@@ -38,7 +34,7 @@ public class DropSynonym extends SchemaCommand {
     @Override
     public int update() {
         session.commit(true);
-        Table synonym = getSchema().findTableOrView(session, synonymName);
+        AbstractTable synonym = getSchema().findTableOrView(session, synonymName);
         if (synonym == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);

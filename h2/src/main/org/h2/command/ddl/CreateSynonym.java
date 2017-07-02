@@ -11,8 +11,8 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.TableSynonym;
-import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -66,7 +66,7 @@ public class CreateSynonym extends SchemaCommand {
     }
 
     private int createTableSynonym(Database db) {
-        Table old = getSchema().findTableOrView(session, data.synonymName);
+        AbstractTable old = getSchema().findTableOrView(session, data.synonymName);
         if (old != null) {
             if (orReplace && old instanceof TableSynonym) {
                 // ok, we replacing the existing synonym

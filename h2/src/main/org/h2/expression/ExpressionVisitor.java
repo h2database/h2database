@@ -7,9 +7,9 @@ package org.h2.expression;
 
 import java.util.HashSet;
 import org.h2.engine.DbObject;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
-import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 
@@ -111,15 +111,14 @@ public class ExpressionVisitor {
     private final int queryLevel;
     private final HashSet<DbObject> dependencies;
     private final HashSet<Column> columns;
-    private final Table table;
+    private final AbstractTable table;
     private final long[] maxDataModificationId;
     private final ColumnResolver resolver;
 
     private ExpressionVisitor(int type,
             int queryLevel,
             HashSet<DbObject> dependencies,
-            HashSet<Column> columns,
-            Table table, ColumnResolver resolver,
+            HashSet<Column> columns, AbstractTable table, ColumnResolver resolver,
             long[] maxDataModificationId) {
         this.type = type;
         this.queryLevel = queryLevel;
@@ -158,7 +157,7 @@ public class ExpressionVisitor {
      * @param table the table
      * @return the new visitor
      */
-    public static ExpressionVisitor getOptimizableVisitor(Table table) {
+    public static ExpressionVisitor getOptimizableVisitor(AbstractTable table) {
         return new ExpressionVisitor(OPTIMIZABLE_MIN_MAX_COUNT_ALL, 0, null,
                 null, table, null, null);
     }
@@ -275,7 +274,7 @@ public class ExpressionVisitor {
      *
      * @return the table
      */
-    public Table getTable() {
+    public AbstractTable getTable() {
         return table;
     }
 

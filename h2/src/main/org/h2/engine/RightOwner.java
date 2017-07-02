@@ -7,7 +7,7 @@ package org.h2.engine;
 
 import java.util.HashMap;
 
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.util.New;
 
 /**
@@ -63,7 +63,7 @@ public abstract class RightOwner extends DbObjectBase {
      * @param rightMask the right mask to check
      * @return true if the right was already granted
      */
-    boolean isRightGrantedRecursive(Table table, int rightMask) {
+    boolean isRightGrantedRecursive(AbstractTable table, int rightMask) {
         Right right;
         if (grantedRights != null) {
             if (table != null) {

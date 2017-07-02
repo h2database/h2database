@@ -11,7 +11,7 @@ import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 
 /**
  * A sequence is created using the statement
@@ -206,7 +206,7 @@ public class Sequence extends SchemaObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

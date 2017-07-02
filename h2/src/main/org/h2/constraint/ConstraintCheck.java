@@ -16,8 +16,8 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -30,7 +30,7 @@ public class ConstraintCheck extends Constraint {
     private TableFilter filter;
     private Expression expr;
 
-    public ConstraintCheck(Schema schema, int id, String name, Table table) {
+    public ConstraintCheck(Schema schema, int id, String name, AbstractTable table) {
         super(schema, id, name, table);
     }
 
@@ -48,7 +48,7 @@ public class ConstraintCheck extends Constraint {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table forTable, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable forTable, String quotedName) {
         StringBuilder buff = new StringBuilder("ALTER TABLE ");
         buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
         if (forTable.isHidden()) {
@@ -88,7 +88,7 @@ public class ConstraintCheck extends Constraint {
     }
 
     @Override
-    public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
+    public void checkRow(Session session, AbstractTable t, Row oldRow, Row newRow) {
         if (newRow == null) {
             return;
         }
@@ -118,7 +118,7 @@ public class ConstraintCheck extends Constraint {
     }
 
     @Override
-    public HashSet<Column> getReferencedColumns(Table table) {
+    public HashSet<Column> getReferencedColumns(AbstractTable table) {
         HashSet<Column> columns = New.hashSet();
         expr.isEverything(ExpressionVisitor.getColumnsVisitor(columns));
         for (Iterator<Column> it = columns.iterator(); it.hasNext();) {

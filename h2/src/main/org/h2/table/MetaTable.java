@@ -624,18 +624,18 @@ public class MetaTable extends Table {
         return s;
     }
 
-    private ArrayList<Table> getAllTables(Session session) {
-        ArrayList<Table> tables = database.getAllTablesAndViews(true);
+    private ArrayList<AbstractTable> getAllTables(Session session) {
+        ArrayList<AbstractTable> tables = database.getAllTablesAndViews(true);
         ArrayList<Table> tempTables = session.getLocalTempTables();
         tables.addAll(tempTables);
         return tables;
     }
 
-    private ArrayList<Table> getTablesByName(Session session, String tableName) {
+    private ArrayList<AbstractTable> getTablesByName(Session session, String tableName) {
         if (database.getMode().lowerCaseIdentifiers) {
             tableName = StringUtils.toUpperEnglish(tableName);
         }
-        ArrayList<Table> tables = database.getTableOrViewByName(tableName);
+        ArrayList<AbstractTable> tables = database.getTableOrViewByName(tableName);
         for (Table temp : session.getLocalTempTables()) {
             if (temp.getName().equals(tableName)) {
                 tables.add(temp);
@@ -669,7 +669,7 @@ public class MetaTable extends Table {
         return s == null ? "" : s;
     }
 
-    private boolean hideTable(Table table, Session session) {
+    private boolean hideTable(AbstractTable table, Session session) {
         return table.isHidden() && session != database.getSystemSession();
     }
 
@@ -700,7 +700,7 @@ public class MetaTable extends Table {
         boolean admin = session.getUser().isAdmin();
         switch (type) {
         case TABLES: {
-            for (Table table : getAllTables(session)) {
+            for (AbstractTable table : getAllTables(session)) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -758,14 +758,14 @@ public class MetaTable extends Table {
         case COLUMNS: {
             // reduce the number of tables to scan - makes some metadata queries
             // 10x faster
-            final ArrayList<Table> tablesToList;
+            final ArrayList<AbstractTable> tablesToList;
             if (indexFrom != null && indexTo != null && indexFrom.equals(indexTo)) {
                 String tableName = identifier(indexFrom.getString());
                 tablesToList = getTablesByName(session, tableName);
             } else {
                 tablesToList = getAllTables(session);
             }
-            for (Table table : tablesToList) {
+            for (AbstractTable table : tablesToList) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -835,14 +835,14 @@ public class MetaTable extends Table {
         case INDEXES: {
             // reduce the number of tables to scan - makes some metadata queries
             // 10x faster
-            final ArrayList<Table> tablesToList;
+            final ArrayList<AbstractTable> tablesToList;
             if (indexFrom != null && indexTo != null && indexFrom.equals(indexTo)) {
                 String tableName = identifier(indexFrom.getString());
                 tablesToList = getTablesByName(session, tableName);
             } else {
                 tablesToList = getAllTables(session);
             }
-            for (Table table : tablesToList) {
+            for (AbstractTable table : tablesToList) {
                 String tableName = identifier(table.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -1488,7 +1488,7 @@ public class MetaTable extends Table {
             break;
         }
         case VIEWS: {
-            for (Table table : getAllTables(session)) {
+            for (AbstractTable table : getAllTables(session)) {
                 if (table.getTableType() != TableType.VIEW) {
                     continue;
                 }
@@ -1544,8 +1544,8 @@ public class MetaTable extends Table {
                 ConstraintReferential ref = (ConstraintReferential) constraint;
                 IndexColumn[] cols = ref.getColumns();
                 IndexColumn[] refCols = ref.getRefColumns();
-                Table tab = ref.getTable();
-                Table refTab = ref.getRefTable();
+                AbstractTable tab = ref.getTable();
+                AbstractTable refTab = ref.getRefTable();
                 String tableName = identifier(refTab.getName());
                 if (!checkIndex(session, tableName, indexFrom, indexTo)) {
                     continue;
@@ -1594,7 +1594,7 @@ public class MetaTable extends Table {
                 String constraintType = constraint.getConstraintType();
                 String checkExpression = null;
                 IndexColumn[] indexColumns = null;
-                Table table = constraint.getTable();
+                AbstractTable table = constraint.getTable();
                 if (hideTable(table, session)) {
                     continue;
                 }
@@ -1719,7 +1719,7 @@ public class MetaTable extends Table {
             for (SchemaObject obj : database.getAllSchemaObjects(
                     DbObject.TRIGGER)) {
                 TriggerObject trigger = (TriggerObject) obj;
-                Table table = trigger.getTable();
+                AbstractTable table = trigger.getTable();
                 add(rows,
                         // TRIGGER_CATALOG
                         catalog,
@@ -1878,7 +1878,7 @@ public class MetaTable extends Table {
             break;
         }
         case SYNONYMS: {
-                for (Table table : getAllTables(session)) {
+                for (AbstractTable table : getAllTables(session)) {
                     if (!table.getTableType().equals(TableType.SYNONYM)) {
                         continue;
                     }

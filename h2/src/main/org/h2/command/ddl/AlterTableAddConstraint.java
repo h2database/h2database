@@ -7,7 +7,6 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
@@ -23,9 +22,9 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 
@@ -63,7 +62,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         ifTableExists = b;
     }
 
-    private String generateConstraintName(Table table) {
+    private String generateConstraintName(AbstractTable table) {
         if (constraintName == null) {
             constraintName = getSchema().getUniqueConstraintName(
                     session, table);
@@ -95,7 +94,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             session.commit(true);
         }
         Database db = session.getDatabase();
-        Table table = getSchema().findTableOrView(session, tableName);
+        AbstractTable table = getSchema().findTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;
@@ -198,7 +197,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL: {
-            Table refTable = refSchema.getTableOrView(session, refTableName);
+            AbstractTable refTable = refSchema.getTableOrView(session, refTableName);
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
                 throw DbException.getUnsupportedException("Reference " +
@@ -272,7 +271,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return 0;
     }
 
-    private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
+    private Index createIndex(AbstractTable t, IndexColumn[] cols, boolean unique) {
         int indexId = getObjectId();
         IndexType indexType;
         if (unique) {
@@ -304,7 +303,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         this.updateAction = action;
     }
 
-    private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
+    private static Index getUniqueIndex(AbstractTable t, IndexColumn[] cols) {
         if (t.getIndexes() == null) {
             return null;
         }
@@ -316,7 +315,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private static Index getIndex(Table t, IndexColumn[] cols, boolean moreColumnOk) {
+    private static Index getIndex(AbstractTable t, IndexColumn[] cols, boolean moreColumnOk) {
         if (t.getIndexes() == null) {
             return null;
         }
@@ -328,7 +327,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private static boolean canUseUniqueIndex(Index idx, Table table,
+    private static boolean canUseUniqueIndex(Index idx, AbstractTable table,
             IndexColumn[] cols) {
         if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
@@ -351,7 +350,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return true;
     }
 
-    private static boolean canUseIndex(Index existingIndex, Table table,
+    private static boolean canUseIndex(Index existingIndex, AbstractTable table,
             IndexColumn[] cols, boolean moreColumnsOk) {
         if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
             // can't use the scan index or index of another table

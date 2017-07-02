@@ -129,6 +129,7 @@ import org.h2.message.DbException;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.FunctionTable;
 import org.h2.table.IndexColumn;
@@ -554,7 +555,7 @@ public class Parser {
     private Prepared parseAnalyze() {
         Analyze command = new Analyze(session);
         if (readIf("TABLE")) {
-            Table table = readTableOrView();
+            AbstractTable table = readTableOrView();
             command.setTable(table);
         }
         if (readIf("SAMPLE_SIZE")) {
@@ -794,7 +795,7 @@ public class Parser {
     }
 
     private TableFilter readSimpleTableFilter(int orderInFrom) {
-        Table table = readTableOrView();
+        AbstractTable table = readTableOrView();
         String alias = null;
         if (readIf("AS")) {
             alias = readAliasIdentifier();
@@ -864,7 +865,7 @@ public class Parser {
         return columns.toArray(new String[columns.size()]);
     }
 
-    private Column[] parseColumnList(Table table) {
+    private Column[] parseColumnList(AbstractTable table) {
         ArrayList<Column> columns = New.arrayList();
         HashSet<Column> set = New.hashSet();
         if (!readIf(")")) {
@@ -880,7 +881,7 @@ public class Parser {
         return columns.toArray(new Column[columns.size()]);
     }
 
-    private Column parseColumn(Table table) {
+    private Column parseColumn(AbstractTable table) {
         String id = readColumnIdentifier();
         if (database.getSettings().rowId && Column.ROWID.equals(id)) {
             return table.getRowIdColumn();
@@ -1019,7 +1020,7 @@ public class Parser {
         Merge command = new Merge(session);
         currentPrepared = command;
         read("INTO");
-        Table table = readTableOrView();
+        AbstractTable table = readTableOrView();
         command.setTable(table);
         if (readIf("(")) {
             if (isSelect()) {
@@ -1060,7 +1061,7 @@ public class Parser {
         Insert command = new Insert(session);
         currentPrepared = command;
         read("INTO");
-        Table table = readTableOrView();
+        AbstractTable table = readTableOrView();
         command.setTable(table);
         Column[] columns = null;
         if (readIf("(")) {
@@ -1151,7 +1152,7 @@ public class Parser {
         Replace command = new Replace(session);
         currentPrepared = command;
         read("INTO");
-        Table table = readTableOrView();
+        AbstractTable table = readTableOrView();
         command.setTable(table);
         if (readIf("(")) {
             if (isSelect()) {
@@ -1184,7 +1185,7 @@ public class Parser {
     }
 
     private TableFilter readTableFilter(boolean fromOuter) {
-        Table table;
+        AbstractTable table;
         String alias = null;
         if (readIf("(")) {
             if (isSelect()) {
@@ -1289,7 +1290,7 @@ public class Parser {
                 currentSelect, orderInFrom++, indexHints);
     }
 
-    private IndexHints parseIndexHints(Table table) {
+    private IndexHints parseIndexHints(AbstractTable table) {
         if (table == null) {
             throw getSyntaxError();
         }
@@ -1321,7 +1322,7 @@ public class Parser {
 
     private Prepared parseTruncate() {
         read("TABLE");
-        Table table = readTableOrView();
+        AbstractTable table = readTableOrView();
         TruncateTable command = new TruncateTable(session);
         command.setTable(table);
         return command;
@@ -4490,7 +4491,7 @@ public class Parser {
                     command.setSchema(schema);
                 } else {
                     do {
-                        Table table = readTableOrView();
+                        AbstractTable table = readTableOrView();
                         command.addTable(table);
                     } while (readIf(","));
                 }
@@ -5058,7 +5059,7 @@ public class Parser {
         boolean ifExists = readIfExists(false);
         command.setIfExists(ifExists);
         String viewName = readIdentifierWithSchema();
-        Table tableView = getSchema().findTableOrView(session, viewName);
+        AbstractTable tableView = getSchema().findTableOrView(session, viewName);
         if (!(tableView instanceof TableView) && !ifExists) {
             throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
@@ -5528,7 +5529,7 @@ public class Parser {
             } while (readIf(","));
             command.setSchemaNames(schemaNames);
         } else if (readIf("TABLE")) {
-            ArrayList<Table> tables = New.arrayList();
+            ArrayList<AbstractTable> tables = New.arrayList();
             do {
                 tables.add(readTableOrView());
             } while (readIf(","));
@@ -5537,16 +5538,16 @@ public class Parser {
         return command;
     }
 
-    private Table readTableOrView() {
+    private AbstractTable readTableOrView() {
         return readTableOrView(readIdentifierWithSchema(null));
     }
 
-    private Table readTableOrView(String tableName) {
+    private AbstractTable readTableOrView(String tableName) {
         // same algorithm than readSequence
         if (schemaName != null) {
             return getSchema().getTableOrView(session, tableName);
         }
-        Table table = database.getSchema(session.getCurrentSchemaName())
+        AbstractTable table = database.getSchema(session.getCurrentSchemaName())
                 .findTableOrView(session, tableName);
         if (table != null) {
             return table;
@@ -5701,7 +5702,7 @@ public class Parser {
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("PRIMARY")) {
                 read("KEY");
-                Table table = tableIfTableExists(schema, tableName, ifTableExists);
+                AbstractTable table = tableIfTableExists(schema, tableName, ifTableExists);
                 if (table == null) {
                     return new NoOperation(session);
                 }
@@ -5716,7 +5717,7 @@ public class Parser {
                         session, schema);
                 command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 ArrayList<Column> columnsToRemove = New.arrayList();
-                Table table = tableIfTableExists(schema, tableName, ifTableExists);
+                AbstractTable table = tableIfTableExists(schema, tableName, ifTableExists);
                 do {
                     String columnName = readColumnIdentifier();
                     if (table == null) {
@@ -5850,8 +5851,8 @@ public class Parser {
         throw getSyntaxError();
     }
 
-    private Table tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
-        Table table = schema.findTableOrView(session, tableName);
+    private AbstractTable tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
+        AbstractTable table = schema.findTableOrView(session, tableName);
         if (table == null && !ifTableExists) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
@@ -5860,7 +5861,7 @@ public class Parser {
 
     private Column columnIfTableExists(Schema schema, String tableName,
             String columnName, boolean ifTableExists) {
-        Table table = tableIfTableExists(schema, tableName, ifTableExists);
+        AbstractTable table = tableIfTableExists(schema, tableName, ifTableExists);
         return table == null ? null : table.getColumn(columnName);
     }
 
@@ -6430,7 +6431,7 @@ public class Parser {
      * @param sql the code snippet
      * @return the table object
      */
-    public Table parseTableName(String sql) {
+    public AbstractTable parseTableName(String sql) {
         parameters = New.arrayList();
         initialize(sql);
         read();

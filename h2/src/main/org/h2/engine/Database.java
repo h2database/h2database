@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -51,6 +50,7 @@ import org.h2.store.LobStorageMap;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileUtils;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
@@ -832,7 +832,7 @@ public class Database implements DataHandler {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
-            for (Table obj : getAllTablesAndViews(false)) {
+            for (AbstractTable obj : getAllTablesAndViews(false)) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
@@ -1262,7 +1262,7 @@ public class Database implements DataHandler {
         try {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
-                    for (Table table : getAllTablesAndViews(false)) {
+                    for (AbstractTable table : getAllTablesAndViews(false)) {
                         if (table.isGlobalTemporary()) {
                             table.removeChildrenAndResources(systemSession);
                         } else {
@@ -1530,11 +1530,11 @@ public class Database implements DataHandler {
      *            tables are only included if they are already initialized)
      * @return all objects of that type
      */
-    public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {
+    public ArrayList<AbstractTable> getAllTablesAndViews(boolean includeMeta) {
         if (includeMeta) {
             initMetaTables();
         }
-        ArrayList<Table> list = New.arrayList();
+        ArrayList<AbstractTable> list = New.arrayList();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllTablesAndViews());
         }
@@ -1547,10 +1547,10 @@ public class Database implements DataHandler {
      * @param name the table name
      * @return the list
      */
-    public ArrayList<Table> getTableOrViewByName(String name) {
-        ArrayList<Table> list = New.arrayList();
+    public ArrayList<AbstractTable> getTableOrViewByName(String name) {
+        ArrayList<AbstractTable> list = New.arrayList();
         for (Schema schema : schemas.values()) {
-            Table table = schema.getTableOrViewByName(name);
+            AbstractTable table = schema.getTableOrViewByName(name);
             if (table != null) {
                 list.add(table);
             }
@@ -1789,7 +1789,7 @@ public class Database implements DataHandler {
      * @param except the table to exclude (or null)
      * @return the first dependent table, or null
      */
-    public Table getDependentTable(SchemaObject obj, Table except) {
+    public AbstractTable getDependentTable(SchemaObject obj, AbstractTable except) {
         switch (obj.getType()) {
         case DbObject.COMMENT:
         case DbObject.CONSTRAINT:
@@ -1801,7 +1801,7 @@ public class Database implements DataHandler {
         default:
         }
         HashSet<DbObject> set = New.hashSet();
-        for (Table t : getAllTablesAndViews(false)) {
+        for (AbstractTable t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
             } else if (TableType.VIEW == t.getTableType()) {
@@ -1826,7 +1826,7 @@ public class Database implements DataHandler {
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
-            Table table = (Table) obj;
+            AbstractTable table = (AbstractTable) obj;
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return;
@@ -1840,7 +1840,7 @@ public class Database implements DataHandler {
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
-            Table table = constraint.getTable();
+            AbstractTable table = constraint.getTable();
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableConstraint(constraint);
                 return;
@@ -1856,7 +1856,7 @@ public class Database implements DataHandler {
             obj.getSchema().remove(obj);
             int id = obj.getId();
             if (!starting) {
-                Table t = getDependentTable(obj, null);
+                AbstractTable t = getDependentTable(obj, null);
                 if (t != null) {
                     obj.getSchema().add(obj);
                     throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
@@ -2497,8 +2497,8 @@ public class Database implements DataHandler {
      *
      * @return the table or null if no table is defined
      */
-    public Table getFirstUserTable() {
-        for (Table table : getAllTablesAndViews(false)) {
+    public AbstractTable getFirstUserTable() {
+        for (AbstractTable table : getAllTablesAndViews(false)) {
             if (table.getCreateSQL() != null) {
                 if (table.isHidden()) {
                     // LOB tables

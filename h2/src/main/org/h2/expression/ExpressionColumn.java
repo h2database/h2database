@@ -16,9 +16,9 @@ import org.h2.index.IndexCondition;
 import org.h2.message.DbException;
 import org.h2.schema.Constant;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
-import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.value.Value;
 import org.h2.value.ValueBoolean;
@@ -240,13 +240,13 @@ public class ExpressionColumn extends Expression {
 
     @Override
     public String getSchemaName() {
-        Table table = column.getTable();
+        AbstractTable table = column.getTable();
         return table == null ? null : table.getSchema().getName();
     }
 
     @Override
     public String getTableName() {
-        Table table = column.getTable();
+        AbstractTable table = column.getTable();
         return table == null ? null : table.getName();
     }
 

@@ -15,7 +15,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.table.TableView;
 import org.h2.util.StatementBuilder;
 
@@ -27,7 +27,7 @@ public class DropTable extends SchemaCommand {
 
     private boolean ifExists;
     private String tableName;
-    private Table table;
+    private AbstractTable table;
     private DropTable next;
     private int dropAction;
 

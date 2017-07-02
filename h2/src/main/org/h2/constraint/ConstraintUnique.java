@@ -11,9 +11,9 @@ import org.h2.engine.Session;
 import org.h2.index.Index;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
-import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -28,7 +28,7 @@ public class ConstraintUnique extends Constraint {
     private IndexColumn[] columns;
     private final boolean primaryKey;
 
-    public ConstraintUnique(Schema schema, int id, String name, Table table,
+    public ConstraintUnique(Schema schema, int id, String name, AbstractTable table,
             boolean primaryKey) {
         super(schema, id, name, table);
         this.primaryKey = primaryKey;
@@ -40,11 +40,11 @@ public class ConstraintUnique extends Constraint {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table forTable, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable forTable, String quotedName) {
         return getCreateSQLForCopy(forTable, quotedName, true);
     }
 
-    private String getCreateSQLForCopy(Table forTable, String quotedName,
+    private String getCreateSQLForCopy(AbstractTable forTable, String quotedName,
             boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
         buff.append(forTable.getSQL()).append(" ADD CONSTRAINT ");
@@ -118,7 +118,7 @@ public class ConstraintUnique extends Constraint {
     }
 
     @Override
-    public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
+    public void checkRow(Session session, AbstractTable t, Row oldRow, Row newRow) {
         // unique index check is enough
     }
 
@@ -133,7 +133,7 @@ public class ConstraintUnique extends Constraint {
     }
 
     @Override
-    public HashSet<Column> getReferencedColumns(Table table) {
+    public HashSet<Column> getReferencedColumns(AbstractTable table) {
         HashSet<Column> result = New.hashSet();
         for (IndexColumn c : columns) {
             result.add(c.column);

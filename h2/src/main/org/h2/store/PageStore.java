@@ -37,6 +37,7 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.store.fs.FileUtils;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
@@ -552,12 +553,12 @@ public class PageStore implements CacheWriter {
             log.checkpoint();
             writeBack();
             cache.clear();
-            ArrayList<Table> tables = database.getAllTablesAndViews(false);
+            ArrayList<AbstractTable> tables = database.getAllTablesAndViews(false);
             recordedPagesList = New.arrayList();
             recordedPagesIndex = new IntIntHashMap();
             recordPageReads = true;
             Session sysSession = database.getSystemSession();
-            for (Table table : tables) {
+            for (AbstractTable table : tables) {
                 if (!table.isTemporary() && TableType.TABLE == table.getTableType()) {
                     Index scanIndex = table.getScanIndex(sysSession);
                     Cursor cursor = scanIndex.find(sysSession, null, null);

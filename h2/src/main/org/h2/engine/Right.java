@@ -8,6 +8,7 @@ package org.h2.engine;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.Table;
 
 /**
@@ -127,7 +128,7 @@ public class Right extends DbObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
         return getCreateSQLForCopy(table);
     }
 

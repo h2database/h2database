@@ -15,8 +15,8 @@ import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -25,7 +25,7 @@ import org.h2.table.Table;
 public class AlterSequence extends SchemaCommand {
 
     private boolean ifExists;
-    private Table table;
+    private AbstractTable table;
     private String sequenceName;
     private Sequence sequence;
     private Expression start;

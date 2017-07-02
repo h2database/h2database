@@ -15,8 +15,8 @@ import org.h2.message.Trace;
 import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 
 /**
  * The base class for constraint checking.
@@ -47,9 +47,9 @@ public abstract class Constraint extends SchemaObjectBase implements
     /**
      * The table for which this constraint is defined.
      */
-    protected Table table;
+    protected AbstractTable table;
 
-    Constraint(Schema schema, int id, String name, Table table) {
+    Constraint(Schema schema, int id, String name, AbstractTable table) {
         initSchemaObjectBase(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
         this.setTemporary(table.isTemporary());
@@ -71,7 +71,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      * @param oldRow the old row
      * @param newRow the new row
      */
-    public abstract void checkRow(Session session, Table t, Row oldRow, Row newRow);
+    public abstract void checkRow(Session session, AbstractTable t, Row oldRow, Row newRow);
 
     /**
      * Check if this constraint needs the specified index.
@@ -94,7 +94,7 @@ public abstract class Constraint extends SchemaObjectBase implements
      * @param table the table
      * @return the set of referenced columns
      */
-    public abstract HashSet<Column> getReferencedColumns(Table table);
+    public abstract HashSet<Column> getReferencedColumns(AbstractTable table);
 
     /**
      * Get the SQL statement to create this constraint.
@@ -142,11 +142,11 @@ public abstract class Constraint extends SchemaObjectBase implements
         return DbObject.CONSTRAINT;
     }
 
-    public Table getTable() {
+    public AbstractTable getTable() {
         return table;
     }
 
-    public Table getRefTable() {
+    public AbstractTable getRefTable() {
         return table;
     }
 

@@ -7,7 +7,7 @@ package org.h2.engine;
 
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 
 /**
  * Represents a role. Roles can be granted to users, and to other roles.
@@ -22,7 +22,7 @@ public class Role extends RightOwner {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

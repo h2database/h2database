@@ -22,8 +22,8 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.ResultTarget;
 import org.h2.result.SortOrder;
+import org.h2.table.AbstractTable;
 import org.h2.table.ColumnResolver;
-import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.value.Value;
@@ -157,7 +157,7 @@ public abstract class Query extends Prepared {
      *
      * @return the set of tables
      */
-    public abstract HashSet<Table> getTables();
+    public abstract HashSet<AbstractTable> getTables();
 
     /**
      * Set the order by list.

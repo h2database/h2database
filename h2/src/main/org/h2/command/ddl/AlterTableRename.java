@@ -12,7 +12,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 
 /**
  * This class represents the statement
@@ -45,7 +45,7 @@ public class AlterTableRename extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        Table oldTable = getSchema().findTableOrView(session, oldTableName);
+        AbstractTable oldTable = getSchema().findTableOrView(session, oldTableName);
         if (oldTable == null) {
             if (ifTableExists) {
                 return 0;
@@ -53,7 +53,7 @@ public class AlterTableRename extends SchemaCommand {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, oldTableName);
         }
         session.getUser().checkRight(oldTable, Right.ALL);
-        Table t = getSchema().findTableOrView(session, newTableName);
+        AbstractTable t = getSchema().findTableOrView(session, newTableName);
         if (t != null && hidden && newTableName.equals(oldTable.getName())) {
             if (!t.isHidden()) {
                 t.setHidden(hidden);

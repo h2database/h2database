@@ -182,7 +182,7 @@ public class TableSynonym extends Table {
     }
 
     public boolean isInvalid() {
-        return data.synonymForSchema.findTableOrView(data.session, data.synonymFor) != null;
+        return data.synonymForSchema.findTableOrView(data.session, data.synonymFor) == null;
     }
 
 }

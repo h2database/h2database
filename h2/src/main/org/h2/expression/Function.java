@@ -1880,6 +1880,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
+        calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);

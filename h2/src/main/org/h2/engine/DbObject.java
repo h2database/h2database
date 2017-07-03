@@ -6,7 +6,8 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
-import org.h2.table.Table;
+
+import org.h2.table.AbstractTable;
 
 /**
  * A database object such as a table, an index, or a user.
@@ -133,7 +134,7 @@ public interface DbObject {
      * @param quotedName the quoted name
      * @return the SQL statement
      */
-    String getCreateSQLForCopy(Table table, String quotedName);
+    String getCreateSQLForCopy(AbstractTable table, String quotedName);
 
     /**
      * Construct the original CREATE ... SQL statement for this object.

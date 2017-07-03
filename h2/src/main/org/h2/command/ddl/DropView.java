@@ -13,7 +13,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 
@@ -49,7 +49,7 @@ public class DropView extends SchemaCommand {
     @Override
     public int update() {
         session.commit(true);
-        Table view = getSchema().findTableOrView(session, viewName);
+        AbstractTable view = getSchema().findTableOrView(session, viewName);
         if (view == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);

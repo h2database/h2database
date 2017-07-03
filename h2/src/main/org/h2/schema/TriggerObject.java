@@ -18,7 +18,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.Row;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.util.JdbcUtils;
 import org.h2.util.SourceCompiler;
 import org.h2.util.StatementBuilder;
@@ -45,12 +45,12 @@ public class TriggerObject extends SchemaObjectBase {
     // TODO trigger: support queue and noWait = false as well
     private int queueSize = DEFAULT_QUEUE_SIZE;
     private boolean noWait;
-    private Table table;
+    private AbstractTable table;
     private String triggerClassName;
     private String triggerSource;
     private Trigger triggerCallback;
 
-    public TriggerObject(Schema schema, int id, String name, Table table) {
+    public TriggerObject(Schema schema, int id, String name, AbstractTable table) {
         initSchemaObjectBase(schema, id, name, Trace.TRIGGER);
         this.table = table;
         setTemporary(table.isTemporary());
@@ -318,7 +318,7 @@ public class TriggerObject extends SchemaObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table targetTable, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable targetTable, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE FORCE TRIGGER ");
         buff.append(quotedName);
         if (insteadOf) {
@@ -409,7 +409,7 @@ public class TriggerObject extends SchemaObjectBase {
      *
      * @return the table
      */
-    public Table getTable() {
+    public AbstractTable getTable() {
         return table;
     }
 

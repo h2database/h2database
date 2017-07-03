@@ -69,7 +69,7 @@ public class IndexColumn {
      * @param indexColumns the column list with column names set
      * @param table the table from where to map the column names to columns
      */
-    public static void mapColumns(IndexColumn[] indexColumns, Table table) {
+    public static void mapColumns(IndexColumn[] indexColumns, AbstractTable table) {
         for (IndexColumn col : indexColumns) {
             col.column = table.getColumn(col.columnName);
         }

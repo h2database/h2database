@@ -456,6 +456,7 @@ public interface CommandInterface {
      */
     int ALTER_TABLE_RENAME_CONSTRAINT = 85;
 
+
     /**
      * The type of a EXPLAIN ANALYZE statement.
      */
@@ -465,6 +466,16 @@ public interface CommandInterface {
      * The type of a ALTER TABLE ALTER COLUMN SET INVISIBLE statement.
      */
     int ALTER_TABLE_ALTER_COLUMN_VISIBILITY = 87;
+
+    /**
+     * The type of a CREATE SYNONYM statement.
+     */
+    int CREATE_SYNONYM = 88;
+
+    /**
+     * The type of a DROP SYNONYM statement.
+     */
+    int DROP_SYNONYM = 89;
 
     /**
      * Get command type.

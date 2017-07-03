@@ -11,8 +11,8 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.UserDataType;
 import org.h2.message.DbException;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 import org.h2.value.DataType;
 
 /**
@@ -62,7 +62,7 @@ public class CreateUserDataType extends DefineCommand {
                         ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1,
                         typeName);
             }
-            Table table = session.getDatabase().getFirstUserTable();
+            AbstractTable table = session.getDatabase().getFirstUserTable();
             if (table != null) {
                 throw DbException.get(
                         ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1,

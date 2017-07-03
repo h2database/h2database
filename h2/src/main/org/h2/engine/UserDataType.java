@@ -7,8 +7,8 @@ package org.h2.engine;
 
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 
 /**
  * Represents a domain (user-defined data type).
@@ -22,7 +22,7 @@ public class UserDataType extends DbObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

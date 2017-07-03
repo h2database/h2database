@@ -17,7 +17,7 @@ import org.h2.engine.Role;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.util.New;
 
 /**
@@ -32,7 +32,7 @@ public class GrantRevoke extends DefineCommand {
     private ArrayList<String> roleNames;
     private int operationType;
     private int rightMask;
-    private final ArrayList<Table> tables = New.arrayList();
+    private final ArrayList<AbstractTable> tables = New.arrayList();
     private Schema schema;
     private RightOwner grantee;
 
@@ -111,7 +111,7 @@ public class GrantRevoke extends DefineCommand {
         if (schema != null) {
             grantRight(schema);
         }
-        for (Table table : tables) {
+        for (AbstractTable table : tables) {
             grantRight(table);
         }
     }
@@ -152,7 +152,7 @@ public class GrantRevoke extends DefineCommand {
         if (schema != null) {
             revokeRight(schema);
         }
-        for (Table table : tables) {
+        for (AbstractTable table : tables) {
             revokeRight(table);
         }
     }
@@ -193,7 +193,7 @@ public class GrantRevoke extends DefineCommand {
      *
      * @param table the table
      */
-    public void addTable(Table table) {
+    public void addTable(AbstractTable table) {
         tables.add(table);
     }
 

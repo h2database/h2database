@@ -13,8 +13,8 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -34,14 +34,14 @@ public class Analyze extends DefineCommand {
     /**
      * used in ANALYZE TABLE...
      */
-    private Table table;
+    private AbstractTable table;
 
     public Analyze(Session session) {
         super(session);
         sampleRows = session.getDatabase().getSettings().analyzeSample;
     }
 
-    public void setTable(Table table) {
+    public void setTable(AbstractTable table) {
         this.table = table;
     }
 
@@ -53,7 +53,7 @@ public class Analyze extends DefineCommand {
         if (table != null) {
             analyzeTable(session, table, sampleRows, true);
         } else {
-            for (Table table : db.getAllTablesAndViews(false)) {
+            for (AbstractTable table : db.getAllTablesAndViews(false)) {
                 analyzeTable(session, table, sampleRows, true);
             }
         }
@@ -68,7 +68,7 @@ public class Analyze extends DefineCommand {
      * @param sample the number of sample rows
      * @param manual whether the command was called by the user
      */
-    public static void analyzeTable(Session session, Table table, int sample,
+    public static void analyzeTable(Session session, AbstractTable table, int sample,
             boolean manual) {
         if (table.getTableType() != TableType.TABLE ||
                 table.isHidden() || session == null) {

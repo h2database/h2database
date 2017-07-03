@@ -10,7 +10,7 @@ import java.util.HashMap;
 import org.h2.message.DbException;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.util.New;
 
 /**
@@ -25,7 +25,7 @@ public class UndoLog {
     private Data rowBuff;
     private int memoryUndo;
     private int storedEntries;
-    private HashMap<Integer, Table> tables;
+    private HashMap<Integer, AbstractTable> tables;
     private final boolean largeTransactions;
 
     /**
@@ -220,7 +220,7 @@ public class UndoLog {
      * @param table the table
      * @return the id
      */
-    int getTableId(Table table) {
+    int getTableId(AbstractTable table) {
         int id = table.getId();
         if (tables == null) {
             tables = New.hashMap();
@@ -238,7 +238,7 @@ public class UndoLog {
      * @param id the table id
      * @return the table object
      */
-    Table getTable(int id) {
+    AbstractTable getTable(int id) {
         return tables.get(id);
     }
 

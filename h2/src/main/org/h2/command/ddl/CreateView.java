@@ -15,8 +15,8 @@ import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
+import org.h2.table.AbstractTable;
 import org.h2.table.Column;
-import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.value.Value;
@@ -78,7 +78,7 @@ public class CreateView extends SchemaCommand {
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         TableView view = null;
-        Table old = getSchema().findTableOrView(session, viewName);
+        AbstractTable old = getSchema().findTableOrView(session, viewName);
         if (old != null) {
             if (ifNotExists) {
                 return 0;

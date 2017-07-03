@@ -12,9 +12,9 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.security.SHA256;
+import org.h2.table.AbstractTable;
 import org.h2.table.MetaTable;
 import org.h2.table.RangeTable;
-import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.util.MathUtils;
@@ -75,7 +75,7 @@ public class User extends RightOwner {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 
@@ -96,7 +96,7 @@ public class User extends RightOwner {
      * @param rightMask the rights required
      * @throws DbException if this user does not have the required rights
      */
-    public void checkRight(Table table, int rightMask) {
+    public void checkRight(AbstractTable table, int rightMask) {
         if (!hasRight(table, rightMask)) {
             throw DbException.get(ErrorCode.NOT_ENOUGH_RIGHTS_FOR_1, table.getSQL());
         }
@@ -109,7 +109,7 @@ public class User extends RightOwner {
      * @param rightMask the rights required
      * @return true if the user has the rights
      */
-    public boolean hasRight(Table table, int rightMask) {
+    public boolean hasRight(AbstractTable table, int rightMask) {
         if (rightMask != Right.SELECT && !systemUser && table != null) {
             table.checkWritingAllowed();
         }

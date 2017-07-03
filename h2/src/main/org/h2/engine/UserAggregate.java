@@ -12,7 +12,7 @@ import org.h2.api.AggregateFunction;
 import org.h2.command.Parser;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.Table;
+import org.h2.table.AbstractTable;
 import org.h2.util.JdbcUtils;
 import org.h2.value.DataType;
 
@@ -53,7 +53,7 @@ public class UserAggregate extends DbObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(Table table, String quotedName) {
+    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

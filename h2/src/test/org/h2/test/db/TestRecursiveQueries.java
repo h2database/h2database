@@ -29,7 +29,8 @@ public class TestRecursiveQueries extends TestBase {
     @Override
     public void test() throws Exception {
         testWrongLinkLargeResult();
-        testSimple();
+        testSimpleUnionAll();
+        testSimpleUnion();
     }
 
     private void testWrongLinkLargeResult() throws Exception {
@@ -60,7 +61,7 @@ public class TestRecursiveQueries extends TestBase {
         deleteDb("recursiveQueries");
     }
 
-    private void testSimple() throws Exception {
+    private void testSimpleUnionAll() throws Exception {
         deleteDb("recursiveQueries");
         Connection conn = getConnection("recursiveQueries");
         Statement stat;
@@ -155,5 +156,27 @@ public class TestRecursiveQueries extends TestBase {
         conn.close();
         deleteDb("recursiveQueries");
     }
+    
+    private void testSimpleUnion() throws Exception {
+        deleteDb("recursiveQueries");
+        Connection conn = getConnection("recursiveQueries");
+        Statement stat;
+        ResultSet rs;
+
+        stat = conn.createStatement();
+        rs = stat.executeQuery("with recursive t(n) as " +
+                "(select 1 union select n+1 from t where n<3) " +
+                "select * from t");
+        assertTrue(rs.next());
+        assertEquals(1, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(2, rs.getInt(1));
+        assertTrue(rs.next());
+        assertEquals(3, rs.getInt(1));
+        assertFalse(rs.next());
+        
+        conn.close();
+        deleteDb("recursiveQueries");
+   }
 
 }

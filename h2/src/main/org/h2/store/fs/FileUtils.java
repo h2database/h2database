@@ -98,7 +98,10 @@ public class FileUtils {
      * @return if the file name is absolute
      */
     public static boolean isAbsolute(String fileName) {
-        return FilePath.get(fileName).isAbsolute();
+        return FilePath.get(fileName).isAbsolute()
+                // Allows Windows to recognize "/path" as absolute.
+                // Makes the same configuration work on all platforms.
+                || fileName.startsWith("/");
     }
 
     /**

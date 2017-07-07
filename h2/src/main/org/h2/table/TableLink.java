@@ -393,7 +393,7 @@ public class TableLink extends Table {
 
     @Override
     public Index addIndex(Session session, String indexName, int indexId,
-            IndexColumn[] cols, IndexType indexType, boolean create,
+            IndexTerm[] idxTerms, IndexType indexType, boolean create,
             String indexComment) {
         throw DbException.getUnsupportedException("LINK");
     }

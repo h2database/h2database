@@ -991,6 +991,13 @@ public class TestTableEngines extends TestBase {
 
             @Override
             public Index addIndex(Session session, String indexName,
+                    int indexId, IndexTerm[] its, IndexType indexType,
+                    boolean create, String indexComment) {
+                return null;
+            }
+
+            @Override
+            public Index addIndex(Session session, String indexName,
                     int indexId, IndexColumn[] cols, IndexType indexType,
                     boolean create, String indexComment) {
                 return null;
@@ -1210,6 +1217,13 @@ public class TestTableEngines extends TestBase {
 
             @Override
             public Index addIndex(Session session, String indexName,
+                    int indexId, IndexTerm[] its, IndexType indexType,
+                    boolean create, String indexComment) {
+                return null;
+            }
+
+            @Override
+            public Index addIndex(Session session, String indexName,
                     int indexId, IndexColumn[] cols, IndexType indexType,
                     boolean create, String indexComment) {
                 if (!indexType.isAffinity()) {
@@ -1400,6 +1414,13 @@ public class TestTableEngines extends TestBase {
                 scan.add(session, row);
             }
             dataModificationId++;
+        }
+
+        @Override
+        public Index addIndex(Session session, String indexName,
+                int indexId, IndexTerm[] its, IndexType indexType,
+                boolean create, String indexComment) {
+            return null;
         }
 
         @Override

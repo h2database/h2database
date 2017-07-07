@@ -196,6 +196,13 @@ public class RegularTable extends TableBase {
 
     @Override
     public Index addIndex(Session session, String indexName, int indexId,
+            IndexTerm[] idxTerms, IndexType indexType, boolean create,
+            String indexComment) {
+      throw new UnsupportedOperationException("unable to add expression index on regular table");
+    }
+
+    @Override
+    public Index addIndex(Session session, String indexName, int indexId,
             IndexColumn[] cols, IndexType indexType, boolean create,
             String indexComment) {
         if (indexType.isPrimaryKey()) {

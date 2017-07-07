@@ -5,15 +5,12 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Function;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -47,6 +44,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
     private final int keyColumns;
     private final String mapName;
     private TransactionMap<Value, Value> dataMap;
+    private Map<String,Function> funcMap;
 
     public MVSecondaryIndex(Database db, MVTable table, int id, String indexName,
                 IndexColumn[] columns, IndexType indexType) {
@@ -461,6 +459,24 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
         Transaction t = mvTable.getTransaction(session);
         return dataMap.getInstance(t, Long.MAX_VALUE);
+    }
+
+    public boolean hasFunctions(){
+        return funcMap != null;
+    }
+
+    public void setFunction(String columnName, Function func){
+        if (funcMap == null){
+            funcMap = new HashMap<>();
+        }
+        funcMap.put(columnName, func);
+    }
+
+    public Function getFunction(String columnName){
+        if (funcMap != null){
+            return funcMap.get(columnName);
+        }
+        throw new IllegalStateException("No function for Index Column");
     }
 
     /**

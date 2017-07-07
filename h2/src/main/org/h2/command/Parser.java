@@ -129,6 +129,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.FunctionTable;
+import org.h2.table.IndexTerm;
 import org.h2.table.IndexColumn;
 import org.h2.table.IndexHints;
 import org.h2.table.RangeTable;
@@ -829,6 +830,32 @@ public class Parser {
         setSQL(command, "DELETE", start);
         return command;
     }
+
+
+    private IndexTerm[] parseIndexTermList() {
+        ArrayList<IndexTerm> terms = New.arrayList();
+        do {
+            IndexTerm it = new IndexTerm();
+            it.term = readTerm();
+            terms.add(it);
+            if (readIf("ASC")) {
+                // ignore
+            } else if (readIf("DESC")) {
+                it.sortType = SortOrder.DESCENDING;
+            }
+            if (readIf("NULLS")) {
+                if (readIf("FIRST")) {
+                    it.sortType |= SortOrder.NULLS_FIRST;
+                } else {
+                    read("LAST");
+                    it.sortType |= SortOrder.NULLS_LAST;
+                }
+            }
+        } while (readIf(","));
+        read(")");
+        return terms.toArray(new IndexTerm[terms.size()]);
+    }
+
 
     private IndexColumn[] parseIndexColumnList() {
         ArrayList<IndexColumn> columns = New.arrayList();
@@ -4350,6 +4377,7 @@ public class Parser {
             }
             return parseCreateTable(false, false, cached);
         } else {
+            //tlogan: this is where CREATE INDEX is parsed
             boolean hash = false, primaryKey = false;
             boolean unique = false, spatial = false;
             String indexName = null;
@@ -4396,8 +4424,12 @@ public class Parser {
             command.setUnique(unique);
             command.setIndexName(indexName);
             command.setComment(readCommentIf());
+
+
             read("(");
-            command.setIndexColumns(parseIndexColumnList());
+
+            //tlogan: replace parseIndexColumnList with parseIndexList()
+            command.setIndexTerms(parseIndexTermList());
 
             if (readIf("USING")) {
                 if (hash) {
@@ -5990,7 +6022,7 @@ public class Parser {
                 command.setIndexName(readUniqueIdentifier());
                 read("(");
             }
-            command.setIndexColumns(parseIndexColumnList());
+            command.setIndexTerms(parseIndexTermList());
             // MySQL compatibility
             if (readIf("USING")) {
                 read("BTREE");
@@ -5999,7 +6031,7 @@ public class Parser {
         } else if (allowAffinityKey && readIfAffinity()) {
             read("KEY");
             read("(");
-            CreateIndex command = createAffinityIndex(schema, tableName, parseIndexColumnList());
+            CreateIndex command = createAffinityIndex(schema, tableName, parseIndexTermList());
             command.setIfTableExists(ifTableExists);
             return command;
         }
@@ -6188,14 +6220,19 @@ public class Parser {
                                 parseAutoIncrement(column);
                             }
                             if (affinity) {
-                                CreateIndex idx = createAffinityIndex(schema, tableName, cols);
+                                //tlogan
+                                IndexTerm[] idxTerms = IndexTerm.fromIndexColumnArray(database, cols);
+                                CreateIndex idx = createAffinityIndex(schema, tableName, idxTerms);
                                 command.addConstraintCommand(idx);
                             }
                         } else if (affinity) {
                             read("KEY");
                             IndexColumn[] cols = { new IndexColumn() };
                             cols[0].columnName = column.getName();
-                            CreateIndex idx = createAffinityIndex(schema, tableName, cols);
+
+                            //tlogan
+                            IndexTerm[] idxTerms = IndexTerm.fromIndexColumnArray(database, cols);
+                            CreateIndex idx = createAffinityIndex(schema, tableName, idxTerms);
                             command.addConstraintCommand(idx);
                         } else if (readIf("UNIQUE")) {
                             AlterTableAddConstraint unique = new AlterTableAddConstraint(
@@ -6315,10 +6352,10 @@ public class Parser {
         return command;
     }
 
-    private CreateIndex createAffinityIndex(Schema schema, String tableName, IndexColumn[] indexColumns) {
+    private CreateIndex createAffinityIndex(Schema schema, String tableName, IndexTerm[] indexTerms) {
         CreateIndex idx = new CreateIndex(session, schema);
         idx.setTableName(tableName);
-        idx.setIndexColumns(indexColumns);
+        idx.setIndexTerms(indexTerms);
         idx.setAffinity(true);
         return idx;
     }

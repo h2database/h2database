@@ -5,13 +5,11 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.command.ddl.CreateTableData;
@@ -21,6 +19,9 @@ import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
+import org.h2.expression.ExpressionColumn;
+import org.h2.expression.Function;
+import org.h2.expression.Parameter;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -31,9 +32,11 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.db.MVTableEngine.Store;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.result.Row;
+import org.h2.result.RowImpl;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObject;
 import org.h2.table.Column;
+import org.h2.table.IndexTerm;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableBase;
@@ -466,6 +469,33 @@ public class MVTable extends TableBase {
 
     @Override
     public Index addIndex(Session session, String indexName, int indexId,
+            IndexTerm[] idxTerms, IndexType indexType, boolean create,
+            String indexComment) {
+
+        List<IndexColumn> cols = new ArrayList<>();
+        Map<IndexColumn, Function> funcMap = new HashMap<>();
+
+        for(IndexTerm idx: idxTerms){
+            if (idx.term instanceof Function){
+
+                IndexColumn[] tempCol = IndexColumn.wrap(idx.columns);
+                for (IndexColumn tCol: tempCol){
+                    funcMap.put(tCol, (Function)idx.term);
+                }
+            }
+            cols.addAll(Arrays.stream(IndexColumn.wrap(idx.columns)).collect(Collectors.toList()));
+        }
+
+        if (funcMap.isEmpty()){
+            return addIndex(session, indexName, indexId, cols.toArray(new IndexColumn[cols.size()]), indexType, create, indexComment);
+        } else{
+            return addIndex(session, indexName, indexId, funcMap, cols.toArray(new IndexColumn[cols.size()]), indexType, create);
+        }
+
+    }
+
+    @Override
+    public Index addIndex(Session session, String indexName, int indexId,
             IndexColumn[] cols, IndexType indexType, boolean create,
             String indexComment) {
         if (indexType.isPrimaryKey()) {
@@ -510,6 +540,55 @@ public class MVTable extends TableBase {
         index.setTemporary(isTemporary());
         if (index.getCreateSQL() != null) {
             index.setComment(indexComment);
+            if (isSessionTemporary) {
+                session.addLocalTempTableIndex(index);
+            } else {
+                database.addSchemaObject(session, index);
+            }
+        }
+        indexes.add(index);
+        setModified();
+        return index;
+    }
+
+    public Index addIndex(Session session, String indexName, int indexId,
+                          Map<IndexColumn, Function> funcMap, IndexColumn[] colArray, IndexType indexType, boolean create) {
+
+
+        boolean isSessionTemporary = isTemporary() && !isGlobalTemporary();
+        if (!isSessionTemporary) {
+            database.lockMeta(session);
+        }
+        MVIndex index;
+        int mainIndexColumn;
+        mainIndexColumn = getMainIndexColumn(indexType, colArray);
+        if (database.isStarting()) {
+            if (transactionStore.store.hasMap("index." + indexId)) {
+                mainIndexColumn = -1;
+            }
+        } else if (primaryIndex.getRowCountMax() != 0) {
+            mainIndexColumn = -1;
+        }
+        if (mainIndexColumn != -1) {
+            primaryIndex.setMainIndexColumn(mainIndexColumn);
+            index = new MVDelegateIndex(this, indexId, indexName, primaryIndex,
+                    indexType);
+        } else if (indexType.isSpatial()) {
+            index = new MVSpatialIndex(session.getDatabase(), this, indexId,
+                    indexName, colArray, indexType);
+        } else {
+            index = new MVSecondaryIndex(session.getDatabase(), this, indexId,
+                    indexName, colArray, indexType);
+            for(Map.Entry<IndexColumn, Function> entry: funcMap.entrySet()){
+                index.setFunction(entry.getKey().column.getName(),entry.getValue());
+            }
+
+        }
+        if (index.needRebuild()) {
+            rebuildIndex(session, index, indexName);
+        }
+        index.setTemporary(isTemporary());
+        if (index.getCreateSQL() != null) {
             if (isSessionTemporary) {
                 session.addLocalTempTableIndex(index);
             } else {
@@ -571,6 +650,9 @@ public class MVTable extends TableBase {
         ArrayList<String> bufferNames = New.arrayList();
         while (cursor.next()) {
             Row row = cursor.get();
+            if (index.hasFunctions()){
+                row = applyFunction(index, row);
+            }
             buffer.add(row);
             database.setProgress(DatabaseEventListener.STATE_CREATE_INDEX, n,
                     MathUtils.convertLongToInt(i++), t);
@@ -899,6 +981,32 @@ public class MVTable extends TableBase {
                     e, getName());
         }
         return store.convertIllegalStateException(e);
+    }
+
+    public Row applyFunction(MVIndex idx, Row row){
+
+        int paramCount = 0;
+        Row resultRow = row.getCopy();
+        Column[] cols = idx.getColumns();
+
+        // For each of the columns, get and apply function, save in row copy
+        for (Column col: cols){
+            Function func = idx.getFunction(col.getName());
+            int columnId = col.getColumnId();
+
+            Parameter param = new Parameter(paramCount);
+            paramCount++;
+
+            param.setValue(row.getValue(columnId));
+            func.setParameter(0,param);
+
+            Value res = func.getValue(this.lockExclusiveSession);
+            resultRow.setValue(columnId, res );
+        }
+
+        return resultRow;
+
+
     }
 
 }

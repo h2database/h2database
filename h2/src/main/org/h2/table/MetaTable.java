@@ -586,6 +586,13 @@ public class MetaTable extends Table {
 
     @Override
     public Index addIndex(Session session, String indexName, int indexId,
+            IndexTerm[] its, IndexType indexType, boolean create,
+            String indexComment) {
+        throw DbException.getUnsupportedException("META");
+    }
+
+    @Override
+    public Index addIndex(Session session, String indexName, int indexId,
             IndexColumn[] cols, IndexType indexType, boolean create,
             String indexComment) {
         throw DbException.getUnsupportedException("META");

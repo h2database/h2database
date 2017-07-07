@@ -8,9 +8,12 @@ package org.h2.mvstore.db;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
+import org.h2.expression.Function;
 import org.h2.index.BaseIndex;
 import org.h2.index.Cursor;
 import org.h2.index.IndexType;
@@ -318,6 +321,18 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     @Override
     public void checkRename() {
         // ok
+    }
+
+    public void setFunction(String col, Function function){
+        throw new UnsupportedOperationException("Hasn't been implemented for MVSpatialIndex");
+    }
+
+    public Function getFunction(String col){
+        throw new UnsupportedOperationException("Hasn't been implemented for MVSpatialIndex");
+    }
+
+    public boolean hasFunctions(){
+        throw new UnsupportedOperationException("Hasn't been implemented for MVSpatialIndex");
     }
 
     /**

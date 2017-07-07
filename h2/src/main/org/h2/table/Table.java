@@ -19,6 +19,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionColumn;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -132,6 +133,23 @@ public abstract class Table extends SchemaObjectBase {
      */
     public abstract void unlock(Session s);
 
+
+    /**
+     * Create an index for this table
+     *
+     * @param session the session
+     * @param indexName the name of the index
+     * @param indexId the id
+     * @param indexTerms the index terms 
+     * @param indexType the index type
+     * @param create whether this is a new index
+     * @param indexComment the comment
+     * @return the index
+     */
+    public abstract Index addIndex(Session session, String indexName,
+            int indexId, IndexTerm[] idxTerms, IndexType indexType,
+            boolean create, String indexComment);
+
     /**
      * Create an index for this table
      *
@@ -144,9 +162,24 @@ public abstract class Table extends SchemaObjectBase {
      * @param indexComment the comment
      * @return the index
      */
-    public abstract Index addIndex(Session session, String indexName,
+    public Index addIndex(Session session, String indexName,
             int indexId, IndexColumn[] cols, IndexType indexType,
-            boolean create, String indexComment);
+            boolean create, String indexComment
+    ) {
+
+      //tlogan
+      ArrayList<IndexTerm> its = new ArrayList<IndexTerm>();
+      for (IndexColumn col : cols) {
+        IndexTerm it = new IndexTerm();
+        ExpressionColumn t = new ExpressionColumn(database, col.column);
+        it.term = t;
+        its.add(it);
+      }
+      IndexTerm[] itsArr = new IndexTerm[its.size()];
+      IndexTerm[] idxTerms =  its.toArray(itsArr);
+
+      return this.addIndex(session, indexName, indexId, idxTerms, indexType, create, indexComment);
+    }
 
     /**
      * Get the given row.

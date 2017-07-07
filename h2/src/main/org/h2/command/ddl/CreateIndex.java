@@ -14,8 +14,9 @@ import org.h2.engine.Session;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.IndexColumn;
+import org.h2.table.IndexTerm;
 import org.h2.table.Table;
+import org.h2.expression.Expression;
 
 /**
  * This class represents the statement
@@ -25,7 +26,7 @@ public class CreateIndex extends SchemaCommand {
 
     private String tableName;
     private String indexName;
-    private IndexColumn[] indexColumns;
+    private IndexTerm[] indexTerms;
     private boolean primaryKey, unique, hash, spatial, affinity;
     private boolean ifTableExists;
     private boolean ifNotExists;
@@ -51,8 +52,8 @@ public class CreateIndex extends SchemaCommand {
         this.indexName = indexName;
     }
 
-    public void setIndexColumns(IndexColumn[] columns) {
-        this.indexColumns = columns;
+    public void setIndexTerms(IndexTerm[] terms) {
+        this.indexTerms = terms;
     }
 
     @Override
@@ -103,8 +104,8 @@ public class CreateIndex extends SchemaCommand {
         } else {
             indexType = IndexType.createNonUnique(persistent, hash, spatial);
         }
-        IndexColumn.mapColumns(indexColumns, table);
-        table.addIndex(session, indexName, id, indexColumns, indexType, create,
+        IndexTerm.mapColumns(indexTerms, table, session);
+        table.addIndex(session, indexName, id, indexTerms, indexType, create,
                 comment);
         return 0;
     }

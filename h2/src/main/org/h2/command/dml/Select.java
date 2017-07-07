@@ -16,16 +16,12 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
-import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
-import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Parameter;
+import org.h2.expression.*;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
+import org.h2.mvstore.db.MVIndex;
 import org.h2.result.LazyResult;
 import org.h2.result.LocalResult;
 import org.h2.result.ResultInterface;
@@ -47,6 +43,7 @@ import org.h2.util.ValueHashMap;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+import org.h2.value.ValueString;
 
 /**
  * This class represents a simple SELECT statement.
@@ -84,6 +81,7 @@ public class Select extends Query {
     private boolean sortUsingIndex;
     private SortOrder sort;
     private int currentGroupRowId;
+    private boolean useFunctionCompare;
 
     public Select(Session session) {
         super(session);
@@ -296,8 +294,32 @@ public class Select extends Query {
     }
 
     private boolean isConditionMet() {
-        return condition == null ||
+
+        // the use function compare needs to be incorporated
+        if (useFunctionCompare){
+            return isConditionMetForFunction();
+        }
+        else
+         return condition == null ||
                 Boolean.TRUE.equals(condition.getBooleanValue(session));
+    }
+
+    private boolean isConditionMetForFunction() {
+        if (getTopTableFilter().getIndex() instanceof MVIndex){
+            MVIndex index = (MVIndex)getTopTableFilter().getIndex();
+            Function func = (Function)((Comparison)condition).getExpression(true);
+
+            String funcName  = func.getName();
+            String columnName = func.getArgs()[0].getColumnName();
+
+            // do a straight compare
+            //if (index.getFunction(columnName).getName().equals(funcName)){
+            //    ValueString val = (ValueString)(((Comparison) condition).getExpression(false));
+            //    // compare this val to the currentRowId
+            //}
+
+        }
+        return true;
     }
 
     private void queryGroup(int columnCount, LocalResult result) {

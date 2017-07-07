@@ -108,6 +108,13 @@ public class FunctionTable extends Table {
 
     @Override
     public Index addIndex(Session session, String indexName, int indexId,
+            IndexTerm[] idxTerms, IndexType indexType, boolean create,
+            String indexComment) {
+        throw DbException.getUnsupportedException("ALIAS");
+    }
+
+    @Override
+    public Index addIndex(Session session, String indexName, int indexId,
             IndexColumn[] cols, IndexType indexType, boolean create,
             String indexComment) {
         throw DbException.getUnsupportedException("ALIAS");

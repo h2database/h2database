@@ -5,11 +5,13 @@
  */
 package org.h2.command.dml;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
+import org.h2.table.Column;
 import org.h2.table.Plan;
 import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
@@ -255,6 +257,11 @@ class Optimizer {
         for (TableFilter f : f2) {
             PlanItem item = bestPlan.getItem(f);
             f.setPlanItem(item);
+
+            if (item.getIndex().getName() != null){
+                System.out.println(item.getIndex().getName());
+            }
+
         }
     }
 

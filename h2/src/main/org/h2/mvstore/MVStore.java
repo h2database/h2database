@@ -298,9 +298,15 @@ public final class MVStore {
             fileStore = new FileStore();
         }
         o = config.get("pageSplitSize");
-        pageSplitSize = o != null         ? (Integer) o :
-                        fileStore == null ? 48 :
-                                            16 * 1024;
+        int pgSplitSize;
+        if (o != null) {
+            pgSplitSize = (Integer) o;
+        } else if(fileStore != null) {
+            pgSplitSize = 16 * 1024;
+        } else {
+            pgSplitSize = 48; // number of keys per page in that case
+        }
+        pageSplitSize = pgSplitSize;
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
         meta = new MVMap<String, String>(StringDataType.INSTANCE,

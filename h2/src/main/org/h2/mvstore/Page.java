@@ -361,7 +361,11 @@ public class Page {
      * @return the page with the entries after the split index
      */
     Page split(int at) {
-        return isLeaf() ? splitLeaf(at) : splitNode(at);
+        Page page = isLeaf() ? splitLeaf(at) : splitNode(at);
+        if(isPersistent()) {
+            recalculateMemory();
+        }
+        return page;
     }
 
     private Page splitLeaf(int at) {
@@ -382,10 +386,6 @@ public class Page {
                 bKeys, bValues,
                 null,
                 b, 0);
-        if(isPersistent()) {
-            recalculateMemory();
-            newPage.recalculateMemory();
-        }
         return newPage;
     }
 
@@ -417,10 +417,6 @@ public class Page {
                 bKeys, null,
                 bChildren,
                 t, 0);
-        if(isPersistent()) {
-            recalculateMemory();
-            newPage.recalculateMemory();
-        }
         return newPage;
     }
 
@@ -918,30 +914,24 @@ public class Page {
     }
 
     private void addMemory(int mem) {
-        if(!isPersistent()) {
-            throw DataUtils.newIllegalStateException(
-                    DataUtils.ERROR_INTERNAL, "Memory calculation error2");
-        }
         memory += mem;
     }
 
     private void recalculateMemory() {
-        if(isPersistent()) {
-            int mem = DataUtils.PAGE_MEMORY;
-            DataType keyType = map.getKeyType();
-            for (int i = 0; i < keys.length; i++) {
-                mem += keyType.getMemory(keys[i]);
-            }
-            if (this.isLeaf()) {
-                DataType valueType = map.getValueType();
-                for (int i = 0; i < keys.length; i++) {
-                    mem += valueType.getMemory(values[i]);
-                }
-            } else {
-                mem += this.getRawChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
-            }
-            addMemory(mem - memory);
+        int mem = DataUtils.PAGE_MEMORY;
+        DataType keyType = map.getKeyType();
+        for (int i = 0; i < keys.length; i++) {
+            mem += keyType.getMemory(keys[i]);
         }
+        if (this.isLeaf()) {
+            DataType valueType = map.getValueType();
+            for (int i = 0; i < keys.length; i++) {
+                mem += valueType.getMemory(values[i]);
+            }
+        } else {
+            mem += this.getRawChildPageCount() * DataUtils.PAGE_MEMORY_CHILD;
+        }
+        addMemory(mem - memory);
     }
 
     void setVersion(long version) {

@@ -53,7 +53,7 @@ public class Page {
     private int cachedCompare;
 
     /**
-     * The estimated memory used.
+     * The estimated memory used in persistent case, IN_MEMORY marker value otherwise.
      */
     private int memory;
 

@@ -1416,7 +1416,9 @@ public class TestMVStore extends TestBase {
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        assertEquals(131896, s.getUnsavedMemory());
+        // previously (131896) we fail to account for initial root page for every map
+        // there are two of them here (meta and "data"), hence lack of 256 bytes
+        assertEquals(132152, s.getUnsavedMemory());
         s.commit();
         assertEquals(2, s.getFileStore().getWriteCount());
         s.close();

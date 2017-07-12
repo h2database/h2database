@@ -5,11 +5,13 @@
  */
 package org.h2.engine;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.h2.util.New;
 import org.h2.util.StringUtils;
-
-import java.util.HashMap;
-import java.util.regex.Pattern;
 
 /**
  * The compatibility modes. There is a fixed set of modes (for example
@@ -170,6 +172,13 @@ public class Mode {
      */
     public boolean allowDB2TimestampFormat;
 
+    /**
+     * An optional Set of hidden/disallowed column types.
+     * Certain DBMSs don't support all column types provided by H2, such as 
+     * "NUMBER" when using PostgreSQL mode.
+     */
+    public Set<String> disallowedTypes = Collections.emptySet();
+
     private final String name;
 
     static {
@@ -268,6 +277,12 @@ public class Mode {
                 Pattern.compile("ApplicationName");
         mode.prohibitEmptyInPredicate = true;
         mode.padFixedLengthStrings = true;
+        // Enumerate all H2 types NOT supported by PostgreSQL:
+        Set<String> disallowedTypes = new java.util.HashSet<String>();
+        disallowedTypes.add("NUMBER");
+        disallowedTypes.add("IDENTITY");
+        disallowedTypes.add("TINYINT");
+        mode.disallowedTypes = disallowedTypes;
         add(mode);
 
         mode = new Mode("Ignite");

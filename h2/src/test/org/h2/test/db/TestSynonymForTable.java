@@ -84,14 +84,12 @@ public class TestSynonymForTable extends TestBase {
         // Backing table does not exist anymore.
         assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
 
-        // Meta data should show INVALID
+        // Synonym should be dropped as well
         ResultSet synonyms = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYNONYMS WHERE SYNONYM_NAME='TESTSYNONYM'");
-        assertTrue(synonyms.next());
-        assertEquals("TESTSYNONYM", synonyms.getString("SYNONYM_NAME"));
-        assertEquals("INVALID", synonyms.getString("STATUS"));
+        assertFalse(synonyms.next());
         conn.close();
 
-        // Reopening should work with invalid synonym
+        // Reopening should work with dropped synonym
         Connection conn2 = getConnection("synonym");
         assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
         conn2.close();
@@ -112,6 +110,7 @@ public class TestSynonymForTable extends TestBase {
 
         // Without "if exists" the command should fail if the synonym does not exist.
         assertThrows(JdbcSQLException.class, stat).execute("DROP SYNONYM testsynonym");
+        conn.close();
     }
 
     private void testSynonymInDifferentSchema() throws SQLException {
@@ -124,6 +123,7 @@ public class TestSynonymForTable extends TestBase {
         stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR s1.backingtable");
         stat.execute("INSERT INTO s1.backingtable VALUES(15)");
         assertSynonymContains(conn, 15);
+        conn.close();
     }
 
     private void testCreateOrReplaceExistingTable() throws SQLException {

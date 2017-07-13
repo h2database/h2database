@@ -292,14 +292,16 @@ public class Database implements DataHandler {
             if (e instanceof OutOfMemoryError) {
                 e.fillInStackTrace();
             }
+            boolean alreadyOpen = e instanceof DbException
+                               && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+            if (alreadyOpen) {
+                stopServer();
+            }
+
             if (traceSystem != null) {
-                if (e instanceof SQLException) {
-                    SQLException e2 = (SQLException) e;
-                    if (e2.getErrorCode() != ErrorCode.
-                            DATABASE_ALREADY_OPEN_1) {
-                        // only write if the database is not already in use
-                        trace.error(e, "opening {0}", databaseName);
-                    }
+                if (e instanceof DbException && !alreadyOpen) {
+                    // only write if the database is not already in use
+                    trace.error(e, "opening {0}", databaseName);
                 }
                 traceSystem.close();
             }

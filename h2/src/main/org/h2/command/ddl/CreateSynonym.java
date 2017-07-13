@@ -84,6 +84,7 @@ public class CreateSynonym extends SchemaCommand {
             table.updateData(data);
             table.setComment(comment);
             table.setModified();
+            db.updateMeta(session, table);
         } else {
             data.id = getObjectId();
             table = getSchema().createSynonym(data);
@@ -91,6 +92,7 @@ public class CreateSynonym extends SchemaCommand {
             db.addSchemaObject(session, table);
         }
 
+        table.updateSynonymFor();
         return 0;
     }
 

@@ -380,6 +380,13 @@ public abstract class AbstractTable extends SchemaObjectBase {
     public abstract void removeView(TableView view);
 
     /**
+     * Remove the given synonym from the list.
+     *
+     * @param synonym the synonym to remove
+     */
+    public abstract void removeSynonym(TableSynonym synonym);
+
+    /**
      * Remove the given constraint from the list.
      *
      * @param constraint the constraint to remove
@@ -406,6 +413,13 @@ public abstract class AbstractTable extends SchemaObjectBase {
      * @param view the view to add
      */
     public abstract void addView(TableView view);
+
+    /**
+     * Add a synonym to this table.
+     *
+     * @param synonym the synonym to add
+     */
+    public abstract void addSynonym(TableSynonym synonym);
 
     /**
      * Add a constraint to the table.

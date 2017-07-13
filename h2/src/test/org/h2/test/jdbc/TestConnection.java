@@ -45,6 +45,7 @@ public class TestConnection extends TestBase {
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("numServers", "SomeValue");
         assertThrows(SQLClientInfoException.class, conn).setClientInfo("server23", "SomeValue");
+        conn.close();
     }
 
     private void testSetUnsupportedClientInfoProperties() throws SQLException {
@@ -54,6 +55,7 @@ public class TestConnection extends TestBase {
         properties.put("ClientUser", "someUser");
 
         assertThrows(SQLClientInfoException.class, conn).setClientInfo(properties);
+        conn.close();
     }
 
     private void testSetSupportedClientInfoProperties() throws SQLException {
@@ -67,6 +69,7 @@ public class TestConnection extends TestBase {
         assertNull(conn.getClientInfo("ApplicationName"));
         // new property has been set
         assertEquals(conn.getClientInfo("ClientUser"), "someUser");
+        conn.close();
     }
 
     private void testSetSupportedClientInfo() throws SQLException {
@@ -74,17 +77,20 @@ public class TestConnection extends TestBase {
         conn.setClientInfo("ApplicationName", "Connection Test");
 
         assertEquals(conn.getClientInfo("ApplicationName"), "Connection Test");
+        conn.close();
     }
 
     private void testSetUnsupportedClientInfo() throws SQLException {
         Connection conn = getConnection("clientInfoDB2;MODE=DB2");
         assertThrows(SQLClientInfoException.class, conn).setClientInfo(
                 "UnsupportedName", "SomeValue");
+        conn.close();
     }
 
     private void testGetUnsupportedClientInfo() throws SQLException {
         Connection conn = getConnection("clientInfo");
         assertNull(conn.getClientInfo("UnknownProperty"));
+        conn.close();
     }
 
     private void testSetGetSchema() throws SQLException {

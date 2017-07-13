@@ -1285,6 +1285,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+        conn.close();
     }
 
     private void testToDateException() {
@@ -2058,6 +2059,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         assertFalse(parsed.before(before));
         assertFalse(parsed.after(after));
+        conn.close();
     }
 
 
@@ -2083,6 +2085,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.close();
 
         assertEquals(first, second);
+        conn.close();
     }
 
     private void testThatCurrentTimestampUpdatesOutsideATransaction()
@@ -2107,26 +2110,26 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.close();
 
         assertTrue(second.after(first));
+        conn.close();
     }
 
     private void callCompiledFunction(String functionName) throws SQLException {
         deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        ResultSet rs;
-        stat.execute("create alias " + functionName + " AS "
-                + "$$ boolean " + functionName + "() "
-                + "{ return true; } $$;");
+        try (Connection conn = getConnection("functions")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs;
+            stat.execute("create alias " + functionName + " AS "
+                    + "$$ boolean " + functionName + "() "
+                    + "{ return true; } $$;");
 
-        PreparedStatement stmt = conn.prepareStatement(
-                "select " + functionName + "() from dual");
-        rs = stmt.executeQuery();
-        rs.next();
-        assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
+            PreparedStatement stmt = conn.prepareStatement(
+                    "select " + functionName + "() from dual");
+            rs = stmt.executeQuery();
+            rs.next();
+            assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
 
-        stat.execute("drop alias " + functionName + "");
-
-        conn.close();
+            stat.execute("drop alias " + functionName + "");
+        }
     }
 
     private void assertCallResult(String expected, Statement stat, String sql)

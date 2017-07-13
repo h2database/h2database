@@ -92,7 +92,7 @@ public class TestFullText extends TestBase {
 
     private static void close(Collection<Connection> list) throws SQLException {
         for (Connection conn : list) {
-            conn.close();
+            try { conn.close(); } catch (SQLException ignore) {/**/}
         }
     }
 
@@ -491,8 +491,7 @@ public class TestFullText extends TestBase {
             return;
         }
         deleteDb("fullText");
-        ArrayList<Connection> connList = new ArrayList<Connection>();
-        Connection conn = getConnection("fullText", connList);
+        Connection conn = getConnection("fullText");
         String prefix = lucene ? "FTL_" : "FT_";
         Statement stat = conn.createStatement();
         String className = lucene ? "FullTextLucene" : "FullText";
@@ -590,15 +589,15 @@ public class TestFullText extends TestBase {
 
         if (!config.memory) {
             conn.close();
+            conn = getConnection("fullText");
         }
 
-        conn = getConnection("fullText", connList);
         stat = conn.createStatement();
         stat.executeQuery("SELECT * FROM " + prefix + "SEARCH('World', 0, 0)");
 
         stat.execute("CALL " + prefix + "DROP_ALL()");
 
-        close(connList);
+        conn.close();
     }
 
     private void testDropIndex(boolean lucene) throws SQLException {
@@ -625,7 +624,6 @@ public class TestFullText extends TestBase {
                 "_CREATE_INDEX('PUBLIC', 'TEST', 'NAME1, NAME2')");
         stat.execute("UPDATE TEST SET NAME2=NULL WHERE ID=1");
         stat.execute("UPDATE TEST SET NAME2='Hello World' WHERE ID=1");
-        conn.close();
 
         conn.close();
         FileUtils.deleteRecursive(getBaseDir() + "/fullTextDropIndex", false);

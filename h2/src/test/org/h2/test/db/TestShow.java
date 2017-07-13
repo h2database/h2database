@@ -33,34 +33,36 @@ public class TestShow extends TestBase {
     }
 
     private void testPgCompatibility() throws SQLException {
-        Connection conn = getConnection("mem:pg");
-        Statement stat = conn.createStatement();
+        try (Connection conn = getConnection("mem:pg")) {
+            Statement stat = conn.createStatement();
 
-        assertResult("UNICODE", stat, "SHOW CLIENT_ENCODING");
-        assertResult("read committed", stat, "SHOW DEFAULT_TRANSACTION_ISOLATION");
-        assertResult("read committed", stat, "SHOW TRANSACTION ISOLATION LEVEL");
-        assertResult("ISO", stat, "SHOW DATESTYLE");
-        assertResult("8.1.4", stat, "SHOW SERVER_VERSION");
-        assertResult("UTF8", stat, "SHOW SERVER_ENCODING");
+            assertResult("UNICODE", stat, "SHOW CLIENT_ENCODING");
+            assertResult("read committed", stat, "SHOW DEFAULT_TRANSACTION_ISOLATION");
+            assertResult("read committed", stat, "SHOW TRANSACTION ISOLATION LEVEL");
+            assertResult("ISO", stat, "SHOW DATESTYLE");
+            assertResult("8.1.4", stat, "SHOW SERVER_VERSION");
+            assertResult("UTF8", stat, "SHOW SERVER_ENCODING");
+        }
     }
 
     private void testMysqlCompatibility() throws SQLException {
-        Connection conn = getConnection("mem:pg");
-        Statement stat = conn.createStatement();
-        ResultSet rs;
+        try (Connection conn = getConnection("mem:pg")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs;
 
-        // show tables without a schema
-        stat.execute("create table person(id int, name varchar)");
-        rs = stat.executeQuery("SHOW TABLES");
-        assertTrue(rs.next());
-        assertEquals("PERSON", rs.getString(1));
-        assertEquals("PUBLIC", rs.getString(2));
-        assertFalse(rs.next());
+            // show tables without a schema
+            stat.execute("create table person(id int, name varchar)");
+            rs = stat.executeQuery("SHOW TABLES");
+            assertTrue(rs.next());
+            assertEquals("PERSON", rs.getString(1));
+            assertEquals("PUBLIC", rs.getString(2));
+            assertFalse(rs.next());
 
-        // show tables with a schema
-        assertResultRowCount(1, stat.executeQuery("SHOW TABLES FROM PUBLIC"));
+            // show tables with a schema
+            assertResultRowCount(1, stat.executeQuery("SHOW TABLES FROM PUBLIC"));
 
-        // columns
-        assertResultRowCount(2, stat.executeQuery("SHOW COLUMNS FROM person"));
+            // columns
+            assertResultRowCount(2, stat.executeQuery("SHOW COLUMNS FROM person"));
+        }
     }
 }

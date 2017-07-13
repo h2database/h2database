@@ -246,6 +246,8 @@ public class TestCompatibility extends TestBase {
         assertResult("ABC", stat, "SELECT SUBSTRING('ABCDEF' FOR 3)");
         assertResult("ABCD", stat, "SELECT SUBSTRING('0ABCDEF' FROM 2 FOR 4)");
 
+        /* --------- Behaviour of CHAR(N) --------- */
+
         /* Test right-padding of CHAR(N) at INSERT */
         stat.execute("CREATE TABLE TEST(CH CHAR(10))");
         stat.execute("INSERT INTO TEST (CH) VALUES ('Hello')");
@@ -273,6 +275,19 @@ public class TestCompatibility extends TestBase {
         stat.execute("INSERT INTO TEST (CH) VALUES ('1   ')");
         assertResult("1 ", stat, "SELECT CH FROM TEST");
         assertResult("1 ", stat, "SELECT CH FROM TEST WHERE CH = '1      '");
+
+        /* --------- Disallowed column types --------- */
+
+        String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT"};
+        for (String type : DISALLOWED_TYPES) {
+            stat.execute("DROP TABLE IF EXISTS TEST");
+            try {
+                stat.execute("CREATE TABLE TEST(COL " + type + ")");
+                fail("Expect type " + type + " to not exist in PostgreSQL mode");
+            } catch (org.h2.jdbc.JdbcSQLException e) {
+                /* Expected! */
+            }
+        }
     }
 
     private void testMySQL() throws SQLException {

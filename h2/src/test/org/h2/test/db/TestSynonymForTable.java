@@ -204,13 +204,16 @@ public class TestSynonymForTable extends TestBase {
      * Make sure, that the schema changes are persisted when reopening the database
      */
     private void testReopenDatabase() throws SQLException {
-        Connection conn = getConnection("synonym");
-        createTableWithSynonym(conn);
-        insertIntoBackingTable(conn, 9);
-        conn.close();
-        Connection conn2 = getConnection("synonym");
-        assertSynonymContains(conn2, 9);
-        conn2.close();
+        if(!config.memory) {
+            deleteDb("synonym");
+            Connection conn = getConnection("synonym");
+            createTableWithSynonym(conn);
+            insertIntoBackingTable(conn, 9);
+            conn.close();
+            Connection conn2 = getConnection("synonym");
+            assertSynonymContains(conn2, 9);
+            conn2.close();
+        }
     }
 
     private void testTruncateSynonym() throws SQLException {

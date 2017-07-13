@@ -226,8 +226,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                 conn.createStatement().execute("analyze");
             }
             t.get();
-        stat.execute("drop table test");
-        conn.close();
+            stat.execute("drop table test");
+        }
     }
 
     private void testConcurrentInsertUpdateSelect() throws Exception {

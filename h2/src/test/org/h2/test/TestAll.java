@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -864,7 +863,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestMVTableEngine());
         addTest(new TestObjectDataType());
         addTest(new TestRandomMapOps());
-        addTest(new TestReorderWrites());
         addTest(new TestSpinLock());
         addTest(new TestStreamStore());
         addTest(new TestTransactionStore());

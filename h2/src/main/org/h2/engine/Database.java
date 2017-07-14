@@ -1265,10 +1265,10 @@ public class Database implements DataHandler {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
                     for (AbstractTable table : getAllTablesAndViews(false)) {
-                        if (table.isGlobalTemporary()) {
+                        if (table.resolve().isGlobalTemporary()) {
                             table.removeChildrenAndResources(systemSession);
                         } else {
-                            table.close(systemSession);
+                            table.resolve().close(systemSession);
                         }
                     }
                     for (SchemaObject obj : getAllSchemaObjects(
@@ -1331,7 +1331,7 @@ public class Database implements DataHandler {
         if (!persistent) {
             return;
         }
-        boolean lobStorageIsUsed = infoSchema.findTableOrView(
+        boolean lobStorageIsUsed = infoSchema.findTableViewOrSynonym(
                 systemSession, LobStorageBackend.LOB_DATA_TABLE) != null;
         lobStorageIsUsed |= mvStore != null;
         if (!lobStorageIsUsed) {
@@ -1806,11 +1806,11 @@ public class Database implements DataHandler {
         for (AbstractTable t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
-            } else if (TableType.VIEW == t.getTableType()) {
+            } else if (TableType.VIEW == t.getTableType() || TableType.SYNONYM == t.getTableType()) {
                 continue;
             }
             set.clear();
-            t.addDependencies(set);
+            t.resolve().addDependencies(set);
             if (set.contains(obj)) {
                 return t;
             }
@@ -1829,7 +1829,7 @@ public class Database implements DataHandler {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
             AbstractTable table = (AbstractTable) obj;
-            if (table.isTemporary() && !table.isGlobalTemporary()) {
+            if (table.isTemporary() && !table.resolve().isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return;
             }
@@ -1843,7 +1843,7 @@ public class Database implements DataHandler {
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
             AbstractTable table = constraint.getTable();
-            if (table.isTemporary() && !table.isGlobalTemporary()) {
+            if (table.isTemporary() && !table.resolve().isGlobalTemporary()) {
                 session.removeLocalTempTableConstraint(constraint);
                 return;
             }
@@ -1919,7 +1919,7 @@ public class Database implements DataHandler {
         do {
             tempName = baseName + "_COPY_" + session.getId() +
                     "_" + nextTempTableId++;
-        } while (mainSchema.findTableOrView(session, tempName) != null);
+        } while (mainSchema.findTableViewOrSynonym(session, tempName) != null);
         return tempName;
     }
 

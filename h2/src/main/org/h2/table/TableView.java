@@ -266,7 +266,7 @@ public class TableView extends Table {
             return false;
         }
         for (AbstractTable t : tables) {
-            if (!t.isQueryComparable()) {
+            if (!t.resolve().isQueryComparable()) {
                 return false;
             }
         }
@@ -503,7 +503,7 @@ public class TableView extends Table {
     private void removeViewFromTables() {
         if (tables != null) {
             for (AbstractTable t : tables) {
-                t.removeView(this);
+                t.resolve().removeView(this);
             }
             tables.clear();
         }
@@ -511,7 +511,7 @@ public class TableView extends Table {
 
     private void addViewToTables() {
         for (AbstractTable t : tables) {
-            t.addView(this);
+            t.resolve().addView(this);
         }
     }
 
@@ -622,7 +622,7 @@ public class TableView extends Table {
         if (tables != null) {
             for (AbstractTable t : tables) {
                 if (TableType.VIEW != t.getTableType()) {
-                    t.addDependencies(dependencies);
+                    t.resolve().addDependencies(dependencies);
                 }
             }
         }

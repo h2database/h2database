@@ -111,7 +111,7 @@ public class User extends RightOwner {
      */
     public boolean hasRight(AbstractTable table, int rightMask) {
         if (rightMask != Right.SELECT && !systemUser && table != null) {
-            table.checkWritingAllowed();
+            table.resolve().checkWritingAllowed();
         }
         if (admin) {
             return true;
@@ -128,7 +128,7 @@ public class User extends RightOwner {
             if (hasRight(null, Right.ALTER_ANY_SCHEMA)) {
                 return true;
             }
-            TableType tableType = table.getTableType();
+            TableType tableType = table.resolve().getTableType();
             if (TableType.VIEW == tableType) {
                 TableView v = (TableView) table;
                 if (v.getOwner() == this) {
@@ -140,7 +140,7 @@ public class User extends RightOwner {
                 // function table
                 return true;
             }
-            if (table.isTemporary() && !table.isGlobalTemporary()) {
+            if (table.isTemporary() && !table.resolve().isGlobalTemporary()) {
                 // the owner has all rights on local temporary tables
                 return true;
             }

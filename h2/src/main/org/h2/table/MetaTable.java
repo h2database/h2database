@@ -710,13 +710,13 @@ public class MetaTable extends Table {
                 }
                 String storageType;
                 if (table.isTemporary()) {
-                    if (table.isGlobalTemporary()) {
+                    if (table.resolve().isGlobalTemporary()) {
                         storageType = "GLOBAL TEMPORARY";
                     } else {
                         storageType = "LOCAL TEMPORARY";
                     }
                 } else {
-                    storageType = table.isPersistIndexes() ?
+                    storageType = table.resolve().isPersistIndexes() ?
                             "CACHED" : "MEMORY";
                 }
                 String sql = table.getCreateSQL();
@@ -742,7 +742,7 @@ public class MetaTable extends Table {
                         // REMARKS
                         replaceNullWithEmpty(table.getComment()),
                         // LAST_MODIFICATION
-                        "" + table.getMaxDataModificationId(),
+                        "" + table.resolve().getMaxDataModificationId(),
                         // ID
                         "" + table.getId(),
                         // TYPE_NAME
@@ -750,7 +750,7 @@ public class MetaTable extends Table {
                         // TABLE_CLASS
                         table.getClass().getName(),
                         // ROW_COUNT_ESTIMATE
-                        "" + table.getRowCountApproximation()
+                        "" + table.resolve().getRowCountApproximation()
                 );
             }
             break;
@@ -773,7 +773,7 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                Column[] cols = table.getColumns();
+                Column[] cols = table.resolve().getColumns();
                 String collation = database.getCompareMode().getName();
                 for (int j = 0; j < cols.length; j++) {
                     Column c = cols[j];
@@ -850,8 +850,8 @@ public class MetaTable extends Table {
                 if (hideTable(table, session)) {
                     continue;
                 }
-                ArrayList<Index> indexes = table.getIndexes();
-                ArrayList<Constraint> constraints = table.getConstraints();
+                ArrayList<Index> indexes = table.resolve().getIndexes();
+                ArrayList<Constraint> constraints = table.resolve().getConstraints();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = indexes.get(j);
                     if (index.getCreateSQL() == null) {
@@ -1894,7 +1894,7 @@ public class MetaTable extends Table {
                             // SYNONYM_FOR
                             synonym.getSynonymForName(),
                             // STATUS
-                            synonym.isInvalid() ? "INVALID" : "VALID",
+                            "VALID",
                             // REMARKS
                             replaceNullWithEmpty(synonym.getComment()),
                             // ID

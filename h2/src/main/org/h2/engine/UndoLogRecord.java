@@ -66,7 +66,7 @@ public class UndoLogRecord {
      */
     boolean canStore() {
         // if large transactions are enabled, this method is not called
-        if (table.getUniqueIndex() != null) {
+        if (table.resolve().getUniqueIndex() != null) {
             return true;
         }
         return false;
@@ -93,8 +93,8 @@ public class UndoLogRecord {
             }
             try {
                 row.setDeleted(false);
-                table.removeRow(session, row);
-                table.fireAfterRow(session, row, null, true);
+                table.resolve().removeRow(session, row);
+                table.resolve().fireAfterRow(session, row, null, true);
             } catch (DbException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
                         && e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
@@ -107,8 +107,8 @@ public class UndoLogRecord {
             break;
         case DELETE:
             try {
-                table.addRow(session, row);
-                table.fireAfterRow(session, null, row, true);
+                table.resolve().addRow(session, row);
+                table.resolve().fireAfterRow(session, null, row, true);
                 // reset session id, otherwise other sessions think
                 // that this row was inserted by this session
                 row.commit();
@@ -251,7 +251,7 @@ public class UndoLogRecord {
      * It commits the change to the indexes.
      */
     void commit() {
-        table.commit(operation, row);
+        table.resolve().commit(operation, row);
     }
 
     /**

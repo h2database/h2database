@@ -25,6 +25,7 @@ import org.h2.schema.Schema;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 
@@ -94,7 +95,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             session.commit(true);
         }
         Database db = session.getDatabase();
-        AbstractTable table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().findTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;
@@ -197,7 +198,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL: {
-            AbstractTable refTable = refSchema.getTableOrView(session, refTableName);
+            Table refTable = refSchema.resolveTableOrView(session, refTableName);
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
                 throw DbException.getUnsupportedException("Reference " +
@@ -271,7 +272,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return 0;
     }
 
-    private Index createIndex(AbstractTable t, IndexColumn[] cols, boolean unique) {
+    private Index createIndex(Table t, IndexColumn[] cols, boolean unique) {
         int indexId = getObjectId();
         IndexType indexType;
         if (unique) {
@@ -303,7 +304,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         this.updateAction = action;
     }
 
-    private static Index getUniqueIndex(AbstractTable t, IndexColumn[] cols) {
+    private static Index getUniqueIndex(Table t, IndexColumn[] cols) {
         if (t.getIndexes() == null) {
             return null;
         }
@@ -315,7 +316,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private static Index getIndex(AbstractTable t, IndexColumn[] cols, boolean moreColumnOk) {
+    private static Index getIndex(Table t, IndexColumn[] cols, boolean moreColumnOk) {
         if (t.getIndexes() == null) {
             return null;
         }

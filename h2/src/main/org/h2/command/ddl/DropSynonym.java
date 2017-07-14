@@ -34,7 +34,7 @@ public class DropSynonym extends SchemaCommand {
     @Override
     public int update() {
         session.commit(true);
-        AbstractTable synonym = getSchema().findTableOrView(session, synonymName);
+        AbstractTable synonym = getSchema().findTableViewOrSynonym(session, synonymName);
         if (synonym == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);
@@ -44,7 +44,7 @@ public class DropSynonym extends SchemaCommand {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);
             }
             session.getUser().checkRight(synonym, Right.ALL);
-            synonym.lock(session, true, true);
+            synonym.resolve().lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, synonym);
         }
         return 0;

@@ -14,8 +14,8 @@ import org.h2.engine.Session;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -52,7 +52,7 @@ public class AlterTableRenameColumn extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        AbstractTable table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().findTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;

@@ -21,6 +21,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -32,7 +33,7 @@ import java.util.ArrayList;
  */
 public class Replace extends Prepared {
 
-    private AbstractTable table;
+    private Table table;
     private Column[] columns;
     private Column[] keys;
     private final ArrayList<Expression[]> list = New.arrayList();
@@ -51,7 +52,7 @@ public class Replace extends Prepared {
         }
     }
 
-    public void setTable(AbstractTable table) {
+    public void setTable(Table table) {
         this.table = table;
     }
 
@@ -82,12 +83,13 @@ public class Replace extends Prepared {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
+        Table resolvedTable = table;
         if (list.size() > 0) {
             count = 0;
             for (int x = 0, size = list.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
                 Expression[] expr = list.get(x);
-                Row newRow = table.getTemplateRow();
+                Row newRow = resolvedTable.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();
@@ -108,12 +110,12 @@ public class Replace extends Prepared {
         } else {
             ResultInterface rows = query.query(0);
             count = 0;
-            table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
-            table.lock(session, true, false);
+            resolvedTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
+            resolvedTable.lock(session, true, false);
             while (rows.next()) {
                 count++;
                 Value[] r = rows.currentRow();
-                Row newRow = table.getTemplateRow();
+                Row newRow = resolvedTable.getTemplateRow();
                 setCurrentRowNumber(count);
                 for (int j = 0; j < columns.length; j++) {
                     Column c = columns[j];
@@ -128,7 +130,7 @@ public class Replace extends Prepared {
                 replace(newRow);
             }
             rows.close();
-            table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
+            resolvedTable.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
         }
         return count;
     }

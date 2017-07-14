@@ -24,6 +24,7 @@ import org.h2.result.RowList;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -85,13 +86,14 @@ public class Update extends Prepared {
         try {
             AbstractTable table = tableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
-            table.fire(session, Trigger.UPDATE, true);
-            table.lock(session, true, false);
-            int columnCount = table.getColumns().length;
+            Table resolvedTable = table.resolve();
+            resolvedTable.fire(session, Trigger.UPDATE, true);
+            resolvedTable.lock(session, true, false);
+            int columnCount = resolvedTable.getColumns().length;
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
-            Column[] columns = table.getColumns();
+            Column[] columns = resolvedTable.getColumns();
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -107,25 +109,25 @@ public class Update extends Prepared {
                 if (condition == null ||
                         Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row oldRow = tableFilter.get();
-                    Row newRow = table.getTemplateRow();
+                    Row newRow = resolvedTable.getTemplateRow();
                     for (int i = 0; i < columnCount; i++) {
                         Expression newExpr = expressionMap.get(columns[i]);
                         Value newValue;
                         if (newExpr == null) {
                             newValue = oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.getDefault()) {
-                            Column column = table.getColumn(i);
-                            newValue = table.getDefaultValue(session, column);
+                            Column column = resolvedTable.getColumn(i);
+                            newValue = resolvedTable.getDefaultValue(session, column);
                         } else {
-                            Column column = table.getColumn(i);
+                            Column column = resolvedTable.getColumn(i);
                             newValue = column.convert(newExpr.getValue(session));
                         }
                         newRow.setValue(i, newValue);
                     }
-                    table.validateConvertUpdateSequence(session, newRow);
+                    resolvedTable.validateConvertUpdateSequence(session, newRow);
                     boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, oldRow, newRow);
+                    if (resolvedTable.fireRow()) {
+                        done = resolvedTable.fireBeforeRow(session, oldRow, newRow);
                     }
                     if (!done) {
                         rows.add(oldRow);
@@ -142,16 +144,16 @@ public class Update extends Prepared {
             // we need to update all indexes) before row triggers
 
             // the cached row is already updated - we need the old values
-            table.updateRows(this, session, rows);
-            if (table.fireRow()) {
+            resolvedTable.updateRows(this, session, rows);
+            if (resolvedTable.fireRow()) {
                 rows.invalidateCache();
                 for (rows.reset(); rows.hasNext();) {
                     Row o = rows.next();
                     Row n = rows.next();
-                    table.fireAfterRow(session, o, n, false);
+                    resolvedTable.fireAfterRow(session, o, n, false);
                 }
             }
-            table.fire(session, Trigger.UPDATE, false);
+            resolvedTable.fire(session, Trigger.UPDATE, false);
             return count;
         } finally {
             rows.close();

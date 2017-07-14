@@ -71,7 +71,7 @@ public class IndexColumn {
      */
     public static void mapColumns(IndexColumn[] indexColumns, AbstractTable table) {
         for (IndexColumn col : indexColumns) {
-            col.column = table.getColumn(col.columnName);
+            col.column = table.resolve().getColumn(col.columnName);
         }
     }
 

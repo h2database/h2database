@@ -14,6 +14,7 @@ import org.h2.schema.Schema;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
+import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -28,7 +29,7 @@ public class ConstraintUnique extends Constraint {
     private IndexColumn[] columns;
     private final boolean primaryKey;
 
-    public ConstraintUnique(Schema schema, int id, String name, AbstractTable table,
+    public ConstraintUnique(Schema schema, int id, String name, Table table,
             boolean primaryKey) {
         super(schema, id, name, table);
         this.primaryKey = primaryKey;

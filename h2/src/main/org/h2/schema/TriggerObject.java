@@ -383,7 +383,7 @@ public class TriggerObject extends SchemaObjectBase {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        table.removeTrigger(this);
+        table.resolve().removeTrigger(this);
         database.removeMeta(session, getId());
         if (triggerCallback != null) {
             try {

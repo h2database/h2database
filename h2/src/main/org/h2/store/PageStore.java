@@ -559,13 +559,13 @@ public class PageStore implements CacheWriter {
             recordPageReads = true;
             Session sysSession = database.getSystemSession();
             for (AbstractTable table : tables) {
-                if (!table.isTemporary() && TableType.TABLE == table.getTableType()) {
-                    Index scanIndex = table.getScanIndex(sysSession);
+                if (!table.isTemporary() && TableType.TABLE == table.resolve().getTableType()) {
+                    Index scanIndex = table.resolve().getScanIndex(sysSession);
                     Cursor cursor = scanIndex.find(sysSession, null, null);
                     while (cursor.next()) {
                         cursor.get();
                     }
-                    for (Index index : table.getIndexes()) {
+                    for (Index index : table.resolve().getIndexes()) {
                         if (index != scanIndex && index.canScan()) {
                             cursor = index.find(sysSession, null, null);
                             while (cursor.next()) {

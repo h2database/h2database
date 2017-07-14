@@ -225,7 +225,7 @@ public class Select extends Query {
         if (groupIndex == null || groupByExpression == null) {
             return null;
         }
-        ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
+        ArrayList<Index> indexes = topTableFilter.getTable().resolve().getIndexes();
         if (indexes != null) {
             for (int i = 0, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
@@ -406,9 +406,9 @@ public class Select extends Query {
         int[] sortTypes = sort.getSortTypes();
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
-            return topTableFilter.getTable().getScanIndex(session);
+            return topTableFilter.getTable().resolve().getScanIndex(session);
         }
-        ArrayList<Index> list = topTableFilter.getTable().getIndexes();
+        ArrayList<Index> list = topTableFilter.getTable().resolve().getIndexes();
         if (list != null) {
             for (int i = 0, size = list.size(); i < size; i++) {
                 Index index = list.get(i);
@@ -447,7 +447,7 @@ public class Select extends Query {
         }
         if (sortCols.length == 1 && sortCols[0].getColumnId() == -1) {
             // special case: order by _ROWID_
-            Index index = topTableFilter.getTable().getScanIndex(session);
+            Index index = topTableFilter.getTable().resolve().getScanIndex(session);
             if (index.isRowIdIndex()) {
                 return index;
             }
@@ -480,7 +480,7 @@ public class Select extends Query {
             SearchRow found = cursor.getSearchRow();
             Value value = found.getValue(columnIndex);
             if (first == null) {
-                first = topTableFilter.getTable().getTemplateSimpleRow(true);
+                first = topTableFilter.getTable().resolve().getTemplateSimpleRow(true);
             }
             first.setValue(columnIndex, value);
             Value[] row = { value };
@@ -712,7 +712,7 @@ public class Select extends Query {
     private int expandColumnList(TableFilter filter, int index) {
         AbstractTable t = filter.getTable();
         String alias = filter.getTableAlias();
-        Column[] columns = t.getColumns();
+        Column[] columns = t.resolve().getColumns();
         for (Column c : columns) {
             if (!c.getVisible()) {
                 continue;
@@ -871,7 +871,7 @@ public class Select extends Query {
             if (expr instanceof ExpressionColumn) {
                 Column column = ((ExpressionColumn) expr).getColumn();
                 int selectivity = column.getSelectivity();
-                Index columnIndex = topTableFilter.getTable().
+                Index columnIndex = topTableFilter.getTable().resolve().
                         getIndexForColumn(column, false, true);
                 if (columnIndex != null &&
                         selectivity != Constants.SELECTIVITY_DEFAULT &&
@@ -987,7 +987,7 @@ public class Select extends Query {
     public void fireBeforeSelectTriggers() {
         for (int i = 0, size = filters.size(); i < size; i++) {
             TableFilter filter = filters.get(i);
-            filter.getTable().fire(session, Trigger.SELECT, true);
+            filter.getTable().resolve().fire(session, Trigger.SELECT, true);
         }
     }
 
@@ -1073,10 +1073,10 @@ public class Select extends Query {
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
             AbstractTable t = f.getTable();
-            if (t.isView() && ((TableView) t).isRecursive()) {
+            if (t.resolve().isView() && ((TableView) t).isRecursive()) {
                 buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
                 buff.resetCount();
-                for (Column c : t.getColumns()) {
+                for (Column c : t.resolve().getColumns()) {
                     buff.appendExceptFirst(",");
                     buff.append(c.getName());
                 }
@@ -1321,7 +1321,7 @@ public class Select extends Query {
             }
             for (int i = 0, size = filters.size(); i < size; i++) {
                 TableFilter f = filters.get(i);
-                if (!f.getTable().isDeterministic()) {
+                if (!f.getTable().resolve().isDeterministic()) {
                     return false;
                 }
             }
@@ -1330,7 +1330,7 @@ public class Select extends Query {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
             for (int i = 0, size = filters.size(); i < size; i++) {
                 TableFilter f = filters.get(i);
-                long m = f.getTable().getMaxDataModificationId();
+                long m = f.getTable().resolve().getMaxDataModificationId();
                 visitor.addDataModificationId(m);
             }
             break;
@@ -1346,7 +1346,7 @@ public class Select extends Query {
                 TableFilter f = filters.get(i);
                 AbstractTable table = f.getTable();
                 visitor.addDependency(table);
-                table.addDependencies(visitor.getDependencies());
+                table.resolve().addDependencies(visitor.getDependencies());
             }
             break;
         }

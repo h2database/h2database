@@ -17,6 +17,7 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 
 /**
  * The base class for constraint checking.
@@ -47,9 +48,9 @@ public abstract class Constraint extends SchemaObjectBase implements
     /**
      * The table for which this constraint is defined.
      */
-    protected AbstractTable table;
+    protected Table table;
 
-    Constraint(Schema schema, int id, String name, AbstractTable table) {
+    Constraint(Schema schema, int id, String name, Table table) {
         initSchemaObjectBase(schema, id, name, Trace.CONSTRAINT);
         this.table = table;
         this.setTemporary(table.isTemporary());

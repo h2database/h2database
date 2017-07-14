@@ -28,6 +28,7 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -39,7 +40,7 @@ import org.h2.value.ValueNull;
  */
 public class Insert extends Prepared implements ResultTarget {
 
-    private AbstractTable table;
+    private Table table;
     private Column[] columns;
     private final ArrayList<Expression[]> list = New.arrayList();
     private Query query;
@@ -64,7 +65,7 @@ public class Insert extends Prepared implements ResultTarget {
         }
     }
 
-    public void setTable(AbstractTable table) {
+    public void setTable(Table table) {
         this.table = table;
     }
 

@@ -282,7 +282,7 @@ public class Aggregate extends Expression {
             case COUNT:
             case COUNT_ALL:
                 AbstractTable table = select.getTopTableFilter().getTable();
-                return ValueLong.get(table.getRowCount(session));
+                return ValueLong.get(table.resolve().getRowCount(session));
             case MIN:
             case MAX:
                 boolean first = type == MIN;
@@ -581,7 +581,7 @@ public class Aggregate extends Expression {
             TableFilter filter = col.getTableFilter();
             if (filter != null) {
                 AbstractTable table = filter.getTable();
-                Index index = table.getIndexForColumn(column, true, false);
+                Index index = table.resolve().getIndexForColumn(column, true, false);
                 return index;
             }
         }
@@ -594,11 +594,11 @@ public class Aggregate extends Expression {
             switch (type) {
             case COUNT:
                 if (!distinct && on.getNullable() == Column.NOT_NULLABLE) {
-                    return visitor.getTable().canGetRowCount();
+                    return visitor.getTable().resolve().canGetRowCount();
                 }
                 return false;
             case COUNT_ALL:
-                return visitor.getTable().canGetRowCount();
+                return visitor.getTable().resolve().canGetRowCount();
             case MIN:
             case MAX:
                 Index index = getMinMaxColumnIndex();

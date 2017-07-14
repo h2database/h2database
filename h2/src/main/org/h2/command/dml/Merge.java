@@ -23,6 +23,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -33,7 +34,7 @@ import org.h2.value.Value;
  */
 public class Merge extends Prepared {
 
-    private AbstractTable table;
+    private Table table;
     private Column[] columns;
     private Column[] keys;
     private final ArrayList<Expression[]> list = New.arrayList();
@@ -52,7 +53,7 @@ public class Merge extends Prepared {
         }
     }
 
-    public void setTable(AbstractTable table) {
+    public void setTable(Table table) {
         this.table = table;
     }
 

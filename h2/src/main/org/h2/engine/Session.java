@@ -879,7 +879,7 @@ public class Session extends SessionWithState {
      * @param row the row
      */
     public void log(AbstractTable table, short operation, Row row) {
-        if (table.isMVStore()) {
+        if (table.resolve().isMVStore()) {
             return;
         }
         if (undoLogEnabled) {
@@ -890,7 +890,7 @@ public class Session extends SessionWithState {
                 int lockMode = database.getLockMode();
                 if (lockMode != Constants.LOCK_MODE_OFF &&
                         !database.isMultiVersion()) {
-                    TableType tableType = log.getTable().getTableType();
+                    TableType tableType = log.getTable().resolve().getTableType();
                     if (locks.indexOf(log.getTable()) < 0
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
@@ -902,7 +902,7 @@ public class Session extends SessionWithState {
         } else {
             if (database.isMultiVersion()) {
                 // see also UndoLogRecord.commit
-                ArrayList<Index> indexes = table.getIndexes();
+                ArrayList<Index> indexes = table.resolve().getIndexes();
                 for (int i = 0, size = indexes.size(); i < size; i++) {
                     Index index = indexes.get(i);
                     index.commit(operation, row);

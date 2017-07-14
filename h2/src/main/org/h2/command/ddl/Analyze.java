@@ -15,6 +15,7 @@ import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -34,14 +35,14 @@ public class Analyze extends DefineCommand {
     /**
      * used in ANALYZE TABLE...
      */
-    private AbstractTable table;
+    private Table table;
 
     public Analyze(Session session) {
         super(session);
         sampleRows = session.getDatabase().getSettings().analyzeSample;
     }
 
-    public void setTable(AbstractTable table) {
+    public void setTable(Table table) {
         this.table = table;
     }
 
@@ -54,7 +55,7 @@ public class Analyze extends DefineCommand {
             analyzeTable(session, table, sampleRows, true);
         } else {
             for (AbstractTable table : db.getAllTablesAndViews(false)) {
-                analyzeTable(session, table, sampleRows, true);
+                analyzeTable(session, table.resolve(), sampleRows, true);
             }
         }
         return 0;
@@ -68,8 +69,8 @@ public class Analyze extends DefineCommand {
      * @param sample the number of sample rows
      * @param manual whether the command was called by the user
      */
-    public static void analyzeTable(Session session, AbstractTable table, int sample,
-            boolean manual) {
+    public static void analyzeTable(Session session, Table table, int sample,
+                                    boolean manual) {
         if (table.getTableType() != TableType.TABLE ||
                 table.isHidden() || session == null) {
             return;

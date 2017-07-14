@@ -78,7 +78,7 @@ public class CreateView extends SchemaCommand {
         session.getUser().checkAdmin();
         Database db = session.getDatabase();
         TableView view = null;
-        AbstractTable old = getSchema().findTableOrView(session, viewName);
+        AbstractTable old = getSchema().findTableViewOrSynonym(session, viewName);
         if (old != null) {
             if (ifNotExists) {
                 return 0;

@@ -297,7 +297,7 @@ public class ExpressionColumn extends Expression {
             }
             return evaluatable || visitor.getQueryLevel() < this.queryLevel;
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID:
-            visitor.addDataModificationId(column.getTable().getMaxDataModificationId());
+            visitor.addDataModificationId(column.getTable().resolve().getMaxDataModificationId());
             return true;
         case ExpressionVisitor.NOT_FROM_RESOLVER:
             return columnResolver != visitor.getResolver();

@@ -1161,7 +1161,7 @@ public class Function extends Expression implements FunctionCall {
         Parser p = new Parser(session);
         String sql = v0.getString();
         AbstractTable table = p.parseTableName(sql);
-        return table.getDiskSpaceUsed();
+        return table.resolve().getDiskSpaceUsed();
     }
 
     private static Value getNullOrValue(Session session, Expression[] args,

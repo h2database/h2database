@@ -11,6 +11,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -18,13 +19,13 @@ import org.h2.table.AbstractTable;
  */
 public class TruncateTable extends DefineCommand {
 
-    private AbstractTable table;
+    private Table table;
 
     public TruncateTable(Session session) {
         super(session);
     }
 
-    public void setTable(AbstractTable table) {
+    public void setTable(Table table) {
         this.table = table;
     }
 

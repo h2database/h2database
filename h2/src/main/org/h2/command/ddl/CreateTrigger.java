@@ -117,7 +117,7 @@ public class CreateTrigger extends SchemaCommand {
             trigger.setTriggerSource(triggerSource, force);
         }
         db.addSchemaObject(session, trigger);
-        table.addTrigger(trigger);
+        table.resolve().addTrigger(trigger);
         return 0;
     }
 

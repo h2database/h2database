@@ -18,6 +18,7 @@ import org.h2.result.Row;
 import org.h2.schema.Schema;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
@@ -30,7 +31,7 @@ public class ConstraintCheck extends Constraint {
     private TableFilter filter;
     private Expression expr;
 
-    public ConstraintCheck(Schema schema, int id, String name, AbstractTable table) {
+    public ConstraintCheck(Schema schema, int id, String name, Table table) {
         super(schema, id, name, table);
     }
 

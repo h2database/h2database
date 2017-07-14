@@ -31,6 +31,7 @@ import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
 import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.New;
 
@@ -92,7 +93,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        AbstractTable table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;
@@ -246,7 +247,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void removeSequence(AbstractTable table, Sequence sequence) {
+    private void removeSequence(Table table, Sequence sequence) {
         if (sequence != null) {
             table.removeSequence(sequence);
             sequence.setBelongsToTable(false);
@@ -255,7 +256,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void copyData(AbstractTable table) {
+    private void copyData(Table table) {
         if (table.isTemporary()) {
             throw DbException.getUnsupportedException("TEMP TABLE");
         }
@@ -314,7 +315,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private AbstractTable cloneTableStructure(AbstractTable table, Column[] columns, Database db,
+    private AbstractTable cloneTableStructure(Table table, Column[] columns, Database db,
             String tempName, ArrayList<Column> newColumns) {
         for (Column col : columns) {
             newColumns.add(col.getClone());
@@ -504,7 +505,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNullable(AbstractTable table) {
+    private void checkNullable(Table table) {
         for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;

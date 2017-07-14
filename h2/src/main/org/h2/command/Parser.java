@@ -556,7 +556,7 @@ public class Parser {
         Analyze command = new Analyze(session);
         if (readIf("TABLE")) {
             AbstractTable table = readTableOrView();
-            command.setTable(table);
+            command.setTable(table.resolve());
         }
         if (readIf("SAMPLE_SIZE")) {
             command.setTop(readPositiveInt());
@@ -731,7 +731,7 @@ public class Parser {
                 return filter.getRowIdColumn();
             }
         }
-        return filter.getTable().getColumn(columnName);
+        return filter.getTable().resolve().getColumn(columnName);
     }
 
     private Update parseUpdate() {
@@ -884,9 +884,9 @@ public class Parser {
     private Column parseColumn(AbstractTable table) {
         String id = readColumnIdentifier();
         if (database.getSettings().rowId && Column.ROWID.equals(id)) {
-            return table.getRowIdColumn();
+            return table.resolve().getRowIdColumn();
         }
-        return table.getColumn(id);
+        return table.resolve().getColumn(id);
     }
 
     private boolean readIfMore() {
@@ -1021,7 +1021,7 @@ public class Parser {
         currentPrepared = command;
         read("INTO");
         AbstractTable table = readTableOrView();
-        command.setTable(table);
+        command.setTable(table.resolve());
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -1062,7 +1062,7 @@ public class Parser {
         currentPrepared = command;
         read("INTO");
         AbstractTable table = readTableOrView();
-        command.setTable(table);
+        command.setTable(table.resolve());
         Column[] columns = null;
         if (readIf("(")) {
             if (isSelect()) {
@@ -1153,7 +1153,7 @@ public class Parser {
         currentPrepared = command;
         read("INTO");
         AbstractTable table = readTableOrView();
-        command.setTable(table);
+        command.setTable(table.resolve());
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -1299,7 +1299,7 @@ public class Parser {
         if (!readIf(")")) {
             do {
                 String indexName = readIdentifierWithSchema();
-                Index index = table.getIndex(indexName);
+                Index index = table.resolve().getIndex(indexName);
                 indexNames.add(index.getName());
             } while (readIf(","));
             read(")");
@@ -1324,7 +1324,7 @@ public class Parser {
         read("TABLE");
         AbstractTable table = readTableOrView();
         TruncateTable command = new TruncateTable(session);
-        command.setTable(table);
+        command.setTable(table.resolve());
         return command;
     }
 
@@ -1639,8 +1639,8 @@ public class Parser {
                 read("JOIN");
                 joined = true;
                 TableFilter join = readTableFilter(fromOuter);
-                Column[] tableCols = last.getTable().getColumns();
-                Column[] joinCols = join.getTable().getColumns();
+                Column[] tableCols = last.getTable().resolve().getColumns();
+                Column[] joinCols = join.getTable().resolve().getColumns();
                 String tableSchema = last.getTable().getSchema().getName();
                 String joinSchema = join.getTable().getSchema().getName();
                 Expression on = null;
@@ -5065,7 +5065,7 @@ public class Parser {
         boolean ifExists = readIfExists(false);
         command.setIfExists(ifExists);
         String viewName = readIdentifierWithSchema();
-        AbstractTable tableView = getSchema().findTableOrView(session, viewName);
+        AbstractTable tableView = getSchema().findTableViewOrSynonym(session, viewName);
         if (!(tableView instanceof TableView) && !ifExists) {
             throw DbException.get(ErrorCode.VIEW_NOT_FOUND_1, viewName);
         }
@@ -5554,7 +5554,7 @@ public class Parser {
             return getSchema().getTableOrView(session, tableName);
         }
         AbstractTable table = database.getSchema(session.getCurrentSchemaName())
-                .findTableOrView(session, tableName);
+                .findTableViewOrSynonym(session, tableName);
         if (table != null) {
             return table;
         }
@@ -5562,7 +5562,7 @@ public class Parser {
         if (schemaNames != null) {
             for (String name : schemaNames) {
                 Schema s = database.getSchema(name);
-                table = s.findTableOrView(session, tableName);
+                table = s.findTableViewOrSynonym(session, tableName);
                 if (table != null) {
                     return table;
                 }
@@ -5712,7 +5712,7 @@ public class Parser {
                 if (table == null) {
                     return new NoOperation(session);
                 }
-                Index idx = table.getPrimaryKey();
+                Index idx = table.resolve().getPrimaryKey();
                 DropIndex command = new DropIndex(session, schema);
                 command.setIndexName(idx.getName());
                 return command;
@@ -5729,10 +5729,10 @@ public class Parser {
                     if (table == null) {
                         return new NoOperation(session);
                     }
-                    if (ifExists && !table.doesColumnExist(columnName)) {
+                    if (ifExists && !table.resolve().doesColumnExist(columnName)) {
                         return new NoOperation(session);
                     }
-                    Column column = table.getColumn(columnName);
+                    Column column = table.resolve().getColumn(columnName);
                     columnsToRemove.add(column);
                 } while (readIf(","));
                 command.setTableName(tableName);
@@ -5858,7 +5858,7 @@ public class Parser {
     }
 
     private AbstractTable tableIfTableExists(Schema schema, String tableName, boolean ifTableExists) {
-        AbstractTable table = schema.findTableOrView(session, tableName);
+        AbstractTable table = schema.findTableViewOrSynonym(session, tableName);
         if (table == null && !ifTableExists) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, tableName);
         }
@@ -5868,7 +5868,7 @@ public class Parser {
     private Column columnIfTableExists(Schema schema, String tableName,
             String columnName, boolean ifTableExists) {
         AbstractTable table = tableIfTableExists(schema, tableName, ifTableExists);
-        return table == null ? null : table.getColumn(columnName);
+        return table == null ? null : table.resolve().getColumn(columnName);
     }
 
     private Prepared commandIfTableExists(Schema schema, String tableName,

@@ -56,7 +56,7 @@ public class CreateSynonym extends SchemaCommand {
         data.session = session;
         db.lockMeta(session);
 
-        if (data.synonymForSchema.findTableOrView(session, data.synonymFor) != null) {
+        if (data.synonymForSchema.findTableViewOrSynonym(session, data.synonymFor) != null) {
             return createTableSynonym(db);
         }
 
@@ -66,7 +66,7 @@ public class CreateSynonym extends SchemaCommand {
     }
 
     private int createTableSynonym(Database db) {
-        AbstractTable old = getSchema().findTableOrView(session, data.synonymName);
+        AbstractTable old = getSchema().findTableViewOrSynonym(session, data.synonymName);
         if (old != null) {
             if (orReplace && old instanceof TableSynonym) {
                 // ok, we replacing the existing synonym

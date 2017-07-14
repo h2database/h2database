@@ -59,7 +59,7 @@ public class ConstraintReferential extends Constraint {
     private IndexColumn[] refColumns;
     private int deleteAction;
     private int updateAction;
-    private AbstractTable refTable;
+    private Table refTable;
     private Index index;
     private Index refIndex;
     private boolean indexOwner;
@@ -67,7 +67,7 @@ public class ConstraintReferential extends Constraint {
     private String deleteSQL, updateSQL;
     private boolean skipOwnTable;
 
-    public ConstraintReferential(Schema schema, int id, String name, AbstractTable table) {
+    public ConstraintReferential(Schema schema, int id, String name, Table table) {
         super(schema, id, name, table);
     }
 
@@ -247,7 +247,7 @@ public class ConstraintReferential extends Constraint {
         return refColumns;
     }
 
-    public void setRefTable(AbstractTable refTable) {
+    public void setRefTable(Table refTable) {
         this.refTable = refTable;
         if (refTable.isTemporary()) {
             setTemporary(true);

@@ -223,7 +223,7 @@ public class ScriptCommand extends ScriptBase {
                 if (table.isHidden()) {
                     continue;
                 }
-                table.lock(session, false, false);
+                table.resolve().lock(session, false, false);
                 String sql = table.getCreateSQL();
                 if (sql == null) {
                     // null for metadata tables
@@ -273,7 +273,7 @@ public class ScriptCommand extends ScriptBase {
                 if (table.isHidden()) {
                     continue;
                 }
-                table.lock(session, false, false);
+                table.resolve().lock(session, false, false);
                 String createTableSql = table.getCreateSQL();
                 if (createTableSql == null) {
                     // null for metadata tables
@@ -281,7 +281,7 @@ public class ScriptCommand extends ScriptBase {
                 }
                 final TableType tableType = table.getTableType();
                 add(createTableSql, false);
-                final ArrayList<Constraint> constraints = table.getConstraints();
+                final ArrayList<Constraint> constraints = table.resolve().getConstraints();
                 if (constraints != null) {
                     for (Constraint constraint : constraints) {
                         if (Constraint.PRIMARY_KEY.equals(
@@ -291,9 +291,9 @@ public class ScriptCommand extends ScriptBase {
                     }
                 }
                 if (TableType.TABLE == tableType) {
-                    if (table.canGetRowCount()) {
+                    if (table.resolve().canGetRowCount()) {
                         String rowcount = "-- " +
-                                table.getRowCountApproximation() +
+                                table.resolve().getRowCountApproximation() +
                                 " +/- SELECT COUNT(*) FROM " + table.getSQL();
                         add(rowcount, false);
                     }
@@ -301,7 +301,7 @@ public class ScriptCommand extends ScriptBase {
                         count = generateInsertValues(count, table);
                     }
                 }
-                final ArrayList<Index> indexes = table.getIndexes();
+                final ArrayList<Index> indexes = table.resolve().getIndexes();
                 for (int j = 0; indexes != null && j < indexes.size(); j++) {
                     Index index = indexes.get(j);
                     if (!index.getIndexType().getBelongsToConstraint()) {
@@ -390,10 +390,10 @@ public class ScriptCommand extends ScriptBase {
     }
 
     private int generateInsertValues(int count, AbstractTable table) throws IOException {
-        PlanItem plan = table.getBestPlanItem(session, null, null, -1, null, null);
+        PlanItem plan = table.resolve().getBestPlanItem(session, null, null, -1, null, null);
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null);
-        Column[] columns = table.getColumns();
+        Column[] columns = table.resolve().getColumns();
         StatementBuilder buff = new StatementBuilder("INSERT INTO ");
         buff.append(table.getSQL()).append('(');
         for (Column col : columns) {

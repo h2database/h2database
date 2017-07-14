@@ -469,7 +469,7 @@ public final class JoinBatch {
         }
 
         Row getNullRow() {
-            return filter.getTable().getNullRow();
+            return filter.getTable().resolve().getNullRow();
         }
 
         boolean isOuterJoin() {

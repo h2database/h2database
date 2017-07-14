@@ -18,6 +18,7 @@ import org.h2.result.Row;
 import org.h2.result.RowList;
 import org.h2.table.AbstractTable;
 import org.h2.table.PlanItem;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -55,8 +56,9 @@ public class Delete extends Prepared {
         tableFilter.reset();
         AbstractTable table = tableFilter.getTable();
         session.getUser().checkRight(table, Right.DELETE);
-        table.fire(session, Trigger.DELETE, true);
-        table.lock(session, true, false);
+        Table resolvedTable = table.resolve();
+        resolvedTable.fire(session, Trigger.DELETE, true);
+        resolvedTable.lock(session, true, false);
         RowList rows = new RowList(session);
         int limitRows = -1;
         if (limitExpr != null) {
@@ -74,8 +76,8 @@ public class Delete extends Prepared {
                         condition.getBooleanValue(session))) {
                     Row row = tableFilter.get();
                     boolean done = false;
-                    if (table.fireRow()) {
-                        done = table.fireBeforeRow(session, row, null);
+                    if (resolvedTable.fireRow()) {
+                        done = resolvedTable.fireBeforeRow(session, row, null);
                     }
                     if (!done) {
                         rows.add(row);
@@ -92,16 +94,16 @@ public class Delete extends Prepared {
                     checkCanceled();
                 }
                 Row row = rows.next();
-                table.removeRow(session, row);
+                resolvedTable.removeRow(session, row);
                 session.log(table, UndoLogRecord.DELETE, row);
             }
-            if (table.fireRow()) {
+            if (resolvedTable.fireRow()) {
                 for (rows.reset(); rows.hasNext();) {
                     Row row = rows.next();
-                    table.fireAfterRow(session, row, null, false);
+                    resolvedTable.fireAfterRow(session, row, null, false);
                 }
             }
-            table.fire(session, Trigger.DELETE, false);
+            resolvedTable.fire(session, Trigger.DELETE, false);
             return count;
         } finally {
             rows.close();

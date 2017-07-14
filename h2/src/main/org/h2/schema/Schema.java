@@ -282,12 +282,28 @@ public class Schema extends DbObjectBase {
      * @param name the object name
      * @return the object or null
      */
-    public AbstractTable findTableOrView(Session session, String name) {
+    public AbstractTable findTableViewOrSynonym(Session session, String name) {
         AbstractTable table = tablesAndViews.get(name);
         if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
         return table;
+    }
+
+    public Table resolveTableOrView(Session session, String name) {
+        AbstractTable table = findTableViewOrSynonym(session, name);
+        if (table == null) {
+            return null;
+        }
+        return table.resolve();
+    }
+
+    public Table findTableOrView(Session session, String name) {
+        AbstractTable table = findTableViewOrSynonym(session, name);
+        if (table == null) {
+            return null;
+        }
+        return table.asTable();
     }
 
     /**
@@ -414,7 +430,7 @@ public class Schema extends DbObjectBase {
      */
     public String getUniqueConstraintName(Session session, AbstractTable table) {
         Map<String, Constraint> tableConstraints;
-        if (table.isTemporary() && !table.isGlobalTemporary()) {
+        if (table.isTemporary() && !table.resolve().isGlobalTemporary()) {
             tableConstraints = session.getLocalTempTableConstraints();
         } else {
             tableConstraints = constraints;
@@ -432,7 +448,7 @@ public class Schema extends DbObjectBase {
      */
     public String getUniqueIndexName(Session session, AbstractTable table, String prefix) {
         Map<String, Index> tableIndexes;
-        if (table.isTemporary() && !table.isGlobalTemporary()) {
+        if (table.isTemporary() && !table.resolve().isGlobalTemporary()) {
             tableIndexes = session.getLocalTempTableIndexes();
         } else {
             tableIndexes = indexes;

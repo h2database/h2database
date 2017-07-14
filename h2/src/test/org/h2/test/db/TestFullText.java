@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
+import org.h2.util.IOUtils;
 import org.h2.util.Task;
 
 /**
@@ -90,9 +91,9 @@ public class TestFullText extends TestBase {
         deleteDb("fullTextReopen");
     }
 
-    private static void close(Collection<Connection> list) throws SQLException {
+    private static void close(Collection<Connection> list) {
         for (Connection conn : list) {
-            try { conn.close(); } catch (SQLException ignore) {/**/}
+            IOUtils.closeSilently(conn);
         }
     }
 

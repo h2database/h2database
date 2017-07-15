@@ -71,6 +71,10 @@ public class TestSetCollation extends TestBase {
     }
 
     private void testReopenDatabase() throws Exception {
+        if (config.memory) {
+            return;
+        }
+
         orderedWithCollator("DE");
 
         try (Connection con = getConnection(DB_NAME)) {
@@ -82,6 +86,10 @@ public class TestSetCollation extends TestBase {
     }
 
     private void testReopenDatabaseWithUrlParameter() throws Exception {
+        if (config.memory) {
+            return;
+        }
+
         config.collation = "DE";
         try {
             orderedWithCollator(null);
@@ -101,6 +109,9 @@ public class TestSetCollation extends TestBase {
     }
 
     private void testReopenDatabaseWithDifferentCollationInUrl() throws Exception {
+        if (config.memory) {
+            return;
+        }
         config.collation = "DE";
         try {
             orderedWithCollator(null);
@@ -120,6 +131,9 @@ public class TestSetCollation extends TestBase {
     }
 
     private void testReopenDatabaseWithSameCollationInUrl() throws Exception {
+        if (config.memory) {
+            return;
+        }
         config.collation = "DE";
         try {
             orderedWithCollator(null);

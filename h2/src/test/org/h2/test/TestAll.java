@@ -67,6 +67,7 @@ import org.h2.test.db.TestScriptSimple;
 import org.h2.test.db.TestSelectCountNonNullColumn;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
+import org.h2.test.db.TestSetCollation;
 import org.h2.test.db.TestShow;
 import org.h2.test.db.TestSpaceReuse;
 import org.h2.test.db.TestSpatial;
@@ -172,6 +173,7 @@ import org.h2.test.unit.TestBitField;
 import org.h2.test.unit.TestBitStream;
 import org.h2.test.unit.TestBnf;
 import org.h2.test.unit.TestCache;
+import org.h2.test.unit.TestCharsetCollator;
 import org.h2.test.unit.TestClearReferences;
 import org.h2.test.unit.TestCollation;
 import org.h2.test.unit.TestCompress;
@@ -419,6 +421,10 @@ java org.h2.test.TestAll timer
      */
     String cacheType;
 
+    /** If not null the database should be opened with the collation parameter */
+    public String collation;
+
+
     /**
      * The AB-BA locking detector.
      */
@@ -430,6 +436,7 @@ java org.h2.test.TestAll timer
     ArrayList<TestBase> tests = New.arrayList();
 
     private Server server;
+
 
     /**
      * Run all tests.
@@ -791,6 +798,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestUpdatableResultSet());
         addTest(new TestZloty());
         addTest(new TestCustomDataTypesHandler());
+        addTest(new TestSetCollation());
 
         // jdbcx
         addTest(new TestConnectionPool());
@@ -875,6 +883,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestBitStream());
         addTest(new TestBnf());
         addTest(new TestCache());
+        addTest(new TestCharsetCollator());
         addTest(new TestClearReferences());
         addTest(new TestCollation());
         addTest(new TestCompress());
@@ -1102,6 +1111,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, stopOnError, "stopOnError");
         appendIf(buff, defrag, "defrag");
         appendIf(buff, splitFileSystem, "split");
+        appendIf(buff, collation != null, collation);
         return buff.toString();
     }
 

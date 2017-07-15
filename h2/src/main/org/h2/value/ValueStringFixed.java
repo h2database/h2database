@@ -23,8 +23,8 @@ public class ValueStringFixed extends ValueString {
     public static final int PRECISION_DO_NOT_TRIM = Integer.MIN_VALUE;
 
     /**
-     * Special value for the precision in {@link #get(String, int, Mode)} to indicate that the default
-     * behaviour should of trimming the value should apply.
+     * Special value for the precision in {@link #get(String, int, Mode)} to indicate
+     * that the default behaviour should of trimming the value should apply.
      */
     public static final int PRECISION_TRIM = -1;
 
@@ -79,14 +79,16 @@ public class ValueStringFixed extends ValueString {
     /**
      * Get or create a fixed length string value for the given string.
      * <p>
-     * This method will use a {@link Mode}-specific conversion when <code>mode</code> is not <code>null</code>.
-     * Otherwise it will use the default H2 behaviour of trimming the given string if <code>precision</code>
-     * is not {@link #PRECISION_DO_NOT_TRIM}.
+     * This method will use a {@link Mode}-specific conversion when <code>mode</code> is not
+     * <code>null</code>.
+     * Otherwise it will use the default H2 behaviour of trimming the given string if
+     * <code>precision</code> is not {@link #PRECISION_DO_NOT_TRIM}.
      *
      * @param s the string
-     * @param precision if the {@link Mode#padFixedLengthStrings} indicates that strings should be padded, this
-     *        defines the overall length of the (potentially padded) string.
-     *        If the special constant {@link #PRECISION_DO_NOT_TRIM} is used the value will not be trimmed.
+     * @param precision if the {@link Mode#padFixedLengthStrings} indicates that strings should
+     *        be padded, this defines the overall length of the (potentially padded) string.
+     *        If the special constant {@link #PRECISION_DO_NOT_TRIM} is used the value will
+     *        not be trimmed.
      * @return the value
      */
     public static ValueStringFixed get(String s, int precision, Mode mode) {

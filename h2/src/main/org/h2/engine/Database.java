@@ -293,7 +293,7 @@ public class Database implements DataHandler {
                 e.fillInStackTrace();
             }
             boolean alreadyOpen = e instanceof DbException
-                               && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+                    && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
             if (alreadyOpen) {
                 stopServer();
             }

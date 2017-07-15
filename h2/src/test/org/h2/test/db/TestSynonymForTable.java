@@ -85,7 +85,8 @@ public class TestSynonymForTable extends TestBase {
         assertThrows(JdbcSQLException.class, stat).execute("SELECT id FROM testsynonym");
 
         // Synonym should be dropped as well
-        ResultSet synonyms = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYNONYMS WHERE SYNONYM_NAME='TESTSYNONYM'");
+        ResultSet synonyms = conn.createStatement().executeQuery(
+                "SELECT * FROM INFORMATION_SCHEMA.SYNONYMS WHERE SYNONYM_NAME='TESTSYNONYM'");
         assertFalse(synonyms.next());
         conn.close();
 

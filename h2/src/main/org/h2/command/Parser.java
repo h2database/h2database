@@ -4007,7 +4007,7 @@ public class Parser {
             // Check if any of them are disallowed in the current Mode
             if (isIdentity && session.getDatabase().getMode().
                     disallowedTypes.contains("IDENTITY")) {
-                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1, 
+                throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                         currentToken);
             }
             column = new Column(columnName, Value.LONG);

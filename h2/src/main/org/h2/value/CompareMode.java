@@ -37,8 +37,8 @@ public class CompareMode {
     public static final String ICU4J = "ICU4J_";
 
     /**
-     * This constant means the charset specified should be used. This will fail if the specified charset does
-     * not exist.
+     * This constant means the charset specified should be used.
+     * This will fail if the specified charset does not exist.
      */
     public static final String CHARSET = "CHARSET_";
 

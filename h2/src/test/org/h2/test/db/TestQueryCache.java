@@ -72,7 +72,8 @@ public class TestQueryCache extends TestBase {
                 assertEquals(0, c);
                 time = System.nanoTime() - time;
                 if (i == 1000) {
-                    // take from cache and do not close, so that next iteration will have a cache miss
+                    // take from cache and do not close,
+                    // so that next iteration will have a cache miss
                     prep = conn.prepareStatement(query);
                 } else if (i == 1001) {
                     first = time;

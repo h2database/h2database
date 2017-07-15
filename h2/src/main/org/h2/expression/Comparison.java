@@ -202,7 +202,8 @@ public class Comparison extends Condition {
                     // to constant type, but vise versa, then let's do this here
                     // once.
                     if (constType != resType) {
-                        right = ValueExpression.get(r.convertTo(resType, MathUtils.convertLongToInt(left.getPrecision()), session.getDatabase().getMode()));
+                        right = ValueExpression.get(r.convertTo(resType,
+                                MathUtils.convertLongToInt(left.getPrecision()), session.getDatabase().getMode()));
                     }
                 } else if (right instanceof Parameter) {
                     ((Parameter) right).setColumn(

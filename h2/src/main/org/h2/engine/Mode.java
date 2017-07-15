@@ -174,7 +174,7 @@ public class Mode {
 
     /**
      * An optional Set of hidden/disallowed column types.
-     * Certain DBMSs don't support all column types provided by H2, such as 
+     * Certain DBMSs don't support all column types provided by H2, such as
      * "NUMBER" when using PostgreSQL mode.
      */
     public Set<String> disallowedTypes = Collections.emptySet();

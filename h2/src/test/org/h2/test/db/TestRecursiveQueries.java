@@ -156,7 +156,7 @@ public class TestRecursiveQueries extends TestBase {
         conn.close();
         deleteDb("recursiveQueries");
     }
-    
+
     private void testSimpleUnion() throws Exception {
         deleteDb("recursiveQueries");
         Connection conn = getConnection("recursiveQueries");
@@ -174,9 +174,9 @@ public class TestRecursiveQueries extends TestBase {
         assertTrue(rs.next());
         assertEquals(3, rs.getInt(1));
         assertFalse(rs.next());
-        
+
         conn.close();
         deleteDb("recursiveQueries");
-   }
+    }
 
 }

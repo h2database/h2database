@@ -517,9 +517,12 @@ public class TestCompatibility extends TestBase {
         stat.execute("drop table test if exists");
         stat.execute("create table test(date TIMESTAMP)");
         stat.executeUpdate("insert into test (date) values ('2014-04-05-09.48.28.020005')");
-        assertResult("2014-04-05 09:48:28.020005", stat, "select date from test"); // <- result is always H2 format timestamp!
-        assertResult("2014-04-05 09:48:28.020005", stat, "select date from test where date = '2014-04-05-09.48.28.020005'");
-        assertResult("2014-04-05 09:48:28.020005", stat, "select date from test where date = '2014-04-05 09:48:28.020005'");
+        assertResult("2014-04-05 09:48:28.020005", stat,
+                "select date from test"); // <- result is always H2 format timestamp!
+        assertResult("2014-04-05 09:48:28.020005", stat,
+                "select date from test where date = '2014-04-05-09.48.28.020005'");
+        assertResult("2014-04-05 09:48:28.020005", stat,
+                "select date from test where date = '2014-04-05 09:48:28.020005'");
     }
 
     private void testDerby() throws SQLException {

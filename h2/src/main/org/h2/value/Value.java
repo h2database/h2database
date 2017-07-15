@@ -542,7 +542,7 @@ public abstract class Value {
      * @return the converted value
      */
     public Value convertTo(int targetType) {
-        // Use -1 to indicate "default behaviour" where value conversion should not 
+        // Use -1 to indicate "default behaviour" where value conversion should not
         // depend on any datatype precision.
         return convertTo(targetType, -1, null);
     }

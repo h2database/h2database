@@ -1146,7 +1146,7 @@ public class TestSpatial extends TestBase {
         try (Connection conn = getConnection(URL)) {
             Statement stat = conn.createStatement();
             stat.execute("DROP TABLE IF EXISTS BUILDINGS;" +
-                   "CREATE TABLE BUILDINGS (PK serial, THE_GEOM geometry);" +
+                    "CREATE TABLE BUILDINGS (PK serial, THE_GEOM geometry);" +
                     "insert into buildings(the_geom) SELECT 'POINT(1 1)" +
                     "'::geometry from SYSTEM_RANGE(1,10000);\n" +
                     "CREATE SPATIAL INDEX ON PUBLIC.BUILDINGS(THE_GEOM);\n");

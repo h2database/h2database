@@ -335,6 +335,9 @@ public abstract class TestBase {
         if (config.defrag) {
             url = addOption(url, "DEFRAG_ALWAYS", "TRUE");
         }
+        if (config.collation != null) {
+            url = addOption(url, "COLLATION", config.collation);
+        }
         return "jdbc:h2:" + url;
     }
 

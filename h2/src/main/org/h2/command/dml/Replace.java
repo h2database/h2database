@@ -82,13 +82,12 @@ public class Replace extends Prepared {
         session.getUser().checkRight(table, Right.INSERT);
         session.getUser().checkRight(table, Right.UPDATE);
         setCurrentRowNumber(0);
-        Table resolvedTable = table;
         if (list.size() > 0) {
             count = 0;
             for (int x = 0, size = list.size(); x < size; x++) {
                 setCurrentRowNumber(x + 1);
                 Expression[] expr = list.get(x);
-                Row newRow = resolvedTable.getTemplateRow();
+                Row newRow = table.getTemplateRow();
                 for (int i = 0, len = columns.length; i < len; i++) {
                     Column c = columns[i];
                     int index = c.getColumnId();
@@ -109,12 +108,12 @@ public class Replace extends Prepared {
         } else {
             ResultInterface rows = query.query(0);
             count = 0;
-            resolvedTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
-            resolvedTable.lock(session, true, false);
+            table.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
+            table.lock(session, true, false);
             while (rows.next()) {
                 count++;
                 Value[] r = rows.currentRow();
-                Row newRow = resolvedTable.getTemplateRow();
+                Row newRow = table.getTemplateRow();
                 setCurrentRowNumber(count);
                 for (int j = 0; j < columns.length; j++) {
                     Column c = columns[j];
@@ -129,7 +128,7 @@ public class Replace extends Prepared {
                 replace(newRow);
             }
             rows.close();
-            resolvedTable.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
+            table.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
         }
         return count;
     }

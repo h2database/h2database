@@ -85,14 +85,13 @@ public class Update extends Prepared {
         try {
             Table table = tableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
-            Table resolvedTable = table;
-            resolvedTable.fire(session, Trigger.UPDATE, true);
-            resolvedTable.lock(session, true, false);
-            int columnCount = resolvedTable.getColumns().length;
+            table.fire(session, Trigger.UPDATE, true);
+            table.lock(session, true, false);
+            int columnCount = table.getColumns().length;
             // get the old rows, compute the new rows
             setCurrentRowNumber(0);
             int count = 0;
-            Column[] columns = resolvedTable.getColumns();
+            Column[] columns = table.getColumns();
             int limitRows = -1;
             if (limitExpr != null) {
                 Value v = limitExpr.getValue(session);
@@ -108,25 +107,25 @@ public class Update extends Prepared {
                 if (condition == null ||
                         Boolean.TRUE.equals(condition.getBooleanValue(session))) {
                     Row oldRow = tableFilter.get();
-                    Row newRow = resolvedTable.getTemplateRow();
+                    Row newRow = table.getTemplateRow();
                     for (int i = 0; i < columnCount; i++) {
                         Expression newExpr = expressionMap.get(columns[i]);
                         Value newValue;
                         if (newExpr == null) {
                             newValue = oldRow.getValue(i);
                         } else if (newExpr == ValueExpression.getDefault()) {
-                            Column column = resolvedTable.getColumn(i);
-                            newValue = resolvedTable.getDefaultValue(session, column);
+                            Column column = table.getColumn(i);
+                            newValue = table.getDefaultValue(session, column);
                         } else {
-                            Column column = resolvedTable.getColumn(i);
+                            Column column = table.getColumn(i);
                             newValue = column.convert(newExpr.getValue(session));
                         }
                         newRow.setValue(i, newValue);
                     }
-                    resolvedTable.validateConvertUpdateSequence(session, newRow);
+                    table.validateConvertUpdateSequence(session, newRow);
                     boolean done = false;
-                    if (resolvedTable.fireRow()) {
-                        done = resolvedTable.fireBeforeRow(session, oldRow, newRow);
+                    if (table.fireRow()) {
+                        done = table.fireBeforeRow(session, oldRow, newRow);
                     }
                     if (!done) {
                         rows.add(oldRow);
@@ -143,16 +142,16 @@ public class Update extends Prepared {
             // we need to update all indexes) before row triggers
 
             // the cached row is already updated - we need the old values
-            resolvedTable.updateRows(this, session, rows);
-            if (resolvedTable.fireRow()) {
+            table.updateRows(this, session, rows);
+            if (table.fireRow()) {
                 rows.invalidateCache();
                 for (rows.reset(); rows.hasNext();) {
                     Row o = rows.next();
                     Row n = rows.next();
-                    resolvedTable.fireAfterRow(session, o, n, false);
+                    table.fireAfterRow(session, o, n, false);
                 }
             }
-            resolvedTable.fire(session, Trigger.UPDATE, false);
+            table.fire(session, Trigger.UPDATE, false);
             return count;
         } finally {
             rows.close();

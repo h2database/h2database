@@ -55,9 +55,8 @@ public class Delete extends Prepared {
         tableFilter.reset();
         Table table = tableFilter.getTable();
         session.getUser().checkRight(table, Right.DELETE);
-        Table resolvedTable = table;
-        resolvedTable.fire(session, Trigger.DELETE, true);
-        resolvedTable.lock(session, true, false);
+        table.fire(session, Trigger.DELETE, true);
+        table.lock(session, true, false);
         RowList rows = new RowList(session);
         int limitRows = -1;
         if (limitExpr != null) {
@@ -75,8 +74,8 @@ public class Delete extends Prepared {
                         condition.getBooleanValue(session))) {
                     Row row = tableFilter.get();
                     boolean done = false;
-                    if (resolvedTable.fireRow()) {
-                        done = resolvedTable.fireBeforeRow(session, row, null);
+                    if (table.fireRow()) {
+                        done = table.fireBeforeRow(session, row, null);
                     }
                     if (!done) {
                         rows.add(row);
@@ -93,16 +92,16 @@ public class Delete extends Prepared {
                     checkCanceled();
                 }
                 Row row = rows.next();
-                resolvedTable.removeRow(session, row);
+                table.removeRow(session, row);
                 session.log(table, UndoLogRecord.DELETE, row);
             }
-            if (resolvedTable.fireRow()) {
+            if (table.fireRow()) {
                 for (rows.reset(); rows.hasNext();) {
                     Row row = rows.next();
-                    resolvedTable.fireAfterRow(session, row, null, false);
+                    table.fireAfterRow(session, row, null, false);
                 }
             }
-            resolvedTable.fire(session, Trigger.DELETE, false);
+            table.fire(session, Trigger.DELETE, false);
             return count;
         } finally {
             rows.close();

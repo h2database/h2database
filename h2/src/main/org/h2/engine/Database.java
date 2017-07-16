@@ -1819,7 +1819,7 @@ public class Database implements DataHandler {
         for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
-            } else if (TableType.VIEW == t.getTableType() || TableType.SYNONYM == t.getTableType()) {
+            } else if (TableType.VIEW == t.getTableType()) {
                 continue;
             }
             set.clear();

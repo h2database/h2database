@@ -51,7 +51,7 @@ public class TableFilter implements ColumnResolver {
 
     private Session session;
 
-    private final AbstractTable table;
+    private final Table table;
     private final Select select;
     private String alias;
     private Index index;
@@ -128,7 +128,7 @@ public class TableFilter implements ColumnResolver {
      * @param orderInFrom original order number (index) of this table filter in
      * @param indexHints the index hints to be used by the query planner
      */
-    public TableFilter(Session session, AbstractTable table, String alias,
+    public TableFilter(Session session, Table table, String alias,
             boolean rightsChecked, Select select, int orderInFrom, IndexHints indexHints) {
         this.session = session;
         this.table = table;
@@ -162,7 +162,7 @@ public class TableFilter implements ColumnResolver {
         return select;
     }
 
-    public AbstractTable getTable() {
+    public Table getTable() {
         return table;
     }
 
@@ -174,7 +174,7 @@ public class TableFilter implements ColumnResolver {
      * @param forceLockEvenInMvcc lock even in the MVCC mode
      */
     public void lock(Session s, boolean exclusive, boolean forceLockEvenInMvcc) {
-        table.resolve().lock(s, exclusive, forceLockEvenInMvcc);
+        table.lock(s, exclusive, forceLockEvenInMvcc);
         if (join != null) {
             join.lock(s, exclusive, forceLockEvenInMvcc);
         }
@@ -199,12 +199,12 @@ public class TableFilter implements ColumnResolver {
         }
         if (indexConditions.size() == 0) {
             item1 = new PlanItem();
-            item1.setIndex(table.resolve().getScanIndex(s, null, filters, filter,
+            item1.setIndex(table.getScanIndex(s, null, filters, filter,
                     sortOrder, allColumnsSet));
             item1.cost = item1.getIndex().getCost(s, null, filters, filter,
                     sortOrder, allColumnsSet);
         }
-        int len = table.resolve().getColumns().length;
+        int len = table.getColumns().length;
         int[] masks = new int[len];
         for (IndexCondition condition : indexConditions) {
             if (condition.isEvaluatable()) {
@@ -218,7 +218,7 @@ public class TableFilter implements ColumnResolver {
                 }
             }
         }
-        PlanItem item = table.resolve().getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet);
+        PlanItem item = table.getBestPlanItem(s, masks, filters, filter, sortOrder, allColumnsSet);
         item.setMasks(masks);
         // The more index conditions, the earlier the table.
         // This is to ensure joins without indexes run quickly:
@@ -397,7 +397,7 @@ public class TableFilter implements ColumnResolver {
         assert filters[filter] == this;
         joinBatch = null;
         joinFilterId = -1;
-        if (getTable().resolve().isView()) {
+        if (getTable().isView()) {
             session.pushSubQueryInfo(masks, filters, filter, select.getSortOrder());
             try {
                 ((ViewIndex) index).getQuery().prepareJoinBatch();
@@ -553,7 +553,7 @@ public class TableFilter implements ColumnResolver {
      */
     protected void setNullRow() {
         state = NULL_ROW;
-        current = table.resolve().getNullRow();
+        current = table.getNullRow();
         currentSearchRow = current;
         if (nestedJoin != null) {
             nestedJoin.visit(new TableFilterVisitor() {
@@ -818,12 +818,12 @@ public class TableFilter implements ColumnResolver {
             }
             return buff.toString();
         }
-        if (table.resolve().isView() && ((TableView) table).isRecursive()) {
+        if (table.isView() && ((TableView) table).isRecursive()) {
             buff.append(table.getName());
         } else {
             buff.append(table.getSQL());
         }
-        if (table.resolve().isView() && ((TableView) table).isInvalid()) {
+        if (table.isView() && ((TableView) table).isInvalid()) {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, table.getName(), "not compiled");
         }
         if (alias != null) {
@@ -1034,7 +1034,7 @@ public class TableFilter implements ColumnResolver {
 
     @Override
     public Column[] getColumns() {
-        return table.resolve().getColumns();
+        return table.getColumns();
     }
 
     /**
@@ -1062,7 +1062,7 @@ public class TableFilter implements ColumnResolver {
     @Override
     public Column getRowIdColumn() {
         if (session.getDatabase().getSettings().rowId) {
-            return table.resolve().getRowIdColumn();
+            return table.getRowIdColumn();
         }
         return null;
     }
@@ -1172,9 +1172,9 @@ public class TableFilter implements ColumnResolver {
     public void lockRows(ArrayList<Row> forUpdateRows) {
         for (Row row : forUpdateRows) {
             Row newRow = row.getCopy();
-            table.resolve().removeRow(session, row);
+            table.removeRow(session, row);
             session.log(table, UndoLogRecord.DELETE, row);
-            table.resolve().addRow(session, newRow);
+            table.addRow(session, newRow);
             session.log(table, UndoLogRecord.INSERT, newRow);
         }
     }

@@ -10,7 +10,7 @@ import org.h2.engine.Session;
 import org.h2.expression.ValueExpression;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 import org.h2.value.Value;
 
 /**
@@ -27,7 +27,7 @@ public class Constant extends SchemaObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
+    public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

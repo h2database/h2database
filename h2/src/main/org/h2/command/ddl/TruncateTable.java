@@ -10,7 +10,6 @@ import org.h2.command.CommandInterface;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
-import org.h2.table.AbstractTable;
 import org.h2.table.Table;
 
 /**

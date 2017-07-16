@@ -19,7 +19,6 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.util.New;

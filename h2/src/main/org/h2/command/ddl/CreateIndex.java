@@ -14,7 +14,6 @@ import org.h2.engine.Session;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 

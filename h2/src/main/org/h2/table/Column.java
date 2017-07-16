@@ -70,7 +70,7 @@ public class Column {
     private int scale;
     private String[] enumerators;
     private int displaySize;
-    private AbstractTable table;
+    private Table table;
     private String name;
     private int columnId;
     private boolean nullable = true;
@@ -224,12 +224,12 @@ public class Column {
      * @param table the table
      * @param columnId the column index
      */
-    public void setTable(AbstractTable table, int columnId) {
+    public void setTable(Table table, int columnId) {
         this.table = table;
         this.columnId = columnId;
     }
 
-    public AbstractTable getTable() {
+    public Table getTable() {
         return table;
     }
 

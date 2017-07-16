@@ -20,7 +20,7 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 import org.h2.util.JdbcUtils;
 import org.h2.util.New;
 import org.h2.util.SourceCompiler;
@@ -194,7 +194,7 @@ public class FunctionAlias extends SchemaObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
+    public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

@@ -4,12 +4,13 @@ import org.h2.command.ddl.CreateSynonymData;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.SchemaObjectBase;
 
 /**
  * Synonym for an existing table or view. All DML requests are forwarded to the backing table. Adding indices
  * to a synonym or altering the table is not supported.
  */
-public class TableSynonym extends AbstractTable {
+public class TableSynonym extends SchemaObjectBase {
 
     private CreateSynonymData data;
 
@@ -20,32 +21,27 @@ public class TableSynonym extends AbstractTable {
         this.data = data;
     }
 
+    public Table getSynonymFor() {
+        return synonymFor;
+    }
+
     public void updateData(CreateSynonymData data) {
         this.data = data;
     }
 
-    private AbstractTable getSynonymFor() {
-        return synonymFor;
-    }
-
     @Override
     public int getType() {
-        return TABLE_OR_VIEW;
+        return SYNONYM;
     }
 
+
     @Override
-    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
-        return getSynonymFor().getCreateSQLForCopy(table, quotedName);
+    public String getCreateSQLForCopy(Table table, String quotedName) {
+        return synonymFor.getCreateSQLForCopy(table, quotedName);
     }
 
     @Override
     public void rename(String newName) { throw DbException.getUnsupportedException("SYNONYM"); }
-
-
-    @Override
-    public TableType getTableType() {
-        return TableType.SYNONYM;
-    }
 
     @Override
     public void removeChildrenAndResources(Session session) {
@@ -73,7 +69,7 @@ public class TableSynonym extends AbstractTable {
     }
 
     public boolean isInvalid() {
-        return data.synonymForSchema.findTableViewOrSynonym(data.session, data.synonymFor) == null;
+        return synonymFor.isValid();
     }
 
 
@@ -81,15 +77,8 @@ public class TableSynonym extends AbstractTable {
         if (synonymFor != null) {
             synonymFor.removeSynonym(this);
         }
-        synonymFor = data.synonymForSchema.getTableOrView(data.session, data.synonymFor).resolve();
+        synonymFor = data.synonymForSchema.getTableOrView(data.session, data.synonymFor);
         synonymFor.addSynonym(this);
     }
 
-    @Override
-    public Table resolve() {
-        return synonymFor;
-    }
-
-    @Override
-    public Table asTable() { throw DbException.getUnsupportedException("SYNONYM"); }
 }

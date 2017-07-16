@@ -21,7 +21,6 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -84,9 +83,9 @@ public class Update extends Prepared {
         tableFilter.reset();
         RowList rows = new RowList(session);
         try {
-            AbstractTable table = tableFilter.getTable();
+            Table table = tableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
-            Table resolvedTable = table.resolve();
+            Table resolvedTable = table;
             resolvedTable.fire(session, Trigger.UPDATE, true);
             resolvedTable.lock(session, true, false);
             int columnCount = resolvedTable.getColumns().length;

@@ -6,8 +6,7 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
-
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 
 /**
  * A database object such as a table, an index, or a user.
@@ -91,6 +90,11 @@ public interface DbObject {
     int AGGREGATE = 14;
 
     /**
+     * This object is a synonym.
+     */
+    int SYNONYM = 15;
+
+    /**
      * Get the SQL name of this object (may be quoted).
      *
      * @return the SQL name
@@ -134,7 +138,7 @@ public interface DbObject {
      * @param quotedName the quoted name
      * @return the SQL statement
      */
-    String getCreateSQLForCopy(AbstractTable table, String quotedName);
+    String getCreateSQLForCopy(Table table, String quotedName);
 
     /**
      * Construct the original CREATE ... SQL statement for this object.

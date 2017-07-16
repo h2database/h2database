@@ -10,7 +10,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 import org.h2.value.Value;
 
 /**
@@ -29,7 +29,7 @@ public class UndoLogRecord {
     public static final short DELETE = 1;
 
     private static final int IN_MEMORY = 0, STORED = 1, IN_MEMORY_INVALID = 2;
-    private AbstractTable table;
+    private Table table;
     private Row row;
     private short operation;
     private short state;
@@ -42,7 +42,7 @@ public class UndoLogRecord {
      * @param op the operation type
      * @param row the row that was deleted or inserted
      */
-    UndoLogRecord(AbstractTable table, short op, Row row) {
+    UndoLogRecord(Table table, short op, Row row) {
         this.table = table;
         this.row = row;
         this.operation = op;
@@ -66,7 +66,7 @@ public class UndoLogRecord {
      */
     boolean canStore() {
         // if large transactions are enabled, this method is not called
-        if (table.resolve().getUniqueIndex() != null) {
+        if (table.getUniqueIndex() != null) {
             return true;
         }
         return false;
@@ -93,8 +93,8 @@ public class UndoLogRecord {
             }
             try {
                 row.setDeleted(false);
-                table.resolve().removeRow(session, row);
-                table.resolve().fireAfterRow(session, row, null, true);
+                table.removeRow(session, row);
+                table.fireAfterRow(session, row, null, true);
             } catch (DbException e) {
                 if (session.getDatabase().getLockMode() == Constants.LOCK_MODE_OFF
                         && e.getErrorCode() == ErrorCode.ROW_NOT_FOUND_WHEN_DELETING_1) {
@@ -107,8 +107,8 @@ public class UndoLogRecord {
             break;
         case DELETE:
             try {
-                table.resolve().addRow(session, row);
-                table.resolve().fireAfterRow(session, null, row, true);
+                table.addRow(session, row);
+                table.fireAfterRow(session, null, row, true);
                 // reset session id, otherwise other sessions think
                 // that this row was inserted by this session
                 row.commit();
@@ -233,7 +233,7 @@ public class UndoLogRecord {
      *
      * @return the table
      */
-    public AbstractTable getTable() {
+    public Table getTable() {
         return table;
     }
 
@@ -251,7 +251,7 @@ public class UndoLogRecord {
      * It commits the change to the indexes.
      */
     void commit() {
-        table.resolve().commit(operation, row);
+        table.commit(operation, row);
     }
 
     /**

@@ -22,7 +22,6 @@ import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -63,7 +62,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         ifTableExists = b;
     }
 
-    private String generateConstraintName(AbstractTable table) {
+    private String generateConstraintName(Table table) {
         if (constraintName == null) {
             constraintName = getSchema().getUniqueConstraintName(
                     session, table);
@@ -328,7 +327,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return null;
     }
 
-    private static boolean canUseUniqueIndex(Index idx, AbstractTable table,
+    private static boolean canUseUniqueIndex(Index idx, Table table,
             IndexColumn[] cols) {
         if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
@@ -351,7 +350,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
         return true;
     }
 
-    private static boolean canUseIndex(Index existingIndex, AbstractTable table,
+    private static boolean canUseIndex(Index existingIndex, Table table,
             IndexColumn[] cols, boolean moreColumnsOk) {
         if (existingIndex.getTable() != table || existingIndex.getCreateSQL() == null) {
             // can't use the scan index or index of another table

@@ -16,7 +16,6 @@ import org.h2.expression.ExpressionVisitor;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowList;
-import org.h2.table.AbstractTable;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -54,9 +53,9 @@ public class Delete extends Prepared {
     public int update() {
         tableFilter.startQuery(session);
         tableFilter.reset();
-        AbstractTable table = tableFilter.getTable();
+        Table table = tableFilter.getTable();
         session.getUser().checkRight(table, Right.DELETE);
-        Table resolvedTable = table.resolve();
+        Table resolvedTable = table;
         resolvedTable.fire(session, Trigger.DELETE, true);
         resolvedTable.lock(session, true, false);
         RowList rows = new RowList(session);

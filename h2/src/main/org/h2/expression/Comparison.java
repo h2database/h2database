@@ -373,7 +373,7 @@ public class Comparison extends Condition {
 
     @Override
     public void createIndexConditions(Session session, TableFilter filter) {
-        if (!filter.getTable().resolve().isQueryComparable()) {
+        if (!filter.getTable().isQueryComparable()) {
             return;
         }
         ExpressionColumn l = null;

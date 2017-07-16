@@ -38,7 +38,6 @@ import org.h2.schema.Schema;
 import org.h2.store.DataHandler;
 import org.h2.store.InDoubtTransaction;
 import org.h2.store.LobStorageFrontend;
-import org.h2.table.AbstractTable;
 import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
@@ -373,7 +372,7 @@ public class Session extends SessionWithState {
      *
      * @param table the table
      */
-    public void removeLocalTempTable(AbstractTable table) {
+    public void removeLocalTempTable(Table table) {
         modificationId++;
         localTempTables.remove(table.getName());
         synchronized (database) {
@@ -878,8 +877,8 @@ public class Session extends SessionWithState {
      * @param operation the operation type (see {@link UndoLogRecord})
      * @param row the row
      */
-    public void log(AbstractTable table, short operation, Row row) {
-        if (table.resolve().isMVStore()) {
+    public void log(Table table, short operation, Row row) {
+        if (table.isMVStore()) {
             return;
         }
         if (undoLogEnabled) {
@@ -890,7 +889,7 @@ public class Session extends SessionWithState {
                 int lockMode = database.getLockMode();
                 if (lockMode != Constants.LOCK_MODE_OFF &&
                         !database.isMultiVersion()) {
-                    TableType tableType = log.getTable().resolve().getTableType();
+                    TableType tableType = log.getTable().getTableType();
                     if (locks.indexOf(log.getTable()) < 0
                             && TableType.TABLE_LINK != tableType
                             && TableType.EXTERNAL_TABLE_ENGINE != tableType) {
@@ -902,7 +901,7 @@ public class Session extends SessionWithState {
         } else {
             if (database.isMultiVersion()) {
                 // see also UndoLogRecord.commit
-                ArrayList<Index> indexes = table.resolve().getIndexes();
+                ArrayList<Index> indexes = table.getIndexes();
                 for (int i = 0, size = indexes.size(); i < size; i++) {
                     Index index = indexes.get(i);
                     index.commit(operation, row);

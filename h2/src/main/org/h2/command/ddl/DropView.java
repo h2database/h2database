@@ -13,7 +13,6 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
 import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.table.TableView;

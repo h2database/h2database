@@ -18,9 +18,9 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -281,8 +281,8 @@ public class Aggregate extends Expression {
             switch (type) {
             case COUNT:
             case COUNT_ALL:
-                AbstractTable table = select.getTopTableFilter().getTable();
-                return ValueLong.get(table.resolve().getRowCount(session));
+                Table table = select.getTopTableFilter().getTable();
+                return ValueLong.get(table.getRowCount(session));
             case MIN:
             case MAX:
                 boolean first = type == MIN;
@@ -580,8 +580,8 @@ public class Aggregate extends Expression {
             Column column = col.getColumn();
             TableFilter filter = col.getTableFilter();
             if (filter != null) {
-                AbstractTable table = filter.getTable();
-                Index index = table.resolve().getIndexForColumn(column, true, false);
+                Table table = filter.getTable();
+                Index index = table.getIndexForColumn(column, true, false);
                 return index;
             }
         }
@@ -594,11 +594,11 @@ public class Aggregate extends Expression {
             switch (type) {
             case COUNT:
                 if (!distinct && on.getNullable() == Column.NOT_NULLABLE) {
-                    return visitor.getTable().resolve().canGetRowCount();
+                    return visitor.getTable().canGetRowCount();
                 }
                 return false;
             case COUNT_ALL:
-                return visitor.getTable().resolve().canGetRowCount();
+                return visitor.getTable().canGetRowCount();
             case MIN:
             case MAX:
                 Index index = getMinMaxColumnIndex();

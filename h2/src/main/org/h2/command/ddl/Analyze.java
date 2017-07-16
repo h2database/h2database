@@ -13,7 +13,6 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
 import org.h2.result.ResultInterface;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableType;
@@ -54,8 +53,8 @@ public class Analyze extends DefineCommand {
         if (table != null) {
             analyzeTable(session, table, sampleRows, true);
         } else {
-            for (AbstractTable table : db.getAllTablesAndViews(false)) {
-                analyzeTable(session, table.resolve(), sampleRows, true);
+            for (Table table : db.getAllTablesAndViews(false)) {
+                analyzeTable(session, table, sampleRows, true);
             }
         }
         return 0;

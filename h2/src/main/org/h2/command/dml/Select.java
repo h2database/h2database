@@ -33,11 +33,11 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.New;
@@ -225,7 +225,7 @@ public class Select extends Query {
         if (groupIndex == null || groupByExpression == null) {
             return null;
         }
-        ArrayList<Index> indexes = topTableFilter.getTable().resolve().getIndexes();
+        ArrayList<Index> indexes = topTableFilter.getTable().getIndexes();
         if (indexes != null) {
             for (int i = 0, size = indexes.size(); i < size; i++) {
                 Index index = indexes.get(i);
@@ -406,9 +406,9 @@ public class Select extends Query {
         int[] sortTypes = sort.getSortTypes();
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
-            return topTableFilter.getTable().resolve().getScanIndex(session);
+            return topTableFilter.getTable().getScanIndex(session);
         }
-        ArrayList<Index> list = topTableFilter.getTable().resolve().getIndexes();
+        ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         if (list != null) {
             for (int i = 0, size = list.size(); i < size; i++) {
                 Index index = list.get(i);
@@ -447,7 +447,7 @@ public class Select extends Query {
         }
         if (sortCols.length == 1 && sortCols[0].getColumnId() == -1) {
             // special case: order by _ROWID_
-            Index index = topTableFilter.getTable().resolve().getScanIndex(session);
+            Index index = topTableFilter.getTable().getScanIndex(session);
             if (index.isRowIdIndex()) {
                 return index;
             }
@@ -480,7 +480,7 @@ public class Select extends Query {
             SearchRow found = cursor.getSearchRow();
             Value value = found.getValue(columnIndex);
             if (first == null) {
-                first = topTableFilter.getTable().resolve().getTemplateSimpleRow(true);
+                first = topTableFilter.getTable().getTemplateSimpleRow(true);
             }
             first.setValue(columnIndex, value);
             Value[] row = { value };
@@ -710,9 +710,9 @@ public class Select extends Query {
     }
 
     private int expandColumnList(TableFilter filter, int index) {
-        AbstractTable t = filter.getTable();
+        Table t = filter.getTable();
         String alias = filter.getTableAlias();
-        Column[] columns = t.resolve().getColumns();
+        Column[] columns = t.getColumns();
         for (Column c : columns) {
             if (!c.getVisible()) {
                 continue;
@@ -856,7 +856,7 @@ public class Select extends Query {
         if (isGroupQuery && groupIndex == null &&
                 havingIndex < 0 && filters.size() == 1) {
             if (condition == null) {
-                AbstractTable t = filters.get(0).getTable();
+                Table t = filters.get(0).getTable();
                 ExpressionVisitor optimizable = ExpressionVisitor.
                         getOptimizableVisitor(t);
                 isQuickAggregateQuery = isEverything(optimizable);
@@ -871,7 +871,7 @@ public class Select extends Query {
             if (expr instanceof ExpressionColumn) {
                 Column column = ((ExpressionColumn) expr).getColumn();
                 int selectivity = column.getSelectivity();
-                Index columnIndex = topTableFilter.getTable().resolve().
+                Index columnIndex = topTableFilter.getTable().
                         getIndexForColumn(column, false, true);
                 if (columnIndex != null &&
                         selectivity != Constants.SELECTIVITY_DEFAULT &&
@@ -975,8 +975,8 @@ public class Select extends Query {
     }
 
     @Override
-    public HashSet<AbstractTable> getTables() {
-        HashSet<AbstractTable> set = New.hashSet();
+    public HashSet<Table> getTables() {
+        HashSet<Table> set = New.hashSet();
         for (TableFilter filter : filters) {
             set.add(filter.getTable());
         }
@@ -987,7 +987,7 @@ public class Select extends Query {
     public void fireBeforeSelectTriggers() {
         for (int i = 0, size = filters.size(); i < size; i++) {
             TableFilter filter = filters.get(i);
-            filter.getTable().resolve().fire(session, Trigger.SELECT, true);
+            filter.getTable().fire(session, Trigger.SELECT, true);
         }
     }
 
@@ -1072,11 +1072,11 @@ public class Select extends Query {
                 new Expression[expressions.size()]);
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
-            AbstractTable t = f.getTable();
-            if (t.resolve().isView() && ((TableView) t).isRecursive()) {
+            Table t = f.getTable();
+            if (t.isView() && ((TableView) t).isRecursive()) {
                 buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
                 buff.resetCount();
-                for (Column c : t.resolve().getColumns()) {
+                for (Column c : t.getColumns()) {
                     buff.appendExceptFirst(",");
                     buff.append(c.getName());
                 }
@@ -1321,7 +1321,7 @@ public class Select extends Query {
             }
             for (int i = 0, size = filters.size(); i < size; i++) {
                 TableFilter f = filters.get(i);
-                if (!f.getTable().resolve().isDeterministic()) {
+                if (!f.getTable().isDeterministic()) {
                     return false;
                 }
             }
@@ -1330,7 +1330,7 @@ public class Select extends Query {
         case ExpressionVisitor.SET_MAX_DATA_MODIFICATION_ID: {
             for (int i = 0, size = filters.size(); i < size; i++) {
                 TableFilter f = filters.get(i);
-                long m = f.getTable().resolve().getMaxDataModificationId();
+                long m = f.getTable().getMaxDataModificationId();
                 visitor.addDataModificationId(m);
             }
             break;
@@ -1344,9 +1344,9 @@ public class Select extends Query {
         case ExpressionVisitor.GET_DEPENDENCIES: {
             for (int i = 0, size = filters.size(); i < size; i++) {
                 TableFilter f = filters.get(i);
-                AbstractTable table = f.getTable();
+                Table table = f.getTable();
                 visitor.addDependency(table);
-                table.resolve().addDependencies(visitor.getDependencies());
+                table.addDependencies(visitor.getDependencies());
             }
             break;
         }

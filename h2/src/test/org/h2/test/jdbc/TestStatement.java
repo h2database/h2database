@@ -397,23 +397,24 @@ public class TestStatement extends TestBase {
         stat.execute("DROP TABLE TEST");
         stat.execute("DROP TABLE TEST2");
     }
-    
+
     private void testPreparedStatement() throws SQLException{
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar(255))");
         stat.execute("insert into test values(1, 'Hello')");
         stat.execute("insert into test values(2, 'World')");
-        PreparedStatement ps = conn.prepareStatement("select name from test where id in (select id from test where name REGEXP ?)");
+        PreparedStatement ps = conn.prepareStatement(
+                "select name from test where id in (select id from test where name REGEXP ?)");
         ps.setString(1, "Hello");
         ResultSet rs = ps.executeQuery();
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString("name"));
-        assertFalse(rs.next());  
+        assertFalse(rs.next());
         ps.setString(1, "World");
         rs = ps.executeQuery();
         assertTrue(rs.next());
         assertEquals("World", rs.getString("name"));
-        assertFalse(rs.next());  
+        assertFalse(rs.next());
         //Changes the table structure
         stat.execute("create index t_id on test(name)");
         //Test the prepared statement again to check if the internal cache attributes were reset
@@ -421,13 +422,13 @@ public class TestStatement extends TestBase {
         rs = ps.executeQuery();
         assertTrue(rs.next());
         assertEquals("Hello", rs.getString("name"));
-        assertFalse(rs.next());  
+        assertFalse(rs.next());
         ps.setString(1, "World");
         rs = ps.executeQuery();
         assertTrue(rs.next());
         assertEquals("World", rs.getString("name"));
-        assertFalse(rs.next());  
-        stat.execute("drop table test");        
+        assertFalse(rs.next());
+        stat.execute("drop table test");
     }
 
 }

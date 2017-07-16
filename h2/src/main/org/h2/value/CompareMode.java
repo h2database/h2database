@@ -5,6 +5,7 @@
  */
 package org.h2.value;
 
+import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.Locale;
 
@@ -34,6 +35,12 @@ public class CompareMode {
      * the classpath).
      */
     public static final String ICU4J = "ICU4J_";
+
+    /**
+     * This constant means the charset specified should be used.
+     * This will fail if the specified charset does not exist.
+     */
+    public static final String CHARSET = "CHARSET_";
 
     /**
      * This constant means that the BINARY columns are sorted as if the bytes
@@ -210,6 +217,8 @@ public class CompareMode {
             name = name.substring(ICU4J.length());
         } else if (name.startsWith(DEFAULT)) {
             name = name.substring(DEFAULT.length());
+        } else if (name.startsWith(CHARSET)) {
+            return new CharsetCollator(Charset.forName(name.substring(CHARSET.length())));
         }
         if (name.length() == 2) {
             Locale locale = new Locale(StringUtils.toLowerEnglish(name), "");

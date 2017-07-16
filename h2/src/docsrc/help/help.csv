@@ -1180,12 +1180,16 @@ It is also used if the collation name starts with ICU4J_
 (in that case, the ICU4J must be in the classpath, otherwise an exception is thrown).
 The default collator is used if the collation name starts with DEFAULT_
 (even if ICU4J is in the classpath).
+The charset collator is used if the collation name starts with CHARSET_ (e.g. CHARSET_CP500). This collator sorts
+strings according to the binary representation in the given charset.
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 This setting is persistent.
+This setting can be appended to the database URL: ""jdbc:h2:test;COLLATION='ENGLISH'""
 ","
 SET COLLATION ENGLISH
+SET COLLATION CHARSET_CP500
 "
 
 "Commands (Other)","SET COMPRESS_LOB","

@@ -139,7 +139,8 @@ public class ValueTimestamp extends Value {
     }
 
     /**
-     * See: https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
+     * See:
+     * https://stackoverflow.com/questions/3976616/how-to-find-nth-occurrence-of-character-in-a-string#answer-3976656
      */
     private static int findNthIndexOf(String str, char chr, int n) {
         int pos = str.indexOf(chr);

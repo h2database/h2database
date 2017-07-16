@@ -49,7 +49,6 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.PlanItem;
 import org.h2.table.Table;
@@ -70,7 +69,7 @@ public class ScriptCommand extends ScriptBase {
 
     private Charset charset = Constants.UTF8;
     private Set<String> schemaNames;
-    private Collection<AbstractTable> tables;
+    private Collection<Table> tables;
     private boolean passwords;
 
     // true if we're generating the INSERT..VALUES statements for row values
@@ -103,7 +102,7 @@ public class ScriptCommand extends ScriptBase {
         this.schemaNames = schemaNames;
     }
 
-    public void setTables(Collection<AbstractTable> tables) {
+    public void setTables(Collection<Table> tables) {
         this.tables = tables;
     }
 
@@ -202,18 +201,18 @@ public class ScriptCommand extends ScriptBase {
                 add(constant.getCreateSQL(), false);
             }
 
-            final ArrayList<AbstractTable> tables = db.getAllTablesAndViews(false);
+            final ArrayList<Table> tables = db.getAllTablesAndViews(false);
             // sort by id, so that views are after tables and views on views
             // after the base views
-            Collections.sort(tables, new Comparator<AbstractTable>() {
+            Collections.sort(tables, new Comparator<Table>() {
                 @Override
-                public int compare(AbstractTable t1, AbstractTable t2) {
+                public int compare(Table t1, Table t2) {
                     return t1.getId() - t2.getId();
                 }
             });
 
             // Generate the DROP XXX  ... IF EXISTS
-            for (AbstractTable table : tables) {
+            for (Table table : tables) {
                 if (excludeSchema(table.getSchema())) {
                     continue;
                 }
@@ -263,7 +262,7 @@ public class ScriptCommand extends ScriptBase {
 
             // Generate CREATE TABLE and INSERT...VALUES
             int count = 0;
-            for (AbstractTable table : tables) {
+            for (Table table : tables) {
                 if (excludeSchema(table.getSchema())) {
                     continue;
                 }
@@ -389,7 +388,7 @@ public class ScriptCommand extends ScriptBase {
         return r;
     }
 
-    private int generateInsertValues(int count, AbstractTable table) throws IOException {
+    private int generateInsertValues(int count, Table table) throws IOException {
         PlanItem plan = table.getBestPlanItem(session, null, null, -1, null, null);
         Index index = plan.getIndex();
         Cursor cursor = index.find(session, null, null);
@@ -664,7 +663,7 @@ public class ScriptCommand extends ScriptBase {
         }
         if (tables != null) {
             // if filtering on specific tables, only include those schemas
-            for (AbstractTable table : schema.getAllTablesAndViews()) {
+            for (Table table : schema.getAllTablesAndViews()) {
                 if (tables.contains(table)) {
                     return false;
                 }
@@ -674,7 +673,7 @@ public class ScriptCommand extends ScriptBase {
         return false;
     }
 
-    private boolean excludeTable(AbstractTable table) {
+    private boolean excludeTable(Table table) {
         return tables != null && !tables.contains(table);
     }
 

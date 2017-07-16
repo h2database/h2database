@@ -21,7 +21,7 @@ import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 import org.h2.tools.CompressTool;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
@@ -145,7 +145,7 @@ public class Set extends Prepared {
             if (old.equals(compareMode)) {
                 break;
             }
-            AbstractTable table = database.getFirstUserTable();
+            Table table = database.getFirstUserTable();
             if (table != null) {
                 throw DbException.get(
                         ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1,
@@ -157,7 +157,7 @@ public class Set extends Prepared {
         }
         case SetTypes.BINARY_COLLATION: {
             session.getUser().checkAdmin();
-            AbstractTable table = database.getFirstUserTable();
+            Table table = database.getFirstUserTable();
             if (table != null) {
                 throw DbException.get(
                         ErrorCode.COLLATION_CHANGE_WITH_DATA_TABLE_1,
@@ -249,7 +249,7 @@ public class Set extends Prepared {
         }
         case SetTypes.JAVA_OBJECT_SERIALIZER: {
             session.getUser().checkAdmin();
-            AbstractTable table = database.getFirstUserTable();
+            Table table = database.getFirstUserTable();
             if (table != null) {
                 throw DbException.get(ErrorCode.
                         JAVA_OBJECT_SERIALIZER_CHANGE_WITH_DATA_TABLE,

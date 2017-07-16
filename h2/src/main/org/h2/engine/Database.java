@@ -50,12 +50,12 @@ import org.h2.store.LobStorageMap;
 import org.h2.store.PageStore;
 import org.h2.store.WriterThread;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
+import org.h2.table.TableSynonym;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
@@ -834,7 +834,7 @@ public class Database implements DataHandler {
         boolean atLeastOneRecompiledSuccessfully;
         do {
             atLeastOneRecompiledSuccessfully = false;
-            for (AbstractTable obj : getAllTablesAndViews(false)) {
+            for (Table obj : getAllTablesAndViews(false)) {
                 if (obj instanceof TableView) {
                     TableView view = (TableView) obj;
                     if (view.isInvalid()) {
@@ -1264,7 +1264,7 @@ public class Database implements DataHandler {
         try {
             if (systemSession != null) {
                 if (powerOffCount != -1) {
-                    for (AbstractTable table : getAllTablesAndViews(false)) {
+                    for (Table table : getAllTablesAndViews(false)) {
                         if (table.isGlobalTemporary()) {
                             table.removeChildrenAndResources(systemSession);
                         } else {
@@ -1532,13 +1532,26 @@ public class Database implements DataHandler {
      *            tables are only included if they are already initialized)
      * @return all objects of that type
      */
-    public ArrayList<AbstractTable> getAllTablesAndViews(boolean includeMeta) {
+    public ArrayList<Table> getAllTablesAndViews(boolean includeMeta) {
         if (includeMeta) {
             initMetaTables();
         }
-        ArrayList<AbstractTable> list = New.arrayList();
+        ArrayList<Table> list = New.arrayList();
         for (Schema schema : schemas.values()) {
             list.addAll(schema.getAllTablesAndViews());
+        }
+        return list;
+    }
+
+    /**
+     * Get all synonyms.
+     *
+     * @return all objects of that type
+     */
+    public ArrayList<TableSynonym> getAllSynonyms() {
+        ArrayList<TableSynonym> list = New.arrayList();
+        for (Schema schema : schemas.values()) {
+            list.addAll(schema.getAllSynonyms());
         }
         return list;
     }
@@ -1549,10 +1562,10 @@ public class Database implements DataHandler {
      * @param name the table name
      * @return the list
      */
-    public ArrayList<AbstractTable> getTableOrViewByName(String name) {
-        ArrayList<AbstractTable> list = New.arrayList();
+    public ArrayList<Table> getTableOrViewByName(String name) {
+        ArrayList<Table> list = New.arrayList();
         for (Schema schema : schemas.values()) {
-            AbstractTable table = schema.getTableOrViewByName(name);
+            Table table = schema.getTableOrViewByName(name);
             if (table != null) {
                 list.add(table);
             }
@@ -1791,7 +1804,7 @@ public class Database implements DataHandler {
      * @param except the table to exclude (or null)
      * @return the first dependent table, or null
      */
-    public AbstractTable getDependentTable(SchemaObject obj, AbstractTable except) {
+    public Table getDependentTable(SchemaObject obj, Table except) {
         switch (obj.getType()) {
         case DbObject.COMMENT:
         case DbObject.CONSTRAINT:
@@ -1803,7 +1816,7 @@ public class Database implements DataHandler {
         default:
         }
         HashSet<DbObject> set = New.hashSet();
-        for (AbstractTable t : getAllTablesAndViews(false)) {
+        for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
             } else if (TableType.VIEW == t.getTableType()) {
@@ -1828,7 +1841,7 @@ public class Database implements DataHandler {
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
-            AbstractTable table = (AbstractTable) obj;
+            Table table = (Table) obj;
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return;
@@ -1842,7 +1855,7 @@ public class Database implements DataHandler {
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
-            AbstractTable table = constraint.getTable();
+            Table table = constraint.getTable();
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableConstraint(constraint);
                 return;
@@ -1858,7 +1871,7 @@ public class Database implements DataHandler {
             obj.getSchema().remove(obj);
             int id = obj.getId();
             if (!starting) {
-                AbstractTable t = getDependentTable(obj, null);
+                Table t = getDependentTable(obj, null);
                 if (t != null) {
                     obj.getSchema().add(obj);
                     throw DbException.get(ErrorCode.CANNOT_DROP_2, obj.getSQL(),
@@ -2499,8 +2512,8 @@ public class Database implements DataHandler {
      *
      * @return the table or null if no table is defined
      */
-    public AbstractTable getFirstUserTable() {
-        for (AbstractTable table : getAllTablesAndViews(false)) {
+    public Table getFirstUserTable() {
+        for (Table table : getAllTablesAndViews(false)) {
             if (table.getCreateSQL() != null) {
                 if (table.isHidden()) {
                     // LOB tables

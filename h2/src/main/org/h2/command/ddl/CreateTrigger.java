@@ -13,7 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -102,7 +102,7 @@ public class CreateTrigger extends SchemaCommand {
                     triggerName);
         }
         int id = getObjectId();
-        AbstractTable table = getSchema().getTableOrView(session, tableName);
+        Table table = getSchema().getTableOrView(session, tableName);
         TriggerObject trigger = new TriggerObject(getSchema(), id, triggerName, table);
         trigger.setInsteadOf(insteadOf);
         trigger.setBefore(before);

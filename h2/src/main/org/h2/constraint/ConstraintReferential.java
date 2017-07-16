@@ -20,7 +20,6 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -59,7 +58,7 @@ public class ConstraintReferential extends Constraint {
     private IndexColumn[] refColumns;
     private int deleteAction;
     private int updateAction;
-    private AbstractTable refTable;
+    private Table refTable;
     private Index index;
     private Index refIndex;
     private boolean indexOwner;
@@ -67,7 +66,7 @@ public class ConstraintReferential extends Constraint {
     private String deleteSQL, updateSQL;
     private boolean skipOwnTable;
 
-    public ConstraintReferential(Schema schema, int id, String name, AbstractTable table) {
+    public ConstraintReferential(Schema schema, int id, String name, Table table) {
         super(schema, id, name, table);
     }
 
@@ -101,7 +100,7 @@ public class ConstraintReferential extends Constraint {
      * @return the SQL statement
      */
     @Override
-    public String getCreateSQLForCopy(AbstractTable forTable, String quotedName) {
+    public String getCreateSQLForCopy(Table forTable, String quotedName) {
         return getCreateSQLForCopy(forTable, refTable, quotedName, true);
     }
 
@@ -115,7 +114,7 @@ public class ConstraintReferential extends Constraint {
      * @param internalIndex add the index name to the statement
      * @return the SQL statement
      */
-    public String getCreateSQLForCopy(AbstractTable forTable, AbstractTable forRefTable,
+    public String getCreateSQLForCopy(Table forTable, Table forRefTable,
             String quotedName, boolean internalIndex) {
         StatementBuilder buff = new StatementBuilder("ALTER TABLE ");
         String mainTable = forTable.getSQL();
@@ -225,7 +224,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     @Override
-    public HashSet<Column> getReferencedColumns(AbstractTable table) {
+    public HashSet<Column> getReferencedColumns(Table table) {
         HashSet<Column> result = New.hashSet();
         if (table == this.table) {
             for (IndexColumn c : columns) {
@@ -247,7 +246,7 @@ public class ConstraintReferential extends Constraint {
         return refColumns;
     }
 
-    public void setRefTable(AbstractTable refTable) {
+    public void setRefTable(Table refTable) {
         this.refTable = refTable;
         if (refTable.isTemporary()) {
             setTemporary(true);
@@ -301,7 +300,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     @Override
-    public void checkRow(Session session, AbstractTable t, Row oldRow, Row newRow) {
+    public void checkRow(Session session, Table t, Row oldRow, Row newRow) {
         if (!database.getReferentialIntegrity()) {
             return;
         }
@@ -610,7 +609,7 @@ public class ConstraintReferential extends Constraint {
     }
 
     @Override
-    public AbstractTable getRefTable() {
+    public Table getRefTable() {
         return refTable;
     }
 

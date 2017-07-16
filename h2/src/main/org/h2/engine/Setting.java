@@ -7,7 +7,7 @@ package org.h2.engine;
 
 import org.h2.message.DbException;
 import org.h2.message.Trace;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 
 /**
  * A persistent database setting.
@@ -38,7 +38,7 @@ public class Setting extends DbObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
+    public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 

@@ -19,8 +19,8 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
  */
 public class Replace extends Prepared {
 
-    private AbstractTable table;
+    private Table table;
     private Column[] columns;
     private Column[] keys;
     private final ArrayList<Expression[]> list = New.arrayList();
@@ -51,7 +51,7 @@ public class Replace extends Prepared {
         }
     }
 
-    public void setTable(AbstractTable table) {
+    public void setTable(Table table) {
         this.table = table;
     }
 

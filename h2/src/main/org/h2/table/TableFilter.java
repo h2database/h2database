@@ -51,7 +51,7 @@ public class TableFilter implements ColumnResolver {
 
     private Session session;
 
-    private final AbstractTable table;
+    private final Table table;
     private final Select select;
     private String alias;
     private Index index;
@@ -128,7 +128,7 @@ public class TableFilter implements ColumnResolver {
      * @param orderInFrom original order number (index) of this table filter in
      * @param indexHints the index hints to be used by the query planner
      */
-    public TableFilter(Session session, AbstractTable table, String alias,
+    public TableFilter(Session session, Table table, String alias,
             boolean rightsChecked, Select select, int orderInFrom, IndexHints indexHints) {
         this.session = session;
         this.table = table;
@@ -162,7 +162,7 @@ public class TableFilter implements ColumnResolver {
         return select;
     }
 
-    public AbstractTable getTable() {
+    public Table getTable() {
         return table;
     }
 

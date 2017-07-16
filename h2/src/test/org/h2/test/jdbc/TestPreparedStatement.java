@@ -95,6 +95,7 @@ public class TestPreparedStatement extends TestBase {
         testColumnMetaDataWithIn(conn);
         conn.close();
         testPreparedStatementWithLiteralsNone();
+        testPreparedStatementWithIndexedParameterAndLiteralsNone();
         deleteDb("preparedStatement");
     }
 
@@ -1419,6 +1420,27 @@ public class TestPreparedStatement extends TestBase {
         conn.close();
         deleteDb("preparedStatement");
     }
+
+    private void testPreparedStatementWithIndexedParameterAndLiteralsNone() throws SQLException {
+        // make sure that when the analyze table kicks in,
+        // it works with ALLOW_LITERALS=NONE
+        deleteDb("preparedStatement");
+        Connection conn = getConnection(
+                "preparedStatement;ANALYZE_AUTO=100");
+        conn.createStatement().execute(
+                "SET ALLOW_LITERALS NONE");
+        conn.prepareStatement("CREATE TABLE test (id INT)").execute();
+        PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO test (id) VALUES (?1)");
+
+        ps.setInt(1, 1);
+        ps.executeUpdate();
+
+        conn.close();
+        deleteDb("preparedStatement");
+    }
+
+
 
     private void checkBigDecimal(ResultSet rs, String[] value) throws SQLException {
         for (String v : value) {

@@ -25,7 +25,6 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.mvstore.db.MVTableEngine;
-import org.h2.table.AbstractTable;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
@@ -43,7 +42,8 @@ public class Schema extends DbObjectBase {
     private final boolean system;
     private ArrayList<String> tableEngineParams;
 
-    private final ConcurrentHashMap<String, AbstractTable> tablesAndViews;
+    private final ConcurrentHashMap<String, Table> tablesAndViews;
+    private final ConcurrentHashMap<String, TableSynonym> synonyms;
     private final ConcurrentHashMap<String, Index> indexes;
     private final ConcurrentHashMap<String, Sequence> sequences;
     private final ConcurrentHashMap<String, TriggerObject> triggers;
@@ -71,6 +71,7 @@ public class Schema extends DbObjectBase {
     public Schema(Database database, int id, String schemaName, User owner,
             boolean system) {
         tablesAndViews = database.newConcurrentStringMap();
+        synonyms = database.newConcurrentStringMap();
         indexes = database.newConcurrentStringMap();
         sequences = database.newConcurrentStringMap();
         triggers = database.newConcurrentStringMap();
@@ -92,7 +93,7 @@ public class Schema extends DbObjectBase {
     }
 
     @Override
-    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
+    public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
 
@@ -132,7 +133,7 @@ public class Schema extends DbObjectBase {
             runLoopAgain = false;
             if (tablesAndViews != null) {
                 // Loop over a copy because the map is modified underneath us.
-                for (AbstractTable obj : New.arrayList(tablesAndViews.values())) {
+                for (Table obj : New.arrayList(tablesAndViews.values())) {
                     // Check for null because multiple tables might be deleted
                     // in one go underneath us.
                     if (obj.getName() != null) {
@@ -203,6 +204,9 @@ public class Schema extends DbObjectBase {
         switch (type) {
         case DbObject.TABLE_OR_VIEW:
             result = tablesAndViews;
+            break;
+        case DbObject.SYNONYM:
+            result = synonyms;
             break;
         case DbObject.SEQUENCE:
             result = sequences;
@@ -276,18 +280,51 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find a table or view with this name. This method returns null if
      * no object with this name exists. Local temporary tables are also
-     * returned.
+     * returned. Synonyms are not returned or resolved.
      *
      * @param session the session
      * @param name the object name
      * @return the object or null
      */
-    public AbstractTable findTableOrView(Session session, String name) {
-        AbstractTable table = tablesAndViews.get(name);
+    public Table findTableOrView(Session session, String name) {
+        Table table = tablesAndViews.get(name);
         if (table == null && session != null) {
             table = session.findLocalTempTable(name);
         }
         return table;
+    }
+
+    /**
+     * Try to find a table or view with this name. This method returns null if
+     * no object with this name exists. Local temporary tables are also
+     * returned. If a synonym with this name exists, the backing table of the
+     * synonym is returned
+     *
+     * @param session the session
+     * @param name the object name
+     * @return the object or null
+     */
+    public Table resolveTableOrView(Session session, String name) {
+        Table table = findTableOrView(session, name);
+        if (table == null) {
+            TableSynonym synonym = synonyms.get(name);
+            if (synonym != null) {
+                return synonym.getSynonymFor();
+            }
+            return null;
+        }
+        return table;
+    }
+
+    /**
+     * Try to find a synonym with this name. This method returns null if
+     * no object with this name exists.
+     *
+     * @param name the object name
+     * @return the object or null
+     */
+    public TableSynonym getSynonym(String name) {
+        return synonyms.get(name);
     }
 
     /**
@@ -412,7 +449,7 @@ public class Schema extends DbObjectBase {
      * @param table the constraint table
      * @return the unique name
      */
-    public String getUniqueConstraintName(Session session, AbstractTable table) {
+    public String getUniqueConstraintName(Session session, Table table) {
         Map<String, Constraint> tableConstraints;
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableConstraints = session.getLocalTempTableConstraints();
@@ -430,7 +467,7 @@ public class Schema extends DbObjectBase {
      * @param prefix the index name prefix
      * @return the unique name
      */
-    public String getUniqueIndexName(Session session, AbstractTable table, String prefix) {
+    public String getUniqueIndexName(Session session, Table table, String prefix) {
         Map<String, Index> tableIndexes;
         if (table.isTemporary() && !table.isGlobalTemporary()) {
             tableIndexes = session.getLocalTempTableIndexes();
@@ -449,8 +486,8 @@ public class Schema extends DbObjectBase {
      * @return the table or view
      * @throws DbException if no such object exists
      */
-    public AbstractTable getTableOrView(Session session, String name) {
-        AbstractTable table = tablesAndViews.get(name);
+    public Table getTableOrView(Session session, String name) {
+        Table table = tablesAndViews.get(name);
         if (table == null) {
             if (session != null) {
                 table = session.findLocalTempTable(name);
@@ -555,9 +592,16 @@ public class Schema extends DbObjectBase {
      *
      * @return a (possible empty) list of all objects
      */
-    public ArrayList<AbstractTable> getAllTablesAndViews() {
+    public ArrayList<Table> getAllTablesAndViews() {
         synchronized (database) {
             return New.arrayList(tablesAndViews.values());
+        }
+    }
+
+
+    public ArrayList<TableSynonym> getAllSynonyms() {
+        synchronized (database) {
+            return New.arrayList(synonyms.values());
         }
     }
 
@@ -567,7 +611,7 @@ public class Schema extends DbObjectBase {
      * @param name the table name
      * @return the table or null if not found
      */
-    public AbstractTable getTableOrViewByName(String name) {
+    public Table getTableOrViewByName(String name) {
         synchronized (database) {
             return tablesAndViews.get(name);
         }

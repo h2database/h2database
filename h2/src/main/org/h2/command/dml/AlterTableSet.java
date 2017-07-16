@@ -12,7 +12,7 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -52,7 +52,7 @@ public class AlterTableSet extends SchemaCommand {
 
     @Override
     public int update() {
-        AbstractTable table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;

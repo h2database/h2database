@@ -10,7 +10,7 @@ import org.h2.message.DbException;
 import org.h2.result.Row;
 import org.h2.store.Data;
 import org.h2.store.FileStore;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 import org.h2.value.Value;
 
 /**
@@ -29,7 +29,7 @@ public class UndoLogRecord {
     public static final short DELETE = 1;
 
     private static final int IN_MEMORY = 0, STORED = 1, IN_MEMORY_INVALID = 2;
-    private AbstractTable table;
+    private Table table;
     private Row row;
     private short operation;
     private short state;
@@ -42,7 +42,7 @@ public class UndoLogRecord {
      * @param op the operation type
      * @param row the row that was deleted or inserted
      */
-    UndoLogRecord(AbstractTable table, short op, Row row) {
+    UndoLogRecord(Table table, short op, Row row) {
         this.table = table;
         this.row = row;
         this.operation = op;
@@ -233,7 +233,7 @@ public class UndoLogRecord {
      *
      * @return the table
      */
-    public AbstractTable getTable() {
+    public Table getTable() {
         return table;
     }
 

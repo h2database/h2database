@@ -110,7 +110,7 @@ public class CreateTable extends SchemaCommand {
         if (!isSessionTemporary) {
             db.lockMeta(session);
         }
-        if (getSchema().findTableOrView(session, data.tableName) != null) {
+        if (getSchema().resolveTableOrView(session, data.tableName) != null) {
             if (ifNotExists) {
                 return 0;
             }

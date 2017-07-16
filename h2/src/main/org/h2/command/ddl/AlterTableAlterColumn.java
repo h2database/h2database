@@ -29,8 +29,8 @@ import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
 import org.h2.schema.TriggerObject;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
+import org.h2.table.Table;
 import org.h2.table.TableView;
 import org.h2.util.New;
 
@@ -92,7 +92,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        AbstractTable table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;
@@ -211,7 +211,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         return 0;
     }
 
-    private static void checkDefaultReferencesTable(AbstractTable table, Expression defaultExpression) {
+    private static void checkDefaultReferencesTable(Table table, Expression defaultExpression) {
         if (defaultExpression == null) {
             return;
         }
@@ -234,7 +234,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void convertAutoIncrementColumn(AbstractTable table, Column c) {
+    private void convertAutoIncrementColumn(Table table, Column c) {
         if (c.isAutoIncrement()) {
             if (c.isPrimaryKey()) {
                 c.setOriginalSQL("IDENTITY");
@@ -246,7 +246,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void removeSequence(AbstractTable table, Sequence sequence) {
+    private void removeSequence(Table table, Sequence sequence) {
         if (sequence != null) {
             table.removeSequence(sequence);
             sequence.setBelongsToTable(false);
@@ -255,7 +255,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void copyData(AbstractTable table) {
+    private void copyData(Table table) {
         if (table.isTemporary()) {
             throw DbException.getUnsupportedException("TEMP TABLE");
         }
@@ -264,7 +264,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         String tempName = db.getTempTableName(baseName, session);
         Column[] columns = table.getColumns();
         ArrayList<Column> newColumns = New.arrayList();
-        AbstractTable newTable = cloneTableStructure(table, columns, db, tempName, newColumns);
+        Table newTable = cloneTableStructure(table, columns, db, tempName, newColumns);
         try {
             // check if a view would become invalid
             // (because the column to drop is referenced or so)
@@ -314,7 +314,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private AbstractTable cloneTableStructure(AbstractTable table, Column[] columns, Database db,
+    private Table cloneTableStructure(Table table, Column[] columns, Database db,
             String tempName, ArrayList<Column> newColumns) {
         for (Column col : columns) {
             newColumns.add(col.getClone());
@@ -368,7 +368,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         data.isHidden = table.isHidden();
         data.create = true;
         data.session = session;
-        AbstractTable newTable = getSchema().createTable(data);
+        Table newTable = getSchema().createTable(data);
         newTable.setComment(table.getComment());
         StringBuilder buff = new StringBuilder();
         buff.append(newTable.getCreateSQL());
@@ -504,7 +504,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNullable(AbstractTable table) {
+    private void checkNullable(Table table) {
         for (Index index : table.getIndexes()) {
             if (index.getColumnIndex(oldColumn) < 0) {
                 continue;
@@ -517,7 +517,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         }
     }
 
-    private void checkNoNullValues(AbstractTable table) {
+    private void checkNoNullValues(Table table) {
         String sql = "SELECT COUNT(*) FROM " +
                 table.getSQL() + " WHERE " +
                 oldColumn.getSQL() + " IS NULL";

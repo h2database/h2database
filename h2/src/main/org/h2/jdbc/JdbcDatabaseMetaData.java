@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.RowIdLifetime;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Properties;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -153,7 +154,8 @@ public class JdbcDatabaseMetaData extends TraceObject implements
             } else {
                 tableType = "TRUE";
             }
-            PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
+
+            String tableSelect = "SELECT "
                     + "TABLE_CATALOG TABLE_CAT, "
                     + "TABLE_SCHEMA TABLE_SCHEM, "
                     + "TABLE_NAME, "
@@ -169,16 +171,55 @@ public class JdbcDatabaseMetaData extends TraceObject implements
                     + "WHERE TABLE_CATALOG LIKE ? ESCAPE ? "
                     + "AND TABLE_SCHEMA LIKE ? ESCAPE ? "
                     + "AND TABLE_NAME LIKE ? ESCAPE ? "
-                    + "AND (" + tableType + ") "
-                    + "ORDER BY TABLE_TYPE, TABLE_SCHEMA, TABLE_NAME");
+                    + "AND (" + tableType + ") ";
+
+            boolean includeSynonyms = types == null || Arrays.asList(types).contains("SYNONYM");
+            String synonymSelect = "SELECT "
+                    + "SYNONYM_CATALOG TABLE_CAT, "
+                    + "SYNONYM_SCHEMA TABLE_SCHEM, "
+                    + "SYNONYM_NAME as TABLE_NAME, "
+                    + "TYPE_NAME AS TABLE_TYPE, "
+                    + "REMARKS, "
+                    + "TYPE_NAME TYPE_CAT, "
+                    + "TYPE_NAME TYPE_SCHEM, "
+                    + "TYPE_NAME AS TYPE_NAME, "
+                    + "TYPE_NAME SELF_REFERENCING_COL_NAME, "
+                    + "TYPE_NAME REF_GENERATION, "
+                    + "NULL AS SQL "
+                    + "FROM INFORMATION_SCHEMA.SYNONYMS "
+                    + "WHERE SYNONYM_CATALOG LIKE ? ESCAPE ? "
+                    + "AND SYNONYM_SCHEMA LIKE ? ESCAPE ? "
+                    + "AND SYNONYM_NAME LIKE ? ESCAPE ? "
+                    + "AND (" + includeSynonyms + ") ";
+
+            PreparedStatement prep = conn.prepareAutoCloseStatement("SELECT "
+                    + "TABLE_CAT, "
+                    + "TABLE_SCHEM, "
+                    + "TABLE_NAME, "
+                    + "TABLE_TYPE, "
+                    + "REMARKS, "
+                    + "TYPE_CAT, "
+                    + "TYPE_SCHEM, "
+                    + "TYPE_NAME, "
+                    + "SELF_REFERENCING_COL_NAME, "
+                    + "REF_GENERATION, "
+                    + "SQL "
+                    + "FROM (" + synonymSelect  + " UNION " + tableSelect + ") "
+                    + "ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME");
             prep.setString(1, getCatalogPattern(catalogPattern));
             prep.setString(2, "\\");
             prep.setString(3, getSchemaPattern(schemaPattern));
             prep.setString(4, "\\");
             prep.setString(5, getPattern(tableNamePattern));
             prep.setString(6, "\\");
+            prep.setString(7, getCatalogPattern(catalogPattern));
+            prep.setString(8, "\\");
+            prep.setString(9, getSchemaPattern(schemaPattern));
+            prep.setString(10, "\\");
+            prep.setString(11, getPattern(tableNamePattern));
+            prep.setString(12, "\\");
             for (int i = 0; types != null && i < types.length; i++) {
-                prep.setString(7 + i, types[i]);
+                prep.setString(13 + i, types[i]);
             }
             return prep.executeQuery();
         } catch (Exception e) {

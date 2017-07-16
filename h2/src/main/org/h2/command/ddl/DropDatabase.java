@@ -15,7 +15,7 @@ import org.h2.engine.User;
 import org.h2.schema.Schema;
 import org.h2.schema.SchemaObject;
 import org.h2.schema.Sequence;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 import org.h2.table.TableType;
 import org.h2.util.New;
 
@@ -53,28 +53,28 @@ public class DropDatabase extends DefineCommand {
         // so we might need to loop over them multiple times.
         boolean runLoopAgain;
         do {
-            ArrayList<AbstractTable> tables = db.getAllTablesAndViews(false);
-            ArrayList<AbstractTable> toRemove = New.arrayList();
-            for (AbstractTable t : tables) {
+            ArrayList<Table> tables = db.getAllTablesAndViews(false);
+            ArrayList<Table> toRemove = New.arrayList();
+            for (Table t : tables) {
                 if (t.getName() != null &&
                         TableType.VIEW == t.getTableType()) {
                     toRemove.add(t);
                 }
             }
-            for (AbstractTable t : tables) {
+            for (Table t : tables) {
                 if (t.getName() != null &&
                         TableType.TABLE_LINK == t.getTableType()) {
                     toRemove.add(t);
                 }
             }
-            for (AbstractTable t : tables) {
+            for (Table t : tables) {
                 if (t.getName() != null &&
                         TableType.TABLE == t.getTableType() &&
                         !t.isHidden()) {
                     toRemove.add(t);
                 }
             }
-            for (AbstractTable t : tables) {
+            for (Table t : tables) {
                 if (t.getName() != null &&
                         TableType.EXTERNAL_TABLE_ENGINE == t.getTableType() &&
                         !t.isHidden()) {
@@ -82,7 +82,7 @@ public class DropDatabase extends DefineCommand {
                 }
             }
             runLoopAgain = false;
-            for (AbstractTable t : toRemove) {
+            for (Table t : toRemove) {
                 if (t.getName() == null) {
                     // ignore, already dead
                 } else if (db.getDependentTable(t, t) == null) {

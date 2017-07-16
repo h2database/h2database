@@ -37,10 +37,10 @@ import org.h2.security.BlockCipher;
 import org.h2.security.CipherFactory;
 import org.h2.security.SHA256;
 import org.h2.store.fs.FileUtils;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.LinkSchema;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
@@ -1160,7 +1160,7 @@ public class Function extends Expression implements FunctionCall {
     private static long getDiskSpaceUsed(Session session, Value v0) {
         Parser p = new Parser(session);
         String sql = v0.getString();
-        AbstractTable table = p.parseTableName(sql);
+        Table table = p.parseTableName(sql);
         return table.getDiskSpaceUsed();
     }
 

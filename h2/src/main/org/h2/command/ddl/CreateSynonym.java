@@ -11,7 +11,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
 import org.h2.table.TableSynonym;
 
 /**
@@ -52,9 +51,14 @@ public class CreateSynonym extends SchemaCommand {
         if (!transactional) {
             session.commit(true);
         }
+        session.getUser().checkAdmin();
         Database db = session.getDatabase();
         data.session = session;
         db.lockMeta(session);
+
+        if (data.synonymForSchema.findTableOrView(session, data.synonymName) != null) {
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
+        }
 
         if (data.synonymForSchema.findTableOrView(session, data.synonymFor) != null) {
             return createTableSynonym(db);
@@ -66,11 +70,12 @@ public class CreateSynonym extends SchemaCommand {
     }
 
     private int createTableSynonym(Database db) {
-        AbstractTable old = getSchema().findTableOrView(session, data.synonymName);
+
+        TableSynonym old = getSchema().getSynonym(data.synonymName);
         if (old != null) {
-            if (orReplace && old instanceof TableSynonym) {
+            if (orReplace) {
                 // ok, we replacing the existing synonym
-            } else if (ifNotExists && old instanceof TableSynonym) {
+            } else if (ifNotExists) {
                 return 0;
             } else {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.synonymName);
@@ -79,7 +84,7 @@ public class CreateSynonym extends SchemaCommand {
 
         TableSynonym table;
         if (old != null) {
-            table = (TableSynonym) old;
+            table = old;
             data.schema = table.getSchema();
             table.updateData(data);
             table.setComment(comment);

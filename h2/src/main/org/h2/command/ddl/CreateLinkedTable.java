@@ -66,7 +66,7 @@ public class CreateLinkedTable extends SchemaCommand {
         session.commit(true);
         Database db = session.getDatabase();
         session.getUser().checkAdmin();
-        if (getSchema().findTableOrView(session, tableName) != null) {
+        if (getSchema().resolveTableOrView(session, tableName) != null) {
             if (ifNotExists) {
                 return 0;
             }

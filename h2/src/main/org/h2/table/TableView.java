@@ -45,7 +45,7 @@ public class TableView extends Table {
     private static final long ROW_COUNT_APPROXIMATION = 100;
 
     private String querySQL;
-    private ArrayList<AbstractTable> tables;
+    private ArrayList<Table> tables;
     private Column[] columnTemplates;
     private Query viewQuery;
     private ViewIndex index;
@@ -265,7 +265,7 @@ public class TableView extends Table {
         if (!super.isQueryComparable()) {
             return false;
         }
-        for (AbstractTable t : tables) {
+        for (Table t : tables) {
             if (!t.isQueryComparable()) {
                 return false;
             }
@@ -287,7 +287,7 @@ public class TableView extends Table {
     }
 
     @Override
-    public String getCreateSQLForCopy(AbstractTable table, String quotedName) {
+    public String getCreateSQLForCopy(Table table, String quotedName) {
         return getCreateSQL(false, true, quotedName);
     }
 
@@ -502,7 +502,7 @@ public class TableView extends Table {
 
     private void removeViewFromTables() {
         if (tables != null) {
-            for (AbstractTable t : tables) {
+            for (Table t : tables) {
                 t.removeView(this);
             }
             tables.clear();
@@ -510,7 +510,7 @@ public class TableView extends Table {
     }
 
     private void addViewToTables() {
-        for (AbstractTable t : tables) {
+        for (Table t : tables) {
             t.addView(this);
         }
     }
@@ -620,7 +620,7 @@ public class TableView extends Table {
     public void addDependencies(HashSet<DbObject> dependencies) {
         super.addDependencies(dependencies);
         if (tables != null) {
-            for (AbstractTable t : tables) {
+            for (Table t : tables) {
                 if (TableType.VIEW != t.getTableType()) {
                     t.addDependencies(dependencies);
                 }

@@ -18,9 +18,9 @@ import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -281,7 +281,7 @@ public class Aggregate extends Expression {
             switch (type) {
             case COUNT:
             case COUNT_ALL:
-                AbstractTable table = select.getTopTableFilter().getTable();
+                Table table = select.getTopTableFilter().getTable();
                 return ValueLong.get(table.getRowCount(session));
             case MIN:
             case MAX:
@@ -580,7 +580,7 @@ public class Aggregate extends Expression {
             Column column = col.getColumn();
             TableFilter filter = col.getTableFilter();
             if (filter != null) {
-                AbstractTable table = filter.getTable();
+                Table table = filter.getTable();
                 Index index = table.getIndexForColumn(column, true, false);
                 return index;
             }

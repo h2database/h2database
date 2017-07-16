@@ -33,11 +33,11 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.IndexColumn;
 import org.h2.table.JoinBatch;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
 import org.h2.util.New;
@@ -710,7 +710,7 @@ public class Select extends Query {
     }
 
     private int expandColumnList(TableFilter filter, int index) {
-        AbstractTable t = filter.getTable();
+        Table t = filter.getTable();
         String alias = filter.getTableAlias();
         Column[] columns = t.getColumns();
         for (Column c : columns) {
@@ -856,7 +856,7 @@ public class Select extends Query {
         if (isGroupQuery && groupIndex == null &&
                 havingIndex < 0 && filters.size() == 1) {
             if (condition == null) {
-                AbstractTable t = filters.get(0).getTable();
+                Table t = filters.get(0).getTable();
                 ExpressionVisitor optimizable = ExpressionVisitor.
                         getOptimizableVisitor(t);
                 isQuickAggregateQuery = isEverything(optimizable);
@@ -975,8 +975,8 @@ public class Select extends Query {
     }
 
     @Override
-    public HashSet<AbstractTable> getTables() {
-        HashSet<AbstractTable> set = New.hashSet();
+    public HashSet<Table> getTables() {
+        HashSet<Table> set = New.hashSet();
         for (TableFilter filter : filters) {
             set.add(filter.getTable());
         }
@@ -1072,7 +1072,7 @@ public class Select extends Query {
                 new Expression[expressions.size()]);
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
-            AbstractTable t = f.getTable();
+            Table t = f.getTable();
             if (t.isView() && ((TableView) t).isRecursive()) {
                 buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
                 buff.resetCount();
@@ -1344,7 +1344,7 @@ public class Select extends Query {
         case ExpressionVisitor.GET_DEPENDENCIES: {
             for (int i = 0, size = filters.size(); i < size; i++) {
                 TableFilter f = filters.get(i);
-                AbstractTable table = f.getTable();
+                Table table = f.getTable();
                 visitor.addDependency(table);
                 table.addDependencies(visitor.getDependencies());
             }

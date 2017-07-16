@@ -11,7 +11,8 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
+import org.h2.table.TableSynonym;
 import org.h2.table.TableType;
 
 /**
@@ -34,17 +35,14 @@ public class DropSynonym extends SchemaCommand {
     @Override
     public int update() {
         session.commit(true);
-        AbstractTable synonym = getSchema().findTableOrView(session, synonymName);
+        session.getUser().checkAdmin();
+
+        TableSynonym synonym = getSchema().getSynonym(synonymName);
         if (synonym == null) {
             if (!ifExists) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);
             }
         } else {
-            if (!TableType.SYNONYM.equals(synonym.getTableType())) {
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, synonymName);
-            }
-            session.getUser().checkRight(synonym, Right.ALL);
-            synonym.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, synonym);
         }
         return 0;

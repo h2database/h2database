@@ -13,7 +13,7 @@ import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
 import org.h2.schema.TriggerObject;
-import org.h2.table.AbstractTable;
+import org.h2.table.Table;
 
 /**
  * This class represents the statement
@@ -46,7 +46,7 @@ public class DropTrigger extends SchemaCommand {
                 throw DbException.get(ErrorCode.TRIGGER_NOT_FOUND_1, triggerName);
             }
         } else {
-            AbstractTable table = trigger.getTable();
+            Table table = trigger.getTable();
             session.getUser().checkRight(table, Right.ALL);
             db.removeSchemaObject(session, trigger);
         }

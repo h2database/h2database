@@ -17,7 +17,6 @@ import org.h2.result.Row;
 import org.h2.result.SearchRow;
 import org.h2.result.SortOrder;
 import org.h2.schema.SchemaObjectBase;
-import org.h2.table.AbstractTable;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
@@ -397,7 +396,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     @Override
-    public String getCreateSQLForCopy(AbstractTable targetTable, String quotedName) {
+    public String getCreateSQLForCopy(Table targetTable, String quotedName) {
         StringBuilder buff = new StringBuilder("CREATE ");
         buff.append(indexType.getSQL());
         buff.append(' ');

@@ -2812,10 +2812,10 @@ public class Parser {
         case PARAMETER:
             // there must be no space between ? and the number
             boolean indexed = Character.isDigit(sqlCommandChars[parseIndex]);
-            read();
+
             Parameter p;
-            if (indexed && currentTokenType == VALUE &&
-                    currentValue.getType() == Value.INT) {
+            if (indexed) {
+                readParameterIndex();
                 if (indexedParameterList == null) {
                     if (parameters == null) {
                         // this can occur when parsing expressions only (for
@@ -2845,6 +2845,7 @@ public class Parser {
                 }
                 read();
             } else {
+                read();
                 if (indexedParameterList != null) {
                     throw DbException
                             .get(ErrorCode.CANNOT_MIX_INDEXED_AND_UNINDEXED_PARAMS);
@@ -3478,6 +3479,30 @@ public class Parser {
             return;
         default:
             throw getSyntaxError();
+        }
+    }
+
+    private void readParameterIndex() {
+        int i = parseIndex;
+
+        char[] chars = sqlCommandChars;
+        char c = chars[i++];
+        long number = c - '0';
+        while (true) {
+            c = chars[i];
+            if (c < '0' || c > '9') {
+                currentValue = ValueInt.get((int) number);
+                currentTokenType = VALUE;
+                currentToken = "0";
+                parseIndex = i;
+                break;
+            }
+            number = number * 10 + (c - '0');
+            if (number > Integer.MAX_VALUE) {
+                throw DbException.getInvalidValueException(
+                        "parameter index", number);
+            }
+            i++;
         }
     }
 

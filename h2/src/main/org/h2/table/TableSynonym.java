@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.table;
 
 import org.h2.command.ddl.CreateSynonymData;
@@ -7,8 +12,8 @@ import org.h2.message.Trace;
 import org.h2.schema.SchemaObjectBase;
 
 /**
- * Synonym for an existing table or view. All DML requests are forwarded to the backing table. Adding indices
- * to a synonym or altering the table is not supported.
+ * Synonym for an existing table or view. All DML requests are forwarded to the backing table.
+ * Adding indices to a synonym or altering the table is not supported.
  */
 public class TableSynonym extends SchemaObjectBase {
 

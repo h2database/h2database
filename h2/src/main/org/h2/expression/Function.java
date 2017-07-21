@@ -314,6 +314,8 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunctionNotDeterministic("CURDATE", CURDATE,
                 0, Value.DATE);
+        addFunctionNotDeterministic("TODAY", CURRENT_DATE,
+                0, Value.DATE);
         addFunction("TO_DATE", TO_DATE, VAR_ARGS, Value.TIMESTAMP);
         addFunction("TO_TIMESTAMP", TO_TIMESTAMP, VAR_ARGS, Value.TIMESTAMP);
         addFunction("ADD_MONTHS", ADD_MONTHS, 2, Value.TIMESTAMP);
@@ -322,9 +324,15 @@ public class Function extends Expression implements FunctionCall {
                 0, Value.DATE);
         addFunctionNotDeterministic("CURRENT_TIME", CURRENT_TIME,
                 0, Value.TIME);
+        addFunctionNotDeterministic("SYSTIME", CURRENT_TIME,
+                0, Value.TIME);
         addFunctionNotDeterministic("CURTIME", CURTIME,
                 0, Value.TIME);
         addFunctionNotDeterministic("CURRENT_TIMESTAMP", CURRENT_TIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("SYSDATE", CURRENT_TIMESTAMP,
+                VAR_ARGS, Value.TIMESTAMP);
+        addFunctionNotDeterministic("SYSTIMESTAMP", CURRENT_TIMESTAMP,
                 VAR_ARGS, Value.TIMESTAMP);
         addFunctionNotDeterministic("NOW", NOW,
                 VAR_ARGS, Value.TIMESTAMP);

@@ -182,8 +182,7 @@ public class Parser {
     private static final int MINUS = 13, PLUS = 14, STRING_CONCAT = 15;
     private static final int OPEN = 16, CLOSE = 17, NULL = 18, TRUE = 19,
             FALSE = 20;
-    private static final int CURRENT_TIMESTAMP = 21, CURRENT_DATE = 22,
-            CURRENT_TIME = 23, ROWNUM = 24;
+    private static final int ROWNUM = 24;
     private static final int SPATIAL_INTERSECTS = 25;
 
     private static final Comparator<TableFilter> TABLE_FILTER_COMPARATOR =
@@ -2887,6 +2886,20 @@ public class Parser {
                     r = readFunction(null, name);
                 } else if (equalsToken("CURRENT_USER", name)) {
                     r = readFunctionWithoutParameters("USER");
+                } else if (equalsToken("CURRENT_TIMESTAMP", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                } else if (equalsToken("SYSDATE", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                } else if (equalsToken("SYSTIMESTAMP", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
+                } else if (equalsToken("CURRENT_DATE", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_DATE");
+                } else if (equalsToken("TODAY", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_DATE");
+                } else if (equalsToken("CURRENT_TIME", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_TIME");
+                } else if (equalsToken("SYSTIME", name)) {
+                    r = readFunctionWithoutParameters("CURRENT_TIME");
                 } else if (equalsToken("CURRENT", name)) {
                     if (readIf("TIMESTAMP")) {
                         r = readFunctionWithoutParameters("CURRENT_TIMESTAMP");
@@ -3004,28 +3017,6 @@ public class Parser {
             read();
             r = ValueExpression.get(ValueBoolean.get(false));
             break;
-        case CURRENT_TIME:
-            read();
-            r = readFunctionWithoutParameters("CURRENT_TIME");
-            break;
-        case CURRENT_DATE:
-            read();
-            r = readFunctionWithoutParameters("CURRENT_DATE");
-            break;
-        case CURRENT_TIMESTAMP: {
-            Function function = Function.getFunction(database,
-                    "CURRENT_TIMESTAMP");
-            read();
-            if (readIf("(")) {
-                if (!readIf(")")) {
-                    function.setParameter(0, readExpression());
-                    read(")");
-                }
-            }
-            function.doneWithParameters();
-            r = function;
-            break;
-        }
         case ROWNUM:
             read();
             if (readIf("(")) {
@@ -3922,12 +3913,6 @@ public class Parser {
         case 'C':
             if (s.equals("CHECK")) {
                 return KEYWORD;
-            } else if (s.equals("CURRENT_TIMESTAMP")) {
-                return CURRENT_TIMESTAMP;
-            } else if (s.equals("CURRENT_TIME")) {
-                return CURRENT_TIME;
-            } else if (s.equals("CURRENT_DATE")) {
-                return CURRENT_DATE;
             }
             return getKeywordOrIdentifier(s, "CROSS", KEYWORD);
         case 'D':
@@ -3987,18 +3972,8 @@ public class Parser {
         case 'R':
             return getKeywordOrIdentifier(s, "ROWNUM", ROWNUM);
         case 'S':
-            if (s.equals("SYSTIMESTAMP")) {
-                return CURRENT_TIMESTAMP;
-            } else if (s.equals("SYSTIME")) {
-                return CURRENT_TIME;
-            } else if (s.equals("SYSDATE")) {
-                return CURRENT_TIMESTAMP;
-            }
             return getKeywordOrIdentifier(s, "SELECT", KEYWORD);
         case 'T':
-            if ("TODAY".equals(s)) {
-                return CURRENT_DATE;
-            }
             return getKeywordOrIdentifier(s, "TRUE", TRUE);
         case 'U':
             if ("UNIQUE".equals(s)) {

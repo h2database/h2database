@@ -243,6 +243,11 @@ public class SetTypes {
      */
     public static final int LAZY_QUERY_EXECUTION = 46;
 
+    /**
+     * The type of SET BUILTIN_ALIAS_OVERRIDE statement.
+     */
+    public static final int BUILTIN_ALIAS_OVERRIDE = 47;
+
     private static final ArrayList<String> TYPES = New.arrayList();
 
     private SetTypes() {
@@ -298,6 +303,7 @@ public class SetTypes {
         list.add(BATCH_JOINS, "BATCH_JOINS");
         list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
+        list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
     }
 
     /**

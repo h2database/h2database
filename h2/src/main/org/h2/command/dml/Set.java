@@ -524,6 +524,16 @@ public class Set extends Prepared {
             session.setLazyQueryExecution(value == 1);
             break;
         }
+        case SetTypes.BUILTIN_ALIAS_OVERRIDE: {
+            session.getUser().checkAdmin();
+            int value = getIntValue();
+            if (value != 0 && value != 1) {
+                throw DbException.getInvalidValueException("BUILTIN_ALIAS_OVERRIDE",
+                        value);
+            }
+            database.setAllowBuiltinAliasOverride(value == 1);
+            break;
+        }
         default:
             DbException.throwInternalError("type="+type);
         }

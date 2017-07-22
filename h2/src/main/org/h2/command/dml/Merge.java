@@ -169,7 +169,7 @@ public class Merge extends Prepared {
                     if (index != null) {
                         // verify the index columns match the key
                         Column[] indexColumns = index.getColumns();
-                        boolean indexMatchesKeys = false;
+                        boolean indexMatchesKeys = true;
                         if (indexColumns.length <= keys.length) {
                             for (int i = 0; i < indexColumns.length; i++) {
                                 if (indexColumns[i] != keys[i]) {

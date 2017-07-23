@@ -1165,6 +1165,19 @@ This setting is persistent.
 SET BINARY_COLLATION SIGNED
 "
 
+"Commands (Other)","SET BUILTIN_ALIAS_OVERRIDE","
+SET BUILTIN_ALIAS_OVERRIDE
+{ TRUE | FALSE } ] }
+","
+Allows the overriding of the builtin system date/time functions
+for unit testing purposes.
+
+Admin rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+SET BUILTIN_ALIAS_OVERRIDE TRUE
+"
+
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }

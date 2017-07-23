@@ -191,6 +191,7 @@ public class Database implements DataHandler {
     private int logMode;
     private MVTableEngine.Store mvStore;
     private int retentionTime;
+    private boolean allowBuiltinAliasOverride;
     private DbException backgroundException;
     private JavaObjectSerializer javaObjectSerializer;
     private String javaObjectSerializerName;
@@ -1983,7 +1984,15 @@ public class Database implements DataHandler {
             mvStore.getStore().setRetentionTime(value);
         }
     }
+    
+    public void setAllowBuiltinAliasOverride(boolean b) {
+        allowBuiltinAliasOverride = b;
+    }
 
+    public boolean isAllowBuiltinAliasOverride() {
+        return allowBuiltinAliasOverride;
+    }
+    
     /**
      * Check if flush-on-each-commit is enabled.
      *

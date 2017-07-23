@@ -2707,9 +2707,16 @@ public class Parser {
         return function;
     }
 
-    private Function readFunctionWithoutParameters(String name) {
+    private Expression readFunctionWithoutParameters(String name) {
         if (readIf("(")) {
             read(")");
+        }
+        if (database.isAllowBuiltinAliasOverride()) {
+            FunctionAlias functionAlias = database.getSchema(session.getCurrentSchemaName()).findFunction(name);
+            if (functionAlias != null) {
+                JavaFunction func = new JavaFunction(functionAlias, new Expression[0]);
+                return func;
+            }
         }
         Function function = Function.getFunction(database, name);
         function.doneWithParameters();
@@ -4850,8 +4857,18 @@ public class Parser {
 
     private CreateFunctionAlias parseCreateFunctionAlias(boolean force) {
         boolean ifNotExists = readIfNotExists();
-        String aliasName = readIdentifierWithSchema();
-        if (isKeyword(aliasName) ||
+        final boolean newAliasSameNameAsBuiltin = Function.getFunction(database, currentToken) != null;
+        String aliasName;
+        if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
+            aliasName = currentToken;
+            schemaName = session.getCurrentSchemaName();
+            read();
+        } else {
+            aliasName = readIdentifierWithSchema();
+        }
+        if (database.isAllowBuiltinAliasOverride() && newAliasSameNameAsBuiltin) {
+            // fine
+        } else if (isKeyword(aliasName) ||
                 Function.getFunction(database, aliasName) != null ||
                 getAggregateType(aliasName) >= 0) {
             throw DbException.get(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1,

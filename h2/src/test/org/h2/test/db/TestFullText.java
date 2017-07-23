@@ -50,10 +50,6 @@ public class TestFullText extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (config.multiThreaded) {
-            // It is even mentioned in the docs that this is not supported
-            return;
-        }
         testUuidPrimaryKey(false);
         testAutoAnalyze();
         testNativeFeatures();
@@ -71,7 +67,9 @@ public class TestFullText extends TestBase {
                 testCreateDropLucene();
                 testUuidPrimaryKey(true);
                 testMultiThreaded(true);
-                testMultiThreaded(false);
+                if(config.mvStore || !config.multiThreaded) {
+                    testMultiThreaded(false);
+                }
                 testTransaction(true);
                 test(true, "VARCHAR");
                 test(true, "CLOB");

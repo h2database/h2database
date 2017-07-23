@@ -18,11 +18,13 @@ import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -151,7 +153,7 @@ public class FullText {
             }
         }
         rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
-        HashMap<String, Integer> map = setting.getWordList();
+        Map<String, Integer> map = setting.getWordList();
         while (rs.next()) {
             String word = rs.getString("NAME");
             int id = rs.getInt("ID");
@@ -243,9 +245,9 @@ public class FullText {
                 break;
             }
         }
-        prep = conn.prepareStatement("DELETE FROM " + SCHEMA + ".MAP M " +
+        prep = conn.prepareStatement("DELETE FROM " + SCHEMA + ".MAP " +
                 "WHERE NOT EXISTS (SELECT * FROM " + SCHEMA +
-                ".ROWS R WHERE R.ID=M.ROWID) AND ROWID<10000");
+                ".ROWS R WHERE R.ID=ROWID) AND ROWID<10000");
         while (true) {
             int deleted = prep.executeUpdate();
             if (deleted == 0) {
@@ -605,10 +607,10 @@ public class FullText {
         if (!setting.isInitialized()) {
             init(conn);
         }
-        HashSet<String> words = New.hashSet();
+        Set<String> words = New.hashSet();
         addWords(setting, words, text);
-        HashSet<Integer> rIds = null, lastRowIds = null;
-        HashMap<String, Integer> allWords = setting.getWordList();
+        Set<Integer> rIds = null, lastRowIds;
+        Map<String, Integer> allWords = setting.getWordList();
 
         PreparedStatement prepSelectMapByWordId = setting.prepare(conn,
                 SELECT_MAP_BY_WORD_ID);
@@ -698,7 +700,7 @@ public class FullText {
      * @param reader the reader
      */
     protected static void addWords(FullTextSettings setting,
-            HashSet<String> set, Reader reader) {
+            Set<String> set, Reader reader) {
         StreamTokenizer tokenizer = new StreamTokenizer(reader);
         tokenizer.resetSyntax();
         tokenizer.wordChars(' ' + 1, 255);
@@ -732,7 +734,7 @@ public class FullText {
      * @param text the text
      */
     protected static void addWords(FullTextSettings setting,
-            HashSet<String> set, String text) {
+            Set<String> set, String text) {
         String whitespaceChars = setting.getWhitespaceChars();
         StringTokenizer tokenizer = new StringTokenizer(text, whitespaceChars);
         while (tokenizer.hasMoreTokens()) {
@@ -751,30 +753,38 @@ public class FullText {
      * @param schema the schema name
      * @param table the table name
      */
-    protected static void createTrigger(Connection conn, String schema,
-            String table) throws SQLException {
+    private static void createTrigger(Connection conn, String schema,
+                                      String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
     private static void createOrDropTrigger(Connection conn,
             String schema, String table, boolean create) throws SQLException {
-        Statement stat = conn.createStatement();
-        String trigger = StringUtils.quoteIdentifier(schema) + "."
-                + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
-        stat.execute("DROP TRIGGER IF EXISTS " + trigger);
-        if (create) {
-            StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
-            // needs to be called on rollback as well, because we use the init
-            // connection do to changes in the index (not the user connection)
-            buff.append(trigger).
-                append(" AFTER INSERT, UPDATE, DELETE, ROLLBACK ON ").
-                append(StringUtils.quoteIdentifier(schema)).
-                append('.').
-                append(StringUtils.quoteIdentifier(table)).
-                append(" FOR EACH ROW CALL \"").
-                append(FullText.FullTextTrigger.class.getName()).
-                append('\"');
-            stat.execute(buff.toString());
+        try (Statement stat = conn.createStatement()) {
+            String trigger = StringUtils.quoteIdentifier(schema) + "."
+                    + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
+            stat.execute("DROP TRIGGER IF EXISTS " + trigger);
+            if (create) {
+                ResultSet rs = stat.executeQuery("SELECT value FROM information_schema.settings WHERE name = 'MV_STORE'");
+                boolean multiThread = FullTextTrigger.isMultiThread(conn);
+                StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
+                // unless multithread, trigger needs to be called on rollback as well,
+                // because we use the init connection do to changes in the index
+                // (not the user connection)
+                buff.append(trigger).
+                        append(" AFTER INSERT, UPDATE, DELETE");
+                if(!multiThread) {
+                    buff.append(", ROLLBACK");
+                }
+                buff.append(" ON ").
+                        append(StringUtils.quoteIdentifier(schema)).
+                        append('.').
+                        append(StringUtils.quoteIdentifier(table)).
+                        append(" FOR EACH ROW CALL \"").
+                        append(FullText.FullTextTrigger.class.getName()).
+                        append('\"');
+                stat.execute(buff.toString());
+            }
         }
     }
 
@@ -785,8 +795,8 @@ public class FullText {
      * @param schema the schema name
      * @param table the table name
      */
-    protected static void indexExistingRows(Connection conn, String schema,
-            String table) throws SQLException {
+    private static void indexExistingRows(Connection conn, String schema,
+                                          String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
         String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
@@ -823,7 +833,7 @@ public class FullText {
     private static void setIgnoreList(FullTextSettings setting,
             String commaSeparatedList) {
         String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
-        HashSet<String> set = setting.getIgnoreList();
+        Set<String> set = setting.getIgnoreList();
         for (String word : list) {
             String converted = setting.convertWord(word);
             if (converted != null) {
@@ -860,14 +870,28 @@ public class FullText {
     /**
      * Trigger updates the index when a inserting, updating, or deleting a row.
      */
-    public static class FullTextTrigger implements Trigger {
+    public static final class FullTextTrigger implements Trigger {
+        private FullTextSettings          setting;
+        private IndexInfo                 index;
+        private int[]                     columnTypes;
+        private final PreparedStatement[] prepStatements = new PreparedStatement[SQL.length];
+        private boolean                   useOwnConnection;
 
-        protected FullTextSettings setting;
-        protected IndexInfo index;
-        protected int[] columnTypes;
-        protected PreparedStatement prepInsertWord, prepInsertRow, prepInsertMap;
-        protected PreparedStatement prepDeleteRow, prepDeleteMap;
-        protected PreparedStatement prepSelectRow;
+        private static final int INSERT_WORD = 0;
+        private static final int INSERT_ROW  = 1;
+        private static final int INSERT_MAP  = 2;
+        private static final int DELETE_ROW  = 3;
+        private static final int DELETE_MAP  = 4;
+        private static final int SELECT_ROW  = 5;
+
+        private static final String SQL[] = {
+                "INSERT INTO " + SCHEMA + ".WORDS(NAME) VALUES(?)",
+                "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)",
+                "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)",
+                "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?",
+                "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?",
+                "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?"
+        };
 
         /**
          * INTERNAL
@@ -923,9 +947,7 @@ public class FullText {
                 index.id = rs.getInt(1);
                 String columns = rs.getString(2);
                 if (columns != null) {
-                    for (String s : StringUtils.arraySplit(columns, ',', true)) {
-                        indexList.add(s);
-                    }
+                    Collections.addAll(indexList, StringUtils.arraySplit(columns, ',', true));
                 }
             }
             if (indexList.size() == 0) {
@@ -936,18 +958,23 @@ public class FullText {
             index.indexColumns = new int[indexList.size()];
             setColumns(index.indexColumns, indexList, columnList);
             setting.addIndexInfo(index);
-            prepInsertWord = conn.prepareStatement(
-                    "INSERT INTO " + SCHEMA + ".WORDS(NAME) VALUES(?)");
-            prepInsertRow = conn.prepareStatement(
-                    "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)");
-            prepInsertMap = conn.prepareStatement(
-                    "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)");
-            prepDeleteRow = conn.prepareStatement(
-                    "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
-            prepDeleteMap = conn.prepareStatement(
-                    "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?");
-            prepSelectRow = conn.prepareStatement(
-                    "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?");
+
+            useOwnConnection = isMultiThread(conn);
+            if(!useOwnConnection) {
+                for (int i = 0; i < SQL.length; i++) {
+                    prepStatements[i] = conn.prepareStatement(SQL[i]);
+                }
+            }
+        }
+
+        private static boolean isMultiThread(Connection conn)
+                throws SQLException {
+            try (Statement stat = conn.createStatement()) {
+                ResultSet rs = stat.executeQuery(
+                                "SELECT value FROM information_schema.settings" +
+                                " WHERE name = 'MULTI_THREADED'");
+                return rs.next() && !"0".equals(rs.getString(1));
+            }
         }
 
         /**
@@ -960,16 +987,16 @@ public class FullText {
                 if (newRow != null) {
                     // update
                     if (hasChanged(oldRow, newRow, index.indexColumns)) {
-                        delete(oldRow);
-                        insert(newRow);
+                        delete(conn, oldRow);
+                        insert(conn, newRow);
                     }
                 } else {
                     // delete
-                    delete(oldRow);
+                    delete(conn, oldRow);
                 }
             } else if (newRow != null) {
                 // insert
-                insert(newRow);
+                insert(conn, newRow);
             }
         }
 
@@ -992,54 +1019,82 @@ public class FullText {
         /**
          * Add a row to the index.
          *
+         * @param conn to use
          * @param row the row
          */
-        protected void insert(Object[] row) throws SQLException {
-            String key = getKey(row);
-            int hash = key.hashCode();
-            prepInsertRow.setInt(1, hash);
-            prepInsertRow.setInt(2, index.id);
-            prepInsertRow.setString(3, key);
-            prepInsertRow.execute();
-            ResultSet rs = prepInsertRow.getGeneratedKeys();
-            rs.next();
-            int rowId = rs.getInt(1);
-            prepInsertMap.setInt(1, rowId);
-            int[] wordIds = getWordIds(row);
-            for (int id : wordIds) {
-                prepInsertMap.setInt(2, id);
-                prepInsertMap.execute();
+        protected void insert(Connection conn, Object[] row) throws SQLException {
+            PreparedStatement prepInsertRow = null;
+            PreparedStatement prepInsertMap = null;
+            try {
+                String key = getKey(row);
+                int hash = key.hashCode();
+                prepInsertRow = getStatement(conn, INSERT_ROW);
+                prepInsertRow.setInt(1, hash);
+                prepInsertRow.setInt(2, index.id);
+                prepInsertRow.setString(3, key);
+                prepInsertRow.execute();
+                ResultSet rs = prepInsertRow.getGeneratedKeys();
+                rs.next();
+                int rowId = rs.getInt(1);
+
+                prepInsertMap = getStatement(conn, INSERT_MAP);
+                prepInsertMap.setInt(1, rowId);
+                int[] wordIds = getWordIds(conn, row);
+                for (int id : wordIds) {
+                    prepInsertMap.setInt(2, id);
+                    prepInsertMap.execute();
+                }
+            } finally {
+                if (useOwnConnection) {
+                    IOUtils.closeSilently(prepInsertRow);
+                    IOUtils.closeSilently(prepInsertMap);
+                }
             }
         }
 
         /**
          * Delete a row from the index.
          *
+         * @param conn to use
          * @param row the row
          */
-        protected void delete(Object[] row) throws SQLException {
-            String key = getKey(row);
-            int hash = key.hashCode();
-            prepSelectRow.setInt(1, hash);
-            prepSelectRow.setInt(2, index.id);
-            prepSelectRow.setString(3, key);
-            ResultSet rs = prepSelectRow.executeQuery();
-            if (rs.next()) {
-                int rowId = rs.getInt(1);
-                prepDeleteMap.setInt(1, rowId);
-                int[] wordIds = getWordIds(row);
-                for (int id : wordIds) {
-                    prepDeleteMap.setInt(2, id);
-                    prepDeleteMap.executeUpdate();
+        protected void delete(Connection conn, Object[] row) throws SQLException {
+            PreparedStatement prepSelectRow = null;
+            PreparedStatement prepDeleteMap = null;
+            PreparedStatement prepDeleteRow = null;
+            try {
+                String key = getKey(row);
+                int hash = key.hashCode();
+                prepSelectRow = getStatement(conn, SELECT_ROW);
+                prepSelectRow.setInt(1, hash);
+                prepSelectRow.setInt(2, index.id);
+                prepSelectRow.setString(3, key);
+                ResultSet rs = prepSelectRow.executeQuery();
+                prepDeleteMap = getStatement(conn, DELETE_MAP);
+                prepDeleteRow = getStatement(conn, DELETE_ROW);
+                if (rs.next()) {
+                    int rowId = rs.getInt(1);
+                    prepDeleteMap.setInt(1, rowId);
+                    int[] wordIds = getWordIds(conn, row);
+                    for (int id : wordIds) {
+                        prepDeleteMap.setInt(2, id);
+                        prepDeleteMap.executeUpdate();
+                    }
+                    prepDeleteRow.setInt(1, hash);
+                    prepDeleteRow.setInt(2, index.id);
+                    prepDeleteRow.setString(3, key);
+                    prepDeleteRow.executeUpdate();
                 }
-                prepDeleteRow.setInt(1, hash);
-                prepDeleteRow.setInt(2, index.id);
-                prepDeleteRow.setString(3, key);
-                prepDeleteRow.executeUpdate();
+            } finally {
+                if (useOwnConnection) {
+                    IOUtils.closeSilently(prepSelectRow);
+                    IOUtils.closeSilently(prepDeleteMap);
+                    IOUtils.closeSilently(prepDeleteRow);
+                }
             }
         }
 
-        private int[] getWordIds(Object[] row) throws SQLException {
+        private int[] getWordIds(Connection conn, Object[] row) throws SQLException {
             HashSet<String> words = New.hashSet();
             for (int idx : index.indexColumns) {
                 int type = columnTypes[idx];
@@ -1057,27 +1112,36 @@ public class FullText {
                     addWords(setting, words, string);
                 }
             }
-            HashMap<String, Integer> allWords = setting.getWordList();
-            int[] wordIds = new int[words.size()];
-            Iterator<String> it = words.iterator();
-            for (int i = 0; it.hasNext(); i++) {
-                String word = it.next();
-                Integer wId = allWords.get(word);
-                int wordId;
-                if (wId == null) {
-                    prepInsertWord.setString(1, word);
-                    prepInsertWord.execute();
-                    ResultSet rs = prepInsertWord.getGeneratedKeys();
-                    rs.next();
-                    wordId = rs.getInt(1);
-                    allWords.put(word, wordId);
-                } else {
-                    wordId = wId.intValue();
+            PreparedStatement prepInsertWord = null;
+            try {
+                prepInsertWord = getStatement(conn, INSERT_WORD);
+                Map<String, Integer> allWords = setting.getWordList();
+                int[] wordIds = new int[words.size()];
+                synchronized (allWords) {
+                    int i = 0;
+                    for (String word : words) {
+                        Integer wId = allWords.get(word);
+                        int wordId;
+                        if (wId == null) {
+                            prepInsertWord.setString(1, word);
+                            prepInsertWord.execute();
+                            ResultSet rs = prepInsertWord.getGeneratedKeys();
+                            rs.next();
+                            wordId = rs.getInt(1);
+                            allWords.put(word, wordId);
+                        } else {
+                            wordId = wId;
+                        }
+                        wordIds[i++] = wordId;
+                    }
                 }
-                wordIds[i] = wordId;
+                Arrays.sort(wordIds);
+                return wordIds;
+            } finally {
+                if (useOwnConnection) {
+                    IOUtils.closeSilently(prepInsertWord);
+                }
             }
-            Arrays.sort(wordIds);
-            return wordIds;
         }
 
         private String getKey(Object[] row) throws SQLException {
@@ -1095,13 +1159,17 @@ public class FullText {
             return buff.toString();
         }
 
+        private PreparedStatement getStatement(Connection conn, int indx) throws SQLException {
+            return useOwnConnection ? conn.prepareStatement(SQL[indx]) : prepStatements[indx];
+        }
+
     }
 
     /**
      * INTERNAL
      * Close all fulltext settings, freeing up memory.
      */
-    public static void closeAll() {
+    public static synchronized void closeAll() {
         FullTextSettings.closeAll();
     }
 
@@ -1116,5 +1184,4 @@ public class FullText {
             throws SQLException {
         throw new SQLException(message, "FULLTEXT");
     }
-
 }

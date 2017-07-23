@@ -10,20 +10,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
 import org.h2.util.New;
 import org.h2.util.SoftHashMap;
 
 /**
  * The global settings of a full text search.
  */
-class FullTextSettings {
+final class FullTextSettings {
 
     /**
      * The settings of open indexes.
      */
-    private static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
+    private static final Map<String, FullTextSettings> SETTINGS = Collections.synchronizedMap(New.<String, FullTextSettings>hashMap());
 
     /**
      * Whether this instance has been initialized.
@@ -33,17 +35,17 @@ class FullTextSettings {
     /**
      * The set of words not to index (stop words).
      */
-    private final HashSet<String> ignoreList = New.hashSet();
+    private final Set<String> ignoreList = Collections.synchronizedSet(New.<String>hashSet());
 
     /**
      * The set of words / terms.
      */
-    private final HashMap<String, Integer> words = New.hashMap();
+    private final Map<String, Integer> words = Collections.synchronizedMap(New.<String, Integer>hashMap());
 
     /**
      * The set of indexes in this database.
      */
-    private final HashMap<Integer, IndexInfo> indexes = New.hashMap();
+    private final Map<Integer, IndexInfo> indexes = Collections.synchronizedMap(New.<Integer, IndexInfo>hashMap());
 
     /**
      * The prepared statement cache.
@@ -60,7 +62,7 @@ class FullTextSettings {
     /**
      * Create a new instance.
      */
-    protected FullTextSettings() {
+    private FullTextSettings() {
         // don't allow construction
     }
 
@@ -69,7 +71,7 @@ class FullTextSettings {
      *
      * @return the ignore list
      */
-    protected HashSet<String> getIgnoreList() {
+    protected Set<String> getIgnoreList() {
         return ignoreList;
     }
 
@@ -78,7 +80,7 @@ class FullTextSettings {
      *
      * @return the word list
      */
-    protected HashMap<String, Integer> getWordList() {
+    protected Map<String, Integer> getWordList() {
         return words;
     }
 
@@ -140,7 +142,7 @@ class FullTextSettings {
      * @param conn the connection
      * @return the file system path
      */
-    protected static String getIndexPath(Connection conn) throws SQLException {
+    private static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery(
                 "CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");

@@ -232,8 +232,8 @@ public abstract class Command implements CommandInterface {
                 throw e;
             } finally {
                 if (callStop) {
-                    commandCleanup();
                     stop();
+                    commandCleanup();
                 }
                 if (writing) {
                     database.afterWriting();
@@ -292,8 +292,8 @@ public abstract class Command implements CommandInterface {
             } finally {
                 try {
                     if (callStop) {
-                        commandCleanup();
                         stop();
+                        commandCleanup();
                     }
                 } finally {
                     if (writing) {

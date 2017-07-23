@@ -7,6 +7,8 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -44,6 +46,8 @@ public abstract class Command implements CommandInterface {
     private final String sql;
 
     private boolean canReuse;
+
+    private List<Runnable> cleanupCallbacks;
 
     Command(Parser parser, String sql) {
         this.session = parser.getSession();
@@ -228,6 +232,7 @@ public abstract class Command implements CommandInterface {
                 throw e;
             } finally {
                 if (callStop) {
+                    commandCleanup();
                     stop();
                 }
                 if (writing) {
@@ -287,6 +292,7 @@ public abstract class Command implements CommandInterface {
             } finally {
                 try {
                     if (callStop) {
+                        commandCleanup();
                         stop();
                     }
                 } finally {
@@ -295,6 +301,17 @@ public abstract class Command implements CommandInterface {
                     }
                 }
             }
+        }
+    }
+
+    private void commandCleanup() {
+        if (cleanupCallbacks!=null){
+            for(Runnable eachCleanup:cleanupCallbacks){
+                eachCleanup.run();
+                // clean up done - must restart query (and dependency construction) to reuse
+                canReuse = false;
+            }
+            cleanupCallbacks.clear();
         }
     }
 
@@ -368,6 +385,10 @@ public abstract class Command implements CommandInterface {
             ParameterInterface param = parameters.get(i);
             param.setValue(null, true);
         }
+    }
+    
+    public void setCleanupCallbacks(List<Runnable> cleanupCallbacks) {
+        this.cleanupCallbacks = cleanupCallbacks;
     }
 
 }

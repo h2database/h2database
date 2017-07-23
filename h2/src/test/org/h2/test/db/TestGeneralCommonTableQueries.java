@@ -9,6 +9,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 
 /**
@@ -186,6 +188,8 @@ public class TestGeneralCommonTableQueries extends TestBase {
         PreparedStatement prep;
         ResultSet rs;
 
+        conn.setAutoCommit(false);
+
         prep = conn.prepareStatement("WITH t1 AS ("
             +"     SELECT R.X, 'T1' FROM SYSTEM_RANGE(?1,?2) R"
             +"),"
@@ -209,6 +213,16 @@ public class TestGeneralCommonTableQueries extends TestBase {
         assertEquals("'T1'",rs.getMetaData().getColumnLabel(2));
 
         assertFalse(rs.next());
+
+        try{
+            prep = conn.prepareStatement("SELECT * FROM t1 UNION ALL SELECT * FROM t2 UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(5,6)");
+            rs = prep.executeQuery();
+            fail("Temp view T1 was accessible after previous WITH statement finished - but should not have been.");
+        }
+        catch(JdbcSQLException e){
+             // ensure the T1 table has been removed even without auto commit
+             assertContains(e.getMessage(),"Table \"T1\" not found;");
+        }
 
         conn.close();
         deleteDb("commonTableExpressionQueries");

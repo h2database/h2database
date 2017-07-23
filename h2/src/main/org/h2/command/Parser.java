@@ -4899,6 +4899,26 @@ public class Parser {
 
         Query q = parseSelectUnion();
         q.setPrepareAlways(true);
+        List<Runnable> cleanupCallbacks = new ArrayList<Runnable>();
+
+        // clean up temp views starting with last to first (in case of dependencies)
+        Collections.reverse(viewsCreated);
+
+        for (TableView view : viewsCreated){
+            if(view==null){
+                continue;
+            }
+            cleanupCallbacks.add(new Runnable(){
+                @Override
+                public void run() {
+                    // check if view was previously deleted as their name is set to null
+                    if(view.getName()!=null) {
+                        session.removeLocalTempTable(view);
+                    }
+                }
+            });
+        }
+        q.setCleanupCallbacks(cleanupCallbacks);
         return q;
     }
 

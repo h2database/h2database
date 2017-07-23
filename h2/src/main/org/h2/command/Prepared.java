@@ -6,6 +6,8 @@
 package org.h2.command;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -55,6 +57,7 @@ public abstract class Prepared {
     private int objectId;
     private int currentRowNumber;
     private int rowScanCount;
+    private List<Runnable> cleanupCallbacks;
 
     /**
      * Create a new object.
@@ -173,6 +176,9 @@ public abstract class Prepared {
      */
     public void setCommand(Command command) {
         this.command = command;
+        if(command!=null && cleanupCallbacks!=null){
+            command.setCleanupCallbacks(cleanupCallbacks);
+        }
     }
 
     /**
@@ -433,5 +439,14 @@ public abstract class Prepared {
     public boolean isCacheable() {
         return false;
     }
+
+    public List<Runnable> getCleanupCallbacks() {
+        return cleanupCallbacks;
+    }
+
+    public void setCleanupCallbacks(List<Runnable> cleanupCallbacks) {
+        this.cleanupCallbacks = cleanupCallbacks;
+    }
+
 
 }

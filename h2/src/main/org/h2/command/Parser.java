@@ -4904,7 +4904,7 @@ public class Parser {
         // clean up temp views starting with last to first (in case of dependencies)
         Collections.reverse(viewsCreated);
 
-        for (TableView view : viewsCreated){
+        for (final TableView view : viewsCreated){
             if(view==null){
                 continue;
             }

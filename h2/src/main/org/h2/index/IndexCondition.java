@@ -23,6 +23,7 @@ import org.h2.table.TableType;
 import org.h2.util.StatementBuilder;
 import org.h2.value.CompareMode;
 import org.h2.value.Value;
+import org.h2.value.ValueEnum;
 
 /**
  * A index condition object is made for each condition that can potentially use
@@ -138,7 +139,11 @@ public class IndexCondition {
      * @return the value
      */
     public Value getCurrentValue(Session session) {
-        return expression.getValue(session);
+        Value v = expression.getValue(session);
+        if(column.getEnumerators() != null) {
+            return ValueEnum.get(column.getEnumerators(), v);
+        }
+        return v;
     }
 
     /**

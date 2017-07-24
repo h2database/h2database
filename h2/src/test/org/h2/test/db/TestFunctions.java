@@ -76,6 +76,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testOverrideAlias();
         testIfNull();
         testToDate();
         testToDateException();
@@ -1671,7 +1672,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         conn.close();
     }
+
     private void testIfNull() throws SQLException {
+        deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -2113,6 +2116,26 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
+    private void testOverrideAlias()
+            throws SQLException, InterruptedException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        conn.setAutoCommit(true);
+        Statement stat = conn.createStatement();
+
+        assertThrows(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, stat).execute("create alias CURRENT_TIMESTAMP for \"" +
+                getClass().getName() + ".currentTimestamp\"");
+
+        stat.execute("set BUILTIN_ALIAS_OVERRIDE true");
+        
+        stat.execute("create alias CURRENT_TIMESTAMP for \"" +
+                getClass().getName() + ".currentTimestampOverride\"");
+        
+        assertCallResult("3141", stat, "CURRENT_TIMESTAMP");
+        
+        conn.close();
+    }
+
     private void callCompiledFunction(String functionName) throws SQLException {
         deleteDb("functions");
         try (Connection conn = getConnection("functions")) {
@@ -2429,6 +2452,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             buff.append(a);
         }
         return new Object[] { buff.toString() };
+    }
+    
+    /**
+     * This method is called via reflection from the database.
+     */
+    public static long currentTimestampOverride() {
+        return 3141;
     }
 
     @Override

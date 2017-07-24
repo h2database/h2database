@@ -18,7 +18,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
-
 import org.h2.test.TestBase;
 import org.h2.test.unit.TestDate;
 import org.h2.util.DateTimeUtils;
@@ -35,7 +34,6 @@ public class TestDateStorage extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        System.setProperty("h2.storeLocalTime", "true");
         TestBase.createCaller().init().test();
     }
 

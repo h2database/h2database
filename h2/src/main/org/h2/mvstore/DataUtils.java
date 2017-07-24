@@ -14,10 +14,8 @@ import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.h2.engine.Constants;
 import org.h2.util.New;
 
@@ -739,17 +737,6 @@ public class DataUtils {
     public static UnsupportedOperationException
             newUnsupportedOperationException(String message) {
         return new UnsupportedOperationException(formatMessage(0, message));
-    }
-
-    /**
-     * Create a new ConcurrentModificationException.
-     *
-     * @param message the message
-     * @return the exception
-     */
-    public static ConcurrentModificationException
-            newConcurrentModificationException(String message) {
-        return new ConcurrentModificationException(formatMessage(0, message));
     }
 
     /**

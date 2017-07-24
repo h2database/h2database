@@ -274,7 +274,6 @@ class FileReorderWrites extends FileBase {
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
         if (FilePathReorderWrites.isPartialWrites() && src.remaining() > 2) {
-            final int tmp = src.remaining();
             ByteBuffer buf1 = src.slice();
             ByteBuffer buf2 = src.slice();
             int len1 = src.remaining() / 2;

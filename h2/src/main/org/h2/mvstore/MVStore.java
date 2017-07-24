@@ -917,17 +917,6 @@ public final class MVStore {
     }
 
     /**
-     * Whether the chunk at the given position is live.
-     *
-     * @param chunkId the chunk id
-     * @return true if it is live
-     */
-    boolean isChunkLive(int chunkId) {
-        String s = meta.get(Chunk.getMetaKey(chunkId));
-        return s != null;
-    }
-
-    /**
      * Get the chunk for the given position.
      *
      * @param pos the position

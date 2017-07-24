@@ -7,8 +7,6 @@ package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;
-import java.util.Set;
-
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
 import org.h2.util.New;
@@ -1118,18 +1116,6 @@ public class Page {
                     continue;
                 }
                 removeChild(i--);
-            }
-        }
-
-        /**
-         * Collect the set of chunks referenced directly by this page.
-         *
-         * @param target the target set
-         */
-        void collectReferencedChunks(Set<Integer> target) {
-            target.add(DataUtils.getPageChunkId(pos));
-            for (long p : children) {
-                target.add(DataUtils.getPageChunkId(p));
             }
         }
 

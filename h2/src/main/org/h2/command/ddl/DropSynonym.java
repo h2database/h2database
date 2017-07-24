@@ -7,13 +7,10 @@ package org.h2.command.ddl;
 
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
-import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.schema.Schema;
-import org.h2.table.Table;
 import org.h2.table.TableSynonym;
-import org.h2.table.TableType;
 
 /**
  * This class represents the statement

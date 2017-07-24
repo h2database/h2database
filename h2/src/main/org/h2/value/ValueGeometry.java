@@ -8,17 +8,16 @@ package org.h2.value;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
-
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
-import com.vividsolutions.jts.geom.PrecisionModel;
-
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
+import org.h2.table.Column;
 import org.h2.util.StringUtils;
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.CoordinateSequenceFilter;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKBReader;
 import com.vividsolutions.jts.io.WKBWriter;
@@ -274,11 +273,11 @@ public class ValueGeometry extends Value {
     }
 
     @Override
-    public Value convertTo(int targetType, int precision, Mode mode) {
+    public Value convertTo(int targetType, int precision, Mode mode, Column column) {
         if (targetType == Value.JAVA_OBJECT) {
             return this;
         }
-        return super.convertTo(targetType, precision, mode);
+        return super.convertTo(targetType, precision, mode, column);
     }
 
     /**

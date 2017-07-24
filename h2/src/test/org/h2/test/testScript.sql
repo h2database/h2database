@@ -10684,3 +10684,58 @@ drop table card;
 
 drop type CARD_SUIT;
 > ok
+
+--- ENUM in primary key with another column
+create type CARD_SUIT as enum('hearts', 'clubs', 'spades', 'diamonds');
+> ok
+
+create table card (rank int, suit CARD_SUIT, primary key(rank, suit));
+> ok
+
+insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts'), (1, 'clubs');
+> update count: 3
+
+insert into card (rank, suit) values (0, 'clubs');
+> exception
+
+select rank from card where suit = 'clubs';
+> RANK
+> ----
+> 0
+> 1
+
+drop table card;
+> ok
+
+drop type CARD_SUIT;
+> ok
+
+--- ENUM with index
+create type CARD_SUIT as enum('hearts', 'clubs', 'spades', 'diamonds');
+> ok
+
+create table card (rank int, suit CARD_SUIT, primary key(rank, suit));
+> ok
+
+insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts'), (1, 'clubs');
+> update count: 3
+
+create index idx_card_suite on card(`suit`);
+
+select rank from card where suit = 'clubs';
+> RANK
+> ----
+> 0
+> 1
+
+select rank from card where suit in ('clubs');
+> RANK
+> ----
+> 0
+> 1
+
+drop table card;
+> ok
+
+drop type CARD_SUIT;
+> ok

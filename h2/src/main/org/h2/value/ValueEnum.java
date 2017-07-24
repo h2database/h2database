@@ -49,19 +49,15 @@ public class ValueEnum extends ValueEnumBase {
     private static final void check(final String[] enumerators, final Value value) {
         check(enumerators);
 
-        switch (validate(enumerators, value)) {
-            case VALID:
-                return;
-            default:
-                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_2,
-                        toString(enumerators), value.toString());
+        if (validate(enumerators, value) != Validation.VALID) {
+            throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED,
+                    toString(enumerators), value.toString());
         }
     }
 
     @Override
     protected int compareSecure(final Value v, final CompareMode mode) {
-        final ValueEnum ev = ValueEnum.get(enumerators, v);
-        return MathUtils.compareInt(getInt(), ev.getInt());
+        return MathUtils.compareInt(getInt(), v.getInt());
     }
 
     /**
@@ -72,21 +68,22 @@ public class ValueEnum extends ValueEnumBase {
      * @param value a value
      * @return the ENUM value
      */
-    public static ValueEnum get(final String[] enumerators, final Value value) {
-        check(enumerators, value);
+    public static ValueEnum get(final String[] enumerators, int value) {
+        check(enumerators, ValueInt.get(value));
+        return new ValueEnum(enumerators, value);
+    }
 
-        if (DataType.isStringType(value.getType())) {
-            final String cleanLabel = sanitize(value.getString());
+    public static ValueEnum get(final String[] enumerators, String value) {
+        check(enumerators, ValueString.get(value));
 
-            for (int i = 0; i < enumerators.length; i++) {
-                if (cleanLabel.equals(sanitize(enumerators[i])))
-                    return new ValueEnum(enumerators, i);
-            }
+        final String cleanLabel = sanitize(value);
 
-            throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
-        } else {
-            return new ValueEnum(enumerators, value.getInt());
+        for (int i = 0; i < enumerators.length; i++) {
+            if (cleanLabel.equals(sanitize(enumerators[i])))
+                return new ValueEnum(enumerators, i);
         }
+
+        throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Unexpected error");
     }
 
     public String[] getEnumerators() {

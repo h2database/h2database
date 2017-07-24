@@ -177,13 +177,13 @@ public class Column {
      */
     public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode);
+            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode, this);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +
                         getCreateSQL();
                 throw DbException.get(
-                        ErrorCode.DATA_CONVERSION_ERROR_1,
+                        ErrorCode.DATA_CONVERSION_ERROR_1, e,
                         v.getSQL() + " (" + target + ")");
             }
             throw e;
@@ -389,11 +389,11 @@ public class Column {
                 if (s.length() > 127) {
                     s = s.substring(0, 128) + "...";
                 }
-                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED_1,
+                throw DbException.get(ErrorCode.ENUM_VALUE_NOT_PERMITTED,
                         getCreateSQL(), s);
             }
 
-            value = ValueEnum.get(enumerators, value);
+            value = ValueEnum.get(enumerators, value.getInt());
         }
         updateSequenceIfRequired(session, value);
         return value;

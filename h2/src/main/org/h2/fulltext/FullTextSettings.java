@@ -79,7 +79,7 @@ final class FullTextSettings {
      * Amend set of ignored words
      * @param words to add
      */
-    public void addInored(Iterable<String> words) {
+    public void addIgnored(Iterable<String> words) {
         synchronized (ignoreList) {
             for (String word : words) {
                 word = normalizeWord(word);

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
@@ -763,9 +762,6 @@ public class FullText {
                     + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
             stat.execute("DROP TRIGGER IF EXISTS " + trigger);
             if (create) {
-                ResultSet rs = stat.executeQuery("SELECT value" +
-                        " FROM information_schema.settings" +
-                        " WHERE name = 'MV_STORE'");
                 boolean multiThread = FullTextTrigger.isMultiThread(conn);
                 StringBuilder buff = new StringBuilder(
                         "CREATE TRIGGER IF NOT EXISTS ");
@@ -834,7 +830,7 @@ public class FullText {
     private static void setIgnoreList(FullTextSettings setting,
             String commaSeparatedList) {
         String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
-        setting.addInored(Arrays.asList(list));
+        setting.addIgnored(Arrays.asList(list));
     }
 
     /**
@@ -1165,7 +1161,7 @@ public class FullText {
      * INTERNAL
      * Close all fulltext settings, freeing up memory.
      */
-    public static synchronized void closeAll() {
+    public static void closeAll() {
         FullTextSettings.closeAll();
     }
 

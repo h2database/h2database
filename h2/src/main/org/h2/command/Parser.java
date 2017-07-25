@@ -4914,6 +4914,25 @@ public class Parser {
         return command;
     }
 
+    private class WithCleanup implements Runnable {
+
+        TableView view;
+        Session session;
+
+        public WithCleanup(TableView view, Session session){
+            this.view = view;
+            this.session = session;
+        }
+
+        @Override
+        public void run() {
+            // check if view was previously deleted as their name is set to null
+            if(view.getName()!=null) {
+                session.removeLocalTempTable(view);
+            }
+        }
+    }
+
     private Prepared parseWith() {
         List<TableView> viewsCreated = new ArrayList<TableView>();
         readIf("RECURSIVE");
@@ -4957,7 +4976,6 @@ public class Parser {
         else {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                     WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
-
         }
 
                 List<Runnable> cleanupCallbacks = new ArrayList<Runnable>();
@@ -4969,15 +4987,7 @@ public class Parser {
             if(view==null){
                 continue;
             }
-            cleanupCallbacks.add(new Runnable(){
-                @Override
-                public void run() {
-                    // check if view was previously deleted as their name is set to null
-                    if(view.getName()!=null) {
-                        session.removeLocalTempTable(view);
-                    }
-                }
-            });
+            cleanupCallbacks.add(new WithCleanup(view,session));
         }
         p.setCleanupCallbacks(cleanupCallbacks);
         return p;

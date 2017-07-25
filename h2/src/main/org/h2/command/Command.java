@@ -172,6 +172,7 @@ public abstract class Command implements CommandInterface {
                 trace.info("slow query: {0} ms", timeMillis);
             }
         }
+        session.commandCleanup(this);
     }
 
     /**
@@ -233,7 +234,6 @@ public abstract class Command implements CommandInterface {
             } finally {
                 if (callStop) {
                     stop();
-                    commandCleanup();
                 }
                 if (writing) {
                     database.afterWriting();
@@ -293,7 +293,6 @@ public abstract class Command implements CommandInterface {
                 try {
                     if (callStop) {
                         stop();
-                        commandCleanup();
                     }
                 } finally {
                     if (writing) {
@@ -301,17 +300,6 @@ public abstract class Command implements CommandInterface {
                     }
                 }
             }
-        }
-    }
-
-    private void commandCleanup() {
-        if (cleanupCallbacks!=null){
-            for(Runnable eachCleanup:cleanupCallbacks){
-                eachCleanup.run();
-                // clean up done - must restart query (and dependency construction) to reuse
-                canReuse = false;
-            }
-            cleanupCallbacks.clear();
         }
     }
 
@@ -391,4 +379,11 @@ public abstract class Command implements CommandInterface {
         this.cleanupCallbacks = cleanupCallbacks;
     }
 
+    public List<Runnable> getCleanupCallbacks() {
+        return cleanupCallbacks;
+    }
+
+    public void setCanReuse(boolean canReuse) {
+        this.canReuse = canReuse;
+    }
 }

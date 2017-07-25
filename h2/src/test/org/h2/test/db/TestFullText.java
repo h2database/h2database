@@ -50,12 +50,6 @@ public class TestFullText extends TestBase {
     }
 
     @Override
-    public TestBase init(TestAll conf) throws Exception {
-        conf.lockTimeout = 60000;
-        return super.init(conf);
-    }
-
-    @Override
     public void test() throws Exception {
         testUuidPrimaryKey(false);
         testAutoAnalyze();
@@ -261,7 +255,7 @@ public class TestFullText extends TestBase {
             int len = 2;
             Task[] task = new Task[len];
             for (int i = 0; i < len; i++) {
-                final Connection conn = getConnection("fullText", connList);
+                final Connection conn = getConnection("fullText;LOCK_TIMEOUT=60000", connList);
                 Statement stat = conn.createStatement();
                 initFullText(stat, lucene);
                 initFullText(stat, lucene);

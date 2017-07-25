@@ -153,13 +153,12 @@ public class FullText {
             }
         }
         rs = stat.executeQuery("SELECT * FROM " + SCHEMA + ".WORDS");
-        Map<String, Integer> map = setting.getWordList();
         while (rs.next()) {
             String word = rs.getString("NAME");
             int id = rs.getInt("ID");
             word = setting.convertWord(word);
             if (word != null) {
-                map.put(word, id);
+                setting.addWord(word, id);
             }
         }
         setting.setInitialized(true);
@@ -197,7 +196,7 @@ public class FullText {
         init(conn);
         removeAllTriggers(conn, TRIGGER_PREFIX);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
-        setting.getWordList().clear();
+        setting.clearWordList();
         Statement stat = conn.createStatement();
         stat.execute("TRUNCATE TABLE " + SCHEMA + ".WORDS");
         stat.execute("TRUNCATE TABLE " + SCHEMA + ".ROWS");
@@ -268,8 +267,8 @@ public class FullText {
         removeAllTriggers(conn, TRIGGER_PREFIX);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
         setting.removeAllIndexes();
-        setting.getIgnoreList().clear();
-        setting.getWordList().clear();
+        setting.clearInored();
+        setting.clearWordList();
     }
 
     /**
@@ -610,14 +609,13 @@ public class FullText {
         Set<String> words = New.hashSet();
         addWords(setting, words, text);
         Set<Integer> rIds = null, lastRowIds;
-        Map<String, Integer> allWords = setting.getWordList();
 
         PreparedStatement prepSelectMapByWordId = setting.prepare(conn,
                 SELECT_MAP_BY_WORD_ID);
         for (String word : words) {
             lastRowIds = rIds;
             rIds = New.hashSet();
-            Integer wId = allWords.get(word);
+            Integer wId = setting.getWordId(word);
             if (wId == null) {
                 continue;
             }
@@ -765,9 +763,12 @@ public class FullText {
                     + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
             stat.execute("DROP TRIGGER IF EXISTS " + trigger);
             if (create) {
-                ResultSet rs = stat.executeQuery("SELECT value FROM information_schema.settings WHERE name = 'MV_STORE'");
+                ResultSet rs = stat.executeQuery("SELECT value" +
+                        " FROM information_schema.settings" +
+                        " WHERE name = 'MV_STORE'");
                 boolean multiThread = FullTextTrigger.isMultiThread(conn);
-                StringBuilder buff = new StringBuilder("CREATE TRIGGER IF NOT EXISTS ");
+                StringBuilder buff = new StringBuilder(
+                        "CREATE TRIGGER IF NOT EXISTS ");
                 // unless multithread, trigger needs to be called on rollback as well,
                 // because we use the init connection do to changes in the index
                 // (not the user connection)
@@ -833,13 +834,7 @@ public class FullText {
     private static void setIgnoreList(FullTextSettings setting,
             String commaSeparatedList) {
         String[] list = StringUtils.arraySplit(commaSeparatedList, ',', true);
-        Set<String> set = setting.getIgnoreList();
-        for (String word : list) {
-            String converted = setting.convertWord(word);
-            if (converted != null) {
-                set.add(converted);
-            }
-        }
+        setting.addInored(Arrays.asList(list));
     }
 
     /**
@@ -885,12 +880,12 @@ public class FullText {
         private static final int SELECT_ROW  = 5;
 
         private static final String SQL[] = {
-                "INSERT INTO " + SCHEMA + ".WORDS(NAME) VALUES(?)",
-                "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)",
-                "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)",
-                "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?",
-                "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?",
-                "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?"
+            "MERGE INTO " + SCHEMA + ".WORDS(NAME) KEY(NAME) VALUES(?)",
+            "INSERT INTO " + SCHEMA + ".ROWS(HASH, INDEXID, KEY) VALUES(?, ?, ?)",
+            "INSERT INTO " + SCHEMA + ".MAP(ROWID, WORDID) VALUES(?, ?)",
+            "DELETE FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?",
+            "DELETE FROM " + SCHEMA + ".MAP WHERE ROWID=? AND WORDID=?",
+            "SELECT ID FROM " + SCHEMA + ".ROWS WHERE HASH=? AND INDEXID=? AND KEY=?"
         };
 
         /**
@@ -939,7 +934,8 @@ public class FullText {
             }
             ArrayList<String> indexList = New.arrayList();
             PreparedStatement prep = conn.prepareStatement(
-                    "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES WHERE SCHEMA=? AND TABLE=?");
+                    "SELECT ID, COLUMNS FROM " + SCHEMA + ".INDEXES" +
+                    " WHERE SCHEMA=? AND TABLE=?");
             prep.setString(1, schemaName);
             prep.setString(2, tableName);
             rs = prep.executeQuery();
@@ -1115,25 +1111,25 @@ public class FullText {
             PreparedStatement prepInsertWord = null;
             try {
                 prepInsertWord = getStatement(conn, INSERT_WORD);
-                Map<String, Integer> allWords = setting.getWordList();
                 int[] wordIds = new int[words.size()];
-                synchronized (allWords) {
-                    int i = 0;
-                    for (String word : words) {
-                        Integer wId = allWords.get(word);
-                        int wordId;
-                        if (wId == null) {
-                            prepInsertWord.setString(1, word);
-                            prepInsertWord.execute();
-                            ResultSet rs = prepInsertWord.getGeneratedKeys();
-                            rs.next();
+                int i = 0;
+                for (String word : words) {
+                    int wordId;
+                    Integer wId;
+                    while((wId = setting.getWordId(word)) == null) {
+                        prepInsertWord.setString(1, word);
+                        prepInsertWord.execute();
+                        ResultSet rs = prepInsertWord.getGeneratedKeys();
+                        if (rs.next()) {
                             wordId = rs.getInt(1);
-                            allWords.put(word, wordId);
-                        } else {
-                            wordId = wId;
+                            if (wordId != 0) {
+                                setting.addWord(word, wordId);
+                                wId = wordId;
+                                break;
+                            }
                         }
-                        wordIds[i++] = wordId;
                     }
+                    wordIds[i++] = wId;
                 }
                 Arrays.sort(wordIds);
                 return wordIds;

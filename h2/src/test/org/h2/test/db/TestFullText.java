@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
+import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
@@ -46,6 +47,12 @@ public class TestFullText extends TestBase {
      */
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
+    }
+
+    @Override
+    public TestBase init(TestAll conf) throws Exception {
+        conf.lockTimeout = 60000;
+        return super.init(conf);
     }
 
     @Override

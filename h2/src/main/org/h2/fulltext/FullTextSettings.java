@@ -25,7 +25,7 @@ final class FullTextSettings {
     /**
      * The settings of open indexes.
      */
-    private static final Map<String, FullTextSettings> SETTINGS = Collections.synchronizedMap(New.<String, FullTextSettings>hashMap());
+    private static final Map<String, FullTextSettings> SETTINGS = New.hashMap();
 
     /**
      * Whether this instance has been initialized.
@@ -35,12 +35,12 @@ final class FullTextSettings {
     /**
      * The set of words not to index (stop words).
      */
-    private final Set<String> ignoreList = Collections.synchronizedSet(New.<String>hashSet());
+    private final Set<String> ignoreList = New.hashSet();
 
     /**
      * The set of words / terms.
      */
-    private final Map<String, Integer> words = Collections.synchronizedMap(New.<String, Integer>hashMap());
+    private final Map<String, Integer> words = New.hashMap();
 
     /**
      * The set of indexes in this database.
@@ -67,21 +67,58 @@ final class FullTextSettings {
     }
 
     /**
-     * Get the ignore list.
-     *
-     * @return the ignore list
+     * Clear set of ignored words
      */
-    protected Set<String> getIgnoreList() {
-        return ignoreList;
+    public void clearInored() {
+        synchronized (ignoreList) {
+            ignoreList.clear();
+        }
     }
 
     /**
-     * Get the word list.
-     *
-     * @return the word list
+     * Amend set of ignored words
+     * @param words to add
      */
-    protected Map<String, Integer> getWordList() {
-        return words;
+    public void addInored(Iterable<String> words) {
+        synchronized (ignoreList) {
+            for (String word : words) {
+                word = normalizeWord(word);
+                ignoreList.add(word);
+            }
+        }
+    }
+
+    /**
+     * Clear set of searchable words
+     */
+    public void clearWordList() {
+        synchronized (words) {
+            words.clear();
+        }
+    }
+
+    /**
+     * Get id for a searchable word
+     * @param word to find id for
+     * @return Integer id or null if word is not found
+     */
+    public Integer getWordId(String word) {
+        synchronized (words) {
+            return words.get(word);
+        }
+    }
+
+    /**
+     * Register searchable word
+     * @param word to register
+     * @param id to register with
+     */
+    public void addWord(String word, Integer id) {
+        synchronized (words) {
+            if(!words.containsKey(word)) {
+                words.put(word, id);
+            }
+        }
     }
 
     /**
@@ -111,10 +148,11 @@ final class FullTextSettings {
      * @return the uppercase version of the word or null
      */
     protected String convertWord(String word) {
-        // TODO this is locale specific, document
-        word = word.toUpperCase();
-        if (ignoreList.contains(word)) {
-            return null;
+        word = normalizeWord(word);
+        synchronized (ignoreList) {
+            if (ignoreList.contains(word)) {
+                return null;
+            }
         }
         return word;
     }
@@ -128,10 +166,13 @@ final class FullTextSettings {
     protected static FullTextSettings getInstance(Connection conn)
             throws SQLException {
         String path = getIndexPath(conn);
-        FullTextSettings setting = SETTINGS.get(path);
-        if (setting == null) {
-            setting = new FullTextSettings();
-            SETTINGS.put(path, setting);
+        FullTextSettings setting;
+        synchronized (SETTINGS) {
+            setting = SETTINGS.get(path);
+            if (setting == null) {
+                setting = new FullTextSettings();
+                SETTINGS.put(path, setting);
+            }
         }
         return setting;
     }
@@ -220,7 +261,9 @@ final class FullTextSettings {
      * Close all fulltext settings, freeing up memory.
      */
     protected static void closeAll() {
-        SETTINGS.clear();
+        synchronized (SETTINGS) {
+            SETTINGS.clear();
+        }
     }
 
     protected void setWhitespaceChars(String whitespaceChars) {
@@ -231,4 +274,8 @@ final class FullTextSettings {
         return whitespaceChars;
     }
 
+    private String normalizeWord(String word) {
+        // TODO this is locale specific, document
+        return word.toUpperCase();
+    }
 }

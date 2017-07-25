@@ -1320,13 +1320,6 @@ SELECT * FROM FTL_SEARCH_DATA('John', 0, 0);
 SELECT * FROM FTL_SEARCH_DATA('LAST_NAME:John', 0, 0);
 CALL FTL_DROP_ALL();
 </pre>
-<p>
-The Lucene fulltext search implementation is not synchronized internally.
-If you update the database and query the fulltext search concurrently
-(directly using the Java API of H2 or Lucene itself), you need to ensure
-operations are properly synchronized. If this is not the case, you may get
-exceptions such as <code>org.apache.lucene.store.AlreadyClosedException: this IndexReader is closed</code>.
-</p>
 
 <h2 id="user_defined_variables">User-Defined Variables</h2>
 <p>

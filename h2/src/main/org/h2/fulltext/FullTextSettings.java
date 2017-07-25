@@ -10,20 +10,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
 import org.h2.util.New;
 import org.h2.util.SoftHashMap;
 
 /**
  * The global settings of a full text search.
  */
-class FullTextSettings {
+final class FullTextSettings {
 
     /**
      * The settings of open indexes.
      */
-    private static final HashMap<String, FullTextSettings> SETTINGS = New.hashMap();
+    private static final Map<String, FullTextSettings> SETTINGS = New.hashMap();
 
     /**
      * Whether this instance has been initialized.
@@ -33,17 +35,17 @@ class FullTextSettings {
     /**
      * The set of words not to index (stop words).
      */
-    private final HashSet<String> ignoreList = New.hashSet();
+    private final Set<String> ignoreList = New.hashSet();
 
     /**
      * The set of words / terms.
      */
-    private final HashMap<String, Integer> words = New.hashMap();
+    private final Map<String, Integer> words = New.hashMap();
 
     /**
      * The set of indexes in this database.
      */
-    private final HashMap<Integer, IndexInfo> indexes = New.hashMap();
+    private final Map<Integer, IndexInfo> indexes = Collections.synchronizedMap(New.<Integer, IndexInfo>hashMap());
 
     /**
      * The prepared statement cache.
@@ -60,26 +62,63 @@ class FullTextSettings {
     /**
      * Create a new instance.
      */
-    protected FullTextSettings() {
+    private FullTextSettings() {
         // don't allow construction
     }
 
     /**
-     * Get the ignore list.
-     *
-     * @return the ignore list
+     * Clear set of ignored words
      */
-    protected HashSet<String> getIgnoreList() {
-        return ignoreList;
+    public void clearInored() {
+        synchronized (ignoreList) {
+            ignoreList.clear();
+        }
     }
 
     /**
-     * Get the word list.
-     *
-     * @return the word list
+     * Amend set of ignored words
+     * @param words to add
      */
-    protected HashMap<String, Integer> getWordList() {
-        return words;
+    public void addIgnored(Iterable<String> words) {
+        synchronized (ignoreList) {
+            for (String word : words) {
+                word = normalizeWord(word);
+                ignoreList.add(word);
+            }
+        }
+    }
+
+    /**
+     * Clear set of searchable words
+     */
+    public void clearWordList() {
+        synchronized (words) {
+            words.clear();
+        }
+    }
+
+    /**
+     * Get id for a searchable word
+     * @param word to find id for
+     * @return Integer id or null if word is not found
+     */
+    public Integer getWordId(String word) {
+        synchronized (words) {
+            return words.get(word);
+        }
+    }
+
+    /**
+     * Register searchable word
+     * @param word to register
+     * @param id to register with
+     */
+    public void addWord(String word, Integer id) {
+        synchronized (words) {
+            if(!words.containsKey(word)) {
+                words.put(word, id);
+            }
+        }
     }
 
     /**
@@ -109,10 +148,11 @@ class FullTextSettings {
      * @return the uppercase version of the word or null
      */
     protected String convertWord(String word) {
-        // TODO this is locale specific, document
-        word = word.toUpperCase();
-        if (ignoreList.contains(word)) {
-            return null;
+        word = normalizeWord(word);
+        synchronized (ignoreList) {
+            if (ignoreList.contains(word)) {
+                return null;
+            }
         }
         return word;
     }
@@ -126,10 +166,13 @@ class FullTextSettings {
     protected static FullTextSettings getInstance(Connection conn)
             throws SQLException {
         String path = getIndexPath(conn);
-        FullTextSettings setting = SETTINGS.get(path);
-        if (setting == null) {
-            setting = new FullTextSettings();
-            SETTINGS.put(path, setting);
+        FullTextSettings setting;
+        synchronized (SETTINGS) {
+            setting = SETTINGS.get(path);
+            if (setting == null) {
+                setting = new FullTextSettings();
+                SETTINGS.put(path, setting);
+            }
         }
         return setting;
     }
@@ -140,7 +183,7 @@ class FullTextSettings {
      * @param conn the connection
      * @return the file system path
      */
-    protected static String getIndexPath(Connection conn) throws SQLException {
+    private static String getIndexPath(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         ResultSet rs = stat.executeQuery(
                 "CALL IFNULL(DATABASE_PATH(), 'MEM:' || DATABASE())");
@@ -218,7 +261,9 @@ class FullTextSettings {
      * Close all fulltext settings, freeing up memory.
      */
     protected static void closeAll() {
-        SETTINGS.clear();
+        synchronized (SETTINGS) {
+            SETTINGS.clear();
+        }
     }
 
     protected void setWhitespaceChars(String whitespaceChars) {
@@ -229,4 +274,8 @@ class FullTextSettings {
         return whitespaceChars;
     }
 
+    private String normalizeWord(String word) {
+        // TODO this is locale specific, document
+        return word.toUpperCase();
+    }
 }

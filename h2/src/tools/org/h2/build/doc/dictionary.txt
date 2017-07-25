@@ -69,7 +69,7 @@ breadth break breaking breaks bridge bring brings brittain broke broken broker
 brought brown browse browser browsers brute brvbar bsdiff bson bsr btc btree
 btrfs bucher bucket buckets buddha buf buff buffer buffered buffering buffers bug
 bugfix bugfixes buggy bugs build builder building builds built bukkit bulk bull
-bundle bundled bundles bungisoft burden business busy but button bxor bye
+builtin bundle bundled bundles bungisoft burden business busy but button bxor bye
 bypassing byte bytea bytecode bytes bzip cabinet cacao cachable cache cacheable
 cached caches caching cafe cajun cal calculate calculated calculates calculating
 calculation calculations calendar calendars call callable callback callbacks
@@ -449,7 +449,7 @@ originate originates originating originator orion orld orm orphan orphaned
 orphans osde osgi oslash osmond other others otherwise otilde otimes otterstrom
 ought ouml our out outback outdated outer outfile outline outln outperforms
 output outset outside outstanding over overall overcareful overflow overflows
-overhead overlap overlapping overlaps overload overloaded overloading overridden
+overhead overlap overlapping overlaps overload overloaded overloading overridden overriding
 override overrides overtakes overtaking overview overwrite overwrites overwriting
 overwritten overwrote owl own ownable owned owner owners ownership owns oymaurice
 pacific pack package packages packaging packets pad padded padding page paged

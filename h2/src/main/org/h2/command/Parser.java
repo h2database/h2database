@@ -192,6 +192,8 @@ public class Parser {
             return o1 == o2 ? 0 : compareTableFilters(o1, o2);
         }
     };
+    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS =
+            "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     private final Database database;
     private final Session session;
@@ -482,8 +484,8 @@ public class Parser {
                 break;
             case 'w':
             case 'W':
-                if (isToken("WITH")) {
-                    c = parseSelect();
+                if (readIf("WITH")) {
+                    c = parseWithStatementOrQuery();
                 }
                 break;
             case ';':
@@ -1758,6 +1760,21 @@ public class Parser {
         return command;
     }
 
+    private Prepared parseWithStatementOrQuery() {
+        int paramIndex = parameters.size();
+        Prepared command = parseWith();
+        ArrayList<Parameter> params = New.arrayList();
+        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
+            params.add(parameters.get(i));
+        }
+        command.setParameterList(params);
+        if(command instanceof Query){
+            Query query = (Query) command;
+            query.init();
+        }
+        return command;
+    }
+
     private Query parseSelectUnion() {
         int start = lastParseIndex;
         Query command = parseSelectSub();
@@ -1940,7 +1957,14 @@ public class Parser {
             return command;
         }
         if (readIf("WITH")) {
-            Query query = parseWith();
+            Query query = null;
+            try {
+                query = (Query) parseWith();
+            }
+            catch(ClassCastException e){
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                        "WITH statement supports only SELECT (query) in this context");
+            }
             // recursive can not be lazy
             query.setNeverLazy(true);
             return query;
@@ -4890,16 +4914,53 @@ public class Parser {
         return command;
     }
 
-    private Query parseWith() {
+    private Prepared parseWith() {
         List<TableView> viewsCreated = new ArrayList<TableView>();
         readIf("RECURSIVE");
         do {
             viewsCreated.add(parseSingleCommonTableExpression());
         } while (readIf(","));
 
-        Query q = parseSelectUnion();
-        q.setPrepareAlways(true);
-        List<Runnable> cleanupCallbacks = new ArrayList<Runnable>();
+        Prepared p = null;
+
+        if(isToken("SELECT")) {
+            Query query = parseSelectUnion();
+            query.setPrepareAlways(true);
+            query.setNeverLazy(true);
+            p = query;
+        }
+        else if(readIf("INSERT")) {
+            p = parseInsert();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("UPDATE")) {
+            p = parseUpdate();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("MERGE")) {
+            p = parseMerge();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("DELETE")) {
+            p = parseDelete();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("CREATE")) {
+            if (!isToken("TABLE")){
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                        WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
+
+            }
+            p = parseCreate();
+            p.setPrepareAlways(true);
+        }
+        else {
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                    WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
+
+        }
+
+                List<Runnable> cleanupCallbacks = new ArrayList<Runnable>();
 
         // clean up temp views starting with last to first (in case of dependencies)
         Collections.reverse(viewsCreated);
@@ -4918,8 +4979,8 @@ public class Parser {
                 }
             });
         }
-        q.setCleanupCallbacks(cleanupCallbacks);
-        return q;
+        p.setCleanupCallbacks(cleanupCallbacks);
+        return p;
     }
 
     private TableView parseSingleCommonTableExpression() {

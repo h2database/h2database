@@ -29,14 +29,20 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testSimple();
+        testSimpleSelect();
         testImpliedColumnNames();
         testChainedQuery();
         testParameterizedQuery();
         testNumberedParameterizedQuery();
+
+        testInsert();
+        testUpdate();
+        testDelete();
+        testMerge();
+        testCreateTable();
     }
 
-    private void testSimple() throws Exception {
+    private void testSimpleSelect() throws Exception {
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
         Statement stat;
@@ -215,15 +221,170 @@ public class TestGeneralCommonTableQueries extends TestBase {
         assertFalse(rs.next());
 
         try{
-            prep = conn.prepareStatement("SELECT * FROM t1 UNION ALL SELECT * FROM t2 UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(5,6)");
+            prep = conn.prepareStatement("SELECT * FROM t1 UNION ALL SELECT * FROM t2 "+
+                    "UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(5,6)");
             rs = prep.executeQuery();
-            fail("Temp view T1 was accessible after previous WITH statement finished - but should not have been.");
+            fail("Temp view T1 was accessible after previous WITH statement finished "+
+                    "- but should not have been.");
         }
         catch(JdbcSQLException e){
-             // ensure the T1 table has been removed even without auto commit
-             assertContains(e.getMessage(),"Table \"T1\" not found;");
+            // ensure the T1 table has been removed even without auto commit
+            assertContains(e.getMessage(),"Table \"T1\" not found;");
         }
 
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+
+    private void testInsert() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        Statement stat;
+        PreparedStatement prep;
+        ResultSet rs;
+        int rowCount;
+
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE T1 ( ID INT IDENTITY,  X INT NULL, Y VARCHAR(100) NULL )");
+
+        prep = conn.prepareStatement("WITH v1 AS ("
+                + "     SELECT R.X, 'X1' AS Y FROM SYSTEM_RANGE(?1,?2) R"
+                + ")"
+                + "INSERT INTO T1 (X,Y) SELECT v1.X, v1.Y FROM v1");
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        rowCount = prep.executeUpdate();
+
+        assertEquals(2, rowCount);
+
+        rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
+
+        for (int n : new int[]{1, 2}) {
+            assertTrue(rs.next());
+            assertTrue(rs.getInt(1) != 0);
+            assertEquals(n, rs.getInt(2));
+            assertEquals("X1", rs.getString(3));
+        }
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+
+    private void testUpdate() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        Statement stat;
+        PreparedStatement prep;
+        ResultSet rs;
+        int rowCount;
+
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS T1 AS SELECT R.X AS ID, R.X, 'X1' AS Y FROM SYSTEM_RANGE(1,2) R");
+
+        prep = conn.prepareStatement("WITH v1 AS ("
+                +"     SELECT R.X, 'X1' AS Y FROM SYSTEM_RANGE(?1,?2) R"
+                +")"
+                +"UPDATE T1 SET Y = 'Y1' WHERE X IN ( SELECT v1.X FROM v1 )");
+        prep.setInt(1, 1);
+        prep.setInt(2, 2);
+        rowCount = prep.executeUpdate();
+
+        assertEquals(2,rowCount);
+
+        rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
+
+        for (int n : new int[] { 1, 2 }) {
+            assertTrue(rs.next());
+            assertTrue(rs.getInt(1)!=0);
+            assertEquals(n, rs.getInt(2));
+            assertEquals("Y1", rs.getString(3));
+        }
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+
+    private void testDelete() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        Statement stat;
+        PreparedStatement prep;
+        ResultSet rs;
+        int rowCount;
+
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS T1 AS SELECT R.X AS ID, R.X, 'X1' AS Y FROM SYSTEM_RANGE(1,2) R");
+
+        prep = conn.prepareStatement("WITH v1 AS ("
+                +"     SELECT R.X, 'X1' AS Y FROM SYSTEM_RANGE(1,2) R"
+                +")"
+                +"DELETE FROM T1 WHERE X IN ( SELECT v1.X FROM v1 )");
+        rowCount = prep.executeUpdate();
+
+        assertEquals(2,rowCount);
+
+        rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
+
+        assertFalse(rs.next());
+
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+
+    private void testMerge() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        Statement stat;
+        PreparedStatement prep;
+        ResultSet rs;
+        int rowCount;
+
+        stat = conn.createStatement();
+        stat.execute("CREATE TABLE IF NOT EXISTS T1 AS SELECT R.X AS ID, R.X, 'X1' AS Y FROM SYSTEM_RANGE(1,2) R");
+
+        prep = conn.prepareStatement("WITH v1 AS ("
+                +"     SELECT R.X, 'X1' AS Y FROM SYSTEM_RANGE(1,3) R"
+                +")"
+                +"MERGE INTO T1 KEY(ID) SELECT v1.X AS ID, v1.X, v1.Y FROM v1");
+        rowCount = prep.executeUpdate();
+
+        assertEquals(3,rowCount);
+
+        rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
+
+        for (int n : new int[] { 1, 2, 3 }) {
+            assertTrue(rs.next());
+            assertTrue(rs.getInt(1)!=0);
+            assertEquals(n, rs.getInt(2));
+            assertEquals("X1", rs.getString(3));
+        }
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
+
+    private void testCreateTable() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        Statement stat;
+        PreparedStatement prep;
+        ResultSet rs;
+        boolean success;
+
+        stat = conn.createStatement();
+        prep = conn.prepareStatement("WITH v1 AS ("
+                +"     SELECT R.X, 'X1' AS Y FROM SYSTEM_RANGE(1,3) R"
+                +")"
+                +"CREATE TABLE IF NOT EXISTS T1 AS SELECT v1.X AS ID, v1.X, v1.Y FROM v1");
+        success = prep.execute();
+
+        assertEquals(false,success);
+
+        rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
+
+        for (int n : new int[] { 1, 2, 3 }) {
+            assertTrue(rs.next());
+            assertTrue(rs.getInt(1)!=0);
+            assertEquals(n, rs.getInt(2));
+            assertEquals("X1", rs.getString(3));
+        }
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }

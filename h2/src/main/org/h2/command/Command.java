@@ -386,7 +386,7 @@ public abstract class Command implements CommandInterface {
             param.setValue(null, true);
         }
     }
-    
+
     public void setCleanupCallbacks(List<Runnable> cleanupCallbacks) {
         this.cleanupCallbacks = cleanupCallbacks;
     }

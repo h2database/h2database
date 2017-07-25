@@ -4957,7 +4957,6 @@ public class Parser {
         else {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                     WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
-
         }
 
                 List<Runnable> cleanupCallbacks = new ArrayList<Runnable>();

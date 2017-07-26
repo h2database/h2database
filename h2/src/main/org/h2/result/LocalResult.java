@@ -410,10 +410,12 @@ public class LocalResult implements ResultInterface, ResultTarget {
             if (rows.size() > limit) {
                 rows = New.arrayList(rows.subList(0, limit));
                 rowCount = limit;
+                distinctRows = null;
             }
         } else {
             if (limit < rowCount) {
                 rowCount = limit;
+                distinctRows = null;
             }
         }
     }
@@ -513,6 +515,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
                 rowCount -= offset;
             }
         }
+        distinctRows = null;
     }
 
     @Override

@@ -10308,6 +10308,9 @@ create table test(id int, name varchar);
 insert into test values(5, 'b'), (5, 'b'), (20, 'a');
 > update count: 3
 
+drop table test;
+> ok
+
 select 0 from ((
     select 0 as f from dual u1 where null in (?, ?, ?, ?, ?)
 ) union all (
@@ -10738,4 +10741,23 @@ drop table card;
 > ok
 
 drop type CARD_SUIT;
+> ok
+
+----- Issue#493 -----
+create table test (year int, action varchar(10));
+> ok
+
+insert into test values (2015, 'order'), (2016, 'order'), (2014, 'order');
+> update count: 3
+
+insert into test values (2014, 'execution'), (2015, 'execution'), (2016, 'execution');
+> update count: 3
+
+select * from test where year in (select distinct year from test order by year desc limit 1 offset 0);
+> YEAR ACTION
+> ---- ---------
+> 2016 order
+> 2016 execution
+
+drop table test;
 > ok

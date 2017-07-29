@@ -86,8 +86,8 @@ public class Plan {
         for (int i = 0; i < allFilters.length; i++) {
             TableFilter f = allFilters[i];
             setEvaluatable(f, true);
-            if (i < allFilters.length - 1 ||
-                    f.getSession().getDatabase().getSettings().earlyFilter) {
+            if (i < allFilters.length - 1
+                    || f.getSession().getDatabase().getSettings().earlyFilter) {
                 // the last table doesn't need the optimization,
                 // otherwise the expression is calculated twice unnecessarily
                 // (not that bad but not optimal)
@@ -126,7 +126,14 @@ public class Plan {
                 t.debug("Plan       :   best plan item cost {0} index {1}",
                         item.cost, item.getIndex().getPlanSQL());
             }
-            cost += cost * item.cost;
+            /**
+             * If the current item is virtual and if it will be joined with
+             * another filter, then the cost must be multiplied by the
+             * immediately previous filter. Therefore, to process each row of
+             * the outer join node, one pass in the inner node must be
+             * processed.
+             */
+            cost += cost * (i > 0 && item.isVirtualIndex() ? planItems.get(allFilters[i - 1]).cost * item.cost : item.cost);
             setEvaluatable(tableFilter, true);
             Expression on = tableFilter.getJoinCondition();
             if (on != null) {

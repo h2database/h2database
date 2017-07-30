@@ -127,11 +127,11 @@ public class Plan {
                         item.cost, item.getIndex().getPlanSQL());
             }
             /**
-             * If the current item is virtual and if it will be joined with
-             * another filter, then the cost must be multiplied by the
-             * immediately previous filter. Therefore, to process each row of
-             * the outer join node, one pass in the inner node must be
-             * processed.
+             * If the current item is virtual and it'll be joined with another
+             * filter, then the cost of the inner node must be multiplied by the
+             * outer node. Therefore, to process each row of the outer join node
+             * (the previous plan item cost), one pass in the inner node must be
+             * processed (cost of the virtual index scan).
              */
             cost += cost * (i > 0 && item.isVirtualIndex() ? planItems.get(allFilters[i - 1]).cost * item.cost : item.cost);
             setEvaluatable(tableFilter, true);

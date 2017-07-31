@@ -185,7 +185,7 @@ public class WriteBuffer {
      * @return this
      */
     public WriteBuffer put(ByteBuffer src) {
-        ensureCapacity(buff.remaining()).put(src);
+        ensureCapacity(src.remaining()).put(src);
         return this;
     }
 

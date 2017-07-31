@@ -615,7 +615,7 @@ public class Transfer {
         case Value.STRING_IGNORECASE:
             return ValueStringIgnoreCase.get(readString());
         case Value.STRING_FIXED:
-            return ValueStringFixed.get(readString());
+            return ValueStringFixed.get(readString(), ValueStringFixed.PRECISION_DO_NOT_TRIM, null);
         case Value.BLOB: {
             long length = readLong();
             if (version >= Constants.TCP_PROTOCOL_VERSION_11) {

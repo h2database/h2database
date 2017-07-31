@@ -38,20 +38,15 @@ public class TestMultiThread extends TestBase implements Runnable {
     private boolean stop;
     private TestMultiThread parent;
     private Random random;
-    private Connection threadConn;
-    private Statement threadStat;
 
     public TestMultiThread() {
         // nothing to do
     }
 
-    private TestMultiThread(TestAll config, TestMultiThread parent)
-            throws SQLException {
+    private TestMultiThread(TestAll config, TestMultiThread parent) {
         this.config = config;
         this.parent = parent;
         random = new Random();
-        threadConn = getConnection();
-        threadStat = threadConn.createStatement();
     }
 
     /**
@@ -81,64 +76,64 @@ public class TestMultiThread extends TestBase implements Runnable {
         String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
-        Connection conn = getConnection(url);
-        Task[] tasks = new Task[2];
-        for (int i = 0; i < tasks.length; i++) {
-            final int x = i;
-            Task t = new Task() {
-                @Override
-                public void call() throws Exception {
-                    try (Connection c2 = getConnection(url)) {
-                        Statement stat = c2.createStatement();
-                        for (int i = 0; !stop; i++) {
-                            stat.execute("create table test" + x + "_" + i);
-                            c2.getMetaData().getTables(null, null, null, null);
-                            stat.execute("drop table test" + x + "_" + i);
+        try (Connection conn = getConnection(url)) {
+            Task[] tasks = new Task[2];
+            for (int i = 0; i < tasks.length; i++) {
+                final int x = i;
+                Task t = new Task() {
+                    @Override
+                    public void call() throws Exception {
+                        try (Connection c2 = getConnection(url)) {
+                            Statement stat = c2.createStatement();
+                            for (int i = 0; !stop; i++) {
+                                stat.execute("create table test" + x + "_" + i);
+                                c2.getMetaData().getTables(null, null, null, null);
+                                stat.execute("drop table test" + x + "_" + i);
+                            }
                         }
                     }
-                }
-            };
-            tasks[i] = t;
-            t.execute();
+                };
+                tasks[i] = t;
+                t.execute();
+            }
+            Thread.sleep(1000);
+            for (Task t : tasks) {
+                t.get();
+            }
         }
-        Thread.sleep(1000);
-        for (Task t : tasks) {
-            t.get();
-        }
-        conn.close();
     }
 
     private void testConcurrentLobAdd() throws Exception {
         String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
-        Connection conn = getConnection(url);
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id identity, data clob)");
-        Task[] tasks = new Task[2];
-        for (int i = 0; i < tasks.length; i++) {
-            Task t = new Task() {
-                @Override
-                public void call() throws Exception {
-                    try (Connection c2 = getConnection(url)) {
-                        PreparedStatement p2 = c2
-                                .prepareStatement("insert into test(data) values(?)");
-                        while (!stop) {
-                            p2.setCharacterStream(1, new StringReader(new String(
-                                    new char[10 * 1024])));
-                            p2.execute();
+        try (Connection conn = getConnection(url)) {
+            Statement stat = conn.createStatement();
+            stat.execute("create table test(id identity, data clob)");
+            Task[] tasks = new Task[2];
+            for (int i = 0; i < tasks.length; i++) {
+                Task t = new Task() {
+                    @Override
+                    public void call() throws Exception {
+                        try (Connection c2 = getConnection(url)) {
+                            PreparedStatement p2 = c2
+                                    .prepareStatement("insert into test(data) values(?)");
+                            while (!stop) {
+                                p2.setCharacterStream(1, new StringReader(new String(
+                                        new char[10 * 1024])));
+                                p2.execute();
+                            }
                         }
                     }
-                }
-            };
-            tasks[i] = t;
-            t.execute();
+                };
+                tasks[i] = t;
+                t.execute();
+            }
+            Thread.sleep(500);
+            for (Task t : tasks) {
+                t.get();
+            }
         }
-        Thread.sleep(500);
-        for (Task t : tasks) {
-            t.get();
-        }
-        conn.close();
     }
 
     private void testConcurrentView() throws Exception {
@@ -149,60 +144,60 @@ public class TestMultiThread extends TestBase implements Runnable {
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
         final Random r = new Random();
-        Connection conn = getConnection(url);
-        Statement stat = conn.createStatement();
-        StringBuilder buff = new StringBuilder();
-        buff.append("create table test(id int");
-        final int len = 3;
-        for (int i = 0; i < len; i++) {
-            buff.append(", x" + i + " int");
-        }
-        buff.append(")");
-        stat.execute(buff.toString());
-        stat.execute("create view test_view as select * from test");
-        stat.execute("insert into test(id) select x from system_range(1, 2)");
-        Task t = new Task() {
-            @Override
-            public void call() throws Exception {
-                Connection c2 = getConnection(url);
-                while (!stop) {
-                    c2.prepareStatement("select * from test_view where x" +
-                            r.nextInt(len) + "=1");
-                }
-                c2.close();
+        try (Connection conn = getConnection(url)) {
+            Statement stat = conn.createStatement();
+            StringBuilder buff = new StringBuilder();
+            buff.append("create table test(id int");
+            final int len = 3;
+            for (int i = 0; i < len; i++) {
+                buff.append(", x" + i + " int");
             }
-        };
-        t.execute();
-        SynchronizedVerifier.setDetect(SmallLRUCache.class, true);
-        for (int i = 0; i < 1000; i++) {
-            conn.prepareStatement("select * from test_view where x" +
-                    r.nextInt(len) + "=1");
+            buff.append(")");
+            stat.execute(buff.toString());
+            stat.execute("create view test_view as select * from test");
+            stat.execute("insert into test(id) select x from system_range(1, 2)");
+            Task t = new Task() {
+                @Override
+                public void call() throws Exception {
+                    Connection c2 = getConnection(url);
+                    while (!stop) {
+                        c2.prepareStatement("select * from test_view where x" +
+                                r.nextInt(len) + "=1");
+                    }
+                    c2.close();
+                }
+            };
+            t.execute();
+            SynchronizedVerifier.setDetect(SmallLRUCache.class, true);
+            for (int i = 0; i < 1000; i++) {
+                conn.prepareStatement("select * from test_view where x" +
+                        r.nextInt(len) + "=1");
+            }
+            t.get();
+            SynchronizedVerifier.setDetect(SmallLRUCache.class, false);
         }
-        t.get();
-        SynchronizedVerifier.setDetect(SmallLRUCache.class, false);
-        conn.close();
     }
 
     private void testConcurrentAlter() throws Exception {
         deleteDb(getTestName());
-        final Connection conn = getConnection(getTestName());
-        Statement stat = conn.createStatement();
-        Task t = new Task() {
-            @Override
-            public void call() throws Exception {
-                while (!stop) {
-                    conn.prepareStatement("select * from test");
+        try (final Connection conn = getConnection(getTestName())) {
+            Statement stat = conn.createStatement();
+            Task t = new Task() {
+                @Override
+                public void call() throws Exception {
+                    while (!stop) {
+                        conn.prepareStatement("select * from test");
+                    }
                 }
+            };
+            stat.execute("create table test(id int)");
+            t.execute();
+            for (int i = 0; i < 200; i++) {
+                stat.execute("alter table test add column x int");
+                stat.execute("alter table test drop column x");
             }
-        };
-        stat.execute("create table test(id int)");
-        t.execute();
-        for (int i = 0; i < 200; i++) {
-            stat.execute("alter table test add column x int");
-            stat.execute("alter table test drop column x");
+            t.get();
         }
-        t.get();
-        conn.close();
     }
 
     private void testConcurrentAnalyze() throws Exception {
@@ -211,53 +206,52 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
         deleteDb(getTestName());
         final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
-        Connection conn = getConnection(url);
-        Statement stat = conn.createStatement();
-        stat.execute("create table test(id bigint primary key) " +
-                "as select x from system_range(1, 1000)");
-        Task t = new Task() {
-            @Override
-            public void call() throws SQLException {
-                Connection conn2;
-                conn2 = getConnection(url);
-                for (int i = 0; i < 1000; i++) {
-                    conn2.createStatement().execute("analyze");
+        try (Connection conn = getConnection(url)) {
+            Statement stat = conn.createStatement();
+            stat.execute("create table test(id bigint primary key) " +
+                    "as select x from system_range(1, 1000)");
+            Task t = new Task() {
+                @Override
+                public void call() throws SQLException {
+                    try (Connection conn2 = getConnection(url)) {
+                        for (int i = 0; i < 1000; i++) {
+                            conn2.createStatement().execute("analyze");
+                        }
+                    }
                 }
-                conn2.close();
+            };
+            t.execute();
+            Thread.yield();
+            for (int i = 0; i < 1000; i++) {
+                conn.createStatement().execute("analyze");
             }
-        };
-        t.execute();
-        Thread.yield();
-        for (int i = 0; i < 1000; i++) {
-            conn.createStatement().execute("analyze");
+            t.get();
+            stat.execute("drop table test");
         }
-        t.get();
-        stat.execute("drop table test");
-        conn.close();
     }
 
     private void testConcurrentInsertUpdateSelect() throws Exception {
-        threadConn = getConnection();
-        threadStat = threadConn.createStatement();
-        threadStat.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
-        int len = getSize(10, 200);
-        Thread[] threads = new Thread[len];
-        for (int i = 0; i < len; i++) {
-            threads[i] = new Thread(new TestMultiThread(config, this));
+        try (Connection conn = getConnection()) {
+            Statement stmt = conn.createStatement();
+            stmt.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
+            int len = getSize(10, 200);
+            Thread[] threads = new Thread[len];
+            for (int i = 0; i < len; i++) {
+                threads[i] = new Thread(new TestMultiThread(config, this));
+            }
+            for (int i = 0; i < len; i++) {
+                threads[i].start();
+            }
+            int sleep = getSize(400, 10000);
+            Thread.sleep(sleep);
+            this.stop = true;
+            for (int i = 0; i < len; i++) {
+                threads[i].join();
+            }
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM TEST");
+            rs.next();
+            trace("max id=" + rs.getInt(1));
         }
-        for (int i = 0; i < len; i++) {
-            threads[i].start();
-        }
-        int sleep = getSize(400, 10000);
-        Thread.sleep(sleep);
-        this.stop = true;
-        for (int i = 0; i < len; i++) {
-            threads[i].join();
-        }
-        ResultSet rs = threadStat.executeQuery("SELECT COUNT(*) FROM TEST");
-        rs.next();
-        trace("max id=" + rs.getInt(1));
-        threadConn.close();
     }
 
     private Connection getConnection() throws SQLException {
@@ -266,22 +260,22 @@ public class TestMultiThread extends TestBase implements Runnable {
 
     @Override
     public void run() {
-        try {
+        try (Connection conn = getConnection()) {
+            Statement stmt = conn.createStatement();
             while (!parent.stop) {
-                threadStat.execute("SELECT COUNT(*) FROM TEST");
-                threadStat.execute("INSERT INTO TEST VALUES(NULL, 'Hi')");
-                PreparedStatement prep = threadConn.prepareStatement(
+                stmt.execute("SELECT COUNT(*) FROM TEST");
+                stmt.execute("INSERT INTO TEST VALUES(NULL, 'Hi')");
+                PreparedStatement prep = conn.prepareStatement(
                         "UPDATE TEST SET NAME='Hello' WHERE ID=?");
                 prep.setInt(1, random.nextInt(10000));
                 prep.execute();
-                prep = threadConn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
+                prep = conn.prepareStatement("SELECT * FROM TEST WHERE ID=?");
                 prep.setInt(1, random.nextInt(10000));
                 ResultSet rs = prep.executeQuery();
                 while (rs.next()) {
                     rs.getString("NAME");
                 }
             }
-            threadConn.close();
         } catch (Exception e) {
             logError("multi", e);
         }
@@ -292,11 +286,11 @@ public class TestMultiThread extends TestBase implements Runnable {
         // is not supported
         deleteDb("lockMode");
         final String url = getURL("lockMode;MULTI_THREADED=1", true);
-        Connection conn = getConnection(url);
-        DatabaseMetaData meta = conn.getMetaData();
-        assertFalse(meta.supportsTransactionIsolationLevel(
-                Connection.TRANSACTION_READ_UNCOMMITTED));
-        conn.close();
+        try (Connection conn = getConnection(url)) {
+            DatabaseMetaData meta = conn.getMetaData();
+            assertFalse(meta.supportsTransactionIsolationLevel(
+                    Connection.TRANSACTION_READ_UNCOMMITTED));
+        }
         deleteDb("lockMode");
     }
 
@@ -307,55 +301,55 @@ public class TestMultiThread extends TestBase implements Runnable {
         final String url = getURL("lockMode;MULTI_THREADED=1", true);
 
         // create some common tables and views
-        final Connection conn = getConnection(url);
-        final Statement stat = conn.createStatement();
-        stat.execute(
-                "CREATE TABLE INVOICE(INVOICE_ID INT PRIMARY KEY, AMOUNT DECIMAL)");
-        stat.execute("CREATE VIEW INVOICE_VIEW as SELECT * FROM INVOICE");
-
-        stat.execute(
-                "CREATE TABLE INVOICE_DETAIL(DETAIL_ID INT PRIMARY KEY, " +
-                "INVOICE_ID INT, DESCRIPTION VARCHAR)");
-        stat.execute(
-                "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
-
-        stat.close();
-
-        // create views that reference the common views in different threads
-        final ExecutorService executor = Executors.newFixedThreadPool(8);
+        ExecutorService executor = Executors.newFixedThreadPool(8);
+        Connection conn = getConnection(url);
         try {
-            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            Statement stat = conn.createStatement();
+            stat.execute(
+                    "CREATE TABLE INVOICE(INVOICE_ID INT PRIMARY KEY, AMOUNT DECIMAL)");
+            stat.execute("CREATE VIEW INVOICE_VIEW as SELECT * FROM INVOICE");
+
+            stat.execute(
+                    "CREATE TABLE INVOICE_DETAIL(DETAIL_ID INT PRIMARY KEY, " +
+                    "INVOICE_ID INT, DESCRIPTION VARCHAR)");
+            stat.execute(
+                    "CREATE VIEW INVOICE_DETAIL_VIEW as SELECT * FROM INVOICE_DETAIL");
+
+            stat.close();
+
+            // create views that reference the common views in different threads
+            ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
             for (int i = 0; i < 1000; i++) {
                 final int j = i;
                 jobs.add(executor.submit(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        final Connection conn2 = getConnection(url);
-                        Statement stat2 = conn2.createStatement();
+                        try (Connection conn2 = getConnection(url)) {
+                            Statement stat2 = conn2.createStatement();
 
-                        stat2.execute("CREATE VIEW INVOICE_VIEW" + j
-                                + " as SELECT * FROM INVOICE_VIEW");
+                            stat2.execute("CREATE VIEW INVOICE_VIEW" + j
+                                    + " as SELECT * FROM INVOICE_VIEW");
 
-                        // the following query intermittently results in a
-                        // NullPointerException
-                        stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
-                                + " as SELECT DTL.* FROM INVOICE_VIEW" + j
-                                + " INV JOIN INVOICE_DETAIL_VIEW DTL "
-                                + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
-                                + " WHERE DESCRIPTION='TEST'");
+                            // the following query intermittently results in a
+                            // NullPointerException
+                            stat2.execute("CREATE VIEW INVOICE_DETAIL_VIEW" + j
+                                    + " as SELECT DTL.* FROM INVOICE_VIEW" + j
+                                    + " INV JOIN INVOICE_DETAIL_VIEW DTL "
+                                    + "ON INV.INVOICE_ID = DTL.INVOICE_ID"
+                                    + " WHERE DESCRIPTION='TEST'");
 
-                        ResultSet rs = stat2
-                                .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
-                        rs.next();
-                        rs.close();
+                            ResultSet rs = stat2
+                                    .executeQuery("SELECT * FROM INVOICE_VIEW" + j);
+                            rs.next();
+                            rs.close();
 
-                        rs = stat2.executeQuery(
-                                "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
-                        rs.next();
-                        rs.close();
+                            rs = stat2.executeQuery(
+                                    "SELECT * FROM INVOICE_DETAIL_VIEW" + j);
+                            rs.next();
+                            rs.close();
 
-                        stat.close();
-                        conn.close();
+                            stat2.close();
+                        }
                         return null;
                     }
                 }));
@@ -388,37 +382,36 @@ public class TestMultiThread extends TestBase implements Runnable {
         deleteDb("lockMode");
 
         final String url = getURL("lockMode;MULTI_THREADED=1", true);
-        final Connection conn = getConnection(url);
-        conn.createStatement().execute(
-                "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
-
-        final int threadCount = 25;
-        final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
-        for (int i = 0; i < threadCount; i++) {
-            final Connection taskConn = getConnection(url);
-            taskConn.setAutoCommit(false);
-            final PreparedStatement insertTranStmt = taskConn
-                    .prepareStatement("INSERT INTO tran (id) values(?)");
-            // to guarantee uniqueness
-            final long initialTransactionId = i * 1000000L;
-            callables.add(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    long tranId = initialTransactionId;
-                    for (int j = 0; j < 1000; j++) {
-                        insertTranStmt.setLong(1, tranId++);
-                        insertTranStmt.execute();
-                        taskConn.commit();
-                    }
-                    taskConn.close();
-                    return null;
-                }
-            });
-        }
-
-        final ExecutorService executor = Executors
-                .newFixedThreadPool(threadCount);
+        int threadCount = 25;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        Connection conn = getConnection(url);
         try {
+            conn.createStatement().execute(
+                    "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
+
+            final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+            for (int i = 0; i < threadCount; i++) {
+                final long initialTransactionId = i * 1000000L;
+                callables.add(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        try (Connection taskConn = getConnection(url)) {
+                            taskConn.setAutoCommit(false);
+                            PreparedStatement insertTranStmt = taskConn
+                                    .prepareStatement("INSERT INTO tran (id) VALUES(?)");
+                            // to guarantee uniqueness
+                            long tranId = initialTransactionId;
+                            for (int j = 0; j < 1000; j++) {
+                                insertTranStmt.setLong(1, tranId++);
+                                insertTranStmt.execute();
+                                taskConn.commit();
+                            }
+                        }
+                        return null;
+                    }
+                });
+            }
+
             final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
             for (int i = 0; i < threadCount; i++) {
                 jobs.add(executor.submit(callables.get(i)));
@@ -441,42 +434,42 @@ public class TestMultiThread extends TestBase implements Runnable {
 
         final int objectCount = 10000;
         final String url = getURL("lockMode;MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
-        final Connection conn = getConnection(url);
-        conn.createStatement().execute(
-                "CREATE TABLE IF NOT EXISTS ACCOUNT" +
-                "(ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
-        final PreparedStatement mergeAcctStmt = conn
-                .prepareStatement("MERGE INTO Account(id, balance) key (id) VALUES (?, ?)");
-        for (int i = 0; i < objectCount; i++) {
-            mergeAcctStmt.setLong(1, i);
-            mergeAcctStmt.setBigDecimal(2, BigDecimal.ZERO);
-            mergeAcctStmt.execute();
-        }
-
-        final int threadCount = 25;
-        final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
-        for (int i = 0; i < threadCount; i++) {
-            final Connection taskConn = getConnection(url);
-            taskConn.setAutoCommit(false);
-            final PreparedStatement updateAcctStmt = taskConn
-                    .prepareStatement("UPDATE account set balance = ? where id = ?");
-            callables.add(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    for (int j = 0; j < 1000; j++) {
-                        updateAcctStmt.setDouble(1, Math.random());
-                        updateAcctStmt.setLong(2, (int) (Math.random() * objectCount));
-                        updateAcctStmt.execute();
-                        taskConn.commit();
-                    }
-                    taskConn.close();
-                    return null;
-                }
-            });
-        }
-
-        final ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        int threadCount = 25;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        Connection conn = getConnection(url);
         try {
+            conn.createStatement().execute(
+                    "CREATE TABLE IF NOT EXISTS ACCOUNT" +
+                    "(ID NUMBER(18,0) not null PRIMARY KEY, BALANCE NUMBER null)");
+            final PreparedStatement mergeAcctStmt = conn
+                    .prepareStatement("MERGE INTO Account(id, balance) key (id) VALUES (?, ?)");
+            for (int i = 0; i < objectCount; i++) {
+                mergeAcctStmt.setLong(1, i);
+                mergeAcctStmt.setBigDecimal(2, BigDecimal.ZERO);
+                mergeAcctStmt.execute();
+            }
+
+            final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+            for (int i = 0; i < threadCount; i++) {
+                callables.add(new Callable<Void>() {
+                    @Override
+                    public Void call() throws Exception {
+                        try (Connection taskConn = getConnection(url)) {
+                            taskConn.setAutoCommit(false);
+                            final PreparedStatement updateAcctStmt = taskConn
+                                    .prepareStatement("UPDATE account SET balance = ? WHERE id = ?");
+                            for (int j = 0; j < 1000; j++) {
+                                updateAcctStmt.setDouble(1, Math.random());
+                                updateAcctStmt.setLong(2, (int) (Math.random() * objectCount));
+                                updateAcctStmt.execute();
+                                taskConn.commit();
+                            }
+                        }
+                        return null;
+                    }
+                });
+            }
+
             final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
             for (int i = 0; i < threadCount; i++) {
                 jobs.add(executor.submit(callables.get(i)));

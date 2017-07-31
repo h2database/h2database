@@ -16,8 +16,8 @@ import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.test.utils.SelfDestructor;
-import org.h2.util.Task;
 import org.h2.util.StringUtils;
+import org.h2.util.Task;
 
 /**
  * A task that is run as an external process. This class communicates over
@@ -59,7 +59,6 @@ public class TaskProcess {
             }
             String[] procDef = new String[list.size()];
             list.toArray(procDef);
-            traceOperation("start: " + StringUtils.arrayCombine(procDef, ' '));
             process = Runtime.getRuntime().exec(procDef);
             copyInThread(process.getErrorStream(), System.err);
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -70,7 +69,6 @@ public class TaskProcess {
                         "No reply from process, command: " +
                         StringUtils.arrayCombine(procDef, ' '));
             } else if (line.startsWith("running")) {
-                traceOperation("got reply: " + line);
             } else if (line.startsWith("init error")) {
                 throw new RuntimeException(line);
             }
@@ -130,12 +128,4 @@ public class TaskProcess {
         process.destroy();
     }
 
-    /**
-     * Trace the operation. Tracing is disabled by default.
-     *
-     * @param s the string to print
-     */
-    private void traceOperation(String s) {
-        // ignore
-    }
 }

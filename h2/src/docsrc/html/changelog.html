@@ -21,7 +21,51 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
-<li>-
+<li>Issue #539: Allow override of builtin functions/aliases
+</li>
+<li>Issue #535: Allow explicit paths on Windows without drive letter
+</li>
+<li>Issue #549: Removed UNION ALL requirements for CTE
+</li>
+<li>Issue #548: Table synonym support 
+</li>
+<li>Issue #531: Rollback and delayed meta save.
+</li>
+<li>Issue #515: "Unique index or primary key violation" in TestMvccMultiThreaded
+</li>
+<li>Issue #458: TIMESTAMPDIFF() test failing. Handling of timestamp literals.
+</li>
+<li>PR #546: Fixes the missing file tree.js in the web console
+</li>
+<li>Issue #543: Prepare statement with regexp will not refresh parameter after metadata change
+</li>
+<li>PR #536: Support TIMESTAMP_WITH_TIMEZONE 2014 JDBC type
+</li>
+<li>Fix bug in parsing ANALYZE TABLE xxx SAMPLE_SIZE yyy
+</li>
+<li>Add padding for CHAR(N) values in PostgreSQL mode
+</li>
+<li>Issue #89: Add DB2 timestamp format compatibility
+</li>
+</ul>
+
+<h2>Version 1.4.196 (2017-06-10)</h2>
+<ul>
+<li>Issue#479 Allow non-recursive CTEs (WITH statements), patch from stumc
+</li>
+<li>Fix startup issue when using "CHECK" as a column name.
+</li>
+<li>Issue #423: ANALYZE performed multiple times on one table during execution of the same statement.
+</li>
+<li>Issue #426: Support ANALYZE TABLE statement
+</li>
+<li>Issue #438: Fix slow logging via SLF4J (TRACE_LEVEL_FILE=4).
+</li>
+<li>Issue #472: Support CREATE SEQUENCE ... ORDER as a NOOP for Oracle compatibility
+</li>
+<li>Issue #479: Allow non-recursive Common Table Expressions (CTE)
+</li>
+<li>On Mac OS X, with IPv6 and no network connection, the Console tool was not working as expected.
 </li>
 </ul>
 
@@ -193,6 +237,8 @@ changed from Types.OTHER (1111) to Types.TIMESTAMP_WITH_TIMEZONE (2014)
 
 <h2>Version 1.4.192 Beta (2016-05-26)</h2>
 <ul>
+<li>Java 6 is no longer supported (the jar files are compiled for Java 7).
+</li>
 <li>Garbage collection of unused chunks should now be faster.
 </li>
 <li>Prevent people using unsupported combination of auto-increment columns and clustering mode.

@@ -28,7 +28,7 @@ Add to http://twitter.com
 
 Sign files and publish files on Maven Central
 (check java version is 1.7)
-./build.sh compile jar mavenDeployCentral
+./build.sh clean compile jar mavenDeployCentral
 cd /data/h2database/m2-repo/com/h2database
 # remove sha and md5 files:
 find . -name "*.sha1" -delete

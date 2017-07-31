@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.h2.api.ErrorCode;
+import org.h2.command.ddl.CreateSynonymData;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.constraint.Constraint;
 import org.h2.engine.Database;
@@ -27,6 +28,7 @@ import org.h2.mvstore.db.MVTableEngine;
 import org.h2.table.RegularTable;
 import org.h2.table.Table;
 import org.h2.table.TableLink;
+import org.h2.table.TableSynonym;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -41,6 +43,7 @@ public class Schema extends DbObjectBase {
     private ArrayList<String> tableEngineParams;
 
     private final ConcurrentHashMap<String, Table> tablesAndViews;
+    private final ConcurrentHashMap<String, TableSynonym> synonyms;
     private final ConcurrentHashMap<String, Index> indexes;
     private final ConcurrentHashMap<String, Sequence> sequences;
     private final ConcurrentHashMap<String, TriggerObject> triggers;
@@ -68,6 +71,7 @@ public class Schema extends DbObjectBase {
     public Schema(Database database, int id, String schemaName, User owner,
             boolean system) {
         tablesAndViews = database.newConcurrentStringMap();
+        synonyms = database.newConcurrentStringMap();
         indexes = database.newConcurrentStringMap();
         sequences = database.newConcurrentStringMap();
         triggers = database.newConcurrentStringMap();
@@ -201,6 +205,9 @@ public class Schema extends DbObjectBase {
         case DbObject.TABLE_OR_VIEW:
             result = tablesAndViews;
             break;
+        case DbObject.SYNONYM:
+            result = synonyms;
+            break;
         case DbObject.SEQUENCE:
             result = sequences;
             break;
@@ -273,7 +280,7 @@ public class Schema extends DbObjectBase {
     /**
      * Try to find a table or view with this name. This method returns null if
      * no object with this name exists. Local temporary tables are also
-     * returned.
+     * returned. Synonyms are not returned or resolved.
      *
      * @param session the session
      * @param name the object name
@@ -285,6 +292,39 @@ public class Schema extends DbObjectBase {
             table = session.findLocalTempTable(name);
         }
         return table;
+    }
+
+    /**
+     * Try to find a table or view with this name. This method returns null if
+     * no object with this name exists. Local temporary tables are also
+     * returned. If a synonym with this name exists, the backing table of the
+     * synonym is returned
+     *
+     * @param session the session
+     * @param name the object name
+     * @return the object or null
+     */
+    public Table resolveTableOrView(Session session, String name) {
+        Table table = findTableOrView(session, name);
+        if (table == null) {
+            TableSynonym synonym = synonyms.get(name);
+            if (synonym != null) {
+                return synonym.getSynonymFor();
+            }
+            return null;
+        }
+        return table;
+    }
+
+    /**
+     * Try to find a synonym with this name. This method returns null if
+     * no object with this name exists.
+     *
+     * @param name the object name
+     * @return the object or null
+     */
+    public TableSynonym getSynonym(String name) {
+        return synonyms.get(name);
     }
 
     /**
@@ -558,6 +598,13 @@ public class Schema extends DbObjectBase {
         }
     }
 
+
+    public ArrayList<TableSynonym> getAllSynonyms() {
+        synchronized (database) {
+            return New.arrayList(synonyms.values());
+        }
+    }
+
     /**
      * Get the table with the given name, if any.
      *
@@ -612,6 +659,14 @@ public class Schema extends DbObjectBase {
                 return database.getTableEngine(data.tableEngine).createTable(data);
             }
             return new RegularTable(data);
+        }
+    }
+
+    public TableSynonym createSynonym(CreateSynonymData data) {
+        synchronized (database) {
+            database.lockMeta(data.session);
+            data.schema = this;
+            return new TableSynonym(data);
         }
     }
 

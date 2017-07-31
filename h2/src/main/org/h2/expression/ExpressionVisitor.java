@@ -118,8 +118,7 @@ public class ExpressionVisitor {
     private ExpressionVisitor(int type,
             int queryLevel,
             HashSet<DbObject> dependencies,
-            HashSet<Column> columns,
-            Table table, ColumnResolver resolver,
+            HashSet<Column> columns, Table table, ColumnResolver resolver,
             long[] maxDataModificationId) {
         this.type = type;
         this.queryLevel = queryLevel;

@@ -163,8 +163,21 @@ public class Column {
      * @return the value
      */
     public Value convert(Value v) {
+        return convert(v, null);
+    }
+
+    /**
+     * Convert a value to this column's type using the given {@link Mode}.
+     * <p>
+     * Use this method in case the conversion is Mode-dependent.
+     *
+     * @param v the value
+     * @param mode the database {@link Mode} to use
+     * @return the value
+     */
+    public Value convert(Value v, Mode mode) {
         try {
-            return v.convertTo(type);
+            return v.convertTo(type, MathUtils.convertLongToInt(precision), mode);
         } catch (DbException e) {
             if (e.getErrorCode() == ErrorCode.DATA_CONVERSION_ERROR_1) {
                 String target = (table == null ? "" : table.getName() + ": ") +

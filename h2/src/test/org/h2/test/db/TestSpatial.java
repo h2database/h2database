@@ -1064,96 +1064,99 @@ public class TestSpatial extends TestBase {
 
     private void testInsertNull() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        Statement stat = conn.createStatement();
-        stat.execute("\n" +
-            "drop table if exists PUBLIC.DUMMY_12;\n" +
-            "CREATE TABLE PUBLIC.DUMMY_12 (\n" +
-            "    \"fid\" serial,\n" +
-            "    Z_ID INTEGER,\n" +
-            "    GEOM GEOMETRY,\n" +
-            "    CONSTRAINT CONSTRAINT_DUMMY_12 PRIMARY KEY (\"fid\")\n" +
-            ");\n" +
-            "CREATE INDEX PRIMARY_KEY_DUMMY_12 ON PUBLIC.DUMMY_12 (\"fid\");\n" +
-            "CREATE spatial INDEX PUBLIC_DUMMY_12_SPATIAL_INDEX_ ON PUBLIC.DUMMY_12 (GEOM);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (123,3125163,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (124,3125164,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (125,3125173,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (126,3125174,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (127,3125175,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (128,3125176,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (129,3125177,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (130,3125178,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (131,3125179,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (132,3125180,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (133,3125335,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (134,3125336,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (135,3125165,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (136,3125337,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (137,3125338,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (138,3125339,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (139,3125340,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (140,3125341,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (141,3125342,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (142,3125343,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (143,3125344,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (144,3125345,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (145,3125346,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (146,3125166,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (147,3125347,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (148,3125348,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (149,3125349,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (150,3125350,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (151,3125351,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (152,3125352,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (153,3125353,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (154,3125354,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (155,3125355,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (156,3125356,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (157,3125167,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (158,3125357,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (159,3125358,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (160,3125359,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (161,3125360,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (162,3125361,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (163,3125362,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (164,3125363,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (165,3125364,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (166,3125365,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (167,3125366,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (168,3125168,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (169,3125367,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (170,3125368,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (171,3125369,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (172,3125370,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (173,3125169,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (174,3125170,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (175,3125171,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (176,3125172,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (177,-2,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (178,-1,NULL);\n" +
-            "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (179," +
-            "-1,NULL);");
-        try (ResultSet rs = stat.executeQuery("select * from DUMMY_12")) {
-            assertTrue(rs.next());
+        try (Connection conn = getConnection(URL)) {
+            Statement stat = conn.createStatement();
+            stat.execute("\n" +
+                "drop table if exists PUBLIC.DUMMY_12;\n" +
+                "CREATE TABLE PUBLIC.DUMMY_12 (\n" +
+                "    \"fid\" serial,\n" +
+                "    Z_ID INTEGER,\n" +
+                "    GEOM GEOMETRY,\n" +
+                "    CONSTRAINT CONSTRAINT_DUMMY_12 PRIMARY KEY (\"fid\")\n" +
+                ");\n" +
+                "CREATE INDEX PRIMARY_KEY_DUMMY_12 ON PUBLIC.DUMMY_12 (\"fid\");\n" +
+                "CREATE spatial INDEX PUBLIC_DUMMY_12_SPATIAL_INDEX_ ON PUBLIC.DUMMY_12 (GEOM);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (123,3125163,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (124,3125164,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (125,3125173,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (126,3125174,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (127,3125175,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (128,3125176,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (129,3125177,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (130,3125178,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (131,3125179,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (132,3125180,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (133,3125335,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (134,3125336,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (135,3125165,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (136,3125337,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (137,3125338,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (138,3125339,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (139,3125340,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (140,3125341,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (141,3125342,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (142,3125343,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (143,3125344,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (144,3125345,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (145,3125346,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (146,3125166,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (147,3125347,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (148,3125348,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (149,3125349,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (150,3125350,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (151,3125351,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (152,3125352,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (153,3125353,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (154,3125354,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (155,3125355,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (156,3125356,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (157,3125167,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (158,3125357,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (159,3125358,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (160,3125359,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (161,3125360,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (162,3125361,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (163,3125362,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (164,3125363,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (165,3125364,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (166,3125365,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (167,3125366,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (168,3125168,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (169,3125367,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (170,3125368,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (171,3125369,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (172,3125370,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (173,3125169,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (174,3125170,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (175,3125171,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (176,3125172,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (177,-2,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (178,-1,NULL);\n" +
+                "INSERT INTO PUBLIC.DUMMY_12 (\"fid\",Z_ID,GEOM) VALUES (179," +
+                "-1,NULL);");
+            try (ResultSet rs = stat.executeQuery("select * from DUMMY_12")) {
+                assertTrue(rs.next());
+            }
         }
-
+        deleteDb("spatial");
     }
 
     private void testSpatialIndexWithOrder() throws SQLException {
         deleteDb("spatial");
-        Connection conn = getConnection(URL);
-        Statement stat = conn.createStatement();
-        stat.execute("DROP TABLE IF EXISTS BUILDINGS;" +
-                "CREATE TABLE BUILDINGS (PK serial, THE_GEOM geometry);" +
-                "insert into buildings(the_geom) SELECT 'POINT(1 1)" +
-                "'::geometry from SYSTEM_RANGE(1,10000);\n" +
-                "CREATE SPATIAL INDEX ON PUBLIC.BUILDINGS(THE_GEOM);\n");
+        try (Connection conn = getConnection(URL)) {
+            Statement stat = conn.createStatement();
+            stat.execute("DROP TABLE IF EXISTS BUILDINGS;" +
+                    "CREATE TABLE BUILDINGS (PK serial, THE_GEOM geometry);" +
+                    "insert into buildings(the_geom) SELECT 'POINT(1 1)" +
+                    "'::geometry from SYSTEM_RANGE(1,10000);\n" +
+                    "CREATE SPATIAL INDEX ON PUBLIC.BUILDINGS(THE_GEOM);\n");
 
-        try (ResultSet rs = stat.executeQuery("EXPLAIN SELECT * FROM " +
-                "BUILDINGS ORDER BY PK LIMIT 51;")) {
-            assertTrue(rs.next());
-            assertTrue(rs.getString(1).contains("PRIMARY_KEY"));
+            try (ResultSet rs = stat.executeQuery("EXPLAIN SELECT * FROM " +
+                    "BUILDINGS ORDER BY PK LIMIT 51;")) {
+                assertTrue(rs.next());
+                assertTrue(rs.getString(1).contains("PRIMARY_KEY"));
+            }
         }
+        deleteDb("spatial");
     }
 }

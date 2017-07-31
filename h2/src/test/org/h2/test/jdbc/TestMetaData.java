@@ -1086,6 +1086,8 @@ public class TestMetaData extends TestBase {
         rs.next();
         assertEquals("SETTINGS", rs.getString("TABLE_NAME"));
         rs.next();
+        assertEquals("SYNONYMS", rs.getString("TABLE_NAME"));
+        rs.next();
         assertEquals("TABLES", rs.getString("TABLE_NAME"));
         rs.next();
         assertEquals("TABLE_PRIVILEGES", rs.getString("TABLE_NAME"));

@@ -92,7 +92,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
     public int update() {
         session.commit(true);
         Database db = session.getDatabase();
-        Table table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;

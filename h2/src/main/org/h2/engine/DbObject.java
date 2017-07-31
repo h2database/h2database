@@ -90,6 +90,11 @@ public interface DbObject {
     int AGGREGATE = 14;
 
     /**
+     * This object is a synonym.
+     */
+    int SYNONYM = 15;
+
+    /**
      * Get the SQL name of this object (may be quoted).
      *
      * @return the SQL name

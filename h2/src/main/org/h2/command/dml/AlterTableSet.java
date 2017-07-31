@@ -52,7 +52,7 @@ public class AlterTableSet extends SchemaCommand {
 
     @Override
     public int update() {
-        Table table = getSchema().findTableOrView(session, tableName);
+        Table table = getSchema().resolveTableOrView(session, tableName);
         if (table == null) {
             if (ifTableExists) {
                 return 0;

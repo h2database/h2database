@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -56,6 +55,7 @@ import org.h2.table.IndexColumn;
 import org.h2.table.MetaTable;
 import org.h2.table.Table;
 import org.h2.table.TableLinkConnection;
+import org.h2.table.TableSynonym;
 import org.h2.table.TableType;
 import org.h2.table.TableView;
 import org.h2.tools.DeleteDbFiles;
@@ -191,6 +191,7 @@ public class Database implements DataHandler {
     private int logMode;
     private MVTableEngine.Store mvStore;
     private int retentionTime;
+    private boolean allowBuiltinAliasOverride;
     private DbException backgroundException;
     private JavaObjectSerializer javaObjectSerializer;
     private String javaObjectSerializerName;
@@ -292,14 +293,16 @@ public class Database implements DataHandler {
             if (e instanceof OutOfMemoryError) {
                 e.fillInStackTrace();
             }
+            boolean alreadyOpen = e instanceof DbException
+                    && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+            if (alreadyOpen) {
+                stopServer();
+            }
+
             if (traceSystem != null) {
-                if (e instanceof SQLException) {
-                    SQLException e2 = (SQLException) e;
-                    if (e2.getErrorCode() != ErrorCode.
-                            DATABASE_ALREADY_OPEN_1) {
-                        // only write if the database is not already in use
-                        trace.error(e, "opening {0}", databaseName);
-                    }
+                if (e instanceof DbException && !alreadyOpen) {
+                    // only write if the database is not already in use
+                    trace.error(e, "opening {0}", databaseName);
                 }
                 traceSystem.close();
             }
@@ -1542,6 +1545,19 @@ public class Database implements DataHandler {
     }
 
     /**
+     * Get all synonyms.
+     *
+     * @return all objects of that type
+     */
+    public ArrayList<TableSynonym> getAllSynonyms() {
+        ArrayList<TableSynonym> list = New.arrayList();
+        for (Schema schema : schemas.values()) {
+            list.addAll(schema.getAllSynonyms());
+        }
+        return list;
+    }
+
+    /**
      * Get the tables with the given name, if any.
      *
      * @param name the table name
@@ -1968,7 +1984,15 @@ public class Database implements DataHandler {
             mvStore.getStore().setRetentionTime(value);
         }
     }
+    
+    public void setAllowBuiltinAliasOverride(boolean b) {
+        allowBuiltinAliasOverride = b;
+    }
 
+    public boolean isAllowBuiltinAliasOverride() {
+        return allowBuiltinAliasOverride;
+    }
+    
     /**
      * Check if flush-on-each-commit is enabled.
      *

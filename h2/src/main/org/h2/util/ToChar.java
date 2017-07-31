@@ -122,7 +122,7 @@ public class ToChar {
      * @return the formatted number
      */
     public static String toChar(BigDecimal number, String format,
-            String nlsParam) {
+            @SuppressWarnings("unused") String nlsParam) {
 
         // short-circuit logic for formats that don't follow common logic below
         String formatUp = format != null ? StringUtils.toUpperEnglish(format) : null;
@@ -594,7 +594,7 @@ public class ToChar {
      * @param nlsParam the NLS parameter (if any)
      * @return the formatted timestamp
      */
-    public static String toChar(Timestamp ts, String format, String nlsParam) {
+    public static String toChar(Timestamp ts, String format, @SuppressWarnings("unused") String nlsParam) {
 
         if (format == null) {
             format = "DD-MON-YY HH.MI.SS.FF PM";

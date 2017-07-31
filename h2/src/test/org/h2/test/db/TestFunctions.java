@@ -76,6 +76,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     @Override
     public void test() throws Exception {
         deleteDb("functions");
+        testOverrideAlias();
         testIfNull();
         testToDate();
         testToDateException();
@@ -117,6 +118,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testThatCurrentTimestampStaysTheSameWithinATransaction();
         testThatCurrentTimestampUpdatesOutsideATransaction();
         testAnnotationProcessorsOutput();
+        testRound();
 
         deleteDb("functions");
     }
@@ -178,7 +180,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return a result set
      */
-    public static ResultSet simpleFunctionTable(Connection conn) {
+    public static ResultSet simpleFunctionTable(@SuppressWarnings("unused") Connection conn) {
         SimpleResultSet result = new SimpleResultSet();
         result.addColumn("A", Types.INTEGER, 0, 0);
         result.addColumn("B", Types.CHAR, 0, 0);
@@ -1284,6 +1286,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 String.format("SELECT ORA_HASH('%s', 0) FROM DUAL", testStr));
         assertResult(String.valueOf("foo".hashCode()), stat,
                 String.format("SELECT ORA_HASH('%s', 0, 0) FROM DUAL", testStr));
+        conn.close();
     }
 
     private void testToDateException() {
@@ -1669,7 +1672,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         conn.close();
     }
+
     private void testIfNull() throws SQLException {
+        deleteDb("functions");
         Connection conn = getConnection("functions");
         Statement stat = conn.createStatement(
                 ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -2010,6 +2015,29 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
     }
 
+    private void testRound() throws SQLException {
+        deleteDb("functions");
+
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        final ResultSet rs = stat.executeQuery(
+                "select ROUND(-1.2), ROUND(-1.5), ROUND(-1.6), " +
+                "ROUND(2), ROUND(1.5), ROUND(1.8), ROUND(1.1) from dual");
+
+        rs.next();
+        assertEquals(-1, rs.getInt(1));
+        assertEquals(-2, rs.getInt(2));
+        assertEquals(-2, rs.getInt(3));
+        assertEquals(2, rs.getInt(4));
+        assertEquals(2, rs.getInt(5));
+        assertEquals(2, rs.getInt(6));
+        assertEquals(1, rs.getInt(7));
+
+        rs.close();
+        conn.close();
+    }
+
     private void testThatCurrentTimestampIsSane() throws SQLException,
             ParseException {
         deleteDb("functions");
@@ -2034,6 +2062,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         assertFalse(parsed.before(before));
         assertFalse(parsed.after(after));
+        conn.close();
     }
 
 
@@ -2059,6 +2088,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.close();
 
         assertEquals(first, second);
+        conn.close();
     }
 
     private void testThatCurrentTimestampUpdatesOutsideATransaction()
@@ -2083,26 +2113,46 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         rs.close();
 
         assertTrue(second.after(first));
+        conn.close();
+    }
+
+    private void testOverrideAlias()
+            throws SQLException, InterruptedException {
+        deleteDb("functions");
+        Connection conn = getConnection("functions");
+        conn.setAutoCommit(true);
+        Statement stat = conn.createStatement();
+
+        assertThrows(ErrorCode.FUNCTION_ALIAS_ALREADY_EXISTS_1, stat).execute("create alias CURRENT_TIMESTAMP for \"" +
+                getClass().getName() + ".currentTimestamp\"");
+
+        stat.execute("set BUILTIN_ALIAS_OVERRIDE true");
+        
+        stat.execute("create alias CURRENT_TIMESTAMP for \"" +
+                getClass().getName() + ".currentTimestampOverride\"");
+        
+        assertCallResult("3141", stat, "CURRENT_TIMESTAMP");
+        
+        conn.close();
     }
 
     private void callCompiledFunction(String functionName) throws SQLException {
         deleteDb("functions");
-        Connection conn = getConnection("functions");
-        Statement stat = conn.createStatement();
-        ResultSet rs;
-        stat.execute("create alias " + functionName + " AS "
-                + "$$ boolean " + functionName + "() "
-                + "{ return true; } $$;");
+        try (Connection conn = getConnection("functions")) {
+            Statement stat = conn.createStatement();
+            ResultSet rs;
+            stat.execute("create alias " + functionName + " AS "
+                    + "$$ boolean " + functionName + "() "
+                    + "{ return true; } $$;");
 
-        PreparedStatement stmt = conn.prepareStatement(
-                "select " + functionName + "() from dual");
-        rs = stmt.executeQuery();
-        rs.next();
-        assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
+            PreparedStatement stmt = conn.prepareStatement(
+                    "select " + functionName + "() from dual");
+            rs = stmt.executeQuery();
+            rs.next();
+            assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
 
-        stat.execute("drop alias " + functionName + "");
-
-        conn.close();
+            stat.execute("drop alias " + functionName + "");
+        }
     }
 
     private void assertCallResult(String expected, Statement stat, String sql)
@@ -2235,7 +2285,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
      * @param conn the connection
      * @return the result set
      */
-    public static ResultSet nullResultSet(Connection conn) {
+    public static ResultSet nullResultSet(@SuppressWarnings("unused") Connection conn) {
         return null;
     }
 
@@ -2402,6 +2452,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             buff.append(a);
         }
         return new Object[] { buff.toString() };
+    }
+    
+    /**
+     * This method is called via reflection from the database.
+     */
+    public static long currentTimestampOverride() {
+        return 3141;
     }
 
     @Override

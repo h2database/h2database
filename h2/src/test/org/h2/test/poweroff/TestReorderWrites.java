@@ -22,7 +22,7 @@ import org.h2.test.utils.FilePathReorderWrites;
  * Tests that the MVStore recovers from a power failure if the file system or
  * disk re-ordered the write operations.
  */
-public class TestReorderWrites  extends TestBase {
+public class TestReorderWrites extends TestBase {
 
     private static final boolean LOG = false;
 
@@ -93,7 +93,7 @@ public class TestReorderWrites  extends TestBase {
                     // write has to fail at some point
                     fail();
                 } catch (IllegalStateException e) {
-                    log("stop " + e);
+                    log("stop " + e + ", cause: " + e.getCause());
                     // expected
                 }
                 try {
@@ -138,10 +138,10 @@ public class TestReorderWrites  extends TestBase {
 
     private void testFileSystem() throws IOException {
         FilePathReorderWrites fs = FilePathReorderWrites.register();
-        // disable this for now, still a bug somewhere
+        // disable this for now, still bug(s) in our code
         FilePathReorderWrites.setPartialWrites(false);
         String fileName = "reorder:memFS:test";
-        ByteBuffer empty = ByteBuffer.allocate(1024);
+        final ByteBuffer empty = ByteBuffer.allocate(1024);
         Random r = new Random(1);
         long minSize = Long.MAX_VALUE;
         long maxSize = 0;

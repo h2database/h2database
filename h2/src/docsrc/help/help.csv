@@ -193,21 +193,32 @@ SHOW TABLES
 "
 
 "Commands (DML)","WITH","
-WITH [ RECURSIVE ] name ( columnName [,...] )
-    AS ( select )
-    select
+WITH [ RECURSIVE ] { name [( columnName [,...] )]
+    AS ( select ) [,...] }
+    { select | insert | update | merge | delete | createTable }
 ","
-Can be used to create a recursive query. The first select has to be a UNION.
-Currently only one result set can be referred to by name.
+Can be used to create a recursive or non-recursive query (common table expression).
+For recursive queries the first select has to be a UNION.
+One or more common table entries can be referred to by name.
+Column name declarations are now optional - the column names will be inferred from the named select queries.
+The final action in a WITH statement can be a select , insert , update , merge , delete or create table.
 ","
-WITH RECURSIVE t(n) AS (
+WITH RECURSIVE cte(n) AS (
         SELECT 1
     UNION ALL
         SELECT n + 1
-        FROM t
+        FROM cte
         WHERE n < 100
 )
-SELECT sum(n) FROM t;
+SELECT sum(n) FROM cte;
+
+Example 2:
+WITH cte1 AS (
+        SELECT 1 AS FIRST_COLUMN
+), cte2 AS (
+        SELECT FIRST_COLUMN+1 AS FIRST_COLUMN FROM cte1
+)
+SELECT sum(FIRST_COLUMN) FROM cte2;
 "
 
 "Commands (DDL)","ALTER INDEX RENAME","
@@ -415,9 +426,11 @@ ALTER VIEW ADDRESS_VIEW RECOMPILE
 "
 
 "Commands (DDL)","ANALYZE","
-ANALYZE [ SAMPLE_SIZE rowCountInt ]
+ANALYZE [ TABLE tableName ] [ SAMPLE_SIZE rowCountInt ]
 ","
-Updates the selectivity statistics of all tables. The selectivity is used by the
+Updates the selectivity statistics of tables.
+If no table name is given, all tables are analyzed.
+The selectivity is used by the
 cost based optimizer to select the best index for a given query. If no sample
 size is set, up to 10000 rows per table are read. The value 0 means all rows are
 read. The selectivity can be set manually using ALTER TABLE ALTER COLUMN
@@ -1154,6 +1167,19 @@ This setting is persistent.
 SET BINARY_COLLATION SIGNED
 "
 
+"Commands (Other)","SET BUILTIN_ALIAS_OVERRIDE","
+SET BUILTIN_ALIAS_OVERRIDE
+{ TRUE | FALSE } ] }
+","
+Allows the overriding of the builtin system date/time functions
+for unit testing purposes.
+
+Admin rights are required to execute this command.
+This command commits an open transaction in this connection.
+","
+SET BUILTIN_ALIAS_OVERRIDE TRUE
+"
+
 "Commands (Other)","SET COLLATION","
 SET [ DATABASE ] COLLATION
 { OFF | collationName [ STRENGTH { PRIMARY | SECONDARY | TERTIARY | IDENTICAL } ] }
@@ -1169,12 +1195,16 @@ It is also used if the collation name starts with ICU4J_
 (in that case, the ICU4J must be in the classpath, otherwise an exception is thrown).
 The default collator is used if the collation name starts with DEFAULT_
 (even if ICU4J is in the classpath).
+The charset collator is used if the collation name starts with CHARSET_ (e.g. CHARSET_CP500). This collator sorts
+strings according to the binary representation in the given charset.
 
 Admin rights are required to execute this command.
 This command commits an open transaction in this connection.
 This setting is persistent.
+This setting can be appended to the database URL: ""jdbc:h2:test;COLLATION='ENGLISH'""
 ","
 SET COLLATION ENGLISH
+SET COLLATION CHARSET_CP500
 "
 
 "Commands (Other)","SET COMPRESS_LOB","

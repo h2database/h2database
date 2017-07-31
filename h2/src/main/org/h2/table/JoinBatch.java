@@ -167,6 +167,9 @@ public final class JoinBatch {
      * @return column value for current row
      */
     public Value getValue(int filterId, Column column) {
+        if (current == null) {
+            return null;
+        }
         Object x = current.row(filterId);
         assert x != null;
         Row row = current.isRow(filterId) ? (Row) x : ((Cursor) x).get();

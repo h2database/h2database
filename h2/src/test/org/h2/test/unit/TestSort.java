@@ -88,7 +88,7 @@ public class TestSort extends TestBase {
      *
      * @param type the type of data
      */
-    private void  test(String type) throws Exception {
+    private void  test(@SuppressWarnings("unused") String type) throws Exception {
         compareCount.set(0);
 
         // long t = System.nanoTime();

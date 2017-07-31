@@ -138,8 +138,8 @@ public class TestMVStore extends TestBase {
         store.rollback();
         assertTrue(store.hasMap("test"));
         map = store.openMap("test");
-        // TODO the data should get back alive
-        assertNull(map.get("1"));
+        // the data will get back alive
+        assertEquals("Hello", map.get("1"));
         store.close();
     }
 
@@ -1416,7 +1416,9 @@ public class TestMVStore extends TestBase {
             assertEquals(i + 1, m.size());
         }
         assertEquals(1000, m.size());
-        assertEquals(131896, s.getUnsavedMemory());
+        // previously (131896) we fail to account for initial root page for every map
+        // there are two of them here (meta and "data"), hence lack of 256 bytes
+        assertEquals(132152, s.getUnsavedMemory());
         s.commit();
         assertEquals(2, s.getFileStore().getWriteCount());
         s.close();
@@ -2067,6 +2069,7 @@ public class TestMVStore extends TestBase {
      *
      * @param msg the message
      */
+    @SuppressWarnings("unused")
     protected static void log(String msg) {
         // System.out.println(msg);
     }

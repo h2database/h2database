@@ -69,13 +69,13 @@ public class FilePathReorderWrites extends FilePathWrapper {
     /**
      * Whether partial writes are possible (writing only part of the data).
      *
-     * @param partialWrites true to enable
+     * @param b true to enable
      */
-    public static void setPartialWrites(boolean partialWrites) {
-        FilePathReorderWrites.partialWrites = partialWrites;
+    public static void setPartialWrites(boolean b) {
+        partialWrites = b;
     }
 
-    static boolean getPartialWrites() {
+    static boolean isPartialWrites() {
         return partialWrites;
     }
 
@@ -123,6 +123,8 @@ public class FilePathReorderWrites extends FilePathWrapper {
         FilePath copy = FilePath.get(getBase().toString() + ".copy");
         OutputStream out = copy.newOutputStream(false);
         IOUtils.copy(in, out);
+        in.close();
+        out.close();
         FileChannel base = getBase().open(mode);
         FileChannel readBase = copy.open(mode);
         return new FileReorderWrites(this, base, readBase);
@@ -143,11 +145,10 @@ public class FilePathReorderWrites extends FilePathWrapper {
         super.delete();
         FilePath.get(getBase().toString() + ".copy").delete();
     }
-
 }
 
 /**
- * An file that checks for errors before each write operation.
+ * A write-reordering file implementation.
  */
 class FileReorderWrites extends FileBase {
 
@@ -272,7 +273,8 @@ class FileReorderWrites extends FileBase {
 
     @Override
     public int write(ByteBuffer src, long position) throws IOException {
-        if (FilePathReorderWrites.getPartialWrites() && src.remaining() > 2) {
+        if (FilePathReorderWrites.isPartialWrites() && src.remaining() > 2) {
+            final int tmp = src.remaining();
             ByteBuffer buf1 = src.slice();
             ByteBuffer buf2 = src.slice();
             int len1 = src.remaining() / 2;
@@ -282,6 +284,7 @@ class FileReorderWrites extends FileBase {
             int x = addOperation(new FileWriteOperation(id++, position, buf1));
             x += addOperation(
                     new FileWriteOperation(id++, position + len1, buf2));
+            src.position( src.position() + x );
             return x;
         }
         return addOperation(new FileWriteOperation(id++, position, src));
@@ -383,7 +386,6 @@ class FileReorderWrites extends FileBase {
                 channel.truncate(position);
                 return -1;
             }
-            // TODO support the case where part is not written
             int len = channel.write(buffer, position);
             buffer.flip();
             return len;

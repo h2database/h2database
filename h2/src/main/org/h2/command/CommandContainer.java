@@ -12,6 +12,7 @@ import org.h2.command.dml.Query;
 import org.h2.expression.Parameter;
 import org.h2.expression.ParameterInterface;
 import org.h2.result.ResultInterface;
+import org.h2.table.TableView;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 
@@ -114,6 +115,27 @@ public class CommandContainer extends Command {
         prepared.trace(startTimeNanos, result.isLazy() ? 0 : result.getRowCount());
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
         return result;
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        // Clean up after the command was run in the session.
+        // Must restart query (and dependency construction) to reuse.
+        if (prepared.getCteCleanups() != null) {
+            for (TableView view : prepared.getCteCleanups()) {
+                // check if view was previously deleted as their name is set to
+                // null
+                if (view.getName() != null) {
+                    session.removeLocalTempTable(view);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean canReuse() {
+        return super.canReuse() && prepared.getCteCleanups() == null;
     }
 
     @Override

@@ -439,7 +439,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     }
                     o = objArray;
                 } else {
-                    v = v.convertTo(type);
+                    v = v.convertTo(type, -1, session.getDatabase().getMode());
                     o = v.getObject();
                 }
                 if (o == null) {

@@ -7,7 +7,6 @@ package org.h2.command.ddl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.Constraint;
@@ -198,7 +197,10 @@ public class AlterTableAddConstraint extends SchemaCommand {
             break;
         }
         case CommandInterface.ALTER_TABLE_ADD_CONSTRAINT_REFERENTIAL: {
-            Table refTable = refSchema.getTableOrView(session, refTableName);
+            Table refTable = refSchema.resolveTableOrView(session, refTableName);
+            if (refTable == null) {
+                throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, refTableName);
+            }
             session.getUser().checkRight(refTable, Right.ALL);
             if (!refTable.canReference()) {
                 throw DbException.getUnsupportedException("Reference " +

@@ -165,34 +165,13 @@ public class ErrorCode {
      * but the value is not one of the values enumerated by the
      * type.
      *
-     * This error is best thrown in a context when the column name
-     * and it's enumerated values are known.
-     *
      * Example:
      * <pre>
      * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
      * INSERT INTO TEST VALUES('snake');
      * </pre>
      */
-    public static final int ENUM_VALUE_NOT_PERMITTED_1 = 22030;
-
-    /**
-     * The error with code <code>22031</code> is typically thrown
-     * when a math operation is attempted on an ENUM-typed cell,
-     * but the value resulting from the operation is not one of
-     * values enumerated by the type.
-     *
-     * This error is best thrown in a context when the column name
-     * is not known, but the enumerated values of the type are known.
-     *
-     * Example:
-     * <pre>
-     * CREATE TABLE TEST(CASE ENUM('sensitive','insensitive'));
-     * INSERT INTO TEST VALUES('sensitive');
-     * UPDATE TEST SET CASE = CASE + 100;
-     * </pre>
-     */
-    public static final int ENUM_VALUE_NOT_PERMITTED_2 = 22031;
+    public static final int ENUM_VALUE_NOT_PERMITTED = 22030;
 
     /**
      * The error with code <code>22032</code> is thrown when an

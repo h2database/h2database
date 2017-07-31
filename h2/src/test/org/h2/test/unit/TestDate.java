@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
@@ -40,7 +39,6 @@ public class TestDate extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        // System.setProperty("h2.storeLocalTime", "true");
         TestBase.createCaller().init().test();
     }
 

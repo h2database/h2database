@@ -48,11 +48,6 @@ public class MVPrimaryIndex extends BaseIndex {
      */
     static final ValueLong MAX = ValueLong.get(Long.MAX_VALUE);
 
-    /**
-     * The zero long value.
-     */
-    static final ValueLong ZERO = ValueLong.get(0);
-
     private final MVTable mvTable;
     private final String mapName;
     private TransactionMap<Value, Value> dataMap;

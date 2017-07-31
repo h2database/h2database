@@ -69,8 +69,7 @@ Here is the list of known and confirmed issues:
     will differ. This is not a problem within regions that use the same rules (such as, within
     USA, or within Europe), even if the timezone itself is different. As a workaround, export the
     database to a SQL script using the old timezone, and create a new database in the new
-    timezone. This problem does not occur when using the system property "h2.storeLocalTime"
-    (however such database files are not compatible with older versions of H2).
+    timezone.
 </li><li>Apache Harmony: there seems to be a bug in Harmony that affects H2.
     See <a href="http://issues.apache.org/jira/browse/HARMONY-6505">HARMONY-6505</a>.
 </li><li>Tomcat and Glassfish 3 set most static fields (final or non-final) to <code>null</code> when

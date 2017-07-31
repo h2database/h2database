@@ -1239,10 +1239,6 @@ public class TransactionStore {
             }
         }
 
-        Object getUndoLog() {
-            return transaction.store.undoLog;
-        }
-
         /**
          * Get the versioned value for the given key.
          *

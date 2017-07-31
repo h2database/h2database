@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Locale;
-
 import org.h2.test.TestBase;
 
 /**
@@ -24,7 +23,6 @@ public class TestLocale extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        // System.setProperty("h2.storeLocalTime", "true");
         TestBase.createCaller().init().test();
     }
 

@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
+import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
@@ -50,10 +51,6 @@ public class TestFullText extends TestBase {
 
     @Override
     public void test() throws Exception {
-        if (config.multiThreaded) {
-            // It is even mentioned in the docs that this is not supported
-            return;
-        }
         testUuidPrimaryKey(false);
         testAutoAnalyze();
         testNativeFeatures();
@@ -71,7 +68,9 @@ public class TestFullText extends TestBase {
                 testCreateDropLucene();
                 testUuidPrimaryKey(true);
                 testMultiThreaded(true);
-                testMultiThreaded(false);
+                if(config.mvStore || !config.multiThreaded) {
+                    testMultiThreaded(false);
+                }
                 testTransaction(true);
                 test(true, "VARCHAR");
                 test(true, "CLOB");
@@ -256,7 +255,7 @@ public class TestFullText extends TestBase {
             int len = 2;
             Task[] task = new Task[len];
             for (int i = 0; i < len; i++) {
-                final Connection conn = getConnection("fullText", connList);
+                final Connection conn = getConnection("fullText;LOCK_TIMEOUT=60000", connList);
                 Statement stat = conn.createStatement();
                 initFullText(stat, lucene);
                 initFullText(stat, lucene);

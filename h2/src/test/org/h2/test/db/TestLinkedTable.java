@@ -30,7 +30,6 @@ public class TestLinkedTable extends TestBase {
      * @param a ignored
      */
     public static void main(String... a) throws Exception {
-        // System.setProperty("h2.storeLocalTime", "true");
         TestBase.createCaller().init().test();
     }
 

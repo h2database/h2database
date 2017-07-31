@@ -7,7 +7,6 @@ package org.h2.command;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Database;
@@ -17,6 +16,7 @@ import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.result.ResultInterface;
+import org.h2.table.TableView;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -57,7 +57,11 @@ public abstract class Prepared {
     private int objectId;
     private int currentRowNumber;
     private int rowScanCount;
-    private List<Runnable> cleanupCallbacks;
+    /**
+     * Common table expressions (CTE) in queries require us to create temporary views,
+     * which need to be cleaned up once a command is done executing.
+     */
+    private List<TableView> cteCleanups;
 
     /**
      * Create a new object.
@@ -176,9 +180,6 @@ public abstract class Prepared {
      */
     public void setCommand(Command command) {
         this.command = command;
-        if(command!=null && cleanupCallbacks!=null){
-            command.setCleanupCallbacks(cleanupCallbacks);
-        }
     }
 
     /**
@@ -440,13 +441,17 @@ public abstract class Prepared {
         return false;
     }
 
-    public List<Runnable> getCleanupCallbacks() {
-        return cleanupCallbacks;
+    /**
+     * Get the temporary views created for CTE's.
+     */
+    public List<TableView> getCteCleanups() {
+        return cteCleanups;
     }
 
-    public void setCleanupCallbacks(List<Runnable> cleanupCallbacks) {
-        this.cleanupCallbacks = cleanupCallbacks;
+    /**
+     * Set the temporary views created for CTE's.
+     */
+    public void setCteCleanups(List<TableView> cteCleanups) {
+        this.cteCleanups = cteCleanups;
     }
-
-
 }

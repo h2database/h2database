@@ -7,8 +7,6 @@ package org.h2.command;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -46,8 +44,6 @@ public abstract class Command implements CommandInterface {
     private final String sql;
 
     private boolean canReuse;
-
-    private List<Runnable> cleanupCallbacks;
 
     Command(Parser parser, String sql) {
         this.session = parser.getSession();
@@ -172,7 +168,6 @@ public abstract class Command implements CommandInterface {
                 trace.info("slow query: {0} ms", timeMillis);
             }
         }
-        session.commandCleanup(this);
     }
 
     /**
@@ -373,14 +368,6 @@ public abstract class Command implements CommandInterface {
             ParameterInterface param = parameters.get(i);
             param.setValue(null, true);
         }
-    }
-
-    public void setCleanupCallbacks(List<Runnable> cleanupCallbacks) {
-        this.cleanupCallbacks = cleanupCallbacks;
-    }
-
-    public List<Runnable> getCleanupCallbacks() {
-        return cleanupCallbacks;
     }
 
     public void setCanReuse(boolean canReuse) {

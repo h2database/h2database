@@ -1708,22 +1708,6 @@ public class Session extends SessionWithState {
     }
 
     /**
-     * Clean up after the command was run in the session
-     *
-     * @param command the command to cleanup for
-     */
-    public void commandCleanup(Command command) {
-        if (command.getCleanupCallbacks()!=null){
-            for(Runnable eachCleanup : command.getCleanupCallbacks()){
-                eachCleanup.run();
-                // clean up done - must restart query (and dependency construction) to reuse
-                command.setCanReuse(false);
-            }
-            command.getCleanupCallbacks().clear();
-        }
-    }
-
-    /**
      * Represents a savepoint (a position in a transaction to where one can roll
      * back to).
      */

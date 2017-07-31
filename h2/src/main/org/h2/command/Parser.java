@@ -4914,25 +4914,6 @@ public class Parser {
         return command;
     }
 
-    private class WithCleanup implements Runnable {
-
-        TableView view;
-        Session session;
-
-        public WithCleanup(TableView view, Session session){
-            this.view = view;
-            this.session = session;
-        }
-
-        @Override
-        public void run() {
-            // check if view was previously deleted as their name is set to null
-            if(view.getName()!=null) {
-                session.removeLocalTempTable(view);
-            }
-        }
-    }
-
     private Prepared parseWith() {
         List<TableView> viewsCreated = new ArrayList<TableView>();
         readIf("RECURSIVE");
@@ -4978,18 +4959,10 @@ public class Parser {
                     WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
         }
 
-                List<Runnable> cleanupCallbacks = new ArrayList<Runnable>();
-
-        // clean up temp views starting with last to first (in case of dependencies)
+        // clean up temp views starting with last to first (in case of
+        // dependencies)
         Collections.reverse(viewsCreated);
-
-        for (final TableView view : viewsCreated){
-            if(view==null){
-                continue;
-            }
-            cleanupCallbacks.add(new WithCleanup(view,session));
-        }
-        p.setCleanupCallbacks(cleanupCallbacks);
+        p.setCteCleanups(viewsCreated);
         return p;
     }
 

@@ -278,7 +278,7 @@ public class TestCompatibility extends TestBase {
 
         /* --------- Disallowed column types --------- */
 
-        String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT"};
+        String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT", "BLOB"};
         for (String type : DISALLOWED_TYPES) {
             stat.execute("DROP TABLE IF EXISTS TEST");
             try {

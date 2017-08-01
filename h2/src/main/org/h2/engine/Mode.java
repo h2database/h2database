@@ -282,6 +282,7 @@ public class Mode {
         disallowedTypes.add("NUMBER");
         disallowedTypes.add("IDENTITY");
         disallowedTypes.add("TINYINT");
+        disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
         add(mode);
 

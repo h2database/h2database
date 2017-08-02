@@ -946,64 +946,66 @@ public class TransactionStore {
          * @return the size
          */
         public long sizeAsLong() {
-            long sizeRaw = map.sizeAsLong();
-            MVMap<Long, Object[]> undo = transaction.store.undoLog;
-            long undoLogSize;
-            synchronized (undo) {
-                undoLogSize = undo.sizeAsLong();
-            }
-            if (undoLogSize == 0) {
-                return sizeRaw;
-            }
-            if (undoLogSize > sizeRaw) {
-                // the undo log is larger than the map -
-                // count the entries of the map
-                long size = 0;
-                Cursor<K, VersionedValue> cursor = map.cursor(null);
-                while (cursor.hasNext()) {
-                    VersionedValue data;
-                    transaction.store.rwLock.readLock().lock();
-                    try {
+            transaction.store.rwLock.readLock().lock();
+            try {
+                long sizeRaw = map.sizeAsLong();
+                MVMap<Long, Object[]> undo = transaction.store.undoLog;
+                long undoLogSize;
+                synchronized (undo) {
+                    undoLogSize = undo.sizeAsLong();
+                }
+                if (undoLogSize == 0) {
+                    return sizeRaw;
+                }
+                if (undoLogSize > sizeRaw) {
+                    // the undo log is larger than the map -
+                    // count the entries of the map
+                    long size = 0;
+                    Cursor<K, VersionedValue> cursor = map.cursor(null);
+                    while (cursor.hasNext()) {
+                        VersionedValue data;
                         K key = cursor.next();
                         data = getValue(key, readLogId, cursor.getValue());
-                    } finally {
-                        transaction.store.rwLock.readLock().unlock();
-                    }
-                    if (data != null && data.value != null) {
-                        size++;
-                    }
-                }
-                return size;
-            }
-            // the undo log is smaller than the map -
-            // scan the undo log and subtract invisible entries
-            synchronized (undo) {
-                // re-fetch in case any transaction was committed now
-                long size = map.sizeAsLong();
-                MVMap<Object, Integer> temp = transaction.store.createTempMap();
-                try {
-                    for (Entry<Long, Object[]> e : undo.entrySet()) {
-                        Object[] op = e.getValue();
-                        int m = (Integer) op[0];
-                        if (m != mapId) {
-                            // a different map - ignore
-                            continue;
+                        if (data != null && data.value != null) {
+                            size++;
                         }
-                        @SuppressWarnings("unchecked")
-                        K key = (K) op[1];
-                        if (get(key) == null) {
-                            Integer old = temp.put(key, 1);
-                            // count each key only once (there might be multiple
-                            // changes for the same key)
-                            if (old == null) {
-                                size--;
+                    }
+                    return size;
+                }
+                // the undo log is smaller than the map -
+                // scan the undo log and subtract invisible entries
+                synchronized (undo) {
+                    // re-fetch in case any transaction was committed now
+                    long size = map.sizeAsLong();
+                    MVMap<Object, Integer> temp = transaction.store
+                            .createTempMap();
+                    try {
+                        for (Entry<Long, Object[]> e : undo.entrySet()) {
+                            Object[] op = e.getValue();
+                            int m = (Integer) op[0];
+                            if (m != mapId) {
+                                // a different map - ignore
+                                continue;
+                            }
+                            @SuppressWarnings("unchecked")
+                            K key = (K) op[1];
+                            if (get(key) == null) {
+                                Integer old = temp.put(key, 1);
+                                // count each key only once (there might be
+                                // multiple
+                                // changes for the same key)
+                                if (old == null) {
+                                    size--;
+                                }
                             }
                         }
+                    } finally {
+                        transaction.store.store.removeMap(temp);
                     }
-                } finally {
-                    transaction.store.store.removeMap(temp);
+                    return size;
                 }
-                return size;
+            } finally {
+                transaction.store.rwLock.readLock().unlock();
             }
         }
 

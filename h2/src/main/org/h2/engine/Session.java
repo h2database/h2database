@@ -531,19 +531,6 @@ public class Session extends SessionWithState {
     }
 
     /**
-     * Parse and prepare the given SQL statement. This method also checks the
-     * rights.
-     *
-     * @param sql the SQL statement
-     * @param literalsChecked true if the sql string has already been checked for literals (only used if
-     *                        ALLOW_LITERALS NONE is set).
-     * @return the prepared statement
-     */
-    public Prepared prepare(String sql, boolean literalsChecked) {
-        return prepare(sql, false, literalsChecked);
-    }
-
-    /**
      * Parse and prepare the given SQL statement.
      *
      * @param sql the SQL statement

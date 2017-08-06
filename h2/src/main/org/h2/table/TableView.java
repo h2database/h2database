@@ -103,7 +103,7 @@ public class TableView extends Table {
         Prepared p;
         session.setParsingView(true);
         try {
-            p = session.prepare(sql, literalsChecked);
+            p = session.prepare(sql, false, literalsChecked);
         } finally {
             session.setParsingView(false);
         }

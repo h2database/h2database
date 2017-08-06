@@ -61,9 +61,9 @@ public class TableView extends Table {
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
-            boolean recursive) {
+            boolean recursive, boolean literalsChecked) {
         super(schema, id, name, false, true);
-        init(querySQL, params, columnTemplates, session, recursive);
+        init(querySQL, params, columnTemplates, session, recursive, literalsChecked);
     }
 
     /**
@@ -76,34 +76,34 @@ public class TableView extends Table {
      * @param force if errors should be ignored
      */
     public void replace(String querySQL,  Session session,
-            boolean recursive, boolean force) {
+            boolean recursive, boolean force, boolean literalsChecked) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
         boolean oldRecursive = this.recursive;
-        init(querySQL, null, columnTemplates, session, recursive);
+        init(querySQL, null, columnTemplates, session, recursive, literalsChecked);
         DbException e = recompile(session, force, true);
         if (e != null) {
-            init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive);
+            init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, literalsChecked);
             recompile(session, true, false);
             throw e;
         }
     }
 
     private synchronized void init(String querySQL, ArrayList<Parameter> params,
-            Column[] columnTemplates, Session session, boolean recursive) {
+            Column[] columnTemplates, Session session, boolean recursive, boolean literalsChecked) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.recursive = recursive;
         this.isRecursiveQueryDetected = false;
         index = new ViewIndex(this, querySQL, params, recursive);
-        initColumnsAndTables(session);
+        initColumnsAndTables(session, literalsChecked);
     }
 
-    private static Query compileViewQuery(Session session, String sql) {
+    private static Query compileViewQuery(Session session, String sql, boolean literalsChecked) {
         Prepared p;
         session.setParsingView(true);
         try {
-            p = session.prepare(sql);
+            p = session.prepare(sql, false, literalsChecked);
         } finally {
             session.setParsingView(false);
         }
@@ -125,7 +125,7 @@ public class TableView extends Table {
     public synchronized DbException recompile(Session session, boolean force,
             boolean clearIndexCache) {
         try {
-            compileViewQuery(session, querySQL);
+            compileViewQuery(session, querySQL, false);
         } catch (DbException e) {
             if (!force) {
                 return e;
@@ -135,7 +135,7 @@ public class TableView extends Table {
         if (views != null) {
             views = New.arrayList(views);
         }
-        initColumnsAndTables(session);
+        initColumnsAndTables(session, false);
         if (views != null) {
             for (TableView v : views) {
                 DbException e = v.recompile(session, force, false);
@@ -150,11 +150,11 @@ public class TableView extends Table {
         return force ? null : createException;
     }
 
-    private void initColumnsAndTables(Session session) {
+    private void initColumnsAndTables(Session session, boolean literalsChecked) {
         Column[] cols;
         removeViewFromTables();
         try {
-            Query query = compileViewQuery(session, querySQL);
+            Query query = compileViewQuery(session, querySQL, literalsChecked);
             this.querySQL = query.getPlanSQL();
             tables = New.arrayList(query.getTables());
             ArrayList<Expression> expressions = query.getExpressions();
@@ -539,7 +539,7 @@ public class TableView extends Table {
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), null, session,
-                false);
+                false, true /* literals have already been checked when parsing original query */);
         if (v.createException != null) {
             throw v.createException;
         }

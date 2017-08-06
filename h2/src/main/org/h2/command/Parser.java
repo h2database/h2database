@@ -225,6 +225,7 @@ public class Parser {
     private ArrayList<String> expectedList;
     private boolean rightsChecked;
     private boolean recompileAlways;
+    private boolean literalsChecked;
     private ArrayList<Parameter> indexedParameterList;
     private int orderInFrom;
     private ArrayList<Parameter> suppliedParameterList;
@@ -3529,7 +3530,7 @@ public class Parser {
     }
 
     private void checkLiterals(boolean text) {
-        if (!session.getAllowLiterals()) {
+        if (!literalsChecked && !session.getAllowLiterals()) {
             int allowed = database.getAllowLiterals();
             if (allowed == Constants.ALLOW_LITERALS_NONE ||
                     (text && allowed != Constants.ALLOW_LITERALS_ALL)) {
@@ -5036,11 +5037,11 @@ public class Parser {
         // then we just compile it again.
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
-                true/* recursive */);
+                true/* recursive */, false);
         if (!view.isRecursiveQueryDetected()) {
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
-                    false/* recursive */);
+                    false/* recursive */, false);
         }
         view.setTableExpression(true);
         view.setTemporary(true);
@@ -6488,6 +6489,10 @@ public class Parser {
             return StringUtils.quoteIdentifier(s);
         }
         return s;
+    }
+
+    public void setLiteralsChecked(boolean literalsChecked) {
+        this.literalsChecked = literalsChecked;
     }
 
     public void setRightsChecked(boolean rightsChecked) {

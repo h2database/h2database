@@ -527,7 +527,20 @@ public class Session extends SessionWithState {
      * @return the prepared statement
      */
     public Prepared prepare(String sql) {
-        return prepare(sql, false);
+        return prepare(sql, false, false);
+    }
+
+    /**
+     * Parse and prepare the given SQL statement. This method also checks the
+     * rights.
+     *
+     * @param sql the SQL statement
+     * @param literalsChecked true if the sql string has already been checked for literals (only used if
+     *                        ALLOW_LITERALS NONE is set).
+     * @return the prepared statement
+     */
+    public Prepared prepare(String sql, boolean literalsChecked) {
+        return prepare(sql, false, literalsChecked);
     }
 
     /**
@@ -535,11 +548,14 @@ public class Session extends SessionWithState {
      *
      * @param sql the SQL statement
      * @param rightsChecked true if the rights have already been checked
+     * @param literalsChecked true if the sql string has already been checked for literals (only used if
+     *                        ALLOW_LITERALS NONE is set).
      * @return the prepared statement
      */
-    public Prepared prepare(String sql, boolean rightsChecked) {
+    public Prepared prepare(String sql, boolean rightsChecked, boolean literalsChecked) {
         Parser parser = new Parser(this);
         parser.setRightsChecked(rightsChecked);
+        parser.setLiteralsChecked(literalsChecked);
         return parser.prepare(sql);
     }
 

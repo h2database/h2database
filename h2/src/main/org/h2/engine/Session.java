@@ -1117,9 +1117,6 @@ public class Session extends SessionWithState {
      * @param transactionName the name of the transaction
      */
     public void prepareCommit(String transactionName) {
-        if (transaction != null) {
-            database.prepareCommit(this, transactionName);
-        }
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop
             // table and so on)

@@ -292,6 +292,7 @@ public class TestCompatibility extends TestBase {
 
     private void testMySQL() throws SQLException {
         Statement stat = conn.createStatement();
+        stat.execute("set mode mysql");
         stat.execute("create schema test_schema");
         stat.execute("use test_schema");
         assertResult("TEST_SCHEMA", stat, "select schema()");
@@ -312,6 +313,10 @@ public class TestCompatibility extends TestBase {
                 "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
         assertResult("2003-12-31", stat,
                 "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("2003-12-31", stat,
+                "SELECT DATE('2003-12-31 11:02:03')");
+        // check the weird MySQL variant of DELETE
+        stat.execute("DELETE TEST FROM TEST WHERE 1=2");
 
         if (config.memory) {
             return;

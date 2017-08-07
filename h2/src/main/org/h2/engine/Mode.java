@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -25,6 +24,7 @@ public class Mode {
     static final String REGULAR = "REGULAR";
 
     private static final HashMap<String, Mode> MODES = New.hashMap();
+    public static final Mode MYSQL;
 
     // Modes are also documented in the features section
 
@@ -236,7 +236,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode("MySQL");
+        MYSQL = mode = new Mode("MySQL");
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;

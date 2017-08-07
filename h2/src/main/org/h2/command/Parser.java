@@ -92,6 +92,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.Mode;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -818,7 +819,10 @@ public class Parser {
         }
         currentPrepared = command;
         int start = lastParseIndex;
-        readIf("FROM");
+        if (!readIf("FROM") && database.getMode() == Mode.MYSQL) {
+            readIdentifierWithSchema();
+            read("FROM");
+        }
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
         if (readIf("WHERE")) {

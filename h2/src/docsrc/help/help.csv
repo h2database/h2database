@@ -1341,6 +1341,23 @@ SET JAVA_OBJECT_SERIALIZER 'com.acme.SerializerClassName'
 "
 
 
+"Commands (Other)","SET LAZY_QUERY_EXECUTION","
+SET LAZY_QUERY_EXECUTION int
+","
+Sets the lazy query execution mode. The values 0, 1 are supported.
+
+If true, then large results are retrieved in chunks.
+
+Note that not all queries support this feature, queries which do not are processed normally.
+
+Admin rights are required to execute this command, as it affects all connections.
+This command commits an open transaction in this connection.
+This setting is not persistent.
+This setting can be appended to the database URL: ""jdbc:h2:test;LAZY_QUERY_EXECUTION=1""
+","
+SET LAZY_QUERY_EXECUTION 1
+"
+
 "Commands (Other)","SET LOG","
 SET LOG int
 ","

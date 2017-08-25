@@ -411,7 +411,9 @@ public class TcpServerThread implements Runnable {
         case SessionRemote.SESSION_SET_ID: {
             sessionId = transfer.readString();
             transfer.writeInt(SessionRemote.STATUS_OK);
-            transfer.writeBoolean(session.getAutoCommit());
+            if (clientVersion >= Constants.TCP_PROTOCOL_VERSION_15) {
+                transfer.writeBoolean(session.getAutoCommit());
+            }
             transfer.flush();
             break;
         }

@@ -16,6 +16,10 @@ import org.h2.store.fs.FileUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.sql.ResultSet;
+
 /**
  * Creates a cluster from a standalone database.
  * <br />
@@ -99,7 +103,7 @@ public class CreateCluster extends Tool {
             String user, String password, String serverList) throws SQLException {
         Connection connSource = null, connTarget = null;
         Statement statSource = null, statTarget = null;
-        String scriptFile = "backup.sql";
+        
         try {
             org.h2.Driver.load();
 
@@ -141,23 +145,40 @@ public class CreateCluster extends Tool {
 
             try {
 
-                // backup
-                Script script = new Script();
-                script.setOut(out);
-                Script.process(connSource, scriptFile, "", "");
-
-                // delete the target database and then restore
+                // Delete the target database first.
                 connTarget = DriverManager.getConnection(
                         urlTarget + ";CLUSTER=''", user, password);
                 statTarget = connTarget.createStatement();
                 statTarget.execute("DROP ALL OBJECTS DELETE FILES");
                 connTarget.close();
 
+                // Backup data from source database in script form.
+                // Start writing to script pipe output end in separate thread.
+                // Variables used from inner class must be final.
+                final PipedReader pipeReader = new PipedReader();
+                final ResultSet rs = statSource.executeQuery("SCRIPT");
+                
+                new Thread(
+                    new Runnable(){
+                        public void run() {
+                            try {
+                                PipedWriter pipeWriter = new PipedWriter(pipeReader);
+                                while (rs.next()) {
+                                    pipeWriter.write(rs.getString(1) + "\n");
+                                }
+                                pipeWriter.close();
+                            } catch (Exception e ) {
+                                throw new IllegalStateException("Producing script from the source DB is failing.");
+                            }
+                        }
+                    }
+                ).start();
+                
+                // Read data from script pipe input end, restore on target.
+                connTarget = DriverManager.getConnection(urlTarget, user, password);
                 RunScript runScript = new RunScript();
                 runScript.setOut(out);
-                runScript.process(urlTarget, user, password, scriptFile, null, false);
-
-                connTarget = DriverManager.getConnection(urlTarget, user, password);
+                runScript.execute(connTarget,pipeReader);
                 statTarget = connTarget.createStatement();
 
                 // set the cluster to the serverList on both databases
@@ -169,7 +190,6 @@ public class CreateCluster extends Tool {
                 statSource.execute("SET EXCLUSIVE FALSE");
             }
         } finally {
-            FileUtils.delete(scriptFile);
             JdbcUtils.closeSilently(statSource);
             JdbcUtils.closeSilently(statTarget);
             JdbcUtils.closeSilently(connSource);

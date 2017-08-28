@@ -13,6 +13,7 @@ import java.sql.Statement;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 
@@ -104,6 +105,7 @@ public class CreateCluster extends Tool {
             String user, String password, String serverList) throws SQLException {
         Connection connSource = null, connTarget = null;
         Statement statSource = null, statTarget = null;
+        PipedReader pipeReader = null;
         
         try {
             org.h2.Driver.load();
@@ -144,9 +146,7 @@ public class CreateCluster extends Tool {
             // so that data can't change while restoring the second database
             statSource.execute("SET EXCLUSIVE 2");
 
-            // Pipe reader should be declared outside the try block to be visible in finally{}.
-            // It can be safely initialized here as it throws no exceptions.
-            PipedReader pipeReader = new PipedReader();
+            pipeReader = new PipedReader();
             
             try {
 	        // Pipe writer is used + closed in the inner class, in a separate thread (needs to be final).
@@ -175,14 +175,12 @@ public class CreateCluster extends Tool {
                                 while (rs.next()) {
                                     pipeWriter.write(rs.getString(1) + "\n");
                                 }
-                            } catch (Exception eScript) {
-                                throw new IllegalStateException("Producing script from the source DB is failing.",eScript);
+                            } catch (SQLException ex) {
+                                throw new IllegalStateException("Producing script from the source DB is failing.",ex);
+                            } catch (IOException ex) {
+                                throw new IllegalStateException("Producing script from the source DB is failing.",ex);
                             } finally {
-                                try {
-                                    pipeWriter.close();
-                                } catch (IOException eCloseWriter) {
-				    throw new IllegalStateException("Closing the pipe writer failed.",eCloseWriter);
-                                }
+                                IOUtils.closeSilently(pipeWriter);
                             }
                         }
                     }
@@ -190,29 +188,21 @@ public class CreateCluster extends Tool {
                 
                 // Read data from pipe reader, restore on target.
                 connTarget = DriverManager.getConnection(urlTarget, user, password);
-                RunScript runScript = new RunScript();
-                runScript.setOut(out);
-                runScript.execute(connTarget,pipeReader);
+                RunScript.execute(connTarget,pipeReader);
                 statTarget = connTarget.createStatement();
 
                 // set the cluster to the serverList on both databases
                 statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
                 statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
                 
-            } catch (IOException eAttach) {
-                throw new IllegalStateException("Failed attaching pipe writer to pipe reader.",eAttach);
-                
+            } catch (IOException ex) {
+                throw new SQLException(ex);
             } finally {
                 // switch back to the regular mode
                 statSource.execute("SET EXCLUSIVE FALSE");
-                
-                try {
-                    pipeReader.close();
-                } catch (Exception eCloseReader) {
-                    throw new IllegalStateException("Failed closing the pipe reader.",eCloseReader);
-                }
             }
         } finally {
+            IOUtils.closeSilently(pipeReader);
             JdbcUtils.closeSilently(statSource);
             JdbcUtils.closeSilently(statTarget);
             JdbcUtils.closeSilently(connSource);

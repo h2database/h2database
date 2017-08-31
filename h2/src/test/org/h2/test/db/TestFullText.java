@@ -25,6 +25,7 @@ import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
 
 /**
@@ -92,7 +93,7 @@ public class TestFullText extends TestBase {
 
     private static void close(Collection<Connection> list) {
         for (Connection conn : list) {
-            IOUtils.closeSilently(conn);
+            JdbcUtils.closeSilently(conn);
         }
     }
 

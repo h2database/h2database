@@ -238,8 +238,12 @@ public class TestFileLockSerialized extends TestBase {
         SortedProperties p = SortedProperties.loadProperties(propFile);
         p.setProperty("changePending", "true");
         p.setProperty("modificationDataId", "1000");
-        try (OutputStream out = FileUtils.newOutputStream(propFile, false)) {
+        OutputStream out = null;
+        try {
+            out = FileUtils.newOutputStream(propFile, false);
             p.store(out, "test");
+        } finally {
+            out.close();
         }
         Thread.sleep(100);
         stat.execute("select * from test");

@@ -105,11 +105,15 @@ public class TestLimitUpdates extends TestBase {
 
     private static void updateLimit(final Connection conn, final int value,
             final int limit) throws SQLException {
-        try (PreparedStatement prep = conn.prepareStatement(
-                    "UPDATE TEST SET VALUE_ID = ? LIMIT ?")) {
+        PreparedStatement prep = null;
+        try {
+            prep = conn.prepareStatement(
+                    "UPDATE TEST SET VALUE_ID = ? LIMIT ?");
             prep.setInt(1, value);
             prep.setInt(2, limit);
             prep.execute();
+        } finally {
+            prep.close();
         }
     }
 }

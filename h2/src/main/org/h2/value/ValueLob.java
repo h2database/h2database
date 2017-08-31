@@ -223,7 +223,9 @@ public class ValueLob extends Value {
 
     private void createFromReader(char[] buff, int len, Reader in,
             long remaining, DataHandler h) throws IOException {
-        try (FileStoreOutputStream out = initLarge(h)) {
+        FileStoreOutputStream out = null;
+        try {
+            out = initLarge(h);
             boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
             while (true) {
                 precision += len;
@@ -239,6 +241,8 @@ public class ValueLob extends Value {
                     break;
                 }
             }
+        } finally {
+            IOUtils.closeSilently(out);
         }
     }
 
@@ -419,7 +423,8 @@ public class ValueLob extends Value {
 
     private void createFromStream(byte[] buff, int len, InputStream in,
             long remaining, DataHandler h) throws IOException {
-        try (FileStoreOutputStream out = initLarge(h)) {
+        FileStoreOutputStream out = null;
+        try {
             boolean compress = h.getLobCompressionAlgorithm(Value.BLOB) != null;
             while (true) {
                 precision += len;
@@ -434,6 +439,8 @@ public class ValueLob extends Value {
                     break;
                 }
             }
+        } finally {
+            IOUtils.closeSilently(out);
         }
     }
 

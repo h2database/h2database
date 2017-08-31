@@ -33,7 +33,9 @@ public class TestShow extends TestBase {
     }
 
     private void testPgCompatibility() throws SQLException {
-        try (Connection conn = getConnection("mem:pg")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("mem:pg");
             Statement stat = conn.createStatement();
 
             assertResult("UNICODE", stat, "SHOW CLIENT_ENCODING");
@@ -42,11 +44,15 @@ public class TestShow extends TestBase {
             assertResult("ISO", stat, "SHOW DATESTYLE");
             assertResult("8.1.4", stat, "SHOW SERVER_VERSION");
             assertResult("UTF8", stat, "SHOW SERVER_ENCODING");
+        } finally {
+            conn.close();
         }
     }
 
     private void testMysqlCompatibility() throws SQLException {
-        try (Connection conn = getConnection("mem:pg")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("mem:pg");
             Statement stat = conn.createStatement();
             ResultSet rs;
 
@@ -63,6 +69,8 @@ public class TestShow extends TestBase {
 
             // columns
             assertResultRowCount(2, stat.executeQuery("SHOW COLUMNS FROM person"));
+        } finally {
+            conn.close();
         }
     }
 }

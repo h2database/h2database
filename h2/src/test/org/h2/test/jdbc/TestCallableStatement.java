@@ -83,8 +83,9 @@ public class TestCallableStatement extends TestBase {
         call = conn.prepareCall("select 10 as a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getURL(1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getObject(1, Collections.<String, Class<?>>emptyMap());
+        // getObject is Java 1.7
+        // assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
+        //        getObject(1, Collections.<String, Class<?>>emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
@@ -94,8 +95,9 @@ public class TestCallableStatement extends TestBase {
 
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getURL("a");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
-                getObject("a", Collections.<String, Class<?>>emptyMap());
+        // getObject is Java 1.7
+        // assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
+        //        getObject("a", Collections.<String, Class<?>>emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
                 getRef("a");
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, call).
@@ -150,8 +152,9 @@ public class TestCallableStatement extends TestBase {
         call.execute();
         assertEquals(1, call.getLong(1));
         assertEquals(1, call.getByte(1));
-        assertEquals(1, ((Long) call.getObject(1)).longValue());
-        assertEquals(1, call.getObject(1, Long.class).longValue());
+        // getObject is Java 1.7
+        // assertEquals(1, ((Long) call.getObject(1)).longValue());
+        // assertEquals(1, call.getObject(1, Long.class).longValue());
         assertFalse(call.wasNull());
 
         call.setFloat(2, 1.1f);
@@ -174,29 +177,35 @@ public class TestCallableStatement extends TestBase {
         call.registerOutParameter(1, Types.DATE);
         call.execute();
         assertEquals("2000-01-01", call.getDate(1).toString());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        
+        // getObject is Java 1.7
+        /* if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2000-01-01", call.getObject(1,
                             LocalDateTimeUtils.getLocalDateClass()).toString());
-        }
+        } */
 
         call.setTime(2, java.sql.Time.valueOf("01:02:03"));
         call.registerOutParameter(1, Types.TIME);
         call.execute();
         assertEquals("01:02:03", call.getTime(1).toString());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+        
+        // getObject is Java 1.7
+        /* if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("01:02:03", call.getObject(1,
                             LocalDateTimeUtils.getLocalTimeClass()).toString());
-        }
+        } */
 
         call.setTimestamp(2, java.sql.Timestamp.valueOf(
                 "2001-02-03 04:05:06.789"));
         call.registerOutParameter(1, Types.TIMESTAMP);
         call.execute();
         assertEquals("2001-02-03 04:05:06.789", call.getTimestamp(1).toString());
-        if (LocalDateTimeUtils.isJava8DateApiPresent()) {
+
+        // getObject is Java 1.7
+        /* if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03T04:05:06.789", call.getObject(1,
                             LocalDateTimeUtils.getLocalDateTimeClass()).toString());
-        }
+        } */
 
         call.setBoolean(2, true);
         call.registerOutParameter(1, Types.BIT);
@@ -280,28 +289,37 @@ public class TestCallableStatement extends TestBase {
 
         assertEquals("2001-02-03 10:20:30.0", call.getTimestamp(4).toString());
         assertEquals("2001-02-03 10:20:30.0", call.getTimestamp("D").toString());
+        
+        // getObject is Java 1.7
+        /*
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03T10:20:30", call.getObject(4,
                             LocalDateTimeUtils.getLocalDateTimeClass()).toString());
             assertEquals("2001-02-03T10:20:30", call.getObject("D",
                             LocalDateTimeUtils.getLocalDateTimeClass()).toString());
-        }
+        } */
         assertEquals("10:20:30", call.getTime(4).toString());
         assertEquals("10:20:30", call.getTime("D").toString());
+        
+        // getObject is Java 1.7
+        /*
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("10:20:30", call.getObject(4,
                             LocalDateTimeUtils.getLocalTimeClass()).toString());
             assertEquals("10:20:30", call.getObject("D",
                             LocalDateTimeUtils.getLocalTimeClass()).toString());
-        }
+        } */
         assertEquals("2001-02-03", call.getDate(4).toString());
         assertEquals("2001-02-03", call.getDate("D").toString());
+        
+        // getObject is Java 1.7
+        /*
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2001-02-03", call.getObject(4,
                             LocalDateTimeUtils.getLocalDateClass()).toString());
             assertEquals("2001-02-03", call.getObject("D",
                             LocalDateTimeUtils.getLocalDateClass()).toString());
-        }
+        } */
 
         assertEquals(100, call.getInt(1));
         assertEquals(100, call.getInt("A"));
@@ -424,37 +442,56 @@ public class TestCallableStatement extends TestBase {
 
     private void testArrayArgument(Connection connection) throws SQLException {
         Array array = connection.createArrayOf("Int", new Object[] {0, 1, 2});
-        try (Statement statement = connection.createStatement()) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
             statement.execute("CREATE ALIAS getArrayLength FOR \"" +
                             getClass().getName() + ".getArrayLength\"");
 
             // test setArray
-            try (CallableStatement callableStatement = connection
-                    .prepareCall("{call getArrayLength(?)}")) {
+            CallableStatement callableStatement = null;
+            try {
+                callableStatement = connection
+                    .prepareCall("{call getArrayLength(?)}");
                 callableStatement.setArray(1, array);
                 assertTrue(callableStatement.execute());
 
-                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                ResultSet resultSet = null;
+                try {
+                    resultSet = callableStatement.getResultSet();
                     assertTrue(resultSet.next());
                     assertEquals(3, resultSet.getInt(1));
                     assertFalse(resultSet.next());
+                } finally {
+                    resultSet.close();
                 }
+            } finally {
+                callableStatement.close();
             }
 
             // test setObject
-            try (CallableStatement callableStatement = connection
-                    .prepareCall("{call getArrayLength(?)}")) {
-                callableStatement.setObject(1, array);
-                assertTrue(callableStatement.execute());
+            CallableStatement callableStatement2 = null;
+            try {
+                callableStatement2 = connection
+                    .prepareCall("{call getArrayLength(?)}");
+                callableStatement2.setObject(1, array);
+                assertTrue(callableStatement2.execute());
 
-                try (ResultSet resultSet = callableStatement.getResultSet()) {
+                ResultSet resultSet = null;
+                try {
+                    resultSet = callableStatement2.getResultSet();
                     assertTrue(resultSet.next());
                     assertEquals(3, resultSet.getInt(1));
                     assertFalse(resultSet.next());
+                } finally {
+                    resultSet.close();
                 }
+            } finally {
+                callableStatement2.close();
             }
         } finally {
             array.free();
+            statement.close();
         }
     }
 
@@ -465,19 +502,24 @@ public class TestCallableStatement extends TestBase {
             new Object[] {0, null, 2},
             new Object[] {0, new Object[] {"s", 1}, new Object[] {null, 1L}},
         };
-        try (Statement statement = connection.createStatement()) {
+        Statement statement = null;
+        try {
+            statement = connection.createStatement();
             statement.execute("CREATE ALIAS arrayIdentiy FOR \"" +
                             getClass().getName() + ".arrayIdentiy\"");
 
             for (Object[] arrayToTest : arraysToTest) {
                 Array sqlInputArray = connection.createArrayOf("ignored", arrayToTest);
                 try {
-                    try (CallableStatement callableStatement = connection
-                            .prepareCall("{call arrayIdentiy(?)}")) {
+                    CallableStatement callableStatement = null;
+                    try {
+                        callableStatement = connection.prepareCall("{call arrayIdentiy(?)}");
                         callableStatement.setArray(1, sqlInputArray);
                         assertTrue(callableStatement.execute());
 
-                        try (ResultSet resultSet = callableStatement.getResultSet()) {
+                        ResultSet resultSet = null;
+                        try {
+                            resultSet = callableStatement.getResultSet();
                             assertTrue(resultSet.next());
 
                             // test getArray()
@@ -490,6 +532,8 @@ public class TestCallableStatement extends TestBase {
                                 sqlReturnArray.free();
                             }
 
+                            /*
+                            // getObject is Java 1.7
                             // test getObject(Array.class)
                             sqlReturnArray = resultSet.getObject(1, Array.class);
                             try {
@@ -499,15 +543,21 @@ public class TestCallableStatement extends TestBase {
                             } finally {
                                 sqlReturnArray.free();
                             }
-
+                            */
                             assertFalse(resultSet.next());
+                        } finally {
+                            resultSet.close();
                         }
+                    } finally {
+                        callableStatement.close();
                     }
                 } finally {
                     sqlInputArray.free();
                 }
 
             }
+        } finally {
+            statement.close();
         }
     }
 

@@ -1654,9 +1654,13 @@ public class Function extends Expression implements FunctionCall {
             String fileName = v1.getString();
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream(fileName);
-                try (InputStream in = v0.getInputStream()) {
+                InputStream in = null;
+                try {
+                    in = v0.getInputStream();
                     result = ValueLong.get(IOUtils.copyAndClose(in,
                             fileOutputStream));
+                } finally {
+                    in.close();
                 }
             } catch (IOException e) {
                 throw DbException.convertIOException(e, fileName);

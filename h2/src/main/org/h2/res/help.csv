@@ -427,6 +427,10 @@ SET JAVA_OBJECT_SERIALIZER
 { null | className }
 ","
 Sets the object used to serialize and deserialize java objects being stored in column of type OTHER."
+"Commands (Other)","SET LAZY_QUERY_EXECUTION","
+SET LAZY_QUERY_EXECUTION int
+","
+Sets the lazy query execution mode."
 "Commands (Other)","SET LOG","
 SET LOG int
 ","

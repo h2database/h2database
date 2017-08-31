@@ -74,7 +74,9 @@ public class Restore extends Tool {
     private static String getOriginalDbName(String fileName, String db)
             throws IOException {
 
-        try (InputStream in = FileUtils.newInputStream(fileName)) {
+        InputStream in = null;
+        try {
+            in = FileUtils.newInputStream(fileName);
             ZipInputStream zipIn = new ZipInputStream(in);
             String originalDbName = null;
             boolean multiple = false;
@@ -106,6 +108,9 @@ public class Restore extends Tool {
                 throw new IOException("Multiple databases found, but not " + db);
             }
             return originalDbName;
+        } finally {
+            // Not sure what was intended here...
+            IOUtils.closeSilently(in);
         }
     }
 

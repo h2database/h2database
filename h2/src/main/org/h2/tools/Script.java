@@ -133,10 +133,14 @@ public class Script extends Tool {
      */
     public static void process(Connection conn,
             String fileName, String options1, String options2) throws SQLException {
-
-        try (Statement stat = conn.createStatement()) {
+        Statement stat = null;
+        try {
+            stat = conn.createStatement();
             String sql = "SCRIPT " + options1 + " TO '" + fileName + "' " + options2;
             stat.execute(sql);
+        } finally {
+            // Not sure what was intended here...
+            stat.close();
         }
     }
 

@@ -29,6 +29,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.SmallLRUCache;
 import org.h2.util.SynchronizedVerifier;
 import org.h2.util.Task;
+import org.h2.util.JdbcUtils;
 
 /**
  * Multi-threaded tests.
@@ -76,20 +77,26 @@ public class TestMultiThread extends TestBase implements Runnable {
         String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1;LOCK_TIMEOUT=10000", true);
-        try (Connection conn = getConnection(url)) {
+        Connection conn = null;
+        try {
+            conn = getConnection(url);
             Task[] tasks = new Task[2];
             for (int i = 0; i < tasks.length; i++) {
                 final int x = i;
                 Task t = new Task() {
                     @Override
                     public void call() throws Exception {
-                        try (Connection c2 = getConnection(url)) {
+                        Connection c2 = null;
+                        try {
+                            c2 = getConnection(url);
                             Statement stat = c2.createStatement();
                             for (int i = 0; !stop; i++) {
                                 stat.execute("create table test" + x + "_" + i);
                                 c2.getMetaData().getTables(null, null, null, null);
                                 stat.execute("drop table test" + x + "_" + i);
                             }
+                        } finally {
+                            c2.close();
                         }
                     }
                 };
@@ -100,6 +107,8 @@ public class TestMultiThread extends TestBase implements Runnable {
             for (Task t : tasks) {
                 t.get();
             }
+        } finally {
+            conn.close();
         }
     }
 
@@ -107,7 +116,9 @@ public class TestMultiThread extends TestBase implements Runnable {
         String db = getTestName();
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
-        try (Connection conn = getConnection(url)) {
+        Connection conn = null;
+        try {
+            conn = getConnection(url);
             Statement stat = conn.createStatement();
             stat.execute("create table test(id identity, data clob)");
             Task[] tasks = new Task[2];
@@ -115,7 +126,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                 Task t = new Task() {
                     @Override
                     public void call() throws Exception {
-                        try (Connection c2 = getConnection(url)) {
+                        Connection c2 = null;
+                        try {
+                            c2 = getConnection(url);
                             PreparedStatement p2 = c2
                                     .prepareStatement("insert into test(data) values(?)");
                             while (!stop) {
@@ -123,6 +136,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                                         new char[10 * 1024])));
                                 p2.execute();
                             }
+                        } finally {
+                            c2.close();
                         }
                     }
                 };
@@ -133,6 +148,8 @@ public class TestMultiThread extends TestBase implements Runnable {
             for (Task t : tasks) {
                 t.get();
             }
+        } finally {
+            conn.close();
         }
     }
 
@@ -144,7 +161,9 @@ public class TestMultiThread extends TestBase implements Runnable {
         deleteDb(db);
         final String url = getURL(db + ";MULTI_THREADED=1", true);
         final Random r = new Random();
-        try (Connection conn = getConnection(url)) {
+        Connection conn = null;
+        try {
+            conn = getConnection(url);
             Statement stat = conn.createStatement();
             StringBuilder buff = new StringBuilder();
             buff.append("create table test(id int");
@@ -175,12 +194,15 @@ public class TestMultiThread extends TestBase implements Runnable {
             }
             t.get();
             SynchronizedVerifier.setDetect(SmallLRUCache.class, false);
+        } finally {
+            conn.close();
         }
     }
 
     private void testConcurrentAlter() throws Exception {
         deleteDb(getTestName());
-        try (final Connection conn = getConnection(getTestName())) {
+        final Connection conn = getConnection(getTestName());
+        try {
             Statement stat = conn.createStatement();
             Task t = new Task() {
                 @Override
@@ -197,6 +219,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                 stat.execute("alter table test drop column x");
             }
             t.get();
+        } finally {
+            conn.close();
         }
     }
 
@@ -206,17 +230,23 @@ public class TestMultiThread extends TestBase implements Runnable {
         }
         deleteDb(getTestName());
         final String url = getURL("concurrentAnalyze;MULTI_THREADED=1", true);
-        try (Connection conn = getConnection(url)) {
+        Connection conn = null;
+        try {
+            conn = getConnection(url);
             Statement stat = conn.createStatement();
             stat.execute("create table test(id bigint primary key) " +
                     "as select x from system_range(1, 1000)");
             Task t = new Task() {
                 @Override
                 public void call() throws SQLException {
-                    try (Connection conn2 = getConnection(url)) {
+                    Connection conn2 = null;
+                    try {
+                        conn2 = getConnection(url);
                         for (int i = 0; i < 1000; i++) {
                             conn2.createStatement().execute("analyze");
                         }
+                    } finally {
+                        conn2.close();
                     }
                 }
             };
@@ -227,11 +257,15 @@ public class TestMultiThread extends TestBase implements Runnable {
             }
             t.get();
             stat.execute("drop table test");
+        } finally {
+            conn.close();
         }
     }
 
     private void testConcurrentInsertUpdateSelect() throws Exception {
-        try (Connection conn = getConnection()) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
             Statement stmt = conn.createStatement();
             stmt.execute("CREATE TABLE TEST(ID IDENTITY, NAME VARCHAR)");
             int len = getSize(10, 200);
@@ -251,6 +285,8 @@ public class TestMultiThread extends TestBase implements Runnable {
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM TEST");
             rs.next();
             trace("max id=" + rs.getInt(1));
+        } finally {
+            conn.close();
         }
     }
 
@@ -260,7 +296,9 @@ public class TestMultiThread extends TestBase implements Runnable {
 
     @Override
     public void run() {
-        try (Connection conn = getConnection()) {
+        Connection conn = null;
+        try {
+            conn = getConnection();
             Statement stmt = conn.createStatement();
             while (!parent.stop) {
                 stmt.execute("SELECT COUNT(*) FROM TEST");
@@ -278,6 +316,8 @@ public class TestMultiThread extends TestBase implements Runnable {
             }
         } catch (Exception e) {
             logError("multi", e);
+        } finally {
+            JdbcUtils.closeSilently(conn);
         }
     }
 
@@ -286,10 +326,14 @@ public class TestMultiThread extends TestBase implements Runnable {
         // is not supported
         deleteDb("lockMode");
         final String url = getURL("lockMode;MULTI_THREADED=1", true);
-        try (Connection conn = getConnection(url)) {
+        Connection conn = null;
+        try {
+            conn = getConnection(url);
             DatabaseMetaData meta = conn.getMetaData();
             assertFalse(meta.supportsTransactionIsolationLevel(
                     Connection.TRANSACTION_READ_UNCOMMITTED));
+        } finally {
+            conn.close();
         }
         deleteDb("lockMode");
     }
@@ -324,7 +368,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                 jobs.add(executor.submit(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        try (Connection conn2 = getConnection(url)) {
+                        Connection conn2 = null;
+                        try {
+                            conn2 = getConnection(url);
                             Statement stat2 = conn2.createStatement();
 
                             stat2.execute("CREATE VIEW INVOICE_VIEW" + j
@@ -349,6 +395,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                             rs.close();
 
                             stat2.close();
+                        } finally {
+                            conn2.close();
                         }
                         return null;
                     }
@@ -370,7 +418,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 }
             }
         } finally {
-            IOUtils.closeSilently(conn);
+            JdbcUtils.closeSilently(conn);
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }
@@ -395,7 +443,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                 callables.add(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        try (Connection taskConn = getConnection(url)) {
+                        Connection taskConn = null;
+                        try {
+                            taskConn = getConnection(url);
                             taskConn.setAutoCommit(false);
                             PreparedStatement insertTranStmt = taskConn
                                     .prepareStatement("INSERT INTO tran (id) VALUES(?)");
@@ -406,6 +456,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                                 insertTranStmt.execute();
                                 taskConn.commit();
                             }
+                        } finally {
+                            taskConn.close();
                         }
                         return null;
                     }
@@ -421,7 +473,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 job.get(5, TimeUnit.MINUTES);
             }
         } finally {
-            IOUtils.closeSilently(conn);
+            JdbcUtils.closeSilently(conn);
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }
@@ -454,7 +506,9 @@ public class TestMultiThread extends TestBase implements Runnable {
                 callables.add(new Callable<Void>() {
                     @Override
                     public Void call() throws Exception {
-                        try (Connection taskConn = getConnection(url)) {
+                        Connection taskConn = null;
+                        try {
+                            taskConn = getConnection(url);
                             taskConn.setAutoCommit(false);
                             final PreparedStatement updateAcctStmt = taskConn
                                     .prepareStatement("UPDATE account SET balance = ? WHERE id = ?");
@@ -464,6 +518,8 @@ public class TestMultiThread extends TestBase implements Runnable {
                                 updateAcctStmt.execute();
                                 taskConn.commit();
                             }
+                        } finally {
+                            taskConn.close();
                         }
                         return null;
                     }
@@ -479,7 +535,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 job.get(5, TimeUnit.MINUTES);
             }
         } finally {
-            IOUtils.closeSilently(conn);
+            JdbcUtils.closeSilently(conn);
             executor.shutdown();
             executor.awaitTermination(20, TimeUnit.SECONDS);
         }

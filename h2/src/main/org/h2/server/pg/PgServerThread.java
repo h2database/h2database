@@ -41,6 +41,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.ScriptReader;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 import org.h2.value.CaseInsensitiveMap;
 
 /**
@@ -826,8 +827,10 @@ public class PgServerThread implements Runnable {
     }
 
     private static void installPgCatalog(Statement stat) throws SQLException {
-        try (Reader r = new InputStreamReader(new ByteArrayInputStream(Utils
-                    .getResource("/org/h2/server/pg/pg_catalog.sql")))) {
+        Reader r = null;
+        try {
+            r = new InputStreamReader(new ByteArrayInputStream(Utils
+                    .getResource("/org/h2/server/pg/pg_catalog.sql")));
             ScriptReader reader = new ScriptReader(r);
             while (true) {
                 String sql = reader.readStatement();
@@ -839,6 +842,8 @@ public class PgServerThread implements Runnable {
             reader.close();
         } catch (IOException e) {
             throw DbException.convertIOException(e, "Can not read pg_catalog resource");
+        } finally {
+            IOUtils.closeSilently(r);
         }
     }
 

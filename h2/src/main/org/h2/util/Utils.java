@@ -480,7 +480,9 @@ public class Utils {
             return IOUtils.readBytesAndClose(in, 0);
         }
 
-        try (ZipInputStream zipIn = new ZipInputStream(in)) {
+        ZipInputStream zipIn = null;
+        try {
+            zipIn = new ZipInputStream(in);
             while (true) {
                 ZipEntry entry = zipIn.getNextEntry();
                 if (entry == null) {
@@ -501,6 +503,8 @@ public class Utils {
         } catch (IOException e) {
             // if this happens we have a real problem
             e.printStackTrace();
+        } finally {
+            IOUtils.closeSilently(zipIn);
         }
         return null;
     }

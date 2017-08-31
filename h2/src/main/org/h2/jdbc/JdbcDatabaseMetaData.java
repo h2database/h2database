@@ -3248,7 +3248,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     /**
      * [Not supported]
      */
-    @Override
     public boolean generatedKeyAlwaysReturned() {
         return true;
     }
@@ -3264,7 +3263,6 @@ public class JdbcDatabaseMetaData extends TraceObject implements
      * @param columnNamePattern null (to get all objects) or a column name
      *            (uppercase for unquoted names)
      */
-    @Override
     public ResultSet getPseudoColumns(String catalog, String schemaPattern,
             String tableNamePattern, String columnNamePattern) {
         return null;

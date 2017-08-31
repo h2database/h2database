@@ -35,7 +35,8 @@ public class TestConnection extends TestBase {
         testSetSupportedClientInfoProperties();
         testSetUnsupportedClientInfoProperties();
         testSetInternalProperty();
-        testSetGetSchema();
+        // Java 1.7
+        // testSetGetSchema();
     }
 
     private void testSetInternalProperty() throws SQLException {
@@ -93,6 +94,9 @@ public class TestConnection extends TestBase {
         conn.close();
     }
 
+    /* Connection received a getSchema and setSchema methods with Java 1.7,
+       we cannot test them and remain 1.6 compatible. :( */
+    /*
     private void testSetGetSchema() throws SQLException {
         if (config.networked) {
             return;
@@ -116,4 +120,5 @@ public class TestConnection extends TestBase {
         s.close();
         conn.close();
     }
+    */
 }

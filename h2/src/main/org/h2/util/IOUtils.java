@@ -19,6 +19,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.zip.ZipFile;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -49,11 +50,15 @@ public class IOUtils {
         }
     }
 
+    
     /**
      * Close an AutoCloseable without throwing an exception.
      *
      * @param out the AutoCloseable or null
      */
+    /* NOT YET, AutoCloseable is part of Java 1.7,
+       however it seems we should be writing for Java 1.6.
+
     public static void closeSilently(AutoCloseable out) {
         if (out != null) {
             try {
@@ -63,7 +68,7 @@ public class IOUtils {
                 // ignore
             }
         }
-    }
+    } */
 
     /**
      * Skip a number of bytes in an input stream.
@@ -273,6 +278,23 @@ public class IOUtils {
             try {
                 writer.flush();
                 writer.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+    
+    /**
+     * Close a ZipFile without throwing an exception.
+     * In current Java, ZipFile seems to implement the interface Closeable
+     * but it appears like that wasn't so during Java 1.6 (just a guess).
+     *
+     * @param writer the writer or null
+     */
+    public static void closeSilently(ZipFile zipFile) {
+        if (zipFile != null) {
+            try {
+                zipFile.close();
             } catch (Exception e) {
                 // ignore
             }

@@ -7,12 +7,13 @@ package org.h2.result;
 
 import org.h2.engine.Session;
 import org.h2.value.Value;
+import java.io.Closeable;
 
 /**
  * The result interface is used by the LocalResult and ResultRemote class.
  * A result may contain rows, or just an update count.
  */
-public interface ResultInterface extends AutoCloseable {
+public interface ResultInterface extends Closeable {
 
     /**
      * Go to the beginning of the result, that means

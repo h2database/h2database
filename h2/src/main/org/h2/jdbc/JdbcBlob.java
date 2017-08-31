@@ -88,9 +88,13 @@ public class JdbcBlob extends TraceObject implements Blob {
             }
             checkClosed();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            try (InputStream in = value.getInputStream()) {
+            InputStream in = null;
+            try {
+                in = value.getInputStream();
                 IOUtils.skipFully(in, pos - 1);
                 IOUtils.copy(in, out, length);
+            } finally {
+                IOUtils.closeSilently(in);
             }
             return out.toByteArray();
         } catch (Exception e) {

@@ -186,18 +186,26 @@ class Database {
         Connection newConn = DriverManager.getConnection(url, user, password);
         if (url.startsWith("jdbc:derby:")) {
             // Derby: use higher cache size
-            try (Statement s = newConn.createStatement()) {
+            Statement s = null;
+            try {
+                s = newConn.createStatement();
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageCacheSize', '64')");
                 // stat.execute("CALL
                 // SYSCS_UTIL.SYSCS_SET_DATABASE_PROPERTY(
                 // 'derby.storage.pageSize', '8192')");
+            } finally {
+                s.close();
             }
         } else if (url.startsWith("jdbc:hsqldb:")) {
             // HSQLDB: use a WRITE_DELAY of 1 second
-            try (Statement s = newConn.createStatement()) {
+            Statement s = null;
+            try {
+                s = newConn.createStatement();
                 s.execute("SET WRITE_DELAY 1");
+            } finally {
+                s.close();
             }
         }
         return newConn;

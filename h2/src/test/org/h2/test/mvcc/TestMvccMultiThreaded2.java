@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
+import org.h2.util.JdbcUtils;
 
 /**
  * Additional MVCC (multi version concurrency) test cases.
@@ -72,7 +73,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
             sfu.join();
         }
 
-        IOUtils.closeSilently(conn);
+        JdbcUtils.closeSilently(conn);
         deleteDb(getTestName());
     }
 
@@ -108,7 +109,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
             } catch (SQLException e) {
                 TestBase.logError("error", e);
             }
-            IOUtils.closeSilently(conn);
+            JdbcUtils.closeSilently(conn);
         }
     }
 }

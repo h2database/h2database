@@ -1090,10 +1090,14 @@ public abstract class TestBase {
             stat.execute(sql);
 
         if (query && config.lazy) {
-            try (ResultSet rs = stat.getResultSet()) {
+            ResultSet rs = null;
+            try {
+                rs = stat.getResultSet();
                 while (rs.next()) {
                     // just loop
                 }
+            } finally {
+                rs.close();
             }
         }
     }

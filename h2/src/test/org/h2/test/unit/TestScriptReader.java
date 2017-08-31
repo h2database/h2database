@@ -46,7 +46,9 @@ public class TestScriptReader extends TestBase {
             }
             String s = buff.toString();
             StringReader reader = new StringReader(s);
-            try (ScriptReader source = new ScriptReader(reader)) {
+            ScriptReader source = null;
+            try {
+                source = new ScriptReader(reader);
                 for (int j = 0; j < l; j++) {
                     String e = source.readStatement();
                     String c = sql[j];
@@ -56,6 +58,8 @@ public class TestScriptReader extends TestBase {
                     assertEquals(c, e);
                 }
                 assertEquals(null, source.readStatement());
+            } finally {
+                source.close();
             }
         }
     }

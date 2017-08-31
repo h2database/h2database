@@ -16,6 +16,7 @@ import org.h2.message.TraceSystem;
 import org.h2.store.fs.FilePath;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.New;
+import org.h2.util.IOUtils;
 
 /**
  * Utility class to list the files of a database.
@@ -49,13 +50,17 @@ public class FileLister {
                             message).getSQLException();
                 }
             } else if (fileName.endsWith(Constants.SUFFIX_MV_FILE)) {
-                try (FileChannel f = FilePath.get(fileName).open("r")) {
+                FileChannel f = null;
+                try {
+                    f = FilePath.get(fileName).open("r");
                     java.nio.channels.FileLock lock = f.tryLock(0, Long.MAX_VALUE, true);
                     lock.release();
                 } catch (Exception e) {
                     throw DbException.get(
                             ErrorCode.CANNOT_CHANGE_SETTING_WHEN_OPEN_1, e,
                             message).getSQLException();
+                } finally {
+                    IOUtils.closeSilently(f);
                 }
             }
         }

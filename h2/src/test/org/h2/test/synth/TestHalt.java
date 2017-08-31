@@ -22,6 +22,7 @@ import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.util.StringUtils;
+import org.h2.util.IOUtils;
 
 /**
  * Tests database recovery by destroying a process that writes to the database.
@@ -188,7 +189,9 @@ public abstract class TestHalt extends TestBase {
     protected void traceOperation(String s, Exception e) {
         File f = new File(getBaseDir() + "/" + TRACE_FILE_NAME);
         f.getParentFile().mkdirs();
-        try (FileWriter writer = new FileWriter(f, true)) {
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(f, true);
             PrintWriter w = new PrintWriter(writer);
             s = dateFormat.format(new Date()) + ": " + s;
             w.println(s);
@@ -197,6 +200,8 @@ public abstract class TestHalt extends TestBase {
             }
         } catch (IOException e2) {
             e2.printStackTrace();
+        } finally {
+            IOUtils.closeSilently(writer);
         }
     }
 

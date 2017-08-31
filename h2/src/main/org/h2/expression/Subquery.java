@@ -33,7 +33,9 @@ public class Subquery extends Expression {
     @Override
     public Value getValue(Session session) {
         query.setSession(session);
-        try (ResultInterface result = query.query(2)) {
+        ResultInterface result = null;
+        try {
+            result = query.query(2);
             Value v;
             if (!result.next()) {
                 v = ValueNull.INSTANCE;
@@ -49,6 +51,8 @@ public class Subquery extends Expression {
                 }
             }
             return v;
+        } finally {
+            result.close();
         }
     }
 

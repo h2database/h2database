@@ -36,7 +36,9 @@ public class TestQueryCache extends TestBase {
     }
 
     private void test1() throws Exception {
-        try (Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");
             Statement stat = conn.createStatement();
             stat.execute("create table test(id int, name varchar)");
             PreparedStatement prep;
@@ -92,11 +94,15 @@ public class TestQueryCache extends TestBase {
             // usually this is true
             assertSmaller(firstSmaller, firstGreater);
             stat.execute("drop table test");
+        } finally {
+            conn.close();
         }
     }
 
     private void testClearingCacheWithTableStructureChanges() throws Exception {
-        try (Connection conn = getConnection("queryCache;QUERY_CACHE_SIZE=10")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("queryCache;QUERY_CACHE_SIZE=10");
             assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, conn).
                     prepareStatement("SELECT * FROM TEST");
             Statement stat = conn.createStatement();
@@ -106,6 +112,8 @@ public class TestQueryCache extends TestBase {
             stat.executeUpdate("DROP TABLE TEST");
             assertThrows(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, conn).
                     prepareStatement("SELECT * FROM TEST");
+        } finally {
+            conn.close();
         }
     }
 }

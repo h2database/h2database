@@ -34,12 +34,20 @@ public class TestBnf extends TestBase {
     @Override
     public void test() throws Exception {
         deleteDb("bnf");
-        try (Connection conn = getConnection("bnf")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("bnf");
             testModes(conn);
             testProcedures(conn, false);
+        } finally {
+            conn.close();
         }
-        try (Connection conn = getConnection("bnf;mode=mysql")) {
+        Connection conn2 = null;
+        try {
+            conn2 = getConnection("bnf;mode=mysql");
             testProcedures(conn, true);
+        } finally {
+            conn2.close();
         }
     }
 

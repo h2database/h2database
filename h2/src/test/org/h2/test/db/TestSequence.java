@@ -63,7 +63,9 @@ public class TestSequence extends TestBase {
                 tasks[i] = new Task() {
                     @Override
                     public void call() throws Exception {
-                        try (Connection conn = getConnection(url)) {
+                        Connection conn = null;
+                        try {
+                            conn = getConnection(url);
                             PreparedStatement prep = conn.prepareStatement(
                                     "insert into test(id) values(next value for test_seq)");
                             PreparedStatement prep2 = conn.prepareStatement(
@@ -77,6 +79,8 @@ public class TestSequence extends TestBase {
                                     createDropTrigger(conn);
                                 }
                             }
+                        } finally {
+                           conn.close();
                         }
                     }
 

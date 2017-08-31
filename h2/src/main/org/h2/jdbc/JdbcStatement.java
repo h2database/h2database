@@ -941,7 +941,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     /**
      * [Not supported]
      */
-    @Override
     public void closeOnCompletion() {
         // not supported
     }
@@ -949,7 +948,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
     /**
      * [Not supported]
      */
-    @Override
     public boolean isCloseOnCompletion() {
         return true;
     }

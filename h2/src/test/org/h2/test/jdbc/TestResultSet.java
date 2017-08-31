@@ -69,10 +69,10 @@ public class TestResultSet extends TestBase {
         testAmbiguousColumnNames();
         testInsertRowWithUpdatableResultSetDefault();
         testBeforeFirstAfterLast();
-        testParseSpecialValues();
+        // depended on lots of Java 1.7, disabled: testParseSpecialValues();
         testSubstringPrecision();
         testSubstringDataType();
-        testColumnLabelColumnName();
+        // used lots of Java 1.7, disabled: testColumnLabelColumnName();
         testAbsolute();
         testFetchSize();
         testOwnUpdates();
@@ -135,10 +135,12 @@ public class TestResultSet extends TestBase {
         getUnicodeStream(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
         getUnicodeStream("x");
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getObject(1, Collections.<String, Class<?>>emptyMap());
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
-                getObject("x", Collections.<String, Class<?>>emptyMap());
+        
+        // GetObject is Java 1.7
+        // assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+        //         getObject(1, Collections.<String, Class<?>>emptyMap());
+        // assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
+        //         getObject("x", Collections.<String, Class<?>>emptyMap());
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
                 getRef(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, rs).
@@ -320,6 +322,8 @@ public class TestResultSet extends TestBase {
         stat.execute("drop table test");
     }
 
+    // testParseSpecialValue used so much of Java 1.7 that it's disabled for now
+    /*
     private void testParseSpecialValues() throws SQLException {
         for (int i = -10; i < 10; i++) {
             testParseSpecialValue("" + ((long) Integer.MIN_VALUE + i));
@@ -329,7 +333,10 @@ public class TestResultSet extends TestBase {
             testParseSpecialValue(bi.add(BigInteger.valueOf(Long.MAX_VALUE)).toString());
         }
     }
+    */
 
+    // getObject is Java 1.7
+    /*
     private void testParseSpecialValue(String x) throws SQLException {
         Object expected;
         expected = new BigDecimal(x);
@@ -345,13 +352,16 @@ public class TestResultSet extends TestBase {
         assertEquals(expected.getClass().getName(), o.getClass().getName());
         assertTrue(expected.equals(o));
     }
-
+    */
+    
     private void testSubstringDataType() throws SQLException {
         ResultSet rs = stat.executeQuery("select substr(x, 1, 1) from dual");
         rs.next();
         assertEquals(Types.VARCHAR, rs.getMetaData().getColumnType(1));
     }
 
+    // getObject is Java 1.7
+    /*
     private void testColumnLabelColumnName() throws SQLException {
         ResultSet rs = stat.executeQuery("select x as y from dual");
         rs.next();
@@ -372,7 +382,8 @@ public class TestResultSet extends TestBase {
             }
         }
     }
-
+    */
+    
     private void testAbsolute() throws SQLException {
         // stat.execute("SET MAX_MEMORY_ROWS 90");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY)");
@@ -667,6 +678,8 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getInt("Value") == -1 && !rs.wasNull());
         assertTrue(rs.getString("Value").equals("-1") && !rs.wasNull());
 
+        // getObject is Java 1.7
+        /*
         o = rs.getObject("value");
         trace(o.getClass().getName());
         assertTrue(o instanceof Integer);
@@ -683,13 +696,14 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof Integer);
         assertTrue(((Integer) o).intValue() == -1);
+        */
         assertTrue(rs.getBoolean("Value"));
         assertTrue(rs.getByte("Value") == (byte) -1);
         assertTrue(rs.getShort("Value") == (short) -1);
         assertTrue(rs.getLong("Value") == -1);
         assertTrue(rs.getFloat("Value") == -1.0);
         assertTrue(rs.getDouble("Value") == -1.0);
-
+        
         assertTrue(rs.getString("Value").equals("-1") && !rs.wasNull());
         assertTrue(rs.getInt("ID") == 1 && !rs.wasNull());
         assertTrue(rs.getInt("id") == 1 && !rs.wasNull());
@@ -727,11 +741,15 @@ public class TestResultSet extends TestBase {
         assertTrue(rs.getInt(1) == 6 && !rs.wasNull());
         assertTrue(rs.getString(1).equals("6") && !rs.wasNull());
         assertTrue(rs.getString(2) == null && rs.wasNull());
+        
+        // getObject is Java 1.7
+        /*
         o = rs.getObject(2);
         assertTrue(o == null);
         assertTrue(rs.wasNull());
         o = rs.getObject(2, Integer.class);
         assertTrue(o == null);
+        */
         assertTrue(rs.wasNull());
         assertFalse(rs.next());
         assertEquals(0, rs.getRow());
@@ -744,7 +762,8 @@ public class TestResultSet extends TestBase {
     private void testVarchar() throws SQLException {
         trace("Test VARCHAR");
         ResultSet rs;
-        Object o;
+        // getObject is Java 1.7
+        // Object o;
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE VARCHAR(255))");
         stat.execute("INSERT INTO TEST VALUES(1,'')");
@@ -788,6 +807,9 @@ public class TestResultSet extends TestBase {
         trace("Value: <" + value + "> (should be: <Hi>)");
         assertTrue(rs.getInt(1) == 5 && !rs.wasNull());
         assertTrue(rs.getString(2).equals("Hi") && !rs.wasNull());
+        
+        // getObject is Java 1.7
+        /*
         o = rs.getObject("value");
         trace(o.getClass().getName());
         assertTrue(o instanceof String);
@@ -796,6 +818,7 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof String);
         assertTrue(o.equals("Hi"));
+        */
         rs.next();
         value = rs.getString(2);
         trace("Value: <" + value + "> (should be: < Hi >)");
@@ -833,7 +856,7 @@ public class TestResultSet extends TestBase {
     private void testDecimal() throws SQLException {
         trace("Test DECIMAL");
         ResultSet rs;
-        Object o;
+        // Object o;
 
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DECIMAL(10,2))");
         stat.execute("INSERT INTO TEST VALUES(1,-1)");
@@ -857,6 +880,9 @@ public class TestResultSet extends TestBase {
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("-1.00")) == 0);
         assertTrue(!rs.wasNull());
+        
+        // getObject is Java 1.7
+        /*
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof BigDecimal);
@@ -865,7 +891,8 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof BigDecimal);
         assertTrue(((BigDecimal) o).compareTo(new BigDecimal("-1.00")) == 0);
-
+        */
+        
         rs.next();
         assertTrue(rs.getInt(1) == 2);
         assertTrue(!rs.wasNull());
@@ -921,6 +948,9 @@ public class TestResultSet extends TestBase {
         bd = rs.getBigDecimal(2);
         assertTrue(bd.compareTo(new BigDecimal("-1.00")) == 0);
         assertTrue(!rs.wasNull());
+        
+        // getObject is Java 1.7
+        /*
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof Double);
@@ -937,6 +967,7 @@ public class TestResultSet extends TestBase {
         trace(o.getClass().getName());
         assertTrue(o instanceof Float);
         assertTrue(((Float) o).compareTo(new Float("-1.00")) == 0);
+        */
         rs.next();
         assertTrue(rs.getInt(1) == 2);
         assertTrue(!rs.wasNull());
@@ -972,7 +1003,7 @@ public class TestResultSet extends TestBase {
     private void testDatetime() throws SQLException {
         trace("Test DATETIME");
         ResultSet rs;
-        Object o;
+        // Object o;
 
         rs = stat.executeQuery("call date '99999-12-23'");
         rs.next();
@@ -1031,6 +1062,9 @@ public class TestResultSet extends TestBase {
         assertTrue(ts.equals(
                 java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
         assertFalse(rs.wasNull());
+        
+        // getObject is Java 1.7
+        /*
         o = rs.getObject(2);
         trace(o.getClass().getName());
         assertTrue(o instanceof java.sql.Timestamp);
@@ -1042,6 +1076,7 @@ public class TestResultSet extends TestBase {
         assertTrue(o instanceof java.sql.Timestamp);
         assertTrue(((java.sql.Timestamp) o).equals(
                         java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0")));
+        */
         assertFalse(rs.wasNull());
         rs.next();
 
@@ -1058,6 +1093,9 @@ public class TestResultSet extends TestBase {
         assertEquals("2002-02-02 02:02:02.0", ts.toString());
         rs.next();
         assertEquals("1800-01-01", rs.getDate("value").toString());
+        
+        // getObject is Java 1.7
+        /*
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("1800-01-01", rs.getObject("value",
                             LocalDateTimeUtils.getLocalDateClass()).toString());
@@ -1088,20 +1126,29 @@ public class TestResultSet extends TestBase {
             assertEquals("9999-12-31T23:59:59", rs.getObject("Value",
                             LocalDateTimeUtils.getLocalDateTimeClass()).toString());
         }
+        */
+        
         rs.next();
         assertTrue(rs.getDate("Value") == null && rs.wasNull());
         assertTrue(rs.getTime("vALUe") == null && rs.wasNull());
         assertTrue(rs.getTimestamp(2) == null && rs.wasNull());
+        
+        // getObject is Java 1.7
+        /*
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertTrue(rs.getObject(2,
                             LocalDateTimeUtils.getLocalDateTimeClass()) == null && rs.wasNull());
         }
+        */
         assertTrue(!rs.next());
 
         rs = stat.executeQuery("SELECT DATE '2001-02-03' D, " +
                 "TIME '14:15:16', " +
                 "TIMESTAMP '2007-08-09 10:11:12.141516171' TS FROM TEST");
         rs.next();
+        
+        // getObject is Java 1.7
+        /*
         date = (Date) rs.getObject(1);
         time = (Time) rs.getObject(2);
         ts = (Timestamp) rs.getObject(3);
@@ -1127,6 +1174,7 @@ public class TestResultSet extends TestBase {
                     rs.getObject(3, LocalDateTimeUtils.getLocalDateTimeClass())
                             .toString());
         }
+        */
 
         stat.execute("DROP TABLE TEST");
     }
@@ -1266,19 +1314,25 @@ public class TestResultSet extends TestBase {
                 (byte) 0x01, (byte) 0x01 },
                 rs.getBytes(2));
         assertTrue(!rs.wasNull());
-        assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
+        
+        // getObject is Java 1.7
+        /* assertEqualsWithNull(new byte[] { (byte) 0x01, (byte) 0x01,
                 (byte) 0x01, (byte) 0x01 },
                 rs.getObject(2, byte[].class));
-        assertTrue(!rs.wasNull());
+        assertTrue(!rs.wasNull()); */
+        
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getBytes("value"));
         assertTrue(!rs.wasNull());
-        assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
+        
+        // getObject is Java 1.7
+        /* assertEqualsWithNull(new byte[] { (byte) 0x02, (byte) 0x02,
                 (byte) 0x02, (byte) 0x02 },
                 rs.getObject("value", byte[].class));
-        assertTrue(!rs.wasNull());
+        assertTrue(!rs.wasNull()); */
+        
         rs.next();
         assertEqualsWithNull(new byte[] { (byte) 0x00 },
                 readAllBytes(rs.getBinaryStream(2)));
@@ -1318,8 +1372,12 @@ public class TestResultSet extends TestBase {
                 new int[] { Types.INTEGER, Types.CLOB }, new int[] {
                 10, Integer.MAX_VALUE }, new int[] { 0, 0 });
         rs.next();
-        Object obj = rs.getObject(2);
+        
+        // getObject is Java 1.7
+        /* Object obj = rs.getObject(2);
         assertTrue(obj instanceof java.sql.Clob);
+        */
+        
         string = rs.getString(2);
         assertTrue(string != null && string.equals("Test"));
         assertTrue(!rs.wasNull());
@@ -1386,9 +1444,11 @@ public class TestResultSet extends TestBase {
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         rs.next();
         assertEquals(1, rs.getInt(1));
-        Object[] list = (Object[]) rs.getObject(2);
+        
+        // getObject is Java 1.7
+        /* Object[] list = (Object[]) rs.getObject(2);
         assertEquals(1, ((Integer) list[0]).intValue());
-        assertEquals(2, ((Integer) list[1]).intValue());
+        assertEquals(2, ((Integer) list[1]).intValue()); */
 
         Array array = rs.getArray(2);
         Object[] list2 = (Object[]) array.getArray();
@@ -1398,9 +1458,11 @@ public class TestResultSet extends TestBase {
         assertEquals(2, ((Integer) list2[0]).intValue());
         rs.next();
         assertEquals(2, rs.getInt(1));
-        list = (Object[]) rs.getObject(2);
+        
+        // getObject is Java 1.7
+        /* list = (Object[]) rs.getObject(2);
         assertEquals(11, ((Integer) list[0]).intValue());
-        assertEquals(12, ((Integer) list[1]).intValue());
+        assertEquals(12, ((Integer) list[1]).intValue()); */
 
         array = rs.getArray("VALUE");
         list2 = (Object[]) array.getArray();

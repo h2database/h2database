@@ -105,7 +105,8 @@ public class TestOutOfMemory extends TestBase {
         } catch (SQLException e) {
             int err = e.getErrorCode();
             assertTrue(e.getMessage(), err == ErrorCode.GENERAL_ERROR_1
-                    || err == ErrorCode.OUT_OF_MEMORY);
+                    || err == ErrorCode.OUT_OF_MEMORY
+                    || err == ErrorCode.DATABASE_IS_CLOSED);
         }
         conn = DriverManager.getConnection(url);
         stat = conn.createStatement();

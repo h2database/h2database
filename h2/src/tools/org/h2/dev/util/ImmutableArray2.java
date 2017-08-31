@@ -8,7 +8,6 @@ package org.h2.dev.util;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.h2.mvstore.DataUtils;
 
 /**
@@ -151,6 +150,7 @@ public final class ImmutableArray2<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
+    @SafeVarargs
     public static <K> ImmutableArray2<K> create(K... array) {
         return new ImmutableArray2<K>(array, array.length);
     }

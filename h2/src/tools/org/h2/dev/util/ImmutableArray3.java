@@ -6,7 +6,6 @@
 package org.h2.dev.util;
 
 import java.util.Iterator;
-
 import org.h2.mvstore.DataUtils;
 
 /**
@@ -84,6 +83,7 @@ public abstract class ImmutableArray3<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
+    @SafeVarargs
     public static <K> ImmutableArray3<K> create(K... array) {
         return new Plain<K>(array);
     }

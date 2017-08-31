@@ -95,7 +95,9 @@ public class TestOutOfMemory extends TestBase {
                     "select x, space(10000000) from system_range(1, 1000)");
             fail();
         } catch (SQLException e) {
-            assertEquals(ErrorCode.GENERAL_ERROR_1, e.getErrorCode());
+            int err = e.getErrorCode();
+            assertTrue(e.getMessage(), err == ErrorCode.GENERAL_ERROR_1
+                    || err == ErrorCode.OUT_OF_MEMORY);
         }
         try {
             conn.close();

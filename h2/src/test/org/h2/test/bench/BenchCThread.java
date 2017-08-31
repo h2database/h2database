@@ -194,8 +194,8 @@ public class BenchCThread {
             rs.close();
             String distInfo = dist[(dId - 1) % 10];
             stock[number - 1] = sQuantity;
-            if ((data.indexOf("original") != -1)
-                    && (sData.indexOf("original") != -1)) {
+            if (data.contains("original")
+                    && sData.contains("original")) {
                 bg[number - 1] = 'B';
             } else {
                 bg[number - 1] = 'G';

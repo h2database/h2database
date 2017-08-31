@@ -154,7 +154,7 @@ public class TestClearReferences extends TestBase {
             throw e;
         }
         for (Field field : fields) {
-            if (field.getType().isPrimitive() || field.getName().indexOf("$") != -1) {
+            if (field.getType().isPrimitive() || field.getName().contains("$")) {
                 continue;
             }
             int modifiers = field.getModifiers();
@@ -182,7 +182,7 @@ public class TestClearReferences extends TestBase {
 
     private void clearInstance(Object instance) throws Exception {
         for (Field field : instance.getClass().getDeclaredFields()) {
-            if (field.getType().isPrimitive() || (field.getName().indexOf("$") != -1)) {
+            if (field.getType().isPrimitive() || field.getName().contains("$")) {
                 continue;
             }
             int modifiers = field.getModifiers();

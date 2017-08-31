@@ -1292,7 +1292,7 @@ public final class MVStore {
     private Set<Integer> collectReferencedChunks() {
         long testVersion = lastChunk.version;
         DataUtils.checkArgument(testVersion > 0, "Collect references on version 0");
-        long readCount = getFileStore().readCount;
+        long readCount = getFileStore().readCount.get();
         Set<Integer> referenced = New.hashSet();
         for (Cursor<String, String> c = meta.cursor("root."); c.hasNext();) {
             String key = c.next();
@@ -1308,7 +1308,7 @@ public final class MVStore {
         }
         long pos = lastChunk.metaRootPos;
         collectReferencedChunks(referenced, 0, pos, 0);
-        readCount = fileStore.readCount - readCount;
+        readCount = fileStore.readCount.get() - readCount;
         return referenced;
     }
 

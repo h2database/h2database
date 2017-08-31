@@ -819,7 +819,7 @@ public class Parser {
         }
         currentPrepared = command;
         int start = lastParseIndex;
-        if (!readIf("FROM") && database.getMode() == Mode.MYSQL) {
+        if (!readIf("FROM") && database.getMode() == Mode.getMySQL()) {
             readIdentifierWithSchema();
             read("FROM");
         }

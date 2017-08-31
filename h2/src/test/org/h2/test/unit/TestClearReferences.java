@@ -58,15 +58,6 @@ public class TestClearReferences extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    private void clear() throws Exception {
-        ArrayList<Class <?>> classes = New.arrayList();
-        check(classes, new File("bin/org/h2"));
-        check(classes, new File("temp/org/h2"));
-        for (Class<?> clazz : classes) {
-            clearClass(clazz);
-        }
-    }
-
     @Override
     public void test() throws Exception {
         // initialize the known classes
@@ -91,14 +82,23 @@ public class TestClearReferences extends TestBase {
         }
     }
 
-    private void check(ArrayList<Class <?>> classes, File file) {
+    private void clear() throws Exception {
+        ArrayList<Class <?>> classes = New.arrayList();
+        findClasses(classes, new File("bin/org/h2"));
+        findClasses(classes, new File("temp/org/h2"));
+        for (Class<?> clazz : classes) {
+            clearClass(clazz);
+        }
+    }
+
+    private void findClasses(ArrayList<Class <?>> classes, File file) {
         String name = file.getName();
         if (file.isDirectory()) {
             if (name.equals("CVS") || name.equals(".svn")) {
                 return;
             }
             for (File f : file.listFiles()) {
-                check(classes, f);
+                findClasses(classes, f);
             }
         } else {
             if (!name.endsWith(".class")) {

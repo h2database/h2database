@@ -24,7 +24,6 @@ public class Mode {
     static final String REGULAR = "REGULAR";
 
     private static final HashMap<String, Mode> MODES = New.hashMap();
-    public static final Mode MYSQL;
 
     // Modes are also documented in the features section
 
@@ -236,7 +235,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        MYSQL = mode = new Mode("MySQL");
+        mode = new Mode("MySQL");
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
@@ -309,6 +308,10 @@ public class Mode {
      */
     public static Mode getInstance(String name) {
         return MODES.get(StringUtils.toUpperEnglish(name));
+    }
+
+    public static Mode getMySQL() {
+        return getInstance("MySQL");
     }
 
     public String getName() {

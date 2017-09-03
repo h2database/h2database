@@ -360,7 +360,7 @@ public class TestRunscript extends TestBase implements Trigger {
             }
         };
         task.execute();
-        Thread.sleep(100);
+        Thread.sleep(200);
         stat.cancel();
         e = (SQLException) task.getException();
         assertTrue(e != null);

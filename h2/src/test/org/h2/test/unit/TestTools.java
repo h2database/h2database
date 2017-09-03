@@ -525,7 +525,7 @@ public class TestTools extends TestBase {
 
     private void testServerMain() throws SQLException {
         testNonSSL();
-        if (!config.fast) {
+        if (!config.travis) {
             testSSL();
         }
     }

@@ -1,6 +1,6 @@
 language: java
 
-script: ./build.sh jar testFast
+script: ./build.sh jar testTravis
 
 cache:
   directories:

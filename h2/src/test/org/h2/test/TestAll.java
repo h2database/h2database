@@ -363,7 +363,7 @@ java org.h2.test.TestAll timer
     /**
      * If only fast/CI/Jenkins/Travis tests should be run.
      */
-    public boolean fast;
+    public boolean travis;
 
     /**
      * The lock timeout to use
@@ -503,8 +503,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 */
         TestAll test = new TestAll();
         if (args.length > 0) {
-            if ("fast".equals(args[0])) {
-                test.fast = true;
+            if ("travis".equals(args[0])) {
+                test.travis = true;
                 test.testAll();
             } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
@@ -554,7 +554,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void testAll() throws Exception {
         runTests();
-        if (!fast) {
+        if (!travis) {
             Profiler prof = new Profiler();
             prof.depth = 16;
             prof.interval = 1;
@@ -659,7 +659,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = true;
         test();
 
-        if (!fast) {
+        if (!travis) {
             traceLevelFile = 0;
             smallLog = true;
             networked = true;
@@ -1086,7 +1086,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        appendIf(buff, fast, "fast");
         appendIf(buff, lazy, "lazy");
         appendIf(buff, mvStore, "mvStore");
         appendIf(buff, big, "big");

@@ -40,6 +40,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testDelete();
         testMerge();
         testCreateTable();
+        testNestedSQL();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -388,4 +389,53 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
+    
+    private void testNestedSQL() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+
+        prep = conn.prepareStatement(
+            "WITH T1 AS (                        "+
+            "        SELECT *                    "+
+            "        FROM TABLE (                "+
+            "            K VARCHAR = ('a', 'b'), "+
+            "            V INTEGER = (1, 2)      "+
+            "    )                               "+
+            "),                                  "+
+            "                                    "+
+            "                                    "+
+            "T2 AS (                             "+
+            "        SELECT *                    "+
+            "        FROM TABLE (                "+
+            "            K VARCHAR = ('a', 'b'), "+
+            "            V INTEGER = (3, 4)      "+
+            "    )                               "+
+            "),                                  "+
+            "                                    "+
+            "                                    "+
+            "JOIN_CTE AS (                       "+
+            "    SELECT T1.*                     "+
+            "                                    "+
+            "    FROM                            "+
+            "        T1                          "+
+            "        JOIN T2 ON (                "+
+            "            T1.K = T2.K             "+
+            "        )                           "+
+            ")                                   "+
+            "                                    "+
+            "SELECT * FROM JOIN_CTE");
+
+        rs = prep.executeQuery();
+
+        for (String keyLetter : new String[] { "a", "b" }) {
+            assertTrue(rs.next());
+            assertContains("ab",rs.getString(1));
+            assertEquals(rs.getString(1),keyLetter);
+            assertTrue(rs.getInt(2)!=0);
+        }
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }    
 }

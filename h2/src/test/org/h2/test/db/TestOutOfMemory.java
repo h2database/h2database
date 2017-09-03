@@ -85,7 +85,7 @@ public class TestOutOfMemory extends TestBase {
         }
     }
 
-    private void testDatabaseUsingInMemoryFileSystem() throws SQLException {
+    private void testDatabaseUsingInMemoryFileSystem() throws SQLException, InterruptedException {
         String filename = "memFS:" + getTestName();
         String url = "jdbc:h2:" + filename;
         Connection conn = DriverManager.getConnection(url);
@@ -108,6 +108,10 @@ public class TestOutOfMemory extends TestBase {
                     || err == ErrorCode.OUT_OF_MEMORY
                     || err == ErrorCode.DATABASE_IS_CLOSED);
         }
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+            Thread.sleep(20);
+        }
         conn = DriverManager.getConnection(url);
         stat = conn.createStatement();
         stat.execute("select 1");
@@ -116,12 +120,13 @@ public class TestOutOfMemory extends TestBase {
         FileUtils.delete(filename);
     }
 
-    private void testUpdateWhenNearlyOutOfMemory() throws SQLException {
+    private void testUpdateWhenNearlyOutOfMemory() throws SQLException, InterruptedException {
         if (config.memory || config.mvcc || config.mvStore) {
             return;
         }
         for (int i = 0; i < 5; i++) {
             System.gc();
+            Thread.sleep(20);
         }
         deleteDb("outOfMemory");
         Connection conn = getConnection("outOfMemory;MAX_OPERATION_MEMORY=1000000");

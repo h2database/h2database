@@ -1380,6 +1380,10 @@ public class Parser {
                 }
             }
         }
+        // inherit alias for temporary views (usually CTE's) from table name
+        if(table.isView() && table.isTemporary() && alias==null){
+            alias = table.getName();
+        }
         return new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
     }

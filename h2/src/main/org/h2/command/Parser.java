@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -742,6 +743,26 @@ public class Parser {
         int start = lastParseIndex;
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
+        parseUpdateSetClause(command, filter);
+        if (readIf("WHERE")) {
+            Expression condition = readExpression();
+            command.setCondition(condition);
+        }
+        if (readIf("ORDER")) {
+            // for MySQL compatibility
+            // (this syntax is supported, but ignored)
+            read("BY");
+            parseSimpleOrderList();
+        }
+        if (readIf("LIMIT")) {
+            Expression limit = readTerm().optimize(session);
+            command.setLimit(limit);
+        }
+        setSQL(command, "UPDATE", start);
+        return command;
+    }
+
+    private void parseUpdateSetClause(Update command, TableFilter filter) {
         read("SET");
         if (readIf("(")) {
             ArrayList<Column> columns = New.arrayList();
@@ -778,22 +799,6 @@ public class Parser {
                 command.setAssignment(column, expression);
             } while (readIf(","));
         }
-        if (readIf("WHERE")) {
-            Expression condition = readExpression();
-            command.setCondition(condition);
-        }
-        if (readIf("ORDER")) {
-            // for MySQL compatibility
-            // (this syntax is supported, but ignored)
-            read("BY");
-            parseSimpleOrderList();
-        }
-        if (readIf("LIMIT")) {
-            Expression limit = readTerm().optimize(session);
-            command.setLimit(limit);
-        }
-        setSQL(command, "UPDATE", start);
-        return command;
     }
 
     private TableFilter readSimpleTableFilter(int orderInFrom) {
@@ -811,6 +816,21 @@ public class Parser {
                 currentSelect, orderInFrom, null);
     }
 
+    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom,List<String> excludeTokens) {
+        Table table = readTableOrView();
+        String alias = null;
+        if (readIf("AS")) {
+            alias = readAliasIdentifier();
+        } else if (currentTokenType == IDENTIFIER) {
+            if (!equalsToken("SET", currentToken) && !excludeTokens.contains(currentToken)) {
+                // SET is not a keyword (PostgreSQL supports it as a table name)
+                alias = readAliasIdentifier();
+            }
+        }
+        return new TableFilter(session, table, alias, rightsChecked,
+                currentSelect, orderInFrom, null);
+    }    
+    
     private Delete parseDelete() {
         Delete command = new Delete(session);
         Expression limit = null;
@@ -1020,13 +1040,20 @@ public class Parser {
         read();
         return select;
     }
+    
 
     private Merge parseMerge() {
         Merge command = new Merge(session);
         currentPrepared = command;
         read("INTO");
-        Table table = readTableOrView();
-        command.setTable(table);
+        List<String> excludeIdentifiers = Arrays.asList("USING","KEY","VALUES");
+        TableFilter targetTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
+        command.setTargetTableFilter(targetTableFilter);            
+        Table table = command.getTargetTable();
+        
+        if (readIf("USING")){
+            return parseMergeUsing(command);
+        }
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -1061,6 +1088,60 @@ public class Parser {
         }
         return command;
     }
+    /*
+       MERGE INTO targetTableName [t_alias] USING table_reference [s_alias] ON (condition)
+           WHEN MATCHED THEN
+            [UPDATE SET column1 = value1 [, column2 = value2 ...] | DELETE]
+           WHEN NOT MATCHED THEN
+            INSERT (column1 [, column2 ...]) VALUES (value1 [, value2 ...]);
+           
+           table_reference ::= table / view / sub-query
+     */
+    /* TODO Finish coding*/
+    private Merge parseMergeUsing(Merge command) {
+        if (readIf("(")) {
+            if (isSelect()) {
+                command.setQuery(parseSelect());
+                read(")");
+            }
+        }
+        else{
+            List<String> excludeIdentifiers = Arrays.asList("ON");
+            TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
+            command.setSourceTableFilter(sourceTableFilter);                    
+        }        
+        read("ON");
+        read("(");
+        Expression condition = readExpression();
+        command.addCondition(condition);
+        read(")");
+        
+        if(readIf("WHEN")&&readIf("MATCHED")&&readIf("THEN")){
+            if (readIf("UPDATE")){
+                Update updateCommand = new Update(session);
+                //currentPrepared = updateCommand;
+                TableFilter filter = command.getTargetTableFilter();
+                updateCommand.setTableFilter(filter);
+                parseUpdateSetClause(updateCommand, filter);
+                command.setUpdateOrDeleteCommand(updateCommand);
+            }
+            if (readIf("DELETE")){
+                Delete deleteCommand = new Delete(session);
+                TableFilter filter = command.getTargetTableFilter();
+                deleteCommand.setTableFilter(filter);
+                command.setUpdateOrDeleteCommand(deleteCommand);
+            }
+            
+        }
+        if(readIf("WHEN")&&readIf("NOT")&&readIf("MATCHED")&&readIf("THEN")){
+            Insert insertCommand = new Insert(session);
+            insertCommand.setTable(command.getTargetTable());
+            parseInsertGivenTable(insertCommand,command.getTargetTable());
+            command.setInsertCommand(insertCommand);
+        }
+
+        return command;
+    }
 
     private Insert parseInsert() {
         Insert command = new Insert(session);
@@ -1068,6 +1149,35 @@ public class Parser {
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
+        Insert returnedCommand = parseInsertGivenTable(command, table);
+        if (returnedCommand!=null){
+            return returnedCommand;
+        }
+        if (database.getMode().onDuplicateKeyUpdate) {
+            if (readIf("ON")) {
+                read("DUPLICATE");
+                read("KEY");
+                read("UPDATE");
+                do {
+                    Column column = parseColumn(table);
+                    read("=");
+                    Expression expression;
+                    if (readIf("DEFAULT")) {
+                        expression = ValueExpression.getDefault();
+                    } else {
+                        expression = readExpression();
+                    }
+                    command.addAssignmentForDuplicate(column, expression);
+                } while (readIf(","));
+            }
+        }
+        if (database.getMode().isolationLevelInSelectOrInsertStatement) {
+            parseIsolationClause();
+        }
+        return command;
+    }
+
+    private Insert parseInsertGivenTable(Insert command, Table table) {
         Column[] columns = null;
         if (readIf("(")) {
             if (isSelect()) {
@@ -1126,28 +1236,7 @@ public class Parser {
         } else {
             command.setQuery(parseSelect());
         }
-        if (database.getMode().onDuplicateKeyUpdate) {
-            if (readIf("ON")) {
-                read("DUPLICATE");
-                read("KEY");
-                read("UPDATE");
-                do {
-                    Column column = parseColumn(table);
-                    read("=");
-                    Expression expression;
-                    if (readIf("DEFAULT")) {
-                        expression = ValueExpression.getDefault();
-                    } else {
-                        expression = readExpression();
-                    }
-                    command.addAssignmentForDuplicate(column, expression);
-                } while (readIf(","));
-            }
-        }
-        if (database.getMode().isolationLevelInSelectOrInsertStatement) {
-            parseIsolationClause();
-        }
-        return command;
+        return null;
     }
 
     /**

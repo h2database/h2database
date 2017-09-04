@@ -88,8 +88,12 @@ public class SortedProperties extends Properties {
             throws IOException {
         SortedProperties prop = new SortedProperties();
         if (FileUtils.exists(fileName)) {
-            try (InputStream in = FileUtils.newInputStream(fileName)) {
+            InputStream in = null;
+            try {
+                in = FileUtils.newInputStream(fileName);
                 prop.load(in);
+            } finally {
+                IOUtils.closeSilently(in);
             }
         }
         return prop;

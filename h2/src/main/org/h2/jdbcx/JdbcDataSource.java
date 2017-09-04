@@ -423,7 +423,6 @@ public class JdbcDataSource extends TraceObject implements XADataSource,
     /**
      * [Not supported]
      */
-    @Override
     public Logger getParentLogger() {
         return null;
     }

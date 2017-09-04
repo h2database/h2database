@@ -64,7 +64,9 @@ public class TestRights extends TestBase {
 
     private void testLinkedTableMeta() throws SQLException {
         deleteDb("rights");
-        try (Connection conn = getConnection("rights")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("rights");
             stat = conn.createStatement();
             stat.execute("create user test password 'test'");
             stat.execute("create linked table test" +
@@ -100,6 +102,8 @@ public class TestRights extends TestBase {
             conn2.close();
 
             stat.execute("drop table test");
+        } finally {
+            conn.close();
         }
     }
 

@@ -1918,7 +1918,6 @@ public class JdbcConnection extends TraceObject implements Connection,
      *
      * @param schema the schema name
      */
-    @Override
     public void setSchema(String schema) throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1936,7 +1935,6 @@ public class JdbcConnection extends TraceObject implements Connection,
      *
      * @return current schema name
      */
-    @Override
     public String getSchema() throws SQLException {
         try {
             if (isDebugEnabled()) {
@@ -1954,7 +1952,6 @@ public class JdbcConnection extends TraceObject implements Connection,
      *
      * @param executor the executor used by this method
      */
-    @Override
     public void abort(Executor executor) {
         // not supported
     }
@@ -1965,7 +1962,6 @@ public class JdbcConnection extends TraceObject implements Connection,
      * @param executor the executor used by this method
      * @param milliseconds the TCP connection timeout
      */
-    @Override
     public void setNetworkTimeout(Executor executor, int milliseconds) {
         // not supported
     }
@@ -1973,7 +1969,6 @@ public class JdbcConnection extends TraceObject implements Connection,
     /**
      * [Not supported]
      */
-    @Override
     public int getNetworkTimeout() {
         return 0;
     }

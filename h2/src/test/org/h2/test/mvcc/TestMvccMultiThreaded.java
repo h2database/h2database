@@ -46,7 +46,7 @@ public class TestMvccMultiThreaded extends TestBase {
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int not null primary key, updated int not null)");
         stat.execute("insert into test(id, updated) values(1, 100)");
-        ArrayList<Task> tasks = new ArrayList<>();
+        ArrayList<Task> tasks = new ArrayList<Task>();
         int count = 3;
         for (int i = 0; i < count; i++) {
             Task task = new Task() {

@@ -133,8 +133,12 @@ public class TestRecover {
                     ZipEntry entry = new ZipEntry(basePath + entryName);
                     zipOut.putNextEntry(entry);
 
-                    try (InputStream in = new FileInputStream(fileName)) {
+                    InputStream in = null;
+                    try {
+                        in = new FileInputStream(fileName);
                         IOUtils.copyAndCloseInput(in, zipOut);
+                    } finally {
+                        IOUtils.closeSilently(in);
                     }
                     zipOut.closeEntry();
                 }

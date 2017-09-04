@@ -173,7 +173,7 @@ public class TestCustomDataTypesHandler extends TestBase {
         public final static int COMPLEX_DATA_TYPE_ID = 1000;
 
         /** Order for complex number data type */
-        public final static int COMPLEX_DATA_TYPE_ORDER = 100_000;
+        public final static int COMPLEX_DATA_TYPE_ORDER = 100000;
 
         /** Cached DataType instance for complex number */
         public final DataType complexDataType;

@@ -42,7 +42,9 @@ public class TestScriptSimple extends TestBase {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         LineNumberReader lineReader = new LineNumberReader(
                 new InputStreamReader(is, "Cp1252"));
-        try (ScriptReader reader = new ScriptReader(lineReader)) {
+        ScriptReader reader = null;
+        try {
+            reader = new ScriptReader(lineReader);
             while (true) {
                 String sql = reader.readStatement();
                 if (sql == null) {
@@ -69,6 +71,8 @@ public class TestScriptSimple extends TestBase {
                     throw e;
                 }
             }
+        } finally {
+            reader.close();
         }
         conn.close();
         deleteDb("scriptSimple");

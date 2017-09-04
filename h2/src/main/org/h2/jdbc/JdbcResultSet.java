@@ -3729,7 +3729,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      * @throws SQLException if the column is not found or if the result set is
      *             closed
      */
-    @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
         try {
             if (type == null) {
@@ -3751,7 +3750,6 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
      * @param type the class of the returned value
      * @return the value
      */
-    @Override
     public <T> T getObject(String columnName, Class<T> type) throws SQLException {
         try {
             if (type == null) {

@@ -188,9 +188,13 @@ public class JdbcClob extends TraceObject implements NClob
             }
             StringWriter writer = new StringWriter(
                     Math.min(Constants.IO_BUFFER_SIZE, length));
-            try (Reader reader = value.getReader()) {
+            Reader reader = null;
+            try {
+                reader = value.getReader();
                 IOUtils.skipFully(reader, pos - 1);
                 IOUtils.copyAndCloseInput(reader, writer, length);
+            } finally {
+                IOUtils.closeSilently(reader);
             }
             return writer.toString();
         } catch (Exception e) {

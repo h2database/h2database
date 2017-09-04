@@ -660,8 +660,10 @@ public class WebApp {
                         treeIndex, notManyTables, columnsBuffer);
                 if (schema.getContents().isH2()) {
 
-                    try (PreparedStatement prep = conn.prepareStatement("SELECT * FROM " +
-                                "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?")) {
+                    PreparedStatement prep = null;
+                    try {
+                        prep = conn.prepareStatement("SELECT * FROM " +
+                                "INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME=?");
                         prep.setString(1, view.getName());
                         ResultSet rs = prep.executeQuery();
                         if (rs.next()) {
@@ -673,6 +675,8 @@ public class WebApp {
                             treeIndex++;
                         }
                         rs.close();
+                    } finally {
+                        JdbcUtils.closeSilently(prep);
                     }
                 }
                 buff.append("addTable('" +
@@ -713,7 +717,9 @@ public class WebApp {
                 treeIndex = addTablesAndViews(schema, false, buff, treeIndex);
             }
             if (isH2) {
-                try (Statement stat = conn.createStatement()) {
+                Statement stat = null;
+                try {
+                    stat = conn.createStatement();
                     ResultSet rs = stat.executeQuery("SELECT * FROM " +
                             "INFORMATION_SCHEMA.SEQUENCES ORDER BY SEQUENCE_NAME");
                     for (int i = 0; rs.next(); i++) {
@@ -767,6 +773,8 @@ public class WebApp {
                         }
                     }
                     rs.close();
+                } finally {
+                    JdbcUtils.closeSilently(stat);
                 }
             }
             DatabaseMetaData meta = session.getMetaData();

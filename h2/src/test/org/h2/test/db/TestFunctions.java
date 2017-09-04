@@ -2138,7 +2138,9 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
     private void callCompiledFunction(String functionName) throws SQLException {
         deleteDb("functions");
-        try (Connection conn = getConnection("functions")) {
+        Connection conn = null;
+        try {
+            conn = getConnection("functions");
             Statement stat = conn.createStatement();
             ResultSet rs;
             stat.execute("create alias " + functionName + " AS "
@@ -2152,6 +2154,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
             assertEquals(Boolean.class.getName(), rs.getObject(1).getClass().getName());
 
             stat.execute("drop alias " + functionName + "");
+        } finally {
+            conn.close();
         }
     }
 

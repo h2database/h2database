@@ -30,6 +30,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 
 /**
  * A implementation of the BLOB and CLOB data types.
@@ -101,7 +102,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         this.tempFile.autoDelete();
 
         long tmpPrecision = 0;
-        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
+        FileStoreOutputStream out = null;
+        try {
+            out = new FileStoreOutputStream(tempFile, null, null);
             char[] buff = new char[Constants.IO_BUFFER_SIZE];
             while (true) {
                 int len = getBufferSize(this.handler, false, remaining);
@@ -113,6 +116,8 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 out.write(data);
                 tmpPrecision += len;
             }
+        } finally {
+            IOUtils.closeSilently(out);
         }
         this.precision = tmpPrecision;
     }

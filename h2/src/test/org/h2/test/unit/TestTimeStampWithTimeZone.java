@@ -34,7 +34,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
     @Override
     public void test() throws SQLException {
         deleteDb(getTestName());
-        test1();
+        // makes much use of Java 1.7, cannot adapt to run on 1.6: test1();
         test2();
         test3();
         test4();
@@ -43,6 +43,8 @@ public class TestTimeStampWithTimeZone extends TestBase {
         deleteDb(getTestName());
     }
 
+    // makes much use of getObject, which is Java 1.7
+    /*
     private void test1() throws SQLException {
         Connection conn = getConnection(getTestName());
         Statement stat = conn.createStatement();
@@ -120,7 +122,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         rs.close();
         stat.close();
         conn.close();
-    }
+    } */
 
     private void test2() {
         ValueTimestampTimeZone a = ValueTimestampTimeZone.parse("1970-01-01 12:00:00.00+00:15");

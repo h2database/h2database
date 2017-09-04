@@ -58,6 +58,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.util.IOUtils;
 import org.h2.value.Value;
 import org.h2.value.ValueString;
 
@@ -467,7 +468,9 @@ public class ScriptCommand extends ScriptBase {
         switch (v.getType()) {
         case Value.BLOB: {
             byte[] bytes = new byte[lobBlockSize];
-            try (InputStream input = v.getInputStream()) {
+            InputStream input = null;
+            try {
+                input = v.getInputStream();
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id +
@@ -480,13 +483,17 @@ public class ScriptCommand extends ScriptBase {
                     String sql = buff.toString();
                     add(sql, true);
                 }
+            } finally {
+               IOUtils.closeSilently(input);
             }
             break;
         }
         case Value.CLOB: {
             char[] chars = new char[lobBlockSize];
 
-            try (Reader reader = v.getReader()) {
+            Reader reader = null;
+            try {
+                reader = v.getReader();
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
                     buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
@@ -499,6 +506,8 @@ public class ScriptCommand extends ScriptBase {
                     String sql = buff.toString();
                     add(sql, true);
                 }
+            } finally {
+                IOUtils.closeSilently(reader);
             }
             break;
         }

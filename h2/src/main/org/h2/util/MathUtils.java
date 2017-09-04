@@ -10,7 +10,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
-import java.util.concurrent.ThreadLocalRandom;
+// Cannot use ThreadLocalRandom. Complying with Java 1.6 and using Random.
+import java.util.Random;
 
 /**
  * This is a utility class with mathematical helper functions.
@@ -22,6 +23,12 @@ public class MathUtils {
      */
     static SecureRandom cachedSecureRandom;
 
+    /**
+     * The ordinary random object.
+     */
+    
+    static Random random = new Random();
+    
     /**
      * True if the secure random object is seeded.
      */
@@ -287,7 +294,7 @@ public class MathUtils {
      * @param bytes the target array
      */
     public static void randomBytes(byte[] bytes) {
-        ThreadLocalRandom.current().nextBytes(bytes);
+        random.nextBytes(bytes);
     }
 
     /**
@@ -316,7 +323,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int randomInt(int lowerThan) {
-        return ThreadLocalRandom.current().nextInt(lowerThan);
+        return random.nextInt(lowerThan);
     }
 
     /**

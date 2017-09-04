@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.api.DatabaseEventListener;
 import org.h2.test.TestBase;
+import org.h2.util.JdbcUtils;
 
 /**
  * Tests the DatabaseEventListener.
@@ -113,12 +114,14 @@ public class TestListener extends TestBase implements DatabaseEventListener {
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection(databaseUrl,
-                getUser(), getPassword())) {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(databaseUrl, getUser(), getPassword());
             conn.createStatement().execute("DROP TABLE TEST2");
-            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JdbcUtils.closeSilently(conn);
         }
     }
 
@@ -133,12 +136,14 @@ public class TestListener extends TestBase implements DatabaseEventListener {
             return;
         }
 
-        try (Connection conn = DriverManager.getConnection(databaseUrl,
-                getUser(), getPassword())) {
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection(databaseUrl, getUser(), getPassword());
             conn.createStatement().execute("CREATE TABLE IF NOT EXISTS TEST2(ID INT)");
-            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JdbcUtils.closeSilently(conn);
         }
     }
 

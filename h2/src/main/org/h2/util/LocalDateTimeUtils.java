@@ -268,8 +268,10 @@ public class LocalDateTimeUtils {
     public static Object parseLocalDate(CharSequence text) {
         try {
             return LOCAL_DATE_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        } catch (IllegalAccessException e1) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e1);
+        } catch (InvocationTargetException e2) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e2);
         }
     }
 
@@ -282,8 +284,10 @@ public class LocalDateTimeUtils {
     public static Object parseLocalTime(CharSequence text) {
         try {
             return LOCAL_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        } catch (IllegalAccessException e1) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e1);
+        } catch (InvocationTargetException e2) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e2);
         }
     }
 
@@ -296,8 +300,10 @@ public class LocalDateTimeUtils {
     public static Object parseLocalDateTime(CharSequence text) {
         try {
             return LOCAL_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        } catch (IllegalAccessException e1) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e1);
+        } catch (InvocationTargetException e2) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e2);
         }
     }
 
@@ -310,8 +316,10 @@ public class LocalDateTimeUtils {
     public static Object parseOffsetDateTime(CharSequence text) {
         try {
             return OFFSET_DATE_TIME_PARSE.invoke(null, text);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalArgumentException("error when parsing text '" + text + "'", e);
+        } catch (IllegalAccessException e1) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e1);
+        } catch (InvocationTargetException e2) {
+            throw new IllegalArgumentException("error when parsing text '" + text + "'", e2);
         }
     }
 
@@ -346,9 +354,12 @@ public class LocalDateTimeUtils {
     private static Object getFieldValue(Class<?> clazz, String fieldName) {
         try {
             return clazz.getField(fieldName).get(null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+        } catch (NoSuchFieldException e1) {
             throw new IllegalStateException("Java 8 or later but field " +
-                    clazz.getName() + "#" + fieldName + " is missing", e);
+                    clazz.getName() + "#" + fieldName + " is missing", e1);
+        } catch (IllegalAccessException e2) {
+            throw new IllegalStateException("Java 8 or later but field " +
+                    clazz.getName() + "#" + fieldName + " is missing", e2);
         }
     }
 

@@ -1304,7 +1304,7 @@ public class Parser {
             throw getSyntaxError();
         }
         read("(");
-        LinkedHashSet<String> indexNames = new LinkedHashSet<>();
+        LinkedHashSet<String> indexNames = new LinkedHashSet<String>();
         if (!readIf(")")) {
             do {
                 String indexName = readIdentifierWithSchema();

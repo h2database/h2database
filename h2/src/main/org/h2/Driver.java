@@ -140,7 +140,6 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
     /**
      * [Not supported]
      */
-    @Override
     public Logger getParentLogger() {
         return null;
     }

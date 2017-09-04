@@ -37,6 +37,7 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
+import org.h2.util.JdbcUtils;
 import java.io.File;
 import java.util.Map;
 
@@ -97,7 +98,9 @@ public class FullTextLucene extends FullText {
      * @param conn the connection
      */
     public static void init(Connection conn) throws SQLException {
-        try (Statement stat = conn.createStatement()) {
+        Statement stat = null;
+        try {
+            stat = conn.createStatement();
             stat.execute("CREATE SCHEMA IF NOT EXISTS " + SCHEMA);
             stat.execute("CREATE TABLE IF NOT EXISTS " + SCHEMA +
                     ".INDEXES(SCHEMA VARCHAR, TABLE VARCHAR, " +
@@ -114,6 +117,8 @@ public class FullTextLucene extends FullText {
                     FullTextLucene.class.getName() + ".reindex\"");
             stat.execute("CREATE ALIAS IF NOT EXISTS FTL_DROP_ALL FOR \"" +
                     FullTextLucene.class.getName() + ".dropAll\"");
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
     }
 

@@ -257,7 +257,7 @@ public class Database implements DataHandler {
         this.javaObjectSerializerName =
                 ci.getProperty("JAVA_OBJECT_SERIALIZER", null);
         this.multiThreaded =
-                ci.getProperty("MULTI_THREADED", false);
+                ci.getProperty("MULTI_THREADED", true);
         boolean closeAtVmShutdown =
                 dbSettings.dbCloseOnExit;
         int traceLevelFile =

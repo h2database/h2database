@@ -39,6 +39,7 @@ import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
+import org.h2.util.JdbcUtils;
 
 /**
  * This class implements the native full text search.
@@ -757,7 +758,9 @@ public class FullText {
 
     private static void createOrDropTrigger(Connection conn,
             String schema, String table, boolean create) throws SQLException {
-        try (Statement stat = conn.createStatement()) {
+        Statement stat = null;
+        try {
+            stat = conn.createStatement();
             String trigger = StringUtils.quoteIdentifier(schema) + "."
                     + StringUtils.quoteIdentifier(TRIGGER_PREFIX + table);
             stat.execute("DROP TRIGGER IF EXISTS " + trigger);
@@ -782,6 +785,8 @@ public class FullText {
                         append('\"');
                 stat.execute(buff.toString());
             }
+        } finally {
+            JdbcUtils.closeSilently(stat);
         }
     }
 
@@ -961,11 +966,15 @@ public class FullText {
 
         private static boolean isMultiThread(Connection conn)
                 throws SQLException {
-            try (Statement stat = conn.createStatement()) {
+            Statement stat = null;
+            try {
+                stat = conn.createStatement();
                 ResultSet rs = stat.executeQuery(
                                 "SELECT value FROM information_schema.settings" +
                                 " WHERE name = 'MULTI_THREADED'");
                 return rs.next() && !"0".equals(rs.getString(1));
+            } finally {
+                JdbcUtils.closeSilently(stat);
             }
         }
 
@@ -1038,8 +1047,8 @@ public class FullText {
                 }
             } finally {
                 if (useOwnConnection) {
-                    IOUtils.closeSilently(prepInsertRow);
-                    IOUtils.closeSilently(prepInsertMap);
+                    JdbcUtils.closeSilently(prepInsertRow);
+                    JdbcUtils.closeSilently(prepInsertMap);
                 }
             }
         }
@@ -1079,9 +1088,9 @@ public class FullText {
                 }
             } finally {
                 if (useOwnConnection) {
-                    IOUtils.closeSilently(prepSelectRow);
-                    IOUtils.closeSilently(prepDeleteMap);
-                    IOUtils.closeSilently(prepDeleteRow);
+                    JdbcUtils.closeSilently(prepSelectRow);
+                    JdbcUtils.closeSilently(prepDeleteMap);
+                    JdbcUtils.closeSilently(prepDeleteRow);
                 }
             }
         }
@@ -1131,7 +1140,7 @@ public class FullText {
                 return wordIds;
             } finally {
                 if (useOwnConnection) {
-                    IOUtils.closeSilently(prepInsertWord);
+                    JdbcUtils.closeSilently(prepInsertWord);
                 }
             }
         }

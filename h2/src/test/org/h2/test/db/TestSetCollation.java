@@ -77,11 +77,15 @@ public class TestSetCollation extends TestBase {
 
         orderedWithCollator("DE");
 
-        try (Connection con = getConnection(DB_NAME)) {
+        Connection con = null;
+        try {
+            con = getConnection(DB_NAME);
             insertValues(con, new String[]{"A", "\u00c4"}, 100);
 
             assertEquals(Arrays.asList(null, "$", "1A", "A", "A", "\u00c4", "\u00c4", "AA", "B"),
                     loadTableValues(con));
+        } finally {
+            con.close();
         }
     }
 
@@ -99,13 +103,16 @@ public class TestSetCollation extends TestBase {
 
         // reopen the database without specifying a collation in the url.
         // This should keep the initial collation.
-        try (Connection con = getConnection(DB_NAME)) {
+        Connection con = null;
+        try {
+            con = getConnection(DB_NAME);
             insertValues(con, new String[]{"A", "\u00c4"}, 100);
 
             assertEquals(Arrays.asList(null, "$", "1A", "A", "A", "\u00c4", "\u00c4", "AA", "B"),
                     loadTableValues(con));
+        } finally {
+            con.close();
         }
-
     }
 
     private void testReopenDatabaseWithDifferentCollationInUrl() throws Exception {
@@ -142,21 +149,28 @@ public class TestSetCollation extends TestBase {
         }
 
         config.collation = "DE";
-        try (Connection con = getConnection(DB_NAME)) {
+        Connection con = null;
+        try {
+            con = getConnection(DB_NAME);
             insertValues(con, new String[]{"A", "\u00c4"}, 100);
 
             assertEquals(Arrays.asList(null, "$", "1A", "A", "A", "\u00c4", "\u00c4", "AA", "B"),
                     loadTableValues(con));
         } finally {
             config.collation = null;
+            con.close();
         }
     }
 
 
     private List<String> orderedWithCollator(String collator) throws SQLException {
         deleteDb(DB_NAME);
-        try (Connection con = getConnection(DB_NAME); Statement statement = con.createStatement()) {
-            ;
+        Connection con = null;
+        Statement statement = null;
+        try {
+            con = getConnection(DB_NAME);
+            statement = con.createStatement();
+            
             if (collator != null) {
                 statement.execute("SET COLLATION " + collator);
             }
@@ -165,6 +179,9 @@ public class TestSetCollation extends TestBase {
             insertValues(con, TEST_STRINGS, 1);
 
             return loadTableValues(con);
+        } finally {
+            statement.close();
+            con.close();
         }
     }
 
@@ -180,7 +197,7 @@ public class TestSetCollation extends TestBase {
     }
 
     private List<String> loadTableValues(Connection con) throws SQLException {
-        List<String> results = new ArrayList<>();
+        List<String> results = new ArrayList<String>();
         Statement statement = con.createStatement();
         ResultSet resultSet = statement.executeQuery("select testvalue from charsettable order by testvalue");
         while (resultSet.next()) {

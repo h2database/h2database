@@ -1569,7 +1569,6 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterIndex the parameter index (1, 2, ...)
      * @param type the class of the returned value
      */
-    @Override
     public <T> T getObject(int parameterIndex, Class<T> type) throws SQLException {
         return getOpenResultSet().getObject(parameterIndex, type);
     }
@@ -1580,7 +1579,6 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
      * @param parameterName the parameter name
      * @param type the class of the returned value
      */
-    @Override
     public <T> T getObject(String parameterName, Class<T> type) throws SQLException {
         return getObject(getIndexForName(parameterName), type);
     }

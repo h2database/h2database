@@ -26,6 +26,7 @@ import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
+import org.h2.util.IOUtils;
 import org.h2.value.Transfer;
 
 /**
@@ -210,8 +211,12 @@ public class FileLock implements Runnable {
      */
     public Properties save() {
         try {
-            try (OutputStream out = FileUtils.newOutputStream(fileName, false)) {
+            OutputStream out = null;
+            try {
+                out = FileUtils.newOutputStream(fileName, false);
                 properties.store(out, MAGIC);
+            } finally {
+                IOUtils.closeSilently(out);
             }
             lastWrite = FileUtils.lastModified(fileName);
             if (trace.isDebugEnabled()) {

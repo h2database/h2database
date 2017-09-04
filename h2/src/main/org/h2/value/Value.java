@@ -281,57 +281,57 @@ public abstract class Value {
     static int getOrder(int type) {
         switch (type) {
         case UNKNOWN:
-            return 1_000;
+            return 1000;
         case NULL:
-            return 2_000;
+            return 2000;
         case STRING:
-            return 10_000;
+            return 10000;
         case CLOB:
-            return 11_000;
+            return 11000;
         case STRING_FIXED:
-            return 12_000;
+            return 12000;
         case STRING_IGNORECASE:
-            return 13_000;
+            return 13000;
         case BOOLEAN:
-            return 20_000;
+            return 20000;
         case BYTE:
-            return 21_000;
+            return 21000;
         case SHORT:
-            return 22_000;
+            return 22000;
         case INT:
-            return 23_000;
+            return 23000;
         case LONG:
-            return 24_000;
+            return 24000;
         case DECIMAL:
-            return 25_000;
+            return 25000;
         case FLOAT:
-            return 26_000;
+            return 26000;
         case DOUBLE:
-            return 27_000;
+            return 27000;
         case TIME:
-            return 30_000;
+            return 30000;
         case DATE:
-            return 31_000;
+            return 31000;
         case TIMESTAMP:
-            return 32_000;
+            return 32000;
         case TIMESTAMP_TZ:
-            return 34_000;
+            return 34000;
         case BYTES:
-            return 40_000;
+            return 40000;
         case BLOB:
-            return 41_000;
+            return 41000;
         case JAVA_OBJECT:
-            return 42_000;
+            return 42000;
         case UUID:
-            return 43_000;
+            return 43000;
         case GEOMETRY:
-            return 44_000;
+            return 44000;
         case ARRAY:
-            return 50_000;
+            return 50000;
         case RESULT_SET:
-            return 51_000;
+            return 51000;
         case ENUM:
-            return 52_000;
+            return 52000;
         default:
             if (JdbcUtils.customDataTypesHandler != null) {
                 return JdbcUtils.customDataTypesHandler.getDataTypeOrder(type);

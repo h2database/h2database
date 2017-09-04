@@ -167,8 +167,9 @@ public class TableLink extends Table {
             qualifiedTableName = originalTable;
         }
         // check if the table is accessible
-
-        try (Statement stat = conn.getConnection().createStatement()) {
+        Statement stat = null;
+        try {
+            stat = conn.getConnection().createStatement();
             rs = stat.executeQuery("SELECT * FROM " +
                     qualifiedTableName + " T WHERE 1=0");
             if (columnList.size() == 0) {
@@ -194,6 +195,8 @@ public class TableLink extends Table {
         } catch (Exception e) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
                     originalTable + "(" + e.toString() + ")");
+        } finally {
+            if (stat != null) stat.close();
         }
         Column[] cols = new Column[columnList.size()];
         columnList.toArray(cols);

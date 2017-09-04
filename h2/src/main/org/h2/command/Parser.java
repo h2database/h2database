@@ -76,6 +76,7 @@ import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
+import org.h2.command.dml.MergeUsing;
 import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.Replace;
@@ -845,6 +846,11 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
+        parseDeleteGivenTable(command, limit, start);
+        return command;
+    }
+
+    private void parseDeleteGivenTable(Delete command, Expression limit, int start) {
         if (readIf("WHERE")) {
             Expression condition = readExpression();
             command.setCondition(condition);
@@ -854,7 +860,6 @@ public class Parser {
         }
         command.setLimit(limit);
         setSQL(command, "DELETE", start);
-        return command;
     }
 
     private IndexColumn[] parseIndexColumnList() {
@@ -1098,17 +1103,31 @@ public class Parser {
            table_reference ::= table / view / sub-query
      */
     /* TODO Finish coding*/
-    private Merge parseMergeUsing(Merge command) {
+    private MergeUsing parseMergeUsing(Merge oldCommand) {        
+        MergeUsing command = new MergeUsing(oldCommand);
+        
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
                 read(")");
             }
+            command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
         }
         else{
             List<String> excludeIdentifiers = Arrays.asList("ON");
             TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
-            command.setSourceTableFilter(sourceTableFilter);                    
+            command.setSourceTableFilter(sourceTableFilter);  
+            
+            StringBuilder buff = new StringBuilder(
+                    "SELECT * FROM "+sourceTableFilter.getTable().getName());
+            if(sourceTableFilter.getTableAlias()!=null){
+                buff.append(" AS "+sourceTableFilter.getTableAlias());
+            }
+            //ArrayList<Value> paramValues = New.arrayList();
+            Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
+            System.out.println("class="+preparedQuery.getClass());
+            command.setQuery((Select)preparedQuery);
+            
         }        
         read("ON");
         read("(");
@@ -1123,21 +1142,25 @@ public class Parser {
                 TableFilter filter = command.getTargetTableFilter();
                 updateCommand.setTableFilter(filter);
                 parseUpdateSetClause(updateCommand, filter);
-                command.setUpdateOrDeleteCommand(updateCommand);
+                command.setUpdateCommand(updateCommand);
             }
             if (readIf("DELETE")){
                 Delete deleteCommand = new Delete(session);
                 TableFilter filter = command.getTargetTableFilter();
                 deleteCommand.setTableFilter(filter);
-                command.setUpdateOrDeleteCommand(deleteCommand);
+                parseDeleteGivenTable(deleteCommand,null,lastParseIndex);
+                command.setDeleteCommand(deleteCommand);
             }
+   
             
         }
         if(readIf("WHEN")&&readIf("NOT")&&readIf("MATCHED")&&readIf("THEN")){
-            Insert insertCommand = new Insert(session);
-            insertCommand.setTable(command.getTargetTable());
-            parseInsertGivenTable(insertCommand,command.getTargetTable());
-            command.setInsertCommand(insertCommand);
+            if (readIf("INSERT")){
+                Insert insertCommand = new Insert(session);
+                insertCommand.setTable(command.getTargetTable());
+                parseInsertGivenTable(insertCommand,command.getTargetTable());
+                command.setInsertCommand(insertCommand);
+            }
         }
 
         return command;
@@ -1380,6 +1403,10 @@ public class Parser {
                 }
             }
         }
+        // inherit alias for temporary views (usually CTE's) from table name
+        if(table.isView() && table.isTemporary() && alias==null){
+            alias = table.getName();
+        }
         return new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
     }
@@ -1401,17 +1428,20 @@ public class Parser {
         return IndexHints.createUseIndexHints(indexNames);
     }
 
-    private String readFromAlias(String alias) {
+    private String readFromAlias(String alias, List<String> excludeIdentifiers) {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER) {
-            // left and right are not keywords (because they are functions as
-            // well)
-            if (!isToken("LEFT") && !isToken("RIGHT") && !isToken("FULL")) {
+        } else if (currentTokenType == IDENTIFIER && !excludeIdentifiers.contains(currentToken)) {
                 alias = readAliasIdentifier();
-            }
         }
         return alias;
+    }
+    
+    private String readFromAlias(String alias) {
+        // left and right are not keywords (because they are functions as
+        // well)
+        List<String> excludeIdentifiers = Arrays.asList("LEFT","RIGHT","FULL");;
+        return readFromAlias(alias, excludeIdentifiers);
     }
 
     private Prepared parseTruncate() {

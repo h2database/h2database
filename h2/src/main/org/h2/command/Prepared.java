@@ -454,4 +454,8 @@ public abstract class Prepared {
     public void setCteCleanups(List<TableView> cteCleanups) {
         this.cteCleanups = cteCleanups;
     }
+
+    public Session getSession() {
+        return session;
+    }
 }

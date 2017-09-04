@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2017 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,8 +8,6 @@ package org.h2.command.dml;
 import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
-import org.h2.command.Command;
-import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -23,120 +21,78 @@ import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
 /**
- * This class represents the statement
- * MERGE
+ * This class represents the statement syntax
+ * MERGE table alias USING...
  */
-public class Merge extends Prepared {
-
-    protected Table targetTable;
-    protected TableFilter targetTableFilter;
-    protected Column[] columns;
-    protected Column[] keys;
-    protected final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
-    protected Query query;
-    protected Prepared update;
-
-    public Merge(Session session) {
-        super(session);
-    }
-
-    @Override
-    public void setCommand(Command command) {
-        super.setCommand(command);
-        if (query != null) {
-            query.setCommand(command);
-        }
-    }
-
-    public void setTargetTable(Table targetTable) {
-        this.targetTable = targetTable;
-    }
-
-    public void setColumns(Column[] columns) {
-        this.columns = columns;
-    }
-
-    public void setKeys(Column[] keys) {
-        this.keys = keys;
-    }
-
-    public void setQuery(Query query) {
-        this.query = query;
-    }
+public class MergeUsing extends Merge {
     
-    /**
-     * Add a row to this merge statement.
-     *
-     * @param expr the list of values
-     */
-    public void addRow(Expression[] expr) {
-        valuesExpressionList.add(expr);
+    private TableFilter sourceTableFilter;
+    private ArrayList<Expression> conditions = new ArrayList<Expression>();
+    private Prepared updateCommand;
+    private Prepared deleteCommand;
+    private Insert insertCommand;
+    private String queryAlias;
+
+    public MergeUsing(Merge merge) {
+        super(merge.getSession());
+        
+        // bring across only the already parsed data from Merge...
+        this.targetTable = merge.targetTable;
+        this.targetTableFilter = merge.targetTableFilter;
+
     }
 
+  
     @Override
     public int update() {
         int count;
-        session.getUser().checkRight(targetTable, Right.INSERT);
-        session.getUser().checkRight(targetTable, Right.UPDATE);
+        checkRights();
         setCurrentRowNumber(0);
-        if (valuesExpressionList.size() > 0) {
-            // process values in list
-            count = 0;
-            for (int x = 0, size = valuesExpressionList.size(); x < size; x++) {
-                setCurrentRowNumber(x + 1);
-                Expression[] expr = valuesExpressionList.get(x);
-                Row newRow = targetTable.getTemplateRow();
-                for (int i = 0, len = columns.length; i < len; i++) {
-                    Column c = columns[i];
-                    int index = c.getColumnId();
-                    Expression e = expr[i];
-                    if (e != null) {
-                        // e can be null (DEFAULT)
-                        try {
-                            Value v = c.convert(e.getValue(session));
-                            newRow.setValue(index, v);
-                        } catch (DbException ex) {
-                            throw setRow(ex, count, getSQL(expr));
-                        }
-                    }
+
+        // process select query data for row creation
+        ResultInterface rows = query.query(0);
+        count = 0;
+        targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
+        targetTable.lock(session, true, false);
+        while (rows.next()) {
+            count++;
+            Value[] r = rows.currentRow();
+            Row newRow = targetTable.getTemplateRow();
+            setCurrentRowNumber(count);
+            for (int j = 0; j < columns.length; j++) {
+                Column c = columns[j];
+                int index = c.getColumnId();
+                try {
+                    Value v = c.convert(r[j]);
+                    newRow.setValue(index, v);
+                } catch (DbException ex) {
+                    throw setRow(ex, count, getSQL(r));
                 }
-                merge(newRow);
-                count++;
             }
-        } else {
-            // process select data for list
-            ResultInterface rows = query.query(0);
-            count = 0;
-            targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
-            targetTable.lock(session, true, false);
-            while (rows.next()) {
-                count++;
-                Value[] r = rows.currentRow();
-                Row newRow = targetTable.getTemplateRow();
-                setCurrentRowNumber(count);
-                for (int j = 0; j < columns.length; j++) {
-                    Column c = columns[j];
-                    int index = c.getColumnId();
-                    try {
-                        Value v = c.convert(r[j]);
-                        newRow.setValue(index, v);
-                    } catch (DbException ex) {
-                        throw setRow(ex, count, getSQL(r));
-                    }
-                }
-                merge(newRow);
-            }
-            rows.close();
-            targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
+            merge(newRow);
         }
+        rows.close();
+        targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
         return count;
     }
 
+    private void checkRights() {
+        if(insertCommand!=null){
+            session.getUser().checkRight(targetTable, Right.INSERT);
+        }
+        if(updateCommand!=null){
+            session.getUser().checkRight(targetTable, Right.UPDATE);
+        }
+        if(deleteCommand!=null){
+            session.getUser().checkRight(targetTable, Right.DELETE);
+        }
+    }
+
+    @Override
     protected void merge(Row row) {
         ArrayList<Parameter> k = update.getParameters();
         for (int i = 0; i < columns.length; i++) {
@@ -156,16 +112,23 @@ public class Merge extends Prepared {
         }
         
         // try and update
-        int count = update.update();
+        int count = 0;
+        if(updateCommand!=null){
+            count+=updateCommand.update();
+        }
+        if(deleteCommand!=null){
+            count+=deleteCommand.update();
+        }
         
-        // if update fails try an insert
+        // if update does nothing, try an insert
         if (count == 0) {
             try {
                 targetTable.validateConvertUpdateSequence(session, row);
                 boolean done = targetTable.fireBeforeRow(session, null, row);
                 if (!done) {
                     targetTable.lock(session, true, false);
-                    targetTable.addRow(session, row);
+                    //targetTable.addRow(session, row);
+                    addRowByInsert(session,row);
                     session.log(targetTable, UndoLogRecord.INSERT, row);
                     targetTable.fireAfterRow(session, null, row, false);
                 }
@@ -196,6 +159,12 @@ public class Merge extends Prepared {
             throw DbException.get(ErrorCode.DUPLICATE_KEY_1, targetTable.getSQL());
         }
     }
+
+    private void addRowByInsert(Session session, Row row) {
+        // TODO Auto-generated method stub
+        targetTable.addRow(session, row);
+    }
+
 
     @Override
     public String getPlanSQL() {
@@ -291,40 +260,41 @@ public class Merge extends Prepared {
         String sql = buff.toString();
         update = session.prepare(sql);
     }
-
-    @Override
-    public boolean isTransactional() {
-        return true;
+    
+    public void setSourceTableFilter(TableFilter sourceTableFilter) {
+        this.sourceTableFilter = sourceTableFilter;        
     }
 
-    @Override
-    public ResultInterface queryMeta() {
-        return null;
-    }
-
-    @Override
-    public int getType() {
-        return CommandInterface.MERGE;
-    }
-
-    @Override
-    public boolean isCacheable() {
-        return true;
-    }
-
-    public Table getTargetTable() {
-        return targetTable;
+    public void addCondition(Expression condition) {
+        this.conditions .add(condition);        
     }
     
-    public TableFilter getTargetTableFilter() {
-        return targetTableFilter;
+    public Prepared getUpdateCommand() {
+        return updateCommand;
+    }
+
+    public void setUpdateCommand(Prepared updateCommand) {
+        this.updateCommand = updateCommand;
     }
     
-    public void setTargetTableFilter(TableFilter targetTableFilter) {
-        this.targetTableFilter = targetTableFilter;
-        setTargetTable(targetTableFilter.getTable());
+    public Prepared getDeleteCommand() {
+        return deleteCommand;
     }
 
+    public void setDeleteCommand(Prepared deleteCommand) {
+        this.deleteCommand = deleteCommand;
+    }
+    
+    public Insert getInsertCommand() {
+        return insertCommand;
+    }
 
+    public void setInsertCommand(Insert insertCommand) {
+        this.insertCommand = insertCommand;
+    }
 
+    public void setQueryAlias(String alias) {
+        this.queryAlias = alias;
+
+    }    
 }

@@ -1594,7 +1594,9 @@ public class JdbcConnection extends TraceObject implements Connection,
             try {
                 Value v = session.getDataHandler().getLobStorage().createBlob(
                         new ByteArrayInputStream(Utils.EMPTY_BYTES), 0);
-                session.addTemporaryLob(v);
+                synchronized (session) {
+                    session.addTemporaryLob(v);
+                }
                 return new JdbcBlob(this, v, id);
             } finally {
                 afterWriting();

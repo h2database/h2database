@@ -219,7 +219,7 @@ public final class MVStore {
 
     private final UncaughtExceptionHandler backgroundExceptionHandler;
 
-    private long currentVersion;
+    private volatile long currentVersion;
 
     /**
      * The version of the last stored chunk, or -1 if nothing was stored so far.

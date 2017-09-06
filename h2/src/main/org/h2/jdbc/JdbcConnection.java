@@ -440,7 +440,9 @@ public class JdbcConnection extends TraceObject implements Connection,
             if (autoCommit && !session.getAutoCommit()) {
                 commit();
             }
-            session.setAutoCommit(autoCommit);
+            synchronized (session) {
+                session.setAutoCommit(autoCommit);
+            }
         } catch (Exception e) {
             throw logAndConvert(e);
         }

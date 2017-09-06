@@ -138,7 +138,7 @@ public class Database implements DataHandler {
     private final int fileLockMethod;
     private Role publicRole;
     private final AtomicLong modificationDataId = new AtomicLong();
-    private long modificationMetaId;
+    private final AtomicLong modificationMetaId = new AtomicLong();
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
@@ -472,14 +472,14 @@ public class Database implements DataHandler {
     }
 
     public long getModificationMetaId() {
-        return modificationMetaId;
+        return modificationMetaId.get();
     }
 
     public long getNextModificationMetaId() {
         // if the meta data has been modified, the data is modified as well
         // (because MetaTable returns modificationDataId)
         modificationDataId.incrementAndGet();
-        return modificationMetaId++;
+        return modificationMetaId.incrementAndGet() - 1;
     }
 
     public int getPowerOffCount() {

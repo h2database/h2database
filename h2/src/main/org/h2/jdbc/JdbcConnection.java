@@ -361,14 +361,14 @@ public class JdbcConnection extends TraceObject implements Connection,
             }
             CloseWatcher.unregister(watcher);
             session.cancel();
-            if (executingStatement != null) {
-                try {
-                    executingStatement.cancel();
-                } catch (NullPointerException e) {
-                    // ignore
-                }
-            }
             synchronized (session) {
+                if (executingStatement != null) {
+                    try {
+                        executingStatement.cancel();
+                    } catch (NullPointerException e) {
+                        // ignore
+                    }
+                }
                 try {
                     if (!session.isClosed()) {
                         try {

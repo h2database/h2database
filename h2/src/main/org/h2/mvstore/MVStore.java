@@ -149,7 +149,7 @@ public final class MVStore {
 
     private volatile boolean reuseSpace = true;
 
-    private boolean closed;
+    private volatile boolean closed;
 
     private FileStore fileStore;
     private boolean fileStoreIsProvided;

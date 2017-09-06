@@ -727,13 +727,15 @@ public class MVTable extends TableBase {
     }
 
     private void analyzeIfRequired(Session session) {
-        if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
-            return;
-        }
-        changesSinceAnalyze = 0;
-        int n = 2 * nextAnalyze;
-        if (n > 0) {
-            nextAnalyze = n;
+        synchronized (this) {
+            if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
+                return;
+            }
+            changesSinceAnalyze = 0;
+            int n = 2 * nextAnalyze;
+            if (n > 0) {
+                nextAnalyze = n;
+            }
         }
         session.markTableForAnalyze(this);
     }

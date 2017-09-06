@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
@@ -136,7 +137,7 @@ public class Database implements DataHandler {
     private Trace trace;
     private final int fileLockMethod;
     private Role publicRole;
-    private long modificationDataId;
+    private final AtomicLong modificationDataId = new AtomicLong();
     private long modificationMetaId;
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
@@ -390,7 +391,7 @@ public class Database implements DataHandler {
     }
 
     public long getModificationDataId() {
-        return modificationDataId;
+        return modificationDataId.get();
     }
 
     /**
@@ -467,7 +468,7 @@ public class Database implements DataHandler {
     }
 
     public long getNextModificationDataId() {
-        return ++modificationDataId;
+        return modificationDataId.incrementAndGet();
     }
 
     public long getModificationMetaId() {
@@ -477,7 +478,7 @@ public class Database implements DataHandler {
     public long getNextModificationMetaId() {
         // if the meta data has been modified, the data is modified as well
         // (because MetaTable returns modificationDataId)
-        modificationDataId++;
+        modificationDataId.incrementAndGet();
         return modificationMetaId++;
     }
 

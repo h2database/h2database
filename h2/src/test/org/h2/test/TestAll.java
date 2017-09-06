@@ -366,6 +366,11 @@ java org.h2.test.TestAll timer
     public boolean travis;
 
     /**
+     * the vmlens.com race condition tool
+     */
+    public boolean vmlens;
+
+    /**
      * The lock timeout to use
      */
     public int lockTimeout = 50;
@@ -506,6 +511,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             if ("travis".equals(args[0])) {
                 test.travis = true;
                 test.testAll();
+            } else if ("vmlens".equals(args[0])) {
+                test.vmlens = true;
+                test.testAll();
             } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
                 System.setProperty("h2.check2", "false");
@@ -554,7 +562,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void testAll() throws Exception {
         runTests();
-        if (!travis) {
+        if (!travis && !vmlens) {
             Profiler prof = new Profiler();
             prof.depth = 16;
             prof.interval = 1;
@@ -614,6 +622,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = true;
         multiThreaded = true;
         test();
+        if (vmlens) {
+            return;
+        }
         testUnit();
 
         // lazy
@@ -681,7 +692,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             cipher = null;
             test();
         }
-
     }
 
     /**
@@ -722,6 +732,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCompatibilityOracle());
         addTest(new TestCsv());
         addTest(new TestDeadlock());
+        if (vmlens) {
+            return;
+        }
         addTest(new TestDrop());
         addTest(new TestDuplicateKeyUpdate());
         addTest(new TestEncryptedDb());

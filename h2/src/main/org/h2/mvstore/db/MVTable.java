@@ -78,7 +78,7 @@ public class MVTable extends TableBase {
 
     private MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = New.arrayList();
-    private long lastModificationId;
+    private volatile long lastModificationId;
     private volatile Session lockExclusiveSession;
 
     // using a ConcurrentHashMap as a set

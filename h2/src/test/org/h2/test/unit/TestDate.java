@@ -191,6 +191,7 @@ public class TestDate extends TestBase {
         }
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     private void testValueTimestamp() {
         assertEquals(
                 "2001-02-03 04:05:06.0", ValueTimestamp.get(

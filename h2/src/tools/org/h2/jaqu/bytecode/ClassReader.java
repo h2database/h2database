@@ -235,6 +235,7 @@ public class ClassReader {
         readAttributes();
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     private Token getResult() {
         while (true) {
             readByteCode();

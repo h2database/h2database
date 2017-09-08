@@ -12,7 +12,6 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;

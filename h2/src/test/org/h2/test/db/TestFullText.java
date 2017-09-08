@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
-import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;

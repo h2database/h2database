@@ -24,7 +24,7 @@ public class Word {
     /**
      * The pages map.
      */
-    final HashMap<Page, Weight> pages = new HashMap<Page, Weight>();
+    final HashMap<Page, Weight> pages = new HashMap<>();
 
     private ArrayList<Weight> weightList;
 
@@ -69,7 +69,7 @@ public class Word {
 
     ArrayList<Weight> getSortedWeights() {
         if (weightList == null) {
-            weightList = new ArrayList<Weight>(pages.values());
+            weightList = new ArrayList<>(pages.values());
             Collections.sort(weightList, new Comparator<Weight>() {
                 @Override
                 public int compare(Weight w0, Weight w1) {

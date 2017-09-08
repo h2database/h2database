@@ -66,9 +66,9 @@ public class MVTable extends TableBase {
 
     static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-            WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
-            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
-            SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+            WAITING_FOR_LOCK = new DebuggingThreadLocal<>();
+            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<>();
+            SHARED_LOCKS = new DebuggingThreadLocal<>();
         } else {
             WAITING_FOR_LOCK = null;
             EXCLUSIVE_LOCKS = null;
@@ -83,13 +83,13 @@ public class MVTable extends TableBase {
 
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
-            new ConcurrentHashMap<Session, Session>();
+            new ConcurrentHashMap<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
      * prevent starvation, since Java's synchronized locking is biased.
      */
-    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<Session>();
+    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
     private int changesSinceAnalyze;
     private int nextAnalyze;

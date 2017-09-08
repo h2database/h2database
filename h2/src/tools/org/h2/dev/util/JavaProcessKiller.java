@@ -70,7 +70,7 @@ public class JavaProcessKiller {
     private static TreeMap<Integer, String> getProcesses() {
         String processList = exec("jps", "-l");
         String[] processes = processList.split("\n");
-        TreeMap<Integer, String> map = new TreeMap<Integer, String>();
+        TreeMap<Integer, String> map = new TreeMap<>();
         for (int i = 0; i < processes.length; i++) {
             String p = processes[i].trim();
             int idx = p.indexOf(' ');

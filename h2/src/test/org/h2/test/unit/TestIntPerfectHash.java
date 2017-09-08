@@ -80,11 +80,11 @@ public class TestIntPerfectHash extends TestBase {
 
     private int test(int size) {
         Random r = new Random(size);
-        HashSet<Integer> set = new HashSet<Integer>();
+        HashSet<Integer> set = new HashSet<>();
         while (set.size() < size) {
             set.add(r.nextInt());
         }
-        ArrayList<Integer> list = new ArrayList<Integer>();
+        ArrayList<Integer> list = new ArrayList<>();
         list.addAll(set);
         byte[] desc = IntPerfectHash.generate(list);
         int max = test(desc, set);
@@ -94,7 +94,7 @@ public class TestIntPerfectHash extends TestBase {
 
     private int test(byte[] desc, Set<Integer> set) {
         int max = -1;
-        HashSet<Integer> test = new HashSet<Integer>();
+        HashSet<Integer> test = new HashSet<>();
         IntPerfectHash hash = new IntPerfectHash(desc);
         for (int x : set) {
             int h = hash.get(x);

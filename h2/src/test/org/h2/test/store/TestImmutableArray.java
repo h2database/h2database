@@ -78,7 +78,7 @@ public class TestImmutableArray extends TestBase {
                 }
             }
         } else {
-            ArrayList<Integer> test = new ArrayList<Integer>();
+            ArrayList<Integer> test = new ArrayList<>();
             for (int i = 0; i < count; i++) {
                 if (i % 10 != 0) {
                     test.add(test.size(), x);
@@ -111,7 +111,7 @@ public class TestImmutableArray extends TestBase {
         for (int i = 0; i < 100; i++) {
             ImmutableArray2<Integer> test = ImmutableArray2.empty();
             // ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
-            ArrayList<Integer> x = new ArrayList<Integer>();
+            ArrayList<Integer> x = new ArrayList<>();
             StringBuilder buff = new StringBuilder();
             for (int j = 0; j < 1000; j++) {
                 buff.append("[" + j + "] ");

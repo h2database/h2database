@@ -18,7 +18,7 @@ public class SQLStatement {
     private final Db db;
     private StringBuilder buff = new StringBuilder();
     private String sql;
-    private final ArrayList<Object> params = new ArrayList<Object>();
+    private final ArrayList<Object> params = new ArrayList<>();
 
     SQLStatement(Db db) {
         this.db = db;

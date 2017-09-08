@@ -93,7 +93,7 @@ public class TestPerformance implements Database.DatabaseTest {
                 size = Integer.parseInt(args[++i]);
             }
         }
-        ArrayList<Database> dbs = new ArrayList<Database>();
+        ArrayList<Database> dbs = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             if (dbId != -1 && i != dbId) {
                 continue;
@@ -107,7 +107,7 @@ public class TestPerformance implements Database.DatabaseTest {
                 }
             }
         }
-        ArrayList<Bench> tests = new ArrayList<Bench>();
+        ArrayList<Bench> tests = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             String testString = prop.getProperty("test" + i);
             if (testString != null) {

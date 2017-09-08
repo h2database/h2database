@@ -21,7 +21,7 @@ public class ClassObj {
     /**
      * The list of interfaces that this class implements.
      */
-    ArrayList<String> interfaceNames = new ArrayList<String>();
+    ArrayList<String> interfaceNames = new ArrayList<>();
 
 
     /**
@@ -52,30 +52,30 @@ public class ClassObj {
     /**
      * The imported classes.
      */
-    ArrayList<ClassObj> imports = new ArrayList<ClassObj>();
+    ArrayList<ClassObj> imports = new ArrayList<>();
 
     /**
      * The per-instance fields.
      */
     LinkedHashMap<String, FieldObj> instanceFields =
-            new LinkedHashMap<String, FieldObj>();
+            new LinkedHashMap<>();
 
     /**
      * The static fields of this class.
      */
     LinkedHashMap<String, FieldObj> staticFields =
-            new LinkedHashMap<String, FieldObj>();
+            new LinkedHashMap<>();
 
     /**
      * The methods.
      */
     LinkedHashMap<String, ArrayList<MethodObj>> methods =
-            new LinkedHashMap<String, ArrayList<MethodObj>>();
+            new LinkedHashMap<>();
 
     /**
      * The list of native statements.
      */
-    ArrayList<Statement> nativeCode = new ArrayList<Statement>();
+    ArrayList<Statement> nativeCode = new ArrayList<>();
 
     /**
      * The class number.
@@ -100,7 +100,7 @@ public class ClassObj {
     void addMethod(MethodObj method) {
         ArrayList<MethodObj> list = methods.get(method.name);
         if (list == null) {
-            list = new ArrayList<MethodObj>();
+            list = new ArrayList<>();
             methods.put(method.name, list);
         } else {
             // for overloaded methods
@@ -246,7 +246,7 @@ class MethodObj {
      * The parameter list.
      */
     LinkedHashMap<String, FieldObj> parameters =
-            new LinkedHashMap<String, FieldObj>();
+            new LinkedHashMap<>();
 
     /**
      * Whether this method is final.

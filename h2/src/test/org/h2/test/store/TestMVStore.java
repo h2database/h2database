@@ -502,7 +502,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s;
         final AtomicReference<Throwable> exRef =
-                new AtomicReference<Throwable>();
+                new AtomicReference<>();
         s = new MVStore.Builder().
                 fileName(fileName).
                 backgroundExceptionHandler(new UncaughtExceptionHandler() {
@@ -1851,7 +1851,7 @@ public class TestMVStore extends TestBase {
         FileUtils.delete(fileName);
         MVStore s = openStore(fileName);
         MVMap<Integer, Integer> m = s.openMap("data");
-        TreeMap<Integer, Integer> map = new TreeMap<Integer, Integer>();
+        TreeMap<Integer, Integer> map = new TreeMap<>();
         Random r = new Random(1);
         int operationCount = 1000;
         int maxValue = 30;

@@ -81,14 +81,14 @@ public class Profiler implements Runnable {
 
     private volatile boolean stop;
     private final HashMap<String, Integer> counts =
-            new HashMap<String, Integer>();
+            new HashMap<>();
 
     /**
      * The summary (usually one entry per package, unless sumClasses is enabled,
      * in which case it's one entry per class).
      */
     private final HashMap<String, Integer> summary =
-            new HashMap<String, Integer>();
+            new HashMap<>();
     private int minCount = 1;
     private int total;
     private Thread thread;
@@ -193,7 +193,7 @@ public class Profiler implements Runnable {
     }
 
     private static List<Object[]> getRunnableStackTraces() {
-        ArrayList<Object[]> list = new ArrayList<Object[]>();
+        ArrayList<Object[]> list = new ArrayList<>();
         Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
         for (Map.Entry<Thread, StackTraceElement[]> entry : map.entrySet()) {
             Thread t = entry.getKey();
@@ -222,7 +222,7 @@ public class Profiler implements Runnable {
 
     private static List<Object[]> readStackTrace(LineNumberReader r)
             throws IOException {
-        ArrayList<Object[]> list = new ArrayList<Object[]>();
+        ArrayList<Object[]> list = new ArrayList<>();
         while (true) {
             String line = r.readLine();
             if (line == null) {
@@ -240,7 +240,7 @@ public class Profiler implements Runnable {
             if (!line.startsWith("java.lang.Thread.State: RUNNABLE")) {
                 continue;
             }
-            ArrayList<String> stack = new ArrayList<String>();
+            ArrayList<String> stack = new ArrayList<>();
             while (true) {
                 line = r.readLine();
                 if (line == null) {
@@ -472,10 +472,10 @@ public class Profiler implements Runnable {
         if (counts.size() == 0) {
             buff.append("(none)").append(LINE_SEPARATOR);
         }
-        HashMap<String, Integer> copy = new HashMap<String, Integer>(counts);
+        HashMap<String, Integer> copy = new HashMap<>(counts);
         appendTop(buff, copy, count, total, false);
         buff.append("summary:").append(LINE_SEPARATOR);
-        copy = new HashMap<String, Integer>(summary);
+        copy = new HashMap<>(summary);
         appendTop(buff, copy, count, total, true);
         buff.append('.');
         return buff.toString();

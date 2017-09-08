@@ -22,7 +22,7 @@ import org.h2.message.DbException;
 public class StringUtils {
 
     private static SoftReference<String[]> softCache =
-            new SoftReference<String[]>(null);
+            new SoftReference<>(null);
     private static long softCacheCreatedNs;
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
@@ -69,7 +69,7 @@ public class StringUtils {
         }
         try {
             cache = new String[SysProperties.OBJECT_CACHE_SIZE];
-            softCache = new SoftReference<String[]>(cache);
+            softCache = new SoftReference<>(cache);
             return cache;
         } finally {
             softCacheCreatedNs = System.nanoTime();
@@ -915,7 +915,7 @@ public class StringUtils {
      * Clear the cache. This method is used for testing.
      */
     public static void clearCache() {
-        softCache = new SoftReference<String[]>(null);
+        softCache = new SoftReference<>(null);
     }
 
     /**

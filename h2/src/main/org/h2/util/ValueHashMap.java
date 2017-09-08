@@ -26,7 +26,7 @@ public class ValueHashMap<V> extends HashBase {
      * @return the object
      */
     public static <T> ValueHashMap<T> newInstance() {
-        return new ValueHashMap<T>();
+        return new ValueHashMap<>();
     }
 
     @Override

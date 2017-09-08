@@ -150,7 +150,7 @@ public class JdbcConnection extends TraceObject implements Connection,
         this.rollback = clone.rollback;
         this.watcher = null;
         if (clone.clientInfo != null) {
-            this.clientInfo = new HashMap<String, String>(clone.clientInfo);
+            this.clientInfo = new HashMap<>(clone.clientInfo);
         }
     }
 
@@ -1737,7 +1737,7 @@ public class JdbcConnection extends TraceObject implements Connection,
 
             if (clientInfoNameRegEx != null && clientInfoNameRegEx.matcher(name).matches()) {
                 if (clientInfo == null) {
-                    clientInfo = new HashMap<String, String>();
+                    clientInfo = new HashMap<>();
                 }
                 clientInfo.put(name, value);
             } else {
@@ -1779,7 +1779,7 @@ public class JdbcConnection extends TraceObject implements Connection,
             }
             checkClosed();
             if (clientInfo == null) {
-                clientInfo = new HashMap<String, String>();
+                clientInfo = new HashMap<>();
             } else {
                 clientInfo.clear();
             }

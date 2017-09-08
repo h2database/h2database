@@ -33,7 +33,7 @@ import org.h2.util.New;
 public class FilePathMem extends FilePath {
 
     private static final TreeMap<String, FileMemData> MEMORY_FILES =
-            new TreeMap<String, FileMemData>();
+            new TreeMap<>();
     private static final FileMemData DIRECTORY = new FileMemData("", false);
 
     @Override
@@ -430,7 +430,7 @@ class FileMemData {
     private static final byte[] COMPRESSED_EMPTY_BLOCK;
 
     private static final Cache<CompressItem, CompressItem> COMPRESS_LATER =
-        new Cache<CompressItem, CompressItem>(CACHE_SIZE);
+        new Cache<>(CACHE_SIZE);
 
     private String name;
     private final int id;
@@ -690,7 +690,7 @@ class FileMemData {
         if (blocks != data.length) {
             AtomicReference<byte[]>[] n = Arrays.copyOf(data, blocks);
             for (int i = data.length; i < blocks; i++) {
-                n[i] = new AtomicReference<byte[]>(COMPRESSED_EMPTY_BLOCK);
+                n[i] = new AtomicReference<>(COMPRESSED_EMPTY_BLOCK);
             }
             data = n;
         }

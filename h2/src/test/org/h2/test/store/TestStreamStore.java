@@ -56,7 +56,7 @@ public class TestStreamStore extends TestBase {
     }
 
     private void testMaxBlockKey() throws IOException {
-        TreeMap<Long, byte[]> map = new TreeMap<Long, byte[]>();
+        TreeMap<Long, byte[]> map = new TreeMap<>();
         StreamStore s = new StreamStore(map);
         s.setMaxBlockSize(128);
         s.setMinBlockSize(64);

@@ -30,8 +30,8 @@ public class LinkChecker {
         "SysProperties", "ErrorCode"
     };
 
-    private final HashMap<String, String> targets = new HashMap<String, String>();
-    private final HashMap<String, String> links = new HashMap<String, String>();
+    private final HashMap<String, String> targets = new HashMap<>();
+    private final HashMap<String, String> links = new HashMap<>();
 
     /**
      * This method is called when executing this application from the command
@@ -114,7 +114,7 @@ public class LinkChecker {
     }
 
     private void listBadLinks() throws Exception {
-        ArrayList<String> errors = new ArrayList<String>();
+        ArrayList<String> errors = new ArrayList<>();
         for (String link : links.keySet()) {
             if (!link.startsWith("http") && !link.endsWith("h2.pdf")
                     && link.indexOf("_ja.") < 0) {

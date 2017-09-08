@@ -179,7 +179,7 @@ public final class MVStore {
      * The map of chunks.
      */
     private final ConcurrentHashMap<Integer, Chunk> chunks =
-            new ConcurrentHashMap<Integer, Chunk>();
+            new ConcurrentHashMap<>();
 
     /**
      * The map of temporarily freed storage space caused by freed pages. The key
@@ -188,7 +188,7 @@ public final class MVStore {
      */
     private final ConcurrentHashMap<Long,
             HashMap<Integer, Chunk>> freedPageSpace =
-            new ConcurrentHashMap<Long, HashMap<Integer, Chunk>>();
+            new ConcurrentHashMap<>();
 
     /**
      * The metadata map. Write access to this map needs to be synchronized on
@@ -197,7 +197,7 @@ public final class MVStore {
     private MVMap<String, String> meta;
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
-            new ConcurrentHashMap<Integer, MVMap<?, ?>>();
+            new ConcurrentHashMap<>();
 
     private HashMap<String, Object> storeHeader = New.hashMap();
 
@@ -309,7 +309,7 @@ public final class MVStore {
         pageSplitSize = pgSplitSize;
         o = config.get("backgroundExceptionHandler");
         this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
-        meta = new MVMap<String, String>(StringDataType.INSTANCE,
+        meta = new MVMap<>(StringDataType.INSTANCE,
                 StringDataType.INSTANCE);
         HashMap<String, Object> c = New.hashMap();
         c.put("id", 0);
@@ -331,9 +331,9 @@ public final class MVStore {
             if (o != null) {
                 cc.segmentCount = (Integer) o;
             }
-            cache = new CacheLongKeyLIRS<Page>(cc);
+            cache = new CacheLongKeyLIRS<>(cc);
             cc.maxMemory /= 4;
-            cacheChunkRef = new CacheLongKeyLIRS<PageChildren>(cc);
+            cacheChunkRef = new CacheLongKeyLIRS<>(cc);
         }
         o = config.get("autoCommitBufferSize");
         int kb = o == null ? 1024 : (Integer) o;
@@ -729,7 +729,7 @@ public final class MVStore {
 
     private void verifyLastChunks() {
         long time = getTimeSinceCreation();
-        ArrayList<Integer> ids = new ArrayList<Integer>(chunks.keySet());
+        ArrayList<Integer> ids = new ArrayList<>(chunks.keySet());
         Collections.sort(ids);
         int newestValidChunk = -1;
         Chunk old = null;
@@ -2287,7 +2287,7 @@ public final class MVStore {
         // find out which chunks to remove,
         // and which is the newest chunk to keep
         // (the chunk list can have gaps)
-        ArrayList<Integer> remove = new ArrayList<Integer>();
+        ArrayList<Integer> remove = new ArrayList<>();
         Chunk keep = null;
         for (Chunk c : chunks.values()) {
             if (c.version > version) {

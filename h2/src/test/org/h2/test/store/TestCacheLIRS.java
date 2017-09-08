@@ -557,7 +557,7 @@ public class TestCacheLIRS extends TestBase {
         List<K> cold = cache.keys(true, false);
         List<K> nonResident = cache.keys(true, true);
         assertEquals(nonResident.size(), cache.sizeNonResident());
-        HashSet<K> hot = new HashSet<K>(stack);
+        HashSet<K> hot = new HashSet<>(stack);
         hot.removeAll(cold);
         hot.removeAll(nonResident);
         assertEquals(hot.size(), cache.sizeHot());
@@ -569,7 +569,7 @@ public class TestCacheLIRS extends TestBase {
     }
 
     private static <K, V> CacheLIRS<K, V> createCache(int maxSize) {
-        return new CacheLIRS<K, V>(maxSize, 1, 0);
+        return new CacheLIRS<>(maxSize, 1, 0);
     }
 
 }

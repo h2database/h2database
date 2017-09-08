@@ -106,7 +106,7 @@ public class Explain extends Prepared {
                         total += e.getValue();
                     }
                     if (total > 0) {
-                        statistics = new TreeMap<String, Integer>(statistics);
+                        statistics = new TreeMap<>(statistics);
                         StringBuilder buff = new StringBuilder();
                         if (statistics.size() > 1) {
                             buff.append("total: ").append(total).append('\n');

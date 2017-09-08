@@ -23,7 +23,7 @@ import java.util.Set;
 public class SoftHashMap<K, V> extends AbstractMap<K, V> {
 
     private final Map<K, SoftValue<V>> map;
-    private final ReferenceQueue<V> queue = new ReferenceQueue<V>();
+    private final ReferenceQueue<V> queue = new ReferenceQueue<>();
 
     public SoftHashMap() {
         map = New.hashMap();
@@ -63,7 +63,7 @@ public class SoftHashMap<K, V> extends AbstractMap<K, V> {
     @Override
     public V put(K key, V value) {
         processQueue();
-        SoftValue<V> old = map.put(key, new SoftValue<V>(value, queue, key));
+        SoftValue<V> old = map.put(key, new SoftValue<>(value, queue, key));
         return old == null ? null : old.get();
     }
 

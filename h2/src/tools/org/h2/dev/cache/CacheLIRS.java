@@ -101,7 +101,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
     public void clear() {
         long max = Math.max(1, maxMemory / segmentCount);
         for (int i = 0; i < segmentCount; i++) {
-            segments[i] = new Segment<K, V>(
+            segments[i] = new Segment<>(
                     this, max, stackMoveDistance, 8);
         }
     }
@@ -169,7 +169,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         Segment<K, V> s2 = segments[segmentIndex];
         if (s == s2) {
             // no other thread resized, so we do
-            s = new Segment<K, V>(s, newLen);
+            s = new Segment<>(s, newLen);
             segments[segmentIndex] = s;
         }
         return s;
@@ -329,7 +329,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      */
     @Override
     public Set<Map.Entry<K, V>> entrySet() {
-        HashMap<K, V> map = new HashMap<K, V>();
+        HashMap<K, V> map = new HashMap<>();
         for (K k : keySet()) {
             map.put(k,  find(k).value);
         }
@@ -343,7 +343,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      */
     @Override
     public Set<K> keySet() {
-        HashSet<K> set = new HashSet<K>();
+        HashSet<K> set = new HashSet<>();
         for (Segment<K, V> s : segments) {
             set.addAll(s.keySet());
         }
@@ -412,7 +412,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
      * @return the key list
      */
     public List<K> keys(boolean cold, boolean nonResident) {
-        ArrayList<K> keys = new ArrayList<K>();
+        ArrayList<K> keys = new ArrayList<>();
         for (Segment<K, V> s : segments) {
             keys.addAll(s.keys(cold, nonResident));
         }
@@ -524,11 +524,11 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
             mask = len - 1;
 
             // initialize the stack and queue heads
-            stack = new Entry<K, V>();
+            stack = new Entry<>();
             stack.stackPrev = stack.stackNext = stack;
-            queue = new Entry<K, V>();
+            queue = new Entry<>();
             queue.queuePrev = queue.queueNext = queue;
-            queue2 = new Entry<K, V>();
+            queue2 = new Entry<>();
             queue2.queuePrev = queue2.queueNext = queue2;
 
             @SuppressWarnings("unchecked")
@@ -602,7 +602,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
         }
 
         private static <K, V> Entry<K, V> copy(Entry<K, V> old) {
-            Entry<K, V> e = new Entry<K, V>();
+            Entry<K, V> e = new Entry<>();
             e.key = old.key;
             e.value = old.value;
             e.memory = old.memory;
@@ -729,7 +729,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
                 // the new entry is too big to fit
                 return old;
             }
-            e = new Entry<K, V>();
+            e = new Entry<>();
             e.key = key;
             e.value = value;
             e.memory = memory;
@@ -951,7 +951,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          * @return the key list
          */
         synchronized List<K> keys(boolean cold, boolean nonResident) {
-            ArrayList<K> keys = new ArrayList<K>();
+            ArrayList<K> keys = new ArrayList<>();
             if (cold) {
                 Entry<K, V> start = nonResident ? queue2 : queue;
                 for (Entry<K, V> e = start.queueNext; e != start;
@@ -986,7 +986,7 @@ public class CacheLIRS<K, V> extends AbstractMap<K, V> {
          * @return the set of keys
          */
         synchronized Set<K> keySet() {
-            HashSet<K> set = new HashSet<K>();
+            HashSet<K> set = new HashSet<>();
             for (Entry<K, V> e = stack.stackNext; e != stack; e = e.stackNext) {
                 set.add(e.key);
             }

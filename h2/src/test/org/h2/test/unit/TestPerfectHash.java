@@ -65,7 +65,7 @@ public class TestPerfectHash extends TestBase {
 
         };
         f.close();
-        HashSet<Text> set = new HashSet<Text>();
+        HashSet<Text> set = new HashSet<>();
         Text t = new Text(data, 0);
         while (true) {
             set.add(t);
@@ -143,7 +143,7 @@ public class TestPerfectHash extends TestBase {
     private void testBrokenHashFunction() {
         int size = 10000;
         Random r = new Random(10000);
-        HashSet<String> set = new HashSet<String>(size);
+        HashSet<String> set = new HashSet<>(size);
         while (set.size() < size) {
             set.add("x " + r.nextDouble());
         }
@@ -167,7 +167,7 @@ public class TestPerfectHash extends TestBase {
 
     private int test(int size, boolean minimal) {
         Random r = new Random(size);
-        HashSet<Integer> set = new HashSet<Integer>();
+        HashSet<Integer> set = new HashSet<>();
         while (set.size() < size) {
             set.add(r.nextInt());
         }
@@ -185,7 +185,7 @@ public class TestPerfectHash extends TestBase {
 
     private int test(byte[] desc, Set<Integer> set) {
         int max = -1;
-        HashSet<Integer> test = new HashSet<Integer>();
+        HashSet<Integer> test = new HashSet<>();
         PerfectHash hash = new PerfectHash(desc);
         for (int x : set) {
             int h = hash.get(x);
@@ -200,7 +200,7 @@ public class TestPerfectHash extends TestBase {
 
     private int testMinimal(int size) {
         Random r = new Random(size);
-        HashSet<Long> set = new HashSet<Long>(size);
+        HashSet<Long> set = new HashSet<>(size);
         while (set.size() < size) {
             set.add((long) r.nextInt());
         }
@@ -213,7 +213,7 @@ public class TestPerfectHash extends TestBase {
 
     private int testMinimalWithString(int size) {
         Random r = new Random(size);
-        HashSet<String> set = new HashSet<String>(size);
+        HashSet<String> set = new HashSet<>(size);
         while (set.size() < size) {
             set.add("x " + r.nextDouble());
         }
@@ -227,7 +227,7 @@ public class TestPerfectHash extends TestBase {
     private <K> int testMinimal(byte[] desc, Set<K> set, UniversalHash<K> hf) {
         int max = -1;
         BitSet test = new BitSet();
-        MinimalPerfectHash<K> hash = new MinimalPerfectHash<K>(desc, hf);
+        MinimalPerfectHash<K> hash = new MinimalPerfectHash<>(desc, hf);
         for (K x : set) {
             int h = hash.get(x);
             assertTrue(h >= 0);

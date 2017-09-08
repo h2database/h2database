@@ -383,7 +383,7 @@ public class TestMVRTree extends TestMVStore {
                 new MVRTreeMap.Builder<String>());
 
         m.setQuadraticSplit(quadraticSplit);
-        HashMap<SpatialKey, String> map = new HashMap<SpatialKey, String>();
+        HashMap<SpatialKey, String> map = new HashMap<>();
         Random rand = new Random(1);
         int operationCount = 10000;
         int maxValue = 300;

@@ -481,7 +481,7 @@ public class WebServer implements Service {
         } catch (IOException e) {
             DbException.traceThrowable(e);
         }
-        session.put("text", new HashMap<Object, Object>(text));
+        session.put("text", new HashMap<>(text));
     }
 
     ArrayList<HashMap<String, Object>> getSessions() {

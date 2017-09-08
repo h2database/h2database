@@ -26,7 +26,7 @@ public class ModelUtils {
      * CREATE statements.
      */
     private static final Map<Class<?>, String> SUPPORTED_TYPES =
-            new HashMap<Class<?>, String>();
+            new HashMap<>();
 
     static {
         Map<Class<?>, String> m = SUPPORTED_TYPES;
@@ -51,7 +51,7 @@ public class ModelUtils {
      * This map is used by generation and validation.
      */
     private static final Map<String, String> SQL_TYPES =
-            new HashMap<String, String>();
+            new HashMap<>();
 
     static {
         Map<String, String> m = SQL_TYPES;

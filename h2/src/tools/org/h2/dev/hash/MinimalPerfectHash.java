@@ -330,7 +330,7 @@ public class MinimalPerfectHash<K> {
      * @return the hash function description
      */
     public static <K> byte[] generate(Set<K> set, UniversalHash<K> hash) {
-        ArrayList<K> list = new ArrayList<K>();
+        ArrayList<K> list = new ArrayList<>();
         list.addAll(set);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int seed = RANDOM.nextInt();
@@ -409,7 +409,7 @@ public class MinimalPerfectHash<K> {
         boolean isRoot = level == 0;
         ArrayList<ArrayList<K>> lists;
         do {
-            lists = new ArrayList<ArrayList<K>>(split);
+            lists = new ArrayList<>(split);
             for (int i = 0; i < split; i++) {
                 lists.add(new ArrayList<K>(size / split));
             }
@@ -452,11 +452,11 @@ public class MinimalPerfectHash<K> {
             final int seed,
             ByteArrayOutputStream out) {
         final ArrayList<ByteArrayOutputStream> outList =
-                new ArrayList<ByteArrayOutputStream>();
+                new ArrayList<>();
         int processors = Runtime.getRuntime().availableProcessors();
         Thread[] threads = new Thread[processors];
         final AtomicInteger success = new AtomicInteger();
-        final AtomicReference<Exception> failure = new AtomicReference<Exception>();
+        final AtomicReference<Exception> failure = new AtomicReference<>();
         for (int i = 0; i < processors; i++) {
             threads[i] = new Thread() {
                 @Override

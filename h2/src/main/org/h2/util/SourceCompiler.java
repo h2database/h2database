@@ -280,7 +280,7 @@ public class SourceCompiler {
         JavaFileManager fileManager = new
                 ClassFileManager(JAVA_COMPILER
                     .getStandardFileManager(null, null, null));
-        ArrayList<JavaFileObject> compilationUnits = new ArrayList<JavaFileObject>();
+        ArrayList<JavaFileObject> compilationUnits = new ArrayList<>();
         compilationUnits.add(new StringJavaFileObject(fullClassName, source));
         // cannot concurrently compile
         synchronized (JAVA_COMPILER) {

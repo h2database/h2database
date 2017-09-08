@@ -312,7 +312,7 @@ public class TestSequence extends TestBase {
                 "minvalue 2 maxvalue 9 nocycle cache 2");
         stat.execute("create sequence d nomaxvalue no minvalue no cache nocycle");
         stat.execute("create sequence e cache 1");
-        List<String> script = new ArrayList<String>();
+        List<String> script = new ArrayList<>();
         ResultSet rs = stat.executeQuery("script nodata");
         while (rs.next()) {
             script.add(rs.getString(1));

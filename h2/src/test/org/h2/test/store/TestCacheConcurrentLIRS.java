@@ -34,7 +34,7 @@ public class TestCacheConcurrentLIRS extends TestBase {
     private void testConcurrent() {
         CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
         cc.maxMemory = 100;
-        final CacheLongKeyLIRS<Integer> test = new CacheLongKeyLIRS<Integer>(cc);
+        final CacheLongKeyLIRS<Integer> test = new CacheLongKeyLIRS<>(cc);
         int threadCount = 8;
         final CountDownLatch wait = new CountDownLatch(1);
         final AtomicBoolean stopped = new AtomicBoolean();

@@ -234,7 +234,7 @@ public class IntPerfectHash {
             split = (size - 47) / DIVIDE;
         }
         split = Math.max(2, split);
-        ArrayList<ArrayList<Integer>> lists = new ArrayList<ArrayList<Integer>>(split);
+        ArrayList<ArrayList<Integer>> lists = new ArrayList<>(split);
         for (int i = 0; i < split; i++) {
             lists.add(new ArrayList<Integer>(size / split));
         }

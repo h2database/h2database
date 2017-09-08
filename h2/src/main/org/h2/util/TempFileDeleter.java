@@ -19,7 +19,7 @@ import org.h2.store.fs.FileUtils;
  */
 public class TempFileDeleter {
 
-    private final ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
+    private final ReferenceQueue<Object> queue = new ReferenceQueue<>();
     private final HashMap<PhantomReference<?>, String> refMap = New.hashMap();
 
     private TempFileDeleter() {
@@ -40,7 +40,7 @@ public class TempFileDeleter {
      */
     public synchronized Reference<?> addFile(String fileName, Object file) {
         IOUtils.trace("TempFileDeleter.addFile", fileName, file);
-        PhantomReference<?> ref = new PhantomReference<Object>(file, queue);
+        PhantomReference<?> ref = new PhantomReference<>(file, queue);
         refMap.put(ref, fileName);
         deleteUnused();
         return ref;

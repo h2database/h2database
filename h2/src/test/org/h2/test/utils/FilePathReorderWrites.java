@@ -169,7 +169,7 @@ class FileReorderWrites extends FileBase {
     /**
      * The list of not yet applied to the base channel. It is sorted by time.
      */
-    private ArrayList<FileWriteOperation> notAppliedList = new ArrayList<FileWriteOperation>();
+    private ArrayList<FileWriteOperation> notAppliedList = new ArrayList<>();
 
     private int id;
 

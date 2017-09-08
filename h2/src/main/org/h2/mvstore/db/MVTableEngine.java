@@ -122,7 +122,7 @@ public class MVTableEngine implements TableEngine {
          * Key: the map name, value: the table.
          */
         final ConcurrentHashMap<String, MVTable> tableMap =
-                new ConcurrentHashMap<String, MVTable>();
+                new ConcurrentHashMap<>();
 
         /**
          * The store.
@@ -208,7 +208,7 @@ public class MVTableEngine implements TableEngine {
         }
 
         public HashMap<String, MVTable> getTables() {
-            return new HashMap<String, MVTable>(tableMap);
+            return new HashMap<>(tableMap);
         }
 
         /**

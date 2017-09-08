@@ -109,7 +109,7 @@ public class TestBnf extends TestBase {
         assertFalse(dbContents.isSQLite());
         DbSchema defaultSchema = dbContents.getDefaultSchema();
         DbProcedure[] procedures = defaultSchema.getProcedures();
-        Set<String> procedureName = new HashSet<String>(procedures.length);
+        Set<String> procedureName = new HashSet<>(procedures.length);
         for (DbProcedure procedure : procedures) {
             assertTrue(defaultSchema == procedure.getSchema());
             procedureName.add(procedure.getName());

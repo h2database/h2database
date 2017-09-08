@@ -57,13 +57,13 @@ public class DateTimeUtils {
      * have that problem, and while it is still a small memory leak, it is not a
      * class loader memory leak.
      */
-    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<Calendar>();
+    private static final ThreadLocal<Calendar> CACHED_CALENDAR = new ThreadLocal<>();
 
     /**
      * A cached instance of Calendar used when a timezone is specified.
      */
     private static final ThreadLocal<Calendar> CACHED_CALENDAR_NON_DEFAULT_TIMEZONE =
-            new ThreadLocal<Calendar>();
+            new ThreadLocal<>();
 
     /**
      * Observed JVM behaviour is that if the timezone of the host computer is

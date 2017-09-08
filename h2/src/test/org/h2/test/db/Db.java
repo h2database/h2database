@@ -31,7 +31,7 @@ public class Db {
     private Connection conn;
     private Statement stat;
     private final HashMap<String, PreparedStatement> prepared =
-            new HashMap<String, PreparedStatement>();
+            new HashMap<>();
 
     /**
      * Create a database object using the given connection.
@@ -86,11 +86,11 @@ public class Db {
      * @return a list of maps
      */
     static List<Map<String, Object>> query(ResultSet rs) throws SQLException {
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> list = new ArrayList<>();
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
         while (rs.next()) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
+            HashMap<String, Object> map = new HashMap<>();
             for (int i = 0; i < columnCount; i++) {
                 map.put(meta.getColumnLabel(i+1), rs.getObject(i+1));
             }

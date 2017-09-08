@@ -26,7 +26,7 @@ public class FreeSpaceList {
      */
     private final int blockSize;
 
-    private List<BlockRange> freeSpaceList = new ArrayList<BlockRange>();
+    private List<BlockRange> freeSpaceList = new ArrayList<>();
 
     public FreeSpaceList(int firstFreeBlock, int blockSize) {
         this.firstFreeBlock = firstFreeBlock;

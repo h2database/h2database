@@ -327,7 +327,7 @@ public class Select extends Query {
                 }
                 HashMap<Expression, Object> values = groups.get(key);
                 if (values == null) {
-                    values = new HashMap<Expression, Object>();
+                    values = new HashMap<>();
                     groups.put(key, values);
                 }
                 currentGroup = values;

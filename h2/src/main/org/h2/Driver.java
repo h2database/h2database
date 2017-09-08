@@ -33,7 +33,7 @@ public class Driver implements java.sql.Driver, JdbcDriverBackwardsCompat {
     private static final Driver INSTANCE = new Driver();
     private static final String DEFAULT_URL = "jdbc:default:connection";
     private static final ThreadLocal<Connection> DEFAULT_CONNECTION =
-            new ThreadLocal<Connection>();
+            new ThreadLocal<>();
 
     private static volatile boolean registered;
 

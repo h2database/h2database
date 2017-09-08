@@ -4278,7 +4278,7 @@ public class Parser {
             }
         } else if (dataType.type == Value.ENUM) {
             if (readIf("(")) {
-                java.util.List<String> enumeratorList = new ArrayList<String>();
+                java.util.List<String> enumeratorList = new ArrayList<>();
                 original += '(';
                 String enumerator0 = readString();
                 enumeratorList.add(enumerator0);
@@ -4924,7 +4924,7 @@ public class Parser {
     }
 
     private Prepared parseWith() {
-        List<TableView> viewsCreated = new ArrayList<TableView>();
+        List<TableView> viewsCreated = new ArrayList<>();
         readIf("RECURSIVE");
         do {
             viewsCreated.add(parseSingleCommonTableExpression());
@@ -5021,7 +5021,7 @@ public class Parser {
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
         String querySQL;
-        List<Column> columnTemplateList = new ArrayList<Column>();
+        List<Column> columnTemplateList = new ArrayList<>();
         try {
             read("AS");
             read("(");

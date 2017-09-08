@@ -486,7 +486,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         List<Long> cold = cache.keys(true, false);
         List<Long> nonResident = cache.keys(true, true);
         assertEquals(nonResident.size(), cache.sizeNonResident());
-        HashSet<Long> hot = new HashSet<Long>(stack);
+        HashSet<Long> hot = new HashSet<>(stack);
         hot.removeAll(cold);
         hot.removeAll(nonResident);
         assertEquals(hot.size(), cache.sizeHot());
@@ -502,7 +502,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         cc.maxMemory = maxSize;
         cc.segmentCount = 1;
         cc.stackMoveDistance = 0;
-        return new CacheLongKeyLIRS<V>(cc);
+        return new CacheLongKeyLIRS<>(cc);
     }
 
 }

@@ -82,7 +82,7 @@ public abstract class TestBase {
      */
     protected long start;
 
-    private final LinkedList<byte[]> memory = new LinkedList<byte[]>();
+    private final LinkedList<byte[]> memory = new LinkedList<>();
 
     /**
      * Get the test directory for this test.
@@ -1381,8 +1381,8 @@ public abstract class TestBase {
         }
         ResultSet rs1 = stat1.executeQuery("SCRIPT simple NOPASSWORDS");
         ResultSet rs2 = stat2.executeQuery("SCRIPT simple NOPASSWORDS");
-        ArrayList<String> list1 = new ArrayList<String>();
-        ArrayList<String> list2 = new ArrayList<String>();
+        ArrayList<String> list1 = new ArrayList<>();
+        ArrayList<String> list2 = new ArrayList<>();
         while (rs1.next()) {
             String s1 = rs1.getString(1);
             s1 = removeRowCount(s1);

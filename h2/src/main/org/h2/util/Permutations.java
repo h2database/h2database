@@ -64,7 +64,7 @@ public class Permutations<T> {
      * @return the generated permutations object
      */
     public static <T> Permutations<T> create(T[] in, T[] out) {
-        return new Permutations<T>(in, out, in.length);
+        return new Permutations<>(in, out, in.length);
     }
 
     /**
@@ -77,7 +77,7 @@ public class Permutations<T> {
      * @return the generated permutations object
      */
     public static <T> Permutations<T> create(T[] in, T[] out, int m) {
-        return new Permutations<T>(in, out, m);
+        return new Permutations<>(in, out, m);
     }
 
     /**

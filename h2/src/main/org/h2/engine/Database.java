@@ -117,7 +117,7 @@ public class Database implements DataHandler {
 
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
-    private final AtomicReference<Session> exclusiveSession = new AtomicReference<Session>();
+    private final AtomicReference<Session> exclusiveSession = new AtomicReference<>();
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
 

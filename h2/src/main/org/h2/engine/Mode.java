@@ -277,7 +277,7 @@ public class Mode {
         mode.prohibitEmptyInPredicate = true;
         mode.padFixedLengthStrings = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
-        Set<String> disallowedTypes = new java.util.HashSet<String>();
+        Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");
         disallowedTypes.add("IDENTITY");
         disallowedTypes.add("TINYINT");

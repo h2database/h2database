@@ -104,7 +104,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 return comp;
             }
         }
-        TreeSet<Source> sources = new TreeSet<Source>();
+        TreeSet<Source> sources = new TreeSet<>();
         for (int i = 0; i < bufferNames.size(); i++) {
             MVMap<Value, Value> map = openMap(bufferNames.get(i));
             Iterator<Value> it = map.keyIterator(null);

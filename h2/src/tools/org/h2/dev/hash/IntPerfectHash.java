@@ -193,13 +193,13 @@ public class IntPerfectHash {
      * @param list the data
      * @return the hash function description
      */
-    public static <K> byte[] generate(ArrayList<Integer> list) {
+    public static byte[] generate(ArrayList<Integer> list) {
         ByteStream out = new ByteStream();
         generate(list, 0, out);
         return out.toByteArray();
     }
 
-    private static <K> void generate(ArrayList<Integer> list, int level, ByteStream out) {
+    private static void generate(ArrayList<Integer> list, int level, ByteStream out) {
         int size = list.size();
         if (size <= 1) {
             out.write((byte) size);

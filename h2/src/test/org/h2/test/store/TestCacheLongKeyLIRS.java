@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-
 import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -455,7 +454,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         }
     }
 
-    private static <K, V> String toString(CacheLongKeyLIRS<V> cache) {
+    private static <V> String toString(CacheLongKeyLIRS<V> cache) {
         StringBuilder buff = new StringBuilder();
         buff.append("mem: " + cache.getUsedMemory());
         buff.append(" stack:");
@@ -473,7 +472,7 @@ public class TestCacheLongKeyLIRS extends TestBase {
         return buff.toString();
     }
 
-    private <K, V> void verify(CacheLongKeyLIRS<V> cache, String expected) {
+    private <V> void verify(CacheLongKeyLIRS<V> cache, String expected) {
         if (expected != null) {
             String got = toString(cache);
             assertEquals(expected, got);

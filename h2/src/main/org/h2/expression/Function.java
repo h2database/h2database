@@ -5,11 +5,7 @@
  */
 package org.h2.expression;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,6 +40,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
+import org.h2.tools.OS;
 import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
@@ -120,7 +117,8 @@ public class Function extends Expression implements FunctionCall {
             ARRAY_LENGTH = 217, LINK_SCHEMA = 218, GREATEST = 219, LEAST = 220,
             CANCEL_SESSION = 221, SET = 222, TABLE = 223, TABLE_DISTINCT = 224,
             FILE_READ = 225, TRANSACTION_ID = 226, TRUNCATE_VALUE = 227,
-            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232;
+            NVL2 = 228, DECODE = 229, ARRAY_CONTAINS = 230, FILE_WRITE = 232,
+            PROCESS_LIST = 233;
 
     public static final int REGEXP_LIKE = 240;
 
@@ -449,6 +447,8 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.RESULT_SET, false, false, false);
         addFunction("CSVWRITE", CSVWRITE,
                 VAR_ARGS, Value.INT, false, false, true);
+        addFunction("PROCESS_LIST", PROCESS_LIST,
+                VAR_ARGS, Value.RESULT_SET, false, false, false);
         addFunctionNotDeterministic("MEMORY_FREE", MEMORY_FREE,
                 0, Value.INT);
         addFunctionNotDeterministic("MEMORY_USED", MEMORY_USED,
@@ -1575,6 +1575,11 @@ public class Function extends Expression implements FunctionCall {
             }
             break;
         }
+        case PROCESS_LIST: {
+            OS os = new OS();
+            result = ValueResultSet.get(os.processes());
+            break;
+        }
         case LINK_SCHEMA: {
             session.getUser().checkAdmin();
             Connection conn = session.createConnection(false);
@@ -2268,6 +2273,7 @@ public class Function extends Expression implements FunctionCall {
             min = 2;
             max = 3;
             break;
+        case PROCESS_LIST:
         default:
             DbException.throwInternalError("type=" + info.type);
         }
@@ -2730,6 +2736,10 @@ public class Function extends Expression implements FunctionCall {
                 JdbcUtils.closeSilently(rs);
             }
             return x;
+        }
+        case PROCESS_LIST: {
+            OS os = new OS();
+            return ValueResultSet.get(os.processes());
         }
         default:
             break;

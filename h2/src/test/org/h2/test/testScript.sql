@@ -10762,7 +10762,7 @@ select * from test where year in (select distinct year from test order by year d
 drop table test;
 > ok
 
------ Issue#493 -----
+----- Issue#600 -----
 create table test as (select char(x) as str from system_range(48,90));
 > ok
 

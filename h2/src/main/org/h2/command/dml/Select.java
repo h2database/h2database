@@ -1460,6 +1460,7 @@ public class Select extends Query {
                     }
                     return row;
                 }
+                --rowNumber;
             }
             return null;
         }

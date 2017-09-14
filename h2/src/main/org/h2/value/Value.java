@@ -608,18 +608,18 @@ public abstract class Value {
                 case BOOLEAN:
                     return ValueByte.get(getBoolean().booleanValue() ? (byte) 1 : (byte) 0);
                 case SHORT:
-                    return ValueByte.get(convertToByte(getShort()));
+                    return ValueByte.get(convertToByte(getShort(), column));
                 case ENUM:
                 case INT:
-                    return ValueByte.get(convertToByte(getInt()));
+                    return ValueByte.get(convertToByte(getInt(), column));
                 case LONG:
-                    return ValueByte.get(convertToByte(getLong()));
+                    return ValueByte.get(convertToByte(getLong(), column));
                 case DECIMAL:
-                    return ValueByte.get(convertToByte(convertToLong(getBigDecimal())));
+                    return ValueByte.get(convertToByte(convertToLong(getBigDecimal(), column), column));
                 case DOUBLE:
-                    return ValueByte.get(convertToByte(convertToLong(getDouble())));
+                    return ValueByte.get(convertToByte(convertToLong(getDouble(), column), column));
                 case FLOAT:
-                    return ValueByte.get(convertToByte(convertToLong(getFloat())));
+                    return ValueByte.get(convertToByte(convertToLong(getFloat(), column), column));
                 case BYTES:
                     return ValueByte.get((byte) Integer.parseInt(getString(), 16));
                 case TIMESTAMP_TZ:
@@ -636,15 +636,15 @@ public abstract class Value {
                     return ValueShort.get(getByte());
                 case ENUM:
                 case INT:
-                    return ValueShort.get(convertToShort(getInt()));
+                    return ValueShort.get(convertToShort(getInt(), column));
                 case LONG:
-                    return ValueShort.get(convertToShort(getLong()));
+                    return ValueShort.get(convertToShort(getLong(), column));
                 case DECIMAL:
-                    return ValueShort.get(convertToShort(convertToLong(getBigDecimal())));
+                    return ValueShort.get(convertToShort(convertToLong(getBigDecimal(), column), column));
                 case DOUBLE:
-                    return ValueShort.get(convertToShort(convertToLong(getDouble())));
+                    return ValueShort.get(convertToShort(convertToLong(getDouble(), column), column));
                 case FLOAT:
-                    return ValueShort.get(convertToShort(convertToLong(getFloat())));
+                    return ValueShort.get(convertToShort(convertToLong(getFloat(), column), column));
                 case BYTES:
                     return ValueShort.get((short) Integer.parseInt(getString(), 16));
                 case TIMESTAMP_TZ:
@@ -664,13 +664,13 @@ public abstract class Value {
                 case SHORT:
                     return ValueInt.get(getShort());
                 case LONG:
-                    return ValueInt.get(convertToInt(getLong()));
+                    return ValueInt.get(convertToInt(getLong(), column));
                 case DECIMAL:
-                    return ValueInt.get(convertToInt(convertToLong(getBigDecimal())));
+                    return ValueInt.get(convertToInt(convertToLong(getBigDecimal(), column), column));
                 case DOUBLE:
-                    return ValueInt.get(convertToInt(convertToLong(getDouble())));
+                    return ValueInt.get(convertToInt(convertToLong(getDouble(), column), column));
                 case FLOAT:
-                    return ValueInt.get(convertToInt(convertToLong(getFloat())));
+                    return ValueInt.get(convertToInt(convertToLong(getFloat(), column), column));
                 case BYTES:
                     return ValueInt.get((int) Long.parseLong(getString(), 16));
                 case TIMESTAMP_TZ:
@@ -691,11 +691,11 @@ public abstract class Value {
                 case INT:
                     return ValueLong.get(getInt());
                 case DECIMAL:
-                    return ValueLong.get(convertToLong(getBigDecimal()));
+                    return ValueLong.get(convertToLong(getBigDecimal(), column));
                 case DOUBLE:
-                    return ValueLong.get(convertToLong(getDouble()));
+                    return ValueLong.get(convertToLong(getDouble(), column));
                 case FLOAT:
-                    return ValueLong.get(convertToLong(getFloat()));
+                    return ValueLong.get(convertToLong(getFloat(), column));
                 case BYTES: {
                     // parseLong doesn't work for ffffffffffffffff
                     byte[] d = getBytes();
@@ -1131,45 +1131,45 @@ public abstract class Value {
         return this;
     }
 
-    private static byte convertToByte(long x) {
+    private static byte convertToByte(long x, Column col) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
         }
         return (byte) x;
     }
 
-    private static short convertToShort(long x) {
+    private static short convertToShort(long x, Column col) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
         }
         return (short) x;
     }
 
-    private static int convertToInt(long x) {
+    private static int convertToInt(long x, Column col) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Long.toString(x));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
         }
         return (int) x;
     }
 
-    private static long convertToLong(double x) {
+    private static long convertToLong(double x, Column col) {
         if (x > Long.MAX_VALUE || x < Long.MIN_VALUE) {
             // TODO document that +Infinity, -Infinity throw an exception and
             // NaN returns 0
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, Double.toString(x));
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), col.getName());
         }
         return Math.round(x);
     }
 
-    private static long convertToLong(BigDecimal x) {
+    private static long convertToLong(BigDecimal x, Column col) {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
                 x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_1, x.toString());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), col.getName());
         }
         return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
     }

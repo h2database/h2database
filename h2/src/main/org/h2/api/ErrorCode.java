@@ -107,6 +107,12 @@ public class ErrorCode {
     public static final int NUMERIC_VALUE_OUT_OF_RANGE_1 = 22003;
 
     /**
+     * The error with code <code>22004</code> is thrown when a value is out of
+     * range when converting to another column's data type.
+     */
+    public static final int NUMERIC_VALUE_OUT_OF_RANGE_2 = 22004;
+
+    /**
      * The error with code <code>22007</code> is thrown when
      * a text can not be converted to a date, time, or timestamp constant.
      * Examples:

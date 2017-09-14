@@ -64,6 +64,7 @@ import org.h2.command.ddl.DropUserDataType;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
+import org.h2.command.ddl.SchemaCommand;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterSequence;
@@ -5791,9 +5792,18 @@ public class Parser {
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("INDEX")) {
                 // MySQL compatibility
-                String indexName = readIdentifierWithSchema();
-                DropIndex command = new DropIndex(session, getSchema());
-                command.setIndexName(indexName);
+                String indexOrConstraintName = readIdentifierWithSchema();
+                final SchemaCommand command;
+                if (schema.findIndex(session, indexOrConstraintName) != null) {
+                    DropIndex dropIndexCommand = new DropIndex(session, getSchema());
+                    dropIndexCommand.setIndexName(indexOrConstraintName);
+                    command = dropIndexCommand;
+                } else {
+                    AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(
+                            session, getSchema(), false/*ifExists*/);
+                    dropCommand.setConstraintName(indexOrConstraintName);
+                    command = dropCommand;
+                }
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("PRIMARY")) {
                 read("KEY");

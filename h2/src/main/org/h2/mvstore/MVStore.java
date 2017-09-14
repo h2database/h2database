@@ -184,10 +184,14 @@ public final class MVStore {
     /**
      * The map of temporarily freed storage space caused by freed pages. The key
      * is the unsaved version, the value is the map of chunks. The maps contains
-     * the number of freed entries per chunk. Access is synchronized.
+     * the number of freed entries per chunk.
+     * <p>
+     * Access is partially synchronized, hence the need for concurrent maps.
+     * Sometimes we hold the MVStore lock, sometimes the MVMap lock, and sometimes
+     * we even sync on the ConcurrentHashMap<Integer, Chunk> object.
      */
     private final ConcurrentHashMap<Long,
-            HashMap<Integer, Chunk>> freedPageSpace =
+            ConcurrentHashMap<Integer, Chunk>> freedPageSpace =
             new ConcurrentHashMap<>();
 
     /**
@@ -1462,15 +1466,15 @@ public final class MVStore {
     private void applyFreedSpace(long storeVersion) {
         while (true) {
             ArrayList<Chunk> modified = New.arrayList();
-            Iterator<Entry<Long, HashMap<Integer, Chunk>>> it;
+            Iterator<Entry<Long, ConcurrentHashMap<Integer, Chunk>>> it;
             it = freedPageSpace.entrySet().iterator();
             while (it.hasNext()) {
-                Entry<Long, HashMap<Integer, Chunk>> e = it.next();
+                Entry<Long, ConcurrentHashMap<Integer, Chunk>> e = it.next();
                 long v = e.getKey();
                 if (v > storeVersion) {
                     continue;
                 }
-                HashMap<Integer, Chunk> freed = e.getValue();
+                ConcurrentHashMap<Integer, Chunk> freed = e.getValue();
                 for (Chunk f : freed.values()) {
                     Chunk c = chunks.get(f.id);
                     if (c == null) {
@@ -1993,10 +1997,10 @@ public final class MVStore {
 
     private void registerFreePage(long version, int chunkId,
             long maxLengthLive, int pageCount) {
-        HashMap<Integer, Chunk> freed = freedPageSpace.get(version);
+        ConcurrentHashMap<Integer, Chunk> freed = freedPageSpace.get(version);
         if (freed == null) {
-            freed = New.hashMap();
-            HashMap<Integer, Chunk> f2 = freedPageSpace.putIfAbsent(version,
+            freed = new ConcurrentHashMap<>();
+            ConcurrentHashMap<Integer, Chunk> f2 = freedPageSpace.putIfAbsent(version,
                     freed);
             if (f2 != null) {
                 freed = f2;
@@ -2006,8 +2010,7 @@ public final class MVStore {
         synchronized (freed) {
             Chunk f = freed.get(chunkId);
             if (f == null) {
-                f = new Chunk(chunkId);
-                freed.put(chunkId, f);
+                f = freed.putIfAbsent(chunkId, new Chunk(chunkId));
             }
             f.maxLenLive -= maxLengthLive;
             f.pageCountLive -= pageCount;

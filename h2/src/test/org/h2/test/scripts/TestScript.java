@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.db;
+package org.h2.test.scripts;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import org.h2.util.StringUtils;
  */
 public class TestScript extends TestBase {
 
-    private static final String FILENAME = "org/h2/test/testScript.sql";
+    private static final String FILENAME = "org/h2/test/scripts/testScript.sql";
 
     private boolean failFast;
 
@@ -87,12 +87,11 @@ public class TestScript extends TestBase {
     private void testScript() throws Exception {
         deleteDb("script");
         String outFile = "test.out.txt";
-        String inFile = FILENAME;
         conn = getConnection("script");
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(inFile);
+        testFile(FILENAME);
         conn.close();
         out.close();
         if (errors.length() > 0) {

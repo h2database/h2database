@@ -68,11 +68,6 @@ public abstract class TestBase {
     private static String baseDir = getTestDir("");
 
     /**
-     * The last time something was printed.
-     */
-    private static long lastPrint;
-
-    /**
      * The test configuration.
      */
     public TestAll config;
@@ -388,7 +383,6 @@ public abstract class TestBase {
      */
     public void trace(String s) {
         if (config.traceTest) {
-            lastPrint = 0;
             println(s);
         }
     }
@@ -459,7 +453,6 @@ public abstract class TestBase {
      * @throws AssertionError always throws an AssertionError
      */
     protected void fail(String string) {
-        lastPrint = 0;
         if (string.length() > 100) {
             // avoid long strings with special characters, because they are slow
             // to display in Eclipse
@@ -529,11 +522,8 @@ public abstract class TestBase {
      */
     public void println(String s) {
         long now = System.nanoTime();
-        if (now > lastPrint + TimeUnit.SECONDS.toNanos(1)) {
-            lastPrint = now;
-            long time = TimeUnit.NANOSECONDS.toMillis(now - start);
-            printlnWithTime(time, getClass().getName() + " " + s);
-        }
+        long time = TimeUnit.NANOSECONDS.toMillis(now - start);
+        printlnWithTime(time, getClass().getName() + " " + s);
     }
 
     /**

@@ -1,4 +1,4 @@
-.translator=Thomas Mueller
+.translator=Xavier Bouclet
 02000=Aucune donnée disponible
 07001=Nombre de paramètre invalide pour {0}, nombre de paramètre attendu: {1}
 08000=Une erreur est survenue lors de l'ouverture de la base de données: {0}
@@ -49,12 +49,12 @@
 90015=SUM ou AVG sur le mauvais type de données pour {0}
 90016=La colonne {0} doit être dans la liste du GROUP BY
 90017=Tentative de définir une seconde clé primaire
-90018=The connection was not closed by the application and is garbage collected
+90018=La connexion n'a pas été fermée et a été récupérée par le ramasse miette.
 90019=Impossible de supprimer l'utilisateur actuel
 90020=Database may be already in use: {0}. Possible solutions: close all other connection(s); use the server mode
 90021=This combination of database settings is not supported: {0}
-90022=Function {0} not found
-90023=Column {0} must not be nullable
+90022=La fonction {0} n'a pas été trouvée
+90023=La colonne {0} ne doit pas être nulle
 90024=Error while renaming file {0} to {1}
 90025=Cannot delete file {0}
 90026=Serialization failed, cause: {0}

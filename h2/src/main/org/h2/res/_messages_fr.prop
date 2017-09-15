@@ -112,17 +112,17 @@
 90078=Schema {0} already exists
 90079=Schema {0} not found
 90080=Schema name must match
-90081=Column {0} contains null values
+90081=La colonne {0} contient des valeurs nulles
 90082=Sequence {0} belongs to a table
 90083=Column may be referenced by {0}
 90084=Cannot drop last column {0}
 90085=Index {0} belongs to constraint {1}
-90086=Class {0} not found
-90087=Method {0} not found
+90086=Classe {0} non trouvée
+90087=Methode {0} non trouvée
 90088=Unknown mode {0}
 90089=Collation cannot be changed because there is a data table: {0}
-90090=Schema {0} cannot be dropped
-90091=Role {0} cannot be dropped
+90090=Le schéma {0} ne peut pas être supprimé
+90091=Le rôle {0} ne peut pas être supprimé
 90093=Clustering error - database currently runs in standalone mode
 90094=Clustering error - database currently runs in cluster mode, server list: {0}
 90095=String format error: {0}
@@ -137,7 +137,7 @@
 90105=Exception calling user-defined function: {0}
 90106=Cannot truncate {0}
 90107=Cannot drop {0} because {1} depends on it
-90108=Out of memory.
+90108=Mémoire insuffisante.
 90109=La vue {0} est invalide: {1}
 90111=Error accessing linked table with SQL statement {0}, cause: {1}
 90112=Row not found when trying to delete from index {0}
@@ -146,7 +146,7 @@
 90115=Constant {0} not found
 90116=Literals of this kind are not allowed
 90117=Remote connections to this server are not allowed, see -tcpAllowOthers
-90118=Cannot drop table {0}
+90118=Impossible de supprimer la table {0}
 90119=User data type {0} already exists
 90120=User data type {0} not found
 90121=Database is already closed (to disable automatic closing at VM shutdown, add ";DB_CLOSE_ON_EXIT=FALSE" to the db URL)

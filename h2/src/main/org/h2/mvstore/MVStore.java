@@ -2008,12 +2008,16 @@ public final class MVStore {
         }
         // synchronize, because pages could be freed concurrently
         synchronized (freed) {
-            Chunk f = freed.get(chunkId);
-            if (f == null) {
-                f = freed.putIfAbsent(chunkId, new Chunk(chunkId));
+            Chunk chunk = freed.get(chunkId);
+            if (chunk == null) {
+                chunk = new Chunk(chunkId);
+                Chunk chunk2 = freed.putIfAbsent(chunkId, chunk);
+                if (chunk2 != null) {
+                    chunk = chunk2;
+                }
             }
-            f.maxLenLive -= maxLengthLive;
-            f.pageCountLive -= pageCount;
+            chunk.maxLenLive -= maxLengthLive;
+            chunk.pageCountLive -= pageCount;
         }
     }
 

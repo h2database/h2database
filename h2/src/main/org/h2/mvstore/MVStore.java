@@ -1862,11 +1862,11 @@ public final class MVStore {
         Collections.sort(old, new Comparator<Chunk>() {
             @Override
             public int compare(Chunk o1, Chunk o2) {
-                int comp = new Integer(o1.collectPriority).
-                        compareTo(o2.collectPriority);
+                int comp = Integer.compare(o1.collectPriority,
+                        o2.collectPriority);
                 if (comp == 0) {
-                    comp = new Long(o1.maxLenLive).
-                        compareTo(o2.maxLenLive);
+                    comp = Long.compare(o1.maxLenLive,
+                            o2.maxLenLive);
                 }
                 return comp;
             }

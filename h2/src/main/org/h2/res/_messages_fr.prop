@@ -152,7 +152,7 @@
 90121=Database is already closed (to disable automatic closing at VM shutdown, add ";DB_CLOSE_ON_EXIT=FALSE" to the db URL)
 90122=Operation not supported for table {0} when there are views on the table: {1}
 90123=Cannot mix indexed and non-indexed parameters
-90124=File not found: {0}
+90124=Fichier non trouvé: {0}
 90125=Invalid class, expected {0} but got {1}
 90126=Database is not persistent
 90127=The result set is not updatable. The query must select all columns from a unique key. Only one table may be selected.
@@ -174,5 +174,5 @@
 90143=#Row {1} not found in primary index {0}
 HY000=Erreur générale: {0}
 HY004=Type de données inconnu: {0}
-HYC00=Feature not supported: {0}
+HYC00=Fonctionnalité non supportée: {0}
 HYT00=Timeout trying to lock table {0}

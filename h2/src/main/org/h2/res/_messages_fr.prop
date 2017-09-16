@@ -109,8 +109,8 @@
 90075=Column is part of the index {0}
 90076=Function alias {0} already exists
 90077=Function alias {0} not found
-90078=Schema {0} already exists
-90079=Schema {0} not found
+90078=Le schéma {0} existe déjà
+90079=Schéma {0} non trouvé
 90080=Schema name must match
 90081=La colonne {0} contient des valeurs nulles
 90082=Sequence {0} belongs to a table

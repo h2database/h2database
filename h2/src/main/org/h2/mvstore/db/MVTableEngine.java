@@ -162,7 +162,7 @@ public class MVTableEngine implements TableEngine {
                 }
                 this.transactionStore = new TransactionStore(
                         store,
-                        new ValueDataType(null, db, null));
+                        new ValueDataType(db.getCompareMode(), db, null));
                 transactionStore.init();
             } catch (IllegalStateException e) {
                 throw convertIllegalStateException(e);

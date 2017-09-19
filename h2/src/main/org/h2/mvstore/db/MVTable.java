@@ -670,7 +670,7 @@ public class MVTable extends TableBase {
     @Override
     public void removeRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        Transaction t = getTransaction(session);
+        Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
             for (int i = indexes.size() - 1; i >= 0; i--) {
@@ -697,7 +697,7 @@ public class MVTable extends TableBase {
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        Transaction t = getTransaction(session);
+        Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
             for (int i = 0, size = indexes.size(); i < size; i++) {
@@ -853,16 +853,6 @@ public class MVTable extends TableBase {
     Transaction getTransactionBegin() {
         // TODO need to commit/rollback the transaction
         return transactionStore.begin();
-    }
-
-    /**
-     * Get the transaction to use for this session.
-     *
-     * @param session the session
-     * @return the transaction
-     */
-    Transaction getTransaction(Session session) {
-        return session.getTransaction();
     }
 
     @Override

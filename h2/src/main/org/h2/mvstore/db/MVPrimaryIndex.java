@@ -246,7 +246,7 @@ public class MVPrimaryIndex extends BaseIndex {
     public void remove(Session session) {
         TransactionMap<Value, Value> map = getMap(session);
         if (!map.isClosed()) {
-            Transaction t = mvTable.getTransaction(session);
+            Transaction t = session.getTransaction();
             t.removeMap(map);
         }
     }
@@ -374,7 +374,7 @@ public class MVPrimaryIndex extends BaseIndex {
         if (session == null) {
             return dataMap;
         }
-        Transaction t = mvTable.getTransaction(session);
+        Transaction t = session.getTransaction();
         return dataMap.getInstance(t, Long.MAX_VALUE);
     }
 

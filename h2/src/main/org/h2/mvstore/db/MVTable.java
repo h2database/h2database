@@ -846,16 +846,22 @@ public class MVTable extends TableBase {
     }
 
     /**
+     * Get a new transaction.
+     *
+     * @return the transaction
+     */
+    Transaction getTransactionBegin() {
+        // TODO need to commit/rollback the transaction
+        return transactionStore.begin();
+    }
+
+    /**
      * Get the transaction to use for this session.
      *
      * @param session the session
      * @return the transaction
      */
     Transaction getTransaction(Session session) {
-        if (session == null) {
-            // TODO need to commit/rollback the transaction
-            return transactionStore.begin();
-        }
         return session.getTransaction();
     }
 

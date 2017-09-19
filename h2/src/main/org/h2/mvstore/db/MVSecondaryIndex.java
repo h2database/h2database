@@ -67,7 +67,7 @@ public class MVSecondaryIndex extends BaseIndex implements MVIndex {
         ValueDataType keyType = new ValueDataType(
                 db.getCompareMode(), db, sortTypes);
         ValueDataType valueType = new ValueDataType(null, null, null);
-        Transaction t = mvTable.getTransaction(null);
+        Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(mapName, keyType, valueType);
         t.commit();
         if (!keyType.equals(dataMap.getKeyType())) {

@@ -159,6 +159,7 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import com.sun.tools.javac.util.Assert;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
@@ -738,6 +739,7 @@ public class Parser {
         return filter.getTable().getColumn(columnName);
     }
 
+    // TODO:(SM) parseUpdate
     private Update parseUpdate() {
         Update command = new Update(session);
         currentPrepared = command;
@@ -1050,6 +1052,7 @@ public class Parser {
     private Merge parseMerge() {
         Merge command = new Merge(session);
         currentPrepared = command;
+        int start = lastParseIndex;
         read("INTO");
         List<String> excludeIdentifiers = Arrays.asList("USING","KEY","VALUES");
         TableFilter targetTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
@@ -1057,7 +1060,7 @@ public class Parser {
         Table table = command.getTargetTable();
         
         if (readIf("USING")){
-            return parseMergeUsing(command);
+            return parseMergeUsing(command,start);
         }
         if (readIf("(")) {
             if (isSelect()) {
@@ -1094,17 +1097,32 @@ public class Parser {
         return command;
     }
     /*
-       MERGE INTO targetTableName [t_alias] USING table_reference [s_alias] ON (condition)
+     * TODO finish writing this MergeUsing
+     
+       MERGE INTO targetTableName [[AS] t_alias] USING table_reference [[AS} s_alias] ON ( condition ,...)
            WHEN MATCHED THEN
-            [UPDATE SET column1 = value1 [, column2 = value2 ...] | DELETE]
+            [UPDATE SET column1 = value1 [, column2 = value2 ... WHERE ...] 
+            [DELETE WHERE ...]
            WHEN NOT MATCHED THEN
             INSERT (column1 [, column2 ...]) VALUES (value1 [, value2 ...]);
            
-           table_reference ::= table / view / sub-query
+           table_reference ::= table | view | ( sub-query )
+           
+        The current implementation (for comparison) uses this syntax:
+        
+         MERGE INTO tablename [(columnName1,...)] 
+         [KEY (keyColumnName1,...)]
+         [ VALUES (expression1,...) | SELECT ...]           
      */
-    /* TODO Finish coding*/
-    private MergeUsing parseMergeUsing(Merge oldCommand) {        
+    /* TODO: Finish coding parseMergeUsing */
+    private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
+        if(schemaName==null){
+            schemaName = session.getCurrentSchemaName();
+        }
+            
+        Schema schema = getSchema();
         MergeUsing command = new MergeUsing(oldCommand);
+        currentPrepared = command;
         
         if (readIf("(")) {
             if (isSelect()) {
@@ -1112,6 +1130,10 @@ public class Parser {
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
+            Table tableOrView = command.getQuery().getTables().toArray(new Table[]{null})[0];
+            TableFilter sourceTableFilter = new TableFilter(session, tableOrView, command.getQueryAlias(), rightsChecked,
+                (Select) command.getQuery(), 0, null);
+            command.setSourceTableFilter(sourceTableFilter); 
         }
         else{
             List<String> excludeIdentifiers = Arrays.asList("ON");
@@ -1150,9 +1172,7 @@ public class Parser {
                 deleteCommand.setTableFilter(filter);
                 parseDeleteGivenTable(deleteCommand,null,lastParseIndex);
                 command.setDeleteCommand(deleteCommand);
-            }
-   
-            
+            }            
         }
         if(readIf("WHEN")&&readIf("NOT")&&readIf("MATCHED")&&readIf("THEN")){
             if (readIf("INSERT")){
@@ -1163,6 +1183,19 @@ public class Parser {
             }
         }
 
+        if(command.getQueryAlias()!=null){
+            if(schema==null){
+                System.out.println("Why oh why is the schema null???");
+                System.out.println("schemaName="+schemaName);
+                throw DbException.getUnsupportedException("unexpected null schema");
+            }
+            String[] querySQLOutput = new String[]{null};
+            List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
+            System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",cte="+columnTemplateList);
+            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false);
+            command.setTemporaryTableView(temporarySourceTableView);
+        }
+        setSQL(command, "MERGE", start);
         return command;
     }
 
@@ -5102,7 +5135,7 @@ public class Parser {
         if (readIf("(")) {
             cols = parseColumnList();
             for (String c : cols) {
-                // we dont really know the type of the column, so string will
+                // we don't really know the type of the column, so string will
                 // have to do
                 columns.add(new Column(c, Value.STRING));
             }
@@ -5135,33 +5168,47 @@ public class Parser {
         data.session = session;
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
-        String querySQL;
-        List<Column> columnTemplateList = new ArrayList<Column>();
+        List<Column> columnTemplateList;
+        String[] querySQLOutput = new String[]{null};
         try {
             read("AS");
             read("(");
             Query withQuery = parseSelect();
             read(")");
-            withQuery.prepare();
-            querySQL = StringUtils.cache(withQuery.getPlanSQL());
-            ArrayList<Expression> withExpressions = withQuery.getExpressions();
-            for (int i = 0; i < withExpressions.size(); ++i) {
-                String columnName = cols != null ? cols[i]
-                        : withExpressions.get(i).getColumnName();
-                columnTemplateList.add(new Column(columnName,
-                        withExpressions.get(i).getType()));
-            }
+            columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
         } finally {
             session.removeLocalTempTable(recursiveTable);
         }
+        TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/);
+        return view;
+    }
+
+    private List<Column> createQueryColumnTemplateList(String[] cols, Query withQuery, String[] querySQLOutput) {
+        List<Column> columnTemplateList = new ArrayList<Column>();
+        withQuery.prepare();
+        querySQLOutput[0] = StringUtils.cache(withQuery.getPlanSQL());
+        ArrayList<Expression> withExpressions = withQuery.getExpressions();
+        for (int i = 0; i < withExpressions.size(); ++i) {
+            String columnName = cols != null ? cols[i]
+                    : withExpressions.get(i).getColumnName();
+            columnTemplateList.add(new Column(columnName,
+                    withExpressions.get(i).getType()));
+        }
+        return columnTemplateList;
+    }
+
+    private TableView createTemporarySessionView(String tempViewName,  String querySQL,
+            List<Column> columnTemplateList, boolean allowRecursiveQueryDetection) {
+        Schema schema = getSchema();
         int id = database.allocateObjectId();
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
+        System.out.println("createTemporarySessionView="+tempViewName);
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
-                true/* recursive */, false);
-        if (!view.isRecursiveQueryDetected()) {
+                allowRecursiveQueryDetection/* recursive */, false);
+        if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
                     false/* recursive */, false);

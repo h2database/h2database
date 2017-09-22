@@ -13,14 +13,16 @@ import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
 import org.h2.expression.Expression;
+import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
 import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.table.Column;
-import org.h2.table.Table;
+import org.h2.table.PlanItem;
 import org.h2.table.TableFilter;
+import org.h2.table.TableView;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -32,10 +34,11 @@ public class MergeUsing extends Merge {
     
     private TableFilter sourceTableFilter;
     private ArrayList<Expression> conditions = new ArrayList<Expression>();
-    private Prepared updateCommand;
-    private Prepared deleteCommand;
+    private Update updateCommand;
+    private Delete deleteCommand;
     private Insert insertCommand;
     private String queryAlias;
+    private TableView temporarySourceTableView;
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());
@@ -49,6 +52,18 @@ public class MergeUsing extends Merge {
   
     @Override
     public int update() {
+        System.out.println("update");
+        
+        if(targetTableFilter!=null){
+            targetTableFilter.startQuery(session);
+            targetTableFilter.reset();
+        }
+        
+        if(sourceTableFilter!=null){
+            sourceTableFilter.startQuery(session);
+            sourceTableFilter.reset();
+        }
+       
         int count;
         checkRights();
         setCurrentRowNumber(0);
@@ -56,7 +71,7 @@ public class MergeUsing extends Merge {
         // process select query data for row creation
         ResultInterface rows = query.query(0);
         count = 0;
-        targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, true);
+        targetTable.fire(session, evaluateTriggerMasks(), true);
         targetTable.lock(session, true, false);
         while (rows.next()) {
             count++;
@@ -76,8 +91,23 @@ public class MergeUsing extends Merge {
             merge(newRow);
         }
         rows.close();
-        targetTable.fire(session, Trigger.UPDATE | Trigger.INSERT, false);
+        targetTable.fire(session, evaluateTriggerMasks(), false);
         return count;
+    }
+
+
+    private int evaluateTriggerMasks() {
+        int masks = 0;
+        if(insertCommand!=null){
+            masks |= Trigger.INSERT;
+        }
+        if(updateCommand!=null){
+            masks |= Trigger.UPDATE;
+        }
+        if(deleteCommand!=null){
+            masks |= Trigger.DELETE;
+        }
+        return masks;
     }
 
     private void checkRights() {
@@ -116,11 +146,11 @@ public class MergeUsing extends Merge {
         if(updateCommand!=null){
             count+=updateCommand.update();
         }
-        if(deleteCommand!=null){
+        if(deleteCommand!=null && count==0){
             count+=deleteCommand.update();
         }
         
-        // if update does nothing, try an insert
+        // if either updates do nothing, try an insert
         if (count == 0) {
             try {
                 targetTable.validateConvertUpdateSequence(session, row);
@@ -161,13 +191,15 @@ public class MergeUsing extends Merge {
     }
 
     private void addRowByInsert(Session session, Row row) {
-        // TODO Auto-generated method stub
+        System.out.println("addRowByInsert=(hashcode)"+row.hashCode());
         targetTable.addRow(session, row);
     }
 
 
     @Override
     public String getPlanSQL() {
+        System.out.println("getPlanSQL");
+
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
         buff.append(targetTable.getSQL()).append('(');
         for (Column c : columns) {
@@ -210,8 +242,62 @@ public class MergeUsing extends Merge {
         return buff.toString();
     }
 
+/*    
     @Override
     public void prepare() {
+        if (condition != null) {
+            condition.mapColumns(tableFilter, 0);
+            condition = condition.optimize(session);
+            condition.createIndexConditions(session, tableFilter);
+        }
+        for (int i = 0, size = columns.size(); i < size; i++) {
+            Column c = columns.get(i);
+            Expression e = expressionMap.get(c);
+            e.mapColumns(tableFilter, 0);
+            expressionMap.put(c, e.optimize(session));
+        }
+        TableFilter[] filters = new TableFilter[] { tableFilter };
+        PlanItem item = tableFilter.getBestPlanItem(session, filters, 0,
+                ExpressionVisitor.allColumnsForTableFilters(filters));
+        tableFilter.setPlanItem(item);
+        tableFilter.prepare();
+    }
+*/    
+    
+    /*
+        MERGE INTO targetTableName [[AS] t_alias] USING table_reference [[AS} s_alias] ON ( condition ,...)
+            WHEN MATCHED THEN
+             [UPDATE SET column1 = value1 [, column2 = value2 ... WHERE ...] 
+             [DELETE WHERE ...]
+            WHEN NOT MATCHED THEN
+             INSERT (column1 [, column2 ...]) VALUES (value1 [, value2 ...]);
+            
+            table_reference ::= table | view | ( sub-query )
+            
+         The current implementation (for comparison) uses this syntax:
+         
+          MERGE INTO tablename [(columnName1,...)] 
+          [KEY (keyColumnName1,...)]
+          [ VALUES (expression1,...) | SELECT ...]           
+    */    
+    @Override
+    public void prepare() {
+        System.out.println("prepare:targetTableFilterAlias="+targetTableFilter.getTableAlias());
+        System.out.println("prepare:sourceTableFilterAlias="+sourceTableFilter.getTableAlias());
+        System.out.println("prepare:conditions="+conditions);
+        
+        TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };
+        
+        for(Expression condition: conditions) {
+            System.out.println("condition="+condition+":op="+condition.getClass().getSimpleName());
+            filters[0].addJoin(filters[1], false, true, condition);
+            condition.mapColumns(sourceTableFilter, 0);
+            //condition.mapColumns(targetTableFilter, 0);
+            condition = condition.optimize(session);
+            condition.createIndexConditions(session, sourceTableFilter);
+            //condition.createIndexConditions(session, targetTableFilter);
+        }
+
         if (columns == null) {
             if (valuesExpressionList.size() > 0 && valuesExpressionList.get(0).length == 0) {
                 // special case where table is used as a sequence
@@ -245,8 +331,30 @@ public class MergeUsing extends Merge {
             }
             keys = idx.getColumns();
         }
+        String sql = buildPreparedSQL();
+        update = session.prepare(sql);
+        
+        // Not sure how these sub-prepares will work...
+        if(updateCommand!=null){
+            updateCommand.prepare();
+        }
+        if(deleteCommand!=null){
+            deleteCommand.prepare();
+        }        
+        if(insertCommand!=null){
+            insertCommand.prepare();
+        }        
+        
+        
+    }
+
+    private String buildPreparedSQL() {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTable.getSQL()).append(" SET ");
+        buff.append(targetTable.getSQL());
+        if(targetTableFilter.getTableAlias()!=null){
+            buff.append(" AS "+targetTableFilter.getTableAlias()+" ");            
+        }
+        buff.append(" SET ");
         for (Column c : columns) {
             buff.appendExceptFirst(", ");
             buff.append(c.getSQL()).append("=?");
@@ -258,7 +366,7 @@ public class MergeUsing extends Merge {
             buff.append(c.getSQL()).append("=?");
         }
         String sql = buff.toString();
-        update = session.prepare(sql);
+        return sql;
     }
     
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
@@ -273,7 +381,7 @@ public class MergeUsing extends Merge {
         return updateCommand;
     }
 
-    public void setUpdateCommand(Prepared updateCommand) {
+    public void setUpdateCommand(Update updateCommand) {
         this.updateCommand = updateCommand;
     }
     
@@ -281,7 +389,7 @@ public class MergeUsing extends Merge {
         return deleteCommand;
     }
 
-    public void setDeleteCommand(Prepared deleteCommand) {
+    public void setDeleteCommand(Delete deleteCommand) {
         this.deleteCommand = deleteCommand;
     }
     
@@ -296,5 +404,16 @@ public class MergeUsing extends Merge {
     public void setQueryAlias(String alias) {
         this.queryAlias = alias;
 
-    }    
+    }
+    public String getQueryAlias() {
+        return this.queryAlias;
+
+    }
+    public Query getQuery() {
+        return query;
+    }
+
+    public void setTemporaryTableView(TableView temporarySourceTableView) {
+        this.temporarySourceTableView = temporarySourceTableView;        
+    }  
 }

@@ -17,8 +17,7 @@ import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.util.New;
 
 /**
- * A possible query execution plan. The time required to execute a query depends
- * on the order the tables are accessed.
+ * A possible query execution plan. The time required to execute a query depends on the order the tables are accessed.
  */
 public class Plan {
 
@@ -127,13 +126,15 @@ public class Plan {
                         item.cost, item.getIndex().getPlanSQL());
             }
             /**
-             * If the current item is virtual and it'll be joined with another
-             * filter, then the cost of the inner node must be multiplied by the
-             * outer node. Therefore, to process each row of the outer join node
-             * (the previous plan item cost), one pass in the inner node must be
-             * processed (cost of the virtual index scan).
+             * If the current item is virtual and it'll be joined with another filter, then the cost of the inner node must be multiplied by the outer
+             * node. Therefore, to process each row of the outer join node (the previous plan item cost), one pass in the inner node must be processed
+             * (cost of the virtual index scan).
              */
-            cost += cost * (i > 0 && item.isVirtualIndex() ? planItems.get(allFilters[i - 1]).cost * item.cost : item.cost);
+            if (i > 0 && item.isVirtualIndex()) {
+                cost += cost * planItems.get(allFilters[i - 1]).cost * item.cost;
+            } else {
+                cost += cost * item.cost;
+            }
             setEvaluatable(tableFilter, true);
             Expression on = tableFilter.getJoinCondition();
             if (on != null) {

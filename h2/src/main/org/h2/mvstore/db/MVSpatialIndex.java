@@ -102,7 +102,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
                 new MVRTreeMap.Builder<VersionedValue>().
                 valueType(valueType);
         spatialMap = db.getMvStore().getStore().openMap(mapName, mapBuilder);
-        Transaction t = mvTable.getTransaction(null);
+        Transaction t = mvTable.getTransactionBegin();
         dataMap = t.openMap(spatialMap);
         t.commit();
     }
@@ -260,7 +260,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     public void remove(Session session) {
         TransactionMap<SpatialKey, Value> map = getMap(session);
         if (!map.isClosed()) {
-            Transaction t = mvTable.getTransaction(session);
+            Transaction t = session.getTransaction();
             t.removeMap(map);
         }
     }
@@ -330,7 +330,7 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
         if (session == null) {
             return dataMap;
         }
-        Transaction t = mvTable.getTransaction(session);
+        Transaction t = session.getTransaction();
         return dataMap.getInstance(t, Long.MAX_VALUE);
     }
 

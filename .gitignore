@@ -17,3 +17,5 @@
 .checkstyle
 /temp/
 /h2web/
+.pmd
+docs/html/testOutput.html

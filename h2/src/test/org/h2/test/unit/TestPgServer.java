@@ -363,10 +363,13 @@ public class TestPgServer extends TestBase {
         }
     }
 
-    private void testBinaryTypes() throws SQLException {
+    private void testBinaryTypes() throws SQLException, InterruptedException {
         if (!getPgJdbcDriver()) {
             return;
         }
+
+        // Sometimes the previous pg server has not finished shutting and we get "port in use", so sleep for a bit.
+        Thread.sleep(100);
 
         Server server = Server.createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");

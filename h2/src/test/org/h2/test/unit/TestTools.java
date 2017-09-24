@@ -64,7 +64,7 @@ public class TestTools extends TestBase {
 
     private static String lastUrl;
     private Server server;
-    private List<Server> remainingServers = new ArrayList<Server>(3);
+    private List<Server> remainingServers = new ArrayList<>(3);
 
     /**
      * Run just this test.
@@ -525,7 +525,7 @@ public class TestTools extends TestBase {
 
     private void testServerMain() throws SQLException {
         testNonSSL();
-        if (!config.fast) {
+        if (!config.travis) {
             testSSL();
         }
     }

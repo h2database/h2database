@@ -46,10 +46,10 @@ public class Query<T> {
 
     @SuppressWarnings("unchecked")
     static <T> Query<T> from(Db db, T alias) {
-        Query<T> query = new Query<T>(db);
+        Query<T> query = new Query<>(db);
         TableDefinition<T> def = (TableDefinition<T>) db.define(alias
                 .getClass());
-        query.from = new SelectTable<T>(db, query, alias, false);
+        query.from = new SelectTable<>(db, query, alias, false);
         def.initSelectObject(query.from, alias, query.aliasMap);
         return query;
     }
@@ -132,11 +132,11 @@ public class Query<T> {
     }
 
     public <A> UpdateColumnSet<T, A> set(A field) {
-        return new UpdateColumnSet<T, A>(this, field);
+        return new UpdateColumnSet<>(this, field);
     }
 
     public <A> UpdateColumnIncrement<T, A> increment(A field) {
-        return new UpdateColumnIncrement<T, A>(this, field);
+        return new UpdateColumnIncrement<>(this, field);
     }
 
     public int update() {
@@ -245,7 +245,7 @@ public class Query<T> {
     }
 
     public <A> QueryCondition<T, A> where(A x) {
-        return new QueryCondition<T, A>(this, x);
+        return new QueryCondition<>(this, x);
     }
 
     public <A> QueryWhere<T> where(Filter filter) {
@@ -273,13 +273,13 @@ public class Query<T> {
                 "where");
         // String filterQuery = filterCode.toString();
         conditions.add(filterCode);
-        return new QueryWhere<T>(this);
+        return new QueryWhere<>(this);
     }
 
     public QueryWhere<T> whereTrue(Boolean condition) {
         Token token = new Function("", condition);
         addConditionToken(token);
-        return new QueryWhere<T>(this);
+        return new QueryWhere<>(this);
     }
 
     /**
@@ -305,7 +305,7 @@ public class Query<T> {
      */
     public Query<T> orderBy(Object... expressions) {
         for (Object expr : expressions) {
-            OrderExpression<T> e = new OrderExpression<T>(this, expr, false,
+            OrderExpression<T> e = new OrderExpression<>(this, expr, false,
                     false, false);
             addOrderBy(e);
         }
@@ -313,7 +313,7 @@ public class Query<T> {
     }
 
     public Query<T> orderByDesc(Object expr) {
-        OrderExpression<T> e = new OrderExpression<T>(this, expr, true, false,
+        OrderExpression<T> e = new OrderExpression<>(this, expr, true, false,
                 false);
         addOrderBy(e);
         return this;

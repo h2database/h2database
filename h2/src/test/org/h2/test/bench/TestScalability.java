@@ -72,7 +72,7 @@ public class TestScalability implements Database.DatabaseTest {
         final String out = "benchmark.html";
         final int size = 400;
 
-        ArrayList<Database> dbs = new ArrayList<Database>();
+        ArrayList<Database> dbs = new ArrayList<>();
         int id = 1;
         final String h2Url = "jdbc:h2:./data/test;" +
                 "LOCK_TIMEOUT=10000;LOCK_MODE=3";

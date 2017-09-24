@@ -293,8 +293,7 @@ public class FilePathDisk extends FilePath {
 
     @Override
     public InputStream newInputStream() throws IOException {
-        int index = name.indexOf(':');
-        if (index > 1 && index < 20) {
+        if (name.matches("[a-zA-Z]{2,19}:.*")) {
             // if the ':' is in position 1, a windows file access is assumed:
             // C:.. or D:, and if the ':' is not at the beginning, assume its a
             // file name with a colon

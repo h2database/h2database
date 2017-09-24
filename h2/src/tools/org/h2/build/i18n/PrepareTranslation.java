@@ -109,7 +109,7 @@ public class PrepareTranslation {
                 prop.put(key, t);
             }
         }
-        ArrayList <String>fileNames = new ArrayList<String>();
+        ArrayList <String>fileNames = new ArrayList<>();
         for (File f : list) {
             String name = f.getName();
             if (!name.endsWith(".jsp")) {
@@ -238,7 +238,7 @@ public class PrepareTranslation {
         SortedProperties prop = new SortedProperties();
         XMLParser parser = new XMLParser(xml);
         StringBuilder buff = new StringBuilder();
-        Stack<String> stack = new Stack<String>();
+        Stack<String> stack = new Stack<>();
         String tag = "";
         boolean ignoreEnd = false;
         String nextKey = "";
@@ -418,7 +418,7 @@ public class PrepareTranslation {
         String suffix = utf8 ? ".prop" : ".properties";
         File dir = new File(path);
         File main = null;
-        ArrayList<File> translations = new ArrayList<File>();
+        ArrayList<File> translations = new ArrayList<>();
         for (File f : dir.listFiles()) {
             if (f.getName().endsWith(suffix) && f.getName().indexOf('_') >= 0) {
                 if (f.getName().endsWith("_" + MAIN_LANGUAGE + suffix)) {
@@ -474,7 +474,7 @@ public class PrepareTranslation {
                 oldTranslations.setProperty(m, t);
             }
         }
-        HashSet<String> toTranslate = new HashSet<String>();
+        HashSet<String> toTranslate = new HashSet<>();
         // add missing keys, using # and the value from the main file
         for (Object k : main.keySet()) {
             String key = (String) k;
@@ -530,7 +530,7 @@ public class PrepareTranslation {
         }
         // remove keys that don't exist in the main file
         // (deleted or typo in the key)
-        for (Object k : new ArrayList<Object>(p.keySet())) {
+        for (Object k : new ArrayList<>(p.keySet())) {
             String key = (String) k;
             if (!main.containsKey(key)) {
                 p.remove(key);

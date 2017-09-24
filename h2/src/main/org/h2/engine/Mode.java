@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 
@@ -278,10 +277,11 @@ public class Mode {
         mode.prohibitEmptyInPredicate = true;
         mode.padFixedLengthStrings = true;
         // Enumerate all H2 types NOT supported by PostgreSQL:
-        Set<String> disallowedTypes = new java.util.HashSet<String>();
+        Set<String> disallowedTypes = new java.util.HashSet<>();
         disallowedTypes.add("NUMBER");
         disallowedTypes.add("IDENTITY");
         disallowedTypes.add("TINYINT");
+        disallowedTypes.add("BLOB");
         mode.disallowedTypes = disallowedTypes;
         add(mode);
 
@@ -308,6 +308,10 @@ public class Mode {
      */
     public static Mode getInstance(String name) {
         return MODES.get(StringUtils.toUpperEnglish(name));
+    }
+
+    public static Mode getMySQL() {
+        return getInstance("MySQL");
     }
 
     public String getName() {

@@ -5,6 +5,7 @@
 21S02=Anzahl der Felder stimmt nicht überein
 22001=Wert zu gross / lang für Feld {0}: {1}
 22003=Zahlenwert ausserhalb des Bereichs: {0}
+22004=Numeric value out of range: {0} in column {1}
 22007=Kann {0} {1} nicht umwandeln
 22012=Division durch 0: {0}
 22018=Datenumwandlungsfehler beim Umwandeln von {0}

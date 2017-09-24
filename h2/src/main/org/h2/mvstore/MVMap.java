@@ -57,7 +57,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType valueType;
 
     private ConcurrentArrayList<Page> oldRoots =
-            new ConcurrentArrayList<Page>();
+            new ConcurrentArrayList<>();
 
 
     /**
@@ -818,7 +818,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the cursor
      */
     public Cursor<K, V> cursor(K from) {
-        return new Cursor<K, V>(this, root, from);
+        return new Cursor<>(this, root, from);
     }
 
     @Override
@@ -829,7 +829,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
 
             @Override
             public Iterator<Entry<K, V>> iterator() {
-                final Cursor<K, V> cursor = new Cursor<K, V>(map, root, null);
+                final Cursor<K, V> cursor = new Cursor<>(map, root, null);
                 return new Iterator<Entry<K, V>>() {
 
                     @Override
@@ -840,7 +840,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
                     @Override
                     public Entry<K, V> next() {
                         K k = cursor.next();
-                        return new DataUtils.MapEntry<K, V>(k, cursor.getValue());
+                        return new DataUtils.MapEntry<>(k, cursor.getValue());
                     }
 
                     @Override
@@ -1111,7 +1111,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
      * @return the opened map
      */
     MVMap<K, V> openReadOnly() {
-        MVMap<K, V> m = new MVMap<K, V>(keyType, valueType);
+        MVMap<K, V> m = new MVMap<>(keyType, valueType);
         m.readOnly = true;
         HashMap<String, Object> config = New.hashMap();
         config.put("id", id);
@@ -1295,7 +1295,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
             if (valueType == null) {
                 valueType = new ObjectDataType();
             }
-            return new MVMap<K, V>(keyType, valueType);
+            return new MVMap<>(keyType, valueType);
         }
 
     }

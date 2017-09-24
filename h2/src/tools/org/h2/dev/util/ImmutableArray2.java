@@ -8,7 +8,6 @@ package org.h2.dev.util;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.h2.mvstore.DataUtils;
 
 /**
@@ -18,7 +17,7 @@ import org.h2.mvstore.DataUtils;
  */
 public final class ImmutableArray2<K> implements Iterable<K> {
 
-    private static final ImmutableArray2<?> EMPTY = new ImmutableArray2<Object>(
+    private static final ImmutableArray2<?> EMPTY = new ImmutableArray2<>(
             new Object[0], 0);
 
     /**
@@ -73,7 +72,7 @@ public final class ImmutableArray2<K> implements Iterable<K> {
     public ImmutableArray2<K> set(int index, K obj) {
         K[] a2 = Arrays.copyOf(array, length);
         a2[index] = obj;
-        return new ImmutableArray2<K>(a2, length);
+        return new ImmutableArray2<>(a2, length);
     }
 
     /**
@@ -95,7 +94,7 @@ public final class ImmutableArray2<K> implements Iterable<K> {
                 canExtend = null;
                 if (array.length > index && x.getAndSet(false)) {
                     array[index] = obj;
-                    return new ImmutableArray2<K>(array, len, true);
+                    return new ImmutableArray2<>(array, len, true);
                 }
             }
             extendable = true;
@@ -107,7 +106,7 @@ public final class ImmutableArray2<K> implements Iterable<K> {
         K[] a2 = (K[]) new Object[newLen];
         DataUtils.copyWithGap(array, a2, length, index);
         a2[index] = obj;
-        return new ImmutableArray2<K>(a2, len, extendable);
+        return new ImmutableArray2<>(a2, len, extendable);
     }
 
     /**
@@ -119,12 +118,12 @@ public final class ImmutableArray2<K> implements Iterable<K> {
     public ImmutableArray2<K> remove(int index) {
         int len = length - 1;
         if (index == len) {
-            return new ImmutableArray2<K>(array, len);
+            return new ImmutableArray2<>(array, len);
         }
         @SuppressWarnings("unchecked")
         K[] a2 = (K[]) new Object[len];
         DataUtils.copyExcept(array, a2, length, index);
-        return new ImmutableArray2<K>(a2, len);
+        return new ImmutableArray2<>(a2, len);
     }
 
     /**
@@ -137,12 +136,12 @@ public final class ImmutableArray2<K> implements Iterable<K> {
     public ImmutableArray2<K> subArray(int fromIndex, int toIndex) {
         int len = toIndex - fromIndex;
         if (fromIndex == 0) {
-            return new ImmutableArray2<K>(array, len);
+            return new ImmutableArray2<>(array, len);
         }
         @SuppressWarnings("unchecked")
         K[] a2 = (K[]) new Object[len];
         System.arraycopy(array, fromIndex, a2, 0, toIndex - fromIndex);
-        return new ImmutableArray2<K>(a2, len);
+        return new ImmutableArray2<>(a2, len);
     }
 
     /**
@@ -151,8 +150,9 @@ public final class ImmutableArray2<K> implements Iterable<K> {
      * @param array the data
      * @return the new immutable array
      */
+    @SafeVarargs
     public static <K> ImmutableArray2<K> create(K... array) {
-        return new ImmutableArray2<K>(array, array.length);
+        return new ImmutableArray2<>(array, array.length);
     }
 
     /**

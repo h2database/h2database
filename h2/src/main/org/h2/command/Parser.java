@@ -64,6 +64,7 @@ import org.h2.command.ddl.DropUserDataType;
 import org.h2.command.ddl.DropView;
 import org.h2.command.ddl.GrantRevoke;
 import org.h2.command.ddl.PrepareProcedure;
+import org.h2.command.ddl.SchemaCommand;
 import org.h2.command.ddl.SetComment;
 import org.h2.command.ddl.TruncateTable;
 import org.h2.command.dml.AlterSequence;
@@ -92,6 +93,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.Mode;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -192,6 +194,8 @@ public class Parser {
             return o1 == o2 ? 0 : compareTableFilters(o1, o2);
         }
     };
+    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS =
+            "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     private final Database database;
     private final Session session;
@@ -223,6 +227,7 @@ public class Parser {
     private ArrayList<String> expectedList;
     private boolean rightsChecked;
     private boolean recompileAlways;
+    private boolean literalsChecked;
     private ArrayList<Parameter> indexedParameterList;
     private int orderInFrom;
     private ArrayList<Parameter> suppliedParameterList;
@@ -482,8 +487,8 @@ public class Parser {
                 break;
             case 'w':
             case 'W':
-                if (isToken("WITH")) {
-                    c = parseSelect();
+                if (readIf("WITH")) {
+                    c = parseWithStatementOrQuery();
                 }
                 break;
             case ';':
@@ -815,7 +820,10 @@ public class Parser {
         }
         currentPrepared = command;
         int start = lastParseIndex;
-        readIf("FROM");
+        if (!readIf("FROM") && database.getMode() == Mode.getMySQL()) {
+            readIdentifierWithSchema();
+            read("FROM");
+        }
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
         if (readIf("WHERE")) {
@@ -1283,6 +1291,10 @@ public class Parser {
                     indexHints = parseIndexHints(table);
                 }
             }
+        }
+        // inherit alias for temporary views (usually CTE's) from table name
+        if(table.isView() && table.isTemporary() && alias==null){
+            alias = table.getName();
         }
         return new TableFilter(session, table, alias, rightsChecked,
                 currentSelect, orderInFrom++, indexHints);
@@ -1758,6 +1770,21 @@ public class Parser {
         return command;
     }
 
+    private Prepared parseWithStatementOrQuery() {
+        int paramIndex = parameters.size();
+        Prepared command = parseWith();
+        ArrayList<Parameter> params = New.arrayList();
+        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
+            params.add(parameters.get(i));
+        }
+        command.setParameterList(params);
+        if(command instanceof Query){
+            Query query = (Query) command;
+            query.init();
+        }
+        return command;
+    }
+
     private Query parseSelectUnion() {
         int start = lastParseIndex;
         Query command = parseSelectSub();
@@ -1940,7 +1967,14 @@ public class Parser {
             return command;
         }
         if (readIf("WITH")) {
-            Query query = parseWith();
+            Query query = null;
+            try {
+                query = (Query) parseWith();
+            }
+            catch(ClassCastException e){
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                        "WITH statement supports only SELECT (query) in this context");
+            }
             // recursive can not be lazy
             query.setNeverLazy(true);
             return query;
@@ -3505,7 +3539,7 @@ public class Parser {
     }
 
     private void checkLiterals(boolean text) {
-        if (!session.getAllowLiterals()) {
+        if (!literalsChecked && !session.getAllowLiterals()) {
             int allowed = database.getAllowLiterals();
             if (allowed == Constants.ALLOW_LITERALS_NONE ||
                     (text && allowed != Constants.ALLOW_LITERALS_ALL)) {
@@ -4245,7 +4279,7 @@ public class Parser {
             }
         } else if (dataType.type == Value.ENUM) {
             if (readIf("(")) {
-                java.util.List<String> enumeratorList = new ArrayList<String>();
+                java.util.List<String> enumeratorList = new ArrayList<>();
                 original += '(';
                 String enumerator0 = readString();
                 enumeratorList.add(enumerator0);
@@ -4890,16 +4924,56 @@ public class Parser {
         return command;
     }
 
-    private Query parseWith() {
-        List<TableView> viewsCreated = new ArrayList<TableView>();
+    private Prepared parseWith() {
+        List<TableView> viewsCreated = new ArrayList<>();
         readIf("RECURSIVE");
         do {
             viewsCreated.add(parseSingleCommonTableExpression());
         } while (readIf(","));
 
-        Query q = parseSelectUnion();
-        q.setPrepareAlways(true);
-        return q;
+        Prepared p = null;
+
+        if(isToken("SELECT")) {
+            Query query = parseSelectUnion();
+            query.setPrepareAlways(true);
+            query.setNeverLazy(true);
+            p = query;
+        }
+        else if(readIf("INSERT")) {
+            p = parseInsert();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("UPDATE")) {
+            p = parseUpdate();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("MERGE")) {
+            p = parseMerge();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("DELETE")) {
+            p = parseDelete();
+            p.setPrepareAlways(true);
+        }
+        else if(readIf("CREATE")) {
+            if (!isToken("TABLE")){
+                throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                        WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
+
+            }
+            p = parseCreate();
+            p.setPrepareAlways(true);
+        }
+        else {
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                    WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
+        }
+
+        // clean up temp views starting with last to first (in case of
+        // dependencies)
+        Collections.reverse(viewsCreated);
+        p.setCteCleanups(viewsCreated);
+        return p;
     }
 
     private TableView parseSingleCommonTableExpression() {
@@ -4948,7 +5022,7 @@ public class Parser {
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
         String querySQL;
-        List<Column> columnTemplateList = new ArrayList<Column>();
+        List<Column> columnTemplateList = new ArrayList<>();
         try {
             read("AS");
             read("(");
@@ -4972,11 +5046,11 @@ public class Parser {
         // then we just compile it again.
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
-                true/* recursive */);
+                true/* recursive */, false);
         if (!view.isRecursiveQueryDetected()) {
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
-                    false/* recursive */);
+                    false/* recursive */, false);
         }
         view.setTableExpression(true);
         view.setTemporary(true);
@@ -5718,9 +5792,18 @@ public class Parser {
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("INDEX")) {
                 // MySQL compatibility
-                String indexName = readIdentifierWithSchema();
-                DropIndex command = new DropIndex(session, getSchema());
-                command.setIndexName(indexName);
+                String indexOrConstraintName = readIdentifierWithSchema();
+                final SchemaCommand command;
+                if (schema.findIndex(session, indexOrConstraintName) != null) {
+                    DropIndex dropIndexCommand = new DropIndex(session, getSchema());
+                    dropIndexCommand.setIndexName(indexOrConstraintName);
+                    command = dropIndexCommand;
+                } else {
+                    AlterTableDropConstraint dropCommand = new AlterTableDropConstraint(
+                            session, getSchema(), false/*ifExists*/);
+                    dropCommand.setConstraintName(indexOrConstraintName);
+                    command = dropCommand;
+                }
                 return commandIfTableExists(schema, tableName, ifTableExists, command);
             } else if (readIf("PRIMARY")) {
                 read("KEY");
@@ -6424,6 +6507,10 @@ public class Parser {
             return StringUtils.quoteIdentifier(s);
         }
         return s;
+    }
+
+    public void setLiteralsChecked(boolean literalsChecked) {
+        this.literalsChecked = literalsChecked;
     }
 
     public void setRightsChecked(boolean rightsChecked) {

@@ -68,7 +68,7 @@ public class CacheLRU implements Cache {
             int cacheSize) {
         Map<Integer, CacheObject> secondLevel = null;
         if (cacheType.startsWith("SOFT_")) {
-            secondLevel = new SoftHashMap<Integer, CacheObject>();
+            secondLevel = new SoftHashMap<>();
             cacheType = cacheType.substring("SOFT_".length());
         }
         Cache cache;

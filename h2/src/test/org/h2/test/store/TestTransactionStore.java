@@ -259,7 +259,7 @@ public class TestTransactionStore extends TestBase {
         ts = new TransactionStore(s);
         ts.init();
         ts.setMaxTransactionId(16);
-        ArrayList<Transaction> openList = new ArrayList<Transaction>();
+        ArrayList<Transaction> openList = new ArrayList<>();
         for (int i = 0, j = 1; i < 64; i++) {
             Transaction t = ts.begin();
             openList.add(t);

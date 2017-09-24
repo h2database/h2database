@@ -40,7 +40,7 @@ public class Doclet {
     private String destDir = System.getProperty("h2.javadocDestDir",
             "docs/javadoc");
     private int errorCount;
-    private final HashSet<String> errors = new HashSet<String>();
+    private final HashSet<String> errors = new HashSet<>();
 
     /**
      * This method is called by the javadoc framework and is required for all
@@ -140,7 +140,7 @@ public class Doclet {
 //                return a.name().compareTo(b.name());
 //            }
 //        });
-        ArrayList<String> signatures = new ArrayList<String>();
+        ArrayList<String> signatures = new ArrayList<>();
         boolean hasMethods = false;
         int id = 0;
         for (int i = 0; i < constructorsMethods.length; i++) {

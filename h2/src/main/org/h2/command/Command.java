@@ -370,4 +370,7 @@ public abstract class Command implements CommandInterface {
         }
     }
 
+    public void setCanReuse(boolean canReuse) {
+        this.canReuse = canReuse;
+    }
 }

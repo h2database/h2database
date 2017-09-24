@@ -79,7 +79,7 @@ public class TestWeb extends TestBase {
 
     private void testServlet() throws Exception {
         WebServlet servlet = new WebServlet();
-        final HashMap<String, String> configMap = new HashMap<String, String>();
+        final HashMap<String, String> configMap = new HashMap<>();
         configMap.put("ifExists", "");
         configMap.put("", "");
         configMap.put("", "");
@@ -93,7 +93,7 @@ public class TestWeb extends TestBase {
 
             @Override
             public Enumeration<String> getInitParameterNames() {
-                return new Vector<String>(configMap.keySet()).elements();
+                return new Vector<>(configMap.keySet()).elements();
             }
 
             @Override

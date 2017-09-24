@@ -72,7 +72,7 @@ public final class JoinBatch {
     /**
      * An empty future cursor.
      */
-    static final Future<Cursor> EMPTY_FUTURE_CURSOR = new DoneFuture<Cursor>(EMPTY_CURSOR);
+    static final Future<Cursor> EMPTY_FUTURE_CURSOR = new DoneFuture<>(EMPTY_CURSOR);
 
     /**
      * The top cursor.
@@ -694,7 +694,7 @@ public final class JoinBatch {
 
         private boolean full;
 
-        private final List<Future<Cursor>> result = new SingletonList<Future<Cursor>>();
+        private final List<Future<Cursor>> result = new SingletonList<>();
 
         FakeLookupBatch(TableFilter filter) {
             this.filter = filter;
@@ -732,7 +732,7 @@ public final class JoinBatch {
                 return Collections.emptyList();
             }
             Cursor c = filter.getIndex().find(filter, first, last);
-            result.set(0, new DoneFuture<Cursor>(c));
+            result.set(0, new DoneFuture<>(c));
             full = false;
             first = last = null;
             return result;

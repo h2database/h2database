@@ -52,7 +52,7 @@ public class ConcurrentLinkedListWithTail<K> {
      * @param obj the element
      */
     public void add(K obj) {
-        Entry<K> x = new Entry<K>(obj);
+        Entry<K> x = new Entry<>(obj);
         Entry<K> t = tail;
         if (t != null) {
             t.next = x;

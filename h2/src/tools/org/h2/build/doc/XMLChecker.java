@@ -82,7 +82,7 @@ public class XMLChecker {
         // use this for html file, for example if <li> is not closed
         String[] noClose = {};
         XMLParser parser = new XMLParser(xml);
-        Stack<Object[]> stack = new Stack<Object[]>();
+        Stack<Object[]> stack = new Stack<>();
         boolean rootElement = false;
         while (true) {
             int event = parser.next();

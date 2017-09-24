@@ -12,9 +12,14 @@ import java.sql.Statement;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
-import org.h2.store.fs.FileUtils;
+import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
+
+import java.io.PipedReader;
+import java.io.PipedWriter;
+import java.io.IOException;
+import java.sql.ResultSet;
 
 /**
  * Creates a cluster from a standalone database.
@@ -99,7 +104,8 @@ public class CreateCluster extends Tool {
             String user, String password, String serverList) throws SQLException {
         Connection connSource = null, connTarget = null;
         Statement statSource = null, statTarget = null;
-        String scriptFile = "backup.sql";
+        PipedReader pipeReader = null;
+        
         try {
             org.h2.Driver.load();
 
@@ -139,37 +145,63 @@ public class CreateCluster extends Tool {
             // so that data can't change while restoring the second database
             statSource.execute("SET EXCLUSIVE 2");
 
+            pipeReader = new PipedReader();
+            
             try {
-
-                // backup
-                Script script = new Script();
-                script.setOut(out);
-                Script.process(connSource, scriptFile, "", "");
-
-                // delete the target database and then restore
+	        // Pipe writer is used + closed in the inner class, in a separate thread (needs to be final).
+	        // It should be initialized within try{} so an exception could be caught if creation fails.
+	        // In that scenario, the the writer should be null and needs no closing,
+	        // and the main goal is that finally{} should bring the source DB
+	        // out of exclusive mode, and close the reader.
+                final PipedWriter pipeWriter = new PipedWriter(pipeReader);
+                
+                // Backup data from source database in script form.
+                // Start writing to pipe writer in separate thread.
+                final ResultSet rs = statSource.executeQuery("SCRIPT");
+                
+                // Delete the target database first.
                 connTarget = DriverManager.getConnection(
                         urlTarget + ";CLUSTER=''", user, password);
                 statTarget = connTarget.createStatement();
                 statTarget.execute("DROP ALL OBJECTS DELETE FILES");
                 connTarget.close();
 
-                RunScript runScript = new RunScript();
-                runScript.setOut(out);
-                runScript.process(urlTarget, user, password, scriptFile, null, false);
-
+                
+                new Thread(
+                    new Runnable(){
+                        public void run() {
+                            try {
+                                while (rs.next()) {
+                                    pipeWriter.write(rs.getString(1) + "\n");
+                                }
+                            } catch (SQLException ex) {
+                                throw new IllegalStateException("Producing script from the source DB is failing.",ex);
+                            } catch (IOException ex) {
+                                throw new IllegalStateException("Producing script from the source DB is failing.",ex);
+                            } finally {
+                                IOUtils.closeSilently(pipeWriter);
+                            }
+                        }
+                    }
+                ).start();
+                
+                // Read data from pipe reader, restore on target.
                 connTarget = DriverManager.getConnection(urlTarget, user, password);
+                RunScript.execute(connTarget,pipeReader);
                 statTarget = connTarget.createStatement();
 
                 // set the cluster to the serverList on both databases
                 statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
                 statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
+                
+            } catch (IOException ex) {
+                throw new SQLException(ex);
             } finally {
-
                 // switch back to the regular mode
                 statSource.execute("SET EXCLUSIVE FALSE");
             }
         } finally {
-            FileUtils.delete(scriptFile);
+            IOUtils.closeSilently(pipeReader);
             JdbcUtils.closeSilently(statSource);
             JdbcUtils.closeSilently(statTarget);
             JdbcUtils.closeSilently(connSource);

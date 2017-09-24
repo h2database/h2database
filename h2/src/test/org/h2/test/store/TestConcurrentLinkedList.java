@@ -51,8 +51,8 @@ public class TestConcurrentLinkedList extends TestBase {
         // final ConcurrentLinkedList<Integer> test =
         //     new ConcurrentLinkedList<Integer>();
         final ConcurrentArrayList<Integer> test =
-                new ConcurrentArrayList<Integer>();
-        final LinkedList<Integer> x = new LinkedList<Integer>();
+                new ConcurrentArrayList<>();
+        final LinkedList<Integer> x = new LinkedList<>();
         final AtomicInteger counter = new AtomicInteger();
         Task task = new Task() {
             @Override
@@ -109,7 +109,7 @@ public class TestConcurrentLinkedList extends TestBase {
     }
 
     private void testConcurrent() {
-        final ConcurrentArrayList<Integer> test = new ConcurrentArrayList<Integer>();
+        final ConcurrentArrayList<Integer> test = new ConcurrentArrayList<>();
         // final ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
         final AtomicInteger counter = new AtomicInteger();
         final AtomicInteger size = new AtomicInteger();
@@ -144,9 +144,9 @@ public class TestConcurrentLinkedList extends TestBase {
     private void testRandomized() {
         Random r = new Random(0);
         for (int i = 0; i < 100; i++) {
-            ConcurrentArrayList<Integer> test = new ConcurrentArrayList<Integer>();
+            ConcurrentArrayList<Integer> test = new ConcurrentArrayList<>();
             // ConcurrentRing<Integer> test = new ConcurrentRing<Integer>();
-            LinkedList<Integer> x = new LinkedList<Integer>();
+            LinkedList<Integer> x = new LinkedList<>();
             StringBuilder buff = new StringBuilder();
             for (int j = 0; j < 10000; j++) {
                 buff.append("[" + j + "] ");

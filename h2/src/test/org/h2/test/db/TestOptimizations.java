@@ -862,7 +862,7 @@ public class TestOptimizations extends TestBase {
         stat.execute("create index idx_value_id on test(value, id);");
         int len = getSize(1000, 10000);
         HashMap<Integer, Integer> map = New.hashMap();
-        TreeSet<Integer> set = new TreeSet<Integer>();
+        TreeSet<Integer> set = new TreeSet<>();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
             if (i == len / 2) {

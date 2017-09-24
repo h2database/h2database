@@ -17,7 +17,7 @@ import java.util.TreeMap;
 public class OffHeapStore extends FileStore {
 
     private final TreeMap<Long, ByteBuffer> memory =
-            new TreeMap<Long, ByteBuffer>();
+            new TreeMap<>();
 
     @Override
     public void open(String fileName, boolean readOnly, char[] encryptionKey) {
@@ -37,8 +37,8 @@ public class OffHeapStore extends FileStore {
                     DataUtils.ERROR_READING_FAILED,
                     "Could not read from position {0}", pos);
         }
-        readCount++;
-        readBytes += len;
+        readCount.incrementAndGet();
+        readBytes.addAndGet(len);
         ByteBuffer buff = memEntry.getValue();
         ByteBuffer read = buff.duplicate();
         int offset = (int) (pos - memEntry.getKey());
@@ -80,8 +80,8 @@ public class OffHeapStore extends FileStore {
                         "Could not write to position {0}; " +
                         "partial overwrite is not supported", pos);
             }
-            writeCount++;
-            writeBytes += length;
+            writeCount.incrementAndGet();
+            writeBytes.addAndGet(length);
             buff.rewind();
             buff.put(src);
             return;
@@ -97,8 +97,8 @@ public class OffHeapStore extends FileStore {
 
     private void writeNewEntry(long pos, ByteBuffer src) {
         int length = src.remaining();
-        writeCount++;
-        writeBytes += length;
+        writeCount.incrementAndGet();
+        writeBytes.addAndGet(length);
         ByteBuffer buff = ByteBuffer.allocateDirect(length);
         buff.put(src);
         buff.rewind();
@@ -107,7 +107,7 @@ public class OffHeapStore extends FileStore {
 
     @Override
     public void truncate(long size) {
-        writeCount++;
+        writeCount.incrementAndGet();
         if (size == 0) {
             fileSize = 0;
             memory.clear();

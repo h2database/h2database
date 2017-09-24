@@ -322,7 +322,7 @@ public class Insert extends Prepared implements ResultTarget {
             throw de;
         }
 
-        ArrayList<String> variableNames = new ArrayList<String>(
+        ArrayList<String> variableNames = new ArrayList<>(
                 duplicateKeyAssignmentMap.size());
         for (int i = 0; i < columns.length; i++) {
             String key = table.getSchema().getName() + "." +

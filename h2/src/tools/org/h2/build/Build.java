@@ -908,12 +908,12 @@ public class Build extends BuildBase {
     /**
      * Compile and run all fast tests. This does not include the compile step.
      */
-    @Description(summary = "Compile and run all fast tests (excl. the compile step).")
-    public void testFast() {
+    @Description(summary = "Compile and run all tests for Travis (excl. the compile step).")
+    public void testTravis() {
         test(true);
     }
 
-    private void test(boolean fast) {
+    private void test(boolean travis) {
         downloadTest();
         String cp = "temp" + File.pathSeparator + "bin" +
                 File.pathSeparator + "ext/postgresql-9.4.1209.jre6.jar" +
@@ -927,13 +927,13 @@ public class Build extends BuildBase {
                 File.pathSeparator + "ext/slf4j-nop-1.6.0.jar" +
                 File.pathSeparator + javaToolsJar;
         int ret;
-        if (fast) {
+        if (travis) {
             ret = execJava(args(
                     "-ea",
                     "-Xmx128m",
                     "-XX:MaxDirectMemorySize=2g",
                     "-cp", cp,
-                    "org.h2.test.TestAll", "fast"));
+                    "org.h2.test.TestAll", "travis"));
         } else {
             ret = execJava(args(
                     "-ea",
@@ -953,7 +953,7 @@ public class Build extends BuildBase {
     @Description(summary = "Print the system properties.")
     public void testSysProperties() {
         System.out.println("environment settings:");
-        for (Entry<Object, Object> e : new TreeMap<Object, Object>(
+        for (Entry<Object, Object> e : new TreeMap<>(
                 System.getProperties()).entrySet()) {
             System.out.println(e);
         }
@@ -1118,7 +1118,7 @@ public class Build extends BuildBase {
             return super.getLocalMavenDir();
         }
         XMLParser p = new XMLParser(new String(BuildBase.readFile(file)));
-        HashMap<String, String> prop = new HashMap<String, String>();
+        HashMap<String, String> prop = new HashMap<>();
         for (String name = ""; p.hasNext();) {
             int event = p.next();
             if (event == XMLParser.START_ELEMENT) {

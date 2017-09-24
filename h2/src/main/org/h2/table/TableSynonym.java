@@ -9,6 +9,7 @@ import org.h2.command.ddl.CreateSynonymData;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
+import org.h2.schema.Schema;
 import org.h2.schema.SchemaObjectBase;
 
 /**
@@ -71,6 +72,10 @@ public class TableSynonym extends SchemaObjectBase {
 
     public String getSynonymForName() {
         return data.synonymFor;
+    }
+
+    public Schema getSynonymForSchema() {
+        return data.synonymForSchema;
     }
 
     public boolean isInvalid() {

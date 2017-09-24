@@ -223,7 +223,7 @@ public class Db {
         TableDefinition<T> def = getTableDefinition(clazz);
         if (def == null) {
             upgradeDb();
-            def = new TableDefinition<T>(clazz);
+            def = new TableDefinition<>(clazz);
             def.mapFields();
             classMap.put(clazz, def);
             if (Table.class.isAssignableFrom(clazz)) {
@@ -266,7 +266,7 @@ public class Db {
     }
 
     public <A> TestCondition<A> test(A x) {
-        return new TestCondition<A>(x);
+        return new TestCondition<>(x);
     }
 
     public <T> void insertAll(List<T> list) {
@@ -276,7 +276,7 @@ public class Db {
     }
 
     public <T> List<Long> insertAllAndGetKeys(List<T> list) {
-        List<Long> identities = new ArrayList<Long>();
+        List<Long> identities = new ArrayList<>();
         for (T t : list) {
             identities.add(insertAndGetKey(t));
         }

@@ -382,7 +382,7 @@ public class SamplesTest extends TestBase {
     }
 
     private void testLimitOffset() {
-        Set<Integer> ids = new HashSet<Integer>();
+        Set<Integer> ids = new HashSet<>();
         Product p = new Product();
         for (int i = 0; i < 5; i++) {
             List<Product> products = db.from(p).limit(2).offset(2 * i).select();
@@ -396,7 +396,7 @@ public class SamplesTest extends TestBase {
     private void testKeyRetrieval() {
         List<SupportedTypes> list = SupportedTypes.createList();
         List<Long> keys = db.insertAllAndGetKeys(list);
-        Set<Long> uniqueKeys = new HashSet<Long>();
+        Set<Long> uniqueKeys = new HashSet<>();
         for (Long l : keys) {
             assertTrue("Failed to add key.  Duplicate?", uniqueKeys.add(l));
         }

@@ -31,7 +31,7 @@ import org.h2.util.StringUtils;
 public class Railroads {
 
     private Bnf bnf;
-    private final HashMap<String, Object> session = new HashMap<String, Object>();
+    private final HashMap<String, Object> session = new HashMap<>();
 
     /**
      * This method is called when executing this application from the command
@@ -79,9 +79,9 @@ public class Railroads {
 
     private void map(String key, ResultSet rs, boolean railroads) throws Exception {
         ArrayList<HashMap<String, String>> list;
-        list = new ArrayList<HashMap<String, String>>();
+        list = new ArrayList<>();
         while (rs.next()) {
-            HashMap<String, String> map = new HashMap<String, String>();
+            HashMap<String, String> map = new HashMap<>();
             ResultSetMetaData meta = rs.getMetaData();
             for (int i = 0; i < meta.getColumnCount(); i++) {
                 String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));

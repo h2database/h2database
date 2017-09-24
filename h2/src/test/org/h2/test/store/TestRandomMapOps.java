@@ -77,7 +77,7 @@ public class TestRandomMapOps extends TestBase {
         MVMap<Integer, byte[]> m = s.openMap("data");
         Random r = new Random(seed);
         op = 0;
-        TreeMap<Integer, byte[]> map = new TreeMap<Integer, byte[]>();
+        TreeMap<Integer, byte[]> map = new TreeMap<>();
         for (; op < size; op++) {
             int k = r.nextInt(100);
             byte[] v = new byte[r.nextInt(10) * 10];
@@ -128,7 +128,7 @@ public class TestRandomMapOps extends TestBase {
                 break;
             case 11:
                 log(op, k, v, "m.getKeyIndex({0})");
-                ArrayList<Integer> keyList = new ArrayList<Integer>(map.keySet());
+                ArrayList<Integer> keyList = new ArrayList<>(map.keySet());
                 int index = Collections.binarySearch(keyList, k, null);
                 int index2 = (int) m.getKeyIndex(k);
                 assertEquals(index, index2);

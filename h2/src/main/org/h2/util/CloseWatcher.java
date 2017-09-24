@@ -24,7 +24,7 @@ public class CloseWatcher extends PhantomReference<Object> {
     /**
      * The queue (might be set to null at any time).
      */
-    private static ReferenceQueue<Object> queue = new ReferenceQueue<Object>();
+    private static ReferenceQueue<Object> queue = new ReferenceQueue<>();
 
     /**
      * The reference set. Must keep it, otherwise the references are garbage
@@ -92,7 +92,7 @@ public class CloseWatcher extends PhantomReference<Object> {
             boolean stackTrace) {
         ReferenceQueue<Object> q = queue;
         if (q == null) {
-            q = new ReferenceQueue<Object>();
+            q = new ReferenceQueue<>();
             queue = q;
         }
         CloseWatcher cw = new CloseWatcher(o, q, closeable);

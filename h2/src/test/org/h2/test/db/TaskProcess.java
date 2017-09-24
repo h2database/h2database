@@ -47,7 +47,7 @@ public class TaskProcess {
     public void start(String... args) {
         try {
             String selfDestruct = SelfDestructor.getPropertyString(60);
-            ArrayList<String> list = new ArrayList<String>();
+            ArrayList<String> list = new ArrayList<>();
             list.add("java");
             list.add(selfDestruct);
             list.add("-cp");

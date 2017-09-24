@@ -28,7 +28,7 @@ public class QueryStatisticsData {
     };
 
     private final HashMap<String, QueryEntry> map =
-            new HashMap<String, QueryEntry>();
+            new HashMap<>();
 
     private int maxQueryEntries;
 
@@ -43,7 +43,7 @@ public class QueryStatisticsData {
     public synchronized List<QueryEntry> getQueries() {
         // return a copy of the map so we don't have to
         // worry about external synchronization
-        ArrayList<QueryEntry> list = new ArrayList<QueryEntry>();
+        ArrayList<QueryEntry> list = new ArrayList<>();
         list.addAll(map.values());
         // only return the newest 100 entries
         Collections.sort(list, QUERY_ENTRY_COMPARATOR);
@@ -71,12 +71,12 @@ public class QueryStatisticsData {
         // Test against 1.5 x max-size so we don't do this too often
         if (map.size() > maxQueryEntries * 1.5f) {
             // Sort the entries by age
-            ArrayList<QueryEntry> list = new ArrayList<QueryEntry>();
+            ArrayList<QueryEntry> list = new ArrayList<>();
             list.addAll(map.values());
             Collections.sort(list, QUERY_ENTRY_COMPARATOR);
             // Create a set of the oldest 1/3 of the entries
             HashSet<QueryEntry> oldestSet =
-                    new HashSet<QueryEntry>(list.subList(0, list.size() / 3));
+                    new HashSet<>(list.subList(0, list.size() / 3));
             // Loop over the map using the set and remove
             // the oldest 1/3 of the entries.
             for (Iterator<Entry<String, QueryEntry>> it =

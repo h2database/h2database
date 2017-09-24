@@ -115,7 +115,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
         System.gc();
         System.gc();
         long first = Utils.getMemoryUsed();
-        ArrayList<Value> list = new ArrayList<Value>();
+        ArrayList<Value> list = new ArrayList<>();
         long memory = 0;
         while (memory < 1000000) {
             Value v = create(type);
@@ -123,7 +123,7 @@ public class TestValueMemory extends TestBase implements DataHandler {
             list.add(v);
         }
         Object[] array = list.toArray();
-        IdentityHashMap<Object, Object> map = new IdentityHashMap<Object, Object>();
+        IdentityHashMap<Object, Object> map = new IdentityHashMap<>();
         for (Object a : array) {
             map.put(a, a);
         }

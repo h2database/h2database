@@ -177,7 +177,7 @@ public class CipherFactory {
         if (list == null) {
             return list;
         }
-        List<String> algorithms = new LinkedList<String>(Arrays.asList(list.split("\\s*,\\s*")));
+        List<String> algorithms = new LinkedList<>(Arrays.asList(list.split("\\s*,\\s*")));
         boolean dhAnonRemoved = algorithms.remove("DH_anon");
         boolean ecdhAnonRemoved = algorithms.remove("ECDH_anon");
         if (dhAnonRemoved || ecdhAnonRemoved) {
@@ -387,7 +387,7 @@ public class CipherFactory {
     }
 
     private static String[] enableAnonymous(String[] enabled, String[] supported) {
-        LinkedHashSet<String> set = new LinkedHashSet<String>();
+        LinkedHashSet<String> set = new LinkedHashSet<>();
         for (String x : supported) {
             if (!x.startsWith("SSL") &&
                     x.indexOf("_anon_") >= 0 &&
@@ -401,7 +401,7 @@ public class CipherFactory {
     }
 
     private static String[] disableSSL(String[] enabled) {
-        HashSet<String> set = new HashSet<String>();
+        HashSet<String> set = new HashSet<>();
         for (String x : enabled) {
             if (!x.startsWith("SSL")) {
                 set.add(x);

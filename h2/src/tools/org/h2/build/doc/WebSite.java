@@ -36,7 +36,7 @@ public class WebSite {
 
     private static final String SOURCE_DIR = "docs";
     private static final String WEB_DIR = "../h2web";
-    private final HashMap<String, String> fragments = new HashMap<String, String>();
+    private final HashMap<String, String> fragments = new HashMap<>();
 
     /**
      * This method is called when executing this application from the command

@@ -55,7 +55,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
             throws JMException {
         name = name.replace(':', '_');
         path = path.replace(':', '_');
-        Hashtable<String, String> map = new Hashtable<String, String>();
+        Hashtable<String, String> map = new Hashtable<>();
         map.put("name", name);
         map.put("path", path);
         return new ObjectName("org.h2", map);
@@ -229,7 +229,7 @@ public class DatabaseInfo implements DatabaseInfoMBean {
     public String listSettings() {
         StringBuilder buff = new StringBuilder();
         for (Map.Entry<String, String> e :
-                new TreeMap<String, String>(
+                new TreeMap<>(
                 database.getSettings().getSettings()).entrySet()) {
             buff.append(e.getKey()).append(" = ").append(e.getValue()).append('\n');
         }

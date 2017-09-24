@@ -30,12 +30,12 @@ public class ClassReader {
 
     private String convertMethodName;
     private Token result;
-    private Stack<Token> stack = new Stack<Token>();
-    private ArrayList<Token> variables = new ArrayList<Token>();
+    private Stack<Token> stack = new Stack<>();
+    private ArrayList<Token> variables = new ArrayList<>();
     private boolean endOfMethod;
     private boolean condition;
     private int nextPc;
-    private Map<String, Object> fieldMap = new HashMap<String, Object>();
+    private Map<String, Object> fieldMap = new HashMap<>();
 
     private static void debug(String s) {
         if (DEBUG) {
@@ -235,6 +235,7 @@ public class ClassReader {
         readAttributes();
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     private Token getResult() {
         while (true) {
             readByteCode();
@@ -243,9 +244,9 @@ public class ClassReader {
             }
             if (condition) {
                 Token c = stack.pop();
-                Stack<Token> currentStack = new Stack<Token>();
+                Stack<Token> currentStack = new Stack<>();
                 currentStack.addAll(stack);
-                ArrayList<Token> currentVariables = new ArrayList<Token>();
+                ArrayList<Token> currentVariables = new ArrayList<>();
                 currentVariables.addAll(variables);
                 int branch = nextPc;
                 Token a = getResult();

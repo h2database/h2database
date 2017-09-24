@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.db;
+package org.h2.test.scripts;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,7 +38,7 @@ public class TestScriptSimple extends TestBase {
         }
         deleteDb("scriptSimple");
         reconnect();
-        String inFile = "org/h2/test/testSimple.in.txt";
+        String inFile = "org/h2/test/scripts/testSimple.in.txt";
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
         LineNumberReader lineReader = new LineNumberReader(
                 new InputStreamReader(is, "Cp1252"));

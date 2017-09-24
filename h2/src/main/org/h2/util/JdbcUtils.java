@@ -79,7 +79,7 @@ public class JdbcUtils {
      *  In order to manage more than one class loader
      */
     private static ArrayList<ClassFactory> userClassFactories =
-            new ArrayList<ClassFactory>();
+            new ArrayList<>();
 
     private static String[] allowedClassNamePrefixes;
 
@@ -109,7 +109,7 @@ public class JdbcUtils {
         if (userClassFactories == null) {
             // initially, it is empty
             // but Apache Tomcat may clear the fields as well
-            userClassFactories = new ArrayList<ClassFactory>();
+            userClassFactories = new ArrayList<>();
         }
         return userClassFactories;
     }

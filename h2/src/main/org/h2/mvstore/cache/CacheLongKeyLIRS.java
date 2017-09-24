@@ -84,7 +84,7 @@ public class CacheLongKeyLIRS<V> {
     public void clear() {
         long max = Math.max(1, maxMemory / segmentCount);
         for (int i = 0; i < segmentCount; i++) {
-            segments[i] = new Segment<V>(
+            segments[i] = new Segment<>(
                     max, stackMoveDistance, 8, nonResidentQueueSize);
         }
     }
@@ -162,7 +162,7 @@ public class CacheLongKeyLIRS<V> {
         Segment<V> s2 = segments[segmentIndex];
         if (s == s2) {
             // no other thread resized, so we do
-            s = new Segment<V>(s, newLen);
+            s = new Segment<>(s, newLen);
             segments[segmentIndex] = s;
         }
         return s;
@@ -296,7 +296,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the entry set
      */
     public synchronized Set<Map.Entry<Long, V>> entrySet() {
-        HashMap<Long, V> map = new HashMap<Long, V>();
+        HashMap<Long, V> map = new HashMap<>();
         for (long k : keySet()) {
             map.put(k,  find(k).value);
         }
@@ -309,7 +309,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the set of keys
      */
     public Set<Long> keySet() {
-        HashSet<Long> set = new HashSet<Long>();
+        HashSet<Long> set = new HashSet<>();
         for (Segment<V> s : segments) {
             set.addAll(s.keySet());
         }
@@ -403,7 +403,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the key list
      */
     public List<Long> keys(boolean cold, boolean nonResident) {
-        ArrayList<Long> keys = new ArrayList<Long>();
+        ArrayList<Long> keys = new ArrayList<>();
         for (Segment<V> s : segments) {
             keys.addAll(s.keys(cold, nonResident));
         }
@@ -416,7 +416,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the entry set
      */
     public List<V> values() {
-        ArrayList<V> list = new ArrayList<V>();
+        ArrayList<V> list = new ArrayList<>();
         for (long k : keySet()) {
             V value = find(k).value;
             if (value != null) {
@@ -451,7 +451,7 @@ public class CacheLongKeyLIRS<V> {
      * @return the map
      */
     public Map<Long, V> getMap() {
-        HashMap<Long, V> map = new HashMap<Long, V>();
+        HashMap<Long, V> map = new HashMap<>();
         for (long k : keySet()) {
             V x = find(k).value;
             if (x != null) {
@@ -591,11 +591,11 @@ public class CacheLongKeyLIRS<V> {
             mask = len - 1;
 
             // initialize the stack and queue heads
-            stack = new Entry<V>();
+            stack = new Entry<>();
             stack.stackPrev = stack.stackNext = stack;
-            queue = new Entry<V>();
+            queue = new Entry<>();
             queue.queuePrev = queue.queueNext = queue;
-            queue2 = new Entry<V>();
+            queue2 = new Entry<>();
             queue2.queuePrev = queue2.queueNext = queue2;
 
             @SuppressWarnings("unchecked")
@@ -671,7 +671,7 @@ public class CacheLongKeyLIRS<V> {
         }
 
         private static <V> Entry<V> copy(Entry<V> old) {
-            Entry<V> e = new Entry<V>();
+            Entry<V> e = new Entry<>();
             e.key = old.key;
             e.value = old.value;
             e.memory = old.memory;
@@ -805,7 +805,7 @@ public class CacheLongKeyLIRS<V> {
                 // the new entry is too big to fit
                 return old;
             }
-            e = new Entry<V>();
+            e = new Entry<>();
             e.key = key;
             e.value = value;
             e.memory = memory;
@@ -1033,7 +1033,7 @@ public class CacheLongKeyLIRS<V> {
          * @return the key list
          */
         synchronized List<Long> keys(boolean cold, boolean nonResident) {
-            ArrayList<Long> keys = new ArrayList<Long>();
+            ArrayList<Long> keys = new ArrayList<>();
             if (cold) {
                 Entry<V> start = nonResident ? queue2 : queue;
                 for (Entry<V> e = start.queueNext; e != start;
@@ -1068,7 +1068,7 @@ public class CacheLongKeyLIRS<V> {
          * @return the set of keys
          */
         synchronized Set<Long> keySet() {
-            HashSet<Long> set = new HashSet<Long>();
+            HashSet<Long> set = new HashSet<>();
             for (Entry<V> e = stack.stackNext; e != stack; e = e.stackNext) {
                 set.add(e.key);
             }

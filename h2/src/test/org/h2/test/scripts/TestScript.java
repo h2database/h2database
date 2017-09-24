@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.db;
+package org.h2.test.scripts;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,7 +19,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
-
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -31,20 +30,21 @@ import org.h2.util.StringUtils;
  */
 public class TestScript extends TestBase {
 
-    private static final String FILENAME = "org/h2/test/testScript.sql";
+    private static final String BASE_DIR = "org/h2/test/scripts/";
 
+    /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
+    private final ArrayList<String> statements = New.arrayList();
 
     private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
     private LineNumberReader in;
-    private int line;
+    private int outputLineNo;
     private PrintStream out;
     private final ArrayList<String[]> result = New.arrayList();
     private String putBack;
     private StringBuilder errors;
-    private ArrayList<String> statements;
 
     private Random random = new Random(1);
 
@@ -65,8 +65,9 @@ public class TestScript extends TestBase {
      */
     public ArrayList<String> getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        statements = New.arrayList();
-        test();
+        if (statements.isEmpty()) {
+            test();
+        }
         return statements;
     }
 
@@ -75,25 +76,34 @@ public class TestScript extends TestBase {
         if (config.networked && config.big) {
             return;
         }
-        reconnectOften = false;
-        if (!config.memory) {
-            if (config.big) {
-                reconnectOften = true;
-            }
-        }
-        testScript();
+        reconnectOften = !config.memory && config.big;
+        testScript("testScript.sql");
+        testScript("functions-system-rownum.sql");
+        testScript("datatypes-enum.sql");
         deleteDb("script");
+        System.out.flush();
     }
 
-    private void testScript() throws Exception {
+    private void testScript(String scriptFileName) throws Exception {
         deleteDb("script");
-        String outFile = "test.out.txt";
-        String inFile = FILENAME;
+
+        // Reset all the state in case there is anything left over from the previous file we processed.
+        conn = null;
+        stat = null;
+        in = null;
+        outputLineNo = 0;
+        out = null;
+        result.clear();
+        putBack = null;
+        errors = null;
+
+        println("Running commands in " + scriptFileName);
+        final String outFile = "test.out.txt";
         conn = getConnection("script");
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(inFile);
+        testFile(BASE_DIR + scriptFileName);
         conn.close();
         out.close();
         if (errors.length() > 0) {
@@ -174,9 +184,7 @@ public class TestScript extends TestBase {
                 }
             }
         }
-        if (statements != null) {
-            statements.add(sql);
-        }
+        statements.add(sql);
         if (sql.indexOf('?') == -1) {
             processStatement(sql);
         } else {
@@ -360,7 +368,7 @@ public class TestScript extends TestBase {
                     return;
                 }
                 errors.append("line: ");
-                errors.append(line);
+                errors.append(outputLineNo);
                 errors.append("\n" + "exp: ");
                 errors.append(compare);
                 errors.append("\n" + "got: ");
@@ -382,7 +390,7 @@ public class TestScript extends TestBase {
     }
 
     private void write(String s) {
-        line++;
+        outputLineNo++;
         out.println(s);
     }
 

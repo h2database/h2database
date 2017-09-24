@@ -52,7 +52,7 @@ final class FullTextSettings {
      */
     private final SoftHashMap<Connection,
             SoftHashMap<String, PreparedStatement>> cache =
-            new SoftHashMap<Connection, SoftHashMap<String, PreparedStatement>>();
+            new SoftHashMap<>();
 
     /**
      * The whitespace characters.
@@ -209,7 +209,7 @@ final class FullTextSettings {
             throws SQLException {
         SoftHashMap<String, PreparedStatement> c = cache.get(conn);
         if (c == null) {
-            c = new SoftHashMap<String, PreparedStatement>();
+            c = new SoftHashMap<>();
             cache.put(conn, c);
         }
         PreparedStatement prep = c.get(sql);

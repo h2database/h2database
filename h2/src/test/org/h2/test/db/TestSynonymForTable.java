@@ -171,6 +171,12 @@ public class TestSynonymForTable extends TestBase {
         assertEquals(tables.getString("TABLE_TYPE"), "SYNONYM");
         assertFalse(tables.next());
 
+        ResultSet columns = conn.getMetaData().getColumns(null, Constants.SCHEMA_MAIN, "TESTSYNONYM", null);
+        assertTrue(columns.next());
+        assertEquals(columns.getString("TABLE_NAME"), "TESTSYNONYM");
+        assertEquals(columns.getString("COLUMN_NAME"), "ID");
+        assertFalse(columns.next());
+
         ResultSet synonyms = conn.createStatement().executeQuery("SELECT * FROM INFORMATION_SCHEMA.SYNONYMS");
         assertTrue(synonyms.next());
         assertEquals("SYNONYM", synonyms.getString("SYNONYM_CATALOG"));

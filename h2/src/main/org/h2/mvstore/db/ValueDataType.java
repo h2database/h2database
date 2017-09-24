@@ -101,7 +101,7 @@ public class ValueDataType implements DataType {
             int bl = bx.length;
             int len = Math.min(al, bl);
             for (int i = 0; i < len; i++) {
-                int sortType = sortTypes[i];
+                int sortType = sortTypes == null ? SortOrder.ASCENDING : sortTypes[i];
                 int comp = compareValues(ax[i], bx[i], sortType);
                 if (comp != 0) {
                     return comp;

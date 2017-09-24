@@ -51,11 +51,11 @@ public class SpellChecker {
     public boolean printDictionary;
 
     private final HashSet<String> dictionary =
-            new HashSet<String>();
+            new HashSet<>();
     private final HashSet<String> used =
-            new HashSet<String>();
+            new HashSet<>();
     private final HashMap<String, Integer> unknown =
-            new HashMap<String, Integer>();
+            new HashMap<>();
     private boolean addToDictionary;
     private int errorCount;
     private int contextCount;
@@ -74,7 +74,7 @@ public class SpellChecker {
     private void run(String dictionaryFileName, String dir) throws IOException {
         process(new File(dictionaryFileName));
         process(new File(dir));
-        HashSet<String> unused = new HashSet<String>();
+        HashSet<String> unused = new HashSet<>();
         unused.addAll(dictionary);
         unused.removeAll(used);
         // System.out.println("UNUSED WORDS");
@@ -167,7 +167,7 @@ public class SpellChecker {
     }
 
     private void scan(String fileName, String text) {
-        HashSet<String> notFound = new HashSet<String>();
+        HashSet<String> notFound = new HashSet<>();
         text = removeLinks(fileName, text);
         StringTokenizer tokenizer = new StringTokenizer(text, DELIMITERS);
         while (tokenizer.hasMoreTokens()) {

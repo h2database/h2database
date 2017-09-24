@@ -98,13 +98,17 @@ public class TestConnectionPool extends TestBase {
         };
         t.execute();
         long time = System.nanoTime();
+        Connection conn2 = null;
         try {
             // connection 2 (of 1 or 2) may fail
-            man.getConnection();
+            conn2 = man.getConnection();
             // connection 3 (of 1 or 2) must fail
             man.getConnection();
             fail();
         } catch (SQLException e) {
+            if (conn2 != null) {
+                conn2.close();
+            }
             assertContains(e.toString().toLowerCase(), "timeout");
             time = System.nanoTime() - time;
             assertTrue("timeout after " + TimeUnit.NANOSECONDS.toMillis(time) +

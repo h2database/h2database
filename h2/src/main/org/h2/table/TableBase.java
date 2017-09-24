@@ -27,7 +27,7 @@ public abstract class TableBase extends Table {
      */
     private final String tableEngine;
     /** Provided table parameters */
-    private List<String> tableEngineParams = new ArrayList<String>();
+    private List<String> tableEngineParams = new ArrayList<>();
 
     private final boolean globalTemporary;
 

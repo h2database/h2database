@@ -803,7 +803,7 @@ public class TestPageStore extends TestBase {
                 "NAME VARCHAR DEFAULT 'Hello World');");
         stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY, " +
                 "NAME VARCHAR DEFAULT 'Hello World')");
-        Set<Integer> rows = new TreeSet<Integer>();
+        Set<Integer> rows = new TreeSet<>();
         Random random = new Random(seed);
         for (int i = 0; i < len; i++) {
             int op = random.nextInt(3);

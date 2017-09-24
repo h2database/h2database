@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
-
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.util.Task;
@@ -61,7 +60,7 @@ public class TestMvccMultiThreaded extends TestBase {
                                 stat.execute("select * from test where id=1 for update");
                             } catch (SQLException e) {
                                 int errorCode = e.getErrorCode();
-                                assertEquals(e.getMessage(),
+                                assertTrue(e.getMessage(),
                                         errorCode == ErrorCode.DEADLOCK_1 ||
                                         errorCode == ErrorCode.LOCK_TIMEOUT_1);
                             }

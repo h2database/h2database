@@ -116,9 +116,9 @@ public class CreateView extends SchemaCommand {
                         }
                     }
                     view = new TableView(getSchema(), id, viewName, querySQL, null,
-                            columnTemplates, sysSession, false);
+                            columnTemplates, sysSession, false, false);
                 } else {
-                    view.replace(querySQL, sysSession, false, force);
+                    view.replace(querySQL, sysSession, false, force, false);
                     view.setModified();
                 }
             } finally {

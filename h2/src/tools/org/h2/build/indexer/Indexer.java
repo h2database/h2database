@@ -35,13 +35,13 @@ public class Indexer {
         "also;back;after;use;two;how;our;work;first;well;way;even;new;want;" +
         "because;any;these;give;most;us;";
 
-    private final ArrayList<Page> pages = new ArrayList<Page>();
+    private final ArrayList<Page> pages = new ArrayList<>();
 
     /**
      * Lower case word to Word map.
      */
-    private final HashMap<String, Word> words = new HashMap<String, Word>();
-    private final HashSet<String> noIndex = new HashSet<String>();
+    private final HashMap<String, Word> words = new HashMap<>();
+    private final HashSet<String> noIndex = new HashSet<>();
     private ArrayList <Word>wordList;
     private PrintWriter output;
     private Page page;
@@ -103,7 +103,7 @@ public class Indexer {
     }
 
     private void sortWords() {
-        for (String name : new ArrayList<String>(words.keySet())) {
+        for (String name : new ArrayList<>(words.keySet())) {
             if (name.endsWith("s")) {
                 String singular = name.substring(0, name.length() - 1);
                 if (words.containsKey(singular)) {
@@ -116,7 +116,7 @@ public class Indexer {
                 words.remove(name);
             }
         }
-        wordList = new ArrayList<Word>(words.values());
+        wordList = new ArrayList<>(words.values());
         // ignored very common words (to shrink the index)
         StringBuilder ignoredBuff = new StringBuilder(";");
         int maxSize = pages.size() / 4;

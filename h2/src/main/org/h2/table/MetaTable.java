@@ -546,6 +546,7 @@ public class MetaTable extends Table {
                         "SYNONYM_SCHEMA",
                         "SYNONYM_NAME",
                         "SYNONYM_FOR",
+                        "SYNONYM_FOR_SCHEMA",
                         "TYPE_NAME",
                         "STATUS",
                         "REMARKS",
@@ -1889,6 +1890,8 @@ public class MetaTable extends Table {
                             identifier(synonym.getName()),
                             // SYNONYM_FOR
                             synonym.getSynonymForName(),
+                            // SYNONYM_FOR_SCHEMA
+                            synonym.getSynonymForSchema().getName(),
                             // TYPE NAME
                             "SYNONYM",
                             // STATUS

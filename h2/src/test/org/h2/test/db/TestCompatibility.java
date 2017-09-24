@@ -278,7 +278,7 @@ public class TestCompatibility extends TestBase {
 
         /* --------- Disallowed column types --------- */
 
-        String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT"};
+        String[] DISALLOWED_TYPES = {"NUMBER", "IDENTITY", "TINYINT", "BLOB"};
         for (String type : DISALLOWED_TYPES) {
             stat.execute("DROP TABLE IF EXISTS TEST");
             try {
@@ -292,6 +292,7 @@ public class TestCompatibility extends TestBase {
 
     private void testMySQL() throws SQLException {
         Statement stat = conn.createStatement();
+        stat.execute("set mode mysql");
         stat.execute("create schema test_schema");
         stat.execute("use test_schema");
         assertResult("TEST_SCHEMA", stat, "select schema()");
@@ -312,6 +313,10 @@ public class TestCompatibility extends TestBase {
                 "SELECT FROM_UNIXTIME(1196300000, '%Y %M')");
         assertResult("2003-12-31", stat,
                 "SELECT DATE('2003-12-31 11:02:03')");
+        assertResult("2003-12-31", stat,
+                "SELECT DATE('2003-12-31 11:02:03')");
+        // check the weird MySQL variant of DELETE
+        stat.execute("DELETE TEST FROM TEST WHERE 1=2");
 
         if (config.memory) {
             return;
@@ -389,6 +394,10 @@ public class TestCompatibility extends TestBase {
                 "comment='Comment Again' ENGINE=InnoDB");
 
         stat.execute("CREATE TABLE TEST2(ID INT) ROW_FORMAT=DYNAMIC");
+
+        // check the MySQL index dropping syntax
+        stat.execute("ALTER TABLE TEST_COMMENT_ENGINE ADD CONSTRAINT CommentUnique UNIQUE (SOME_ITEM_ID)");
+        stat.execute("ALTER TABLE TEST_COMMENT_ENGINE DROP INDEX CommentUnique");
 
         conn.close();
         conn = getConnection("compatibility");

@@ -8,6 +8,7 @@ package org.h2.jdbc;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.URL;
 import java.sql.Array;
 import java.sql.Blob;
@@ -3771,6 +3772,8 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         }
         if (type == BigDecimal.class) {
             return type.cast(value.getBigDecimal());
+        } else if (type == BigInteger.class) {
+            return type.cast(BigInteger.valueOf(value.getLong()));
         } else if (type == String.class) {
             return type.cast(value.getString());
         } else if (type == Boolean.class) {
@@ -3793,6 +3796,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getTime());
         } else if (type == Timestamp.class) {
             return type.cast(value.getTimestamp());
+        } else if (type == java.util.Date.class) {
+            return type.cast(new java.util.Date(value.getTimestamp().getTime()));
+        } else if (type == Calendar.class) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(value.getTimestamp());
+            return type.cast(calendar);
         } else if (type == UUID.class) {
             return type.cast(value.getObject());
         } else if (type == byte[].class) {
@@ -3800,6 +3809,12 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == java.sql.Array.class) {
             int id = getNextId(TraceObject.ARRAY);
             return type.cast(value == ValueNull.INSTANCE ? null : new JdbcArray(conn, value, id));
+        } else if (type == Blob.class) {
+            int id = getNextId(TraceObject.ARRAY);
+            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcBlob(conn, value, id));
+        } else if (type == Clob.class) {
+            int id = getNextId(TraceObject.ARRAY);
+            return type.cast(value == ValueNull.INSTANCE ? null : new JdbcClob(conn, value, id));
         } else if (type == TimestampWithTimeZone.class) {
             return type.cast(value.getObject());
         } else if (DataType.isGeometryClass(type)) {

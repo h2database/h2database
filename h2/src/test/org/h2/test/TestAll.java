@@ -62,8 +62,6 @@ import org.h2.test.db.TestRights;
 import org.h2.test.db.TestRowFactory;
 import org.h2.test.db.TestRunscript;
 import org.h2.test.db.TestSQLInjection;
-import org.h2.test.db.TestScript;
-import org.h2.test.db.TestScriptSimple;
 import org.h2.test.db.TestSelectCountNonNullColumn;
 import org.h2.test.db.TestSequence;
 import org.h2.test.db.TestSessionsLocks;
@@ -124,6 +122,8 @@ import org.h2.test.mvcc.TestMvccMultiThreaded2;
 import org.h2.test.poweroff.TestReorderWrites;
 import org.h2.test.recover.RecoverLobTest;
 import org.h2.test.rowlock.TestRowLocks;
+import org.h2.test.scripts.TestScript;
+import org.h2.test.scripts.TestScriptSimple;
 import org.h2.test.server.TestAutoServer;
 import org.h2.test.server.TestInit;
 import org.h2.test.server.TestNestedLoop;
@@ -363,7 +363,12 @@ java org.h2.test.TestAll timer
     /**
      * If only fast/CI/Jenkins/Travis tests should be run.
      */
-    public boolean fast;
+    public boolean travis;
+
+    /**
+     * the vmlens.com race condition tool
+     */
+    public boolean vmlens;
 
     /**
      * The lock timeout to use
@@ -503,8 +508,11 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 */
         TestAll test = new TestAll();
         if (args.length > 0) {
-            if ("fast".equals(args[0])) {
-                test.fast = true;
+            if ("travis".equals(args[0])) {
+                test.travis = true;
+                test.testAll();
+            } else if ("vmlens".equals(args[0])) {
+                test.vmlens = true;
                 test.testAll();
             } else if ("reopen".equals(args[0])) {
                 System.setProperty("h2.delayWrongPasswordMin", "0");
@@ -554,7 +562,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
 
     private void testAll() throws Exception {
         runTests();
-        if (!fast) {
+        if (!travis && !vmlens) {
             Profiler prof = new Profiler();
             prof.depth = 16;
             prof.interval = 1;
@@ -614,6 +622,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         memory = true;
         multiThreaded = true;
         test();
+        if (vmlens) {
+            return;
+        }
         testUnit();
 
         // lazy
@@ -659,7 +670,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = true;
         test();
 
-        if (!fast) {
+        if (!travis) {
             traceLevelFile = 0;
             smallLog = true;
             networked = true;
@@ -681,7 +692,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
             cipher = null;
             test();
         }
-
     }
 
     /**
@@ -722,6 +732,9 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestCompatibilityOracle());
         addTest(new TestCsv());
         addTest(new TestDeadlock());
+        if (vmlens) {
+            return;
+        }
         addTest(new TestDrop());
         addTest(new TestDuplicateKeyUpdate());
         addTest(new TestEncryptedDb());
@@ -1086,7 +1099,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
     @Override
     public String toString() {
         StringBuilder buff = new StringBuilder();
-        appendIf(buff, fast, "fast");
         appendIf(buff, lazy, "lazy");
         appendIf(buff, mvStore, "mvStore");
         appendIf(buff, big, "big");

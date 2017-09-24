@@ -324,7 +324,7 @@ public class IndexCursor implements Cursor {
                 if (v != ValueNull.INSTANCE) {
                     v = inColumn.convert(v);
                     if (inResultTested == null) {
-                        inResultTested = new HashSet<Value>();
+                        inResultTested = new HashSet<>();
                     }
                     if (inResultTested.add(v)) {
                         find(v);

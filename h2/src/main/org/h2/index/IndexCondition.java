@@ -149,7 +149,7 @@ public class IndexCondition {
      * @return the value list
      */
     public Value[] getCurrentValueList(Session session) {
-        HashSet<Value> valueSet = new HashSet<Value>();
+        HashSet<Value> valueSet = new HashSet<>();
         for (Expression e : expressionList) {
             Value v = e.getValue(session);
             v = column.convert(v);

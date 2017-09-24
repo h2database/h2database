@@ -613,10 +613,10 @@ class ToDateTokenizer {
         J(PARSLET_DAY);
 
         private static final List<FormatTokenEnum> EMPTY_LIST =
-                new ArrayList<FormatTokenEnum>(0);
+                new ArrayList<>(0);
 
         private static final Map<Character, List<FormatTokenEnum>> CACHE =
-                new HashMap<Character, List<FormatTokenEnum>>(FormatTokenEnum.values().length);
+                new HashMap<>(FormatTokenEnum.values().length);
         private final ToDateParslet toDateParslet;
         private final Pattern patternToUse;
 
@@ -668,7 +668,7 @@ class ToDateTokenizer {
             if (CACHE.size() <= 0) {
                 for (FormatTokenEnum token : FormatTokenEnum.values()) {
 
-                    List<Character> tokenKeys = new ArrayList<Character>();
+                    List<Character> tokenKeys = new ArrayList<>();
 
                     if (token.name().contains("_")) {
                         String[] tokens = token.name().split("_");
@@ -682,7 +682,7 @@ class ToDateTokenizer {
                     for (Character tokenKey : tokenKeys) {
                         List<FormatTokenEnum> l = CACHE.get(tokenKey);
                         if (l == null) {
-                            l = new ArrayList<FormatTokenEnum>(1);
+                            l = new ArrayList<>(1);
                             CACHE.put(tokenKey, l);
                         }
                         l.add(token);

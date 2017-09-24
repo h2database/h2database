@@ -35,8 +35,8 @@ public class AbbaLockingDetector implements Runnable {
      * (stack trace where locked) )
      */
     private final Map<String, Map<String, String>> lockOrdering =
-            new WeakHashMap<String, Map<String, String>>();
-    private final Set<String> knownDeadlocks = new HashSet<String>();
+            new WeakHashMap<>();
+    private final Set<String> knownDeadlocks = new HashSet<>();
 
     /**
      * Start collecting locking data.
@@ -105,7 +105,7 @@ public class AbbaLockingDetector implements Runnable {
     }
 
     private void processThreadList(ThreadInfo[] threadInfoList) {
-        final List<String> lockOrder = new ArrayList<String>();
+        final List<String> lockOrder = new ArrayList<>();
         for (ThreadInfo threadInfo : threadInfoList) {
             lockOrder.clear();
             generateOrdering(lockOrder, threadInfo);
@@ -147,7 +147,7 @@ public class AbbaLockingDetector implements Runnable {
         String topLock = lockOrder.get(lockOrder.size() - 1);
         Map<String, String> map = lockOrdering.get(topLock);
         if (map == null) {
-            map = new WeakHashMap<String, String>();
+            map = new WeakHashMap<>();
             lockOrdering.put(topLock, map);
         }
         String oldException = null;

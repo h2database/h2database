@@ -261,7 +261,7 @@ public class Session extends SessionWithState {
 
     @Override
     public ArrayList<String> getClusterServers() {
-        return new ArrayList<String>();
+        return new ArrayList<>();
     }
 
     public boolean setCommitOrRollbackDisabled(boolean x) {
@@ -527,7 +527,7 @@ public class Session extends SessionWithState {
      * @return the prepared statement
      */
     public Prepared prepare(String sql) {
-        return prepare(sql, false);
+        return prepare(sql, false, false);
     }
 
     /**
@@ -535,11 +535,14 @@ public class Session extends SessionWithState {
      *
      * @param sql the SQL statement
      * @param rightsChecked true if the rights have already been checked
+     * @param literalsChecked true if the sql string has already been checked for literals (only used if
+     *                        ALLOW_LITERALS NONE is set).
      * @return the prepared statement
      */
-    public Prepared prepare(String sql, boolean rightsChecked) {
+    public Prepared prepare(String sql, boolean rightsChecked, boolean literalsChecked) {
         Parser parser = new Parser(this);
         parser.setRightsChecked(rightsChecked);
+        parser.setLiteralsChecked(literalsChecked);
         return parser.prepare(sql);
     }
 
@@ -1114,9 +1117,6 @@ public class Session extends SessionWithState {
      * @param transactionName the name of the transaction
      */
     public void prepareCommit(String transactionName) {
-        if (transaction != null) {
-            database.prepareCommit(this, transactionName);
-        }
         if (containsUncommitted()) {
             // need to commit even if rollback is not possible (create/drop
             // table and so on)
@@ -1679,12 +1679,12 @@ public class Session extends SessionWithState {
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT ||
                 v.getTableId() == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {
-                temporaryResultLobs = new LinkedList<TimeoutValue>();
+                temporaryResultLobs = new LinkedList<>();
             }
             temporaryResultLobs.add(new TimeoutValue(v));
         } else {
             if (temporaryLobs == null) {
-                temporaryLobs = new ArrayList<Value>();
+                temporaryLobs = new ArrayList<>();
             }
             temporaryLobs.add(v);
         }

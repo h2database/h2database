@@ -236,7 +236,7 @@ public class PageDataLeaf extends PageData {
             writeData();
             // free up the space used by the row
             Row r = rows[0];
-            rowRef = new SoftReference<Row>(r);
+            rowRef = new SoftReference<>(r);
             rows[0] = null;
             Data all = index.getPageStore().createData();
             all.checkCapacity(data.length());
@@ -353,7 +353,7 @@ public class PageDataLeaf extends PageData {
             }
             r.setKey(keys[at]);
             if (firstOverflowPageId != 0) {
-                rowRef = new SoftReference<Row>(r);
+                rowRef = new SoftReference<>(r);
             } else {
                 rows[at] = r;
                 memoryChange(true, r);

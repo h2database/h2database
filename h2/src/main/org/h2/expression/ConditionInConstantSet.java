@@ -43,7 +43,7 @@ public class ConditionInConstantSet extends Condition {
             ArrayList<Expression> valueList) {
         this.left = left;
         this.valueList = valueList;
-        this.valueSet = new TreeSet<Value>(new Comparator<Value>() {
+        this.valueSet = new TreeSet<>(new Comparator<Value>() {
             @Override
             public int compare(Value o1, Value o2) {
                 return session.getDatabase().compare(o1, o2);

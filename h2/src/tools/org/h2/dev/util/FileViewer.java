@@ -179,7 +179,7 @@ public class FileViewer extends Tool {
 
     private static ArrayList<String> readLines(RandomAccessFile file,
             int maxLines) throws IOException {
-        ArrayList<String> lines = new ArrayList<String>();
+        ArrayList<String> lines = new ArrayList<>();
         ByteArrayOutputStream buff = new ByteArrayOutputStream(100);
         boolean lastNewline = false;
         while (maxLines > 0) {

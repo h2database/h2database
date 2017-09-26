@@ -1134,7 +1134,7 @@ public abstract class Value {
     private static byte convertToByte(long x, Column col) {
         if (x > Byte.MAX_VALUE || x < Byte.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
         }
         return (byte) x;
     }
@@ -1142,7 +1142,7 @@ public abstract class Value {
     private static short convertToShort(long x, Column col) {
         if (x > Short.MAX_VALUE || x < Short.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
         }
         return (short) x;
     }
@@ -1150,7 +1150,7 @@ public abstract class Value {
     private static int convertToInt(long x, Column col) {
         if (x > Integer.MAX_VALUE || x < Integer.MIN_VALUE) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Long.toString(x), getColumnName(col));
         }
         return (int) x;
     }
@@ -1160,7 +1160,7 @@ public abstract class Value {
             // TODO document that +Infinity, -Infinity throw an exception and
             // NaN returns 0
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, Double.toString(x), getColumnName(col));
         }
         return Math.round(x);
     }
@@ -1169,9 +1169,13 @@ public abstract class Value {
         if (x.compareTo(MAX_LONG_DECIMAL) > 0 ||
                 x.compareTo(Value.MIN_LONG_DECIMAL) < 0) {
             throw DbException.get(
-                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), col.getName());
+                    ErrorCode.NUMERIC_VALUE_OUT_OF_RANGE_2, x.toString(), getColumnName(col));
         }
         return x.setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+    }
+
+    private static String getColumnName(Column col) {
+        return col == null ? "" : col.getName();
     }
 
     /**

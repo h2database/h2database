@@ -383,7 +383,7 @@ public class Column {
                         getCreateSQL(), s + " (" + value.getPrecision() + ")");
             }
         }
-        if (isEnumerated()) {
+        if (isEnumerated() && value != ValueNull.INSTANCE) {
             if (!ValueEnum.isValid(enumerators, value)) {
                 String s = value.getTraceSQL();
                 if (s.length() > 127) {

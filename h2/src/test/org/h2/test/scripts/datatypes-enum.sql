@@ -7,8 +7,8 @@
 create table card (rank int, suit enum('hearts', 'clubs', 'spades'));
 > ok
 
-insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts');
-> update count: 2
+insert into card (rank, suit) values (0, 'clubs'), (3, 'hearts'), (4, NULL);
+> update count: 3
 
 alter table card alter column suit enum('hearts', 'clubs', 'spades', 'diamonds');
 > ok
@@ -18,10 +18,12 @@ select * from card;
 > ---- ------
 > 0    clubs
 > 3    hearts
+> 4    null
 
 select * from card order by suit;
 > RANK SUIT
 > ---- ------
+> 4    null
 > 3    hearts
 > 0    clubs
 
@@ -31,6 +33,7 @@ insert into card (rank, suit) values (8, 'diamonds'), (10, 'clubs'), (7, 'hearts
 select suit, count(rank) from card group by suit order by suit, count(rank);
 > SUIT     COUNT(RANK)
 > -------- -----------
+> null     1
 > hearts   2
 > clubs    2
 > diamonds 1

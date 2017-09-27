@@ -727,6 +727,7 @@ public class DataType {
             // "java.lang.Short";
             return Short.class.getName();
         case Value.INT:
+        case Value.ENUM:
             // "java.lang.Integer";
             return Integer.class.getName();
         case Value.LONG:

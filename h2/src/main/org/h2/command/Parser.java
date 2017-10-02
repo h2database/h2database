@@ -739,33 +739,17 @@ public class Parser {
         return filter.getTable().getColumn(columnName);
     }
 
-    // TODO:(SM) parseUpdate
     private Update parseUpdate() {
         Update command = new Update(session);
         currentPrepared = command;
         int start = lastParseIndex;
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
-        parseUpdateSetClause(command, filter);
-        if (readIf("WHERE")) {
-            Expression condition = readExpression();
-            command.setCondition(condition);
-        }
-        if (readIf("ORDER")) {
-            // for MySQL compatibility
-            // (this syntax is supported, but ignored)
-            read("BY");
-            parseSimpleOrderList();
-        }
-        if (readIf("LIMIT")) {
-            Expression limit = readTerm().optimize(session);
-            command.setLimit(limit);
-        }
-        setSQL(command, "UPDATE", start);
+        parseUpdateSetClause(command, filter, start);
         return command;
     }
 
-    private void parseUpdateSetClause(Update command, TableFilter filter) {
+    private void parseUpdateSetClause(Update command, TableFilter filter, int start) {
         read("SET");
         if (readIf("(")) {
             ArrayList<Column> columns = New.arrayList();
@@ -802,6 +786,21 @@ public class Parser {
                 command.setAssignment(column, expression);
             } while (readIf(","));
         }
+        if (readIf("WHERE")) {
+            Expression condition = readExpression();
+            command.setCondition(condition);
+        }
+        if (readIf("ORDER")) {
+            // for MySQL compatibility
+            // (this syntax is supported, but ignored)
+            read("BY");
+            parseSimpleOrderList();
+        }
+        if (readIf("LIMIT")) {
+            Expression limit = readTerm().optimize(session);
+            command.setLimit(limit);
+        }
+        setSQL(command, "UPDATE", start);        
     }
 
     private TableFilter readSimpleTableFilter(int orderInFrom) {
@@ -1130,8 +1129,17 @@ public class Parser {
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
-            Table tableOrView = command.getQuery().getTables().toArray(new Table[]{null})[0];
-            TableFilter sourceTableFilter = new TableFilter(session, tableOrView, command.getQueryAlias(), rightsChecked,
+            
+            String[] querySQLOutput = new String[]{null};
+            List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
+            System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",ctlist="+columnTemplateList);
+            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false);
+            command.setTemporaryTableView(temporarySourceTableView);
+            
+            //Table tableOrView = command.getQuery().getTables().toArray(new Table[]{null})[0];
+            System.out.println("sourceTableFilter with tableOrView="+temporarySourceTableView);
+            System.out.println("sourceTableFilter rightsChecked="+rightsChecked);
+            TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
                 (Select) command.getQuery(), 0, null);
             command.setSourceTableFilter(sourceTableFilter); 
         }
@@ -1154,23 +1162,25 @@ public class Parser {
         read("ON");
         read("(");
         Expression condition = readExpression();
-        command.addCondition(condition);
+        command.addOnCondition(condition);
         read(")");
         
         if(readIf("WHEN")&&readIf("MATCHED")&&readIf("THEN")){
+            int startMatched = lastParseIndex;
             if (readIf("UPDATE")){
                 Update updateCommand = new Update(session);
                 //currentPrepared = updateCommand;
                 TableFilter filter = command.getTargetTableFilter();
                 updateCommand.setTableFilter(filter);
-                parseUpdateSetClause(updateCommand, filter);
+                parseUpdateSetClause(updateCommand, filter,startMatched);
                 command.setUpdateCommand(updateCommand);
             }
+            startMatched = lastParseIndex;
             if (readIf("DELETE")){
                 Delete deleteCommand = new Delete(session);
                 TableFilter filter = command.getTargetTableFilter();
                 deleteCommand.setTableFilter(filter);
-                parseDeleteGivenTable(deleteCommand,null,lastParseIndex);
+                parseDeleteGivenTable(deleteCommand,null,startMatched);
                 command.setDeleteCommand(deleteCommand);
             }            
         }
@@ -1189,11 +1199,7 @@ public class Parser {
                 System.out.println("schemaName="+schemaName);
                 throw DbException.getUnsupportedException("unexpected null schema");
             }
-            String[] querySQLOutput = new String[]{null};
-            List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
-            System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",cte="+columnTemplateList);
-            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false);
-            command.setTemporaryTableView(temporarySourceTableView);
+
         }
         setSQL(command, "MERGE", start);
         return command;

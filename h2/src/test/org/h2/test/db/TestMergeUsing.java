@@ -42,18 +42,18 @@ public class TestMergeUsing extends TestBase {
         stat = conn.createStatement();
         stat.execute("CREATE TABLE PARENT(ID INT, NAME VARCHAR, PRIMARY KEY(ID) );");
 
-        prep = conn.prepareStatement("MERGE INTO PARENT AS P USING (SELECT 1 AS ID, 'Marcy' AS NAME) AS S ON (P.ID = S.ID) WHEN MATCHED THEN UPDATE SET P.NAME = S.NAME WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)");
+        prep = conn.prepareStatement("MERGE INTO PARENT AS P USING (SELECT 1 AS ID, 'Marcy' AS NAME) AS S ON (P.ID = S.ID AND 1=1 AND S.ID = P.ID) WHEN MATCHED THEN UPDATE SET P.NAME = S.NAME WHERE 2 = 2 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)");
         rowCount = prep.executeUpdate();
 
         assertEquals(1,rowCount);
 
-        rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
+        rs = stat.executeQuery("SELECT ID, NAME FROM PARENT");
 
         for (int n : new int[] { 1 }) {
             assertTrue(rs.next());
-            assertTrue(rs.getInt(1)!=0);
-            assertEquals(n, rs.getInt(2));
-            assertEquals("X1", rs.getString(3));
+            assertEquals(1,rs.getInt(1));
+            assertEquals("Marcy", rs.getString(2));
+            System.out.println("id="+rs.getInt(1)+",name="+rs.getString(2));
         }
         conn.close();
         deleteDb("mergeUsingQueries");

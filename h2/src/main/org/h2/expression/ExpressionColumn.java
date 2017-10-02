@@ -117,9 +117,11 @@ public class ExpressionColumn extends Expression {
             queryLevel = level;
             column = col;
             this.columnResolver = resolver;
+            System.out.println("mapColumn: Setting resolver:"+col+"@"+System.identityHashCode(col)+" by resolver "+resolver+"-"+resolver.getClass());
         } else if (queryLevel == level && this.columnResolver != resolver) {
             if (resolver instanceof SelectListColumnResolver) {
                 // ignore - already mapped, that's ok
+                System.out.println("mapColumn: Already mapped:"+col+"@"+System.identityHashCode(col)+" by resolver "+resolver+"-"+resolver.getClass());
             } else {
                 throw DbException.get(ErrorCode.AMBIGUOUS_COLUMN_NAME_1, columnName);
             }

@@ -65,7 +65,7 @@ public class BenchB implements Bench, Runnable {
     @Override
     public void init(Database db, int size) throws SQLException {
         this.database = db;
-        this.transactionPerClient = size / 8;
+        this.transactionPerClient = getTransactionsPerClient(size);
 
         db.start(this, "Init");
         db.openConnection();
@@ -131,6 +131,10 @@ public class BenchB implements Bench, Runnable {
 //        db.openConnection();
 //        db.closeConnection();
 //        db.end();
+    }
+
+    protected int getTransactionsPerClient(int size) {
+        return size / 8;
     }
 
     @Override

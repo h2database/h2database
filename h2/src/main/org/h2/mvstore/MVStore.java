@@ -704,13 +704,12 @@ public final class MVStore {
             }
             s = meta.get(s);
             Chunk c = Chunk.fromString(s);
-            if (!chunks.containsKey(c.id)) {
+            if (chunks.putIfAbsent(c.id, c) == null) {
                 if (c.block == Long.MAX_VALUE) {
                     throw DataUtils.newIllegalStateException(
                             DataUtils.ERROR_FILE_CORRUPT,
                             "Chunk {0} is invalid", c.id);
                 }
-                chunks.put(c.id, c);
             }
         }
     }
@@ -1268,26 +1267,24 @@ public final class MVStore {
             return;
         }
         Set<Integer> referenced = collectReferencedChunks();
-        ArrayList<Chunk> free = New.arrayList();
         long time = getTimeSinceCreation();
-        for (Chunk c : chunks.values()) {
+
+        for (Iterator<Chunk> it = chunks.values().iterator(); it.hasNext(); ) {
+            Chunk c = it.next();
             if (!referenced.contains(c.id)) {
-                free.add(c);
-            }
-        }
-        for (Chunk c : free) {
-            if (canOverwriteChunk(c, time)) {
-                chunks.remove(c.id);
-                markMetaChanged();
-                meta.remove(Chunk.getMetaKey(c.id));
-                long start = c.block * BLOCK_SIZE;
-                int length = c.len * BLOCK_SIZE;
-                fileStore.free(start, length);
-            } else {
-                if (c.unused == 0) {
-                    c.unused = time;
-                    meta.put(Chunk.getMetaKey(c.id), c.asString());
+                if (canOverwriteChunk(c, time)) {
+                    it.remove();
                     markMetaChanged();
+                    meta.remove(Chunk.getMetaKey(c.id));
+                    long start = c.block * BLOCK_SIZE;
+                    int length = c.len * BLOCK_SIZE;
+                    fileStore.free(start, length);
+                } else {
+                    if (c.unused == 0) {
+                        c.unused = time;
+                        meta.put(Chunk.getMetaKey(c.id), c.asString());
+                        markMetaChanged();
+                    }
                 }
             }
         }
@@ -2358,13 +2355,13 @@ public final class MVStore {
     }
 
     private void revertTemp(long storeVersion) {
-        for (Iterator<Long> it = freedPageSpace.keySet().iterator();
-                it.hasNext();) {
-            long v = it.next();
-            if (v > storeVersion) {
-                continue;
+        for (Iterator<Entry<Long, ConcurrentHashMap<Integer, Chunk>>> it =
+                            freedPageSpace.entrySet().iterator(); it.hasNext(); ) {
+            Entry<Long, ConcurrentHashMap<Integer, Chunk>> entry = it.next();
+            Long v = entry.getKey();
+            if (v <= storeVersion) {
+                it.remove();
             }
-            it.remove();
         }
         for (MVMap<?, ?> m : maps.values()) {
             m.removeUnusedOldVersions();

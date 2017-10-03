@@ -49,6 +49,10 @@ public class Delete extends Prepared {
     public void setCondition(Expression condition) {
         this.condition = condition;
     }
+    
+    public Expression getCondition( ) {
+        return this.condition;
+    }
 
     @Override
     public int update() {
@@ -135,7 +139,13 @@ public class Delete extends Prepared {
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
-        TableFilter[] filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
+        TableFilter[] filters;
+        if(sourceTableFilter==null){
+            filters = new TableFilter[] { targetTableFilter };
+        }
+        else{
+            filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
+        }
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
                 ExpressionVisitor.allColumnsForTableFilters(filters));
         targetTableFilter.setPlanItem(item);

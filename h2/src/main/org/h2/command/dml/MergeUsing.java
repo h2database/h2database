@@ -13,6 +13,7 @@ import org.h2.command.Prepared;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
+import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
@@ -35,7 +36,7 @@ import org.h2.value.Value;
 public class MergeUsing extends Merge {
     
     private TableFilter sourceTableFilter;
-    private ArrayList<Expression> onConditions = new ArrayList<Expression>();
+    private Expression onCondition;
     private Update updateCommand;
     private Delete deleteCommand;
     private Insert insertCommand;
@@ -138,7 +139,7 @@ public class MergeUsing extends Merge {
         // try and update
         int count = 0;
         if(updateCommand!=null){
-            System.out.println("onConditions="+onConditions.toString());
+            System.out.println("onConditions="+onCondition.toString());
             System.out.println("updatePlanSQL="+updateCommand.getPlanSQL());
             count += updateCommand.update();
             System.out.println("update.count="+count);
@@ -305,22 +306,20 @@ public class MergeUsing extends Merge {
     public void prepare() {
         System.out.println("prepare:targetTableFilterAlias="+targetTableFilter.getTableAlias());
         System.out.println("prepare:sourceTableFilterAlias="+sourceTableFilter.getTableAlias());
-        System.out.println("prepare:onConditions="+onConditions);
+        System.out.println("prepare:onConditions="+onCondition);
         
         TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };
         
-        for(Expression condition: onConditions) {
-            System.out.println("condition="+condition+":op="+condition.getClass().getSimpleName());
+        System.out.println("onCondition="+onCondition+":op="+onCondition.getClass().getSimpleName());
 
-            condition.addFilterConditions(sourceTableFilter, true);
-            condition.addFilterConditions(targetTableFilter, true);
-            condition.mapColumns(sourceTableFilter, 2);
-            condition.mapColumns(targetTableFilter, 1);
-            condition = condition.optimize(session);
-            condition.createIndexConditions(session, sourceTableFilter);
-            //optional
-            condition.createIndexConditions(session, targetTableFilter);
-        }
+        onCondition.addFilterConditions(sourceTableFilter, true);
+        onCondition.addFilterConditions(targetTableFilter, true);
+        onCondition.mapColumns(sourceTableFilter, 2);
+        onCondition.mapColumns(targetTableFilter, 1);
+        onCondition = onCondition.optimize(session);
+        onCondition.createIndexConditions(session, sourceTableFilter);
+        //optional
+        onCondition.createIndexConditions(session, targetTableFilter);
 
         if (columns == null) {
             if (valuesExpressionList.size() > 0 && valuesExpressionList.get(0).length == 0) {
@@ -361,10 +360,12 @@ public class MergeUsing extends Merge {
         // Not sure how these sub-prepares will work...
         if(updateCommand!=null){
             updateCommand.setSourceTableFilter(sourceTableFilter);
+            updateCommand.setCondition(appendOnCondition(updateCommand));
             updateCommand.prepare();
         }
         if(deleteCommand!=null){
             deleteCommand.setSourceTableFilter(sourceTableFilter);
+            deleteCommand.setCondition(appendOnCondition(deleteCommand));            
             deleteCommand.prepare();
         }        
         if(insertCommand!=null){
@@ -373,6 +374,20 @@ public class MergeUsing extends Merge {
         }        
         
         
+    }
+
+    private Expression appendOnCondition(Update updateCommand) {
+        if (updateCommand.getCondition()==null){
+            return onCondition;
+        }
+        return new ConditionAndOr(ConditionAndOr.AND,updateCommand.getCondition(),onCondition);
+    }
+
+    private Expression appendOnCondition(Delete deleteCommand) {
+        if (deleteCommand.getCondition()==null){
+            return onCondition;
+        }
+        return new ConditionAndOr(ConditionAndOr.AND,deleteCommand.getCondition(),onCondition);
     }
 
     private String buildPreparedSQL() {
@@ -400,8 +415,8 @@ public class MergeUsing extends Merge {
         this.sourceTableFilter = sourceTableFilter;        
     }
 
-    public void addOnCondition(Expression condition) {
-        this.onConditions .add(condition);        
+    public void setOnCondition(Expression condition) {
+        this.onCondition = condition;        
     }
     
     public Prepared getUpdateCommand() {

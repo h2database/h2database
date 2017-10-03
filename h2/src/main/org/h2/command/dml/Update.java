@@ -58,6 +58,10 @@ public class Update extends Prepared {
     public void setCondition(Expression condition) {
         this.condition = condition;
     }
+    
+    public Expression getCondition( ) {
+        return this.condition;
+    }
 
     /**
      * Add an assignment of the form column = expression.
@@ -195,7 +199,13 @@ public class Update extends Prepared {
             }
             expressionMap.put(c, e.optimize(session));
         }
-        TableFilter[] filters = new TableFilter[] { targetTableFilter };
+        TableFilter[] filters;
+        if(sourceTableFilter==null){
+            filters = new TableFilter[] { targetTableFilter };
+        }
+        else{
+            filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
+        }
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
                 ExpressionVisitor.allColumnsForTableFilters(filters));
         targetTableFilter.setPlanItem(item);
@@ -233,5 +243,4 @@ public class Update extends Prepared {
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
         this.sourceTableFilter = sourceTableFilter;
     }
-
 }

@@ -42,19 +42,21 @@ public class TestMergeUsing extends TestBase {
         stat = conn.createStatement();
         stat.execute("CREATE TABLE PARENT(ID INT, NAME VARCHAR, PRIMARY KEY(ID) );");
 
-        prep = conn.prepareStatement("MERGE INTO PARENT AS P USING (SELECT 1 AS ID, 'Marcy' AS NAME) AS S ON (P.ID = S.ID AND 1=1 AND S.ID = P.ID) WHEN MATCHED THEN UPDATE SET P.NAME = S.NAME WHERE 2 = 2 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)");
+        prep = conn.prepareStatement("MERGE INTO PARENT AS P USING (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2) ) AS S ON (P.ID = S.ID AND 1=1 AND S.ID = P.ID) WHEN MATCHED THEN UPDATE SET P.NAME = S.NAME WHERE 2 = 2 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)");
         rowCount = prep.executeUpdate();
 
-        assertEquals(1,rowCount);
+        int[] rowArray = new int[] { 1,2 };
+        assertEquals(rowArray.length,rowCount);
 
-        rs = stat.executeQuery("SELECT ID, NAME FROM PARENT");
+        rs = stat.executeQuery("SELECT ID, NAME FROM PARENT ORDER BY ID ASC");
 
-        for (int n : new int[] { 1 }) {
+        for (int n : rowArray) {
             assertTrue(rs.next());
-            assertEquals(1,rs.getInt(1));
-            assertEquals("Marcy", rs.getString(2));
+            assertEquals(n,rs.getInt(1));
+            assertEquals("Marcy"+n, rs.getString(2));
             System.out.println("id="+rs.getInt(1)+",name="+rs.getString(2));
         }
+        assertFalse(rs.next());
         conn.close();
         deleteDb("mergeUsingQueries");
     }

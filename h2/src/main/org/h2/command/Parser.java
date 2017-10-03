@@ -159,7 +159,6 @@ import org.h2.value.ValueNull;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
-import com.sun.tools.javac.util.Assert;
 
 /**
  * The parser is used to convert a SQL statement string to an command object.
@@ -1117,22 +1116,28 @@ public class Parser {
     private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
         if(schemaName==null){
             schemaName = session.getCurrentSchemaName();
+            System.out.println("schemaName="+schemaName);
         }
             
         Schema schema = getSchema();
+        String savedSchemaName = schemaName;
         MergeUsing command = new MergeUsing(oldCommand);
         currentPrepared = command;
         
         if (readIf("(")) {
+            System.out.println("pre select schema="+getSchema()+",schemaName="+schemaName);
             if (isSelect()) {
                 command.setQuery(parseSelect());
+                System.out.println("post select schema="+getSchema()+",schemaName="+schemaName);
+                schemaName = savedSchemaName;
+                System.out.println("post2 select schema="+getSchema()+",schemaName="+schemaName);
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
             
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
-            System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",ctlist="+columnTemplateList);
+            System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",ctlist="+columnTemplateList+",schema="+getSchema()+",schemaName="+schemaName);
             TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false);
             command.setTemporaryTableView(temporarySourceTableView);
             
@@ -1162,7 +1167,7 @@ public class Parser {
         read("ON");
         read("(");
         Expression condition = readExpression();
-        command.addOnCondition(condition);
+        command.setOnCondition(condition);
         read(")");
         
         if(readIf("WHEN")&&readIf("MATCHED")&&readIf("THEN")){
@@ -5194,9 +5199,12 @@ public class Parser {
         withQuery.prepare();
         querySQLOutput[0] = StringUtils.cache(withQuery.getPlanSQL());
         ArrayList<Expression> withExpressions = withQuery.getExpressions();
+        System.out.println("withExpressions="+withExpressions);
         for (int i = 0; i < withExpressions.size(); ++i) {
+            Expression withExp = withExpressions.get(i);
+            System.out.println("withExp.alias="+withExp.getAlias()+",name="+withExp.getColumnName());
             String columnName = cols != null ? cols[i]
-                    : withExpressions.get(i).getColumnName();
+                    : (withExp.getAlias()!=null ? withExp.getAlias() : withExp.getColumnName());
             columnTemplateList.add(new Column(columnName,
                     withExpressions.get(i).getType()));
         }

@@ -193,6 +193,7 @@ public class TestScalability implements Database.DatabaseTest {
                     1000L / db.getTotalTime());
             db.log("Statements per second", "#", statPerSec);
             System.out.println("Statements per second: " + statPerSec);
+            System.out.println("GC overhead: " + (100 * db.getTotalGCTime() / db.getTotalTime()) + "%");
             collect = false;
             db.stopServer();
         }

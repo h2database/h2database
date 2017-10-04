@@ -8,6 +8,7 @@ package org.h2.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
@@ -312,6 +313,17 @@ public class Utils {
     public static long getMemoryMax() {
         long max = Runtime.getRuntime().maxMemory();
         return max / 1024;
+    }
+
+    public static long getGarbageCollectionTime() {
+        long totalGCTime = 0;
+        for (GarbageCollectorMXBean gcMXBean : ManagementFactory.getGarbageCollectorMXBeans()) {
+            long collectionTime = gcMXBean.getCollectionTime();
+            if(collectionTime > 0) {
+                totalGCTime += collectionTime;
+            }
+        }
+        return totalGCTime;
     }
 
     private static synchronized void collectGarbage() {

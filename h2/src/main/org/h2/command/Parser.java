@@ -5032,10 +5032,20 @@ public class Parser {
             querySQL = StringUtils.cache(withQuery.getPlanSQL());
             ArrayList<Expression> withExpressions = withQuery.getExpressions();
             for (int i = 0; i < withExpressions.size(); ++i) {
-                String columnName = cols != null ? cols[i]
-                        : withExpressions.get(i).getColumnName();
+                Expression columnExp = withExpressions.get(i);
+                // use the passed in column name if supplied, otherwise use alias (if used) otherwise use column name
+                // derived from column expression
+                String columnName;
+                if (cols != null){
+                    columnName = cols[i];
+                } else if (columnExp.getAlias()!=null){
+                    columnName = columnExp.getAlias();
+                }
+                else{
+                     columnName =  columnExp.getColumnName();
+                }
                 columnTemplateList.add(new Column(columnName,
-                        withExpressions.get(i).getType()));
+                        columnExp.getType()));
             }
         } finally {
             session.removeLocalTempTable(recursiveTable);

@@ -26,6 +26,7 @@ import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.Utils;
 
 /*
 
@@ -151,8 +152,8 @@ public final class MVStore {
 
     private volatile boolean closed;
 
-    private FileStore fileStore;
-    private boolean fileStoreIsProvided;
+    private final FileStore fileStore;
+    private final boolean fileStoreIsProvided;
 
     private final int pageSplitSize;
 
@@ -161,14 +162,14 @@ public final class MVStore {
      * It is split in 16 segments. The stack move distance is 2% of the expected
      * number of entries.
      */
-    private CacheLongKeyLIRS<Page> cache;
+    private final CacheLongKeyLIRS<Page> cache;
 
     /**
      * The page chunk references cache. The default size is 4 MB, and the
      * average size is 2 KB. It is split in 16 segments. The stack move distance
      * is 2% of the expected number of entries.
      */
-    private CacheLongKeyLIRS<PageChildren> cacheChunkRef;
+    private final CacheLongKeyLIRS<PageChildren> cacheChunkRef;
 
     /**
      * The newest chunk. If nothing was stored yet, this field is not set.
@@ -198,12 +199,12 @@ public final class MVStore {
      * The metadata map. Write access to this map needs to be synchronized on
      * the store.
      */
-    private MVMap<String, String> meta;
+    private final MVMap<String, String> meta;
 
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
             new ConcurrentHashMap<>();
 
-    private HashMap<String, Object> storeHeader = New.hashMap();
+    private final HashMap<String, Object> storeHeader = New.hashMap();
 
     private WriteBuffer writeBuffer;
 
@@ -221,7 +222,7 @@ public final class MVStore {
 
     private Compressor compressorHigh;
 
-    private final UncaughtExceptionHandler backgroundExceptionHandler;
+    public final UncaughtExceptionHandler backgroundExceptionHandler;
 
     private volatile long currentVersion;
 
@@ -292,91 +293,88 @@ public final class MVStore {
      *             occurred while opening
      * @throws IllegalArgumentException if the directory does not exist
      */
-    MVStore(HashMap<String, Object> config) {
-        Object o = config.get("compress");
-        this.compressionLevel = o == null ? 0 : (Integer) o;
+    MVStore(Map<String, Object> config) {
+        this.compressionLevel = Utils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
-        fileStore = (FileStore) config.get("fileStore");
+        FileStore fileStore = (FileStore) config.get("fileStore");
         fileStoreIsProvided = fileStore != null;
         if(fileStore == null && fileName != null) {
             fileStore = new FileStore();
         }
-        o = config.get("pageSplitSize");
-        int pgSplitSize;
-        if (o != null) {
-            pgSplitSize = (Integer) o;
-        } else if(fileStore != null) {
-            pgSplitSize = 16 * 1024;
+        this.fileStore = fileStore;
+
+        CacheLongKeyLIRS.Config cc = null;
+        if (this.fileStore != null) {
+            int mb = Utils.getConfigParam(config, "cacheSize", 16);
+            if (mb > 0) {
+                cc = new CacheLongKeyLIRS.Config();
+                cc.maxMemory = mb * 1024L * 1024L;
+                Object o = config.get("cacheConcurrency");
+                if (o != null) {
+                    cc.segmentCount = (Integer)o;
+                }
+            }
+        }
+        if (cc != null) {
+            cache = new CacheLongKeyLIRS<>(cc);
+            cc.maxMemory /= 4;
+            cacheChunkRef = new CacheLongKeyLIRS<>(cc);
         } else {
-            pgSplitSize = 48; // number of keys per page in that case
+            cache = null;
+            cacheChunkRef = null;
+        }
+
+        int pgSplitSize = Utils.getConfigParam(config, "pageSplitSize", 16 * 1024);
+        // Make sure pages will fit into cache
+        if (cache != null && pgSplitSize > cache.getMaxItemSize()) {
+            pgSplitSize = (int)cache.getMaxItemSize();
         }
         pageSplitSize = pgSplitSize;
-        o = config.get("backgroundExceptionHandler");
-        this.backgroundExceptionHandler = (UncaughtExceptionHandler) o;
+        backgroundExceptionHandler =
+                (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         meta = new MVMap<>(StringDataType.INSTANCE,
                 StringDataType.INSTANCE);
         HashMap<String, Object> c = New.hashMap();
         c.put("id", 0);
         c.put("createVersion", currentVersion);
         meta.init(this, c);
-        if (fileStore == null) {
-            cache = null;
-            cacheChunkRef = null;
-            return;
-        }
-        retentionTime = fileStore.getDefaultRetentionTime();
-        boolean readOnly = config.containsKey("readOnly");
-        o = config.get("cacheSize");
-        int mb = o == null ? 16 : (Integer) o;
-        if (mb > 0) {
-            CacheLongKeyLIRS.Config cc = new CacheLongKeyLIRS.Config();
-            cc.maxMemory = mb * 1024L * 1024L;
-            o = config.get("cacheConcurrency");
-            if (o != null) {
-                cc.segmentCount = (Integer) o;
+        if (this.fileStore != null) {
+            retentionTime = this.fileStore.getDefaultRetentionTime();
+            int kb = Utils.getConfigParam(config, "autoCommitBufferSize", 1024);
+            // 19 KB memory is about 1 KB storage
+            autoCommitMemory = kb * 1024 * 19;
+            autoCompactFillRate = Utils.getConfigParam(config, "autoCompactFillRate", 50);
+            char[] encryptionKey = (char[]) config.get("encryptionKey");
+            try {
+                if (!fileStoreIsProvided) {
+                    boolean readOnly = config.containsKey("readOnly");
+                    this.fileStore.open(fileName, readOnly, encryptionKey);
+                }
+                if (this.fileStore.size() == 0) {
+                    creationTime = getTimeAbsolute();
+                    lastCommitTime = creationTime;
+                    storeHeader.put("H", 2);
+                    storeHeader.put("blockSize", BLOCK_SIZE);
+                    storeHeader.put("format", FORMAT_WRITE);
+                    storeHeader.put("created", creationTime);
+                    writeStoreHeader();
+                } else {
+                    readStoreHeader();
+                }
+            } catch (IllegalStateException e) {
+                panic(e);
+            } finally {
+                if (encryptionKey != null) {
+                    Arrays.fill(encryptionKey, (char) 0);
+                }
             }
-            cache = new CacheLongKeyLIRS<>(cc);
-            cc.maxMemory /= 4;
-            cacheChunkRef = new CacheLongKeyLIRS<>(cc);
-        }
-        o = config.get("autoCommitBufferSize");
-        int kb = o == null ? 1024 : (Integer) o;
-        // 19 KB memory is about 1 KB storage
-        autoCommitMemory = kb * 1024 * 19;
+            lastCommitTime = getTimeSinceCreation();
 
-        o = config.get("autoCompactFillRate");
-        autoCompactFillRate = o == null ? 50 : (Integer) o;
-
-        char[] encryptionKey = (char[]) config.get("encryptionKey");
-        try {
-            if (!fileStoreIsProvided) {
-                fileStore.open(fileName, readOnly, encryptionKey);
-            }
-            if (fileStore.size() == 0) {
-                creationTime = getTimeAbsolute();
-                lastCommitTime = creationTime;
-                storeHeader.put("H", 2);
-                storeHeader.put("blockSize", BLOCK_SIZE);
-                storeHeader.put("format", FORMAT_WRITE);
-                storeHeader.put("created", creationTime);
-                writeStoreHeader();
-            } else {
-                readStoreHeader();
-            }
-        } catch (IllegalStateException e) {
-            panic(e);
-        } finally {
-            if (encryptionKey != null) {
-                Arrays.fill(encryptionKey, (char) 0);
-            }
+            // setAutoCommitDelay starts the thread, but only if
+            // the parameter is different from the old value
+            int delay = Utils.getConfigParam(config, "autoCommitDelay", 1000);
+            setAutoCommitDelay(delay);
         }
-        lastCommitTime = getTimeSinceCreation();
-
-        // setAutoCommitDelay starts the thread, but only if
-        // the parameter is different from the old value
-        o = config.get("autoCommitDelay");
-        int delay = o == null ? 1000 : (Integer) o;
-        setAutoCommitDelay(delay);
     }
 
     private void panic(IllegalStateException e) {
@@ -892,29 +890,26 @@ public final class MVStore {
         // the thread also synchronized on this, which
         // could result in a deadlock
         stopBackgroundThread();
-        closed = true;
         synchronized (this) {
+            closed = true;
             if (fileStore != null && shrinkIfPossible) {
                 shrinkFileIfPossible(0);
             }
             // release memory early - this is important when called
             // because of out of memory
-            cache = null;
-            cacheChunkRef = null;
+            if (cache != null) {
+                cache.clear();
+            }
+            if (cacheChunkRef != null) {
+                cacheChunkRef.clear();
+            }
             for (MVMap<?, ?> m : New.arrayList(maps.values())) {
                 m.close();
             }
-            meta = null;
             chunks.clear();
             maps.clear();
-            if (fileStore != null) {
-                try {
-                    if (!fileStoreIsProvided) {
-                        fileStore.close();
-                    }
-                } finally {
-                    fileStore = null;
-                }
+            if (fileStore != null && !fileStoreIsProvided) {
+                fileStore.close();
             }
         }
     }

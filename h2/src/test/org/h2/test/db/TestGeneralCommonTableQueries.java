@@ -466,18 +466,6 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
         assertFalse(rs.next());
 
-        try{
-            prep = conn.prepareStatement("SELECT * FROM t1 UNION ALL SELECT * FROM t2 "+
-                    "UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(5,6)");
-            rs = prep.executeQuery();
-            fail("Temp view T1 was accessible after previous WITH statement finished "+
-                    "- but should not have been.");
-        }
-        catch(JdbcSQLException e){
-            // ensure the T1 table has been removed even without auto commit
-            assertContains(e.getMessage(),"Table \"T1\" not found;");
-        }
-
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }

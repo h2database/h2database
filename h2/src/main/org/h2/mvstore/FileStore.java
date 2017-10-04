@@ -355,6 +355,10 @@ public class FileStore {
         return freeSpace.getFirstFree();
     }
 
+    long getFileLengthInUse() {
+        return freeSpace.getLastFree();
+    }
+
     /**
      * Mark the file as empty.
      */

@@ -1527,19 +1527,24 @@ public final class MVStore {
     }
 
     /**
-     * Get the position of the last used byte.
+     * Get the position right after the last used byte.
      *
      * @return the position
      */
     private long getFileLengthInUse() {
-        long size = 2 * BLOCK_SIZE;
+        long result = fileStore.getFileLengthInUse();
+        assert result == _getFileLengthInUse() : result + " != " + _getFileLengthInUse();
+        return result;
+    }
+
+    private long _getFileLengthInUse() {
+        long size = 2;
         for (Chunk c : chunks.values()) {
             if (c.len != Integer.MAX_VALUE) {
-                long x = (c.block + c.len) * BLOCK_SIZE;
-                size = Math.max(size, x);
+                size = Math.max(size, c.block + c.len);
             }
         }
-        return size;
+        return size * BLOCK_SIZE;
     }
 
     /**

@@ -222,7 +222,7 @@ public final class MVStore {
 
     private Compressor compressorHigh;
 
-    public final UncaughtExceptionHandler backgroundExceptionHandler;
+    private final UncaughtExceptionHandler backgroundExceptionHandler;
 
     private volatile long currentVersion;
 
@@ -890,8 +890,8 @@ public final class MVStore {
         // the thread also synchronized on this, which
         // could result in a deadlock
         stopBackgroundThread();
+        closed = true;
         synchronized (this) {
-            closed = true;
             if (fileStore != null && shrinkIfPossible) {
                 shrinkFileIfPossible(0);
             }

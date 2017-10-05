@@ -7,6 +7,7 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Prepared;
@@ -42,6 +43,7 @@ public class MergeUsing extends Merge {
     private Insert insertCommand;
     private String queryAlias;
     private TableView temporarySourceTableView;
+    private int countUpdatedRows=0;
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());
@@ -67,22 +69,22 @@ public class MergeUsing extends Merge {
             sourceTableFilter.reset();
         }
        
-        int count;
+        int countInputRows;
         checkRights();
         setCurrentRowNumber(0);
 
         // process select query data for row creation
         ResultInterface rows = query.query(0);
-        count = 0;
+        countInputRows = 0;
         targetTable.fire(session, evaluateTriggerMasks(), true);
         targetTable.lock(session, true, false);
         while (rows.next()) {
-            count++;
+            countInputRows++;
             Value[] sourceRowValues = rows.currentRow();
             Row sourceRow = new RowImpl(sourceRowValues,0);
             System.out.println(("currentRowValues="+Arrays.toString(sourceRowValues)));
             Row newTargetRow = targetTable.getTemplateRow();
-            setCurrentRowNumber(count);
+            setCurrentRowNumber(countInputRows);
             System.out.println("columns="+Arrays.toString(columns));
             
             // computer the new target row columns values
@@ -93,14 +95,14 @@ public class MergeUsing extends Merge {
                     Value v = c.convert(sourceRowValues[j]);
                     newTargetRow.setValue(index, v);
                 } catch (DbException ex) {
-                    throw setRow(ex, count, getSQL(sourceRowValues));
+                    throw setRow(ex, countInputRows, getSQL(sourceRowValues));
                 }
             }
             merge(sourceRow, sourceRowValues,newTargetRow);
         }
         rows.close();
         targetTable.fire(session, evaluateTriggerMasks(), false);
-        return count;
+        return countUpdatedRows;
     }
 
 
@@ -136,57 +138,28 @@ public class MergeUsing extends Merge {
         // put the column values into the table filter
         sourceTableFilter.set(sourceRow);
 
-        // try and update
+        // try and perform an update
         int count = 0;
+        System.out.println("onConditions="+onCondition.toString());
         if(updateCommand!=null){
-            System.out.println("onConditions="+onCondition.toString());
             System.out.println("updatePlanSQL="+updateCommand.getPlanSQL());
             count += updateCommand.update();
             System.out.println("update.count="+count);
         }
         if(deleteCommand!=null && count==0){
+            System.out.println("deleteCommand="+deleteCommand.getPlanSQL());
             count += deleteCommand.update();
             System.out.println("delete.count="+count);
         }
         
         // if either updates do nothing, try an insert
         if (count == 0) {
-            try {
-                targetTable.validateConvertUpdateSequence(session, newTargetRow);
-                boolean done = targetTable.fireBeforeRow(session, null, newTargetRow);
-                if (!done) {
-                    targetTable.lock(session, true, false);
-                    //targetTable.addRow(session, row);
-                    addRowByInsert(session,newTargetRow);
-                    session.log(targetTable, UndoLogRecord.INSERT, newTargetRow);
-                    targetTable.fireAfterRow(session, null, newTargetRow, false);
-                }
-            } catch (DbException e) {
-                if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                    // possibly a concurrent merge or insert
-                    Index index = (Index) e.getSource();
-                    if (index != null) {
-                        // verify the index columns match the key
-                        Column[] indexColumns = index.getColumns();
-                        boolean indexMatchesKeys = true;
-                        if (indexColumns.length <= keys.length) {
-                            for (int i = 0; i < indexColumns.length; i++) {
-                                if (indexColumns[i] != keys[i]) {
-                                    indexMatchesKeys = false;
-                                    break;
-                                }
-                            }
-                        }
-                        if (indexMatchesKeys) {
-                            throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, targetTable.getName());
-                        }
-                    }
-                }
-                throw e;
-            }
+            count+=addRowByCommandInsert(session,newTargetRow);
+            //addRowByAPIInsert(session,newTargetRow);
         } else if (count != 1) {
             throw DbException.get(ErrorCode.DUPLICATE_KEY_1, targetTable.getSQL());
         }
+        countUpdatedRows+=count;
     }
 
 
@@ -211,10 +184,53 @@ public class MergeUsing extends Merge {
             p.setValue(v);
         }
     }
+    
+    private int addRowByCommandInsert(Session session, Row newTargetRow) {
+        int localCount = 0;
+        if(insertCommand!=null){
+            System.out.println("insertPlanSQL="+insertCommand.getPlanSQL());
+            localCount += insertCommand.update();
+        }
+        System.out.println("insert.count="+localCount);
+        return localCount;
+    }
 
-    private void addRowByInsert(Session session, Row row) {
-        System.out.println("addRowByInsert=(hashcode)"+row.hashCode());
-        targetTable.addRow(session, row);
+    private int addRowByAPIInsert(Session session, Row newTargetRow) {
+        System.out.println("addRowByInsert=(hashcode)"+newTargetRow.hashCode());        
+        try {
+            targetTable.validateConvertUpdateSequence(session, newTargetRow);
+            boolean done = targetTable.fireBeforeRow(session, null, newTargetRow);
+            if (!done) {
+                targetTable.lock(session, true, false);
+                targetTable.addRow(session, newTargetRow);
+                session.log(targetTable, UndoLogRecord.INSERT, newTargetRow);
+                targetTable.fireAfterRow(session, null, newTargetRow, false);
+                return 1;
+            }
+            return 0;
+        } catch (DbException e) {
+            if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
+                // possibly a concurrent merge or insert
+                Index index = (Index) e.getSource();
+                if (index != null) {
+                    // verify the index columns match the key
+                    Column[] indexColumns = index.getColumns();
+                    boolean indexMatchesKeys = true;
+                    if (indexColumns.length <= keys.length) {
+                        for (int i = 0; i < indexColumns.length; i++) {
+                            if (indexColumns[i] != keys[i]) {
+                                indexMatchesKeys = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (indexMatchesKeys) {
+                        throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, targetTable.getName());
+                    }
+                }
+            }
+            throw e;
+        }
     }
 
 
@@ -347,13 +363,28 @@ public class MergeUsing extends Merge {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
+//        if (keys == null) {
+//            Index idx = targetTable.getPrimaryKey();
+//            if (idx == null) {
+//                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
+//            }
+//            keys = idx.getColumns();
+//        }
         if (keys == null) {
-            Index idx = targetTable.getPrimaryKey();
-            if (idx == null) {
-                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
+            HashSet<Column> targetColumns = new HashSet<Column>();
+            HashSet<Column> columns = new HashSet<Column>();
+            ExpressionVisitor visitor = ExpressionVisitor.getColumnsVisitor(columns);
+            onCondition.isEverything(visitor);
+            for(Column c: columns){
+                if(c.getTable()==targetTable){
+                    targetColumns.add(c);
+                }
             }
-            keys = idx.getColumns();
-        }
+            if (targetColumns.isEmpty()) {
+                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "ON (condition) target columns missing");
+            }
+            keys = targetColumns.toArray(new Column[1]);
+        }        
         String sql = buildPreparedSQL();
         update = session.prepare(sql);
         
@@ -389,7 +420,7 @@ public class MergeUsing extends Merge {
         }
         return new ConditionAndOr(ConditionAndOr.AND,deleteCommand.getCondition(),onCondition);
     }
-
+    
     private String buildPreparedSQL() {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
         buff.append(targetTable.getSQL());
@@ -407,6 +438,44 @@ public class MergeUsing extends Merge {
             buff.appendExceptFirst(" AND ");
             buff.append(c.getSQL()).append("=?");
         }
+        String sql = buff.toString();
+        return sql;
+    }
+    private String buildPreparedSQLForMergeUsing() {
+        StatementBuilder buff = new StatementBuilder("MERGE INTO ");
+        buff.append(targetTable.getSQL());
+        if(targetTableFilter.getTableAlias()!=null){
+            buff.append(" AS "+targetTableFilter.getTableAlias()+"\n");            
+        }
+        buff.append("USING \n");
+        buff.append(temporarySourceTableView.getSQL());
+        buff.append("\n");
+        if(sourceTableFilter.getTableAlias()!=null){
+            buff.append(" AS "+sourceTableFilter.getTableAlias()+"\n");            
+        }
+        buff.append("ON (");
+        buff.append(onCondition.getSQL());
+        buff.append(" )");
+        if(updateCommand!=null || deleteCommand!=null){
+            buff.append("\nWHEN MATCHED\n");
+            if(updateCommand!=null){
+                buff.append(updateCommand.getPlanSQL());
+            }
+            if(deleteCommand!=null){
+                buff.append(deleteCommand.getPlanSQL());
+            }
+        }
+        if(insertCommand!=null){
+            buff.append("\nWHEN NOT MATCHED\n");
+            if(insertCommand!=null){
+                buff.append(insertCommand.getPlanSQL());
+            }
+        }
+//        buff.resetCount();
+//        for (Column c : keys) {
+//            buff.appendExceptFirst(" AND ");
+//            buff.append(c.getSQL()).append("=?");
+//        }
         String sql = buff.toString();
         return sql;
     }

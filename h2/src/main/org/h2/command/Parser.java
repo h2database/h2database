@@ -1138,10 +1138,9 @@ public class Parser {
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
             System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",ctlist="+columnTemplateList+",schema="+getSchema()+",schemaName="+schemaName);
-            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false);
+            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false, false);
             command.setTemporaryTableView(temporarySourceTableView);
             
-            //Table tableOrView = command.getQuery().getTables().toArray(new Table[]{null})[0];
             System.out.println("sourceTableFilter with tableOrView="+temporarySourceTableView);
             System.out.println("sourceTableFilter rightsChecked="+rightsChecked);
             TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
@@ -5190,7 +5189,7 @@ public class Parser {
         } finally {
             session.removeLocalTempTable(recursiveTable);
         }
-        TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/);
+        TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/, true);
         return view;
     }
 
@@ -5201,18 +5200,26 @@ public class Parser {
         ArrayList<Expression> withExpressions = withQuery.getExpressions();
         System.out.println("withExpressions="+withExpressions);
         for (int i = 0; i < withExpressions.size(); ++i) {
-            Expression withExp = withExpressions.get(i);
-            System.out.println("withExp.alias="+withExp.getAlias()+",name="+withExp.getColumnName());
-            String columnName = cols != null ? cols[i]
-                    : (withExp.getAlias()!=null ? withExp.getAlias() : withExp.getColumnName());
+            Expression columnExp = withExpressions.get(i);
+            // use the passed in column name if supplied, otherwise use alias (if used) otherwise use column name
+            // derived from column expression
+            String columnName;
+            if (cols != null){
+                columnName = cols[i];
+            } else if (columnExp.getAlias()!=null){
+                columnName = columnExp.getAlias();
+            }
+            else{
+                 columnName =  columnExp.getColumnName();
+            }
             columnTemplateList.add(new Column(columnName,
-                    withExpressions.get(i).getType()));
+                    columnExp.getType()));
         }
         return columnTemplateList;
     }
 
     private TableView createTemporarySessionView(String tempViewName,  String querySQL,
-            List<Column> columnTemplateList, boolean allowRecursiveQueryDetection) {
+            List<Column> columnTemplateList, boolean allowRecursiveQueryDetection, boolean addViewToSession) {
         Schema schema = getSchema();
         int id = database.allocateObjectId();
         // No easy way to determine if this is a recursive query up front, so we just compile
@@ -5229,7 +5236,9 @@ public class Parser {
         }
         view.setTableExpression(true);
         view.setTemporary(true);
-        session.addLocalTempTable(view);
+        if(addViewToSession){
+            session.addLocalTempTable(view);
+        }
         view.setOnCommitDrop(true);
         return view;
     }

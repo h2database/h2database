@@ -21,7 +21,7 @@ OFFSET specified how many rows to skip.
 Please note using high offset values should be avoided because it can cause performance problems.
 SAMPLE_SIZE limits the number of rows read for aggregate queries.
 
-Multiple set operators (UNION, INTERSECT, MINUS, EXPECT) are evaluated
+Multiple set operators (UNION, INTERSECT, MINUS, EXCEPT) are evaluated
 from left to right. For compatibility with other databases and future versions
 of H2 please use parentheses.
 

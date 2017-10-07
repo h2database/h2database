@@ -106,7 +106,7 @@ public class MergeUsing extends Merge {
                 }
             }
             if(sourceKeysRemembered.containsKey(sourceKeyValuesList)){
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicates values found:keys"
+                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate values found:keys"
                         +Arrays.asList(sourceKeys).toString()+":values:"+sourceKeyValuesList.toString()
                         +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+countInputRows
                         +":conflicting row number:"+sourceKeysRemembered.get(sourceKeyValuesList));
@@ -167,27 +167,27 @@ public class MergeUsing extends Merge {
         sourceTableFilter.set(sourceRow);
 
         // try and perform an update
-        int count = 0;
+        int rowUpdateCount = 0;
         System.out.println("onConditions="+onCondition.toString());
         if(updateCommand!=null){
             System.out.println("updatePlanSQL="+updateCommand.getPlanSQL());
-            count += updateCommand.update();
-            System.out.println("update.count="+count);
+            rowUpdateCount += updateCommand.update();
+            System.out.println("update.count="+rowUpdateCount);
         }
-        if(deleteCommand!=null && count==0){
+        if(deleteCommand!=null && rowUpdateCount==0){
             System.out.println("deleteCommand="+deleteCommand.getPlanSQL());
-            count += deleteCommand.update();
-            System.out.println("delete.count="+count);
+            rowUpdateCount += deleteCommand.update();
+            System.out.println("delete.count="+rowUpdateCount);
         }
         
         // if either updates do nothing, try an insert
-        if (count == 0) {
-            count+=addRowByCommandInsert(session,newTargetRow);
+        if (rowUpdateCount == 0) {
+            rowUpdateCount+=addRowByCommandInsert(session,newTargetRow);
             //addRowByAPIInsert(session,newTargetRow);
-        } else if (count != 1) {
-            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, targetTable.getSQL());
+        } else if (rowUpdateCount != 1) {
+            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Duplicate key updated "+rowUpdateCount+" rows at once, only 1 expected:"+targetTable.getSQL());
         }
-        countUpdatedRows+=count;
+        countUpdatedRows+=rowUpdateCount;
     }
 
 

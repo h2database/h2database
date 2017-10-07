@@ -123,8 +123,19 @@ public class TestMergeUsing extends TestBase {
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT 1 AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(1,1)",
                 3,
-                "Unique index or primary key violation: \"Merge using ON column expression, duplicates values found:keys[ID]:values:[1]:from:PUBLIC.SOURCE:alias:SOURCE:current row number:2:conflicting row number:1"
-                );         
+                "Unique index or primary key violation: \"Merge using ON column expression, duplicate values found:keys[ID]:values:[1]:from:PUBLIC.SOURCE:alias:SOURCE:current row number:2:conflicting row number:1"
+                );
+        
+        // Duplicate key updated 3 rows at once, only 1 expected
+        testMergeUsingException(
+                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"+
+                        "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
+                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
+                3,
+                "Duplicate key updated 3 rows at once, only 1 expected"
+                );        
         }
 
     /**
@@ -145,30 +156,34 @@ public class TestMergeUsing extends TestBase {
         ResultSet rs;
         int rowCountUpdate;
 
-        stat = conn.createStatement();
-        stat.execute(setupSQL);
-
-        prep = conn.prepareStatement(statementUnderTest);
-        rowCountUpdate = prep.executeUpdate();
-
-        // compare actual results from SQL resultsset with expected results - by diffing (aka set MINUS operation)
-        rs = stat.executeQuery("( "+gatherResultsSQL+" ) MINUS ( "+expectedResultsSQL+" )");
-
-        int rowCount = 0;
-        StringBuffer diffBuffer = new StringBuffer("");
-        while (rs.next()) {
-            rowCount++;
-            diffBuffer.append("|");
-            System.out.println("rs.getMetaData().getColumnCount()="+rs.getMetaData().getColumnCount());
-            for(int ndx = 1; ndx <= rs.getMetaData().getColumnCount(); ndx++){
-                diffBuffer.append(rs.getObject(ndx));
-                diffBuffer.append("|\n");
+        try{
+            stat = conn.createStatement();
+            stat.execute(setupSQL);
+    
+            prep = conn.prepareStatement(statementUnderTest);
+            rowCountUpdate = prep.executeUpdate();
+    
+            // compare actual results from SQL resultsset with expected results - by diffing (aka set MINUS operation)
+            rs = stat.executeQuery("( "+gatherResultsSQL+" ) MINUS ( "+expectedResultsSQL+" )");
+    
+            int rowCount = 0;
+            StringBuffer diffBuffer = new StringBuffer("");
+            while (rs.next()) {
+                rowCount++;
+                diffBuffer.append("|");
+                System.out.println("rs.getMetaData().getColumnCount()="+rs.getMetaData().getColumnCount());
+                for(int ndx = 1; ndx <= rs.getMetaData().getColumnCount(); ndx++){
+                    diffBuffer.append(rs.getObject(ndx));
+                    diffBuffer.append("|\n");
+                }
             }
+            assertEquals("Differences between expected and actual output found:"+diffBuffer,0,rowCount);
+            assertEquals("Expected update counts differ",expectedRowUpdateCount,rowCountUpdate);
         }
-        assertEquals("Differences between expected and actual output found:"+diffBuffer,0,rowCount);
-        assertEquals("Expected update counts differ",expectedRowUpdateCount,rowCountUpdate);
-        conn.close();
-        deleteDb("mergeUsingQueries");
+        finally{
+            conn.close();
+            deleteDb("mergeUsingQueries");
+        }
     }
     /**
      * Run a test case of the merge using syntax

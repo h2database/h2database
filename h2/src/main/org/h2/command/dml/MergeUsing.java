@@ -7,10 +7,13 @@ package org.h2.command.dml;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.Prepared;
+import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
 import org.h2.engine.UndoLogRecord;
@@ -44,6 +47,8 @@ public class MergeUsing extends Merge {
     private String queryAlias;
     private TableView temporarySourceTableView;
     private int countUpdatedRows=0;
+    private Column[] sourceKeys;
+    private HashMap<List<Value>,Integer> sourceKeysRemembered = new HashMap<List<Value>,Integer>();
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());
@@ -57,6 +62,8 @@ public class MergeUsing extends Merge {
   
     @Override
     public int update() {
+        sourceKeysRemembered.clear();
+        
         System.out.println("update using:"+temporarySourceTableView);
         
         if(targetTableFilter!=null){
@@ -84,10 +91,31 @@ public class MergeUsing extends Merge {
             Row sourceRow = new RowImpl(sourceRowValues,0);
             System.out.println(("currentRowValues="+Arrays.toString(sourceRowValues)));
             Row newTargetRow = targetTable.getTemplateRow();
+            ArrayList<Value> sourceKeyValuesList = new ArrayList<Value>();
             setCurrentRowNumber(countInputRows);
             System.out.println("columns="+Arrays.toString(columns));
             
-            // computer the new target row columns values
+            // isolate the source row key columns values
+            for (int j = 0; j < sourceKeys.length; j++) {
+                Column c = sourceKeys[j];
+                try {
+                    Value v = c.convert(sourceRowValues[j]);
+                    sourceKeyValuesList.add(v);
+                } catch (DbException ex) {
+                    throw setRow(ex, countInputRows, getSQL(sourceRowValues));
+                }
+            }
+            if(sourceKeysRemembered.containsKey(sourceKeyValuesList)){
+                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicates values found:keys"
+                        +Arrays.asList(sourceKeys).toString()+":values:"+sourceKeyValuesList.toString()
+                        +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+countInputRows
+                        +":conflicting row number:"+sourceKeysRemembered.get(sourceKeyValuesList));
+            }else{
+                sourceKeysRemembered.put(sourceKeyValuesList,countInputRows);
+            }
+                
+            
+            // compute the new target row columns values
             for (int j = 0; j < columns.length; j++) {
                 Column c = columns[j];
                 int index = c.getColumnId();
@@ -324,7 +352,7 @@ public class MergeUsing extends Merge {
         System.out.println("prepare:sourceTableFilterAlias="+sourceTableFilter.getTableAlias());
         System.out.println("prepare:onConditions="+onCondition);
         
-        TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };
+        //TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };
         
         System.out.println("onCondition="+onCondition+":op="+onCondition.getClass().getSimpleName());
 
@@ -332,6 +360,18 @@ public class MergeUsing extends Merge {
         onCondition.addFilterConditions(targetTableFilter, true);
         onCondition.mapColumns(sourceTableFilter, 2);
         onCondition.mapColumns(targetTableFilter, 1);
+        
+        
+        if (keys == null) {
+            HashSet<Column> targetColumns = buildColumnListFromOnCondition(targetTableFilter);
+            keys = targetColumns.toArray(new Column[1]);
+        }       
+        if (sourceKeys == null) {
+            HashSet<Column> sourceColumns = buildColumnListFromOnCondition(sourceTableFilter);
+            sourceKeys = sourceColumns.toArray(new Column[1]);
+        }       
+        
+        // only do the optimise now - before we have already gathered the unoptimized column data
         onCondition = onCondition.optimize(session);
         onCondition.createIndexConditions(session, sourceTableFilter);
         //optional
@@ -370,21 +410,7 @@ public class MergeUsing extends Merge {
 //            }
 //            keys = idx.getColumns();
 //        }
-        if (keys == null) {
-            HashSet<Column> targetColumns = new HashSet<Column>();
-            HashSet<Column> columns = new HashSet<Column>();
-            ExpressionVisitor visitor = ExpressionVisitor.getColumnsVisitor(columns);
-            onCondition.isEverything(visitor);
-            for(Column c: columns){
-                if(c.getTable()==targetTable){
-                    targetColumns.add(c);
-                }
-            }
-            if (targetColumns.isEmpty()) {
-                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "ON (condition) target columns missing");
-            }
-            keys = targetColumns.toArray(new Column[1]);
-        }        
+ 
         String sql = buildPreparedSQL();
         update = session.prepare(sql);
         
@@ -405,6 +431,24 @@ public class MergeUsing extends Merge {
         }        
         
         
+    }
+
+
+    private HashSet<Column> buildColumnListFromOnCondition(TableFilter targetTableFilter) {
+        HashSet<Column> targetColumns = new HashSet<Column>();
+        HashSet<Column> columns = new HashSet<Column>();
+        ExpressionVisitor visitor = ExpressionVisitor.getColumnsVisitor(columns);
+        onCondition.isEverything(visitor);
+        for(Column c: columns){
+            if(c.getTable()==targetTableFilter.getTable()){
+                targetColumns.add(c);
+            }
+        }
+        System.out.println("columnsVisitedForTable"+targetTableFilter.getTable()+"="+targetColumns);
+        if (targetColumns.isEmpty()) {
+            throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "ON (condition) target columns missing");
+        }
+        return targetColumns;
     }
 
     private Expression appendOnCondition(Update updateCommand) {

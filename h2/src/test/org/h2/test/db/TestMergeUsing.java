@@ -123,7 +123,7 @@ public class TestMergeUsing extends TestBase {
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT 1 AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(1,1)",
                 3,
-                "Unique index or primary key violation: \"Merge using ON column expression, duplicate values found:keys[ID]:values:[1]:from:PUBLIC.SOURCE:alias:SOURCE:current row number:2:conflicting row number:1"
+                "Unique index or primary key violation: \"Merge using ON column expression, duplicate values found:key columns[ID]:values:[1]:from:PUBLIC.SOURCE:alias:SOURCE:current row number:2:conflicting row number:1"
                 );
         
         // Duplicate key updated 3 rows at once, only 1 expected
@@ -136,7 +136,27 @@ public class TestMergeUsing extends TestBase {
                 3,
                 "Duplicate key updated 3 rows at once, only 1 expected"
                 );        
-        }
+        // Missing target columns in ON expression
+        testMergeUsingException(
+                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"+
+                        "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
+                "MERGE INTO PARENT USING SOURCE ON (1 = SOURCE.ID) WHEN MATCHED THEN UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
+                3,
+                "No references to target columns found in ON clause"
+                );        
+        // Missing source columns in ON expression
+        testMergeUsingException(
+                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"+
+                        "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
+                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = 1) WHEN MATCHED THEN UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
+                3,
+                "No references to source columns found in ON clause"
+                );        
+       }
 
     /**
      * Run a test case of the merge using syntax
@@ -192,6 +212,7 @@ public class TestMergeUsing extends TestBase {
      * @param gatherResultsSQL - a select which gathers the results of the merge from the target table
      * @param expectedResultsSQL - a select which returns the expected results in the target table
      * @param expectedRowUpdateCount - how many updates should be expected from the merge using
+     * @param exceptionMessage - the exception message expected
      * @throws Exception
      */
     private void testMergeUsingException(String setupSQL, String statementUnderTest, String gatherResultsSQL,
@@ -201,6 +222,9 @@ public class TestMergeUsing extends TestBase {
                      expectedResultsSQL,  expectedRowUpdateCount);
         }
         catch(RuntimeException|org.h2.jdbc.JdbcSQLException e){
+            if(!e.getMessage().contains(exceptionMessage)){
+                e.printStackTrace();
+            }
             assertContains(e.getMessage(),exceptionMessage);
             return;            
         }

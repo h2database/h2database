@@ -106,7 +106,7 @@ public class MergeUsing extends Merge {
                 }
             }
             if(sourceKeysRemembered.containsKey(sourceKeyValuesList)){
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate values found:keys"
+                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate values found:key columns"
                         +Arrays.asList(sourceKeys).toString()+":values:"+sourceKeyValuesList.toString()
                         +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+countInputRows
                         +":conflicting row number:"+sourceKeysRemembered.get(sourceKeyValuesList));
@@ -174,7 +174,7 @@ public class MergeUsing extends Merge {
             rowUpdateCount += updateCommand.update();
             System.out.println("update.count="+rowUpdateCount);
         }
-        if(deleteCommand!=null && rowUpdateCount==0){
+        if(deleteCommand!=null){
             System.out.println("deleteCommand="+deleteCommand.getPlanSQL());
             rowUpdateCount += deleteCommand.update();
             System.out.println("delete.count="+rowUpdateCount);
@@ -364,12 +364,20 @@ public class MergeUsing extends Merge {
         
         if (keys == null) {
             HashSet<Column> targetColumns = buildColumnListFromOnCondition(targetTableFilter);
-            keys = targetColumns.toArray(new Column[1]);
-        }       
+            keys = targetColumns.toArray(new Column[0]);
+            System.out.println("keys.length="+keys.length);
+        }     
+        if(keys.length==0){
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,"No references to target columns found in ON clause:"+targetTableFilter.toString());
+        }
         if (sourceKeys == null) {
             HashSet<Column> sourceColumns = buildColumnListFromOnCondition(sourceTableFilter);
-            sourceKeys = sourceColumns.toArray(new Column[1]);
+            sourceKeys = sourceColumns.toArray(new Column[0]);
+            System.out.println("sourceKeys.length="+sourceKeys.length);
         }       
+        if(sourceKeys.length==0){
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,"No references to source columns found in ON clause:"+sourceTableFilter.toString());
+        }
         
         // only do the optimise now - before we have already gathered the unoptimized column data
         onCondition = onCondition.optimize(session);
@@ -434,21 +442,19 @@ public class MergeUsing extends Merge {
     }
 
 
-    private HashSet<Column> buildColumnListFromOnCondition(TableFilter targetTableFilter) {
-        HashSet<Column> targetColumns = new HashSet<Column>();
+    private HashSet<Column> buildColumnListFromOnCondition(TableFilter anyTableFilter) {
+        HashSet<Column> filteredColumns = new HashSet<Column>();
         HashSet<Column> columns = new HashSet<Column>();
         ExpressionVisitor visitor = ExpressionVisitor.getColumnsVisitor(columns);
         onCondition.isEverything(visitor);
         for(Column c: columns){
-            if(c.getTable()==targetTableFilter.getTable()){
-                targetColumns.add(c);
+            System.out.println("C="+c);
+            if(c!=null && c.getTable()==anyTableFilter.getTable()){
+                filteredColumns.add(c);
             }
         }
-        System.out.println("columnsVisitedForTable"+targetTableFilter.getTable()+"="+targetColumns);
-        if (targetColumns.isEmpty()) {
-            throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "ON (condition) target columns missing");
-        }
-        return targetColumns;
+        System.out.println("columnsVisitedForTable"+anyTableFilter.getTable()+"="+filteredColumns);
+        return filteredColumns;
     }
 
     private Expression appendOnCondition(Update updateCommand) {

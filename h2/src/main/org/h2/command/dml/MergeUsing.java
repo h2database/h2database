@@ -56,15 +56,12 @@ public class MergeUsing extends Merge {
         // bring across only the already parsed data from Merge...
         this.targetTable = merge.targetTable;
         this.targetTableFilter = merge.targetTableFilter;
-
     }
 
   
     @Override
     public int update() {
         sourceKeysRemembered.clear();
-        
-        System.out.println("update using:"+temporarySourceTableView);
         
         if(targetTableFilter!=null){
             targetTableFilter.startQuery(session);
@@ -89,11 +86,9 @@ public class MergeUsing extends Merge {
             countInputRows++;
             Value[] sourceRowValues = rows.currentRow();
             Row sourceRow = new RowImpl(sourceRowValues,0);
-            System.out.println(("currentRowValues="+Arrays.toString(sourceRowValues)));
             Row newTargetRow = targetTable.getTemplateRow();
             ArrayList<Value> sourceKeyValuesList = new ArrayList<Value>();
             setCurrentRowNumber(countInputRows);
-            System.out.println("columns="+Arrays.toString(columns));
             
             // isolate the source row key columns values
             for (int j = 0; j < sourceKeys.length; j++) {
@@ -168,28 +163,21 @@ public class MergeUsing extends Merge {
 
         // try and perform an update
         int rowUpdateCount = 0;
-        System.out.println("onConditions="+onCondition.toString());
         if(updateCommand!=null){
-            System.out.println("updatePlanSQL="+updateCommand.getPlanSQL());
             rowUpdateCount += updateCommand.update();
-            System.out.println("update.count="+rowUpdateCount);
         }
         if(deleteCommand!=null){
-            System.out.println("deleteCommand="+deleteCommand.getPlanSQL());
             rowUpdateCount += deleteCommand.update();
-            System.out.println("delete.count="+rowUpdateCount);
         }
         
         // if either updates do nothing, try an insert
         if (rowUpdateCount == 0) {
             rowUpdateCount+=addRowByCommandInsert(session,newTargetRow);
-            //addRowByAPIInsert(session,newTargetRow);
         } else if (rowUpdateCount != 1) {
             throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Duplicate key updated "+rowUpdateCount+" rows at once, only 1 expected:"+targetTable.getSQL());
         }
         countUpdatedRows+=rowUpdateCount;
     }
-
 
     private void configPreparedParameters(Row newTargetRow, Prepared updatePrepared) {
         ArrayList<Parameter> k = updatePrepared.getParameters();
@@ -216,56 +204,13 @@ public class MergeUsing extends Merge {
     private int addRowByCommandInsert(Session session, Row newTargetRow) {
         int localCount = 0;
         if(insertCommand!=null){
-            System.out.println("insertPlanSQL="+insertCommand.getPlanSQL());
             localCount += insertCommand.update();
         }
-        System.out.println("insert.count="+localCount);
         return localCount;
     }
 
-    private int addRowByAPIInsert(Session session, Row newTargetRow) {
-        System.out.println("addRowByInsert=(hashcode)"+newTargetRow.hashCode());        
-        try {
-            targetTable.validateConvertUpdateSequence(session, newTargetRow);
-            boolean done = targetTable.fireBeforeRow(session, null, newTargetRow);
-            if (!done) {
-                targetTable.lock(session, true, false);
-                targetTable.addRow(session, newTargetRow);
-                session.log(targetTable, UndoLogRecord.INSERT, newTargetRow);
-                targetTable.fireAfterRow(session, null, newTargetRow, false);
-                return 1;
-            }
-            return 0;
-        } catch (DbException e) {
-            if (e.getErrorCode() == ErrorCode.DUPLICATE_KEY_1) {
-                // possibly a concurrent merge or insert
-                Index index = (Index) e.getSource();
-                if (index != null) {
-                    // verify the index columns match the key
-                    Column[] indexColumns = index.getColumns();
-                    boolean indexMatchesKeys = true;
-                    if (indexColumns.length <= keys.length) {
-                        for (int i = 0; i < indexColumns.length; i++) {
-                            if (indexColumns[i] != keys[i]) {
-                                indexMatchesKeys = false;
-                                break;
-                            }
-                        }
-                    }
-                    if (indexMatchesKeys) {
-                        throw DbException.get(ErrorCode.CONCURRENT_UPDATE_1, targetTable.getName());
-                    }
-                }
-            }
-            throw e;
-        }
-    }
-
-
     @Override
     public String getPlanSQL() {
-        System.out.println("getPlanSQL");
-
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
         buff.append(targetTable.getSQL()).append('(');
         for (Column c : columns) {
@@ -307,55 +252,9 @@ public class MergeUsing extends Merge {
         }
         return buff.toString();
     }
-
-/*    
+   
     @Override
     public void prepare() {
-        if (condition != null) {
-            condition.mapColumns(tableFilter, 0);
-            condition = condition.optimize(session);
-            condition.createIndexConditions(session, tableFilter);
-        }
-        for (int i = 0, size = columns.size(); i < size; i++) {
-            Column c = columns.get(i);
-            Expression e = expressionMap.get(c);
-            e.mapColumns(tableFilter, 0);
-            expressionMap.put(c, e.optimize(session));
-        }
-        TableFilter[] filters = new TableFilter[] { tableFilter };
-        PlanItem item = tableFilter.getBestPlanItem(session, filters, 0,
-                ExpressionVisitor.allColumnsForTableFilters(filters));
-        tableFilter.setPlanItem(item);
-        tableFilter.prepare();
-    }
-*/    
-    
-    /*
-        MERGE INTO targetTableName [[AS] t_alias] USING table_reference [[AS} s_alias] ON ( condition ,...)
-            WHEN MATCHED THEN
-             [UPDATE SET column1 = value1 [, column2 = value2 ... WHERE ...] 
-             [DELETE WHERE ...]
-            WHEN NOT MATCHED THEN
-             INSERT (column1 [, column2 ...]) VALUES (value1 [, value2 ...]);
-            
-            table_reference ::= table | view | ( sub-query )
-            
-         The current implementation (for comparison) uses this syntax:
-         
-          MERGE INTO tablename [(columnName1,...)] 
-          [KEY (keyColumnName1,...)]
-          [ VALUES (expression1,...) | SELECT ...]           
-    */    
-    @Override
-    public void prepare() {
-        System.out.println("prepare:targetTableFilterAlias="+targetTableFilter.getTableAlias());
-        System.out.println("prepare:sourceTableFilterAlias="+sourceTableFilter.getTableAlias());
-        System.out.println("prepare:onConditions="+onCondition);
-        
-        //TableFilter[] filters = new TableFilter[] { sourceTableFilter, targetTableFilter };
-        
-        System.out.println("onCondition="+onCondition+":op="+onCondition.getClass().getSimpleName());
-
         onCondition.addFilterConditions(sourceTableFilter, true);
         onCondition.addFilterConditions(targetTableFilter, true);
         onCondition.mapColumns(sourceTableFilter, 2);
@@ -365,24 +264,23 @@ public class MergeUsing extends Merge {
         if (keys == null) {
             HashSet<Column> targetColumns = buildColumnListFromOnCondition(targetTableFilter);
             keys = targetColumns.toArray(new Column[0]);
-            System.out.println("keys.length="+keys.length);
         }     
         if(keys.length==0){
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,"No references to target columns found in ON clause:"+targetTableFilter.toString());
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,
+                    "No references to target columns found in ON clause:"+targetTableFilter.toString());
         }
         if (sourceKeys == null) {
             HashSet<Column> sourceColumns = buildColumnListFromOnCondition(sourceTableFilter);
             sourceKeys = sourceColumns.toArray(new Column[0]);
-            System.out.println("sourceKeys.length="+sourceKeys.length);
         }       
         if(sourceKeys.length==0){
-            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,"No references to source columns found in ON clause:"+sourceTableFilter.toString());
+            throw DbException.get(ErrorCode.COLUMN_NOT_FOUND_1,
+                    "No references to source columns found in ON clause:"+sourceTableFilter.toString());
         }
         
-        // only do the optimise now - before we have already gathered the unoptimized column data
+        // only do the optimize now - before we have already gathered the unoptimized column data
         onCondition = onCondition.optimize(session);
         onCondition.createIndexConditions(session, sourceTableFilter);
-        //optional
         onCondition.createIndexConditions(session, targetTableFilter);
 
         if (columns == null) {
@@ -411,13 +309,6 @@ public class MergeUsing extends Merge {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
-//        if (keys == null) {
-//            Index idx = targetTable.getPrimaryKey();
-//            if (idx == null) {
-//                throw DbException.get(ErrorCode.CONSTRAINT_NOT_FOUND_1, "PRIMARY KEY");
-//            }
-//            keys = idx.getColumns();
-//        }
  
         String sql = buildPreparedSQL();
         update = session.prepare(sql);
@@ -437,10 +328,7 @@ public class MergeUsing extends Merge {
             insertCommand.setSourceTableFilter(sourceTableFilter);
             insertCommand.prepare();
         }        
-        
-        
     }
-
 
     private HashSet<Column> buildColumnListFromOnCondition(TableFilter anyTableFilter) {
         HashSet<Column> filteredColumns = new HashSet<Column>();
@@ -448,12 +336,10 @@ public class MergeUsing extends Merge {
         ExpressionVisitor visitor = ExpressionVisitor.getColumnsVisitor(columns);
         onCondition.isEverything(visitor);
         for(Column c: columns){
-            System.out.println("C="+c);
             if(c!=null && c.getTable()==anyTableFilter.getTable()){
                 filteredColumns.add(c);
             }
         }
-        System.out.println("columnsVisitedForTable"+anyTableFilter.getTable()+"="+filteredColumns);
         return filteredColumns;
     }
 
@@ -488,44 +374,6 @@ public class MergeUsing extends Merge {
             buff.appendExceptFirst(" AND ");
             buff.append(c.getSQL()).append("=?");
         }
-        String sql = buff.toString();
-        return sql;
-    }
-    private String buildPreparedSQLForMergeUsing() {
-        StatementBuilder buff = new StatementBuilder("MERGE INTO ");
-        buff.append(targetTable.getSQL());
-        if(targetTableFilter.getTableAlias()!=null){
-            buff.append(" AS "+targetTableFilter.getTableAlias()+"\n");            
-        }
-        buff.append("USING \n");
-        buff.append(temporarySourceTableView.getSQL());
-        buff.append("\n");
-        if(sourceTableFilter.getTableAlias()!=null){
-            buff.append(" AS "+sourceTableFilter.getTableAlias()+"\n");            
-        }
-        buff.append("ON (");
-        buff.append(onCondition.getSQL());
-        buff.append(" )");
-        if(updateCommand!=null || deleteCommand!=null){
-            buff.append("\nWHEN MATCHED\n");
-            if(updateCommand!=null){
-                buff.append(updateCommand.getPlanSQL());
-            }
-            if(deleteCommand!=null){
-                buff.append(deleteCommand.getPlanSQL());
-            }
-        }
-        if(insertCommand!=null){
-            buff.append("\nWHEN NOT MATCHED\n");
-            if(insertCommand!=null){
-                buff.append(insertCommand.getPlanSQL());
-            }
-        }
-//        buff.resetCount();
-//        for (Column c : keys) {
-//            buff.appendExceptFirst(" AND ");
-//            buff.append(c.getSQL()).append("=?");
-//        }
         String sql = buff.toString();
         return sql;
     }

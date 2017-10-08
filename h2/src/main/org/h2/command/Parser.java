@@ -1094,29 +1094,11 @@ public class Parser {
         }
         return command;
     }
-    /*
-     * TODO finish writing this MergeUsing
-     
-       MERGE INTO targetTableName [[AS] t_alias] USING table_reference [[AS} s_alias] ON ( condition ,...)
-           WHEN MATCHED THEN
-            [UPDATE SET column1 = value1 [, column2 = value2 ... WHERE ...] 
-            [DELETE WHERE ...]
-           WHEN NOT MATCHED THEN
-            INSERT (column1 [, column2 ...]) VALUES (value1 [, value2 ...]);
-           
-           table_reference ::= table | view | ( sub-query )
-           
-        The current implementation (for comparison) uses this syntax:
-        
-         MERGE INTO tablename [(columnName1,...)] 
-         [KEY (keyColumnName1,...)]
-         [ VALUES (expression1,...) | SELECT ...]           
-     */
-    /* TODO: Finish coding parseMergeUsing */
+
     private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
+        /* TODO: not sure why schema name is reset to null */
         if(schemaName==null){
             schemaName = session.getCurrentSchemaName();
-            System.out.println("schemaName="+schemaName);
         }
             
         Schema schema = getSchema();
@@ -1125,29 +1107,25 @@ public class Parser {
         currentPrepared = command;
         
         if (readIf("(")) {
-            System.out.println("pre select schema="+getSchema()+",schemaName="+schemaName);
+            /* a select query is supplied */
             if (isSelect()) {
                 command.setQuery(parseSelect());
-                System.out.println("post select schema="+getSchema()+",schemaName="+schemaName);
                 schemaName = savedSchemaName;
-                System.out.println("post2 select schema="+getSchema()+",schemaName="+schemaName);
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
             
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
-            System.out.println("pre:alias="+command.getQueryAlias()+",sql="+querySQLOutput[0]+",ctlist="+columnTemplateList+",schema="+getSchema()+",schemaName="+schemaName);
             TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false, false);
             command.setTemporaryTableView(temporarySourceTableView);
             
-            System.out.println("sourceTableFilter with tableOrView="+temporarySourceTableView);
-            System.out.println("sourceTableFilter rightsChecked="+rightsChecked);
             TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
                 (Select) command.getQuery(), 0, null);
             command.setSourceTableFilter(sourceTableFilter); 
         }
         else{
+            /* Its a table name, simulate a query by building a select query for the table */
             List<String> excludeIdentifiers = Arrays.asList("ON");
             TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);  
@@ -1157,9 +1135,7 @@ public class Parser {
             if(sourceTableFilter.getTableAlias()!=null){
                 buff.append(" AS "+sourceTableFilter.getTableAlias());
             }
-            //ArrayList<Value> paramValues = New.arrayList();
             Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
-            System.out.println("class="+preparedQuery.getClass());
             command.setQuery((Select)preparedQuery);
             
         }        
@@ -1197,14 +1173,6 @@ public class Parser {
             }
         }
 
-        if(command.getQueryAlias()!=null){
-            if(schema==null){
-                System.out.println("Why oh why is the schema null???");
-                System.out.println("schemaName="+schemaName);
-                throw DbException.getUnsupportedException("unexpected null schema");
-            }
-
-        }
         setSQL(command, "MERGE", start);
         return command;
     }
@@ -5198,7 +5166,6 @@ public class Parser {
         withQuery.prepare();
         querySQLOutput[0] = StringUtils.cache(withQuery.getPlanSQL());
         ArrayList<Expression> withExpressions = withQuery.getExpressions();
-        System.out.println("withExpressions="+withExpressions);
         for (int i = 0; i < withExpressions.size(); ++i) {
             Expression columnExp = withExpressions.get(i);
             // use the passed in column name if supplied, otherwise use alias (if used) otherwise use column name
@@ -5225,7 +5192,6 @@ public class Parser {
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
-        System.out.println("createTemporarySessionView="+tempViewName);
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
                 allowRecursiveQueryDetection/* recursive */, false);

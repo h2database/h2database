@@ -191,7 +191,6 @@ public class TestMergeUsing extends TestBase {
             while (rs.next()) {
                 rowCount++;
                 diffBuffer.append("|");
-                System.out.println("rs.getMetaData().getColumnCount()="+rs.getMetaData().getColumnCount());
                 for(int ndx = 1; ndx <= rs.getMetaData().getColumnCount(); ndx++){
                     diffBuffer.append(rs.getObject(ndx));
                     diffBuffer.append("|\n");

@@ -85,9 +85,6 @@ public abstract class Table extends SchemaObjectBase {
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
-        System.out.println("newTable:schema="+schema);
-        System.out.println("newTable:name="+name);
-        System.out.println("newTable:schema="+schema+",database="+schema.getDatabase());
         columnMap = schema.getDatabase().newStringMap();
         initSchemaObjectBase(schema, id, name, Trace.TABLE);
         this.persistIndexes = persistIndexes;

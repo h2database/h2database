@@ -567,8 +567,6 @@ public class TableFilter implements ColumnResolver {
 
     private void checkTimeout() {
         session.checkCanceled();
-        // System.out.println(this.alias+ " " + table.getName() + ": " +
-        // scanCount);
     }
 
     /**

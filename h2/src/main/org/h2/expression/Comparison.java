@@ -492,10 +492,8 @@ public class Comparison extends Condition {
 
     @Override
     public void mapColumns(ColumnResolver resolver, int level) {
-        System.out.println("Checking left:"+left+" against "+resolver);
         left.mapColumns(resolver, level);
         if (right != null) {
-            System.out.println("Checking right:"+right+" against "+resolver);
             right.mapColumns(resolver, level);
         }
     }

@@ -81,7 +81,7 @@ public class FtpServer extends Tool implements Service {
     private String writeUserName = DEFAULT_WRITE,
             writePassword = DEFAULT_WRITE_PASSWORD;
     private String readUserName = DEFAULT_READ;
-    private final HashMap<String, Process> tasks = new HashMap<String, Process>();
+    private final HashMap<String, Process> tasks = new HashMap<>();
 
     private boolean trace;
     private boolean allowTask;

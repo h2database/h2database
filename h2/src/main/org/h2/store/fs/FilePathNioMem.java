@@ -32,7 +32,7 @@ import org.h2.util.New;
 public class FilePathNioMem extends FilePath {
 
     private static final TreeMap<String, FileNioMemData> MEMORY_FILES =
-            new TreeMap<String, FileNioMemData>();
+            new TreeMap<>();
 
     /**
      * The percentage of uncompressed (cached) entries.
@@ -444,7 +444,7 @@ class FileNioMemData {
     final int nameHashCode;
 
     private final CompressLaterCache<CompressItem, CompressItem> compressLaterCache =
-        new CompressLaterCache<CompressItem, CompressItem>(CACHE_MIN_SIZE);
+        new CompressLaterCache<>(CACHE_MIN_SIZE);
 
     private String name;
     private final boolean compress;
@@ -682,7 +682,7 @@ class FileNioMemData {
             System.arraycopy(buffers, 0, newBuffers, 0,
                     Math.min(buffers.length, newBuffers.length));
             for (int i = buffers.length; i < blocks; i++) {
-                newBuffers[i] = new AtomicReference<ByteBuffer>(COMPRESSED_EMPTY_BLOCK);
+                newBuffers[i] = new AtomicReference<>(COMPRESSED_EMPTY_BLOCK);
             }
             buffers = newBuffers;
         }

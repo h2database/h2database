@@ -42,7 +42,7 @@ public class TestAnnotationProcessor extends AbstractProcessor {
         if (messagesStr == null || messagesStr.isEmpty()) {
             return Collections.emptyList();
         }
-        List<OutputMessage> outputMessages = new ArrayList<OutputMessage>();
+        List<OutputMessage> outputMessages = new ArrayList<>();
 
         for (String msg : messagesStr.split("\\|")) {
             String[] split = msg.split(",");

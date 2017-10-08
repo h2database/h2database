@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -115,7 +117,7 @@ public class Database implements DataHandler {
 
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
-    private Session exclusiveSession;
+    private final AtomicReference<Session> exclusiveSession = new AtomicReference<>();
     private final BitField objectIds = new BitField();
     private final Object lobSyncObject = new Object();
 
@@ -135,8 +137,8 @@ public class Database implements DataHandler {
     private Trace trace;
     private final int fileLockMethod;
     private Role publicRole;
-    private long modificationDataId;
-    private long modificationMetaId;
+    private final AtomicLong modificationDataId = new AtomicLong();
+    private final AtomicLong modificationMetaId = new AtomicLong();
     private CompareMode compareMode;
     private String cluster = Constants.CLUSTERING_DISABLED;
     private boolean readOnly;
@@ -389,7 +391,7 @@ public class Database implements DataHandler {
     }
 
     public long getModificationDataId() {
-        return modificationDataId;
+        return modificationDataId.get();
     }
 
     /**
@@ -466,18 +468,18 @@ public class Database implements DataHandler {
     }
 
     public long getNextModificationDataId() {
-        return ++modificationDataId;
+        return modificationDataId.incrementAndGet();
     }
 
     public long getModificationMetaId() {
-        return modificationMetaId;
+        return modificationMetaId.get();
     }
 
     public long getNextModificationMetaId() {
         // if the meta data has been modified, the data is modified as well
         // (because MetaTable returns modificationDataId)
-        modificationDataId++;
-        return modificationMetaId++;
+        modificationDataId.incrementAndGet();
+        return modificationMetaId.incrementAndGet() - 1;
     }
 
     public int getPowerOffCount() {
@@ -1148,7 +1150,7 @@ public class Database implements DataHandler {
         if (closing) {
             return null;
         }
-        if (exclusiveSession != null) {
+        if (exclusiveSession.get() != null) {
             throw DbException.get(ErrorCode.DATABASE_IS_IN_EXCLUSIVE_MODE);
         }
         Session session = new Session(this, user, ++nextSessionId);
@@ -1168,9 +1170,7 @@ public class Database implements DataHandler {
      */
     public synchronized void removeSession(Session session) {
         if (session != null) {
-            if (exclusiveSession == session) {
-                exclusiveSession = null;
-            }
+            exclusiveSession.compareAndSet(session, null);
             userSessions.remove(session);
             if (session != systemSession && session != lobSession) {
                 trace.info("disconnecting session #{0}", session.getId());
@@ -1984,7 +1984,7 @@ public class Database implements DataHandler {
             mvStore.getStore().setRetentionTime(value);
         }
     }
-    
+
     public void setAllowBuiltinAliasOverride(boolean b) {
         allowBuiltinAliasOverride = b;
     }
@@ -1992,7 +1992,7 @@ public class Database implements DataHandler {
     public boolean isAllowBuiltinAliasOverride() {
         return allowBuiltinAliasOverride;
     }
-    
+
     /**
      * Check if flush-on-each-commit is enabled.
      *
@@ -2409,7 +2409,7 @@ public class Database implements DataHandler {
     }
 
     public Session getExclusiveSession() {
-        return exclusiveSession;
+        return exclusiveSession.get();
     }
 
     /**
@@ -2419,10 +2419,10 @@ public class Database implements DataHandler {
      * @param closeOthers whether other sessions are closed
      */
     public void setExclusiveSession(Session session, boolean closeOthers) {
-        this.exclusiveSession = session;
-        if (closeOthers) {
-            closeAllSessionsException(session);
-        }
+      this.exclusiveSession.set(session);
+      if (closeOthers) {
+          closeAllSessionsException(session);
+      }
     }
 
     @Override

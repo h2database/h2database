@@ -41,6 +41,10 @@ public class TestOutOfMemory extends TestBase {
             // fails regularly under Travis, not sure why
             return;
         }
+        if (config.vmlens) {
+            // running out of memory will cause the vmlens agent to stop working
+            return;
+        }
         try {
             System.gc();
             testMVStoreUsingInMemoryFileSystem();

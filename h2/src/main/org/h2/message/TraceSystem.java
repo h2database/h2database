@@ -82,7 +82,7 @@ public class TraceSystem implements TraceWriter {
     private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
     private String fileName;
     private final AtomicReferenceArray<Trace> traces =
-            new AtomicReferenceArray<Trace>(Trace.MODULE_NAMES.length);
+            new AtomicReferenceArray<>(Trace.MODULE_NAMES.length);
     private SimpleDateFormat dateFormat;
     private Writer fileWriter;
     private PrintWriter printWriter;

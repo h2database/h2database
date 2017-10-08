@@ -22,7 +22,7 @@ public class ConcurrentLinkedList<K> {
     /**
      * The sentinel entry.
      */
-    static final Entry<?> NULL = new Entry<Object>(null, null);
+    static final Entry<?> NULL = new Entry<>(null, null);
 
     /**
      * The head entry.
@@ -135,9 +135,9 @@ public class ConcurrentLinkedList<K> {
         @SuppressWarnings("unchecked")
         static <K> Entry<K> append(Entry<K> list, K obj) {
             if (list == NULL) {
-                return new Entry<K>(obj, (Entry<K>) NULL);
+                return new Entry<>(obj, (Entry<K>) NULL);
             }
-            return new Entry<K>(list.obj, append(list.next, obj));
+            return new Entry<>(list.obj, append(list.next, obj));
         }
 
         @SuppressWarnings("unchecked")
@@ -145,7 +145,7 @@ public class ConcurrentLinkedList<K> {
             if (list == NULL || list.next == NULL) {
                 return (Entry<K>) NULL;
             }
-            return new Entry<K>(list.obj, removeLast(list.next));
+            return new Entry<>(list.obj, removeLast(list.next));
         }
 
     }

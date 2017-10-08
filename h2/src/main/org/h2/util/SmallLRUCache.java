@@ -33,7 +33,7 @@ public class SmallLRUCache<K, V> extends LinkedHashMap<K, V> {
      * @return the object
      */
     public static <K, V> SmallLRUCache<K, V> newInstance(int size) {
-        return new SmallLRUCache<K, V>(size);
+        return new SmallLRUCache<>(size);
     }
 
     public void setMaxSize(int size) {

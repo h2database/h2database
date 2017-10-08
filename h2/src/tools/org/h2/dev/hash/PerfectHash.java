@@ -181,7 +181,7 @@ public class PerfectHash {
         }
         split = Math.min(MAX_SPLIT - 1, Math.max(2, split));
         out.write(split);
-        List<List<Integer>> lists = new ArrayList<List<Integer>>(split);
+        List<List<Integer>> lists = new ArrayList<>(split);
         for (int i = 0; i < split; i++) {
             lists.add(new ArrayList<Integer>(size / split));
         }

@@ -22,7 +22,7 @@ import org.h2.util.New;
 /**
  * Utility methods
  */
-public class DataUtils {
+public final class DataUtils {
 
     /**
      * An error occurred while reading from the file.
@@ -758,8 +758,8 @@ public class DataUtils {
         int size = arguments.length;
         if (size > 0) {
             Object o = arguments[size - 1];
-            if (o instanceof Exception) {
-                e.initCause((Exception) o);
+            if (o instanceof Throwable) {
+                e.initCause((Throwable) o);
             }
         }
         return e;
@@ -776,6 +776,7 @@ public class DataUtils {
     public static String formatMessage(int errorCode, String message,
             Object... arguments) {
         // convert arguments to strings, to avoid locale specific formatting
+        arguments = arguments.clone();
         for (int i = 0; i < arguments.length; i++) {
             Object a = arguments[i];
             if (!(a instanceof Exception)) {
@@ -936,10 +937,10 @@ public class DataUtils {
      * @param <K> the key type
      * @param <V> the value type
      */
-    public static class MapEntry<K, V> implements Map.Entry<K, V> {
+    public static final class MapEntry<K, V> implements Map.Entry<K, V> {
 
         private final K key;
-        private V value;
+        private final V value;
 
         public MapEntry(K key, V value) {
             this.key = key;

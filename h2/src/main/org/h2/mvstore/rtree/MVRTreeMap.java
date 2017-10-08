@@ -44,7 +44,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
      * @return the map
      */
     public static <V> MVRTreeMap<V> create(int dimensions, DataType valueType) {
-        return new MVRTreeMap<V>(dimensions, valueType);
+        return new MVRTreeMap<>(dimensions, valueType);
     }
 
     @Override
@@ -612,7 +612,7 @@ public class MVRTreeMap<V> extends MVMap<SpatialKey, V> {
             if (valueType == null) {
                 valueType = new ObjectDataType();
             }
-            return new MVRTreeMap<V>(dimensions, valueType);
+            return new MVRTreeMap<>(dimensions, valueType);
         }
 
     }

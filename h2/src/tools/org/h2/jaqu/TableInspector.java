@@ -182,7 +182,7 @@ public class TableInspector {
         }
 
         // imports
-        List<String> sortedImports = new ArrayList<String>(imports);
+        List<String> sortedImports = new ArrayList<>(imports);
         Collections.sort(sortedImports);
         for (String imp : sortedImports) {
             model.append("import ").append(imp).append(';').append(EOL);
@@ -576,7 +576,7 @@ public class TableInspector {
 
         String name;
         IndexType type;
-        private final List<String> columns = new ArrayList<String>();
+        private final List<String> columns = new ArrayList<>();
 
         public IndexInspector(ResultSet rs) throws SQLException {
             name = rs.getString("INDEX_NAME");

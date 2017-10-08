@@ -23,7 +23,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
 
     private static final int MAX_LOAD = 90;
     private static final WeakReference<Object> DELETED_KEY =
-        new WeakReference<Object>(null);
+        new WeakReference<>(null);
     private int mask, len, size, deletedCount, level;
     private int maxSize, minSize, maxDeleted;
     private WeakReference<K>[] keys;
@@ -88,7 +88,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
                     deletedCount--;
                 }
                 size++;
-                keys[index] = new WeakReference<K>(key);
+                keys[index] = new WeakReference<>(key);
                 values[index] = value;
                 return null;
             } else if (k == DELETED_KEY) {

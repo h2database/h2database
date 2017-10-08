@@ -318,7 +318,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             stat.close();
 
             // create views that reference the common views in different threads
-            ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            ArrayList<Future<Void>> jobs = new ArrayList<>();
             for (int i = 0; i < 1000; i++) {
                 final int j = i;
                 jobs.add(executor.submit(new Callable<Void>() {
@@ -389,7 +389,7 @@ public class TestMultiThread extends TestBase implements Runnable {
             conn.createStatement().execute(
                     "CREATE TABLE IF NOT EXISTS TRAN (ID NUMBER(18,0) not null PRIMARY KEY)");
 
-            final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+            final ArrayList<Callable<Void>> callables = new ArrayList<>();
             for (int i = 0; i < threadCount; i++) {
                 final long initialTransactionId = i * 1000000L;
                 callables.add(new Callable<Void>() {
@@ -412,7 +412,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 });
             }
 
-            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            final ArrayList<Future<Void>> jobs = new ArrayList<>();
             for (int i = 0; i < threadCount; i++) {
                 jobs.add(executor.submit(callables.get(i)));
             }
@@ -449,7 +449,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 mergeAcctStmt.execute();
             }
 
-            final ArrayList<Callable<Void>> callables = new ArrayList<Callable<Void>>();
+            final ArrayList<Callable<Void>> callables = new ArrayList<>();
             for (int i = 0; i < threadCount; i++) {
                 callables.add(new Callable<Void>() {
                     @Override
@@ -470,7 +470,7 @@ public class TestMultiThread extends TestBase implements Runnable {
                 });
             }
 
-            final ArrayList<Future<Void>> jobs = new ArrayList<Future<Void>>();
+            final ArrayList<Future<Void>> jobs = new ArrayList<>();
             for (int i = 0; i < threadCount; i++) {
                 jobs.add(executor.submit(callables.get(i)));
             }

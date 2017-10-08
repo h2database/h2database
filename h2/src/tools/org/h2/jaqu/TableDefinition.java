@@ -378,7 +378,7 @@ class TableDefinition<T> {
                 }
                 firstCondition = false;
                 query.addConditionToken(
-                        new Condition<Object>(
+                        new Condition<>(
                                 aliasValue, value, CompareType.EQUAL));
             }
         }
@@ -409,7 +409,7 @@ class TableDefinition<T> {
                 }
                 firstCondition = false;
                 query.addConditionToken(
-                    new Condition<Object>(
+                    new Condition<>(
                         aliasValue, value, CompareType.EQUAL));
             }
         }
@@ -593,7 +593,7 @@ class TableDefinition<T> {
             Map<Object, SelectColumn<T>> map) {
         for (FieldDefinition def : fields) {
             def.initWithNewObject(obj);
-            SelectColumn<T> column = new SelectColumn<T>(table, def);
+            SelectColumn<T> column = new SelectColumn<>(table, def);
             map.put(def.getValue(obj), column);
         }
     }

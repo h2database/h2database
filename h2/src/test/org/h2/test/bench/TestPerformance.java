@@ -93,7 +93,7 @@ public class TestPerformance implements Database.DatabaseTest {
                 size = Integer.parseInt(args[++i]);
             }
         }
-        ArrayList<Database> dbs = new ArrayList<Database>();
+        ArrayList<Database> dbs = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             if (dbId != -1 && i != dbId) {
                 continue;
@@ -107,7 +107,7 @@ public class TestPerformance implements Database.DatabaseTest {
                 }
             }
         }
-        ArrayList<Bench> tests = new ArrayList<Bench>();
+        ArrayList<Bench> tests = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
             String testString = prop.getProperty("test" + i);
             if (testString != null) {
@@ -149,17 +149,17 @@ public class TestPerformance implements Database.DatabaseTest {
             writer = new PrintWriter(new FileWriter(out));
             ResultSet rs = stat.executeQuery(
                     "CALL '<table><tr><th>Test Case</th><th>Unit</th>' " +
-                    "|| SELECT GROUP_CONCAT('<th>' || DB || '</th>' " +
+                    "|| (SELECT GROUP_CONCAT('<th>' || DB || '</th>' " +
                     "ORDER BY DBID SEPARATOR '') FROM " +
-                    "(SELECT DISTINCT DBID, DB FROM RESULTS)" +
+                    "(SELECT DISTINCT DBID, DB FROM RESULTS))" +
                     "|| '</tr>' || CHAR(10) " +
-                    "|| SELECT GROUP_CONCAT('<tr><td>' || TEST || " +
+                    "|| (SELECT GROUP_CONCAT('<tr><td>' || TEST || " +
                     "'</td><td>' || UNIT || '</td>' || ( " +
                     "SELECT GROUP_CONCAT('<td>' || RESULT || '</td>' " +
                     "ORDER BY DBID SEPARATOR '') FROM RESULTS R2 WHERE " +
                     "R2.TESTID = R1.TESTID) || '</tr>' " +
                     "ORDER BY TESTID SEPARATOR CHAR(10)) FROM " +
-                    "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1" +
+                    "(SELECT DISTINCT TESTID, TEST, UNIT FROM RESULTS) R1)" +
                     "|| '</table>'"
             );
             rs.next();
@@ -243,6 +243,7 @@ public class TestPerformance implements Database.DatabaseTest {
             int statPerSec = (int) (db.getExecutedStatements() * 1000L / db.getTotalTime());
             db.log("Statements per second", "#", statPerSec);
             System.out.println("Statements per second: " + statPerSec);
+            System.out.println("GC overhead: " + (100 * db.getTotalGCTime() / db.getTotalTime()) + "%");
             collect = false;
             db.stopServer();
         }

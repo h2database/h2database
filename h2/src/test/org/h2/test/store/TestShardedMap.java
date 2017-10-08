@@ -32,9 +32,9 @@ public class TestShardedMap extends TestBase {
     }
 
     private void testLinearSplit() {
-        ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
-        TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
-        TreeMap<Integer, Integer> b = new TreeMap<Integer, Integer>();
+        ShardedMap<Integer, Integer> map = new ShardedMap<>();
+        TreeMap<Integer, Integer> a = new TreeMap<>();
+        TreeMap<Integer, Integer> b = new TreeMap<>();
         map.addMap(a, null, 5);
         map.addMap(b, 5, null);
         for (int i = 0; i < 10; i++) {
@@ -54,9 +54,9 @@ public class TestShardedMap extends TestBase {
     }
 
     private void testReplication() {
-        ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
-        TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
-        TreeMap<Integer, Integer> b = new TreeMap<Integer, Integer>();
+        ShardedMap<Integer, Integer> map = new ShardedMap<>();
+        TreeMap<Integer, Integer> a = new TreeMap<>();
+        TreeMap<Integer, Integer> b = new TreeMap<>();
         map.addMap(a, null, null);
         map.addMap(b, null, null);
         for (int i = 0; i < 10; i++) {
@@ -76,9 +76,9 @@ public class TestShardedMap extends TestBase {
     }
 
     private void testOverlap() {
-        ShardedMap<Integer, Integer> map = new ShardedMap<Integer, Integer>();
-        TreeMap<Integer, Integer> a = new TreeMap<Integer, Integer>();
-        TreeMap<Integer, Integer> b = new TreeMap<Integer, Integer>();
+        ShardedMap<Integer, Integer> map = new ShardedMap<>();
+        TreeMap<Integer, Integer> a = new TreeMap<>();
+        TreeMap<Integer, Integer> b = new TreeMap<>();
         map.addMap(a, null, 10);
         map.addMap(b, 5, null);
         for (int i = 0; i < 20; i++) {

@@ -26,7 +26,7 @@ public class BenchCThread {
     private final int warehouseId;
     private final int terminalId;
     private final HashMap<String, PreparedStatement> prepared =
-            new HashMap<String, PreparedStatement>();
+            new HashMap<>();
     private final BenchCRandom random;
     private final BenchC bench;
 

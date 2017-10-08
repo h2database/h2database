@@ -23,7 +23,7 @@ public class New {
      * @return the object
      */
     public static <T> ArrayList<T> arrayList() {
-        return new ArrayList<T>(4);
+        return new ArrayList<>(4);
     }
 
     /**
@@ -34,7 +34,7 @@ public class New {
      * @return the object
      */
     public static <K, V> HashMap<K, V> hashMap() {
-        return new HashMap<K, V>();
+        return new HashMap<>();
     }
 
     /**
@@ -46,7 +46,7 @@ public class New {
      * @return the object
      */
     public static <K, V> HashMap<K, V> hashMap(int initialCapacity) {
-        return new HashMap<K, V>(initialCapacity);
+        return new HashMap<>(initialCapacity);
     }
 
     /**
@@ -56,7 +56,7 @@ public class New {
      * @return the object
      */
     public static <T> HashSet<T> hashSet() {
-        return new HashSet<T>();
+        return new HashSet<>();
     }
 
     /**
@@ -67,7 +67,7 @@ public class New {
      * @return the object
      */
     public static <T> ArrayList<T> arrayList(Collection<T> c) {
-        return new ArrayList<T>(c);
+        return new ArrayList<>(c);
     }
 
     /**
@@ -78,7 +78,7 @@ public class New {
      * @return the object
      */
     public static <T> ArrayList<T> arrayList(int initialCapacity) {
-        return new ArrayList<T>(initialCapacity);
+        return new ArrayList<>(initialCapacity);
     }
 
 }

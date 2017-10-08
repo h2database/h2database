@@ -43,7 +43,7 @@ class CallExpr extends ExprBase {
     /**
      * The parameters.
      */
-    final ArrayList<Expr> args = new ArrayList<Expr>();
+    final ArrayList<Expr> args = new ArrayList<>();
 
     private final JavaParser context;
     private final String className;
@@ -378,12 +378,12 @@ class NewExpr extends ExprBase {
     /**
      * The constructor parameters (for objects).
      */
-    final ArrayList<Expr> args = new ArrayList<Expr>();
+    final ArrayList<Expr> args = new ArrayList<>();
 
     /**
      * The array bounds (for arrays).
      */
-    final ArrayList<Expr> arrayInitExpr = new ArrayList<Expr>();
+    final ArrayList<Expr> arrayInitExpr = new ArrayList<>();
 
     /**
      * The type.
@@ -630,7 +630,7 @@ class ArrayInitExpr extends ExprBase {
     /**
      * The expression list.
      */
-    final ArrayList<Expr> list = new ArrayList<Expr>();
+    final ArrayList<Expr> list = new ArrayList<>();
 
     /**
      * The type.

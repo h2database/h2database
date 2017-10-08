@@ -37,7 +37,7 @@ import org.h2.store.FileLister;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
-import org.h2.test.db.TestScript;
+import org.h2.test.scripts.TestScript;
 import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;

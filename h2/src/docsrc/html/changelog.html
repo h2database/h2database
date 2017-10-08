@@ -21,6 +21,22 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #570: MySQL compatibility for ALTER TABLE .. DROP INDEX
+</li>
+<li>Issue #537: Include the COLUMN name in message "Numeric value out of range"
+</li>
+<li>Issue #600: ROW_NUMBER() behaviour change in H2 1.4.195
+</li>
+<li>Fix a bunch of race conditions found by vmlens.com, thank you to vmlens for giving us a license.
+</li>
+<li>PR #597: Support more types in getObject
+</li>
+<li>Issue #591: Generated SQL from WITH-CTEs does not include a table identifier
+</li>
+<li>PR #593: Make it possible to create a cluster without using temporary files.
+</li>
+<li>PR #592: "Connection is broken: "unexpected status 16777216" [90067-192]" message when using older h2 releases as client
+</li>
 <li>Issue #585: MySQL mode DELETE statements compatibility
 </li>
 <li>PR #586: remove extra tx preparation 

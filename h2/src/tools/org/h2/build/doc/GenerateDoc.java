@@ -36,7 +36,7 @@ public class GenerateDoc {
     private String outDir = "docs/html";
     private Connection conn;
     private final HashMap<String, Object> session =
-            new HashMap<String, Object>();
+            new HashMap<>();
     private Bnf bnf;
 
     /**
@@ -142,9 +142,9 @@ public class GenerateDoc {
             stat = conn.createStatement();
             rs = stat.executeQuery(sql);
             ArrayList<HashMap<String, String>> list =
-                    new ArrayList<HashMap<String, String>>();
+                    new ArrayList<>();
             while (rs.next()) {
-                HashMap<String, String> map = new HashMap<String, String>();
+                HashMap<String, String> map = new HashMap<>();
                 ResultSetMetaData meta = rs.getMetaData();
                 for (int i = 0; i < meta.getColumnCount(); i++) {
                     String k = StringUtils.toLowerEnglish(meta.getColumnLabel(i + 1));

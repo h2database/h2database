@@ -174,7 +174,7 @@ public class BinaryArithmeticStream {
         private final Node tree;
 
         public Huffman(int[] frequencies) {
-            PriorityQueue<Node> queue = new PriorityQueue<Node>();
+            PriorityQueue<Node> queue = new PriorityQueue<>();
             for (int i = 0; i < frequencies.length; i++) {
                 int f = frequencies[i];
                 if (f > 0) {

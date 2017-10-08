@@ -22,7 +22,7 @@ class DatabaseCloser extends Thread {
     private int delayInMillis;
 
     DatabaseCloser(Database db, int delayInMillis, boolean shutdownHook) {
-        this.databaseRef = new WeakReference<Database>(db);
+        this.databaseRef = new WeakReference<>(db);
         this.delayInMillis = delayInMillis;
         this.shutdownHook = shutdownHook;
         trace = db.getTrace(Trace.DATABASE);

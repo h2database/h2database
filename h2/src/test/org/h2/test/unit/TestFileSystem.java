@@ -216,7 +216,7 @@ public class TestFileSystem extends TestBase {
     }
 
     private void testClasspath() throws IOException {
-        String resource = "org/h2/test/testSimple.in.txt";
+        String resource = "org/h2/test/scripts/testSimple.in.txt";
         InputStream in;
         in = getClass().getResourceAsStream("/" + resource);
         assertTrue(in != null);

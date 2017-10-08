@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.fulltext.FullText;
 import org.h2.store.fs.FileUtils;
-import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
@@ -108,7 +107,7 @@ public class TestFullText extends TestBase {
         Connection conn;
         Statement stat;
 
-        ArrayList<Connection> connList = new ArrayList<Connection>();
+        ArrayList<Connection> connList = new ArrayList<>();
 
         conn = getConnection("fullTextNative", connList);
         stat = conn.createStatement();
@@ -130,7 +129,7 @@ public class TestFullText extends TestBase {
 
     private void testNativeFeatures() throws SQLException {
         deleteDb("fullTextNative");
-        ArrayList<Connection> connList = new ArrayList<Connection>();
+        ArrayList<Connection> connList = new ArrayList<>();
         Connection conn = getConnection("fullTextNative", connList);
         Statement stat = conn.createStatement();
         stat.execute("CREATE ALIAS IF NOT EXISTS FT_INIT " +
@@ -214,7 +213,7 @@ public class TestFullText extends TestBase {
         String prefix = lucene ? "FTL" : "FT";
         deleteDb("fullTextTransaction");
         FileUtils.deleteRecursive(getBaseDir() + "/fullTextTransaction", false);
-        ArrayList<Connection> connList = new ArrayList<Connection>();
+        ArrayList<Connection> connList = new ArrayList<>();
         Connection conn = getConnection("fullTextTransaction", connList);
         Statement stat = conn.createStatement();
         initFullText(stat, lucene);
@@ -250,7 +249,7 @@ public class TestFullText extends TestBase {
         final String prefix = lucene ? "FTL" : "FT";
         trace("Testing multithreaded " + prefix);
         deleteDb("fullText");
-        ArrayList<Connection> connList = new ArrayList<Connection>();
+        ArrayList<Connection> connList = new ArrayList<>();
         try {
             int len = 2;
             Task[] task = new Task[len];

@@ -22,7 +22,7 @@ public class AbbaDetector {
     private static final ThreadLocal<Deque<Object>> STACK =
             new ThreadLocal<Deque<Object>>() {
                 @Override protected Deque<Object> initialValue() {
-                    return new ArrayDeque<Object>();
+                    return new ArrayDeque<>();
             }
         };
 
@@ -32,9 +32,9 @@ public class AbbaDetector {
      *      (stack trace where locked) )
      */
     private static final Map<Object, Map<Object, Exception>> LOCK_ORDERING =
-            new WeakHashMap<Object, Map<Object, Exception>>();
+            new WeakHashMap<>();
 
-    private static final Set<String> KNOWN_DEADLOCKS = new HashSet<String>();
+    private static final Set<String> KNOWN_DEADLOCKS = new HashSet<>();
 
     /**
      * This method is called just before or just after an object is
@@ -91,7 +91,7 @@ public class AbbaDetector {
         Object test = getTest(o);
         Map<Object, Exception> map = LOCK_ORDERING.get(test);
         if (map == null) {
-            map = new WeakHashMap<Object, Exception>();
+            map = new WeakHashMap<>();
             LOCK_ORDERING.put(test, map);
         }
         Exception oldException = null;

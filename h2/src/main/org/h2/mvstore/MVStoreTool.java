@@ -110,7 +110,7 @@ public class MVStoreTool {
         FileChannel file = null;
         int blockSize = MVStore.BLOCK_SIZE;
         TreeMap<Integer, Long> mapSizesTotal =
-                new TreeMap<Integer, Long>();
+                new TreeMap<>();
         long pageSizeTotal = 0;
         try {
             file = FilePath.get(fileName).open("r");
@@ -157,7 +157,7 @@ public class MVStoreTool {
                 int remaining = c.pageCount;
                 pageCount += c.pageCount;
                 TreeMap<Integer, Integer> mapSizes =
-                        new TreeMap<Integer, Integer>();
+                        new TreeMap<>();
                 int pageSizeSum = 0;
                 while (remaining > 0) {
                     int start = p;
@@ -350,7 +350,7 @@ public class MVStoreTool {
             MVMap<String, String> meta = store.getMetaMap();
             Map<String, Object> header = store.getStoreHeader();
             long fileCreated = DataUtils.readHexLong(header, "created", 0L);
-            TreeMap<Integer, Chunk> chunks = new TreeMap<Integer, Chunk>();
+            TreeMap<Integer, Chunk> chunks = new TreeMap<>();
             long chunkLength = 0;
             long maxLength = 0;
             long maxLengthLive = 0;
@@ -521,7 +521,7 @@ public class MVStoreTool {
         }
         for (String mapName : source.getMapNames()) {
             MVMap.Builder<Object, Object> mp =
-                    new MVMap.Builder<Object, Object>().
+                    new MVMap.Builder<>().
                     keyType(new GenericDataType()).
                     valueType(new GenericDataType());
             MVMap<Object, Object> sourceMap = source.openMap(mapName, mp);

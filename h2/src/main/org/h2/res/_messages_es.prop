@@ -5,6 +5,7 @@
 21S02=La cantidad de columnas no coincide
 22001=Valor demasiado largo para la columna {0}: {1}
 22003=Valor numerico fuera de rango: {0}
+22004=Numeric value out of range: {0} in column {1}
 22007=Imposible interpretar la constante {0} {1}
 22012=División por cero: {0}
 22018=Conversión de datos fallida, convirtiendo {0}

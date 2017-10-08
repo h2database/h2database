@@ -327,7 +327,7 @@ public class Select extends Query {
                 }
                 HashMap<Expression, Object> values = groups.get(key);
                 if (values == null) {
-                    values = new HashMap<Expression, Object>();
+                    values = new HashMap<>();
                     groups.put(key, values);
                 }
                 currentGroup = values;
@@ -1451,8 +1451,9 @@ public class Select extends Query {
         protected Value[] fetchNextRow() {
             while ((sampleSize <= 0 || rowNumber < sampleSize) &&
                     topTableFilter.next()) {
-                setCurrentRowNumber(++rowNumber);
+                setCurrentRowNumber(rowNumber + 1);
                 if (isConditionMet()) {
+                    ++rowNumber;
                     Value[] row = new Value[columnCount];
                     for (int i = 0; i < columnCount; i++) {
                         Expression expr = expressions.get(i);

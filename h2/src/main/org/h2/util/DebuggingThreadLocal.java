@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DebuggingThreadLocal<T> {
 
-    private final ConcurrentHashMap<Long, T> map = new ConcurrentHashMap<Long, T>();
+    private final ConcurrentHashMap<Long, T> map = new ConcurrentHashMap<>();
 
     public void set(T value) {
         map.put(Thread.currentThread().getId(), value);
@@ -39,7 +39,7 @@ public class DebuggingThreadLocal<T> {
      * @return a HashMap containing a mapping from thread-id to value
      */
     public HashMap<Long, T> getSnapshotOfAllThreads() {
-        return new HashMap<Long, T>(map);
+        return new HashMap<>(map);
     }
 
 }

@@ -198,7 +198,7 @@ public class TestNetUtils extends TestBase {
         };
         serverThread.execute();
         try {
-            Set<ConnectWorker> workers = new HashSet<ConnectWorker>();
+            Set<ConnectWorker> workers = new HashSet<>();
             for (int i = 0; i < WORKER_COUNT; i++) {
                 workers.add(new ConnectWorker(ssl, counter));
             }

@@ -395,6 +395,10 @@ public class TestCompatibility extends TestBase {
 
         stat.execute("CREATE TABLE TEST2(ID INT) ROW_FORMAT=DYNAMIC");
 
+        // check the MySQL index dropping syntax
+        stat.execute("ALTER TABLE TEST_COMMENT_ENGINE ADD CONSTRAINT CommentUnique UNIQUE (SOME_ITEM_ID)");
+        stat.execute("ALTER TABLE TEST_COMMENT_ENGINE DROP INDEX CommentUnique");
+
         conn.close();
         conn = getConnection("compatibility");
     }

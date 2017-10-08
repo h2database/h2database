@@ -8,6 +8,7 @@ package org.h2.message;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.util.StringUtils;
 
 /**
@@ -91,7 +92,12 @@ public class TraceObject {
     protected static final int ARRAY = 16;
 
     private static final int LAST = ARRAY + 1;
-    private static final int[] ID = new int[LAST];
+    private static final AtomicInteger[] ID = new AtomicInteger[LAST];
+    static {
+        for (int i=0; i<LAST; i++) {
+            ID[i] = new AtomicInteger(-1);
+        }
+    }
     private static final String[] PREFIX = { "call", "conn", "dbMeta", "prep",
             "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta", "ds",
             "xads", "xares", "xid", "ar" };
@@ -138,7 +144,7 @@ public class TraceObject {
      * @return the new trace object id
      */
     protected static int getNextId(int type) {
-        return ID[type]++;
+        return ID[type].incrementAndGet();
     }
 
     /**

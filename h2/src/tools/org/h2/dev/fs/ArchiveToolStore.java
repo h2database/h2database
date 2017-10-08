@@ -100,7 +100,7 @@ public class ArchiveToolStore {
             }
             buff.clear();
             buff.flip();
-            ArrayList<Integer> posList = new ArrayList<Integer>();
+            ArrayList<Integer> posList = new ArrayList<>();
             FileChannel fc = FileUtils.open(s, "r");
             try {
                 boolean eof = false;

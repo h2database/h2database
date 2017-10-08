@@ -17,7 +17,7 @@ import org.h2.util.IOUtils;
  */
 public class OutputCatcher extends Thread {
     private final InputStream in;
-    private final LinkedList<String> list = new LinkedList<String>();
+    private final LinkedList<String> list = new LinkedList<>();
 
     public OutputCatcher(InputStream in) {
         this.in = in;

@@ -196,7 +196,7 @@ public class ArchiveTool {
         return new InputStream() {
 
             private final String baseDir;
-            private final ArrayList<String> files = new ArrayList<String>();
+            private final ArrayList<String> files = new ArrayList<>();
             private String current;
             private ByteArrayInputStream meta;
             private DataInputStream fileIn;
@@ -407,7 +407,7 @@ public class ArchiveTool {
         DataOutputStream tempOut = new DataOutputStream(new BufferedOutputStream(
                 new FileOutputStream(tempFileName), 1024 * 1024));
         byte[] bytes = new byte[bufferSize];
-        List<Long> segmentStart = new ArrayList<Long>();
+        List<Long> segmentStart = new ArrayList<>();
         long outPos = 0;
         long id = 1;
 
@@ -422,7 +422,7 @@ public class ArchiveTool {
                 break;
             }
             log.printProgress(len);
-            TreeMap<Chunk, Chunk> map = new TreeMap<Chunk, Chunk>();
+            TreeMap<Chunk, Chunk> map = new TreeMap<>();
             for (int pos = 0; pos < len;) {
                 int[] key = getKey(bytes, pos, len);
                 int l = key[3];
@@ -433,7 +433,7 @@ public class ArchiveTool {
                 Chunk old = map.get(c);
                 if (old == null) {
                     // new entry
-                    c.idList = new ArrayList<Long>();
+                    c.idList = new ArrayList<>();
                     c.idList.add(id);
                     map.put(c, c);
                 } else {
@@ -459,7 +459,7 @@ public class ArchiveTool {
             log.setRange(30, 50, tempSize);
             log.println();
             log.println("Merging " + segmentStart.size() + " segments " + blockSize + ":1");
-            ArrayList<Long> segmentStart2 = new ArrayList<Long>();
+            ArrayList<Long> segmentStart2 = new ArrayList<>();
             outPos = 0;
             DataOutputStream tempOut2 = new DataOutputStream(new BufferedOutputStream(
                     new FileOutputStream(tempFileName + ".b"), 1024 * 1024));
@@ -467,7 +467,7 @@ public class ArchiveTool {
                 segmentStart2.add(outPos);
                 int s = Math.min(segmentStart.size(), blockSize);
                 List<Long> start = segmentStart.subList(0, s);
-                TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+                TreeSet<ChunkStream> segmentIn = new TreeSet<>();
                 long read = openSegments(start, segmentIn, tempFileName, true);
                 log.printProgress(read);
                 Chunk last = null;
@@ -503,7 +503,7 @@ public class ArchiveTool {
             log.println("Combining " + segmentStart.size() + " segments");
         }
 
-        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+        TreeSet<ChunkStream> segmentIn = new TreeSet<>();
         long read = openSegments(segmentStart, segmentIn, tempFileName, true);
         log.printProgress(read);
 
@@ -790,7 +790,7 @@ public class ArchiveTool {
         }
         long size = readVarLong(dataIn);
         long outPos = 0;
-        List<Long> segmentStart = new ArrayList<Long>();
+        List<Long> segmentStart = new ArrayList<>();
         boolean end = false;
 
         // Temp file: segment* 0
@@ -799,7 +799,7 @@ public class ArchiveTool {
         log.setRange(0, 30, size);
         while (!end) {
             int segmentSize = 0;
-            TreeMap<Long, byte[]> map = new TreeMap<Long, byte[]>();
+            TreeMap<Long, byte[]> map = new TreeMap<>();
             while (segmentSize < bufferSize) {
                 Chunk c = Chunk.read(dataIn, false);
                 if (c == null) {
@@ -839,7 +839,7 @@ public class ArchiveTool {
             log.setRange(30, 50, tempSize);
             log.println();
             log.println("Merging " + segmentStart.size() + " segments " + blockSize + ":1");
-            ArrayList<Long> segmentStart2 = new ArrayList<Long>();
+            ArrayList<Long> segmentStart2 = new ArrayList<>();
             outPos = 0;
             DataOutputStream tempOut2 = new DataOutputStream(new BufferedOutputStream(
                     new FileOutputStream(tempFileName + ".b"), 1024 * 1024));
@@ -847,7 +847,7 @@ public class ArchiveTool {
                 segmentStart2.add(outPos);
                 int s = Math.min(segmentStart.size(), blockSize);
                 List<Long> start = segmentStart.subList(0, s);
-                TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+                TreeSet<ChunkStream> segmentIn = new TreeSet<>();
                 long read = openSegments(start, segmentIn, tempFileName, false);
                 log.printProgress(read);
 
@@ -875,7 +875,7 @@ public class ArchiveTool {
             log.println("Combining " + segmentStart.size() + " segments");
         }
 
-        TreeSet<ChunkStream> segmentIn = new TreeSet<ChunkStream>();
+        TreeSet<ChunkStream> segmentIn = new TreeSet<>();
         DataOutputStream dataOut = new DataOutputStream(out);
         log.setRange(50, 100, size);
 
@@ -950,7 +950,7 @@ public class ArchiveTool {
          */
         public static Chunk read(DataInputStream in, boolean readKey) {
             try {
-                ArrayList<Long> idList = new ArrayList<Long>();
+                ArrayList<Long> idList = new ArrayList<>();
                 while (true) {
                     long x = readVarLong(in);
                     if (x == 0) {

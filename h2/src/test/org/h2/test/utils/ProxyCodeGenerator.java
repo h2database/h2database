@@ -25,8 +25,8 @@ public class ProxyCodeGenerator {
     private static SourceCompiler compiler = new SourceCompiler();
     private static HashMap<Class<?>, Class<?>> proxyMap = New.hashMap();
 
-    private final TreeSet<String> imports = new TreeSet<String>();
-    private final TreeMap<String, Method> methods = new TreeMap<String, Method>();
+    private final TreeSet<String> imports = new TreeSet<>();
+    private final TreeMap<String, Method> methods = new TreeMap<>();
     private String packageName;
     private String className;
     private Class<?> extendsClass;

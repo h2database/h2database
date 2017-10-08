@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 import org.h2.util.StringUtils;
+import org.h2.util.Utils;
 
 /**
  * Represents a database in the benchmark test application.
@@ -34,15 +35,17 @@ class Database {
     private DatabaseTest test;
     private int id;
     private String name, url, user, password;
-    private final ArrayList<String[]> replace = new ArrayList<String[]>();
+    private final ArrayList<String[]> replace = new ArrayList<>();
     private String currentAction;
     private long startTimeNs;
+    private long initialGCTime;
     private Connection conn;
     private Statement stat;
     private long lastTrace;
     private final Random random = new Random(1);
-    private final ArrayList<Object[]> results = new ArrayList<Object[]>();
+    private final ArrayList<Object[]> results = new ArrayList<>();
     private int totalTime;
+    private int totalGCTime;
     private final AtomicInteger executedStatements = new AtomicInteger(0);
     private int threadCount;
 
@@ -66,6 +69,15 @@ class Database {
      */
     int getTotalTime() {
         return totalTime;
+    }
+
+    /**
+     * Get the total measured GC time.
+     *
+     * @return the time in milliseconds
+     */
+    int getTotalGCTime() {
+        return totalGCTime;
     }
 
     /**
@@ -272,6 +284,7 @@ class Database {
     void start(Bench bench, String action) {
         this.currentAction = bench.getName() + ": " + action;
         this.startTimeNs = System.nanoTime();
+        this.initialGCTime = Utils.getGarbageCollectionTime();
     }
 
     /**
@@ -280,9 +293,11 @@ class Database {
      */
     void end() {
         long time = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTimeNs);
+        long gcCollectionTime = Utils.getGarbageCollectionTime() - initialGCTime;
         log(currentAction, "ms", (int) time);
         if (test.isCollect()) {
             totalTime += time;
+            totalGCTime += gcCollectionTime;
         }
     }
 

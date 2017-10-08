@@ -28,7 +28,7 @@ public class FreeSpaceTree {
     /**
      * The list of free space.
      */
-    private TreeSet<BlockRange> freeSpace = new TreeSet<BlockRange>();
+    private TreeSet<BlockRange> freeSpace = new TreeSet<>();
 
     public FreeSpaceTree(int firstFreeBlock, int blockSize) {
         this.firstFreeBlock = firstFreeBlock;

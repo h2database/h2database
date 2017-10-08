@@ -69,7 +69,7 @@ public class MVMapConcurrent<K, V> extends MVMap<K, V> {
             if (valueType == null) {
                 valueType = new ObjectDataType();
             }
-            return new MVMapConcurrent<K, V>(keyType, valueType);
+            return new MVMapConcurrent<>(keyType, valueType);
         }
 
     }

@@ -56,7 +56,7 @@ public class TestStreamStore extends TestBase {
     }
 
     private void testMaxBlockKey() throws IOException {
-        TreeMap<Long, byte[]> map = new TreeMap<Long, byte[]>();
+        TreeMap<Long, byte[]> map = new TreeMap<>();
         StreamStore s = new StreamStore(map);
         s.setMaxBlockSize(128);
         s.setMinBlockSize(64);
@@ -339,7 +339,7 @@ public class TestStreamStore extends TestBase {
         assertEquals(10, map.size());
         assertEquals(10, tests.get());
         for (int i = 0; i < 10; i++) {
-            map.containsKey(i);
+            map.containsKey((long)i);
         }
         assertEquals(20, tests.get());
         store = new StreamStore(map);
@@ -354,7 +354,7 @@ public class TestStreamStore extends TestBase {
         assertEquals(15, store.getNextKey());
         assertEquals(15, map.size());
         for (int i = 0; i < 15; i++) {
-            map.containsKey(i);
+            map.containsKey((long)i);
         }
     }
 

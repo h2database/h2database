@@ -19,6 +19,6 @@ public class QueryJoin {
     }
 
     public <A> QueryJoinCondition<A> on(A x) {
-        return new QueryJoinCondition<A>(query, join, x);
+        return new QueryJoinCondition<>(query, join, x);
     }
 }

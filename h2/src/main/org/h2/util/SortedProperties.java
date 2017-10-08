@@ -33,7 +33,7 @@ public class SortedProperties extends Properties {
 
     @Override
     public synchronized Enumeration<Object> keys() {
-        Vector<String> v = new Vector<String>();
+        Vector<String> v = new Vector<>();
         for (Object o : keySet()) {
             v.add(o.toString());
         }
@@ -132,7 +132,7 @@ public class SortedProperties extends Properties {
      */
     public synchronized String toLines() {
         StringBuilder buff = new StringBuilder();
-        for (Entry<Object, Object> e : new TreeMap<Object, Object>(this).entrySet()) {
+        for (Entry<Object, Object> e : new TreeMap<>(this).entrySet()) {
             buff.append(e.getKey()).append('=').append(e.getValue()).append('\n');
         }
         return buff.toString();

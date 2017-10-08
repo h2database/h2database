@@ -1,0 +1,11 @@
+create memory table test(id int primary key, name varchar(255));
+> ok
+
+insert into test values(1, 'Hello');
+> update count: 1
+
+select coalesce(null, null) xn, coalesce(null, 'a') xa, coalesce('1', '2') x1 from test;
+> XN   XA X1
+> ---- -- --
+> null a  1
+> rows: 1

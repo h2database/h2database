@@ -66,9 +66,9 @@ public class MVTable extends TableBase {
 
     static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
-            WAITING_FOR_LOCK = new DebuggingThreadLocal<String>();
-            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
-            SHARED_LOCKS = new DebuggingThreadLocal<ArrayList<String>>();
+            WAITING_FOR_LOCK = new DebuggingThreadLocal<>();
+            EXCLUSIVE_LOCKS = new DebuggingThreadLocal<>();
+            SHARED_LOCKS = new DebuggingThreadLocal<>();
         } else {
             WAITING_FOR_LOCK = null;
             EXCLUSIVE_LOCKS = null;
@@ -78,18 +78,18 @@ public class MVTable extends TableBase {
 
     private MVPrimaryIndex primaryIndex;
     private final ArrayList<Index> indexes = New.arrayList();
-    private long lastModificationId;
+    private volatile long lastModificationId;
     private volatile Session lockExclusiveSession;
 
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
-            new ConcurrentHashMap<Session, Session>();
+            new ConcurrentHashMap<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
      * prevent starvation, since Java's synchronized locking is biased.
      */
-    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<Session>();
+    private final ArrayDeque<Session> waitingSessions = new ArrayDeque<>();
     private final Trace traceLock;
     private int changesSinceAnalyze;
     private int nextAnalyze;
@@ -670,7 +670,7 @@ public class MVTable extends TableBase {
     @Override
     public void removeRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        Transaction t = getTransaction(session);
+        Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
             for (int i = indexes.size() - 1; i >= 0; i--) {
@@ -697,7 +697,7 @@ public class MVTable extends TableBase {
     @Override
     public void addRow(Session session, Row row) {
         lastModificationId = database.getNextModificationDataId();
-        Transaction t = getTransaction(session);
+        Transaction t = session.getTransaction();
         long savepoint = t.setSavepoint();
         try {
             for (int i = 0, size = indexes.size(); i < size; i++) {
@@ -727,13 +727,15 @@ public class MVTable extends TableBase {
     }
 
     private void analyzeIfRequired(Session session) {
-        if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
-            return;
-        }
-        changesSinceAnalyze = 0;
-        int n = 2 * nextAnalyze;
-        if (n > 0) {
-            nextAnalyze = n;
+        synchronized (this) {
+            if (nextAnalyze == 0 || nextAnalyze > changesSinceAnalyze++) {
+                return;
+            }
+            changesSinceAnalyze = 0;
+            int n = 2 * nextAnalyze;
+            if (n > 0) {
+                nextAnalyze = n;
+            }
         }
         session.markTableForAnalyze(this);
     }
@@ -844,17 +846,13 @@ public class MVTable extends TableBase {
     }
 
     /**
-     * Get the transaction to use for this session.
+     * Get a new transaction.
      *
-     * @param session the session
      * @return the transaction
      */
-    Transaction getTransaction(Session session) {
-        if (session == null) {
-            // TODO need to commit/rollback the transaction
-            return transactionStore.begin();
-        }
-        return session.getTransaction();
+    Transaction getTransactionBegin() {
+        // TODO need to commit/rollback the transaction
+        return transactionStore.begin();
     }
 
     @Override

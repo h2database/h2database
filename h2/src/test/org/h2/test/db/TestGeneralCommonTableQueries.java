@@ -34,6 +34,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testChainedQuery();
         testParameterizedQuery();
         testNumberedParameterizedQuery();
+        testColumnNames();
 
         testInsert();
         testUpdate();
@@ -438,4 +439,34 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }    
+
+    private void testColumnNames() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+
+        conn.setAutoCommit(false);
+
+        prep = conn.prepareStatement("WITH t1 AS ("
+            +"     SELECT 1 AS ONE, R.X AS TWO, 'T1' AS THREE, X FROM SYSTEM_RANGE(1,1) R"
+            +")"
+            +"SELECT * FROM t1");
+        rs = prep.executeQuery();
+
+        for (int n : new int[] { 1 }) {
+            assertTrue(rs.next());
+            assertEquals(n, rs.getInt(1));
+            assertEquals(n, rs.getInt(4));
+        }
+        assertEquals("ONE",rs.getMetaData().getColumnLabel(1));
+        assertEquals("TWO",rs.getMetaData().getColumnLabel(2));
+        assertEquals("THREE",rs.getMetaData().getColumnLabel(3));
+        assertEquals("X",rs.getMetaData().getColumnLabel(4));
+
+        assertFalse(rs.next());
+
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }
 }

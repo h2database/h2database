@@ -8,6 +8,7 @@ package org.h2.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.Constructor;
@@ -16,6 +17,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -74,7 +76,7 @@ public class Utils {
         buff[pos++] = (byte) (x >> 24);
         buff[pos++] = (byte) (x >> 16);
         buff[pos++] = (byte) (x >> 8);
-        buff[pos++] = (byte) x;
+        buff[pos]   = (byte) x;
     }
 
     /**
@@ -312,6 +314,17 @@ public class Utils {
     public static long getMemoryMax() {
         long max = Runtime.getRuntime().maxMemory();
         return max / 1024;
+    }
+
+    public static long getGarbageCollectionTime() {
+        long totalGCTime = 0;
+        for (GarbageCollectorMXBean gcMXBean : ManagementFactory.getGarbageCollectorMXBeans()) {
+            long collectionTime = gcMXBean.getCollectionTime();
+            if(collectionTime > 0) {
+                totalGCTime += collectionTime;
+            }
+        }
+        return totalGCTime;
     }
 
     private static synchronized void collectGarbage() {
@@ -710,7 +723,7 @@ public class Utils {
         String s = getProperty(key, null);
         if (s != null) {
             try {
-                return Integer.decode(s).intValue();
+                return Integer.decode(s);
             } catch (NumberFormatException e) {
                 // ignore
             }
@@ -731,6 +744,20 @@ public class Utils {
         if (s != null) {
             try {
                 return Boolean.parseBoolean(s);
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultValue;
+    }
+
+    public static int getConfigParam(Map<String,?> config, String key, int defaultValue) {
+        Object o = config.get(key);
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        } else if (o != null) {
+            try {
+                return Integer.decode(o.toString());
             } catch (NumberFormatException e) {
                 // ignore
             }

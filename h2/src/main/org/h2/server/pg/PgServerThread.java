@@ -67,9 +67,9 @@ public class PgServerThread implements Runnable {
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";
     private final HashMap<String, Prepared> prepared =
-            new CaseInsensitiveMap<Prepared>();
+            new CaseInsensitiveMap<>();
     private final HashMap<String, Portal> portals =
-            new CaseInsensitiveMap<Portal>();
+            new CaseInsensitiveMap<>();
 
     PgServerThread(Socket socket, PgServer server) {
         this.server = server;

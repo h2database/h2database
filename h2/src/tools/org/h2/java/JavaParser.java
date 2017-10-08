@@ -59,7 +59,7 @@ public class JavaParser {
     private final HashMap<String, String> importMap = New.hashMap();
     private final HashMap<String, ClassObj> classes = New.hashMap();
     private final LinkedHashMap<String, FieldObj> localVars =
-            new LinkedHashMap<String, FieldObj>();
+            new LinkedHashMap<>();
     private final HashMap<String, MethodObj> allMethodsMap = New.hashMap();
     private final ArrayList<Statement> nativeHeaders = New.arrayList();
     private final HashMap<String, String> stringToStringConstantMap = New

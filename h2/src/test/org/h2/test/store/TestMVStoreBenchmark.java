@@ -125,7 +125,7 @@ public class TestMVStoreBenchmark extends TestBase {
 
     static long getMemory() {
         try {
-            LinkedList<byte[]> list = new LinkedList<byte[]>();
+            LinkedList<byte[]> list = new LinkedList<>();
             while (true) {
                 list.add(new byte[1024]);
             }
@@ -156,10 +156,10 @@ public class TestMVStoreBenchmark extends TestBase {
             MVStore store = MVStore.open(null);
             map = store.openMap("test");
             mv = testPerformance(map, size);
-            map = new HashMap<Integer, String>(size);
+            map = new HashMap<>(size);
             // map = new ConcurrentHashMap<Integer, String>(size);
             hash = testPerformance(map, size);
-            map = new TreeMap<Integer, String>();
+            map = new TreeMap<>();
             // map = new ConcurrentSkipListMap<Integer, String>();
             tree = testPerformance(map, size);
             if (hash < tree && mv < tree * 1.5) {

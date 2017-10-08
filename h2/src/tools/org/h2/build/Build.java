@@ -953,7 +953,7 @@ public class Build extends BuildBase {
     @Description(summary = "Print the system properties.")
     public void testSysProperties() {
         System.out.println("environment settings:");
-        for (Entry<Object, Object> e : new TreeMap<Object, Object>(
+        for (Entry<Object, Object> e : new TreeMap<>(
                 System.getProperties()).entrySet()) {
             System.out.println(e);
         }
@@ -1118,7 +1118,7 @@ public class Build extends BuildBase {
             return super.getLocalMavenDir();
         }
         XMLParser p = new XMLParser(new String(BuildBase.readFile(file)));
-        HashMap<String, String> prop = new HashMap<String, String>();
+        HashMap<String, String> prop = new HashMap<>();
         for (String name = ""; p.hasNext();) {
             int event = p.next();
             if (event == XMLParser.START_ELEMENT) {

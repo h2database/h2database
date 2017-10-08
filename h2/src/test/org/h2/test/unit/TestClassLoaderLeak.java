@@ -74,7 +74,7 @@ public class TestClassLoaderLeak extends TestBase {
         Method testMethod = h2ConnectionTestClass.getDeclaredMethod("runTest");
         testMethod.setAccessible(true);
         testMethod.invoke(null);
-        return new WeakReference<ClassLoader>(cl);
+        return new WeakReference<>(cl);
     }
 
     /**

@@ -447,7 +447,6 @@ public class TestMVTableEngine extends TestBase {
         stat.execute("insert into test select x, repeat('0', 10000) " +
                 "from system_range(1, 10)");
         stat.execute("drop table test");
-        stat.equals("call @temp := cast(repeat('0', 10000) as blob)");
         stat.execute("create table test2(id int, data blob)");
         PreparedStatement prep = conn.prepareStatement(
                 "insert into test2 values(?, ?)");

@@ -3,7 +3,7 @@
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
-package org.h2.test.db;
+package org.h2.test.scripts;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -30,20 +30,21 @@ import org.h2.util.StringUtils;
  */
 public class TestScript extends TestBase {
 
-    private static final String FILENAME = "org/h2/test/testScript.sql";
+    private static final String BASE_DIR = "org/h2/test/scripts/";
 
+    /** If set to true, the test will exit at the first failure. */
     private boolean failFast;
+    private final ArrayList<String> statements = New.arrayList();
 
     private boolean reconnectOften;
     private Connection conn;
     private Statement stat;
     private LineNumberReader in;
-    private int line;
+    private int outputLineNo;
     private PrintStream out;
     private final ArrayList<String[]> result = New.arrayList();
     private String putBack;
     private StringBuilder errors;
-    private ArrayList<String> statements;
 
     private Random random = new Random(1);
 
@@ -64,8 +65,9 @@ public class TestScript extends TestBase {
      */
     public ArrayList<String> getAllStatements(TestAll conf) throws Exception {
         config = conf;
-        statements = New.arrayList();
-        test();
+        if (statements.isEmpty()) {
+            test();
+        }
         return statements;
     }
 
@@ -74,25 +76,83 @@ public class TestScript extends TestBase {
         if (config.networked && config.big) {
             return;
         }
-        reconnectOften = false;
-        if (!config.memory) {
-            if (config.big) {
-                reconnectOften = true;
-            }
+        reconnectOften = !config.memory && config.big;
+        testScript("testScript.sql");
+        testScript("commands-dml-script.sql");
+        for (String s : new String[] { "array", "bigint", "binary", "blob",
+                "boolean", "char", "clob", "date", "decimal", "double", "enum",
+                "geometry", "identity", "int", "other", "real", "smallint",
+                "time", "timestamp-with-timezone", "timestamp", "tinyint",
+                "uuid", "varchar", "varchar-ignorecase" }) {
+            testScript("datatypes/" + s + ".sql");
         }
-        testScript();
+        for (String s : new String[] { "avg", "bit-and", "bit-or", "count",
+                "group-concat", "max", "min", "selectivity", "stddev-pop",
+                "stddev-samp", "sum", "var-pop", "var-samp" }) {
+            testScript("functions/aggregate/" + s + ".sql");
+        }
+        for (String s : new String[] { "abs", "acos", "asin", "atan", "atan2",
+                "bitand", "bitget", "bitor", "bitxor", "ceil", "compress",
+                "cos", "cosh", "cot", "decrypt", "degrees", "encrypt", "exp",
+                "expand", "floor", "hash", "length", "log", "mod", "pi",
+                "power", "radians", "rand", "random-uuid", "round",
+                "roundmagic", "secure-rand", "sign", "sin", "sinh", "sqrt",
+                "tan", "tanh", "trunc", "truncate", "zero" }) {
+            testScript("functions/numeric/" + s + ".sql");
+        }
+        for (String s : new String[] { "ascii", "bit-length", "char", "concat",
+                "concat-ws", "difference", "hextoraw", "insert", "instr",
+                "left", "length", "locate", "lower", "lpad", "ltrim",
+                "octet-length", "position", "rawtohex", "regexp-like",
+                "regex-replace", "repeat", "replace", "right", "rpad", "rtrim",
+                "soundex", "space", "stringdecode", "stringencode",
+                "stringtoutf8", "substring", "to-char", "translate", "trim",
+                "upper", "utf8tostring", "xmlattr", "xmlcdata", "xmlcomment",
+                "xmlnode", "xmlstartdoc", "xmltext" }) {
+            testScript("functions/string/" + s + ".sql");
+        }
+        for (String s : new String[] { "array-contains", "array-get",
+                "array-length", "autocommit", "cancel-session", "casewhen",
+                "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
+                "database-path", "datebase", "decode", "disk-space-used",
+                "file-read", "file-write", "greatest", "h2version", "identity",
+                "ifnull", "least", "link-schema", "lock-mode", "lock-timeout",
+                "memory-free", "memory-used", "nextval", "nullif", "nvl2",
+                "readonly", "rownum", "schema", "scope-identity", "session-id",
+                "set", "table", "transaction-id", "truncate-value", "user" }) {
+            testScript("functions/system/" + s + ".sql");
+        }
+        for (String s : new String[] { "current_date", "current_timestamp",
+                "current-time", "dateadd", "datediff", "dayname",
+                "day-of-month", "day-of-week", "day-of-year", "extract",
+                "formatdatetime", "hour", "minute", "month", "monthname",
+                "parsedatetime", "quarter", "second", "week", "year" }) {
+            testScript("functions/timeanddate/" + s + ".sql");
+        }
         deleteDb("script");
+        System.out.flush();
     }
 
-    private void testScript() throws Exception {
+    private void testScript(String scriptFileName) throws Exception {
         deleteDb("script");
-        String outFile = "test.out.txt";
-        String inFile = FILENAME;
+
+        // Reset all the state in case there is anything left over from the previous file we processed.
+        conn = null;
+        stat = null;
+        in = null;
+        outputLineNo = 0;
+        out = null;
+        result.clear();
+        putBack = null;
+        errors = null;
+
+        println("Running commands in " + scriptFileName);
+        final String outFile = "test.out.txt";
         conn = getConnection("script");
         stat = conn.createStatement();
         out = new PrintStream(new FileOutputStream(outFile));
         errors = new StringBuilder();
-        testFile(inFile);
+        testFile(BASE_DIR + scriptFileName);
         conn.close();
         out.close();
         if (errors.length() > 0) {
@@ -121,6 +181,9 @@ public class TestScript extends TestBase {
 
     private void testFile(String inFile) throws Exception {
         InputStream is = getClass().getClassLoader().getResourceAsStream(inFile);
+        if (is == null) {
+            throw new IOException("could not find " + inFile);
+        }
         in = new LineNumberReader(new InputStreamReader(is, "Cp1252"));
         StringBuilder buff = new StringBuilder();
         while (true) {
@@ -173,9 +236,7 @@ public class TestScript extends TestBase {
                 }
             }
         }
-        if (statements != null) {
-            statements.add(sql);
-        }
+        statements.add(sql);
         if (sql.indexOf('?') == -1) {
             processStatement(sql);
         } else {
@@ -359,7 +420,7 @@ public class TestScript extends TestBase {
                     return;
                 }
                 errors.append("line: ");
-                errors.append(line);
+                errors.append(outputLineNo);
                 errors.append("\n" + "exp: ");
                 errors.append(compare);
                 errors.append("\n" + "got: ");
@@ -381,7 +442,7 @@ public class TestScript extends TestBase {
     }
 
     private void write(String s) {
-        line++;
+        outputLineNo++;
         out.println(s);
     }
 

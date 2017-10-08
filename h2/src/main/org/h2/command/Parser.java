@@ -1451,7 +1451,7 @@ public class Parser {
     private String readFromAlias(String alias) {
         // left and right are not keywords (because they are functions as
         // well)
-        List<String> excludeIdentifiers = Arrays.asList("LEFT","RIGHT","FULL");;
+        List<String> excludeIdentifiers = Arrays.asList("LEFT","RIGHT","FULL");
         return readFromAlias(alias, excludeIdentifiers);
     }
 

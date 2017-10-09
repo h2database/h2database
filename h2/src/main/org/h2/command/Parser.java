@@ -1112,7 +1112,10 @@ public class Parser {
             /* a select query is supplied */
             if (isSelect()) {
                 command.setQuery(parseSelect());
-                schemaName = savedSchemaName;
+                // TODO: the schema name is sometimes reset in the parseSelect call - fix this by resetting it
+                if(schemaName==null){
+                    schemaName = savedSchemaName;
+                }
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
@@ -1147,7 +1150,7 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
         
-        if(readIf("WHEN")&&readIf("MATCHED")&&readIf("THEN")){
+        if(readIfAll(Arrays.asList("WHEN","MATCHED","THEN"))){
             int startMatched = lastParseIndex;
             if (readIf("UPDATE")){
                 Update updateCommand = new Update(session);
@@ -1166,7 +1169,7 @@ public class Parser {
                 command.setDeleteCommand(deleteCommand);
             }            
         }
-        if(readIf("WHEN")&&readIf("NOT")&&readIf("MATCHED")&&readIf("THEN")){
+        if(readIfAll(Arrays.asList("WHEN","NOT","MATCHED","THEN"))){
             if (readIf("INSERT")){
                 Insert insertCommand = new Insert(session);
                 insertCommand.setTable(command.getTargetTable());
@@ -3438,7 +3441,25 @@ public class Parser {
         addExpected(token);
         return false;
     }
-
+    
+    private boolean readIfAll(List<String> tokens) {
+        // save parse location in case we have to fail this test
+        int start = lastParseIndex;
+        for(String token: tokens){
+            String currentTokenUpper = currentToken.toUpperCase();
+            if (!currentTokenQuoted && equalsToken(token, currentTokenUpper)) {
+                read();
+            }
+            else{
+                // revert parse location
+                parseIndex = start;
+                read();
+                return false;
+            }
+        }
+        return true;
+    }
+    
     private boolean isToken(String token) {
         boolean result = equalsToken(token, currentToken) &&
                 !currentTokenQuoted;

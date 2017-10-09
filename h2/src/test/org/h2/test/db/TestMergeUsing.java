@@ -114,7 +114,16 @@ public class TestMergeUsing extends TestBase {
                 3
                 );        
         
-        // Duplicate source keys: SQL standard says duplicate or repeated updates in same statement should cause errors
+        // Only insert clause
+        testMergeUsing(
+                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
+                        "DELETE FROM PARENT;",
+                "MERGE INTO PARENT AS P USING (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) ) AS S ON (P.ID = S.ID) WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)",
+                3
+                );
+       // Duplicate source keys: SQL standard says duplicate or repeated updates in same statement should cause errors
         // One insert, one update one delete happens, target table missing PK, no source or target alias
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+

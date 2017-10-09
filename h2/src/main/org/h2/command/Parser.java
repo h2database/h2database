@@ -1102,7 +1102,6 @@ public class Parser {
             schemaName = session.getCurrentSchemaName();
         }
             
-        Schema schema = getSchema();
         String savedSchemaName = schemaName;
         MergeUsing command = new MergeUsing(oldCommand);
         currentPrepared = command;
@@ -5158,6 +5157,10 @@ public class Parser {
 
         } finally {
             session.removeLocalTempTable(recursiveTable);
+        }
+        //TODO: Why and where is the schema name being reset I shouldn't have to do this
+        if(getSchema()==null){
+            schemaName = schema.getName();
         }
         TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/, true);
         return view;

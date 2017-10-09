@@ -3441,7 +3441,10 @@ public class Parser {
         addExpected(token);
         return false;
     }
-    
+    /*
+     * Reads every token in list, in order - returns true if all are found.
+     * If any are not found, returns false - AND resets parsing back to state when called.
+     */
     private boolean readIfAll(List<String> tokens) {
         // save parse location in case we have to fail this test
         int start = lastParseIndex;
@@ -3451,7 +3454,7 @@ public class Parser {
                 read();
             }
             else{
-                // revert parse location
+                // revert parse location to when called
                 parseIndex = start;
                 read();
                 return false;

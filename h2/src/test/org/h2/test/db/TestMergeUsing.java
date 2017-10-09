@@ -114,7 +114,7 @@ public class TestMergeUsing extends TestBase {
                 3
                 );        
         
-        // Only insert clause
+        // Only insert clause, no update or delete clauses
         testMergeUsing(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
                         "DELETE FROM PARENT;",
@@ -123,7 +123,24 @@ public class TestMergeUsing extends TestBase {
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)",
                 3
                 );
-       // Duplicate source keys: SQL standard says duplicate or repeated updates in same statement should cause errors
+        // no insert, no update, no delete clauses - essentially a no-op
+        testMergeUsing(
+                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
+                        "DELETE FROM PARENT;",
+                "MERGE INTO PARENT AS P USING (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) ) AS S ON (P.ID = S.ID)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) WHERE X<0",
+                0
+                );
+        // Two updates to same row - update and delete together - emptying the parent table
+        testMergeUsing(
+                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) )",
+                "MERGE INTO PARENT AS P USING (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) ) AS S ON (P.ID = S.ID) WHEN MATCHED THEN UPDATE SET P.NAME = P.NAME||S.ID WHERE P.ID = 1 DELETE WHERE P.ID = 1 AND P.NAME = 'Marcy11'",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) WHERE X<0",
+                2
+                );
+        // Duplicate source keys: SQL standard says duplicate or repeated updates in same statement should cause errors
         // One insert, one update one delete happens, target table missing PK, no source or target alias
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+

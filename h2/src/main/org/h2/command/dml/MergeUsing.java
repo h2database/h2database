@@ -167,7 +167,15 @@ public class MergeUsing extends Merge {
             rowUpdateCount += updateCommand.update();
         }
         if(deleteCommand!=null){
-            rowUpdateCount += deleteCommand.update();
+            int deleteRowUpdateCount = deleteCommand.update();
+            // under oracle rules these updates & delete combinations are allowed together
+            if(rowUpdateCount==1 && deleteRowUpdateCount==1){                
+                countUpdatedRows+=deleteRowUpdateCount;
+                deleteRowUpdateCount=0;
+            }
+            else{
+                rowUpdateCount += deleteRowUpdateCount;
+            }
         }
         
         // if either updates do nothing, try an insert

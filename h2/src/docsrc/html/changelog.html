@@ -21,6 +21,8 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Fix bug in MySQL/ORACLE-syntax silently corrupting the modified column in cases of setting the 'NULL'- or 'NOT NULL'-constraint. E.g. alter table T modify C NULL;
+</li>
 <li>Issue #570: MySQL compatibility for ALTER TABLE .. DROP INDEX
 </li>
 <li>Issue #537: Include the COLUMN name in message "Numeric value out of range"

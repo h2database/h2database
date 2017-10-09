@@ -51,6 +51,7 @@ public class TestAlter extends TestBase {
         testAlterTableAddMultipleColumnsBefore();
         testAlterTableAddMultipleColumnsAfter();
         testAlterTableModifyColumn();
+        testAlterTableModifyColumnSetNull();
         conn.close();
         deleteDb(getTestName());
     }
@@ -282,5 +283,28 @@ public class TestAlter extends TestBase {
         stat.execute("alter table t modify column x varchar(20)");
         stat.execute("insert into t values('Hello')");
         stat.execute("drop table t");
+    }
+    
+    /**
+     * Test for fix "Change not-null / null -constraint to existing column" 
+     * (MySql/ORACLE - SQL style) that failed silently corrupting the changed 
+     * column.<br/>
+     * Before the change (added after v1.4.196) following was observed:
+     * <pre>
+     *  alter table T modify C int null; -- Worked as expected
+     *  alter table T modify C null;     -- Silently corrupted column C
+     * </pre>
+     */
+    private void testAlterTableModifyColumnSetNull() throws SQLException {
+        // This worked in v1.4.196
+        stat.execute("create table T (C varchar not null)");
+        stat.execute("alter table T modify C int null");
+        stat.execute("insert into T values(null)");
+        stat.execute("drop table T");
+        // This failed in v1.4.196 
+        stat.execute("create table T (C int not null)");
+        stat.execute("alter table T modify C null"); // Silently corrupted column C
+        stat.execute("insert into T values(null)"); // <- ERROR: NULL not allowed
+        stat.execute("drop table T");
     }
 }

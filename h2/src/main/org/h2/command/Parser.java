@@ -5869,7 +5869,23 @@ public class Parser {
             // MySQL compatibility
             readIf("COLUMN");
             String columnName = readColumnIdentifier();
-            return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
+            if ((isToken("NOT") || isToken("NULL"))) {
+            	AlterTableAlterColumn command = new AlterTableAlterColumn(
+            			session, schema);
+            	command.setTableName(tableName);
+            	command.setIfTableExists(ifTableExists);
+            	Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
+            	command.setOldColumn(column);
+                if (readIf("NOT")) {
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
+                } else {
+                	read("NULL");
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
+                }
+                return command;
+            } else {
+                return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
+            }
         } else if (readIf("ALTER")) {
             readIf("COLUMN");
             String columnName = readColumnIdentifier();

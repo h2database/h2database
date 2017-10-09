@@ -824,7 +824,9 @@ public class Parser {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
-            if (!equalsToken("SET", currentToken) && !excludeTokens.contains(currentToken)) {
+            String upperCaseCurrentToken = currentToken.toUpperCase();
+            if (!equalsToken("SET", upperCaseCurrentToken) && !excludeTokens.contains(upperCaseCurrentToken)) {
+                System.out.println("currentToken="+currentToken);
                 // SET is not a keyword (PostgreSQL supports it as a table name)
                 alias = readAliasIdentifier();
             }

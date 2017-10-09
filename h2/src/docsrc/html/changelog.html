@@ -21,6 +21,8 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Issue #497: Fix TO_DATE in cases of 'inline' text. E.g. the "T" and "Z" in to_date('2017-04-21T00:00:00Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+</li>
 <li>Fix bug in MySQL/ORACLE-syntax silently corrupting the modified column in cases of setting the 'NULL'- or 'NOT NULL'-constraint. E.g. alter table T modify C NULL;
 </li>
 <li>Issue #570: MySQL compatibility for ALTER TABLE .. DROP INDEX

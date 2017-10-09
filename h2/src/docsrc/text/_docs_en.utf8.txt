@@ -9695,7 +9695,7 @@ Test http://mysql-je.sourceforge.net/
 H2 Console: the webclient could support more features like phpMyAdmin. 
 
 @roadmap_1080_li
-Support Oracle functions: TO_DATE, TO_NUMBER. 
+Support Oracle functions: TO_NUMBER. 
 
 @roadmap_1081_li
 Work on the Java to C converter. 

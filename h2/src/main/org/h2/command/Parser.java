@@ -1105,7 +1105,7 @@ public class Parser {
         if (readIf("(")) {
             /* a select query is supplied */
             if (isSelect()) {
-                command.setQuery(parseSelectRetainingSchema());
+                command.setQuery(parseSelect());
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
@@ -1877,35 +1877,27 @@ public class Parser {
         }
         return command;
     }
-    private Query parseSelectRetainingSchema() {
-        // The parseSelect() method nulls the schema name sometimes - make sure it is reverted if nulled 
-        String savedSchemaName = schemaName;
-        Throwable error=null;
-        Query command = null;
-        try{
-            command = parseSelect();
-        }
-        catch(Throwable e){
-            error = e;
-            throw e;
-        }
-        finally{
-            if(schemaName==null && error==null){
-                schemaName = savedSchemaName;
-            }
-        }            
-        return command;
-    }
 
     private Query parseSelect() {
-        int paramIndex = parameters.size();
-        Query command = parseSelectUnion();
-        ArrayList<Parameter> params = New.arrayList();
-        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
-            params.add(parameters.get(i));
+        // This method and its subroutines sometimes resets the schema name  - the try-finally block
+        // makes sure it is reverted if nulled 
+        String savedSchemaName = schemaName;
+        Query command = null;
+        try{
+            int paramIndex = parameters.size();
+            command = parseSelectUnion();
+            ArrayList<Parameter> params = New.arrayList();
+            for (int i = paramIndex, size = parameters.size(); i < size; i++) {
+                params.add(parameters.get(i));
+            }
+            command.setParameterList(params);
+            command.init();
         }
-        command.setParameterList(params);
-        command.init();
+        finally{
+            if(schemaName==null){
+                schemaName = savedSchemaName;
+            }
+        }
         return command;
     }
 
@@ -5186,7 +5178,7 @@ public class Parser {
         try {
             read("AS");
             read("(");
-            Query withQuery = parseSelectRetainingSchema();
+            Query withQuery = parseSelect();
             read(")");
             columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 

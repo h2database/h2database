@@ -12,24 +12,22 @@ import java.util.HashSet;
 import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
+import org.h2.command.CommandInterface;
 import org.h2.command.Prepared;
-import org.h2.engine.DbObject;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
-import org.h2.engine.UndoLogRecord;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
 import org.h2.expression.Parameter;
-import org.h2.index.Index;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.RowImpl;
 import org.h2.table.Column;
-import org.h2.table.PlanItem;
+import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.table.TableView;
+import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
 
@@ -37,15 +35,24 @@ import org.h2.value.Value;
  * This class represents the statement syntax
  * MERGE table alias USING...
  */
-public class MergeUsing extends Merge {
+public class MergeUsing extends Prepared {
     
+    // Merge fields
+    private Table targetTable;
+    private TableFilter targetTableFilter;
+    private Column[] columns;
+    private Column[] keys;
+    private final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
+    private Query query;
+    private Prepared update;
+    
+    // MergeUsing fields
     private TableFilter sourceTableFilter;
     private Expression onCondition;
     private Update updateCommand;
     private Delete deleteCommand;
     private Insert insertCommand;
     private String queryAlias;
-    private TableView temporarySourceTableView;
     private int countUpdatedRows=0;
     private Column[] sourceKeys;
     private HashMap<List<Value>,Integer> sourceKeysRemembered = new HashMap<List<Value>,Integer>();
@@ -54,8 +61,8 @@ public class MergeUsing extends Merge {
         super(merge.getSession());
         
         // bring across only the already parsed data from Merge...
-        this.targetTable = merge.targetTable;
-        this.targetTableFilter = merge.targetTableFilter;
+        this.targetTable = merge.getTargetTable();
+        this.targetTableFilter = merge.getTargetTableFilter();
     }
 
   
@@ -100,12 +107,16 @@ public class MergeUsing extends Merge {
                     throw setRow(ex, countInputRows, getSQL(sourceRowValues));
                 }
             }
+            
+            // throw and exception if the source query has generated the same key column values before
             if(sourceKeysRemembered.containsKey(sourceKeyValuesList)){
                 throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate values found:key columns"
                         +Arrays.asList(sourceKeys).toString()+":values:"+sourceKeyValuesList.toString()
                         +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+countInputRows
                         +":conflicting row number:"+sourceKeysRemembered.get(sourceKeyValuesList));
             }else{
+                // remember the source column values we have used before (they are the effective ON clause keys
+                // and should not be repeated
                 sourceKeysRemembered.put(sourceKeyValuesList,countInputRows);
             }
                 
@@ -121,7 +132,7 @@ public class MergeUsing extends Merge {
                     throw setRow(ex, countInputRows, getSQL(sourceRowValues));
                 }
             }
-            merge(sourceRow, sourceRowValues,newTargetRow);
+            merge(sourceRow, sourceRowValues, newTargetRow);
         }
         rows.close();
         targetTable.fire(session, evaluateTriggerMasks(), false);
@@ -430,7 +441,37 @@ public class MergeUsing extends Merge {
         return query;
     }
 
-    public void setTemporaryTableView(TableView temporarySourceTableView) {
-        this.temporarySourceTableView = temporarySourceTableView;        
-    }  
+    public void setQuery(Query query) {
+        this.query = query;
+    }
+    
+    public void setTargetTableFilter(TableFilter targetTableFilter) {
+        this.targetTableFilter = targetTableFilter;
+    }
+    
+    public TableFilter getTargetTableFilter() {
+        return targetTableFilter;
+    }
+    public Table getTargetTable() {
+        return targetTable;
+    }
+    public void setTargetTable(Table targetTable) {
+        this.targetTable = targetTable;
+    }    
+    // Prepared interface
+    
+    @Override
+    public boolean isTransactional() {
+        return true;
+    }
+
+    @Override
+    public ResultInterface queryMeta() {
+        return null;
+    }
+
+    @Override
+    public int getType() {
+        return CommandInterface.MERGE;
+    }    
 }

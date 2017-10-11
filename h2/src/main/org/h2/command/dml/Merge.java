@@ -33,13 +33,13 @@ import org.h2.value.Value;
  */
 public class Merge extends Prepared {
 
-    protected Table targetTable;
-    protected TableFilter targetTableFilter;
-    protected Column[] columns;
-    protected Column[] keys;
-    protected final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
-    protected Query query;
-    protected Prepared update;
+    private Table targetTable;
+    private TableFilter targetTableFilter;
+    private Column[] columns;
+    private Column[] keys;
+    private final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
+    private Query query;
+    private Prepared update;
 
     public Merge(Session session) {
         super(session);

@@ -1050,7 +1050,7 @@ public class Parser {
     }
     
 
-    private Merge parseMerge() {
+    private Prepared parseMerge() {
         Merge command = new Merge(session);
         currentPrepared = command;
         int start = lastParseIndex;
@@ -1113,7 +1113,7 @@ public class Parser {
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
             TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false, false);
-            command.setTemporaryTableView(temporarySourceTableView);
+            //command.setTemporaryTableView(temporarySourceTableView);
             
             TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
                 (Select) command.getQuery(), 0, null);
@@ -1163,7 +1163,7 @@ public class Parser {
             if (readIf("INSERT")){
                 Insert insertCommand = new Insert(session);
                 insertCommand.setTable(command.getTargetTable());
-                parseInsertGivenTable(insertCommand,command.getTargetTable());
+                parseInsertGivenTable(insertCommand, command.getTargetTable());
                 command.setInsertCommand(insertCommand);
             }
         }

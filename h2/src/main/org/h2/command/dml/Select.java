@@ -16,6 +16,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
+import org.h2.expression.Alias;
 import org.h2.expression.Comparison;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
@@ -40,6 +41,7 @@ import org.h2.table.JoinBatch;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableView;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -836,6 +838,14 @@ public class Select extends Query {
         }
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
+            String columnName = ColumnNamer.getColumnName(e,i,null);            
+            if(!ColumnNamer.isReasonableColumnName(e.getAlias())){
+                System.out.println("Added alias="+columnName);
+                e = new Alias(e,columnName,true);
+            }
+            else{
+                System.out.println("Acceptable column name="+columnName);
+            }
             expressions.set(i, e.optimize(session));
         }
         if (condition != null) {

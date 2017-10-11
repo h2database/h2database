@@ -140,6 +140,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
+import org.h2.util.ColumnNamer;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -4937,6 +4938,7 @@ public class Parser {
             Query query = parseSelectUnion();
             query.setPrepareAlways(true);
             query.setNeverLazy(true);
+            System.out.println("class="+query.getClass());
             p = query;
         }
         else if(readIf("INSERT")) {
@@ -4988,7 +4990,7 @@ public class Parser {
         if (readIf("(")) {
             cols = parseColumnList();
             for (String c : cols) {
-                // we dont really know the type of the column, so string will
+                // we don't really know the type of the column, so string will
                 // have to do
                 columns.add(new Column(c, Value.STRING));
             }
@@ -5035,15 +5037,7 @@ public class Parser {
                 Expression columnExp = withExpressions.get(i);
                 // use the passed in column name if supplied, otherwise use alias (if used) otherwise use column name
                 // derived from column expression
-                String columnName;
-                if (cols != null){
-                    columnName = cols[i];
-                } else if (columnExp.getAlias()!=null){
-                    columnName = columnExp.getAlias();
-                }
-                else{
-                     columnName =  columnExp.getColumnName();
-                }
+                String columnName = ColumnNamer.getColumnName(columnExp,i,cols);
                 columnTemplateList.add(new Column(columnName,
                         columnExp.getType()));
             }
@@ -5054,6 +5048,7 @@ public class Parser {
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
+        System.out.println("parseSingleCommonTableExpression.querySQL="+querySQL);
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
                 true/* recursive */, false);

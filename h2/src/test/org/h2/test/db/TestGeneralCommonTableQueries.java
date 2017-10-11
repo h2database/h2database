@@ -42,6 +42,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testMerge();
         testCreateTable();
         testNestedSQL();
+        testRecursiveTable();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -218,7 +219,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
             assertEquals(n, rs.getInt(1));
         }
         assertEquals("X",rs.getMetaData().getColumnLabel(1));
-        assertEquals("'T1'",rs.getMetaData().getColumnLabel(2));
+        assertEquals("_unnamed_column_2_",rs.getMetaData().getColumnLabel(2));
 
         assertFalse(rs.next());
 
@@ -469,4 +470,73 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
+    
+    private void testRecursiveTable() throws Exception {
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+        
+        String SETUP_SQL = 
+             "DROP TABLE IF EXISTS A;                           "
+            +"DROP TABLE IF EXISTS B;                           "
+            +"DROP TABLE IF EXISTS C;                           "
+            +"CREATE TABLE A(VAL VARCHAR(255));                 "
+            +"CREATE TABLE B(A VARCHAR(255), VAL VARCHAR(255)); "
+            +"CREATE TABLE C(B VARCHAR(255), VAL VARCHAR(255)); "
+            +"                                                  "
+            +"INSERT INTO A VALUES('fruit');                    "
+            +"INSERT INTO B VALUES('fruit','apple');            "
+            +"INSERT INTO B VALUES('fruit','banana');           "
+            +"INSERT INTO C VALUES('apple', 'golden delicious');"
+            +"INSERT INTO C VALUES('apple', 'granny smith');    "
+            +"INSERT INTO C VALUES('apple', 'pippin');          "
+            +"INSERT INTO A VALUES('veg');                      "
+            +"INSERT INTO B VALUES('veg', 'carrot');            "
+            +"INSERT INTO C VALUES('carrot', 'nantes');         "
+            +"INSERT INTO C VALUES('carrot', 'imperator');      "
+            +"INSERT INTO C VALUES(null, 'banapple');           "
+            +"INSERT INTO A VALUES('meat');                     "
+            ;
+        String WITH_QUERY =
+            "WITH BB as (SELECT                        \n"
+            +"sum(1) as X,                             \n"
+            +"a                                        \n"
+            +"FROM B                                   \n"
+            +"JOIN C ON B.val=C.b                      \n"
+            +"GROUP BY a)                              \n"
+            +"SELECT                                   \n"
+            +"A.val,                                   \n"
+            +"sum(SELECT X FROM BB WHERE BB.a IS A.val)\n"//AS SUM_X
+            +"FROM A                                   \n"
+            +"GROUP BY A.val";
+
+        for(int queryTries: new int[]{1,2,3}){
+            System.out.println("Try#"+queryTries);
+            
+            Statement stat = conn.createStatement();
+            stat.execute(SETUP_SQL);
+            
+            prep = conn.prepareStatement(WITH_QUERY);
+
+            rs = prep.executeQuery();
+            for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
+                System.out.print("|"+rs.getMetaData().getColumnLabel(columnIndex));
+            }            
+            System.out.println();
+            while (rs.next()) {
+                //assertTrue(rs.next());
+                //assertContains("ab",rs.getString(1));
+                //assertEquals(rs.getString(1),keyLetter);
+                //assertTrue(rs.getInt(2)!=0);
+                for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
+                    System.out.print("|"+rs.getString(columnIndex));
+                }
+                System.out.println();
+            }            
+        }
+
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }     
 }

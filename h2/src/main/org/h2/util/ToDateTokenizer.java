@@ -6,11 +6,13 @@
 package org.h2.util;
 
 import static java.lang.String.format;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
@@ -28,6 +31,11 @@ import org.h2.message.DbException;
  * TO_DATE-format conventions and how to parse the corresponding data.
  */
 class ToDateTokenizer {
+
+    /**
+     * The pattern for a number.
+     */
+    static final Pattern PATTERN_INLINE = Pattern.compile("(\"[^\"]*\")");
 
     /**
      * The pattern for a number.
@@ -102,6 +110,11 @@ class ToDateTokenizer {
      * The parslet for time.
      */
     static final TimeParslet PARSLET_TIME = new TimeParslet();
+
+    /**
+     * The inline parslet. E.g.  'YYYY-MM-DD"T"HH24:MI:SS"Z"' where "T" and "Z" are inlined
+     */
+    static final InlineParslet PARSLET_INLINE = new InlineParslet();
 
     /**
      * The number of milliseconds in a day.
@@ -473,6 +486,27 @@ class ToDateTokenizer {
     }
 
     /**
+     * Parslet responsible for parsing year parameter
+     */
+    static class InlineParslet implements ToDateParslet {
+		@Override
+		public void parse(ToDateParser params, FormatTokenEnum formatTokenEnum, String formatTokenStr) {
+            String inputFragmentStr = null;
+            switch (formatTokenEnum) {
+            case INLINE:
+                inputFragmentStr = formatTokenStr.replace("\"", "");
+            	break;
+            default:
+                throw new IllegalArgumentException(format(
+                        "%s: Internal Error. Unhandled case: %s", this.getClass()
+                        .getSimpleName(), formatTokenEnum));
+            }			
+            params.remove(inputFragmentStr, formatTokenStr);
+		}
+
+    }
+    
+    /**
      * Match the pattern, or if not possible throw an exception.
      *
      * @param p the pattern
@@ -610,10 +644,11 @@ class ToDateTokenizer {
         D(PARSLET_DAY),
         // NOT supported yet -
         // Julian day; the number of days since Jan 1, 4712 BC.
-        J(PARSLET_DAY);
+        J(PARSLET_DAY),
+    	// Inline text e.g. to_date('2017-04-21T00:00:00Z', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') where "T" and "Z" are inlined
+    	INLINE(PARSLET_INLINE, PATTERN_INLINE);
 
-        private static final List<FormatTokenEnum> EMPTY_LIST =
-                new ArrayList<>(0);
+        private static final List<FormatTokenEnum> EMPTY_LIST = Collections.emptyList();
 
         private static final Map<Character, List<FormatTokenEnum>> CACHE =
                 new HashMap<>(FormatTokenEnum.values().length);
@@ -656,7 +691,14 @@ class ToDateTokenizer {
             }
             if (formatStr != null && formatStr.length() > 0) {
                 Character key = Character.toUpperCase(formatStr.charAt(0));
-                result = CACHE.get(key);
+                switch (key) {
+                  case '"':
+                	  result = new ArrayList<FormatTokenEnum>();
+                	  result.add(INLINE);
+                      break;
+                  default:
+                      result = CACHE.get(key);
+                }
             }
             if (result == null) {
                 result = EMPTY_LIST;

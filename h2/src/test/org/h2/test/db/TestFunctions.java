@@ -1309,6 +1309,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         Date date = null;
         date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-12");
+        assertEquals(date, ToDateParser.toDate("1979-11-12T00:00:00Z", "YYYY-MM-DD\"T\"HH24:MI:SS\"Z\""));
+        assertEquals(date, ToDateParser.toDate("1979*foo*1112", "YYYY\"*foo*\"MM\"\"DD"));
         assertEquals(date, ToDateParser.toDate("1979-11-12", "YYYY-MM-DD"));
         assertEquals(date, ToDateParser.toDate("1979/11/12", "YYYY/MM/DD"));
         assertEquals(date, ToDateParser.toDate("1979,11,12", "YYYY,MM,DD"));

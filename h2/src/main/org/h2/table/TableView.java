@@ -30,6 +30,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -168,7 +169,7 @@ public class TableView extends Table {
                     type = columnTemplates[i].getType();
                 }
                 if (name == null) {
-                    name = expr.getAlias();
+                    name = ColumnNamer.getColumnName(expr,i,null);
                 }
                 if (type == Value.UNKNOWN) {
                     type = expr.getType();
@@ -416,6 +417,13 @@ public class TableView extends Table {
 
     @Override
     public void removeChildrenAndResources(Session session) {
+        System.out.println("invalidating="+getName());
+        try{
+            throw new RuntimeException("snapshot");           
+        }
+        catch(RuntimeException e){
+            e.printStackTrace();
+        }
         removeViewFromTables();
         super.removeChildrenAndResources(session);
         database.removeMeta(session, getId());
@@ -439,6 +447,8 @@ public class TableView extends Table {
     @Override
     public String getSQL() {
         if (isTemporary()) {
+            System.out.println("table view name="+getName());
+            System.out.println(this.toString()+".getSQL().querySQL="+querySQL);
             return "(\n" + StringUtils.indent(querySQL) + ")";
         }
         return super.getSQL();
@@ -502,8 +512,11 @@ public class TableView extends Table {
 
     private void removeViewFromTables() {
         if (tables != null) {
+            System.out.println("removeViewFromTables.tables="+tables);
+            System.out.println("removeViewFromTables.this="+this);
             for (Table t : tables) {
                 t.removeView(this);
+                System.out.println("removeViewFromTables.tables."+t.getName()+"="+t.getViews());
             }
             tables.clear();
         }

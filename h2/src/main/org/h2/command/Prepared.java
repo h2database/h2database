@@ -445,6 +445,10 @@ public abstract class Prepared {
      * Get the temporary views created for CTE's.
      */
     public List<TableView> getCteCleanups() {
+        System.out.println("getCteCleanups:"+cteCleanups);
+        if(cteCleanups!=null){
+            System.out.println("getCteCleanups:"+cteCleanups.size());
+        }
         return cteCleanups;
     }
 

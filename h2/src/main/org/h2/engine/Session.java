@@ -364,6 +364,7 @@ public class Session extends SessionWithState {
                     table.getSQL()+" AS "+table.getName());
         }
         modificationId++;
+        System.out.println("addLocalTempTable.worked="+table.getName()+table.toString());
         localTempTables.put(table.getName(), table);
     }
 

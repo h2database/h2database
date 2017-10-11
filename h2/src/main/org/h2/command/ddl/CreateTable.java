@@ -23,6 +23,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -233,7 +234,7 @@ public class CreateTable extends SchemaCommand {
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             int type = expr.getType();
-            String name = expr.getAlias();
+            String name = ColumnNamer.getColumnName(expr,i,null);
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);

@@ -1099,23 +1099,13 @@ public class Parser {
     }
 
     private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
-        /* TODO: not sure why schema name is reset to null */
-        if(schemaName==null){
-            schemaName = session.getCurrentSchemaName();
-        }
-            
-        String savedSchemaName = schemaName;
         MergeUsing command = new MergeUsing(oldCommand);
         currentPrepared = command;
         
         if (readIf("(")) {
             /* a select query is supplied */
             if (isSelect()) {
-                command.setQuery(parseSelect());
-                // TODO: the schema name is sometimes reset in the parseSelect call - fix this by resetting it
-                if(schemaName==null){
-                    schemaName = savedSchemaName;
-                }
+                command.setQuery(parseSelectRetainingSchema());
                 read(")");
             }
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
@@ -1885,6 +1875,25 @@ public class Parser {
         } else {
             throw getSyntaxError();
         }
+        return command;
+    }
+    private Query parseSelectRetainingSchema() {
+        // The parseSelect() method nulls the schema name sometimes - make sure it is reverted if nulled 
+        String savedSchemaName = schemaName;
+        Throwable error=null;
+        Query command = null;
+        try{
+            command = parseSelect();
+        }
+        catch(Throwable e){
+            error = e;
+            throw e;
+        }
+        finally{
+            if(schemaName==null && error==null){
+                schemaName = savedSchemaName;
+            }
+        }            
         return command;
     }
 
@@ -5177,16 +5186,12 @@ public class Parser {
         try {
             read("AS");
             read("(");
-            Query withQuery = parseSelect();
+            Query withQuery = parseSelectRetainingSchema();
             read(")");
             columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
             session.removeLocalTempTable(recursiveTable);
-        }
-        //TODO: Why and where is the schema name being reset I shouldn't have to do this
-        if(getSchema()==null){
-            schemaName = schema.getName();
         }
         TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/, true);
         return view;

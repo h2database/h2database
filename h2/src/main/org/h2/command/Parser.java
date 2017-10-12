@@ -1886,9 +1886,9 @@ public class Parser {
     private Query parseSelect() {
         // This method and its subroutines sometimes resets the schema name  - the try-finally block
         // makes sure it is reverted if nulled 
-        String savedSchemaName = schemaName;
+        //String savedSchemaName = schemaName;
         Query command = null;
-        try{
+        //try{
             int paramIndex = parameters.size();
             command = parseSelectUnion();
             ArrayList<Parameter> params = New.arrayList();
@@ -1897,12 +1897,12 @@ public class Parser {
             }
             command.setParameterList(params);
             command.init();
-        }
-        finally{
-            if(schemaName==null){
-                schemaName = savedSchemaName;
-            }
-        }
+        //}
+        //finally{
+            //if(schemaName==null){
+            //    schemaName = savedSchemaName;
+            //}
+        //}
         return command;
     }
 

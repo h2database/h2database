@@ -700,6 +700,13 @@ public class Parser {
     private Schema getSchema() {
         return getSchema(schemaName);
     }
+    
+    private Schema getSchemaWithDefault() {
+        if(schemaName==null){
+            schemaName = session.getCurrentSchemaName();
+        }
+        return getSchema(schemaName);
+    }
 
     private Column readTableColumn(TableFilter filter) {
         String tableAlias = null;
@@ -1112,9 +1119,7 @@ public class Parser {
             
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
-            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false, false);
-            //command.setTemporaryTableView(temporarySourceTableView);
-            
+            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false/*no recursion*/, false/* do not add to session*/);            
             TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
                 (Select) command.getQuery(), 0, null);
             command.setSourceTableFilter(sourceTableFilter); 
@@ -3372,6 +3377,7 @@ public class Parser {
         return s;
     }
 
+    // TODO: why does this function allow defaultSchemaName=null - which resets the parser schemaName for everyone ?
     private String readIdentifierWithSchema(String defaultSchemaName) {
         if (currentTokenType != IDENTIFIER) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex,
@@ -5215,7 +5221,7 @@ public class Parser {
 
     private TableView createTemporarySessionView(String tempViewName,  String querySQL,
             List<Column> columnTemplateList, boolean allowRecursiveQueryDetection, boolean addViewToSession) {
-        Schema schema = getSchema();
+        Schema schema = getSchemaWithDefault();
         int id = database.allocateObjectId();
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,

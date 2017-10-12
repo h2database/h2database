@@ -19,7 +19,6 @@ import org.h2.engine.Session;
 import org.h2.expression.ConditionAndOr;
 import org.h2.expression.Expression;
 import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Parameter;
 import org.h2.message.DbException;
 import org.h2.result.ResultInterface;
 import org.h2.result.Row;
@@ -44,7 +43,6 @@ public class MergeUsing extends Prepared {
     private Column[] keys;
     private final ArrayList<Expression[]> valuesExpressionList = New.arrayList();
     private Query query;
-    private Prepared update;
     
     // MergeUsing fields
     private TableFilter sourceTableFilter;
@@ -68,6 +66,8 @@ public class MergeUsing extends Prepared {
   
     @Override
     public int update() {
+        
+        // clear list of source table keys we have processed already
         sourceKeysRemembered.clear();
         
         if(targetTableFilter!=null){
@@ -93,7 +93,6 @@ public class MergeUsing extends Prepared {
             countInputRows++;
             Value[] sourceRowValues = rows.currentRow();
             Row sourceRow = new RowImpl(sourceRowValues,0);
-            Row newTargetRow = targetTable.getTemplateRow();
             ArrayList<Value> sourceKeyValuesList = new ArrayList<Value>();
             setCurrentRowNumber(countInputRows);
             
@@ -120,19 +119,7 @@ public class MergeUsing extends Prepared {
                 sourceKeysRemembered.put(sourceKeyValuesList,countInputRows);
             }
                 
-            
-            // compute the new target row columns values
-            for (int j = 0; j < columns.length; j++) {
-                Column c = columns[j];
-                int index = c.getColumnId();
-                try {
-                    Value v = c.convert(sourceRowValues[j]);
-                    newTargetRow.setValue(index, v);
-                } catch (DbException ex) {
-                    throw setRow(ex, countInputRows, getSQL(sourceRowValues));
-                }
-            }
-            merge(sourceRow, sourceRowValues, newTargetRow);
+            merge(sourceRow, sourceRowValues);
         }
         rows.close();
         targetTable.fire(session, evaluateTriggerMasks(), false);
@@ -164,12 +151,14 @@ public class MergeUsing extends Prepared {
         if(deleteCommand!=null){
             session.getUser().checkRight(targetTable, Right.DELETE);
         }
+        
+        // check the underlying tables
+        session.getUser().checkRight(targetTable, Right.SELECT);
+        session.getUser().checkRight(sourceTableFilter.getTable(), Right.SELECT);
     }
 
-    protected void merge(Row sourceRow, Value[] sourceRowValues, Row newTargetRow) {
-        configPreparedParameters(newTargetRow, update);
-
-        // put the column values into the table filter
+    protected void merge(Row sourceRow, Value[] sourceRowValues) {
+       // put the column values into the table filter
         sourceTableFilter.set(sourceRow);
 
         // try and perform an update
@@ -191,36 +180,16 @@ public class MergeUsing extends Prepared {
         
         // if either updates do nothing, try an insert
         if (rowUpdateCount == 0) {
-            rowUpdateCount+=addRowByCommandInsert(session,newTargetRow);
+            rowUpdateCount+=addRowByCommandInsert(session);
         } else if (rowUpdateCount != 1) {
             throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Duplicate key updated "+rowUpdateCount+" rows at once, only 1 expected:"+targetTable.getSQL());
         }
         countUpdatedRows+=rowUpdateCount;
     }
 
-    private void configPreparedParameters(Row newTargetRow, Prepared updatePrepared) {
-        ArrayList<Parameter> k = updatePrepared.getParameters();
-        // set each parameter in the updatePrepared with the real value from the source column
-        // 0 to columns.length-1
-        for (int i = 0; i < columns.length; i++) {
-            Column col = columns[i];
-            Value v = newTargetRow.getValue(col.getColumnId());
-            Parameter p = k.get(i);
-            p.setValue(v);
-        }
-        // columns.length to columns.length+keys.length-1
-        for (int i = 0; i < keys.length; i++) {
-            Column col = keys[i];
-            Value v = newTargetRow.getValue(col.getColumnId());
-            if (v == null) {
-                throw DbException.get(ErrorCode.COLUMN_CONTAINS_NULL_VALUES_1, col.getSQL());
-            }
-            Parameter p = k.get(columns.length + i);
-            p.setValue(v);
-        }
-    }
+
     
-    private int addRowByCommandInsert(Session session, Row newTargetRow) {
+    private int addRowByCommandInsert(Session session/*, Row newTargetRow*/) {
         int localCount = 0;
         if(insertCommand!=null){
             localCount += insertCommand.update();
@@ -228,6 +197,7 @@ public class MergeUsing extends Prepared {
         return localCount;
     }
 
+    // Use the regular merge syntax as our plan SQL
     @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("MERGE INTO ");
@@ -276,9 +246,9 @@ public class MergeUsing extends Prepared {
     public void prepare() {
         onCondition.addFilterConditions(sourceTableFilter, true);
         onCondition.addFilterConditions(targetTableFilter, true);
+        
         onCondition.mapColumns(sourceTableFilter, 2);
         onCondition.mapColumns(targetTableFilter, 1);
-        
         
         if (keys == null) {
             HashSet<Column> targetColumns = buildColumnListFromOnCondition(targetTableFilter);
@@ -328,11 +298,8 @@ public class MergeUsing extends Prepared {
                 throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
- 
-        String sql = buildPreparedSQL();
-        update = session.prepare(sql);
         
-        // Not sure how these sub-prepares will work...
+        // Prepare each of the sub-commands ready to aid in the MERGE collaboration
         if(updateCommand!=null){
             updateCommand.setSourceTableFilter(sourceTableFilter);
             updateCommand.setCondition(appendOnCondition(updateCommand));
@@ -375,28 +342,7 @@ public class MergeUsing extends Prepared {
         }
         return new ConditionAndOr(ConditionAndOr.AND,deleteCommand.getCondition(),onCondition);
     }
-    
-    private String buildPreparedSQL() {
-        StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(targetTable.getSQL());
-        if(targetTableFilter.getTableAlias()!=null){
-            buff.append(" AS "+targetTableFilter.getTableAlias()+" ");            
-        }
-        buff.append(" SET ");
-        for (Column c : columns) {
-            buff.appendExceptFirst(", ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        buff.append(" WHERE ");
-        buff.resetCount();
-        for (Column c : keys) {
-            buff.appendExceptFirst(" AND ");
-            buff.append(c.getSQL()).append("=?");
-        }
-        String sql = buff.toString();
-        return sql;
-    }
-    
+        
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
         this.sourceTableFilter = sourceTableFilter;        
     }
@@ -457,8 +403,9 @@ public class MergeUsing extends Prepared {
     }
     public void setTargetTable(Table targetTable) {
         this.targetTable = targetTable;
-    }    
-    // Prepared interface
+    }
+    
+    // Prepared interface implementations
     
     @Override
     public boolean isTransactional() {

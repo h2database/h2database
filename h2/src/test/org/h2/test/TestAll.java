@@ -45,6 +45,7 @@ import org.h2.test.db.TestLinkedTable;
 import org.h2.test.db.TestListener;
 import org.h2.test.db.TestLob;
 import org.h2.test.db.TestMemoryUsage;
+import org.h2.test.db.TestMergeUsing;
 import org.h2.test.db.TestMultiConn;
 import org.h2.test.db.TestMultiDimension;
 import org.h2.test.db.TestMultiThread;
@@ -749,6 +750,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestLinkedTable());
         addTest(new TestListener());
         addTest(new TestLob());
+        addTest(new TestMergeUsing());
         addTest(new TestMultiConn());
         addTest(new TestMultiDimension());
         addTest(new TestMultiThreadedKernel());

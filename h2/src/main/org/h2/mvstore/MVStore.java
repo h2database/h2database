@@ -303,6 +303,7 @@ public final class MVStore {
         }
         this.fileStore = fileStore;
 
+        int pgSplitSize = 48; // for "mem:" case it is # of keys
         CacheLongKeyLIRS.Config cc = null;
         if (this.fileStore != null) {
             int mb = Utils.getConfigParam(config, "cacheSize", 16);
@@ -314,6 +315,7 @@ public final class MVStore {
                     cc.segmentCount = (Integer)o;
                 }
             }
+            pgSplitSize = 16 * 1024;
         }
         if (cc != null) {
             cache = new CacheLongKeyLIRS<>(cc);
@@ -324,7 +326,7 @@ public final class MVStore {
             cacheChunkRef = null;
         }
 
-        int pgSplitSize = Utils.getConfigParam(config, "pageSplitSize", 16 * 1024);
+        pgSplitSize = Utils.getConfigParam(config, "pageSplitSize", pgSplitSize);
         // Make sure pages will fit into cache
         if (cache != null && pgSplitSize > cache.getMaxItemSize()) {
             pgSplitSize = (int)cache.getMaxItemSize();

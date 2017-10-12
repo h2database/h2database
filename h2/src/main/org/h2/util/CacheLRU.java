@@ -40,18 +40,22 @@ public class CacheLRU implements Cache {
     /**
      * The maximum memory, in words (4 bytes each).
      */
-    private int maxMemory;
+    private long maxMemory;
 
     /**
      * The current memory used in this cache, in words (4 bytes each).
      */
-    private int memory;
+    private long memory;
 
     CacheLRU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);
-        this.len = MathUtils.nextPowerOf2(maxMemory / 64);
+        long tmpLen = MathUtils.nextPowerOf2(maxMemory / 64);
+        if (tmpLen > Integer.MAX_VALUE) {
+            throw new IllegalStateException("do not support this much cache memory: " + maxMemoryKb + "kb");
+        }
+        this.len = (int) tmpLen;
         this.mask = len - 1;
         clear();
     }
@@ -92,7 +96,7 @@ public class CacheLRU implements Cache {
         values = null;
         values = new CacheObject[len];
         recordCount = 0;
-        memory = len * Constants.MEMORY_POINTER;
+        memory = len * (long)Constants.MEMORY_POINTER;
     }
 
     @Override
@@ -145,7 +149,7 @@ public class CacheLRU implements Cache {
     private void removeOld() {
         int i = 0;
         ArrayList<CacheObject> changed = New.arrayList();
-        int mem = memory;
+        long mem = memory;
         int rc = recordCount;
         boolean flushed = false;
         CacheObject next = head.cacheNext;
@@ -204,12 +208,12 @@ public class CacheLRU implements Cache {
                 writer.flushLog();
             }
             Collections.sort(changed);
-            int max = maxMemory;
+            long max = maxMemory;
             int size = changed.size();
             try {
                 // temporary disable size checking,
                 // to avoid stack overflow
-                maxMemory = Integer.MAX_VALUE;
+                maxMemory = Long.MAX_VALUE;
                 for (i = 0; i < size; i++) {
                     CacheObject rec = changed.get(i);
                     writer.writeBack(rec);
@@ -352,7 +356,7 @@ public class CacheLRU implements Cache {
 
     @Override
     public void setMaxMemory(int maxKb) {
-        int newSize = MathUtils.convertLongToInt(maxKb * 1024L / 4);
+        long newSize = maxKb * 1024L / 4;
         maxMemory = newSize < 0 ? 0 : newSize;
         // can not resize, otherwise existing records are lost
         // resize(maxSize);

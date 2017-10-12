@@ -228,6 +228,21 @@ public class MathUtils {
     }
 
     /**
+     * Get the value that is equal or higher than this value, and that is a
+     * power of two.
+     *
+     * @param x the original value
+     * @return the next power of two value
+     */
+    public static long nextPowerOf2(long x) {
+        long i = 1;
+        while (i < x && i < (Long.MAX_VALUE / 2)) {
+            i += i;
+        }
+        return i;
+    }
+
+    /**
      * Convert a long value to an int value. Values larger than the biggest int
      * value is converted to the biggest int value, and values smaller than the
      * smallest int value are converted to the smallest int value.

@@ -15,3 +15,12 @@ select replace('abchihihi', 'i', 'o') abcehohoho, replace('that is tom', 'i') ab
 > ---------- ----------
 > abchohoho  that s tom
 > rows: 1
+
+set mode oracle;
+> ok
+
+select replace('white space', ' ', '') x, replace('white space', ' ', null) y from dual;
+> X          Y
+> ---------- ----------
+> whitespace whitespace
+> rows: 1

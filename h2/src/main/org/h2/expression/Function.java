@@ -279,7 +279,7 @@ public class Function extends Expression implements FunctionCall {
         addFunction("OCTET_LENGTH", OCTET_LENGTH, 1, Value.LONG);
         addFunction("RAWTOHEX", RAWTOHEX, 1, Value.STRING);
         addFunction("REPEAT", REPEAT, 2, Value.STRING);
-        addFunction("REPLACE", REPLACE, VAR_ARGS, Value.STRING);
+        addFunction("REPLACE", REPLACE, VAR_ARGS, Value.STRING, false, true,true);
         addFunction("RIGHT", RIGHT, 2, Value.STRING);
         addFunction("RTRIM", RTRIM, VAR_ARGS, Value.STRING);
         addFunction("SOUNDEX", SOUNDEX, 1, Value.STRING);
@@ -1342,11 +1342,19 @@ public class Function extends Expression implements FunctionCall {
             break;
         }
         case REPLACE: {
-            String s0 = v0.getString();
-            String s1 = v1.getString();
-            String s2 = (v2 == null) ? "" : v2.getString();
-            result = ValueString.get(replace(s0, s1, s2),
-                    database.getMode().treatEmptyStringsAsNull);
+            if (v0 == ValueNull.INSTANCE || v1 == ValueNull.INSTANCE
+                    || v2 == ValueNull.INSTANCE && database.getMode() != Mode.getOracle()) {
+                result = ValueNull.INSTANCE;
+            } else {
+                String s0 = v0.getString();
+                String s1 = v1.getString();
+                String s2 = (v2 == null) ? "" : v2.getString();
+                if (s2 == null) {
+                    s2 = "";
+                }
+                result = ValueString.get(replace(s0, s1, s2),
+                        database.getMode().treatEmptyStringsAsNull);
+            }
             break;
         }
         case RIGHT:

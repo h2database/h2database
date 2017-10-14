@@ -314,6 +314,10 @@ public class Mode {
         return getInstance("MySQL");
     }
 
+    public static Mode getOracle() {
+        return getInstance("Oracle");
+    }
+
     public String getName() {
         return name;
     }

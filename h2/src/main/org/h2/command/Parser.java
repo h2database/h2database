@@ -14,6 +14,7 @@ import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -700,7 +701,26 @@ public class Parser {
     private Schema getSchema() {
         return getSchema(schemaName);
     }
-    
+    /*
+     * Gets the current schema for scenarios that need a guranteed, non-null schema object. 
+     * 
+     * This routine is solely here
+     * because of the function readIdentifierWithSchema(String defaultSchemaName) - which 
+     * is often called with a null parameter (defaultSchemaName) - then 6 lines into the function
+     * that routine nullifies the state field schemaName - which I believe is a bug.
+     * 
+     * There are about 7 places where "readIdentifierWithSchema(null)" is called in this file.
+     * 
+     * In other words when is it legal to not have an active schema defined by schemaName ?
+     * I don't think it's ever a valid case. I don't understand when that would be allowed.
+     * I spent a long time trying to figure this out. 
+     * As another proof of this point, the command "SET SCHEMA=NULL" is not a valid command.
+     * 
+     * I did try to fix this in readIdentifierWithSchema(String defaultSchemaName) 
+     * - but every fix I tried cascaded so many unit test errors - so
+     * I gave up. I think this needs a bigger effort to fix his, as part of bigger, dedicated story.
+     * 
+     */
     private Schema getSchemaWithDefault() {
         if(schemaName==null){
             schemaName = session.getCurrentSchemaName();
@@ -825,15 +845,13 @@ public class Parser {
                 currentSelect, orderInFrom, null);
     }
 
-    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom,List<String> excludeTokens) {
+    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom,Collection<String> excludeTokens) {
         Table table = readTableOrView();
         String alias = null;
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
-            String upperCaseCurrentToken = currentToken.toUpperCase();
-            if (!equalsToken("SET", upperCaseCurrentToken) && !excludeTokens.contains(upperCaseCurrentToken)) {
-                System.out.println("currentToken="+currentToken);
+            if (!equalsTokenIgnoreCase(currentToken,"SET") && !isTokenInList(excludeTokens)) {
                 // SET is not a keyword (PostgreSQL supports it as a table name)
                 alias = readAliasIdentifier();
             }
@@ -1145,7 +1163,7 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
         
-        if(readIfAll(Arrays.asList("WHEN","MATCHED","THEN"))){
+        if(readIfAll("WHEN","MATCHED","THEN")){
             int startMatched = lastParseIndex;
             if (readIf("UPDATE")){
                 Update updateCommand = new Update(session);
@@ -1164,7 +1182,7 @@ public class Parser {
                 command.setDeleteCommand(deleteCommand);
             }            
         }
-        if(readIfAll(Arrays.asList("WHEN","NOT","MATCHED","THEN"))){
+        if(readIfAll("WHEN","NOT","MATCHED","THEN")){
             if (readIf("INSERT")){
                 Insert insertCommand = new Insert(session);
                 insertCommand.setTable(command.getTargetTable());
@@ -1442,7 +1460,7 @@ public class Parser {
     private String readFromAlias(String alias, List<String> excludeIdentifiers) {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER && !excludeIdentifiers.contains(currentToken)) {
+        } else if (currentTokenType == IDENTIFIER && !isTokenInList(excludeIdentifiers)) {
                 alias = readAliasIdentifier();
         }
         return alias;
@@ -3452,16 +3470,15 @@ public class Parser {
      * Reads every token in list, in order - returns true if all are found.
      * If any are not found, returns false - AND resets parsing back to state when called.
      */
-    private boolean readIfAll(List<String> tokens) {
+    private boolean readIfAll(String ... tokens) {
         // save parse location in case we have to fail this test
         int start = lastParseIndex;
         for(String token: tokens){
-            String currentTokenUpper = currentToken.toUpperCase();
-            if (!currentTokenQuoted && equalsToken(token, currentTokenUpper)) {
+            if (!currentTokenQuoted && equalsToken(token, currentToken)) {
                 read();
             }
             else{
-                // revert parse location to when called
+                // read failed - revert parse location to before when called
                 parseIndex = start;
                 read();
                 return false;
@@ -3489,6 +3506,22 @@ public class Parser {
             return true;
         }
         return false;
+    }
+    
+    private boolean equalsTokenIgnoreCase(String a, String b) {
+        if (a == null) {
+            return b == null;
+        } else if (a.equals(b)) {
+            return true;
+        } else if (a.equalsIgnoreCase(b)) {
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isTokenInList(Collection<String> upperCaseTokenList){
+        String upperCaseCurrentToken = currentToken.toUpperCase();
+        return upperCaseTokenList.contains(upperCaseCurrentToken);        
     }
 
     private void addExpected(String token) {
@@ -5195,14 +5228,23 @@ public class Parser {
         return view;
     }
 
-    private List<Column> createQueryColumnTemplateList(String[] cols, Query withQuery, String[] querySQLOutput) {
+    /**
+     * Creates a list of column templates from a query (usually from WITH query, but could be any query)
+     * @param cols - an optional list of column names (can be specified by WITH clause overriding usual select names)
+     * @param theQuery - the query object we want the column list for
+     * @param querySQLOutput - array of length 1 to receive extra 'output' field in addition to return value 
+     *                  - containing the SQL query of the Query object
+     * @return a list of column object returned by withQuery
+     */
+    private List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery, String[] querySQLOutput) {
         List<Column> columnTemplateList = new ArrayList<Column>();
-        withQuery.prepare();
-        querySQLOutput[0] = StringUtils.cache(withQuery.getPlanSQL());
-        ArrayList<Expression> withExpressions = withQuery.getExpressions();
+        theQuery.prepare();
+        // array of length 1 to receive extra 'output' field in addition to return value
+        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
+        ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {
             Expression columnExp = withExpressions.get(i);
-            // use the passed in column name if supplied, otherwise use alias (if used) otherwise use column name
+            // use the passed in column name if supplied, otherwise use alias (if found) otherwise use column name
             // derived from column expression
             String columnName;
             if (cols != null){
@@ -5228,7 +5270,7 @@ public class Parser {
         // then we just compile it again.
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
-                allowRecursiveQueryDetection/* recursive */, false);
+                allowRecursiveQueryDetection, false);
         if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
@@ -5236,10 +5278,11 @@ public class Parser {
         }
         view.setTableExpression(true);
         view.setTemporary(true);
+        view.setHidden(true);
         if(addViewToSession){
             session.addLocalTempTable(view);
         }
-        view.setOnCommitDrop(true);
+        view.setOnCommitDrop(false);
         return view;
     }
 

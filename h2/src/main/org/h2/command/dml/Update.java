@@ -39,7 +39,10 @@ public class Update extends Prepared {
 
     private Expression condition;
     private TableFilter targetTableFilter;// target of update
-    private TableFilter sourceTableFilter;// optional source query
+    /**
+     * This table filter is for MERGE..USING support - not used in stand-alone DML
+     */    
+    private TableFilter sourceTableFilter;
 
     /** The limit expression as specified in the LIMIT clause. */
     private Expression limitExpr;

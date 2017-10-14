@@ -103,7 +103,8 @@ public class JdbcConnection extends TraceObject implements Connection,
     /**
      * INTERNAL
      */
-    public JdbcConnection(ConnectionInfo ci, boolean useBaseDir)
+   @SuppressWarnings("resource")// the session closable object does not leak as Eclipse warns - due to the CloseWatcher
+   public JdbcConnection(ConnectionInfo ci, boolean useBaseDir)
             throws SQLException {
         try {
             if (useBaseDir) {

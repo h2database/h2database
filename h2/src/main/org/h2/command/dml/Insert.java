@@ -47,6 +47,9 @@ public class Insert extends Prepared implements ResultTarget {
     private boolean sortedInsertMode;
     private int rowNumber;
     private boolean insertFromSelect;
+    /**
+     * This table filter is for MERGE..USING support - not used in stand-alone DML
+     */    
     private TableFilter sourceTableFilter;
 
     /**

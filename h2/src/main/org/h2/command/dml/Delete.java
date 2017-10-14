@@ -36,6 +36,9 @@ public class Delete extends Prepared {
      * The limit expression as specified in the LIMIT or TOP clause.
      */
     private Expression limitExpr;
+    /**
+     * This table filter is for MERGE..USING support - not used in stand-alone DML
+     */
     private TableFilter sourceTableFilter;
 
     public Delete(Session session) {

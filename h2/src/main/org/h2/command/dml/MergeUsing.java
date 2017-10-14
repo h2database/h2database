@@ -33,6 +33,68 @@ import org.h2.value.Value;
 /**
  * This class represents the statement syntax
  * MERGE table alias USING...
+ * 
+ * It does not replace the existing MERGE INTO... KEYS... form.
+ * 
+ * It supports the SQL 2003/2008 standard MERGE  statement: 
+ *      http://en.wikipedia.org/wiki/Merge_%28SQL%29
+ * 
+ * Database management systems Oracle Database, DB2, Teradata, EXASOL, Firebird, CUBRID, HSQLDB, 
+ * MS SQL, Vectorwise and Apache Derby & Postgres support the standard syntax of the 
+ * SQL 2003/2008 MERGE command:
+ * 
+ *  MERGE INTO targetTable AS T USING sourceTable AS S ON (T.ID = S.ID)
+ *    WHEN MATCHED THEN
+ *        UPDATE SET column1 = value1 [, column2 = value2 ...] WHERE column1=valueUpdate
+ *        DELETE WHERE column1=valueDelete
+ *    WHEN NOT MATCHED THEN
+ *        INSERT (column1 [, column2 ...]) VALUES (value1 [, value2 ...]);
+ *        
+ * Only Oracle support the additional optional DELETE clause.
+ * 
+ * Implementation notes:
+ * 
+ * 1) The ON clause must specify 1 or more columns from the TARGET table because they are
+ *    used in the plan SQL WHERE statement. Otherwise an exception is raised.
+ *  
+ * 2) The ON clause must specify 1 or more columns from the SOURCE table/query because they
+ *    are used to track the join key values for every source table row - to prevent any
+ *    TARGET rows from being updated twice per MERGE USING statement. 
+ * 
+ *    This is to implement a requirement from the MERGE INTO specification
+ *    requiring each row from being updated more than once per MERGE USING statement. 
+ *    The source columns are used to gather the effective "key" values which have been 
+ *    updated, in order to implement this requirement. 
+ *    If the no SOURCE table/query columns are found in the ON clause, then an exception is 
+ *    raised.
+ *    
+ *    The update row counts of the embedded UPDATE and DELETE statements are also tracked to 
+ *    ensure no more than 1 row is ever updated. (Note One special case of this is that
+ *    the DELETE is allowed to affect the same row which was updated by UPDATE - this is an
+ *    Oracle only extension.) 
+ *    
+ * 3) UPDATE and DELETE statements are allowed to specify extra conditional criteria 
+ *    (in the WHERE clause) to allow fine-grained control of actions when a record is found.
+ *    The ON clause conditions are always prepended to the WHERE clause of these embedded 
+ *    statements, so they will never update more than the ON join condition.
+ *    
+ * POTENTIAL ISSUES
+ * 
+ * 1) If neither UPDATE or DELETE clause is supplied, but INSERT is supplied - the INSERT 
+ *    action is always triggered. This is because the embedded UPDATE and DELETE statement's 
+ *    returned update row count is used to detect a matching join. 
+ *    If neither of the two the statements are provided, no matching join is EVER detected. 
+ *    A fix for this is to generate a "matchSelect" query and use that to always detect 
+ *    a match join - rather than relying on UPDATE or DELETE statements. 
+ *    
+ *    This would be an improvement, especially in the case that if either of the
+ *    UPDATE or DELETE statements had their own fine-grained WHERE conditions, making 
+ *    them completely different conditions than the plain ON condition clause which
+ *    the SQL author would be specifying/expecting.
+ *    
+ *    An additional benefit of this solution would also be that the this "matchSelect" query
+ *    could be used to return the ROWID of the found (or inserted) query - for more accurate 
+ *    enforcing of the only-update-each-target-row-once rule. 
  */
 public class MergeUsing extends Prepared {
     
@@ -299,21 +361,31 @@ public class MergeUsing extends Prepared {
             }
         }
         
+        int embeddedStatementsCount = 0;
+        
         // Prepare each of the sub-commands ready to aid in the MERGE collaboration
         if(updateCommand!=null){
             updateCommand.setSourceTableFilter(sourceTableFilter);
             updateCommand.setCondition(appendOnCondition(updateCommand));
             updateCommand.prepare();
+            embeddedStatementsCount++;
         }
         if(deleteCommand!=null){
             deleteCommand.setSourceTableFilter(sourceTableFilter);
             deleteCommand.setCondition(appendOnCondition(deleteCommand));            
             deleteCommand.prepare();
+            embeddedStatementsCount++;
         }        
         if(insertCommand!=null){
             insertCommand.setSourceTableFilter(sourceTableFilter);
             insertCommand.prepare();
+            embeddedStatementsCount++;
         }        
+        
+        if(embeddedStatementsCount==0){
+            throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
+                    "At least UPDATE, DELETE or INSERT embedded statement must be supplied.");
+        }
     }
 
     private HashSet<Column> buildColumnListFromOnCondition(TableFilter anyTableFilter) {

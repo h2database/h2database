@@ -124,13 +124,14 @@ public class TestMergeUsing extends TestBase {
                 3
                 );
         // no insert, no update, no delete clauses - essentially a no-op
-        testMergeUsing(
+        testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
                         "DELETE FROM PARENT;",
                 "MERGE INTO PARENT AS P USING (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) ) AS S ON (P.ID = S.ID)",
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) WHERE X<0",
-                0
+                0,
+                "At least UPDATE, DELETE or INSERT embedded statement must be supplied."
                 );
         // Two updates to same row - update and delete together - emptying the parent table
         testMergeUsing(

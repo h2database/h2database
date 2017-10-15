@@ -843,12 +843,8 @@ public class Select extends Query {
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
             String columnName = ColumnNamer.getColumnName(e,i,null);            
-            if(!ColumnNamer.isReasonableColumnName(e.getAlias())){
-                System.out.println("Added alias="+columnName);
+            if(!ColumnNamer.isAllowableColumnName(e.getAlias())){
                 e = new Alias(e,columnName,true);
-            }
-            else{
-                System.out.println("Acceptable column name="+columnName);
             }
             expressions.set(i, e.optimize(session));
         }

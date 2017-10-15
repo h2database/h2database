@@ -5156,7 +5156,6 @@ public class Parser {
             Query query = parseSelectUnion();
             query.setPrepareAlways(true);
             query.setNeverLazy(true);
-            System.out.println("class="+query.getClass());
             p = query;
         }
         else if(readIf("INSERT")) {
@@ -5297,11 +5296,11 @@ public class Parser {
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
-        System.out.println("parseSingleCommonTableExpression.querySQL="+querySQL);
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
                 allowRecursiveQueryDetection, false);
         if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
+            session.removeLocalTempTable(view);
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
                     false/* recursive */, false);

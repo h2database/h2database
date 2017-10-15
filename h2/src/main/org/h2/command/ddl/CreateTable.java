@@ -234,7 +234,7 @@ public class CreateTable extends SchemaCommand {
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             int type = expr.getType();
-            String name = ColumnNamer.getColumnName(expr,i,null);
+            String name = ColumnNamer.getColumnName(expr,i);
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);

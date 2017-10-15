@@ -168,9 +168,7 @@ public class TableView extends Table {
                     name = columnTemplates[i].getName();
                     type = columnTemplates[i].getType();
                 }
-                if (name == null) {
-                    name = ColumnNamer.getColumnName(expr,i,null);
-                }
+                name = ColumnNamer.getColumnName(expr,i,name);
                 if (type == Value.UNKNOWN) {
                     type = expr.getType();
                 }

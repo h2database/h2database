@@ -417,13 +417,6 @@ public class TableView extends Table {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        System.out.println("invalidating="+getName());
-        try{
-            throw new RuntimeException("snapshot");           
-        }
-        catch(RuntimeException e){
-            e.printStackTrace();
-        }
         removeViewFromTables();
         super.removeChildrenAndResources(session);
         database.removeMeta(session, getId());
@@ -447,8 +440,6 @@ public class TableView extends Table {
     @Override
     public String getSQL() {
         if (isTemporary()) {
-            System.out.println("table view name="+getName());
-            System.out.println(this.toString()+".getSQL().querySQL="+querySQL);
             return "(\n" + StringUtils.indent(querySQL) + ")";
         }
         return super.getSQL();
@@ -512,11 +503,8 @@ public class TableView extends Table {
 
     private void removeViewFromTables() {
         if (tables != null) {
-            System.out.println("removeViewFromTables.tables="+tables);
-            System.out.println("removeViewFromTables.this="+this);
             for (Table t : tables) {
                 t.removeView(this);
-                System.out.println("removeViewFromTables.tables."+t.getName()+"="+t.getViews());
             }
             tables.clear();
         }

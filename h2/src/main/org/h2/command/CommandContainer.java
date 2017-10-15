@@ -102,7 +102,6 @@ public class CommandContainer extends Command {
         int updateCount = prepared.update();
         prepared.trace(startTimeNanos, updateCount);
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
-        System.out.println("CommandContainer.update.end");
         return updateCount;
     }
 
@@ -115,14 +114,11 @@ public class CommandContainer extends Command {
         ResultInterface result = prepared.query(maxrows);
         prepared.trace(startTimeNanos, result.isLazy() ? 0 : result.getRowCount());
         setProgress(DatabaseEventListener.STATE_STATEMENT_END);
-        System.out.println("CommandContainer.query.end");
         return result;
     }
 
     @Override
     public void stop() {
-        System.out.println("CommandContainer.stop.stop");
-        super.stop();
         // Clean up after the command was run in the session.
         // Must restart query (and dependency construction) to reuse.
         if (prepared.getCteCleanups() != null) {
@@ -130,14 +126,11 @@ public class CommandContainer extends Command {
                 // check if view was previously deleted as their name is set to
                 // null
                 if (view.getName() != null) {
-                    System.out.println("!!!!!!!removeLocalTempTable.worked="+view.getName());
                     session.removeLocalTempTable(view);
-                }
-                else{
-                    System.out.println("!!!!!!!removeLocalTempTable=(null local name)"+view.toString());
                 }
             }
         }
+        super.stop();
     }
 
     @Override

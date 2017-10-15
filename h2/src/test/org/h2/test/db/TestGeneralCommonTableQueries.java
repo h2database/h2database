@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 
@@ -219,7 +218,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
             assertEquals(n, rs.getInt(1));
         }
         assertEquals("X",rs.getMetaData().getColumnLabel(1));
-        assertEquals("_unnamed_column_2_",rs.getMetaData().getColumnLabel(2));
+        assertEquals("'T1'",rs.getMetaData().getColumnLabel(2));
 
         assertFalse(rs.next());
 
@@ -511,32 +510,39 @@ public class TestGeneralCommonTableQueries extends TestBase {
             +"FROM A                                   \n"
             +"GROUP BY A.val";
 
-        for(int queryTries: new int[]{1,2,3}){
-            System.out.println("Try#"+queryTries);
-            
+        for(@SuppressWarnings("unused") int queryRunTries: new int[]{1,2,3}){
             Statement stat = conn.createStatement();
             stat.execute(SETUP_SQL);
-            
+            stat.close();
+
             prep = conn.prepareStatement(WITH_QUERY);
 
             rs = prep.executeQuery();
             for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
-                System.out.print("|"+rs.getMetaData().getColumnLabel(columnIndex));
-            }            
-            System.out.println();
+                // previously the column label was null or had \n or \r in the string
+                assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
+                assertFalse(rs.getMetaData().getColumnLabel(columnIndex).contains("\n"));
+                assertFalse(rs.getMetaData().getColumnLabel(columnIndex).contains("\r"));
+            }
+            
+            int rowNdx=0;
             while (rs.next()) {
-                //assertTrue(rs.next());
-                //assertContains("ab",rs.getString(1));
-                //assertEquals(rs.getString(1),keyLetter);
-                //assertTrue(rs.getInt(2)!=0);
+                StringBuffer buf = new StringBuffer();
                 for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
-                    System.out.print("|"+rs.getString(columnIndex));
+                    buf.append("|"+rs.getString(columnIndex));
                 }
-                System.out.println();
-            }            
+                String[] expectedRow =new String[]{"|meat|null","|fruit|3","|veg|2"};
+                assertEquals(expectedRow[rowNdx], buf.toString());
+                rowNdx++;
+            }
+            assertEquals(3,rowNdx);
+            rs.close();
+            prep.close();
         }
 
         conn.close();
+        //System.out.println("conn.close();");
         deleteDb("commonTableExpressionQueries");
+        //System.out.println("deleteDb(commonTableExpressionQueries);");
     }     
 }

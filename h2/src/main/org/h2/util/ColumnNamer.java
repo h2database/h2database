@@ -13,13 +13,16 @@ public class ColumnNamer {
         }  
         if (columnName==null && columnExp.getAlias()!=null){
             columnName = columnExp.getAlias();
-            if(!isReasonableColumnName(columnName)){
+            if(!isAllowableColumnName(columnName)){
                 columnName = null;
             }
         }
         if (columnName==null && columnExp.getColumnName()!=null){
              columnName =  columnExp.getColumnName();
-             if(!isReasonableColumnName(columnName)){
+             if(!isAllowableColumnName(columnName)){
+                 columnName = columnName.replace('\n', ' ').replace('\r', ' ');
+             }
+             if(!isAllowableColumnName(columnName)){
                  columnName = null;
              }
         }
@@ -29,15 +32,16 @@ public class ColumnNamer {
         return columnName;
     }
     
-    private static Pattern reasonableNamePatternRE = Pattern.compile("[A-Z_][A-Z0-9_]*");
-
-    public static boolean isReasonableColumnName(String proposedName){
+    //private static final Pattern reasonableNameCharactersPatternRE = Pattern.compile("[a-zA-Z0-9_'\\(\\)\\*,\\.\\+\\-\\*/:=\\<\\>!\\|@ \\t\\?\"\\$]*");
+    
+    public static boolean isAllowableColumnName(String proposedName){
         if (proposedName == null){
             return false;
         }
-        Matcher m = reasonableNamePatternRE.matcher(proposedName.toUpperCase());
-        boolean isReasonableName = m.matches();
-        return isReasonableName;
+        if(proposedName.contains("\n") || proposedName.contains("\r")){
+            return false;
+        }
+        return true;
     }
 
 }

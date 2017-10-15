@@ -541,8 +541,6 @@ public class TestGeneralCommonTableQueries extends TestBase {
         }
 
         conn.close();
-        //System.out.println("conn.close();");
         deleteDb("commonTableExpressionQueries");
-        //System.out.println("deleteDb(commonTableExpressionQueries);");
     }     
 }

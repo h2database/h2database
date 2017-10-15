@@ -471,6 +471,10 @@ public class TestGeneralCommonTableQueries extends TestBase {
     }
     
     private void testRecursiveTable() throws Exception {
+        String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
+        String[] expectedColumnNames =new String[]{"VAL",
+                "SUM(SELECT     X FROM (     SELECT         SUM(1) AS X,         A     FROM PUBLIC.C     INNER JOIN PUBLIC.B         ON 1=1     WHERE B.VAL = C.B     GROUP BY A ) BB WHERE BB.A IS A.VAL)"};
+        
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
         PreparedStatement prep;
@@ -523,6 +527,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
                 assertFalse(rs.getMetaData().getColumnLabel(columnIndex).contains("\n"));
                 assertFalse(rs.getMetaData().getColumnLabel(columnIndex).contains("\r"));
+                assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
             }
             
             int rowNdx=0;
@@ -531,8 +536,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
                     buf.append("|"+rs.getString(columnIndex));
                 }
-                String[] expectedRow =new String[]{"|meat|null","|fruit|3","|veg|2"};
-                assertEquals(expectedRow[rowNdx], buf.toString());
+                assertEquals(expectedRowData[rowNdx], buf.toString());
                 rowNdx++;
             }
             assertEquals(3,rowNdx);

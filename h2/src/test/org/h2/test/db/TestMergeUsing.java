@@ -8,15 +8,18 @@ package org.h2.test.db;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.api.Trigger;
 import org.h2.test.TestBase;
 /**
  * Test merge using syntax.
  */
 
-public class TestMergeUsing extends TestBase {
+public class TestMergeUsing extends TestBase implements Trigger {
  
     private static final String GATHER_ORDERED_RESULTS_SQL = "SELECT ID, NAME FROM PARENT ORDER BY ID ASC";
+    private static int triggerTestingUpdateCount = 0;
 
     /**
      * Run just this test.
@@ -26,6 +29,8 @@ public class TestMergeUsing extends TestBase {
     public static void main(String... a) throws Exception {
         TestBase.createCaller().init().test();
     }
+
+    private String triggerName;
 
     @Override
     public void test() throws Exception {
@@ -141,18 +146,30 @@ public class TestMergeUsing extends TestBase {
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) WHERE X<0",
                 2
                 );
-        // Duplicate source keys: SQL standard says duplicate or repeated updates in same statement should cause errors
-        // One insert, one update one delete happens, target table missing PK, no source or target alias
-        testMergeUsingException(
+        // Duplicate source keys but different ROWID update - so no error 
+        // SQL standard says duplicate or repeated updates of same row in same statement should cause errors - but because first row is updated, deleted (on source row 1) then inserted (on source row 2) 
+        // it's considered different - with respect to to ROWID - so no error
+        // One insert, one update one delete happens (on same row) , target table missing PK, no source or target alias
+        testMergeUsing(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
                         "CREATE TABLE SOURCE AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2)  );",
                 "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
                 GATHER_ORDERED_RESULTS_SQL,
-                "SELECT 1 AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(1,1)",
-                3,
-                "Unique index or primary key violation: \"Merge using ON column expression, duplicate values found:key columns[ID]:values:[1]:from:PUBLIC.SOURCE:alias:SOURCE:current row number:2:conflicting row number:1"
+                "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
+                2
                 );
         
+        // Multiple update on same row: SQL standard says duplicate or repeated updates in same statement should cause errors -but because first row is updated, delete then insert it's considered different
+        // One insert, one update one delete happens (on same row, which is okay), then another update (which is illegal)target table missing PK, no source or target alias
+        testMergeUsingException(
+                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
+                        "CREATE TABLE SOURCE AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
+                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (SOURCE.ID, SOURCE.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
+                3,
+                "Unique index or primary key violation: \"Merge using ON column expression, duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_=2:in:PUBLIC.PARENT:conflicting source row number:2"
+                );
         // Duplicate key updated 3 rows at once, only 1 expected
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"+
@@ -192,7 +209,17 @@ public class TestMergeUsing extends TestBase {
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4)",
                 1,
                 "Expected to find key after row inserted, but none found. Insert does not match ON condition."
-                );              
+                );  
+        // One insert, one update one delete happens, target table missing PK, triggers update all NAME fields
+        triggerTestingUpdateCount=0;
+        testMergeUsing(
+                "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,2));"
+                        +getCreateTriggerSQL(),
+                "MERGE INTO PARENT AS P USING (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,4) ) AS S ON (P.ID = S.ID) WHEN MATCHED THEN UPDATE SET P.NAME = S.NAME||S.ID WHERE P.ID = 2 DELETE WHERE P.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (S.ID, S.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT 2 AS ID, 'Marcy22-updated2' AS NAME UNION ALL SELECT X AS ID, 'Marcy'||X||'-inserted'||X AS NAME FROM SYSTEM_RANGE(3,4)",
+                4
+                );        
        }
 
     /**
@@ -266,5 +293,64 @@ public class TestMergeUsing extends TestBase {
         }
         fail("Failed to see exception with message:"+exceptionMessage);
     }
+    
+    @Override
+    public void fire(Connection conn, Object[] oldRow, Object[] newRow)
+            throws SQLException {
+
+        if (conn == null) {
+            throw new AssertionError("connection is null");
+        }
+        if (triggerName.startsWith("INS_BEFORE")) {
+            newRow[1] = newRow[1] + "-inserted"+(++triggerTestingUpdateCount);
+        } else if (triggerName.startsWith("UPD_BEFORE")) {
+            newRow[1] = newRow[1] + "-updated"+(++triggerTestingUpdateCount);
+        } else if (triggerName.startsWith("DEL_BEFORE")) {
+            oldRow[1] = oldRow[1] + "-deleted"+(++triggerTestingUpdateCount);
+        } 
+    }
+
+    @Override
+    public void close() {
+        // ignore
+    }
+
+    @Override
+    public void remove() {
+        // ignore
+    }
+
+    @Override
+    public void init(Connection conn, String schemaName, String trigger,
+            String tableName, boolean before, int type) {
+        this.triggerName = trigger;
+        if (!"PARENT".equals(tableName)) {
+            throw new AssertionError("supposed to be PARENT");
+        }
+        if ((trigger.endsWith("AFTER") && before) ||
+                (trigger.endsWith("BEFORE") && !before)) {
+            throw new AssertionError("triggerName: " + trigger + " before:" + before);
+        }
+        if ((trigger.startsWith("UPD") && type != UPDATE) ||
+                (trigger.startsWith("INS") && type != INSERT) ||
+                (trigger.startsWith("DEL") && type != DELETE)) {
+            throw new AssertionError("triggerName: " + trigger + " type:" + type);
+        }
+    }
+    
+    private String getCreateTriggerSQL(){
+        StringBuffer buf = new StringBuffer();
+        buf.append("CREATE TRIGGER INS_BEFORE " +
+                "BEFORE INSERT ON PARENT " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
+        buf.append("CREATE TRIGGER UPD_BEFORE " +
+                "BEFORE UPDATE ON PARENT " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
+        buf.append("CREATE TRIGGER DEL_BEFORE " +
+                "BEFORE DELETE ON PARENT " +
+                "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
+        return buf.toString();
+    }
+    
 
 }

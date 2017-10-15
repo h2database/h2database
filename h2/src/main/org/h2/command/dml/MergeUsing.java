@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -114,7 +113,6 @@ public class MergeUsing extends Prepared {
     private String queryAlias;
     private int countUpdatedRows=0;
     private Column[] sourceKeys;
-    private HashMap<List<Value>,Integer> sourceKeysRemembered = new HashMap<List<Value>,Integer>();
     private Select targetMatchQuery;
     private HashMap<Value, Integer> targetRowidsRemembered = new HashMap<Value,Integer>();
     private int sourceQueryRowNumber= 0;
@@ -132,7 +130,6 @@ public class MergeUsing extends Prepared {
     public int update() {
         
         // clear list of source table keys & rowids we have processed already
-        sourceKeysRemembered.clear();
         targetRowidsRemembered.clear();
         
         if(targetTableFilter!=null){
@@ -157,32 +154,8 @@ public class MergeUsing extends Prepared {
             sourceQueryRowNumber++;
             Value[] sourceRowValues = rows.currentRow();
             Row sourceRow = new RowImpl(sourceRowValues,0);
-            ArrayList<Value> sourceKeyValuesList = new ArrayList<Value>();
             setCurrentRowNumber(sourceQueryRowNumber);
-            
-            // isolate the source row key columns values
-            for (int j = 0; j < sourceKeys.length; j++) {
-                Column c = sourceKeys[j];
-                try {
-                    Value v = c.convert(sourceRowValues[j]);
-                    sourceKeyValuesList.add(v);
-                } catch (DbException ex) {
-                    throw setRow(ex, sourceQueryRowNumber, getSQL(sourceRowValues));
-                }
-            }
-            
-            // throw and exception if the source query has generated the same key column values before
-            if(sourceKeysRemembered.containsKey(sourceKeyValuesList)){
-                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate values found:key columns"
-                        +Arrays.asList(sourceKeys).toString()+":values:"+sourceKeyValuesList.toString()
-                        +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+sourceQueryRowNumber
-                        +":conflicting row number:"+sourceKeysRemembered.get(sourceKeyValuesList));
-            }else{
-                // remember the source column values we have used before (they are the effective ON clause keys
-                // and should not be repeated
-                sourceKeysRemembered.put(sourceKeyValuesList,sourceQueryRowNumber);
-            }
-                
+                            
             merge(sourceRow, sourceRowValues);
         }
         rows.close();

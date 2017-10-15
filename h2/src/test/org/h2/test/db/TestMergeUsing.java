@@ -182,7 +182,17 @@ public class TestMergeUsing extends TestBase {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3,
                 "No references to source columns found in ON clause"
-                );        
+                );      
+        // Insert does not insert correct values with respect to ON condition (inserts ID value above 100, instead)
+        testMergeUsingException(
+                "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4) );"+
+                        "CREATE TABLE SOURCE AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3)  );",
+                "MERGE INTO PARENT USING SOURCE ON (PARENT.ID = SOURCE.ID) WHEN MATCHED THEN UPDATE SET PARENT.NAME = SOURCE.NAME||SOURCE.ID WHERE PARENT.ID = 2 DELETE WHERE PARENT.ID = 1 WHEN NOT MATCHED THEN INSERT (ID, NAME) VALUES (SOURCE.ID+100, SOURCE.NAME)",
+                GATHER_ORDERED_RESULTS_SQL,
+                "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4)",
+                1,
+                "Expected to find key after row inserted, but none found. Insert does not match ON condition."
+                );              
        }
 
     /**

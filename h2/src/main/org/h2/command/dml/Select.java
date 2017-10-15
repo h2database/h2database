@@ -168,6 +168,10 @@ public class Select extends Query {
         }
     }
 
+    public Expression getCondition() {
+        return condition;
+    }
+
     private LazyResult queryGroupSorted(int columnCount, ResultTarget result) {
         LazyResultGroupSorted lazyResult = new LazyResultGroupSorted(expressionArray, columnCount);
         if (result == null) {

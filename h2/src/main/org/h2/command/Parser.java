@@ -1126,7 +1126,7 @@ public class Parser {
     private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
         MergeUsing command = new MergeUsing(oldCommand);
         currentPrepared = command;
-        
+                
         if (readIf("(")) {
             /* a select query is supplied */
             if (isSelect()) {
@@ -1162,7 +1162,7 @@ public class Parser {
         Expression condition = readExpression();
         command.setOnCondition(condition);
         read(")");
-        
+                
         if(readIfAll("WHEN","MATCHED","THEN")){
             int startMatched = lastParseIndex;
             if (readIf("UPDATE")){
@@ -1192,6 +1192,33 @@ public class Parser {
         }
 
         setSQL(command, "MERGE", start);
+        
+        // build and prepare the targetMatchQuery ready to test each rows existence in the target table (using source row to match)
+        StringBuffer targetMatchQuerySQL = new StringBuffer("SELECT _ROWID_ FROM "+command.getTargetTable().getName());
+        if(command.getTargetTableFilter().getTableAlias()!=null){
+            targetMatchQuerySQL.append(" AS "+command.getTargetTableFilter().getTableAlias());
+        }
+        targetMatchQuerySQL.append(" WHERE "+command.getOnCondition().getSQL());
+//        Select preparedTargetMatchQuery = new Select(session);
+//        preparedTargetMatchQuery.addTableFilter(command.getTargetTableFilter(), true/*isTop*/);
+//        preparedTargetMatchQuery.addTableFilter(command.getSourceTableFilter(), false/*isTop - not top table scan*/);
+//        preparedTargetMatchQuery.setSQL(targetMatchQuerySQL.toString());
+//        ArrayList<Expression> selectList = New.arrayList();
+//        //Database db = session == null ? null : session.getDatabase();
+//        selectList.add(new ExpressionColumn(session.getDatabase(), command.getTargetTableFilter().getTable().getRowIdColumn()));
+//        preparedTargetMatchQuery.setExpressions(selectList);
+//        preparedTargetMatchQuery.init();
+          command.setTargetMatchQuery((Select)parse(targetMatchQuerySQL.toString()));
+        
+//        Select command = new Select(session);
+//        currentSelect = command;
+//        TableFilter filter = parseValuesTable(0);
+//        ArrayList<Expression> list = New.arrayList();
+//        list.add(new Wildcard(null, null));
+//        command.setExpressions(list);
+//        command.addTableFilter(filter, true);
+//        command.init();        
+        
         return command;
     }
 

@@ -78,22 +78,21 @@ import org.h2.value.Value;
  *    The ON clause conditions are always prepended to the WHERE clause of these embedded 
  *    statements, so they will never update more than the ON join condition.
  *    
- * POTENTIAL ISSUES
- * 
- * 1) If neither UPDATE or DELETE clause is supplied, but INSERT is supplied - the INSERT 
+ * 4) Previously if neither UPDATE or DELETE clause is supplied, but INSERT is supplied - the INSERT 
  *    action is always triggered. This is because the embedded UPDATE and DELETE statement's 
  *    returned update row count is used to detect a matching join. 
  *    If neither of the two the statements are provided, no matching join is EVER detected. 
- *    A fix for this is to generate a "matchSelect" query and use that to always detect 
+ *    A fix for this is now implemented as described below:
+ *    We now generate a "matchSelect" query and use that to always detect 
  *    a match join - rather than relying on UPDATE or DELETE statements. 
  *    
- *    This would be an improvement, especially in the case that if either of the
+ *    This is an improvement, especially in the case that if either of the
  *    UPDATE or DELETE statements had their own fine-grained WHERE conditions, making 
  *    them completely different conditions than the plain ON condition clause which
  *    the SQL author would be specifying/expecting.
  *    
- *    An additional benefit of this solution would also be that the this "matchSelect" query
- *    could be used to return the ROWID of the found (or inserted) query - for more accurate 
+ *    An additional benefit of this solution is that this "matchSelect" query
+ *    is used to return the ROWID of the found (or inserted) query - for more accurate 
  *    enforcing of the only-update-each-target-row-once rule. 
  */
 public class MergeUsing extends Prepared {
@@ -116,6 +115,9 @@ public class MergeUsing extends Prepared {
     private int countUpdatedRows=0;
     private Column[] sourceKeys;
     private HashMap<List<Value>,Integer> sourceKeysRemembered = new HashMap<List<Value>,Integer>();
+    private Select targetMatchQuery;
+    private HashMap<Value, Integer> targetRowidsRemembered = new HashMap<Value,Integer>();
+    private int sourceQueryRowNumber= 0;
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());
@@ -129,8 +131,9 @@ public class MergeUsing extends Prepared {
     @Override
     public int update() {
         
-        // clear list of source table keys we have processed already
+        // clear list of source table keys & rowids we have processed already
         sourceKeysRemembered.clear();
+        targetRowidsRemembered.clear();
         
         if(targetTableFilter!=null){
             targetTableFilter.startQuery(session);
@@ -142,21 +145,20 @@ public class MergeUsing extends Prepared {
             sourceTableFilter.reset();
         }
        
-        int countInputRows;
+        sourceQueryRowNumber = 0;
         checkRights();
         setCurrentRowNumber(0);
 
-        // process select query data for row creation
+        // process source select query data for row creation
         ResultInterface rows = query.query(0);
-        countInputRows = 0;
         targetTable.fire(session, evaluateTriggerMasks(), true);
         targetTable.lock(session, true, false);
         while (rows.next()) {
-            countInputRows++;
+            sourceQueryRowNumber++;
             Value[] sourceRowValues = rows.currentRow();
             Row sourceRow = new RowImpl(sourceRowValues,0);
             ArrayList<Value> sourceKeyValuesList = new ArrayList<Value>();
-            setCurrentRowNumber(countInputRows);
+            setCurrentRowNumber(sourceQueryRowNumber);
             
             // isolate the source row key columns values
             for (int j = 0; j < sourceKeys.length; j++) {
@@ -165,7 +167,7 @@ public class MergeUsing extends Prepared {
                     Value v = c.convert(sourceRowValues[j]);
                     sourceKeyValuesList.add(v);
                 } catch (DbException ex) {
-                    throw setRow(ex, countInputRows, getSQL(sourceRowValues));
+                    throw setRow(ex, sourceQueryRowNumber, getSQL(sourceRowValues));
                 }
             }
             
@@ -173,12 +175,12 @@ public class MergeUsing extends Prepared {
             if(sourceKeysRemembered.containsKey(sourceKeyValuesList)){
                 throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate values found:key columns"
                         +Arrays.asList(sourceKeys).toString()+":values:"+sourceKeyValuesList.toString()
-                        +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+countInputRows
+                        +":from:"+sourceTableFilter.getTable()+":alias:"+sourceTableFilter.getTableAlias()+":current row number:"+sourceQueryRowNumber
                         +":conflicting row number:"+sourceKeysRemembered.get(sourceKeyValuesList));
             }else{
                 // remember the source column values we have used before (they are the effective ON clause keys
                 // and should not be repeated
-                sourceKeysRemembered.put(sourceKeyValuesList,countInputRows);
+                sourceKeysRemembered.put(sourceKeyValuesList,sourceQueryRowNumber);
             }
                 
             merge(sourceRow, sourceRowValues);
@@ -222,39 +224,81 @@ public class MergeUsing extends Prepared {
     protected void merge(Row sourceRow, Value[] sourceRowValues) {
        // put the column values into the table filter
         sourceTableFilter.set(sourceRow);
+                
+        // Is the target row there already ?
+        boolean rowFound = isTargetRowFound();
 
         // try and perform an update
         int rowUpdateCount = 0;
-        if(updateCommand!=null){
-            rowUpdateCount += updateCommand.update();
-        }
-        if(deleteCommand!=null){
-            int deleteRowUpdateCount = deleteCommand.update();
-            // under oracle rules these updates & delete combinations are allowed together
-            if(rowUpdateCount==1 && deleteRowUpdateCount==1){                
-                countUpdatedRows+=deleteRowUpdateCount;
-                deleteRowUpdateCount=0;
-            }
-            else{
-                rowUpdateCount += deleteRowUpdateCount;
-            }
-        }
         
-        // if either updates do nothing, try an insert
-        if (rowUpdateCount == 0) {
-            rowUpdateCount+=addRowByCommandInsert(session);
-        } else if (rowUpdateCount != 1) {
-            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Duplicate key updated "+rowUpdateCount+" rows at once, only 1 expected:"+targetTable.getSQL());
+        if(rowFound){            
+            if(updateCommand!=null){
+                rowUpdateCount += updateCommand.update();
+            }
+            if(deleteCommand!=null){
+                int deleteRowUpdateCount = deleteCommand.update();
+                // under oracle rules these updates & delete combinations are allowed together
+                if(rowUpdateCount==1 && deleteRowUpdateCount==1){                
+                    countUpdatedRows+=deleteRowUpdateCount;
+                    deleteRowUpdateCount=0;
+                }
+                else{
+                    rowUpdateCount += deleteRowUpdateCount;
+                }
+            }
+        }
+        else
+        {
+            // if either updates do nothing, try an insert
+            if (rowUpdateCount == 0) {
+                rowUpdateCount += addRowByCommandInsert(session,sourceRow);
+            } else if (rowUpdateCount != 1) {
+                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Duplicate key inserted "+rowUpdateCount+" rows at once, only 1 expected:"+targetTable.getSQL());
+            }
+
         }
         countUpdatedRows+=rowUpdateCount;
     }
-
-
     
-    private int addRowByCommandInsert(Session session/*, Row newTargetRow*/) {
+    private boolean isTargetRowFound(){
+        ResultInterface rows = targetMatchQuery.query(0);
+        int countTargetRowsFound = 0;
+        Value[] targetRowIdValue=null;
+        
+        while (rows.next()) {
+            countTargetRowsFound++;
+            targetRowIdValue = rows.currentRow();
+            
+            // throw and exception if we have processed this _ROWID_ before...
+            if(targetRowidsRemembered.containsKey(targetRowIdValue[0])){
+                throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Merge using ON column expression, duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
+                        +targetRowIdValue[0].toString()
+                        +":in:"+targetTableFilter.getTable()
+                        +":conflicting source row number:"+targetRowidsRemembered.get(targetRowIdValue[0]));
+            }else{
+                // remember the source column values we have used before (they are the effective ON clause keys
+                // and should not be repeated
+                targetRowidsRemembered.put(targetRowIdValue[0],sourceQueryRowNumber);
+            }
+                        }
+        rows.close();
+        if(countTargetRowsFound>1){
+            throw DbException.get(ErrorCode.DUPLICATE_KEY_1, "Duplicate key updated "+countTargetRowsFound+" rows at once, only 1 expected:_ROWID_="
+                    +targetRowIdValue[0].toString()
+                    +":in:"+targetTableFilter.getTable()
+                    +":conflicting source row number:"+targetRowidsRemembered.get(targetRowIdValue[0]));
+
+        }
+        return countTargetRowsFound>0;
+    }
+    
+    private int addRowByCommandInsert(Session session, Row sourceRow) {
         int localCount = 0;
         if(insertCommand!=null){
             localCount += insertCommand.update();
+            if(!isTargetRowFound()){
+                throw DbException.get(ErrorCode.GENERAL_ERROR_1, "Expected to find key after row inserted, but none found. Insert does not match ON condition.:"+targetTable.getSQL()+":source row="+Arrays.asList(sourceRow.getValueList()));                
+            }                            
         }
         return localCount;
     }
@@ -386,6 +430,14 @@ public class MergeUsing extends Prepared {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                     "At least UPDATE, DELETE or INSERT embedded statement must be supplied.");
         }
+        
+        // setup the targetMatchQuery - for detecting if the target row exists
+        Expression targetMatchCondition = targetMatchQuery.getCondition();
+        targetMatchCondition.addFilterConditions(sourceTableFilter, true);
+        targetMatchCondition.mapColumns(sourceTableFilter, 2);
+        targetMatchCondition = targetMatchCondition.optimize(session);
+        targetMatchCondition.createIndexConditions(session, sourceTableFilter);            
+        targetMatchQuery.prepare();
     }
 
     private HashSet<Column> buildColumnListFromOnCondition(TableFilter anyTableFilter) {
@@ -419,10 +471,19 @@ public class MergeUsing extends Prepared {
         this.sourceTableFilter = sourceTableFilter;        
     }
 
+    public TableFilter getSourceTableFilter() {
+        return sourceTableFilter;
+    }
+
     public void setOnCondition(Expression condition) {
         this.onCondition = condition;        
     }
     
+    public Expression getOnCondition() {
+        return onCondition;
+    }
+
+
     public Prepared getUpdateCommand() {
         return updateCommand;
     }
@@ -470,12 +531,22 @@ public class MergeUsing extends Prepared {
     public TableFilter getTargetTableFilter() {
         return targetTableFilter;
     }
+    
     public Table getTargetTable() {
         return targetTable;
     }
+    
     public void setTargetTable(Table targetTable) {
         this.targetTable = targetTable;
     }
+    
+    public Select getTargetMatchQuery() {
+        return targetMatchQuery;
+    }
+
+    public void setTargetMatchQuery(Select targetMatchQuery) {
+        this.targetMatchQuery = targetMatchQuery;
+    }    
     
     // Prepared interface implementations
     
@@ -492,5 +563,6 @@ public class MergeUsing extends Prepared {
     @Override
     public int getType() {
         return CommandInterface.MERGE;
-    }    
+    }
+
 }

@@ -30,30 +30,38 @@ import org.h2.value.ValueNull;
 public class Delete extends Prepared {
 
     private Expression condition;
-    private TableFilter tableFilter;
+    private TableFilter targetTableFilter;
 
     /**
      * The limit expression as specified in the LIMIT or TOP clause.
      */
     private Expression limitExpr;
+    /**
+     * This table filter is for MERGE..USING support - not used in stand-alone DML
+     */
+    private TableFilter sourceTableFilter;
 
     public Delete(Session session) {
         super(session);
     }
 
     public void setTableFilter(TableFilter tableFilter) {
-        this.tableFilter = tableFilter;
+        this.targetTableFilter = tableFilter;
     }
 
     public void setCondition(Expression condition) {
         this.condition = condition;
     }
+    
+    public Expression getCondition( ) {
+        return this.condition;
+    }
 
     @Override
     public int update() {
-        tableFilter.startQuery(session);
-        tableFilter.reset();
-        Table table = tableFilter.getTable();
+        targetTableFilter.startQuery(session);
+        targetTableFilter.reset();
+        Table table = targetTableFilter.getTable();
         session.getUser().checkRight(table, Right.DELETE);
         table.fire(session, Trigger.DELETE, true);
         table.lock(session, true, false);
@@ -68,11 +76,11 @@ public class Delete extends Prepared {
         try {
             setCurrentRowNumber(0);
             int count = 0;
-            while (limitRows != 0 && tableFilter.next()) {
+            while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
                 if (condition == null || Boolean.TRUE.equals(
                         condition.getBooleanValue(session))) {
-                    Row row = tableFilter.get();
+                    Row row = targetTableFilter.get();
                     boolean done = false;
                     if (table.fireRow()) {
                         done = table.fireBeforeRow(session, row, null);
@@ -112,7 +120,7 @@ public class Delete extends Prepared {
     public String getPlanSQL() {
         StringBuilder buff = new StringBuilder();
         buff.append("DELETE ");
-        buff.append("FROM ").append(tableFilter.getPlanSQL(false));
+        buff.append("FROM ").append(targetTableFilter.getPlanSQL(false));
         if (condition != null) {
             buff.append("\nWHERE ").append(StringUtils.unEnclose(
                     condition.getSQL()));
@@ -127,15 +135,24 @@ public class Delete extends Prepared {
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(tableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0);
+            if(sourceTableFilter!=null){
+                condition.mapColumns(sourceTableFilter, 0);                
+            }
             condition = condition.optimize(session);
-            condition.createIndexConditions(session, tableFilter);
+            condition.createIndexConditions(session, targetTableFilter);
         }
-        TableFilter[] filters = new TableFilter[] { tableFilter };
-        PlanItem item = tableFilter.getBestPlanItem(session, filters, 0,
+        TableFilter[] filters;
+        if(sourceTableFilter==null){
+            filters = new TableFilter[] { targetTableFilter };
+        }
+        else{
+            filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
+        }
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
                 ExpressionVisitor.allColumnsForTableFilters(filters));
-        tableFilter.setPlanItem(item);
-        tableFilter.prepare();
+        targetTableFilter.setPlanItem(item);
+        targetTableFilter.prepare();
     }
 
     @Override
@@ -160,6 +177,18 @@ public class Delete extends Prepared {
     @Override
     public boolean isCacheable() {
         return true;
+    }
+
+    public void setSourceTableFilter(TableFilter sourceTableFilter) {
+        this.sourceTableFilter = sourceTableFilter;        
+    }
+
+    public TableFilter getTableFilter() {
+        return targetTableFilter;
+    }
+
+    public TableFilter getSourceTableFilter() {
+        return sourceTableFilter;
     }
 
 }

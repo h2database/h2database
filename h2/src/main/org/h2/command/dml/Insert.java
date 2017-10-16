@@ -28,6 +28,7 @@ import org.h2.result.ResultTarget;
 import org.h2.result.Row;
 import org.h2.table.Column;
 import org.h2.table.Table;
+import org.h2.table.TableFilter;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.value.Value;
@@ -46,6 +47,10 @@ public class Insert extends Prepared implements ResultTarget {
     private boolean sortedInsertMode;
     private int rowNumber;
     private boolean insertFromSelect;
+    /**
+     * This table filter is for MERGE..USING support - not used in stand-alone DML
+     */    
+    private TableFilter sourceTableFilter;
 
     /**
      * For MySQL-style INSERT ... ON DUPLICATE KEY UPDATE ....
@@ -267,6 +272,9 @@ public class Insert extends Prepared implements ResultTarget {
                 for (int i = 0, len = expr.length; i < len; i++) {
                     Expression e = expr[i];
                     if (e != null) {
+                        if(sourceTableFilter!=null){
+                            e.mapColumns(sourceTableFilter, 0);
+                        }
                         e = e.optimize(session);
                         if (e instanceof Parameter) {
                             Parameter p = (Parameter) e;
@@ -393,6 +401,10 @@ public class Insert extends Prepared implements ResultTarget {
             }
         }
         return condition;
+    }
+
+    public void setSourceTableFilter(TableFilter sourceTableFilter) {
+        this.sourceTableFilter = sourceTableFilter;        
     }
 
 }

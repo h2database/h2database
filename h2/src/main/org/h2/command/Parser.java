@@ -13,6 +13,8 @@ import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -76,6 +78,7 @@ import org.h2.command.dml.ExecuteProcedure;
 import org.h2.command.dml.Explain;
 import org.h2.command.dml.Insert;
 import org.h2.command.dml.Merge;
+import org.h2.command.dml.MergeUsing;
 import org.h2.command.dml.NoOperation;
 import org.h2.command.dml.Query;
 import org.h2.command.dml.Replace;
@@ -698,6 +701,32 @@ public class Parser {
     private Schema getSchema() {
         return getSchema(schemaName);
     }
+    /*
+     * Gets the current schema for scenarios that need a guranteed, non-null schema object. 
+     * 
+     * This routine is solely here
+     * because of the function readIdentifierWithSchema(String defaultSchemaName) - which 
+     * is often called with a null parameter (defaultSchemaName) - then 6 lines into the function
+     * that routine nullifies the state field schemaName - which I believe is a bug.
+     * 
+     * There are about 7 places where "readIdentifierWithSchema(null)" is called in this file.
+     * 
+     * In other words when is it legal to not have an active schema defined by schemaName ?
+     * I don't think it's ever a valid case. I don't understand when that would be allowed.
+     * I spent a long time trying to figure this out. 
+     * As another proof of this point, the command "SET SCHEMA=NULL" is not a valid command.
+     * 
+     * I did try to fix this in readIdentifierWithSchema(String defaultSchemaName) 
+     * - but every fix I tried cascaded so many unit test errors - so
+     * I gave up. I think this needs a bigger effort to fix his, as part of bigger, dedicated story.
+     * 
+     */
+    private Schema getSchemaWithDefault() {
+        if(schemaName==null){
+            schemaName = session.getCurrentSchemaName();
+        }
+        return getSchema(schemaName);
+    }
 
     private Column readTableColumn(TableFilter filter) {
         String tableAlias = null;
@@ -743,6 +772,11 @@ public class Parser {
         int start = lastParseIndex;
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
+        parseUpdateSetClause(command, filter, start);
+        return command;
+    }
+
+    private void parseUpdateSetClause(Update command, TableFilter filter, int start) {
         read("SET");
         if (readIf("(")) {
             ArrayList<Column> columns = New.arrayList();
@@ -793,8 +827,7 @@ public class Parser {
             Expression limit = readTerm().optimize(session);
             command.setLimit(limit);
         }
-        setSQL(command, "UPDATE", start);
-        return command;
+        setSQL(command, "UPDATE", start);        
     }
 
     private TableFilter readSimpleTableFilter(int orderInFrom) {
@@ -812,6 +845,21 @@ public class Parser {
                 currentSelect, orderInFrom, null);
     }
 
+    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom,Collection<String> excludeTokens) {
+        Table table = readTableOrView();
+        String alias = null;
+        if (readIf("AS")) {
+            alias = readAliasIdentifier();
+        } else if (currentTokenType == IDENTIFIER) {
+            if (!equalsTokenIgnoreCase(currentToken,"SET") && !isTokenInList(excludeTokens)) {
+                // SET is not a keyword (PostgreSQL supports it as a table name)
+                alias = readAliasIdentifier();
+            }
+        }
+        return new TableFilter(session, table, alias, rightsChecked,
+                currentSelect, orderInFrom, null);
+    }    
+    
     private Delete parseDelete() {
         Delete command = new Delete(session);
         Expression limit = null;
@@ -826,6 +874,11 @@ public class Parser {
         }
         TableFilter filter = readSimpleTableFilter(0);
         command.setTableFilter(filter);
+        parseDeleteGivenTable(command, limit, start);
+        return command;
+    }
+
+    private void parseDeleteGivenTable(Delete command, Expression limit, int start) {
         if (readIf("WHERE")) {
             Expression condition = readExpression();
             command.setCondition(condition);
@@ -835,7 +888,6 @@ public class Parser {
         }
         command.setLimit(limit);
         setSQL(command, "DELETE", start);
-        return command;
     }
 
     private IndexColumn[] parseIndexColumnList() {
@@ -1021,13 +1073,21 @@ public class Parser {
         read();
         return select;
     }
+    
 
-    private Merge parseMerge() {
+    private Prepared parseMerge() {
         Merge command = new Merge(session);
         currentPrepared = command;
+        int start = lastParseIndex;
         read("INTO");
-        Table table = readTableOrView();
-        command.setTable(table);
+        List<String> excludeIdentifiers = Arrays.asList("USING","KEY","VALUES");
+        TableFilter targetTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
+        command.setTargetTableFilter(targetTableFilter);            
+        Table table = command.getTargetTable();
+        
+        if (readIf("USING")){
+            return parseMergeUsing(command,start);
+        }
         if (readIf("(")) {
             if (isSelect()) {
                 command.setQuery(parseSelect());
@@ -1063,12 +1123,140 @@ public class Parser {
         return command;
     }
 
+    private MergeUsing parseMergeUsing(Merge oldCommand, int start) {
+        MergeUsing command = new MergeUsing(oldCommand);
+        currentPrepared = command;
+                
+        if (readIf("(")) {
+            /* a select query is supplied */
+            if (isSelect()) {
+                command.setQuery(parseSelect());
+                read(")");
+            }
+            command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
+            
+            String[] querySQLOutput = new String[]{null};
+            List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
+            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false/*no recursion*/, false/* do not add to session*/);            
+            TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
+                (Select) command.getQuery(), 0, null);
+            command.setSourceTableFilter(sourceTableFilter); 
+        }
+        else{
+            /* Its a table name, simulate a query by building a select query for the table */
+            List<String> excludeIdentifiers = Arrays.asList("ON");
+            TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
+            command.setSourceTableFilter(sourceTableFilter);  
+            
+            StringBuilder buff = new StringBuilder(
+                    "SELECT * FROM "+sourceTableFilter.getTable().getName());
+            if(sourceTableFilter.getTableAlias()!=null){
+                buff.append(" AS "+sourceTableFilter.getTableAlias());
+            }
+            Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
+            command.setQuery((Select)preparedQuery);
+            
+        }        
+        read("ON");
+        read("(");
+        Expression condition = readExpression();
+        command.setOnCondition(condition);
+        read(")");
+                
+        if(readIfAll("WHEN","MATCHED","THEN")){
+            int startMatched = lastParseIndex;
+            if (readIf("UPDATE")){
+                Update updateCommand = new Update(session);
+                //currentPrepared = updateCommand;
+                TableFilter filter = command.getTargetTableFilter();
+                updateCommand.setTableFilter(filter);
+                parseUpdateSetClause(updateCommand, filter,startMatched);
+                command.setUpdateCommand(updateCommand);
+            }
+            startMatched = lastParseIndex;
+            if (readIf("DELETE")){
+                Delete deleteCommand = new Delete(session);
+                TableFilter filter = command.getTargetTableFilter();
+                deleteCommand.setTableFilter(filter);
+                parseDeleteGivenTable(deleteCommand,null,startMatched);
+                command.setDeleteCommand(deleteCommand);
+            }            
+        }
+        if(readIfAll("WHEN","NOT","MATCHED","THEN")){
+            if (readIf("INSERT")){
+                Insert insertCommand = new Insert(session);
+                insertCommand.setTable(command.getTargetTable());
+                parseInsertGivenTable(insertCommand, command.getTargetTable());
+                command.setInsertCommand(insertCommand);
+            }
+        }
+
+        setSQL(command, "MERGE", start);
+        
+        // build and prepare the targetMatchQuery ready to test each rows existence in the target table (using source row to match)
+        StringBuffer targetMatchQuerySQL = new StringBuffer("SELECT _ROWID_ FROM "+command.getTargetTable().getName());
+        if(command.getTargetTableFilter().getTableAlias()!=null){
+            targetMatchQuerySQL.append(" AS "+command.getTargetTableFilter().getTableAlias());
+        }
+        targetMatchQuerySQL.append(" WHERE "+command.getOnCondition().getSQL());
+//        Select preparedTargetMatchQuery = new Select(session);
+//        preparedTargetMatchQuery.addTableFilter(command.getTargetTableFilter(), true/*isTop*/);
+//        preparedTargetMatchQuery.addTableFilter(command.getSourceTableFilter(), false/*isTop - not top table scan*/);
+//        preparedTargetMatchQuery.setSQL(targetMatchQuerySQL.toString());
+//        ArrayList<Expression> selectList = New.arrayList();
+//        //Database db = session == null ? null : session.getDatabase();
+//        selectList.add(new ExpressionColumn(session.getDatabase(), command.getTargetTableFilter().getTable().getRowIdColumn()));
+//        preparedTargetMatchQuery.setExpressions(selectList);
+//        preparedTargetMatchQuery.init();
+          command.setTargetMatchQuery((Select)parse(targetMatchQuerySQL.toString()));
+        
+//        Select command = new Select(session);
+//        currentSelect = command;
+//        TableFilter filter = parseValuesTable(0);
+//        ArrayList<Expression> list = New.arrayList();
+//        list.add(new Wildcard(null, null));
+//        command.setExpressions(list);
+//        command.addTableFilter(filter, true);
+//        command.init();        
+        
+        return command;
+    }
+
     private Insert parseInsert() {
         Insert command = new Insert(session);
         currentPrepared = command;
         read("INTO");
         Table table = readTableOrView();
         command.setTable(table);
+        Insert returnedCommand = parseInsertGivenTable(command, table);
+        if (returnedCommand!=null){
+            return returnedCommand;
+        }
+        if (database.getMode().onDuplicateKeyUpdate) {
+            if (readIf("ON")) {
+                read("DUPLICATE");
+                read("KEY");
+                read("UPDATE");
+                do {
+                    Column column = parseColumn(table);
+                    read("=");
+                    Expression expression;
+                    if (readIf("DEFAULT")) {
+                        expression = ValueExpression.getDefault();
+                    } else {
+                        expression = readExpression();
+                    }
+                    command.addAssignmentForDuplicate(column, expression);
+                } while (readIf(","));
+            }
+        }
+        if (database.getMode().isolationLevelInSelectOrInsertStatement) {
+            parseIsolationClause();
+        }
+        return command;
+    }
+
+    private Insert parseInsertGivenTable(Insert command, Table table) {
         Column[] columns = null;
         if (readIf("(")) {
             if (isSelect()) {
@@ -1127,28 +1315,7 @@ public class Parser {
         } else {
             command.setQuery(parseSelect());
         }
-        if (database.getMode().onDuplicateKeyUpdate) {
-            if (readIf("ON")) {
-                read("DUPLICATE");
-                read("KEY");
-                read("UPDATE");
-                do {
-                    Column column = parseColumn(table);
-                    read("=");
-                    Expression expression;
-                    if (readIf("DEFAULT")) {
-                        expression = ValueExpression.getDefault();
-                    } else {
-                        expression = readExpression();
-                    }
-                    command.addAssignmentForDuplicate(column, expression);
-                } while (readIf(","));
-            }
-        }
-        if (database.getMode().isolationLevelInSelectOrInsertStatement) {
-            parseIsolationClause();
-        }
-        return command;
+        return null;
     }
 
     /**
@@ -1317,17 +1484,20 @@ public class Parser {
         return IndexHints.createUseIndexHints(indexNames);
     }
 
-    private String readFromAlias(String alias) {
+    private String readFromAlias(String alias, List<String> excludeIdentifiers) {
         if (readIf("AS")) {
             alias = readAliasIdentifier();
-        } else if (currentTokenType == IDENTIFIER) {
-            // left and right are not keywords (because they are functions as
-            // well)
-            if (!isToken("LEFT") && !isToken("RIGHT") && !isToken("FULL")) {
+        } else if (currentTokenType == IDENTIFIER && !isTokenInList(excludeIdentifiers)) {
                 alias = readAliasIdentifier();
-            }
         }
         return alias;
+    }
+    
+    private String readFromAlias(String alias) {
+        // left and right are not keywords (because they are functions as
+        // well)
+        List<String> excludeIdentifiers = Arrays.asList("LEFT","RIGHT","FULL");
+        return readFromAlias(alias, excludeIdentifiers);
     }
 
     private Prepared parseTruncate() {
@@ -1759,14 +1929,25 @@ public class Parser {
     }
 
     private Query parseSelect() {
-        int paramIndex = parameters.size();
-        Query command = parseSelectUnion();
-        ArrayList<Parameter> params = New.arrayList();
-        for (int i = paramIndex, size = parameters.size(); i < size; i++) {
-            params.add(parameters.get(i));
-        }
-        command.setParameterList(params);
-        command.init();
+        // This method and its subroutines sometimes resets the schema name  - the try-finally block
+        // makes sure it is reverted if nulled 
+        //String savedSchemaName = schemaName;
+        Query command = null;
+        //try{
+            int paramIndex = parameters.size();
+            command = parseSelectUnion();
+            ArrayList<Parameter> params = New.arrayList();
+            for (int i = paramIndex, size = parameters.size(); i < size; i++) {
+                params.add(parameters.get(i));
+            }
+            command.setParameterList(params);
+            command.init();
+        //}
+        //finally{
+            //if(schemaName==null){
+            //    schemaName = savedSchemaName;
+            //}
+        //}
         return command;
     }
 
@@ -3241,6 +3422,7 @@ public class Parser {
         return s;
     }
 
+    // TODO: why does this function allow defaultSchemaName=null - which resets the parser schemaName for everyone ?
     private String readIdentifierWithSchema(String defaultSchemaName) {
         if (currentTokenType != IDENTIFIER) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex,
@@ -3311,7 +3493,27 @@ public class Parser {
         addExpected(token);
         return false;
     }
-
+    /*
+     * Reads every token in list, in order - returns true if all are found.
+     * If any are not found, returns false - AND resets parsing back to state when called.
+     */
+    private boolean readIfAll(String ... tokens) {
+        // save parse location in case we have to fail this test
+        int start = lastParseIndex;
+        for(String token: tokens){
+            if (!currentTokenQuoted && equalsToken(token, currentToken)) {
+                read();
+            }
+            else{
+                // read failed - revert parse location to before when called
+                parseIndex = start;
+                read();
+                return false;
+            }
+        }
+        return true;
+    }
+    
     private boolean isToken(String token) {
         boolean result = equalsToken(token, currentToken) &&
                 !currentTokenQuoted;
@@ -3331,6 +3533,22 @@ public class Parser {
             return true;
         }
         return false;
+    }
+    
+    private boolean equalsTokenIgnoreCase(String a, String b) {
+        if (a == null) {
+            return b == null;
+        } else if (a.equals(b)) {
+            return true;
+        } else if (a.equalsIgnoreCase(b)) {
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isTokenInList(Collection<String> upperCaseTokenList){
+        String upperCaseCurrentToken = currentToken.toUpperCase();
+        return upperCaseTokenList.contains(upperCaseCurrentToken);        
     }
 
     private void addExpected(String token) {
@@ -4988,7 +5206,7 @@ public class Parser {
         if (readIf("(")) {
             cols = parseColumnList();
             for (String c : cols) {
-                // we dont really know the type of the column, so string will
+                // we don't really know the type of the column, so string will
                 // have to do
                 columns.add(new Column(c, Value.STRING));
             }
@@ -5021,51 +5239,77 @@ public class Parser {
         data.session = session;
         recursiveTable = schema.createTable(data);
         session.addLocalTempTable(recursiveTable);
-        String querySQL;
-        List<Column> columnTemplateList = new ArrayList<>();
+        List<Column> columnTemplateList;
+        String[] querySQLOutput = new String[]{null};
         try {
             read("AS");
             read("(");
             Query withQuery = parseSelect();
             read(")");
-            withQuery.prepare();
-            querySQL = StringUtils.cache(withQuery.getPlanSQL());
-            ArrayList<Expression> withExpressions = withQuery.getExpressions();
-            for (int i = 0; i < withExpressions.size(); ++i) {
-                Expression columnExp = withExpressions.get(i);
-                // use the passed in column name if supplied, otherwise use alias (if used) otherwise use column name
-                // derived from column expression
-                String columnName;
-                if (cols != null){
-                    columnName = cols[i];
-                } else if (columnExp.getAlias()!=null){
-                    columnName = columnExp.getAlias();
-                }
-                else{
-                     columnName =  columnExp.getColumnName();
-                }
-                columnTemplateList.add(new Column(columnName,
-                        columnExp.getType()));
-            }
+            columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
+
         } finally {
             session.removeLocalTempTable(recursiveTable);
         }
+        TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/, true);
+        return view;
+    }
+
+    /**
+     * Creates a list of column templates from a query (usually from WITH query, but could be any query)
+     * @param cols - an optional list of column names (can be specified by WITH clause overriding usual select names)
+     * @param theQuery - the query object we want the column list for
+     * @param querySQLOutput - array of length 1 to receive extra 'output' field in addition to return value 
+     *                  - containing the SQL query of the Query object
+     * @return a list of column object returned by withQuery
+     */
+    private List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery, String[] querySQLOutput) {
+        List<Column> columnTemplateList = new ArrayList<Column>();
+        theQuery.prepare();
+        // array of length 1 to receive extra 'output' field in addition to return value
+        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
+        ArrayList<Expression> withExpressions = theQuery.getExpressions();
+        for (int i = 0; i < withExpressions.size(); ++i) {
+            Expression columnExp = withExpressions.get(i);
+            // use the passed in column name if supplied, otherwise use alias (if found) otherwise use column name
+            // derived from column expression
+            String columnName;
+            if (cols != null){
+                columnName = cols[i];
+            } else if (columnExp.getAlias()!=null){
+                columnName = columnExp.getAlias();
+            }
+            else{
+                 columnName =  columnExp.getColumnName();
+            }
+            columnTemplateList.add(new Column(columnName,
+                    columnExp.getType()));
+        }
+        return columnTemplateList;
+    }
+
+    private TableView createTemporarySessionView(String tempViewName,  String querySQL,
+            List<Column> columnTemplateList, boolean allowRecursiveQueryDetection, boolean addViewToSession) {
+        Schema schema = getSchemaWithDefault();
         int id = database.allocateObjectId();
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
         TableView view = new TableView(schema, id, tempViewName, querySQL,
                 parameters, columnTemplateList.toArray(new Column[0]), session,
-                true/* recursive */, false);
-        if (!view.isRecursiveQueryDetected()) {
+                allowRecursiveQueryDetection, false);
+        if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
                     false/* recursive */, false);
         }
         view.setTableExpression(true);
         view.setTemporary(true);
-        session.addLocalTempTable(view);
-        view.setOnCommitDrop(true);
+        view.setHidden(true);
+        if(addViewToSession){
+            session.addLocalTempTable(view);
+        }
+        view.setOnCommitDrop(false);
         return view;
     }
 

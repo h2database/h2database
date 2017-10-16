@@ -361,7 +361,7 @@ public class Session extends SessionWithState {
         }
         if (localTempTables.get(table.getName()) != null) {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
-                    table.getSQL());
+                    table.getSQL()+" AS "+table.getName());
         }
         modificationId++;
         localTempTables.put(table.getName(), table);

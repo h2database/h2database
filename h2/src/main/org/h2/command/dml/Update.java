@@ -38,7 +38,11 @@ import org.h2.value.ValueNull;
 public class Update extends Prepared {
 
     private Expression condition;
-    private TableFilter tableFilter;
+    private TableFilter targetTableFilter;// target of update
+    /**
+     * This table filter is for MERGE..USING support - not used in stand-alone DML
+     */    
+    private TableFilter sourceTableFilter;
 
     /** The limit expression as specified in the LIMIT clause. */
     private Expression limitExpr;
@@ -51,11 +55,15 @@ public class Update extends Prepared {
     }
 
     public void setTableFilter(TableFilter tableFilter) {
-        this.tableFilter = tableFilter;
+        this.targetTableFilter = tableFilter;
     }
 
     public void setCondition(Expression condition) {
         this.condition = condition;
+    }
+    
+    public Expression getCondition( ) {
+        return this.condition;
     }
 
     /**
@@ -79,11 +87,11 @@ public class Update extends Prepared {
 
     @Override
     public int update() {
-        tableFilter.startQuery(session);
-        tableFilter.reset();
+        targetTableFilter.startQuery(session);
+        targetTableFilter.reset();
         RowList rows = new RowList(session);
         try {
-            Table table = tableFilter.getTable();
+            Table table = targetTableFilter.getTable();
             session.getUser().checkRight(table, Right.UPDATE);
             table.fire(session, Trigger.UPDATE, true);
             table.lock(session, true, false);
@@ -99,14 +107,14 @@ public class Update extends Prepared {
                     limitRows = v.getInt();
                 }
             }
-            while (tableFilter.next()) {
+            while (targetTableFilter.next()) {
                 setCurrentRowNumber(count+1);
                 if (limitRows >= 0 && count >= limitRows) {
                     break;
                 }
                 if (condition == null ||
                         Boolean.TRUE.equals(condition.getBooleanValue(session))) {
-                    Row oldRow = tableFilter.get();
+                    Row oldRow = targetTableFilter.get();
                     Row newRow = table.getTemplateRow();
                     for (int i = 0; i < columnCount; i++) {
                         Expression newExpr = expressionMap.get(columns[i]);
@@ -161,7 +169,7 @@ public class Update extends Prepared {
     @Override
     public String getPlanSQL() {
         StatementBuilder buff = new StatementBuilder("UPDATE ");
-        buff.append(tableFilter.getPlanSQL(false)).append("\nSET\n    ");
+        buff.append(targetTableFilter.getPlanSQL(false)).append("\nSET\n    ");
         for (int i = 0, size = columns.size(); i < size; i++) {
             Column c = columns.get(i);
             Expression e = expressionMap.get(c);
@@ -181,21 +189,30 @@ public class Update extends Prepared {
     @Override
     public void prepare() {
         if (condition != null) {
-            condition.mapColumns(tableFilter, 0);
+            condition.mapColumns(targetTableFilter, 0);
             condition = condition.optimize(session);
-            condition.createIndexConditions(session, tableFilter);
+            condition.createIndexConditions(session, targetTableFilter);
         }
         for (int i = 0, size = columns.size(); i < size; i++) {
             Column c = columns.get(i);
             Expression e = expressionMap.get(c);
-            e.mapColumns(tableFilter, 0);
+            e.mapColumns(targetTableFilter, 0);
+            if (sourceTableFilter!=null){
+                e.mapColumns(sourceTableFilter, 0);
+            }
             expressionMap.put(c, e.optimize(session));
         }
-        TableFilter[] filters = new TableFilter[] { tableFilter };
-        PlanItem item = tableFilter.getBestPlanItem(session, filters, 0,
+        TableFilter[] filters;
+        if(sourceTableFilter==null){
+            filters = new TableFilter[] { targetTableFilter };
+        }
+        else{
+            filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
+        }
+        PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
                 ExpressionVisitor.allColumnsForTableFilters(filters));
-        tableFilter.setPlanItem(item);
-        tableFilter.prepare();
+        targetTableFilter.setPlanItem(item);
+        targetTableFilter.prepare();
     }
 
     @Override
@@ -222,4 +239,11 @@ public class Update extends Prepared {
         return true;
     }
 
+    public TableFilter getSourceTableFilter() {
+        return sourceTableFilter;
+    }
+
+    public void setSourceTableFilter(TableFilter sourceTableFilter) {
+        this.sourceTableFilter = sourceTableFilter;
+    }
 }

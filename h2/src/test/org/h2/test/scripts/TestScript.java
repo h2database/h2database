@@ -79,6 +79,7 @@ public class TestScript extends TestBase {
         reconnectOften = !config.memory && config.big;
         testScript("testScript.sql");
         testScript("commands-dml-script.sql");
+        testScript("commands-dml-create-view.sql");
         for (String s : new String[] { "array", "bigint", "binary", "blob",
                 "boolean", "char", "clob", "date", "decimal", "double", "enum",
                 "geometry", "identity", "int", "other", "real", "smallint",

@@ -104,21 +104,21 @@ public class CreateView extends SchemaCommand {
         Session sysSession = db.getSystemSession();
         synchronized (sysSession) {
             try {
+                Column[] columnTemplates = null;
+                if (columnNames != null) {
+                    columnTemplates = new Column[columnNames.length];
+                    for (int i = 0; i < columnNames.length; ++i) {
+                        columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
+                    }
+                }
                 if (view == null) {
                     Schema schema = session.getDatabase().getSchema(
                             session.getCurrentSchemaName());
                     sysSession.setCurrentSchema(schema);
-                    Column[] columnTemplates = null;
-                    if (columnNames != null) {
-                        columnTemplates = new Column[columnNames.length];
-                        for (int i = 0; i < columnNames.length; ++i) {
-                            columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
-                        }
-                    }
                     view = new TableView(getSchema(), id, viewName, querySQL, null,
                             columnTemplates, sysSession, false, false);
                 } else {
-                    view.replace(querySQL, sysSession, false, force, false);
+                    view.replace(querySQL, columnTemplates, sysSession, false, force, false);
                     view.setModified();
                 }
             } finally {

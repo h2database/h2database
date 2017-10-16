@@ -75,12 +75,12 @@ public class TableView extends Table {
      * @param recursive whether this is a recursive view
      * @param force if errors should be ignored
      */
-    public void replace(String querySQL,  Session session,
+    public void replace(String querySQL,  Column[] newColumnTemplates, Session session,
             boolean recursive, boolean force, boolean literalsChecked) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
         boolean oldRecursive = this.recursive;
-        init(querySQL, null, columnTemplates, session, recursive, literalsChecked);
+        init(querySQL, null, newColumnTemplates == null ? this.columnTemplates : newColumnTemplates, session, recursive, literalsChecked);
         DbException e = recompile(session, force, true);
         if (e != null) {
             init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, literalsChecked);

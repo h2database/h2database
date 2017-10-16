@@ -115,7 +115,7 @@ public class TestScript extends TestBase {
         for (String s : new String[] { "array-contains", "array-get",
                 "array-length", "autocommit", "cancel-session", "casewhen",
                 "cast", "coalesce", "convert", "csvread", "csvwrite", "currval",
-                "database-path", "datebase", "decode", "disk-space-used",
+                "database-path", "database", "decode", "disk-space-used",
                 "file-read", "file-write", "greatest", "h2version", "identity",
                 "ifnull", "least", "link-schema", "lock-mode", "lock-timeout",
                 "memory-free", "memory-used", "nextval", "nullif", "nvl2",

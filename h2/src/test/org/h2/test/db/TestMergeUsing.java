@@ -17,7 +17,7 @@ import org.h2.test.TestBase;
  */
 
 public class TestMergeUsing extends TestBase implements Trigger {
- 
+
     private static final String GATHER_ORDERED_RESULTS_SQL = "SELECT ID, NAME FROM PARENT ORDER BY ID ASC";
     private static int triggerTestingUpdateCount = 0;
 
@@ -34,7 +34,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
 
     @Override
     public void test() throws Exception {
-        
+
         // Simple ID,NAME inserts, target table with PK initially empty
         testMergeUsing(
                 "CREATE TABLE PARENT(ID INT, NAME VARCHAR, PRIMARY KEY(ID) );",
@@ -117,8 +117,8 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3
-                );        
-        
+                );
+
         // Only insert clause, no update or delete clauses
         testMergeUsing(
                 "CREATE TABLE PARENT AS (SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) );"+
@@ -146,8 +146,8 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,1) WHERE X<0",
                 2
                 );
-        // Duplicate source keys but different ROWID update - so no error 
-        // SQL standard says duplicate or repeated updates of same row in same statement should cause errors - but because first row is updated, deleted (on source row 1) then inserted (on source row 2) 
+        // Duplicate source keys but different ROWID update - so no error
+        // SQL standard says duplicate or repeated updates of same row in same statement should cause errors - but because first row is updated, deleted (on source row 1) then inserted (on source row 2)
         // it's considered different - with respect to to ROWID - so no error
         // One insert, one update one delete happens (on same row) , target table missing PK, no source or target alias
         testMergeUsing(
@@ -158,7 +158,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "SELECT 1 AS ID, 'Marcy'||X||X UNION ALL SELECT 1 AS ID, 'Marcy2'",
                 2
                 );
-        
+
         // Multiple update on same row: SQL standard says duplicate or repeated updates in same statement should cause errors -but because first row is updated, delete then insert it's considered different
         // One insert, one update one delete happens (on same row, which is okay), then another update (which is illegal)target table missing PK, no source or target alias
         testMergeUsingException(
@@ -179,7 +179,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3,
                 "Duplicate key updated 3 rows at once, only 1 expected"
-                );        
+                );
         // Missing target columns in ON expression
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"+
@@ -189,7 +189,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3,
                 "No references to target columns found in ON clause"
-                );        
+                );
         // Missing source columns in ON expression
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(1,3) );"+
@@ -199,7 +199,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X||X AS NAME FROM SYSTEM_RANGE(2,2) UNION ALL SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(3,3)",
                 3,
                 "No references to source columns found in ON clause"
-                );      
+                );
         // Insert does not insert correct values with respect to ON condition (inserts ID value above 100, instead)
         testMergeUsingException(
                 "CREATE TABLE PARENT AS (SELECT 1 AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4) );"+
@@ -209,7 +209,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "SELECT X AS ID, 'Marcy'||X AS NAME FROM SYSTEM_RANGE(4,4)",
                 1,
                 "Expected to find key after row inserted, but none found. Insert does not match ON condition."
-                );  
+                );
         // One insert, one update one delete happens, target table missing PK, triggers update all NAME fields
         triggerTestingUpdateCount=0;
         testMergeUsing(
@@ -219,7 +219,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 GATHER_ORDERED_RESULTS_SQL,
                 "SELECT 2 AS ID, 'Marcy22-updated2' AS NAME UNION ALL SELECT X AS ID, 'Marcy'||X||'-inserted'||X AS NAME FROM SYSTEM_RANGE(3,4)",
                 4
-                );        
+                );
        }
 
     /**
@@ -243,20 +243,20 @@ public class TestMergeUsing extends TestBase implements Trigger {
         try{
             stat = conn.createStatement();
             stat.execute(setupSQL);
-    
+
             prep = conn.prepareStatement(statementUnderTest);
             rowCountUpdate = prep.executeUpdate();
-    
-            // compare actual results from SQL resultsset with expected results - by diffing (aka set MINUS operation)
+
+            // compare actual results from SQL result set with expected results - by diffing (aka set MINUS operation)
             rs = stat.executeQuery("( "+gatherResultsSQL+" ) MINUS ( "+expectedResultsSQL+" )");
-    
+
             int rowCount = 0;
             StringBuffer diffBuffer = new StringBuffer("");
             while (rs.next()) {
                 rowCount++;
                 diffBuffer.append("|");
-                for(int ndx = 1; ndx <= rs.getMetaData().getColumnCount(); ndx++){
-                    diffBuffer.append(rs.getObject(ndx));
+                for(int i = 1; i <= rs.getMetaData().getColumnCount(); i++){
+                    diffBuffer.append(rs.getObject(i));
                     diffBuffer.append("|\n");
                 }
             }
@@ -289,11 +289,11 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 e.printStackTrace();
             }
             assertContains(e.getMessage(),exceptionMessage);
-            return;            
+            return;
         }
         fail("Failed to see exception with message:"+exceptionMessage);
     }
-    
+
     @Override
     public void fire(Connection conn, Object[] oldRow, Object[] newRow)
             throws SQLException {
@@ -307,7 +307,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
             newRow[1] = newRow[1] + "-updated"+(++triggerTestingUpdateCount);
         } else if (triggerName.startsWith("DEL_BEFORE")) {
             oldRow[1] = oldRow[1] + "-deleted"+(++triggerTestingUpdateCount);
-        } 
+        }
     }
 
     @Override
@@ -337,7 +337,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
             throw new AssertionError("triggerName: " + trigger + " type:" + type);
         }
     }
-    
+
     private String getCreateTriggerSQL(){
         StringBuffer buf = new StringBuffer();
         buf.append("CREATE TRIGGER INS_BEFORE " +
@@ -351,6 +351,6 @@ public class TestMergeUsing extends TestBase implements Trigger {
                 "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
         return buf.toString();
     }
-    
+
 
 }

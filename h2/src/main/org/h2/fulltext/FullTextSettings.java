@@ -13,7 +13,6 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
 import org.h2.util.New;
 import org.h2.util.SoftHashMap;
 
@@ -69,7 +68,7 @@ final class FullTextSettings {
     /**
      * Clear set of ignored words
      */
-    public void clearInored() {
+    public void clearIgnored() {
         synchronized (ignoreList) {
             ignoreList.clear();
         }

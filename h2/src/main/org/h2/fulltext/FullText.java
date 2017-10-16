@@ -23,7 +23,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.UUID;
-
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -266,7 +265,7 @@ public class FullText {
         removeAllTriggers(conn, TRIGGER_PREFIX);
         FullTextSettings setting = FullTextSettings.getInstance(conn);
         setting.removeAllIndexes();
-        setting.clearInored();
+        setting.clearIgnored();
         setting.clearWordList();
     }
 
@@ -1151,8 +1150,8 @@ public class FullText {
             return buff.toString();
         }
 
-        private PreparedStatement getStatement(Connection conn, int indx) throws SQLException {
-            return useOwnConnection ? conn.prepareStatement(SQL[indx]) : prepStatements[indx];
+        private PreparedStatement getStatement(Connection conn, int index) throws SQLException {
+            return useOwnConnection ? conn.prepareStatement(SQL[index]) : prepStatements[index];
         }
 
     }

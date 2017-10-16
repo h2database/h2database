@@ -40,6 +40,9 @@ public class ColumnNamer {
         String columnName = null;
         if (columnNameOverride != null){
             columnName = columnNameOverride;
+            if(!isAllowableColumnName(columnName)){
+                columnName = null;
+            }            
         }  
         // try a name form the column alias
         if (columnName==null && columnExp.getAlias()!=null){
@@ -54,6 +57,16 @@ public class ColumnNamer {
         // try a name derived form the column expression SQL
         if (columnName==null && columnExp.getColumnName()!=null){
              columnName =  columnExp.getColumnName();
+             if(!isAllowableColumnName(columnName)){
+                 columnName = columnName.replace('\n', ' ').replace('\r', ' ');
+             }
+             if(!isAllowableColumnName(columnName)){
+                 columnName = null;
+             }
+        }
+        // try a name derived form the column expression plan SQL
+        if (columnName==null && columnExp.getSQL()!=null){
+             columnName =  columnExp.getSQL();
              if(!isAllowableColumnName(columnName)){
                  columnName = columnName.replace('\n', ' ').replace('\r', ' ');
              }

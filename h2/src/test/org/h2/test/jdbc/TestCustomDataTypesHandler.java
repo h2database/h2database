@@ -5,6 +5,15 @@
  */
 package org.h2.test.jdbc;
 
+import java.io.Serializable;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Types;
+import java.text.DecimalFormat;
+import java.util.Locale;
 import org.h2.api.CustomDataTypesHandler;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
@@ -19,16 +28,6 @@ import org.h2.value.ValueBytes;
 import org.h2.value.ValueDouble;
 import org.h2.value.ValueJavaObject;
 import org.h2.value.ValueString;
-
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.text.DecimalFormat;
-import java.util.Locale;
 
 /**
  * Tests {@link CustomDataTypesHandler}.
@@ -300,7 +299,7 @@ public class TestCustomDataTypesHandler extends TestBase {
         }
 
         /** Constructs data type instance for complex number type */
-        private DataType createComplex() {
+        private static DataType createComplex() {
             DataType result = new DataType();
             result.type = COMPLEX_DATA_TYPE_ID;
             result.name = COMPLEX_DATA_TYPE_NAME;

@@ -273,7 +273,7 @@ final class FullTextSettings {
         return whitespaceChars;
     }
 
-    private String normalizeWord(String word) {
+    private static String normalizeWord(String word) {
         // TODO this is locale specific, document
         return word.toUpperCase();
     }

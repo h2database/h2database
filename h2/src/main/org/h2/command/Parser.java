@@ -3527,7 +3527,7 @@ public class Parser {
         return false;
     }
 
-    private boolean equalsTokenIgnoreCase(String a, String b) {
+    private static boolean equalsTokenIgnoreCase(String a, String b) {
         if (a == null) {
             return b == null;
         } else if (a.equals(b)) {

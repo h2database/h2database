@@ -98,7 +98,7 @@ public class CreateCluster extends Tool {
         process(urlSource, urlTarget, user, password, serverList);
     }
 
-    private void process(String urlSource, String urlTarget,
+    private static void process(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
         Connection connSource = null, connTarget = null;
         Statement statSource = null, statTarget = null;
@@ -171,6 +171,7 @@ public class CreateCluster extends Tool {
 
                 new Thread(
                     new Runnable(){
+                        @Override
                         public void run() {
                             try {
                                 while (rs.next()) {

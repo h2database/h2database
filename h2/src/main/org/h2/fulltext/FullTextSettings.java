@@ -13,7 +13,6 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-
 import org.h2.util.New;
 import org.h2.util.SoftHashMap;
 
@@ -69,7 +68,7 @@ final class FullTextSettings {
     /**
      * Clear set of ignored words
      */
-    public void clearInored() {
+    public void clearIgnored() {
         synchronized (ignoreList) {
             ignoreList.clear();
         }
@@ -274,7 +273,7 @@ final class FullTextSettings {
         return whitespaceChars;
     }
 
-    private String normalizeWord(String word) {
+    private static String normalizeWord(String word) {
         // TODO this is locale specific, document
         return word.toUpperCase();
     }

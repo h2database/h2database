@@ -5,15 +5,14 @@
  */
 package org.h2.test.db;
 
-import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLException;
-import org.h2.test.TestBase;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
+import org.h2.test.TestBase;
 
 /**
  * Tests for table synonyms.
@@ -248,7 +247,7 @@ public class TestSynonymForTable extends TestBase {
         conn.close();
     }
 
-    private void deleteFromSynonym(Connection conn, int id) throws SQLException {
+    private static void deleteFromSynonym(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement(
                 "DELETE FROM testsynonym WHERE id = ?");
         prep.setInt(1, id);
@@ -307,21 +306,21 @@ public class TestSynonymForTable extends TestBase {
         assertFalse(rs.next());
     }
 
-    private void insertIntoSynonym(Connection conn, int id) throws SQLException {
+    private static void insertIntoSynonym(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO testsynonym VALUES(?)");
         prep.setInt(1, id);
         prep.execute();
     }
 
-    private void insertIntoBackingTable(Connection conn, int id) throws SQLException {
+    private static void insertIntoBackingTable(Connection conn, int id) throws SQLException {
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO backingtable VALUES(?)");
         prep.setInt(1, id);
         prep.execute();
     }
 
-    private void createTableWithSynonym(Connection conn) throws SQLException {
+    private static void createTableWithSynonym(Connection conn) throws SQLException {
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE IF NOT EXISTS backingtable(id INT PRIMARY KEY)");
         stat.execute("CREATE OR REPLACE SYNONYM testsynonym FOR backingtable");

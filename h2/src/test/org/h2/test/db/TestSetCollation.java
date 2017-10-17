@@ -168,7 +168,7 @@ public class TestSetCollation extends TestBase {
         }
     }
 
-    private void insertValues(Connection con, String[] values, int startId) throws SQLException {
+    private static void insertValues(Connection con, String[] values, int startId) throws SQLException {
         PreparedStatement ps = con.prepareStatement("INSERT INTO charsettable VALUES (?, ?)");
         int id = startId;
         for (String value : values) {
@@ -179,7 +179,7 @@ public class TestSetCollation extends TestBase {
         ps.close();
     }
 
-    private List<String> loadTableValues(Connection con) throws SQLException {
+    private static List<String> loadTableValues(Connection con) throws SQLException {
         List<String> results = new ArrayList<>();
         Statement statement = con.createStatement();
         ResultSet resultSet = statement.executeQuery("select testvalue from charsettable order by testvalue");

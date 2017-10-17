@@ -27,7 +27,7 @@ public class TestConcurrentLinkedList extends TestBase {
     public static void main(String... a) throws Exception {
         TestConcurrentLinkedList test = (TestConcurrentLinkedList) TestBase.createCaller().init();
         test.test();
-        test.testPerformance();
+        testPerformance();
     }
 
     @Override
@@ -36,7 +36,7 @@ public class TestConcurrentLinkedList extends TestBase {
         testConcurrent();
     }
 
-    private void testPerformance() {
+    private static void testPerformance() {
         testPerformance(true);
         testPerformance(false);
         testPerformance(true);

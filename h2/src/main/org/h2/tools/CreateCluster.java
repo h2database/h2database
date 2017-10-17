@@ -5,21 +5,19 @@
  */
 package org.h2.tools;
 
+import java.io.IOException;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
-
-import java.io.PipedReader;
-import java.io.PipedWriter;
-import java.io.IOException;
-import java.sql.ResultSet;
 
 /**
  * Creates a cluster from a standalone database.
@@ -100,12 +98,12 @@ public class CreateCluster extends Tool {
         process(urlSource, urlTarget, user, password, serverList);
     }
 
-    private void process(String urlSource, String urlTarget,
+    private static void process(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
         Connection connSource = null, connTarget = null;
         Statement statSource = null, statTarget = null;
         PipedReader pipeReader = null;
-        
+
         try {
             org.h2.Driver.load();
 
@@ -146,19 +144,23 @@ public class CreateCluster extends Tool {
             statSource.execute("SET EXCLUSIVE 2");
 
             pipeReader = new PipedReader();
-            
+
             try {
-	        // Pipe writer is used + closed in the inner class, in a separate thread (needs to be final).
-	        // It should be initialized within try{} so an exception could be caught if creation fails.
-	        // In that scenario, the the writer should be null and needs no closing,
-	        // and the main goal is that finally{} should bring the source DB
-	        // out of exclusive mode, and close the reader.
+                /*
+                 * Pipe writer is used + closed in the inner class, in a
+                 * separate thread (needs to be final). It should be initialized
+                 * within try{} so an exception could be caught if creation
+                 * fails. In that scenario, the the writer should be null and
+                 * needs no closing, and the main goal is that finally{} should
+                 * bring the source DB out of exclusive mode, and close the
+                 * reader.
+                 */
                 final PipedWriter pipeWriter = new PipedWriter(pipeReader);
-                
+
                 // Backup data from source database in script form.
                 // Start writing to pipe writer in separate thread.
                 final ResultSet rs = statSource.executeQuery("SCRIPT");
-                
+
                 // Delete the target database first.
                 connTarget = DriverManager.getConnection(
                         urlTarget + ";CLUSTER=''", user, password);
@@ -166,9 +168,10 @@ public class CreateCluster extends Tool {
                 statTarget.execute("DROP ALL OBJECTS DELETE FILES");
                 connTarget.close();
 
-                
+
                 new Thread(
                     new Runnable(){
+                        @Override
                         public void run() {
                             try {
                                 while (rs.next()) {
@@ -184,7 +187,7 @@ public class CreateCluster extends Tool {
                         }
                     }
                 ).start();
-                
+
                 // Read data from pipe reader, restore on target.
                 connTarget = DriverManager.getConnection(urlTarget, user, password);
                 RunScript.execute(connTarget,pipeReader);
@@ -193,7 +196,7 @@ public class CreateCluster extends Tool {
                 // set the cluster to the serverList on both databases
                 statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
                 statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
-                
+
             } catch (IOException ex) {
                 throw new SQLException(ex);
             } finally {

@@ -525,8 +525,6 @@ public class TestGeneralCommonTableQueries extends TestBase {
             for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
                 // previously the column label was null or had \n or \r in the string
                 assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
-                //assertFalse(rs.getMetaData().getColumnLabel(columnIndex).contains("\n"));
-                //assertFalse(rs.getMetaData().getColumnLabel(columnIndex).contains("\r"));
                 assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
             }
             

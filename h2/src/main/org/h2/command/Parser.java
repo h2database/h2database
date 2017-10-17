@@ -5263,7 +5263,7 @@ public class Parser {
      */
     private static List<Column> createQueryColumnTemplateList(String[] cols,
             Query theQuery, String[] querySQLOutput) {
-        List<Column> columnTemplateList = new ArrayList<Column>();
+        List<Column> columnTemplateList = new ArrayList<>();
         theQuery.prepare();
         // array of length 1 to receive extra 'output' field in addition to
         // return value

@@ -698,7 +698,7 @@ class ToDateTokenizer {
                 Character key = Character.toUpperCase(formatStr.charAt(0));
                 switch (key) {
                 case '"':
-                    result = new ArrayList<FormatTokenEnum>();
+                    result = new ArrayList<>();
                     result.add(INLINE);
                     break;
                 default:

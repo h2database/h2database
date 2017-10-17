@@ -514,7 +514,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
             +"FROM A                                   \n"
             +"GROUP BY A.val";
 
-        for(@SuppressWarnings("unused") int queryRunTries: new int[]{1,2,3}){
+        for(int queryRunTries=1;queryRunTries<4;queryRunTries++){
             Statement stat = conn.createStatement();
             stat.execute(SETUP_SQL);
             stat.close();

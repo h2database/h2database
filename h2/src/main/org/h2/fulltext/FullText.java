@@ -750,7 +750,7 @@ public class FullText {
      * @param table the table name
      */
     private static void createTrigger(Connection conn, String schema,
-                                      String table) throws SQLException {
+            String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
@@ -792,11 +792,11 @@ public class FullText {
      * @param table the table name
      */
     private static void indexExistingRows(Connection conn, String schema,
-                                          String table) throws SQLException {
+            String table) throws SQLException {
         FullText.FullTextTrigger existing = new FullText.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
-                "." + StringUtils.quoteIdentifier(table);
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema)
+                + "." + StringUtils.quoteIdentifier(table);
         ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {

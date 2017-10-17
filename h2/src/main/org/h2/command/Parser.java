@@ -1137,9 +1137,13 @@ public class Parser {
 
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
-            TableView temporarySourceTableView = createTemporarySessionView(command.getQueryAlias(), querySQLOutput[0], columnTemplateList, false/*no recursion*/, false/* do not add to session*/);
-            TableFilter sourceTableFilter = new TableFilter(session, temporarySourceTableView, command.getQueryAlias(), rightsChecked,
-                (Select) command.getQuery(), 0, null);
+            TableView temporarySourceTableView = createTemporarySessionView(
+                    command.getQueryAlias(), querySQLOutput[0],
+                    columnTemplateList, false/* no recursion */,
+                    false/* do not add to session */);
+            TableFilter sourceTableFilter = new TableFilter(session,
+                    temporarySourceTableView, command.getQueryAlias(),
+                    rightsChecked, (Select) command.getQuery(), 0, null);
             command.setSourceTableFilter(sourceTableFilter);
         }
         else{
@@ -1193,31 +1197,18 @@ public class Parser {
 
         setSQL(command, "MERGE", start);
 
-        // build and prepare the targetMatchQuery ready to test each rows existence in the target table (using source row to match)
-        StringBuffer targetMatchQuerySQL = new StringBuffer("SELECT _ROWID_ FROM "+command.getTargetTable().getName());
-        if(command.getTargetTableFilter().getTableAlias()!=null){
-            targetMatchQuerySQL.append(" AS "+command.getTargetTableFilter().getTableAlias());
+        // build and prepare the targetMatchQuery ready to test each rows
+        // existence in the target table (using source row to match)
+        StringBuffer targetMatchQuerySQL = new StringBuffer(
+                "SELECT _ROWID_ FROM " + command.getTargetTable().getName());
+        if (command.getTargetTableFilter().getTableAlias() != null) {
+            targetMatchQuerySQL.append(
+                    " AS " + command.getTargetTableFilter().getTableAlias());
         }
-        targetMatchQuerySQL.append(" WHERE "+command.getOnCondition().getSQL());
-//        Select preparedTargetMatchQuery = new Select(session);
-//        preparedTargetMatchQuery.addTableFilter(command.getTargetTableFilter(), true/*isTop*/);
-//        preparedTargetMatchQuery.addTableFilter(command.getSourceTableFilter(), false/*isTop - not top table scan*/);
-//        preparedTargetMatchQuery.setSQL(targetMatchQuerySQL.toString());
-//        ArrayList<Expression> selectList = New.arrayList();
-//        //Database db = session == null ? null : session.getDatabase();
-//        selectList.add(new ExpressionColumn(session.getDatabase(), command.getTargetTableFilter().getTable().getRowIdColumn()));
-//        preparedTargetMatchQuery.setExpressions(selectList);
-//        preparedTargetMatchQuery.init();
-          command.setTargetMatchQuery((Select)parse(targetMatchQuerySQL.toString()));
-
-//        Select command = new Select(session);
-//        currentSelect = command;
-//        TableFilter filter = parseValuesTable(0);
-//        ArrayList<Expression> list = New.arrayList();
-//        list.add(new Wildcard(null, null));
-//        command.setExpressions(list);
-//        command.addTableFilter(filter, true);
-//        command.init();
+        targetMatchQuerySQL
+                .append(" WHERE " + command.getOnCondition().getSQL());
+        command.setTargetMatchQuery(
+                (Select) parse(targetMatchQuerySQL.toString()));
 
         return command;
     }
@@ -3422,7 +3413,8 @@ public class Parser {
         return s;
     }
 
-    // TODO: why does this function allow defaultSchemaName=null - which resets the parser schemaName for everyone ?
+    // TODO: why does this function allow defaultSchemaName=null - which resets
+    // the parser schemaName for everyone ?
     private String readIdentifierWithSchema(String defaultSchemaName) {
         if (currentTokenType != IDENTIFIER) {
             throw DbException.getSyntaxError(sqlCommand, parseIndex,
@@ -5251,39 +5243,48 @@ public class Parser {
         } finally {
             session.removeLocalTempTable(recursiveTable);
         }
-        TableView view = createTemporarySessionView(tempViewName, querySQLOutput[0], columnTemplateList,true/*allowRecursiveQueryDetection*/, true);
+        TableView view = createTemporarySessionView(tempViewName,
+                querySQLOutput[0], columnTemplateList,
+                true/* allowRecursiveQueryDetection */, true);
         return view;
     }
 
     /**
-     * Creates a list of column templates from a query (usually from WITH query, but could be any query)
-     * @param cols - an optional list of column names (can be specified by WITH clause overriding usual select names)
+     * Creates a list of column templates from a query (usually from WITH query,
+     * but could be any query)
+     *
+     * @param cols - an optional list of column names (can be specified by WITH
+     *            clause overriding usual select names)
      * @param theQuery - the query object we want the column list for
-     * @param querySQLOutput - array of length 1 to receive extra 'output' field in addition to return value
-     *                  - containing the SQL query of the Query object
+     * @param querySQLOutput - array of length 1 to receive extra 'output' field
+     *            in addition to return value - containing the SQL query of the
+     *            Query object
      * @return a list of column object returned by withQuery
      */
-    private List<Column> createQueryColumnTemplateList(String[] cols, Query theQuery, String[] querySQLOutput) {
+    private static List<Column> createQueryColumnTemplateList(String[] cols,
+            Query theQuery, String[] querySQLOutput) {
         List<Column> columnTemplateList = new ArrayList<Column>();
         theQuery.prepare();
-        // array of length 1 to receive extra 'output' field in addition to return value
+        // array of length 1 to receive extra 'output' field in addition to
+        // return value
         querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {
             Expression columnExp = withExpressions.get(i);
-            // use the passed in column name if supplied, otherwise use alias (if found) otherwise use column name
-            // derived from column expression
+            /*
+             * Use the passed in column name if supplied, otherwise use alias
+             * (if found) otherwise use column name derived from column
+             * expression.
+             */
             String columnName;
-            if (cols != null){
+            if (cols != null) {
                 columnName = cols[i];
-            } else if (columnExp.getAlias()!=null){
+            } else if (columnExp.getAlias() != null) {
                 columnName = columnExp.getAlias();
+            } else {
+                columnName = columnExp.getColumnName();
             }
-            else{
-                 columnName =  columnExp.getColumnName();
-            }
-            columnTemplateList.add(new Column(columnName,
-                    columnExp.getType()));
+            columnTemplateList.add(new Column(columnName, columnExp.getType()));
         }
         return columnTemplateList;
     }
@@ -6114,16 +6115,16 @@ public class Parser {
             readIf("COLUMN");
             String columnName = readColumnIdentifier();
             if ((isToken("NOT") || isToken("NULL"))) {
-            	AlterTableAlterColumn command = new AlterTableAlterColumn(
-            			session, schema);
-            	command.setTableName(tableName);
-            	command.setIfTableExists(ifTableExists);
-            	Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
-            	command.setOldColumn(column);
+                AlterTableAlterColumn command = new AlterTableAlterColumn(
+                        session, schema);
+                command.setTableName(tableName);
+                command.setIfTableExists(ifTableExists);
+                Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
+                command.setOldColumn(column);
                 if (readIf("NOT")) {
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
                 } else {
-                	read("NULL");
+                    read("NULL");
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
                 }
                 return command;

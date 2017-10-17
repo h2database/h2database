@@ -5,6 +5,7 @@
  */
 package org.h2.fulltext;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,17 +16,25 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
 import org.h2.api.Trigger;
 import org.h2.command.Parser;
 import org.h2.engine.Session;
@@ -37,16 +46,6 @@ import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
-import java.io.File;
-import java.util.Map;
-
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
-import org.apache.lucene.index.IndexWriter;
 
 /**
  * This class implements the full text search based on Apache Lucene.
@@ -256,7 +255,7 @@ public class FullTextLucene extends FullText {
      * @param table the table name
      */
     private static void createTrigger(Connection conn, String schema,
-                                      String table) throws SQLException {
+            String table) throws SQLException {
         createOrDropTrigger(conn, schema, table, true);
     }
 
@@ -344,11 +343,11 @@ public class FullTextLucene extends FullText {
      * @param table the table name
      */
     private static void indexExistingRows(Connection conn, String schema,
-                                          String table) throws SQLException {
+            String table) throws SQLException {
         FullTextLucene.FullTextTrigger existing = new FullTextLucene.FullTextTrigger();
         existing.init(conn, schema, null, table, false, Trigger.INSERT);
-        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema) +
-                "." + StringUtils.quoteIdentifier(table);
+        String sql = "SELECT * FROM " + StringUtils.quoteIdentifier(schema)
+                + "." + StringUtils.quoteIdentifier(table);
         ResultSet rs = conn.createStatement().executeQuery(sql);
         int columnCount = rs.getMetaData().getColumnCount();
         while (rs.next()) {
@@ -429,9 +428,9 @@ public class FullTextLucene extends FullText {
                 if (limit == 0) {
                     limit = docs.totalHits;
                 }
-                for (int i = 0, len = docs.scoreDocs.length;
-                     i < limit && i + offset < docs.totalHits
-                             && i + offset < len; i++) {
+                for (int i = 0, len = docs.scoreDocs.length; i < limit
+                        && i + offset < docs.totalHits
+                        && i + offset < len; i++) {
                     ScoreDoc sd = docs.scoreDocs[i + offset];
                     Document doc = searcher.doc(sd.doc);
                     float score = sd.score;
@@ -442,17 +441,14 @@ public class FullTextLucene extends FullText {
                         Session session = (Session) c.getSession();
                         Parser p = new Parser(session);
                         String tab = q.substring(0, idx);
-                        ExpressionColumn expr = (ExpressionColumn) p.parseExpression(tab);
+                        ExpressionColumn expr = (ExpressionColumn) p
+                                .parseExpression(tab);
                         String schemaName = expr.getOriginalTableAliasName();
                         String tableName = expr.getColumnName();
                         q = q.substring(idx + " WHERE ".length());
                         Object[][] columnData = parseKey(conn, q);
-                        result.addRow(
-                                schemaName,
-                                tableName,
-                                columnData[0],
-                                columnData[1],
-                                score);
+                        result.addRow(schemaName, tableName, columnData[0],
+                                columnData[1], score);
                     } else {
                         result.addRow(q, score);
                     }

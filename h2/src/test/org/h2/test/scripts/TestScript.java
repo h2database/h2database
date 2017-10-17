@@ -137,7 +137,8 @@ public class TestScript extends TestBase {
     private void testScript(String scriptFileName) throws Exception {
         deleteDb("script");
 
-        // Reset all the state in case there is anything left over from the previous file we processed.
+        // Reset all the state in case there is anything left over from the previous file
+        // we processed.
         conn = null;
         stat = null;
         in = null;

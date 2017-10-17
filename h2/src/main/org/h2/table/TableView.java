@@ -168,6 +168,9 @@ public class TableView extends Table {
                     name = columnTemplates[i].getName();
                     type = columnTemplates[i].getType();
                 }
+                if (name == null) {
+                    name = expr.getAlias();
+                }
                 name = ColumnNamer.getColumnName(expr,i,name);
                 if (type == Value.UNKNOWN) {
                     type = expr.getType();
@@ -437,7 +440,7 @@ public class TableView extends Table {
 
     @Override
     public String getSQL() {
-        if (isTemporary()) {
+        if (isTemporary() && querySQL!=null) {
             return "(\n" + StringUtils.indent(querySQL) + ")";
         }
         return super.getSQL();

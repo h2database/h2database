@@ -119,6 +119,7 @@ public class CommandContainer extends Command {
 
     @Override
     public void stop() {
+        super.stop();
         // Clean up after the command was run in the session.
         // Must restart query (and dependency construction) to reuse.
         if (prepared.getCteCleanups() != null) {
@@ -130,7 +131,6 @@ public class CommandContainer extends Command {
                 }
             }
         }
-        super.stop();
     }
 
     @Override

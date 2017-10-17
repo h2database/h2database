@@ -337,7 +337,7 @@ public class SelectUnion extends Query {
             long prec = Math.max(l.getPrecision(), r.getPrecision());
             int scale = Math.max(l.getScale(), r.getScale());
             int displaySize = Math.max(l.getDisplaySize(), r.getDisplaySize());
-            String columnName = ColumnNamer.getColumnName(l,i);
+            String columnName = ColumnNamer.getColumnName(l,i,l.getAlias());
             Column col = new Column(columnName, type, prec, scale, displaySize);
             Expression e = new ExpressionColumn(session.getDatabase(), col);
             expressions.add(e);

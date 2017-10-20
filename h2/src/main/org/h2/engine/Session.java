@@ -374,7 +374,7 @@ public class Session extends SessionWithState {
      */
     public void removeLocalTempTable(Table table) {
         // Exception thrown in org.h2.engine.Database.removeMeta if line below is missing with TestGeneralCommonTableQueries
-        //database.lockMeta(this);
+        database.lockMeta(this);
         modificationId++;
         localTempTables.remove(table.getName());
         synchronized (database) {
@@ -977,7 +977,7 @@ public class Session extends SessionWithState {
                         table.setModified();
                         it.remove();
                         // Exception thrown in org.h2.engine.Database.removeMeta if line below is missing with TestDeadlock
-                        //database.lockMeta(this);
+                        database.lockMeta(this);
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might

@@ -23,6 +23,7 @@ import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
+import org.h2.util.ColumnNamer;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -534,6 +535,16 @@ public class Set extends Prepared {
             database.setAllowBuiltinAliasOverride(value == 1);
             break;
         }
+            
+        case SetTypes.COLUMN_NAME_RULES: {
+            session.getUser().checkAdmin();
+            System.out.println("1"+stringValue);
+            System.out.println("2"+expression.getColumnName());
+            System.out.println("3"+expression.getSQL());
+            ColumnNamer.configure(expression.getColumnName());
+           break;
+        }
+                        
         default:
             DbException.throwInternalError("type="+type);
         }

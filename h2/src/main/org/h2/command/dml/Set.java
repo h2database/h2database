@@ -23,7 +23,6 @@ import org.h2.result.RowFactory;
 import org.h2.schema.Schema;
 import org.h2.table.Table;
 import org.h2.tools.CompressTool;
-import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
@@ -342,6 +341,7 @@ public class Set extends Prepared {
             if (database.getMode() != mode) {
                 session.getUser().checkAdmin();
                 database.setMode(mode);
+                session.getColumnNamerConfiguration().configure(mode.getEnum());
             }
             break;
         case SetTypes.MULTI_THREADED: {
@@ -538,9 +538,6 @@ public class Set extends Prepared {
             
         case SetTypes.COLUMN_NAME_RULES: {
             session.getUser().checkAdmin();
-            if(session.getColumnNamerConfiguration()==null){
-                session.setColumnNamerConfiguration(ColumnNamerConfiguration.getDefault());
-            }
             session.getColumnNamerConfiguration().configure(expression.getColumnName());
            break;
         }

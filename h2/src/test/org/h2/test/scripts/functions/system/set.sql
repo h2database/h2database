@@ -25,7 +25,7 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID_VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _12345678
 > ------------------------------ ---------------- ----- ------- - ------- -------
 > 1                              4                4     51      x !!!     !!!!
 
-SET COLUMN_NAME_RULES=EMULATE=ORACLE128;
+SET COLUMN_NAME_RULES=EMULATE='Oracle';
 > ok
 
 SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM(X)+1 
@@ -34,16 +34,16 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM
 > ---------------------- ---------------- ----- ------- - ---------- ----------
 > 1                      4                4     51      x !!!        !!!!
 
-SET COLUMN_NAME_RULES=EMULATE=ORACLE30;
+SET COLUMN_NAME_RULES=EMULATE='Oracle';
 > ok
 
 SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM(X)+1 
 +47, 'x' , '!!!' , '!!!!', 'Very Long' AS _23456789012345678901234567890XXX FROM SYSTEM_RANGE(1,2);
-> VERY_VERY_VERY_LONG_ID _123456789012345 SUMX1 SUMX147 x _UNNAMED_6 _UNNAMED_7 _23456789012345678901234567890
-> ---------------------- ---------------- ----- ------- - ---------- ---------- ------------------------------
+> VERY_VERY_VERY_LONG_ID _123456789012345 SUMX1 SUMX147 x _UNNAMED_6 _UNNAMED_7 _23456789012345678901234567890XXX
+> ---------------------- ---------------- ----- ------- - ---------- ---------- ---------------------------------
 > 1                      4                4     51      x !!!        !!!!       Very Long
 
-SET COLUMN_NAME_RULES=EMULATE=POSTGRES;
+SET COLUMN_NAME_RULES=EMULATE='PostgreSQL';
 > ok
 
 SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM(X)+1 
@@ -53,4 +53,30 @@ SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM
 > 1                      4                4     51      x !!!        !!!!       999
 
 SET COLUMN_NAME_RULES=DEFAULT;
+> ok
+
+-- Test all MODES of database:
+-- DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite
+SET COLUMN_NAME_RULES=EMULATE='DB2';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='Derby';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='MSSQLServer';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='MySQL';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='Oracle';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='PostgreSQL';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='Ignite';
+> ok
+
+SET COLUMN_NAME_RULES=EMULATE='REGULAR';
 > ok

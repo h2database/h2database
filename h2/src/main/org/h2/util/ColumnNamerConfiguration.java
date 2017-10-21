@@ -1,6 +1,8 @@
 package org.h2.util;
 
 import java.util.regex.Pattern;
+import org.h2.engine.Mode.ModeEnum;
+import static org.h2.engine.Mode.ModeEnum.*;
 import org.h2.message.DbException;
 
 public class ColumnNamerConfiguration {
@@ -38,7 +40,10 @@ public class ColumnNamerConfiguration {
     }
 
     public void setMaxIdentiferLength(int maxIdentiferLength) {
-        this.maxIdentiferLength = maxIdentiferLength;
+        this.maxIdentiferLength = Math.max(30,maxIdentiferLength);
+        if(maxIdentiferLength!=getMaxIdentiferLength()){
+            throw DbException.getInvalidValueException("Illegal value (<30) in SET COLUMN_NAME_RULES","MAX_IDENTIFIER_LENGTH="+maxIdentiferLength);
+        }
     }
 
     public String getRegularExpressionMatchAllowed() {
@@ -84,31 +89,12 @@ public class ColumnNamerConfiguration {
     public void configure(String stringValue) {
         try{
             if(stringValue.equalsIgnoreCase(DEFAULT_COMMAND)){
-                setMaxIdentiferLength(Integer.MAX_VALUE);
-                setRegularExpressionMatchAllowed("(?m)(?s).+");
-                setRegularExpressionMatchDisallowed("(?m)(?s)[\\x00]");
-                setDefaultColumnNamePattern("_UNNAMED_$$");
-            } else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"ORACLE128")){
-                setMaxIdentiferLength(128);
-                setRegularExpressionMatchAllowed("(?m)(?s)\"?[A-Za-z0-9_]+\"?");
-                setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\"]");
-                setDefaultColumnNamePattern("_UNNAMED_$$");
-            } else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"ORACLE30")){
-                    setMaxIdentiferLength(30);
-                    setRegularExpressionMatchAllowed("(?m)(?s)\"?[A-Za-z0-9_]+\"?");
-                    setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\"]");
-                    setDefaultColumnNamePattern("_UNNAMED_$$");
-            }else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"POSTGRES")){
-                setMaxIdentiferLength(31);
-                setRegularExpressionMatchAllowed("(?m)(?s)\"?[A-Za-z0-9_\"]+\"?");
-                setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\"]");
-                setDefaultColumnNamePattern("_UNNAMED_$$");
+                configure(REGULAR);
+            } else if(stringValue.startsWith(EMULATE_COMMAND)){
+                 configure(ModeEnum.valueOf(unquoteString(stringValue.substring(EMULATE_COMMAND.length()))));
             } else if(stringValue.startsWith(MAX_IDENTIFIER_LENGTH)){
                 int maxLength = Integer.parseInt(stringValue.substring(MAX_IDENTIFIER_LENGTH.length()));
-                setMaxIdentiferLength(Math.max(30,maxLength));
-                if(maxLength!=getMaxIdentiferLength()){
-                    throw DbException.getInvalidValueException("Illegal value (<30) in SET COLUMN_NAME_RULES="+stringValue,stringValue);
-                }
+                setMaxIdentiferLength(maxLength);
             } else if(stringValue.startsWith(GENERATE_UNIQUE_COLUMN_NAMES)){
                 setGenerateUniqueColumnNames(Integer.parseInt(stringValue.substring(GENERATE_UNIQUE_COLUMN_NAMES.length()))==1);            
             } else if(stringValue.startsWith(DEFAULT_COLUMN_NAME_PATTERN)){
@@ -125,9 +111,7 @@ public class ColumnNamerConfiguration {
     
             }
            
-            // recompile RE patterns
-            setCompiledRegularExpressionMatchAllowed(Pattern.compile(getRegularExpressionMatchAllowed()));
-            setCompiledRegularExpressionMatchDisallowed(Pattern.compile(getRegularExpressionMatchDisallowed()));
+            recompilePatterns();
         }
         //Including NumberFormatException|PatternSyntaxException
         catch(RuntimeException e){
@@ -135,10 +119,22 @@ public class ColumnNamerConfiguration {
                     stringValue);
 
         }        
+    }
+
+    private void recompilePatterns() {
+        try{
+            // recompile RE patterns
+            setCompiledRegularExpressionMatchAllowed(Pattern.compile(getRegularExpressionMatchAllowed()));
+            setCompiledRegularExpressionMatchDisallowed(Pattern.compile(getRegularExpressionMatchDisallowed()));
+        }
+        catch(Exception e){
+            configure(REGULAR);
+            throw e;
+        }
     }    
     
     public static ColumnNamerConfiguration getDefault(){
-        return new ColumnNamerConfiguration(Integer.MAX_VALUE, "(?m)(?s).+", "(?m)(?s)[\\x00]", "_unnamed_column_$$_",false);
+        return new ColumnNamerConfiguration(Integer.MAX_VALUE, "(?m)(?s).+", "(?m)(?s)[\\x00]", "_UNNAMED_$$",false);
     }
     
     private static String unquoteString(String s){
@@ -155,6 +151,60 @@ public class ColumnNamerConfiguration {
 
     public void setGenerateUniqueColumnNames(boolean generateUniqueColumnNames) {
         this.generateUniqueColumnNames = generateUniqueColumnNames;
+    }
+
+    public void configure(ModeEnum modeEnum) {
+        switch(modeEnum){
+        case Oracle:
+            // Nonquoted identifiers can contain only alphanumeric characters 
+            // from your database character set and the underscore (_), dollar sign ($), and pound sign (#). 
+            setMaxIdentiferLength(128);
+            setRegularExpressionMatchAllowed("(?m)(?s)\"?[A-Za-z0-9_\\$#]+\"?");
+            setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\"\\$#]");
+            setDefaultColumnNamePattern("_UNNAMED_$$");  
+            setGenerateUniqueColumnNames(false);            
+            break;
+            
+        case MSSQLServer:
+            // https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server
+            setMaxIdentiferLength(128);
+            setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\[\\]]+");// allows [] around names
+            setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\[\\]]");
+            setDefaultColumnNamePattern("_UNNAMED_$$");
+            setGenerateUniqueColumnNames(false);            
+            break;
+            
+        case PostgreSQL:
+            setMaxIdentiferLength(63);// this default can be changed to 128 by postgres config
+            setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\$]+");
+            setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\$]");
+            setDefaultColumnNamePattern("_UNNAMED_$$");
+            setGenerateUniqueColumnNames(false);            
+            break;
+
+        case MySQL:
+            //https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
+            setMaxIdentiferLength(64);
+            setRegularExpressionMatchAllowed("(?m)(?s)`?[A-Za-z0-9_`\\$]+`?");
+            setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_`\\$]");
+            setDefaultColumnNamePattern("_UNNAMED_$$");
+            setGenerateUniqueColumnNames(false);
+            break;
+            
+        default:
+        case REGULAR:
+        case DB2:
+        case Derby:
+        case HSQLDB:
+        case Ignite:
+            setMaxIdentiferLength(Integer.MAX_VALUE);
+            setRegularExpressionMatchAllowed("(?m)(?s).+");
+            setRegularExpressionMatchDisallowed("(?m)(?s)[\\x00]");
+            setDefaultColumnNamePattern("_UNNAMED_$$");
+            setGenerateUniqueColumnNames(false);
+            break;
+        }
+        recompilePatterns();                
     }
         
 }

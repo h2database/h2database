@@ -1168,6 +1168,33 @@ This setting can be appended to the database URL: ""jdbc:h2:test;CACHE_SIZE=8192
 SET CACHE_SIZE 8192
 "
 
+"Commands (Other)","SET COLUMN_NAMING_RULES","
+SET COLUMN_NAMING_RULES = { DEFAULT | EMULATE=... | MAX_IDENTIFIER_LENGTH=... | REGULAR_EXPRESSION_MATCH_ALLOWED=... | REGULAR_EXPRESSION_MATCH_DISALLOWED=... | DEFAULT_COLUMN_NAME_PATTERN=... }
+","
+This setting controls the rules dealing with how column names are generated  
+in select statements.
+
+Administrator rights are required to execute this command, as it affects all 
+connections. This setting is not persistent.
+Emulation settings can be appended to the database URL: 
+""jdbc:h2:test;COLUMN_NAME_RULES=EMULATE=ORACLE30""
+
+It is not recommended to use overly restrictive settings as system 
+columns can accidentally get their identifiers truncated leading to 
+undefined behavior.
+","
+-- Emulate popular database settings
+SET COLUMN_NAME_RULES=EMULATE=ORACLE128 -- Emulate Oracle 128 character column identifiers
+SET COLUMN_NAME_RULES=EMULATE=ORACLE30; -- Emulate Oracle 30 character column identifiers
+SET COLUMN_NAME_RULES=EMULATE=POSTGRES; -- Emulate Postgres
+SET COLUMN_NAME_RULES=DEFAULT; -- Reset back to default H2 allow-anything rules
+-- Custom settings
+SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 10; -- Custom configure max identifier length
+SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_ALLOWED = '[A-Za-z0-9_]+';  -- Custom configure Java RegEx for allowed characters
+SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_DISALLOWED = '[^A-Za-z0-9_]+'; -- Custom configure Java RegEx for disallowed characters
+SET COLUMN_NAME_RULES=DEFAULT_COLUMN_NAME_PATTERN = '_unnamed$$'; -- Custom configure default column name, $$ is replaced by column Nth ordinal
+"
+
 "Commands (Other)","SET CLUSTER","
 SET CLUSTER serverListString
 ","

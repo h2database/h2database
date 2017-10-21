@@ -1169,7 +1169,7 @@ SET CACHE_SIZE 8192
 "
 
 "Commands (Other)","SET COLUMN_NAMING_RULES","
-SET COLUMN_NAMING_RULES = { DEFAULT | EMULATE=... | MAX_IDENTIFIER_LENGTH=... | REGULAR_EXPRESSION_MATCH_ALLOWED=... | REGULAR_EXPRESSION_MATCH_DISALLOWED=... | DEFAULT_COLUMN_NAME_PATTERN=... }
+SET COLUMN_NAMING_RULES = { DEFAULT | EMULATE=... | MAX_IDENTIFIER_LENGTH=... | REGULAR_EXPRESSION_MATCH_ALLOWED=... | REGULAR_EXPRESSION_MATCH_DISALLOWED=... | DEFAULT_COLUMN_NAME_PATTERN=... | GENERATE_UNIQUE_COLUMN_NAMES=...}
 ","
 This setting controls the rules dealing with how column names are generated  
 in select statements.
@@ -1189,7 +1189,7 @@ SET COLUMN_NAME_RULES=EMULATE=ORACLE30; -- Emulate Oracle 30 character column id
 SET COLUMN_NAME_RULES=EMULATE=POSTGRES; -- Emulate Postgres
 SET COLUMN_NAME_RULES=DEFAULT; -- Reset back to default H2 allow-anything rules
 -- Custom settings
-SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 30; -- Custom configure max identifier length (minimum value is 30)
+SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 30; -- Custom configure max identifier length (minimum value is 30). Default is 2147483647.
 SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_ALLOWED = '[A-Za-z0-9_]+';  -- Custom configure Java RegEx for allowed characters
 SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_DISALLOWED = '[^A-Za-z0-9_]+'; -- Custom configure Java RegEx for disallowed characters
 SET COLUMN_NAME_RULES=DEFAULT_COLUMN_NAME_PATTERN = '_unnamed$$'; -- Custom configure default column name, $$ is replaced by column Nth ordinal

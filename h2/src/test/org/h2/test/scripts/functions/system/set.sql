@@ -4,7 +4,7 @@
 --
 -- Try a custom column naming rules setup
 
-SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 10;
+SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 30;
 > ok
 
 SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_ALLOWED = '[A-Za-z0-9_]+';
@@ -16,11 +16,14 @@ SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_DISALLOWED = '[^A-Za-z0-9_]+';
 SET COLUMN_NAME_RULES=DEFAULT_COLUMN_NAME_PATTERN = 'noName$$';
 > ok
 
-SELECT 1 AS VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM(X)+1 
+SET COLUMN_NAME_RULES=GENERATE_UNIQUE_COLUMN_NAMES = 1;
+> ok
+
+SELECT 1 AS VERY_VERY_VERY_LONG_ID_VERY_VERY_VERY_LONG_ID, SUM(X)+1 AS _123456789012345, SUM(X)+1 , SUM(X)+1 
 +47, 'x' , '!!!' , '!!!!' FROM SYSTEM_RANGE(1,2);
-> VERY_VERY_ _123456789 SUMX1 SUMX147 x noName6 noName7
-> ---------- ---------- ----- ------- - ------- -------
-> 1          4          4     51      x !!!     !!!!
+> VERY_VERY_VERY_LONG_ID_VERY_VE _123456789012345 SUMX1 SUMX147 x noName6 noName7
+> ------------------------------ ---------------- ----- ------- - ------- -------
+> 1                              4                4     51      x !!!     !!!!
 
 SET COLUMN_NAME_RULES=EMULATE=ORACLE128;
 > ok

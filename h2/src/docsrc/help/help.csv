@@ -1181,7 +1181,7 @@ Emulation settings can be appended to the database URL:
 
 It is not recommended to use overly restrictive settings as system 
 columns can accidentally get their identifiers truncated leading to 
-undefined behavior.
+undefined behavior. A minimum value of 30 is enforced.
 ","
 -- Emulate popular database settings
 SET COLUMN_NAME_RULES=EMULATE=ORACLE128 -- Emulate Oracle 128 character column identifiers
@@ -1189,10 +1189,11 @@ SET COLUMN_NAME_RULES=EMULATE=ORACLE30; -- Emulate Oracle 30 character column id
 SET COLUMN_NAME_RULES=EMULATE=POSTGRES; -- Emulate Postgres
 SET COLUMN_NAME_RULES=DEFAULT; -- Reset back to default H2 allow-anything rules
 -- Custom settings
-SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 10; -- Custom configure max identifier length
+SET COLUMN_NAME_RULES=MAX_IDENTIFIER_LENGTH = 30; -- Custom configure max identifier length (minimum value is 30)
 SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_ALLOWED = '[A-Za-z0-9_]+';  -- Custom configure Java RegEx for allowed characters
 SET COLUMN_NAME_RULES=REGULAR_EXPRESSION_MATCH_DISALLOWED = '[^A-Za-z0-9_]+'; -- Custom configure Java RegEx for disallowed characters
 SET COLUMN_NAME_RULES=DEFAULT_COLUMN_NAME_PATTERN = '_unnamed$$'; -- Custom configure default column name, $$ is replaced by column Nth ordinal
+SET COLUMN_NAME_RULES=GENERATE_UNIQUE_COLUMN_NAMES = 1; -- Generate unique column names (default is 0, meaning false)
 "
 
 "Commands (Other)","SET CLUSTER","

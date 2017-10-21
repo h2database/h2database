@@ -840,10 +840,13 @@ public class Select extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
+        ColumnNamer columnNamer= new ColumnNamer(session);        
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
-            if(!ColumnNamer.isAllowableColumnName(e.getAlias())){
-                String columnName = ColumnNamer.getColumnName(e,i,e.getAlias());
+            String proposedColumnName = e.getAlias();
+            String columnName = columnNamer.getColumnName(e,i,proposedColumnName);
+            // if the name changed, create an alias
+            if(!columnName.equals(proposedColumnName)){
                 e = new Alias(e,columnName,true);
             }
             expressions.set(i, e.optimize(session));

@@ -163,6 +163,7 @@ public class TableView extends Table {
             tables = New.arrayList(query.getTables());
             ArrayList<Expression> expressions = query.getExpressions();
             ArrayList<Column> list = New.arrayList();
+            ColumnNamer columnNamer= new ColumnNamer(session);                        
             for (int i = 0, count = query.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
@@ -174,7 +175,7 @@ public class TableView extends Table {
                 if (name == null) {
                     name = expr.getAlias();
                 }
-                name = ColumnNamer.getColumnName(expr,i,name);
+                name = columnNamer.getColumnName(expr,i,name);
                 if (type == Value.UNKNOWN) {
                     type = expr.getType();
                 }

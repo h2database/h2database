@@ -1,27 +1,41 @@
 package org.h2.util;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.h2.engine.Session;
 import org.h2.expression.Expression;
-import org.h2.message.DbException;
+
 
 public class ColumnNamer {
  
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
-    private static final String DEFAULT_COMMAND = "DEFAULT";
-    private static final String REGULAR_EXPRESSION_MATCH_DISALLOWED = "REGULAR_EXPRESSION_MATCH_DISALLOWED = ";
-    private static final String REGULAR_EXPRESSION_MATCH_ALLOWED = "REGULAR_EXPRESSION_MATCH_ALLOWED = ";
-    private static final String DEFAULT_COLUMN_NAME_PATTERN = "DEFAULT_COLUMN_NAME_PATTERN = ";
-    private static final String MAX_IDENTIFIER_LENGTH = "MAX_IDENTIFIER_LENGTH = ";
-    private static final String EMULATE_COMMAND = "EMULATE = ";
 
+    private ColumnNamerConfiguration configuration;
+    private Session session;
+    private Set<String> existingColumnNames = new HashSet<String>();
+
+    public ColumnNamer(Session session) {
+        this.session = session;
+        if(this.session!=null && this.session.getColumnNamerConfiguration()!=null){
+            // use original from session
+            this.configuration = this.session.getColumnNamerConfiguration();
+        }
+        else{
+            // detached namer, create new
+            this.configuration = ColumnNamerConfiguration.getDefault();
+            if(session!=null){
+                session.setColumnNamerConfiguration(this.configuration);
+            }
+        }
+    }
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
      * @param columnExp the column expression
      * @param indexOfColumn index of column in below array
      * @return
      */
-    public static String getColumnName(Expression expr, int indexOfColumn) {
+    public String getColumnName(Expression expr, int indexOfColumn) {
         return getColumnName(expr,indexOfColumn,(String) null);
     }
     /**
@@ -31,7 +45,7 @@ public class ColumnNamer {
      * @param columnNameOverides array of overriding column names
      * @return the new column name
      */
-    public static String getColumnName(Expression columnExp, int indexOfColumn, String[] columnNameOverides){
+    public String getColumnName(Expression columnExp, int indexOfColumn, String[] columnNameOverides){
         String columnNameOverride = null;
         if (columnNameOverides != null && columnNameOverides.length > indexOfColumn){
             columnNameOverride = columnNameOverides[indexOfColumn];
@@ -46,7 +60,7 @@ public class ColumnNamer {
      * @param columnNameOverride single overriding column name
      * @return the new column name
      */
-    public static String getColumnName(Expression columnExp, int indexOfColumn, String columnNameOverride) {
+    public String getColumnName(Expression columnExp, int indexOfColumn, String columnNameOverride) {
         // try a name from the column name override
         String columnName = null;
         if (columnNameOverride != null){
@@ -90,106 +104,59 @@ public class ColumnNamer {
         }
         // go with a innocuous default name pattern
         if (columnName==null){
-            columnName =  defaultColumnNamePattern.replace("$$", ""+(indexOfColumn+1));
-       }
+            columnName =  configuration.getDefaultColumnNamePattern().replace("$$", ""+(indexOfColumn+1));
+        }
+        if(existingColumnNames.contains(columnName) && configuration.isGenerateUniqueColumnNames()){
+            columnName = generateUniqueName(columnName);
+        }
+        existingColumnNames.add(columnName);
         return columnName;
     }
         
-    public static boolean isAllowableColumnName(String proposedName){
+    private String generateUniqueName(String columnName) {
+        String newColumnName = columnName;
+        int loopCount = 2;
+        while(existingColumnNames.contains(newColumnName)){
+            
+            String loopCountString = "_"+loopCount;
+            newColumnName = columnName.substring(0,Math.min(columnName.length(), configuration.getMaxIdentiferLength()-loopCountString.length()))+loopCountString;
+            
+            loopCount++;
+        }
+        return newColumnName;
+    }
+    
+    public boolean isAllowableColumnName(String proposedName){
         
         // check null
         if (proposedName == null){
             return false;
         }
         // check size limits
-        if (proposedName.length() > maxIdentiferLength || proposedName.length()==0){
+        if (proposedName.length() > configuration.getMaxIdentiferLength() || proposedName.length()==0){
             return false;
         }
-        Matcher match = compiledRegularExpressionMatchAllowed.matcher(proposedName);
+        Matcher match = configuration.getCompiledRegularExpressionMatchAllowed().matcher(proposedName);
         if(!match.matches()){
             return false;
         }
         return true;
     }
  
-    private static String fixColumnName(String proposedName) {
-        Matcher match = compiledRegularExpressionMatchDisallowed.matcher(proposedName);
+    private String fixColumnName(String proposedName) {
+        Matcher match = configuration.getCompiledRegularExpressionMatchDisallowed().matcher(proposedName);
         proposedName = match.replaceAll("");
         
         // check size limits - then truncate
-        if (proposedName.length() > maxIdentiferLength){
-            proposedName=proposedName.substring(0, maxIdentiferLength);
+        if (proposedName.length() > configuration.getMaxIdentiferLength()){
+            proposedName=proposedName.substring(0, configuration.getMaxIdentiferLength());
         }
         
         return proposedName;
     }
     
-    private static String unquoteString(String s){
-        if(s.startsWith("'") && s.endsWith("'")){
-            s = s.substring(1, s.length()-1);
-            return s;
-        }
-        return s;
+    public ColumnNamerConfiguration getConfiguration() {
+        return configuration;
     }
     
-    
-    static int maxIdentiferLength = Integer.MAX_VALUE;
-    static String regularExpressionMatchAllowed =    "(?m)(?s).+";
-    static String regularExpressionMatchDisallowed = "(?m)(?s)[\\x00]";
-    static String defaultColumnNamePattern = "_unnamed_column_$$_";
-    
-    static Pattern compiledRegularExpressionMatchAllowed = Pattern.compile(regularExpressionMatchAllowed);
-    static Pattern compiledRegularExpressionMatchDisallowed = Pattern.compile(regularExpressionMatchDisallowed);
-    
-    public static void configure(String stringValue) {
-        try{
-            if(stringValue.equalsIgnoreCase(DEFAULT_COMMAND)){
-                maxIdentiferLength = Integer.MAX_VALUE;
-                regularExpressionMatchAllowed = "(?m)(?s).+";
-                regularExpressionMatchDisallowed = "(?m)(?s)[\\x00]";
-                defaultColumnNamePattern = "_UNNAMED_$$";
-            } else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"ORACLE128")){
-                maxIdentiferLength = 128;
-                regularExpressionMatchAllowed = "(?m)(?s)\"?[A-Za-z0-9_]+\"?";
-                regularExpressionMatchDisallowed = "(?m)(?s)[^A-Za-z0-9_\"]";
-                defaultColumnNamePattern = "_UNNAMED_$$";
-            } else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"ORACLE30")){
-                    maxIdentiferLength = 30;
-                    regularExpressionMatchAllowed = "(?m)(?s)\"?[A-Za-z0-9_]+\"?";
-                    regularExpressionMatchDisallowed = "(?m)(?s)[^A-Za-z0-9_\"]";
-                    defaultColumnNamePattern = "_UNNAMED_$$";
-            }else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"POSTGRES")){
-                maxIdentiferLength = 31;
-                regularExpressionMatchAllowed = "(?m)(?s)\"?[A-Za-z0-9_\"]+\"?";
-                regularExpressionMatchDisallowed = "(?m)(?s)[^A-Za-z0-9_\"]";
-                defaultColumnNamePattern = "_UNNAMED_$$";
-            } else if(stringValue.startsWith(MAX_IDENTIFIER_LENGTH)){
-                maxIdentiferLength = Math.max(0,Integer.parseInt(stringValue.substring(MAX_IDENTIFIER_LENGTH.length())));            
-            } else if(stringValue.startsWith(DEFAULT_COLUMN_NAME_PATTERN)){
-                defaultColumnNamePattern =unquoteString(stringValue.substring(DEFAULT_COLUMN_NAME_PATTERN.length()));            
-            } else if(stringValue.startsWith(REGULAR_EXPRESSION_MATCH_ALLOWED)){
-                regularExpressionMatchAllowed=unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_ALLOWED.length()));            
-            } else if(stringValue.startsWith(REGULAR_EXPRESSION_MATCH_DISALLOWED)){
-                regularExpressionMatchDisallowed =unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_DISALLOWED.length()));            
-            }
-            else
-            {
-                throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES: unknown id:"+stringValue,
-                        stringValue);
-    
-            }
-           
-            // recompile RE patterns
-            compiledRegularExpressionMatchAllowed = Pattern.compile(regularExpressionMatchAllowed);
-            compiledRegularExpressionMatchDisallowed = Pattern.compile(regularExpressionMatchDisallowed);
-        }
-        //Including NumberFormatException|PatternSyntaxException
-        catch(RuntimeException e){
-            throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES:"+e.getMessage(),
-                    stringValue);
-
-        }
-        
-    }
-
 }

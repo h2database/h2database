@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -73,6 +75,10 @@ public class TestScript extends TestBase {
 
     @Override
     public void test() throws Exception {
+        Path currentRelativePath = Paths.get("");
+        String currentAbsolutePath = currentRelativePath.toAbsolutePath().toString();
+        System.out.println("Current absolute path is: " + currentAbsolutePath);
+        
         if (config.networked && config.big) {
             return;
         }

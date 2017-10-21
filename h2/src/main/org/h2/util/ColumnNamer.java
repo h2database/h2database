@@ -2,7 +2,6 @@ package org.h2.util;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import org.h2.expression.Expression;
 import org.h2.message.DbException;
 
@@ -10,10 +9,11 @@ public class ColumnNamer {
  
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
     private static final String DEFAULT_COMMAND = "DEFAULT";
-    private static final String REGULAR_EXPRESSION_MATCH_DISALLOWED = "REGULAREXPRESSIONMATCHDISALLOWED = ";
-    private static final String REGULAR_EXPRESSION_MATCH_ALLOWED = "REGULAREXPRESSIONMATCHALLOWED = ";
-    private static final String DEFAULT_COLUMN_NAME_PATTERN = "DEFAULTCOLUMNNAMEPATTERN = ";
-    private static final String MAX_IDENTIFIER_LENGTH = "MAXIDENTIFIERLENGTH = ";
+    private static final String REGULAR_EXPRESSION_MATCH_DISALLOWED = "REGULAR_EXPRESSION_MATCH_DISALLOWED = ";
+    private static final String REGULAR_EXPRESSION_MATCH_ALLOWED = "REGULAR_EXPRESSION_MATCH_ALLOWED = ";
+    private static final String DEFAULT_COLUMN_NAME_PATTERN = "DEFAULT_COLUMN_NAME_PATTERN = ";
+    private static final String MAX_IDENTIFIER_LENGTH = "MAX_IDENTIFIER_LENGTH = ";
+    private static final String EMULATE_COMMAND = "EMULATE = ";
 
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
@@ -57,7 +57,6 @@ public class ColumnNamer {
             if(!isAllowableColumnName(columnName)){
                 columnName = null;
             }
-            return columnName;
         }  
         // try a name from the column alias
         if (columnName==null && columnExp.getAlias()!=null && !DEFAULT_COLUMN_NAME.equals(columnExp.getAlias())){
@@ -125,6 +124,14 @@ public class ColumnNamer {
         return proposedName;
     }
     
+    private static String unquoteString(String s){
+        if(s.startsWith("'") && s.endsWith("'")){
+            s = s.substring(1, s.length()-1);
+            return s;
+        }
+        return s;
+    }
+    
     
     static int maxIdentiferLength = Integer.MAX_VALUE;
     static String regularExpressionMatchAllowed =    "(?m)(?s).+";
@@ -141,17 +148,17 @@ public class ColumnNamer {
                 regularExpressionMatchAllowed = "(?m)(?s).+";
                 regularExpressionMatchDisallowed = "(?m)(?s)[\\x00]";
                 defaultColumnNamePattern = "_UNNAMED_$$";
-            } else if(stringValue.equalsIgnoreCase("ORACLE128")){
+            } else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"ORACLE128")){
                 maxIdentiferLength = 128;
                 regularExpressionMatchAllowed = "(?m)(?s)\"?[A-Za-z0-9_]+\"?";
                 regularExpressionMatchDisallowed = "(?m)(?s)[^A-Za-z0-9_\"]";
                 defaultColumnNamePattern = "_UNNAMED_$$";
-            } else if(stringValue.equalsIgnoreCase("ORACLE30")){
+            } else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"ORACLE30")){
                     maxIdentiferLength = 30;
                     regularExpressionMatchAllowed = "(?m)(?s)\"?[A-Za-z0-9_]+\"?";
                     regularExpressionMatchDisallowed = "(?m)(?s)[^A-Za-z0-9_\"]";
                     defaultColumnNamePattern = "_UNNAMED_$$";
-            }else if(stringValue.equalsIgnoreCase("POSTGRES")){
+            }else if(stringValue.equalsIgnoreCase(EMULATE_COMMAND+"POSTGRES")){
                 maxIdentiferLength = 31;
                 regularExpressionMatchAllowed = "(?m)(?s)\"?[A-Za-z0-9_\"]+\"?";
                 regularExpressionMatchDisallowed = "(?m)(?s)[^A-Za-z0-9_\"]";
@@ -159,11 +166,11 @@ public class ColumnNamer {
             } else if(stringValue.startsWith(MAX_IDENTIFIER_LENGTH)){
                 maxIdentiferLength = Math.max(0,Integer.parseInt(stringValue.substring(MAX_IDENTIFIER_LENGTH.length())));            
             } else if(stringValue.startsWith(DEFAULT_COLUMN_NAME_PATTERN)){
-                defaultColumnNamePattern =stringValue.substring(DEFAULT_COLUMN_NAME_PATTERN.length());            
+                defaultColumnNamePattern =unquoteString(stringValue.substring(DEFAULT_COLUMN_NAME_PATTERN.length()));            
             } else if(stringValue.startsWith(REGULAR_EXPRESSION_MATCH_ALLOWED)){
-                regularExpressionMatchAllowed=stringValue.substring(REGULAR_EXPRESSION_MATCH_ALLOWED.length());            
+                regularExpressionMatchAllowed=unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_ALLOWED.length()));            
             } else if(stringValue.startsWith(REGULAR_EXPRESSION_MATCH_DISALLOWED)){
-                regularExpressionMatchDisallowed =stringValue.substring(REGULAR_EXPRESSION_MATCH_DISALLOWED.length());            
+                regularExpressionMatchDisallowed =unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_DISALLOWED.length()));            
             }
             else
             {

@@ -538,9 +538,6 @@ public class Set extends Prepared {
             
         case SetTypes.COLUMN_NAME_RULES: {
             session.getUser().checkAdmin();
-            System.out.println("1"+stringValue);
-            System.out.println("2"+expression.getColumnName());
-            System.out.println("3"+expression.getSQL());
             ColumnNamer.configure(expression.getColumnName());
            break;
         }

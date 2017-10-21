@@ -1077,14 +1077,31 @@ public class Select extends Query {
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
+            boolean isPersistent = !t.isTemporary();
             if (t.isView() && ((TableView) t).isRecursive()) {
-                buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
+                buff.append("WITH RECURSIVE ");
+                if(isPersistent){
+                    buff.append("PERSISTENT ");
+                }
+                buff.append(t.getName()).append('(');
                 buff.resetCount();
                 for (Column c : t.getColumns()) {
                     buff.appendExceptFirst(",");
                     buff.append(c.getName());
                 }
-                buff.append(") AS ").append(t.getSQL()).append("\n");
+                String theSQL = t.getSQL();
+                if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
+                    StatementBuilder buffSelect = new StatementBuilder();
+                    buffSelect.append("( SELECT ");
+                    buffSelect.resetCount();
+                    for (Column c : t.getColumns()) {
+                        buffSelect.appendExceptFirst(",");
+                        buffSelect.append(c.getName());
+                    }
+                    buffSelect.append(" FROM "+t.getSQL()+") ");
+                    theSQL = buffSelect.toString();
+                }
+                buff.append(") AS ").append(theSQL).append("\n");
             }
         }
         buff.resetCount();

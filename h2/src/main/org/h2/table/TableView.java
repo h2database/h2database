@@ -56,7 +56,6 @@ public class TableView extends Table {
     private User owner;
     private Query topQuery;
     private ResultInterface recursiveResult;
-    private boolean tableExpression;
     private boolean isRecursiveQueryDetected;
 
     public TableView(Schema schema, int id, String name, String querySQL,
@@ -609,14 +608,6 @@ public class TableView extends Table {
 
     public ResultInterface getRecursiveResult() {
         return recursiveResult;
-    }
-
-    public void setTableExpression(boolean tableExpression) {
-        this.tableExpression = tableExpression;
-    }
-
-    public boolean isTableExpression() {
-        return tableExpression;
     }
 
     @Override

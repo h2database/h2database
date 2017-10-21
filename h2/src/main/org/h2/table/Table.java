@@ -82,6 +82,8 @@ public abstract class Table extends SchemaObjectBase {
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
+    private boolean tableExpression;
+    
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -1241,6 +1243,14 @@ public abstract class Table extends SchemaObjectBase {
 
     public boolean isMVStore() {
         return false;
+    }
+    
+    public void setTableExpression(boolean tableExpression) {
+        this.tableExpression = tableExpression;
+    }
+
+    public boolean isTableExpression() {
+        return tableExpression;
     }
 
 }

@@ -101,9 +101,9 @@ public class CreateView extends SchemaCommand {
         }
         // The view creates a Prepared command object, which belongs to a
         // session, so we pass the system session (not the current session) down.
-        //Session viewSession = select.isTableExpression()!=null ? select.getSession() : db.getSystemSession();
-        Session viewSession = db.getSystemSession();
-        synchronized (viewSession) {
+        // Why is the SYS session used here ? I think it might cause a problem...
+        Session sysSession = db.getSystemSession();
+        synchronized (sysSession) {
             try {
                 Column[] columnTemplates = null;
                 if (columnNames != null) {
@@ -115,15 +115,15 @@ public class CreateView extends SchemaCommand {
                 if (view == null) {
                     Schema schema = session.getDatabase().getSchema(
                             session.getCurrentSchemaName());
-                    viewSession.setCurrentSchema(schema);
+                    sysSession.setCurrentSchema(schema);
                     view = new TableView(getSchema(), id, viewName, querySQL, null,
-                            columnTemplates, viewSession, false, false);
+                            columnTemplates, sysSession, false, false);
                 } else {
-                    view.replace(querySQL, columnTemplates, viewSession, false, force, false);
+                    view.replace(querySQL, columnTemplates, sysSession, false, force, false);
                     view.setModified();
                 }
             } finally {
-                viewSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
+                sysSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
             }
         }
         if (comment != null) {

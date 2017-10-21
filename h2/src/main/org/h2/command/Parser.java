@@ -1137,7 +1137,7 @@ public class Parser {
 
             String[] querySQLOutput = new String[]{null};
             List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
-            Table temporarySourceTableView = createTemporarySessionView(
+            TableView temporarySourceTableView = createTemporarySessionView(
                     command.getQueryAlias(), querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
                     false/* do not add to session */,
@@ -5129,18 +5129,18 @@ public class Parser {
         List<TableView> viewsCreated = new ArrayList<>();
         readIf("RECURSIVE");
         
-        // this WITH statement might not be temporary - allow keyword to tell us that
+        // this WITH statement might not be temporary - allow optional keyword to tell us that
+        // this keyword is a work in progress feature and will not be documented
         boolean isPersistent = readIf("PERSISTENT");
         
-        // this WITH statement might not be temporary - it my part of a persistent view
-        // as in CREATE VIEW abc AS WITH
+        // this WITH statement might not be temporary - it may part of a persistent view
+        // as in CREATE VIEW abc AS WITH - this auto detects that condition
         if(session.isParsingView()){
             isPersistent = true;
         }
         
         do {
-            TableView newView = parseSingleCommonTableExpression(isPersistent);
-            viewsCreated.add(newView);
+            viewsCreated.add(parseSingleCommonTableExpression(isPersistent));
         } while (readIf(","));
 
         Prepared p = null;
@@ -5227,6 +5227,7 @@ public class Parser {
         // table expressions need to reference something that look like
         // themselves
         // to work (its removed after creation in this method)
+        // only create table data and table if we don't have a working CTE already
         if(oldViewFound == null){
             CreateTableData recursiveTableData = new CreateTableData();
             recursiveTableData.id = database.allocateObjectId();
@@ -5246,7 +5247,6 @@ public class Parser {
             read("AS");
             read("(");
             Query withQuery = parseSelect();
-            //withQuery.setSession(targetSession);
             read(")");
             columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
@@ -5255,13 +5255,14 @@ public class Parser {
                 targetSession.removeLocalTempTable(recursiveTable);
             }
         }
-        // If it's persistent, a CTE and a TableView - return existing one
+        // If it's persistent, a CTE and a TableView - return existing one, otherwise create new...
         if(oldViewFound!=null && isPersistent && oldViewFound instanceof TableView && oldViewFound.isTableExpression()){
             return (TableView) oldViewFound;
         }
         TableView view = createTemporarySessionView(tempViewName,
                 querySQLOutput[0], columnTemplateList,
-                true/* allowRecursiveQueryDetection */, true, isPersistent);
+                true/* allowRecursiveQueryDetection */, true/* add to session */, isPersistent);
+        
         return view;
     }
 

@@ -74,11 +74,7 @@ public class TestScript extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {
-        Path currentRelativePath = Paths.get("");
-        String currentAbsolutePath = currentRelativePath.toAbsolutePath().toString();
-        System.out.println("Current absolute path is: " + currentAbsolutePath);
-        
+    public void test() throws Exception {        
         if (config.networked && config.big) {
             return;
         }

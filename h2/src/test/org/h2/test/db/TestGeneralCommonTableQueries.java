@@ -10,7 +10,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 
@@ -43,7 +42,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testMerge();
         testCreateTable();
         testNestedSQL();
-        //testRecursiveTable();
+        testRecursiveTable();
         testRecursiveTableInCreateView();
     }
 
@@ -474,6 +473,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
     }
     
     private void testRecursiveTable() throws Exception {
+
         int maxRetries = 4;
         String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
         String[] expectedColumnNames =new String[]{"VAL",
@@ -521,13 +521,14 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
     private void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
             int expectedNumbeOfRows, String SETUP_SQL, String WITH_QUERY) throws SQLException {
+
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
         PreparedStatement prep;
         ResultSet rs;
         
-
         for(int queryRunTries=1;queryRunTries<=maxRetries;queryRunTries++){
+
             Statement stat = conn.createStatement();
             stat.execute(SETUP_SQL);
             stat.close();
@@ -536,6 +537,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
             rs = prep.executeQuery();
             for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
+
                 assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
                 assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
             }
@@ -549,7 +551,9 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 assertEquals(expectedRowData[rowNdx], buf.toString());
                 rowNdx++;
             }
+
             assertEquals(expectedNumbeOfRows,rowNdx);
+
             rs.close();
             prep.close();
         }
@@ -605,4 +609,3 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 WITH_QUERY);
     }
 }
-

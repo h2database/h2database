@@ -247,6 +247,11 @@ public class SetTypes {
      * The type of SET BUILTIN_ALIAS_OVERRIDE statement.
      */
     public static final int BUILTIN_ALIAS_OVERRIDE = 47;
+    /**
+     * The type of a SET COLUMN_NAME_RULES statement.
+     */
+    public static final int COLUMN_NAME_RULES = 48;
+    
 
     private static final ArrayList<String> TYPES = New.arrayList();
 
@@ -304,6 +309,8 @@ public class SetTypes {
         list.add(FORCE_JOIN_ORDER, "FORCE_JOIN_ORDER");
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
+        list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
+        
     }
 
     /**

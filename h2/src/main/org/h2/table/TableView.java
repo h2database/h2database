@@ -30,6 +30,7 @@ import org.h2.result.ResultInterface;
 import org.h2.result.Row;
 import org.h2.result.SortOrder;
 import org.h2.schema.Schema;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
@@ -161,6 +162,7 @@ public class TableView extends Table {
             tables = New.arrayList(query.getTables());
             ArrayList<Expression> expressions = query.getExpressions();
             ArrayList<Column> list = New.arrayList();
+            ColumnNamer columnNamer= new ColumnNamer(session);                        
             for (int i = 0, count = query.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
@@ -172,6 +174,7 @@ public class TableView extends Table {
                 if (name == null) {
                     name = expr.getAlias();
                 }
+                name = columnNamer.getColumnName(expr,i,name);
                 if (type == Value.UNKNOWN) {
                     type = expr.getType();
                 }
@@ -440,7 +443,7 @@ public class TableView extends Table {
 
     @Override
     public String getSQL() {
-        if (isTemporary()) {
+        if (isTemporary() && querySQL!=null) {
             return "(\n" + StringUtils.indent(querySQL) + ")";
         }
         return super.getSQL();

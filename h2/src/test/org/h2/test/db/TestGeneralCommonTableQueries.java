@@ -9,7 +9,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.test.TestBase;
 
@@ -42,6 +41,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testMerge();
         testCreateTable();
         testNestedSQL();
+        testRecursiveTable();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -469,4 +469,80 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
+    
+    private void testRecursiveTable() throws Exception {
+        String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
+        String[] expectedColumnNames =new String[]{"VAL",
+                "SUM(SELECT\n    X\nFROM PUBLIC.\"\" BB\n    /* SELECT\n        SUM(1) AS X,\n        A\n    FROM PUBLIC.B\n        /++ PUBLIC.B.tableScan ++/\n        /++ WHERE A IS ?1\n        ++/\n        /++ scanCount: 4 ++/\n    INNER JOIN PUBLIC.C\n        /++ PUBLIC.C.tableScan ++/\n        ON 1=1\n    WHERE (A IS ?1)\n        AND (B.VAL = C.B)\n    GROUP BY A: A IS A.VAL\n     */\n    /* scanCount: 1 */\nWHERE BB.A IS A.VAL)"};
+        
+        deleteDb("commonTableExpressionQueries");
+        Connection conn = getConnection("commonTableExpressionQueries");
+        PreparedStatement prep;
+        ResultSet rs;
+        
+        String SETUP_SQL = 
+             "DROP TABLE IF EXISTS A;                           "
+            +"DROP TABLE IF EXISTS B;                           "
+            +"DROP TABLE IF EXISTS C;                           "
+            +"CREATE TABLE A(VAL VARCHAR(255));                 "
+            +"CREATE TABLE B(A VARCHAR(255), VAL VARCHAR(255)); "
+            +"CREATE TABLE C(B VARCHAR(255), VAL VARCHAR(255)); "
+            +"                                                  "
+            +"INSERT INTO A VALUES('fruit');                    "
+            +"INSERT INTO B VALUES('fruit','apple');            "
+            +"INSERT INTO B VALUES('fruit','banana');           "
+            +"INSERT INTO C VALUES('apple', 'golden delicious');"
+            +"INSERT INTO C VALUES('apple', 'granny smith');    "
+            +"INSERT INTO C VALUES('apple', 'pippin');          "
+            +"INSERT INTO A VALUES('veg');                      "
+            +"INSERT INTO B VALUES('veg', 'carrot');            "
+            +"INSERT INTO C VALUES('carrot', 'nantes');         "
+            +"INSERT INTO C VALUES('carrot', 'imperator');      "
+            +"INSERT INTO C VALUES(null, 'banapple');           "
+            +"INSERT INTO A VALUES('meat');                     "
+            ;
+        String WITH_QUERY =
+            "WITH BB as (SELECT                        \n"
+            +"sum(1) as X,                             \n"
+            +"a                                        \n"
+            +"FROM B                                   \n"
+            +"JOIN C ON B.val=C.b                      \n"
+            +"GROUP BY a)                              \n"
+            +"SELECT                                   \n"
+            +"A.val,                                   \n"
+            +"sum(SELECT X FROM BB WHERE BB.a IS A.val)\n"//AS SUM_X
+            +"FROM A                                   \n"
+            +"GROUP BY A.val";
+
+        for(int queryRunTries=1;queryRunTries<4;queryRunTries++){
+            Statement stat = conn.createStatement();
+            stat.execute(SETUP_SQL);
+            stat.close();
+
+            prep = conn.prepareStatement(WITH_QUERY);
+
+            rs = prep.executeQuery();
+            for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
+                // previously the column label was null or had \n or \r in the string
+                assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
+                assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
+            }
+            
+            int rowNdx=0;
+            while (rs.next()) {
+                StringBuffer buf = new StringBuffer();
+                for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
+                    buf.append("|"+rs.getString(columnIndex));
+                }
+                assertEquals(expectedRowData[rowNdx], buf.toString());
+                rowNdx++;
+            }
+            assertEquals(3,rowNdx);
+            rs.close();
+            prep.close();
+        }
+
+        conn.close();
+        deleteDb("commonTableExpressionQueries");
+    }     
 }

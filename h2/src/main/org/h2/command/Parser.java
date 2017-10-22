@@ -143,6 +143,7 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
+import org.h2.util.ColumnNamer;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -5268,23 +5269,16 @@ public class Parser {
         // array of length 1 to receive extra 'output' field in addition to
         // return value
         querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
+        ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {
             Expression columnExp = withExpressions.get(i);
-            /*
-             * Use the passed in column name if supplied, otherwise use alias
-             * (if found) otherwise use column name derived from column
-             * expression.
-             */
-            String columnName;
-            if (cols != null) {
-                columnName = cols[i];
-            } else if (columnExp.getAlias() != null) {
-                columnName = columnExp.getAlias();
-            } else {
-                columnName = columnExp.getColumnName();
-            }
-            columnTemplateList.add(new Column(columnName, columnExp.getType()));
+            // use the passed in column name if supplied, otherwise use alias (if found) otherwise use column name
+            // derived from column expression
+            String columnName = columnNamer.getColumnName(columnExp,i,cols);
+            columnTemplateList.add(new Column(columnName,
+                    columnExp.getType()));
+
         }
         return columnTemplateList;
     }
@@ -5300,6 +5294,7 @@ public class Parser {
                 parameters, columnTemplateList.toArray(new Column[0]), session,
                 allowRecursiveQueryDetection, false);
         if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
+            session.removeLocalTempTable(view);
             view = new TableView(schema, id, tempViewName, querySQL, parameters,
                     columnTemplateList.toArray(new Column[0]), session,
                     false/* recursive */, false);

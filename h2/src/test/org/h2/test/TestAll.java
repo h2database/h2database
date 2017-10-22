@@ -230,6 +230,7 @@ import org.h2.test.utils.SelfDestructor;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
+import org.h2.util.TestColumnNamer;
 import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.StringUtils;
@@ -782,6 +783,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestViewDropView());
         addTest(new TestReplace());
         addTest(new TestSynonymForTable());
+        addTest(new TestColumnNamer());
+        
 
         // jaqu
         addTest(new AliasMapTest());

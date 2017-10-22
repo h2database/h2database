@@ -42,6 +42,7 @@ import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
+import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -126,6 +127,7 @@ public class Session extends SessionWithState {
     private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
+    private ColumnNamerConfiguration columnNamerConfiguration;
     /**
      * Tables marked for ANALYZE after the current transaction is committed.
      * Prevents us calling ANALYZE repeatedly in large transactions.
@@ -162,6 +164,7 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+        this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -373,6 +376,8 @@ public class Session extends SessionWithState {
      * @param table the table
      */
     public void removeLocalTempTable(Table table) {
+        // Exception thrown in org.h2.engine.Database.removeMeta if line below is missing with TestGeneralCommonTableQueries
+        database.lockMeta(this);
         modificationId++;
         localTempTables.remove(table.getName());
         synchronized (database) {
@@ -974,6 +979,8 @@ public class Session extends SessionWithState {
                         modificationId++;
                         table.setModified();
                         it.remove();
+                        // Exception thrown in org.h2.engine.Database.removeMeta if line below is missing with TestDeadlock
+                        database.lockMeta(this);
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might
@@ -1746,5 +1753,13 @@ public class Session extends SessionWithState {
             this.value = v;
         }
 
+    }
+
+    public ColumnNamerConfiguration getColumnNamerConfiguration() {
+        return columnNamerConfiguration;
+    }
+
+    public void setColumnNamerConfiguration(ColumnNamerConfiguration columnNamerConfiguration) {
+        this.columnNamerConfiguration = columnNamerConfiguration;
     }
 }

@@ -341,6 +341,7 @@ public class Set extends Prepared {
             if (database.getMode() != mode) {
                 session.getUser().checkAdmin();
                 database.setMode(mode);
+                session.getColumnNamerConfiguration().configure(mode.getEnum());
             }
             break;
         case SetTypes.MULTI_THREADED: {
@@ -534,6 +535,13 @@ public class Set extends Prepared {
             database.setAllowBuiltinAliasOverride(value == 1);
             break;
         }
+            
+        case SetTypes.COLUMN_NAME_RULES: {
+            session.getUser().checkAdmin();
+            session.getColumnNamerConfiguration().configure(expression.getColumnName());
+           break;
+        }
+                        
         default:
             DbException.throwInternalError("type="+type);
         }

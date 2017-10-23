@@ -60,6 +60,29 @@ public class TestCompatibilityOracle extends TestBase {
         stat.execute("create table T (C int not null enable novalidate)");  // can set NULL even with 'not null syntax' (oracle)
         stat.execute("insert into T values(null)");
         stat.execute("drop table T");
+        
+        // Some other variation with oracle syntax
+        stat.execute("create table T (C int not null)");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null"); 
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null enable");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null enable validate");
+        stat.execute("insert into T values(1)");
+        stat.execute("drop table T");
+        // can set NULL
+        stat.execute("create table T (C int null)");
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C null enable");
+        stat.execute("alter table T modify C null enable validate");
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C not null disable");            // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C not null enable novalidate");  // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("insert into T values(null)");
+        stat.execute("drop table T");
+
         conn.close();
     }
 

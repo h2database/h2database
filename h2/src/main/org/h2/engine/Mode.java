@@ -23,7 +23,25 @@ public class Mode {
      */
     static final String REGULAR = "REGULAR";
 
-    private static final HashMap<String, Mode> MODES = New.hashMap();
+    public static enum DbTypeEnum {
+        REGULAR, UNKNOWN, DB2 , Derby, HSQLDB, Ignite, MSSQLServer, MySQL, Oracle, PostgreSQL;
+    
+        public static DbTypeEnum parse(String modeAsStr) {
+            DbTypeEnum result = DbTypeEnum.UNKNOWN;
+            if (modeAsStr != null) {
+                modeAsStr = StringUtils.toUpperEnglish(modeAsStr.trim());
+                for (DbTypeEnum m: DbTypeEnum.values()) {
+                   if (m.name().toUpperCase().equals(modeAsStr)) {
+                       result = m;
+                       break;
+                   }
+                }
+            }
+            return result;
+        }    
+    }
+    
+    private static final HashMap<DbTypeEnum, Mode> MODES = New.hashMap();
 
     // Modes are also documented in the features section
 
@@ -178,14 +196,14 @@ public class Mode {
      */
     public Set<String> disallowedTypes = Collections.emptySet();
 
-    private final String name;
+    private final DbTypeEnum dbTypeEnum;
 
     static {
-        Mode mode = new Mode(REGULAR);
+        Mode mode = new Mode(DbTypeEnum.REGULAR);
         mode.nullConcatIsNull = true;
         add(mode);
 
-        mode = new Mode("DB2");
+        mode = new Mode(DbTypeEnum.DB2);
         mode.aliasColumnName = true;
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
@@ -200,7 +218,7 @@ public class Mode {
         mode.allowDB2TimestampFormat = true;
         add(mode);
 
-        mode = new Mode("Derby");
+        mode = new Mode(DbTypeEnum.Derby);
         mode.aliasColumnName = true;
         mode.uniqueIndexSingleNull = true;
         mode.supportOffsetFetch = true;
@@ -210,7 +228,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode("HSQLDB");
+        mode = new Mode(DbTypeEnum.HSQLDB);
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
         mode.nullConcatIsNull = true;
@@ -223,7 +241,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode("MSSQLServer");
+        mode = new Mode(DbTypeEnum.MSSQLServer);
         mode.aliasColumnName = true;
         mode.squareBracketQuotedNames = true;
         mode.uniqueIndexSingleNull = true;
@@ -235,7 +253,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx = null;
         add(mode);
 
-        mode = new Mode("MySQL");
+        mode = new Mode(DbTypeEnum.MySQL);
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
@@ -249,7 +267,7 @@ public class Mode {
         mode.prohibitEmptyInPredicate = true;
         add(mode);
 
-        mode = new Mode("Oracle");
+        mode = new Mode(DbTypeEnum.Oracle);
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
@@ -262,7 +280,7 @@ public class Mode {
         mode.prohibitEmptyInPredicate = true;
         add(mode);
 
-        mode = new Mode("PostgreSQL");
+        mode = new Mode(DbTypeEnum.PostgreSQL);
         mode.aliasColumnName = true;
         mode.nullConcatIsNull = true;
         mode.supportOffsetFetch = true;
@@ -285,19 +303,19 @@ public class Mode {
         mode.disallowedTypes = disallowedTypes;
         add(mode);
 
-        mode = new Mode("Ignite");
+        mode = new Mode(DbTypeEnum.Ignite);
         mode.nullConcatIsNull = true;
         mode.allowAffinityKey = true;
         mode.indexDefinitionInCreateTable = true;
         add(mode);
     }
 
-    private Mode(String name) {
-        this.name = name;
+    private Mode(DbTypeEnum dbTypeEnum) {
+        this.dbTypeEnum = dbTypeEnum;
     }
 
     private static void add(Mode mode) {
-        MODES.put(StringUtils.toUpperEnglish(mode.name), mode);
+        MODES.put(mode.dbTypeEnum, mode);
     }
 
     /**
@@ -307,15 +325,24 @@ public class Mode {
      * @return the mode object
      */
     public static Mode getInstance(String name) {
-        return MODES.get(StringUtils.toUpperEnglish(name));
+        DbTypeEnum dbTypeEnum = DbTypeEnum.parse(name);
+        return MODES.get(dbTypeEnum);
+    }
+    
+    public static Mode getInstance(DbTypeEnum dbTypeEnum) {
+        return  MODES.get(dbTypeEnum);
     }
 
     public static Mode getMySQL() {
-        return getInstance("MySQL");
+        return getInstance(DbTypeEnum.MySQL);
+    }
+    
+    public DbTypeEnum getDbTypeEnum() {
+        return dbTypeEnum;
     }
 
     public String getName() {
-        return name;
+        return dbTypeEnum.name();
     }
 
 }

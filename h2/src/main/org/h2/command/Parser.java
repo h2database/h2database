@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.ddl.AlterIndexRename;
@@ -93,7 +94,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Mode;
+import org.h2.engine.Mode.DbTypeEnum;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -820,7 +821,7 @@ public class Parser {
         }
         currentPrepared = command;
         int start = lastParseIndex;
-        if (!readIf("FROM") && database.getMode() == Mode.getMySQL()) {
+        if (!readIf("FROM") && database.isDbTypeOneOf(DbTypeEnum.MySQL)) {
             readIdentifierWithSchema();
             read("FROM");
         }
@@ -4073,10 +4074,9 @@ public class Parser {
         } else if (readIf("VISIBLE")) {
             column.setVisible(true);
         }
-        NULL_CONSTRAINT nullConstraint = parseNotNullConstraint();
+        NullConstraintType nullConstraint = parseNotNullConstraint();
         switch (nullConstraint) {
         case NULL_IS_ALLOWED:
-
             column.setNullable(true);
             break;
         case NULL_IS_NOT_ALLOWED:
@@ -4121,13 +4121,8 @@ public class Parser {
             column.setPrimaryKey(true);
             column.setAutoIncrement(true, start, increment);
         }
-        nullConstraint = parseNotNullConstraint();
-        switch (nullConstraint) {
-        case NULL_IS_NOT_ALLOWED:
+        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) { 
             column.setNullable(false);
-            break;
-        default:
-            // do nothing
         }
         if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
             parseAutoIncrement(column);
@@ -5876,7 +5871,7 @@ public class Parser {
             readIf("COLUMN"); // optional
             String columnName = readColumnIdentifier();
             AlterTableAlterColumn command = null;
-            NULL_CONSTRAINT nullConstraint = parseNotNullConstraint();
+            NullConstraintType nullConstraint = parseNotNullConstraint();
             switch (nullConstraint) {
             case NULL_IS_ALLOWED:
             case NULL_IS_NOT_ALLOWED:
@@ -5885,7 +5880,7 @@ public class Parser {
                 command.setIfTableExists(ifTableExists);
                 Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
                 command.setOldColumn(column);
-                if (nullConstraint == NULL_CONSTRAINT.NULL_IS_ALLOWED) {
+                if (nullConstraint == NullConstraintType.NULL_IS_ALLOWED) {
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
                 } else {
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
@@ -5950,7 +5945,7 @@ public class Parser {
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setOldColumn(column);
-                NULL_CONSTRAINT nullConstraint = parseNotNullConstraint();
+                NullConstraintType nullConstraint = parseNotNullConstraint();
                 switch (nullConstraint) {
                 case NULL_IS_ALLOWED:
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
@@ -6372,14 +6367,8 @@ public class Parser {
                             unique.setTableName(tableName);
                             command.addConstraintCommand(unique);
                         }
-
-                        NULL_CONSTRAINT nullConstraint = parseNotNullConstraint();
-                        switch (nullConstraint) {
-                        case NULL_IS_NOT_ALLOWED:
+                        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
                             column.setNullable(false);
-                            break;
-                        default:
-                            // do nothing
                         }
                         if (readIf("CHECK")) {
                             Expression expr = readExpression();
@@ -6482,30 +6471,32 @@ public class Parser {
         return command;
     }
 
-    private enum NULL_CONSTRAINT {
+    private enum NullConstraintType {
         NULL_IS_ALLOWED, NULL_IS_NOT_ALLOWED, NO_NULL_CONSTRAINT_FOUND
     }
 
-    private NULL_CONSTRAINT parseNotNullConstraint() {
-        NULL_CONSTRAINT nullConstraint = NULL_CONSTRAINT.NO_NULL_CONSTRAINT_FOUND;
+    private NullConstraintType parseNotNullConstraint() {
+        NullConstraintType nullConstraint = NullConstraintType.NO_NULL_CONSTRAINT_FOUND;
         if ((isToken("NOT") || isToken("NULL"))) {
             if (readIf("NOT")) {
                 read("NULL");
-                nullConstraint = NULL_CONSTRAINT.NULL_IS_NOT_ALLOWED;
+                nullConstraint = NullConstraintType.NULL_IS_NOT_ALLOWED;
             } else {
                 read("NULL");
-                nullConstraint = NULL_CONSTRAINT.NULL_IS_ALLOWED;
+                nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
             }
-            if (readIf("ENABLE")) {
-                readIf("VALIDATE"); // Leave constraint 'as is'
-                if (readIf("NOVALIDATE")) { // Turn off constraint, thus allow NULLs
-                    nullConstraint = NULL_CONSTRAINT.NULL_IS_ALLOWED;
+            if (database.isDbTypeOneOf(DbTypeEnum.Oracle)) {
+                if (readIf("ENABLE")) {
+                    readIf("VALIDATE"); // Leave constraint 'as is'
+                    if (readIf("NOVALIDATE")) { // Turn off constraint, allow NULLs
+                        nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+                    }
                 }
-            }
-            if (readIf("DISABLE")) { // Turn off constraint, thus allow NULLs
-                nullConstraint = NULL_CONSTRAINT.NULL_IS_ALLOWED;
-                readIf("VALIDATE"); // ignore validate
-                readIf("NOVALIDATE"); // ignore novalidate
+                if (readIf("DISABLE")) { // Turn off constraint, allow NULLs
+                    nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+                    readIf("VALIDATE"); // ignore validate
+                    readIf("NOVALIDATE"); // ignore novalidate
+                }
             }
         }
         return nullConstraint;

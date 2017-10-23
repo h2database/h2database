@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
 import org.h2.api.DatabaseEventListener;
 import org.h2.api.ErrorCode;
 import org.h2.api.JavaObjectSerializer;
@@ -26,6 +27,7 @@ import org.h2.command.CommandInterface;
 import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.SetTypes;
 import org.h2.constraint.Constraint;
+import org.h2.engine.Mode.DbTypeEnum;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
@@ -2376,6 +2378,16 @@ public class Database implements DataHandler {
         return mode;
     }
 
+    public boolean isDbTypeOneOf(DbTypeEnum... dbTypes) {
+        DbTypeEnum currentDbType = mode.getDbTypeEnum();
+        for (DbTypeEnum dbType : dbTypes) {
+            if (currentDbType == dbType) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public boolean isMultiThreaded() {
         return multiThreaded;
     }

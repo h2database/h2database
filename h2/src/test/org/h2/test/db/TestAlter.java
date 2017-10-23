@@ -304,7 +304,28 @@ public class TestAlter extends TestBase {
         // This failed in v1.4.196 
         stat.execute("create table T (C int not null)");
         stat.execute("alter table T modify C null"); // Silently corrupted column C
-        stat.execute("insert into T values(null)"); // <- ERROR: NULL not allowed
+        stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed
+        stat.execute("drop table T");
+        // Some other variation (oracle syntax)
+        stat.execute("create table T (C int not null)");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null"); 
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null enable");
+        stat.execute("insert into T values(1)");
+        stat.execute("alter table T modify C not null enable validate");
+        stat.execute("insert into T values(1)");
+        stat.execute("drop table T");
+        // can set NULL
+        stat.execute("create table T (C int null)");
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C null enable");
+        stat.execute("alter table T modify C null enable validate");
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C not null disable");            // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("insert into T values(null)");
+        stat.execute("alter table T modify C not null enable novalidate");  // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("insert into T values(null)");
         stat.execute("drop table T");
     }
 }

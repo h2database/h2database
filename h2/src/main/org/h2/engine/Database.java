@@ -163,7 +163,7 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
-    private Mode mode = Mode.getInstance(Mode.REGULAR);
+    private Mode mode = Mode.getRegular();
     private boolean multiThreaded;
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;

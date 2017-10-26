@@ -304,7 +304,7 @@ public class TestAlter extends TestBase {
         // This failed in v1.4.196 
         stat.execute("create table T (C int not null)");
         stat.execute("alter table T modify C null"); // Silently corrupted column C
-        stat.execute("insert into T values(null)"); // <- ERROR: NULL not allowed
+        stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed
         stat.execute("drop table T");
     }
 }

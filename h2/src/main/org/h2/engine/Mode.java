@@ -337,13 +337,4 @@ public class Mode {
         return this.modeEnum;
     }
 
-    public boolean isDbTypeOneOf(Mode.ModeEnum... dbTypes) {
-        for (Mode.ModeEnum dbType : dbTypes) {
-            if (this.modeEnum == dbType) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

@@ -80,6 +80,7 @@ public class TestScript extends TestBase {
         }
         reconnectOften = !config.memory && config.big;
         testScript("testScript.sql");
+        testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");
         for (String s : new String[] { "array", "bigint", "binary", "blob",

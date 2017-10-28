@@ -102,30 +102,6 @@ public class CreateCluster extends Tool {
             String user, String password, String serverList) throws SQLException {
         org.h2.Driver.load();
 
-        // verify that the database doesn't exist,
-        // or if it exists (an old cluster instance), it is deleted
-        boolean exists = true;
-        try (Connection connTarget = DriverManager.getConnection(urlTarget +
-                     ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED,
-                     user, password);
-             Statement stat = connTarget.createStatement())
-        {
-            stat.execute("DROP ALL OBJECTS DELETE FILES");
-            exists = false;
-        } catch (SQLException e) {
-            if (e.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_1) {
-                // database does not exists yet - ok
-                exists = false;
-            } else {
-                throw e;
-            }
-        }
-        if (exists) {
-            throw new SQLException(
-                    "Target database must not yet exist. Please delete it first: " +
-                    urlTarget);
-        }
-
         try (Connection connSource = DriverManager.getConnection(
                      // use cluster='' so connecting is possible
                      // even if the cluster is enabled

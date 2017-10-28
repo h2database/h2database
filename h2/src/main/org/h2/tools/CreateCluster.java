@@ -100,8 +100,8 @@ public class CreateCluster extends Tool {
 
     private static void process(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
-        Connection connSource = null, connTarget = null;
-        Statement statSource = null, statTarget = null;
+        Connection connSource = null;
+        Statement statSource = null;
         PipedReader pipeReader = null;
 
         try {
@@ -110,15 +110,13 @@ public class CreateCluster extends Tool {
             // verify that the database doesn't exist,
             // or if it exists (an old cluster instance), it is deleted
             boolean exists = true;
-            try {
-                connTarget = DriverManager.getConnection(urlTarget +
-                        ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED,
-                        user, password);
-                Statement stat = connTarget.createStatement();
+            try (Connection connTarget = DriverManager.getConnection(urlTarget +
+                         ";IFEXISTS=TRUE;CLUSTER=" + Constants.CLUSTERING_ENABLED,
+                         user, password);
+                 Statement stat = connTarget.createStatement())
+            {
                 stat.execute("DROP ALL OBJECTS DELETE FILES");
-                stat.close();
                 exists = false;
-                connTarget.close();
             } catch (SQLException e) {
                 if (e.getErrorCode() == ErrorCode.DATABASE_NOT_FOUND_1) {
                     // database does not exists yet - ok
@@ -162,13 +160,12 @@ public class CreateCluster extends Tool {
                 final ResultSet rs = statSource.executeQuery("SCRIPT");
 
                 // Delete the target database first.
-                connTarget = DriverManager.getConnection(
-                        urlTarget + ";CLUSTER=''", user, password);
-                statTarget = connTarget.createStatement();
-                statTarget.execute("DROP ALL OBJECTS DELETE FILES");
-                statTarget.close();
-                connTarget.close();
-
+                try (Connection connTarget = DriverManager.getConnection(
+                             urlTarget + ";CLUSTER=''", user, password);
+                     Statement statTarget = connTarget.createStatement())
+                {
+                    statTarget.execute("DROP ALL OBJECTS DELETE FILES");
+                }
 
                 new Thread(
                     new Runnable(){
@@ -190,14 +187,16 @@ public class CreateCluster extends Tool {
                 ).start();
 
                 // Read data from pipe reader, restore on target.
-                connTarget = DriverManager.getConnection(urlTarget, user, password);
-                RunScript.execute(connTarget,pipeReader);
-                statTarget = connTarget.createStatement();
+                try (Connection connTarget = DriverManager.getConnection(
+                             urlTarget, user, password);
+                     Statement statTarget = connTarget.createStatement())
+                {
+                    RunScript.execute(connTarget,pipeReader);
 
-                // set the cluster to the serverList on both databases
-                statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
-                statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
-
+                    // set the cluster to the serverList on both databases
+                    statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
+                    statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
+                }
             } catch (IOException ex) {
                 throw new SQLException(ex);
             } finally {
@@ -207,9 +206,7 @@ public class CreateCluster extends Tool {
         } finally {
             IOUtils.closeSilently(pipeReader);
             JdbcUtils.closeSilently(statSource);
-            JdbcUtils.closeSilently(statTarget);
             JdbcUtils.closeSilently(connSource);
-            JdbcUtils.closeSilently(connTarget);
         }
     }
 

@@ -18,7 +18,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.h2.util.IOUtils;
 import org.h2.util.Tool;
 
 /**
@@ -163,38 +162,31 @@ public class CreateCluster extends Tool {
         }
     }
 
-    private static Future<?> startWriter(PipedReader pipeReader, Statement statSource)
-            throws SQLException, IOException {
+    private static Future<?> startWriter(final PipedReader pipeReader,
+            final Statement statSource) throws SQLException, IOException {
         final ExecutorService thread = Executors.newFixedThreadPool(1);
-
-        /*
-         * Pipe writer is used + closed in the inner class, in a
-         * separate thread (needs to be final). It should be initialized
-         * within try{} so an exception could be caught if creation
-         * fails. In that scenario, the the writer should be null and
-         * needs no closing, and the main goal is that finally{} should
-         * bring the source DB out of exclusive mode, and close the
-         * reader.
-         */
-        final PipedWriter pipeWriter = new PipedWriter(pipeReader);
-
-        // Backup data from source database in script form.
-        // Start writing to pipe writer in separate thread.
-        final ResultSet rs = statSource.executeQuery("SCRIPT");
 
         // Since exceptions cannot be thrown across thread boundaries, return
         // the task's future so we can check manually
         Future<?> threadFuture = thread.submit(new Runnable() {
             @Override
             public void run() {
-                try {
+                /*
+                 * If the creation of the piped writer fails, the reader will
+                 * throw an IOException as soon as read() is called:
+                 * IOException - if the pipe is broken, unconnected, closed,
+                 * or an I/O error occurs.
+                 * The reader's IOException will then trigger the finally{} that
+                 * releases exclusive mode on the source DB.
+                 */
+                try (final PipedWriter pipeWriter = new PipedWriter(pipeReader);
+                     final ResultSet rs = statSource.executeQuery("SCRIPT"))
+                {
                     while (rs.next()) {
                         pipeWriter.write(rs.getString(1) + "\n");
                     }
                 } catch (SQLException | IOException ex) {
                     throw new IllegalStateException("Producing script from the source DB is failing.", ex);
-                } finally {
-                    IOUtils.closeSilently(pipeWriter);
                 }
             }
         });

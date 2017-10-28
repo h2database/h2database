@@ -58,6 +58,7 @@ public class TableView extends Table {
     private Query topQuery;
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
+    private Session session;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
@@ -98,6 +99,7 @@ public class TableView extends Table {
         this.columnTemplates = columnTemplates;
         this.recursive = recursive;
         this.isRecursiveQueryDetected = false;
+        this.session = session;
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session, literalsChecked);
     }
@@ -157,13 +159,13 @@ public class TableView extends Table {
         Column[] cols;
         removeViewFromTables();
         try {
-            Query query = compileViewQuery(session, querySQL, literalsChecked);
-            this.querySQL = query.getPlanSQL();
-            tables = New.arrayList(query.getTables());
-            ArrayList<Expression> expressions = query.getExpressions();
+            Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked);
+            this.querySQL = compiledQuery.getPlanSQL();
+            tables = New.arrayList(compiledQuery.getTables());
+            ArrayList<Expression> expressions = compiledQuery.getExpressions();
             ArrayList<Column> list = New.arrayList();
             ColumnNamer columnNamer= new ColumnNamer(session);                        
-            for (int i = 0, count = query.getColumnCount(); i < count; i++) {
+            for (int i = 0, count = compiledQuery.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
                 int type = Value.UNKNOWN;
@@ -205,7 +207,7 @@ public class TableView extends Table {
             cols = new Column[list.size()];
             list.toArray(cols);
             createException = null;
-            viewQuery = query;
+            viewQuery = compiledQuery;
         } catch (DbException e) {
             e.addSQL(getCreateSQL());
             createException = e;
@@ -693,5 +695,17 @@ public class TableView extends Table {
         }
         return true;
     }
-
+    
+    @Override
+    public void removeView(TableView view){
+        super.removeView(view);
+        // if this is a table expression and the last view to use it is
+        // being dropped - then remove itself from the schema
+        if(isTableExpression() && getViews()!=null && view.isBeingDropped()){
+            // check if any database objects are left using this view
+            if(getViews().size()==0){
+                session.getDatabase().removeSchemaObject(session,this);
+            }            
+        }
+    }
 }

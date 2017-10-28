@@ -44,6 +44,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testNestedSQL();
         testRecursiveTable();
         testRecursiveTableInCreateView();
+        testNonRecursiveTableInCreateView();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -608,4 +609,41 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumbeOfRows, SETUP_SQL,
                 WITH_QUERY);
     }
+    private void testNonRecursiveTableInCreateView() throws Exception {    
+        String SETUP_SQL = ""
+                +"DROP VIEW IF EXISTS v_my_nr_tree;                                                            \n"
+                +"DROP TABLE IF EXISTS my_table;                                                               \n"
+                +"CREATE TABLE my_table (                                                                      \n"
+                +" id INTEGER,                                                                                 \n"
+                +" parent_fk INTEGER                                                                           \n"
+                +");                                                                                           \n"
+                +"                                                                                             \n"
+                +"INSERT INTO my_table ( id, parent_fk) VALUES ( 1, NULL );                                    \n"
+                +"INSERT INTO my_table ( id, parent_fk) VALUES ( 11, 1 );                                      \n"
+                +"INSERT INTO my_table ( id, parent_fk) VALUES ( 111, 11 );                                    \n"
+                +"INSERT INTO my_table ( id, parent_fk) VALUES ( 12, 1 );                                      \n"
+                +"INSERT INTO my_table ( id, parent_fk) VALUES ( 121, 12 );                                    \n"
+                +"                                                                                             \n"
+                +"CREATE OR REPLACE VIEW v_my_nr_tree AS                                                       \n"
+                +"WITH tree_cte_nr (sub_tree_root_id, tree_level, parent_fk, child_fk) AS (                    \n"
+                +"    SELECT mt.ID AS sub_tree_root_id, CAST(0 AS INT) AS tree_level, mt.parent_fk, mt.id      \n"
+                +"      FROM my_table mt                                                                       \n"
+                +")                                                                                            \n"
+                +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte_nr;                   \n"
+                ;
+        
+        String WITH_QUERY = "SELECT * FROM v_my_nr_tree";
+        int maxRetries = 4;
+        String[] expectedRowData =new String[]{
+                "|1|0|null|1",
+                "|11|0|1|11",
+                "|111|0|11|111",
+                "|12|0|1|12",
+                "|121|0|12|121",
+                };
+        String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
+        int expectedNumbeOfRows = 5;
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumbeOfRows, SETUP_SQL,
+                WITH_QUERY);
+    }    
 }

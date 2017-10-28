@@ -77,12 +77,13 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;
-    private ArrayList<TableView> views;
+    private ArrayList<TableView> views; // remember which views are using this object 
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
     private boolean tableExpression;
+    private boolean isBeingDropped;
     
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
@@ -158,7 +159,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param key the primary key
      * @return the row
      */
-    @SuppressWarnings("unused")
     public Row getRow(Session session, long key) {
         return null;
     }
@@ -193,7 +193,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param operation the operation
      * @param row the row
      */
-    @SuppressWarnings("unused")
     public void commit(short operation, Row row) {
         // nothing to do
     }
@@ -231,7 +230,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param allColumnsSet all columns
      * @return the scan index
      */
-    @SuppressWarnings("unused")
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
@@ -464,7 +462,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
-    @SuppressWarnings("unused")
     public boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
@@ -1168,7 +1165,6 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
-    @SuppressWarnings("unused")
     public ArrayList<Session> checkDeadlock(Session session, Session clash,
             Set<Session> visited) {
         return null;
@@ -1251,6 +1247,14 @@ public abstract class Table extends SchemaObjectBase {
 
     public boolean isTableExpression() {
         return tableExpression;
+    }
+    
+    public boolean isBeingDropped(){
+        return isBeingDropped;
+    }
+    
+    public void setBeingDropped(boolean isBeingDropped){
+        this.isBeingDropped = isBeingDropped;
     }
 
 }

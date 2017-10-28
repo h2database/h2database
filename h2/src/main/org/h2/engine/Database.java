@@ -1843,6 +1843,7 @@ public class Database implements DataHandler {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
             Table table = (Table) obj;
+            table.setBeingDropped(true);
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return;

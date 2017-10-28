@@ -21,7 +21,7 @@ import java.util.concurrent.Future;
 import org.h2.util.Tool;
 
 /**
- * Creates a cluster from a standalone database.
+ * Creates a cluster from a stand-alone database.
  * <br />
  * Copies a database to another location if required.
  * @h2.resource

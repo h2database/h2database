@@ -136,66 +136,73 @@ public class CreateCluster extends Tool {
             // so that data can't change while restoring the second database
             statSource.execute("SET EXCLUSIVE 2");
 
-            try (PipedReader pipeReader = new PipedReader()) {
-                /*
-                 * Pipe writer is used + closed in the inner class, in a
-                 * separate thread (needs to be final). It should be initialized
-                 * within try{} so an exception could be caught if creation
-                 * fails. In that scenario, the the writer should be null and
-                 * needs no closing, and the main goal is that finally{} should
-                 * bring the source DB out of exclusive mode, and close the
-                 * reader.
-                 */
-                final PipedWriter pipeWriter = new PipedWriter(pipeReader);
-
-                // Backup data from source database in script form.
-                // Start writing to pipe writer in separate thread.
-                final ResultSet rs = statSource.executeQuery("SCRIPT");
-
-                // Delete the target database first.
-                try (Connection connTarget = DriverManager.getConnection(
-                             urlTarget + ";CLUSTER=''", user, password);
-                     Statement statTarget = connTarget.createStatement())
-                {
-                    statTarget.execute("DROP ALL OBJECTS DELETE FILES");
-                }
-
-                new Thread(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                while (rs.next()) {
-                                    pipeWriter.write(rs.getString(1) + "\n");
-                                }
-                            } catch (SQLException ex) {
-                                throw new IllegalStateException("Producing script from the source DB is failing.", ex);
-                            } catch (IOException ex) {
-                                throw new IllegalStateException("Producing script from the source DB is failing.", ex);
-                            } finally {
-                                IOUtils.closeSilently(pipeWriter);
-                            }
-                        }
-                    }
-                ).start();
-
-                // Read data from pipe reader, restore on target.
-                try (Connection connTarget = DriverManager.getConnection(
-                             urlTarget, user, password);
-                     Statement statTarget = connTarget.createStatement())
-                {
-                    RunScript.execute(connTarget, pipeReader);
-
-                    // set the cluster to the serverList on both databases
-                    statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
-                    statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
-                }
-            } catch (IOException ex) {
-                throw new SQLException(ex);
+            try {
+                performTransfer(statSource, urlTarget, user, password, serverList);
             } finally {
                 // switch back to the regular mode
                 statSource.execute("SET EXCLUSIVE FALSE");
             }
+        }
+    }
+
+    private static void performTransfer(Statement statSource, String urlTarget,
+            String user, String password, String serverList) throws SQLException {
+        try (PipedReader pipeReader = new PipedReader()) {
+            /*
+             * Pipe writer is used + closed in the inner class, in a
+             * separate thread (needs to be final). It should be initialized
+             * within try{} so an exception could be caught if creation
+             * fails. In that scenario, the the writer should be null and
+             * needs no closing, and the main goal is that finally{} should
+             * bring the source DB out of exclusive mode, and close the
+             * reader.
+             */
+            final PipedWriter pipeWriter = new PipedWriter(pipeReader);
+
+            // Backup data from source database in script form.
+            // Start writing to pipe writer in separate thread.
+            final ResultSet rs = statSource.executeQuery("SCRIPT");
+
+            // Delete the target database first.
+            try (Connection connTarget = DriverManager.getConnection(
+                         urlTarget + ";CLUSTER=''", user, password);
+                 Statement statTarget = connTarget.createStatement())
+            {
+                statTarget.execute("DROP ALL OBJECTS DELETE FILES");
+            }
+
+            new Thread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            while (rs.next()) {
+                                pipeWriter.write(rs.getString(1) + "\n");
+                            }
+                        } catch (SQLException ex) {
+                            throw new IllegalStateException("Producing script from the source DB is failing.", ex);
+                        } catch (IOException ex) {
+                            throw new IllegalStateException("Producing script from the source DB is failing.", ex);
+                        } finally {
+                            IOUtils.closeSilently(pipeWriter);
+                        }
+                    }
+                }
+            ).start();
+
+            // Read data from pipe reader, restore on target.
+            try (Connection connTarget = DriverManager.getConnection(
+                         urlTarget, user, password);
+                 Statement statTarget = connTarget.createStatement())
+            {
+                RunScript.execute(connTarget, pipeReader);
+
+                // set the cluster to the serverList on both databases
+                statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
+                statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
+            }
+        } catch (IOException ex) {
+            throw new SQLException(ex);
         }
     }
 

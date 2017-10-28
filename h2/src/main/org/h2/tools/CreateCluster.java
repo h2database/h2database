@@ -13,10 +13,12 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import org.h2.util.IOUtils;
-import org.h2.util.JdbcUtils;
 import org.h2.util.Tool;
 
 /**
@@ -124,20 +126,6 @@ public class CreateCluster extends Tool {
     private static void performTransfer(Statement statSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
         try (PipedReader pipeReader = new PipedReader()) {
-            /*
-             * Pipe writer is used + closed in the inner class, in a
-             * separate thread (needs to be final). It should be initialized
-             * within try{} so an exception could be caught if creation
-             * fails. In that scenario, the the writer should be null and
-             * needs no closing, and the main goal is that finally{} should
-             * bring the source DB out of exclusive mode, and close the
-             * reader.
-             */
-            final PipedWriter pipeWriter = new PipedWriter(pipeReader);
-
-            // Backup data from source database in script form.
-            // Start writing to pipe writer in separate thread.
-            final ResultSet rs = statSource.executeQuery("SCRIPT");
 
             // Delete the target database first.
             try (Connection connTarget = DriverManager.getConnection(
@@ -147,24 +135,7 @@ public class CreateCluster extends Tool {
                 statTarget.execute("DROP ALL OBJECTS DELETE FILES");
             }
 
-            new Thread(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            while (rs.next()) {
-                                pipeWriter.write(rs.getString(1) + "\n");
-                            }
-                        } catch (SQLException ex) {
-                            throw new IllegalStateException("Producing script from the source DB is failing.", ex);
-                        } catch (IOException ex) {
-                            throw new IllegalStateException("Producing script from the source DB is failing.", ex);
-                        } finally {
-                            IOUtils.closeSilently(pipeWriter);
-                        }
-                    }
-                }
-            ).start();
+            Future<?> threadFuture = startWriter(pipeReader, statSource);
 
             // Read data from pipe reader, restore on target.
             try (Connection connTarget = DriverManager.getConnection(
@@ -177,9 +148,62 @@ public class CreateCluster extends Tool {
                 statSource.executeUpdate("SET CLUSTER '" + serverList + "'");
                 statTarget.executeUpdate("SET CLUSTER '" + serverList + "'");
             }
+
+            // Check if the writer encountered any exception
+            try {
+                threadFuture.get();
+            } catch (ExecutionException ex) {
+                throw new SQLException(ex.getCause());
+            } catch (InterruptedException ex) {
+                throw new SQLException(ex);
+            }
+
         } catch (IOException ex) {
             throw new SQLException(ex);
         }
+    }
+
+    private static Future<?> startWriter(PipedReader pipeReader, Statement statSource)
+            throws SQLException, IOException {
+        final ExecutorService thread = Executors.newFixedThreadPool(1);
+
+        /*
+         * Pipe writer is used + closed in the inner class, in a
+         * separate thread (needs to be final). It should be initialized
+         * within try{} so an exception could be caught if creation
+         * fails. In that scenario, the the writer should be null and
+         * needs no closing, and the main goal is that finally{} should
+         * bring the source DB out of exclusive mode, and close the
+         * reader.
+         */
+        final PipedWriter pipeWriter = new PipedWriter(pipeReader);
+
+        // Backup data from source database in script form.
+        // Start writing to pipe writer in separate thread.
+        final ResultSet rs = statSource.executeQuery("SCRIPT");
+
+        // Since exceptions cannot be thrown across thread boundaries, return
+        // the task's future so we can check manually
+        Future<?> threadFuture = thread.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (rs.next()) {
+                        pipeWriter.write(rs.getString(1) + "\n");
+                    }
+                } catch (SQLException ex) {
+                    throw new IllegalStateException("Producing script from the source DB is failing.", ex);
+                } catch (IOException ex) {
+                    throw new IllegalStateException("Producing script from the source DB is failing.", ex);
+                } finally {
+                    IOUtils.closeSilently(pipeWriter);
+                }
+            }
+        });
+
+        thread.shutdown();
+
+        return threadFuture;
     }
 
 }

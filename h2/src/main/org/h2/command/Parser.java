@@ -5206,7 +5206,7 @@ public class Parser {
         if (readIf("(")) {
             cols = parseColumnList();
             for (String c : cols) {
-                // we don't really know the type of the column, so UNKNOWN will
+                // we don't really know the type of the column, so STRING will
                 // have to do
                 columns.add(new Column(c, Value.STRING));
             }

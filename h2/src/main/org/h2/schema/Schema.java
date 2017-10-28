@@ -639,44 +639,26 @@ public class Schema extends DbObjectBase {
      * @return the created {@link Table} object
      */
     public Table createTable(CreateTableData data) {
-        Database acquiredMetaLockDatabase = null;
-        try{
-            synchronized (database) {
-                if (!data.temporary || data.globalTemporary) {
-                    database.lockMeta(data.session);
-                    
-                    // remember to unlock the meta lock before we leave this method
-                    acquiredMetaLockDatabase = database;
-                }
-                data.schema = this;
-                if (data.tableEngine == null) {
-                    DbSettings s = database.getSettings();
-                    if (s.defaultTableEngine != null) {
-                        data.tableEngine = s.defaultTableEngine;
-                    } else if (s.mvStore) {
-                        data.tableEngine = MVTableEngine.class.getName();
-                    }
-                }
-                if (data.tableEngine != null) {
-                    if (data.tableEngineParams == null) {
-                        data.tableEngineParams = this.tableEngineParams;
-                    }
-                    
-                    // the createTable method unlocks the meta - so turn off flag now
-                    acquiredMetaLockDatabase=null;
-                    return database.getTableEngine(data.tableEngine).createTable(data);
-                }
-                // the RegularTable constructor unlocks the meta - so turn off flag now
-                acquiredMetaLockDatabase=null;
-                return new RegularTable(data);
+        synchronized (database) {
+            if (!data.temporary || data.globalTemporary) {
+                database.lockMeta(data.session);
             }
-        }
-        finally{
-            if(acquiredMetaLockDatabase!=null && data.session!=null){
-                if(acquiredMetaLockDatabase.isSysTableLockedBy(data.session)){
-                    acquiredMetaLockDatabase.unlockMeta(data.session);
+            data.schema = this;
+            if (data.tableEngine == null) {
+                DbSettings s = database.getSettings();
+                if (s.defaultTableEngine != null) {
+                    data.tableEngine = s.defaultTableEngine;
+                } else if (s.mvStore) {
+                    data.tableEngine = MVTableEngine.class.getName();
                 }
             }
+            if (data.tableEngine != null) {
+                if (data.tableEngineParams == null) {
+                    data.tableEngineParams = this.tableEngineParams;
+                }
+                return database.getTableEngine(data.tableEngine).createTable(data);
+            }
+            return new RegularTable(data);
         }
     }
 

@@ -517,11 +517,11 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
            
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumbeOfRows, SETUP_SQL,
-                WITH_QUERY);
+                WITH_QUERY, maxRetries-1);
     }
 
     private void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
-            int expectedNumbeOfRows, String SETUP_SQL, String WITH_QUERY) throws SQLException {
+            int expectedNumbeOfRows, String SETUP_SQL, String WITH_QUERY, int closeAndReopenDatabaseConnectionOnIteration) throws SQLException {
 
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
@@ -529,11 +529,20 @@ public class TestGeneralCommonTableQueries extends TestBase {
         ResultSet rs;
         
         for(int queryRunTries=1;queryRunTries<=maxRetries;queryRunTries++){
+            System.out.println("Iteration #"+queryRunTries);
 
             Statement stat = conn.createStatement();
             stat.execute(SETUP_SQL);
             stat.close();
 
+            // close and re-open connection for one iteration to make sure the query work between connections
+            if(queryRunTries==closeAndReopenDatabaseConnectionOnIteration){
+                System.out.println("Reconnecting to database on iteration#"+queryRunTries+" of "+maxRetries);
+                conn.close();
+                
+                conn = getConnection("commonTableExpressionQueries");
+            }
+            
             prep = conn.prepareStatement(WITH_QUERY);
 
             rs = prep.executeQuery();
@@ -586,7 +595,8 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 +"    SELECT sub_tree_root_id, mtc.tree_level + 1 AS tree_level, mtc.parent_fk, mt.id          \n"
                 +"      FROM my_tree mt                                                                        \n"
                 +"INNER JOIN tree_cte mtc ON mtc.child_fk = mt.parent_fk                                       \n"
-                +")                                                                                            \n"
+                +"),                                                                                           \n"
+                +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
                 +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n"
                 ;
         
@@ -607,7 +617,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
         int expectedNumbeOfRows = 11;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumbeOfRows, SETUP_SQL,
-                WITH_QUERY);
+                WITH_QUERY, maxRetries-1);
     }
     private void testNonRecursiveTableInCreateView() throws Exception {    
         String SETUP_SQL = ""
@@ -628,7 +638,8 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 +"WITH tree_cte_nr (sub_tree_root_id, tree_level, parent_fk, child_fk) AS (                    \n"
                 +"    SELECT mt.ID AS sub_tree_root_id, CAST(0 AS INT) AS tree_level, mt.parent_fk, mt.id      \n"
                 +"      FROM my_table mt                                                                       \n"
-                +")                                                                                            \n"
+                +"),                                                                                            \n"
+                +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
                 +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte_nr;                   \n"
                 ;
         
@@ -644,6 +655,6 @@ public class TestGeneralCommonTableQueries extends TestBase {
         String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
         int expectedNumbeOfRows = 5;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumbeOfRows, SETUP_SQL,
-                WITH_QUERY);
+                WITH_QUERY, maxRetries-1);
     }    
 }

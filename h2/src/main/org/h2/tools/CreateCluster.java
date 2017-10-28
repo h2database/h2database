@@ -191,9 +191,7 @@ public class CreateCluster extends Tool {
                     while (rs.next()) {
                         pipeWriter.write(rs.getString(1) + "\n");
                     }
-                } catch (SQLException ex) {
-                    throw new IllegalStateException("Producing script from the source DB is failing.", ex);
-                } catch (IOException ex) {
+                } catch (SQLException | IOException ex) {
                     throw new IllegalStateException("Producing script from the source DB is failing.", ex);
                 } finally {
                     IOUtils.closeSilently(pipeWriter);

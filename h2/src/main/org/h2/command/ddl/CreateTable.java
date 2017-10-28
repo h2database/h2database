@@ -23,7 +23,6 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
-import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -100,7 +99,6 @@ public class CreateTable extends SchemaCommand {
 
     @Override
     public int update() {
-        boolean metaLockAquired = false;
         if (!transactional) {
             session.commit(true);
         }
@@ -109,131 +107,122 @@ public class CreateTable extends SchemaCommand {
             data.persistIndexes = false;
         }
         boolean isSessionTemporary = data.temporary && !data.globalTemporary;
-        try {
-            if (!isSessionTemporary) {
-                db.lockMeta(session);
-                metaLockAquired = true;
+        if (!isSessionTemporary) {
+            db.lockMeta(session);
+        }
+        if (getSchema().resolveTableOrView(session, data.tableName) != null) {
+            if (ifNotExists) {
+                return 0;
             }
-            if (getSchema().resolveTableOrView(session, data.tableName) != null) {
-                if (ifNotExists) {
-                    return 0;
-                }
-                throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.tableName);
-            }
-            if (asQuery != null) {
-                asQuery.prepare();
-                if (data.columns.size() == 0) {
-                    generateColumnsFromQuery();
-                } else if (data.columns.size() != asQuery.getColumnCount()) {
-                    throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
-                }
-            }
-            if (pkColumns != null) {
-                for (Column c : data.columns) {
-                    for (IndexColumn idxCol : pkColumns) {
-                        if (c.getName().equals(idxCol.columnName)) {
-                            c.setNullable(false);
-                        }
-                    }
-                }
-            }
-            data.id = getObjectId();
-            data.create = create;
-            data.session = session;
-            Table table = getSchema().createTable(data);
-            ArrayList<Sequence> sequences = New.arrayList();
-            for (Column c : data.columns) {
-                if (c.isAutoIncrement()) {
-                    int objId = getObjectId();
-                    c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
-                    if (!Constants.CLUSTERING_DISABLED
-                            .equals(session.getDatabase().getCluster())) {
-                        throw DbException.getUnsupportedException(
-                                "CLUSTERING && auto-increment columns");
-                    }
-                }
-                Sequence seq = c.getSequence();
-                if (seq != null) {
-                    sequences.add(seq);
-                }
-            }
-            table.setComment(comment);
-            if (isSessionTemporary) {
-                if (onCommitDrop) {
-                    table.setOnCommitDrop(true);
-                }
-                if (onCommitTruncate) {
-                    table.setOnCommitTruncate(true);
-                }
-                session.addLocalTempTable(table);
-            } else {
-                db.lockMeta(session);
-                db.addSchemaObject(session, table);
-            }
-            try {
-                for (Column c : data.columns) {
-                    c.prepareExpression(session);
-                }
-                for (Sequence sequence : sequences) {
-                    table.addSequence(sequence);
-                }
-                for (DefineCommand command : constraintCommands) {
-                    command.setTransactional(transactional);
-                    command.update();
-                }
-                if (asQuery != null) {
-                    boolean old = session.isUndoLogEnabled();
-                    try {
-                        session.setUndoLogEnabled(false);
-                        session.startStatementWithinTransaction();
-                        Insert insert = null;
-                        insert = new Insert(session);
-                        insert.setSortedInsertMode(sortedInsertMode);
-                        insert.setQuery(asQuery);
-                        insert.setTable(table);
-                        insert.setInsertFromSelect(true);
-                        insert.prepare();
-                        insert.update();
-                    } finally {
-                        session.setUndoLogEnabled(old);
-                    }
-                }
-                HashSet<DbObject> set = New.hashSet();
-                set.clear();
-                table.addDependencies(set);
-                for (DbObject obj : set) {
-                    if (obj == table) {
-                        continue;
-                    }
-                    if (obj.getType() == DbObject.TABLE_OR_VIEW) {
-                        if (obj instanceof Table) {
-                            Table t = (Table) obj;
-                            if (t.getId() > table.getId()) {
-                                throw DbException.get(
-                                        ErrorCode.FEATURE_NOT_SUPPORTED_1,
-                                        "Table depends on another table " +
-                                        "with a higher ID: " + t +
-                                        ", this is currently not supported, " +
-                                        "as it would prevent the database from " +
-                                        "being re-opened");
-                            }
-                        }
-                    }
-                }
-            } catch (DbException e) {
-                db.checkPowerOff();
-                db.removeSchemaObject(session, table);
-                if (!transactional) {
-                    session.commit(true);
-                }
-                throw e;
+            throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1, data.tableName);
+        }
+        if (asQuery != null) {
+            asQuery.prepare();
+            if (data.columns.size() == 0) {
+                generateColumnsFromQuery();
+            } else if (data.columns.size() != asQuery.getColumnCount()) {
+                throw DbException.get(ErrorCode.COLUMN_COUNT_DOES_NOT_MATCH);
             }
         }
-        finally{
-
-            if (!isSessionTemporary && metaLockAquired) {
-                db.unlockMeta(session);
+        if (pkColumns != null) {
+            for (Column c : data.columns) {
+                for (IndexColumn idxCol : pkColumns) {
+                    if (c.getName().equals(idxCol.columnName)) {
+                        c.setNullable(false);
+                    }
+                }
             }
+        }
+        data.id = getObjectId();
+        data.create = create;
+        data.session = session;
+        Table table = getSchema().createTable(data);
+        ArrayList<Sequence> sequences = New.arrayList();
+        for (Column c : data.columns) {
+            if (c.isAutoIncrement()) {
+                int objId = getObjectId();
+                c.convertAutoIncrementToSequence(session, getSchema(), objId, data.temporary);
+                if (!Constants.CLUSTERING_DISABLED
+                        .equals(session.getDatabase().getCluster())) {
+                    throw DbException.getUnsupportedException(
+                            "CLUSTERING && auto-increment columns");
+                }
+            }
+            Sequence seq = c.getSequence();
+            if (seq != null) {
+                sequences.add(seq);
+            }
+        }
+        table.setComment(comment);
+        if (isSessionTemporary) {
+            if (onCommitDrop) {
+                table.setOnCommitDrop(true);
+            }
+            if (onCommitTruncate) {
+                table.setOnCommitTruncate(true);
+            }
+            session.addLocalTempTable(table);
+        } else {
+            db.lockMeta(session);
+            db.addSchemaObject(session, table);
+        }
+        try {
+            for (Column c : data.columns) {
+                c.prepareExpression(session);
+            }
+            for (Sequence sequence : sequences) {
+                table.addSequence(sequence);
+            }
+            for (DefineCommand command : constraintCommands) {
+                command.setTransactional(transactional);
+                command.update();
+            }
+            if (asQuery != null) {
+                boolean old = session.isUndoLogEnabled();
+                try {
+                    session.setUndoLogEnabled(false);
+                    session.startStatementWithinTransaction();
+                    Insert insert = null;
+                    insert = new Insert(session);
+                    insert.setSortedInsertMode(sortedInsertMode);
+                    insert.setQuery(asQuery);
+                    insert.setTable(table);
+                    insert.setInsertFromSelect(true);
+                    insert.prepare();
+                    insert.update();
+                } finally {
+                    session.setUndoLogEnabled(old);
+                }
+            }
+            HashSet<DbObject> set = New.hashSet();
+            set.clear();
+            table.addDependencies(set);
+            for (DbObject obj : set) {
+                if (obj == table) {
+                    continue;
+                }
+                if (obj.getType() == DbObject.TABLE_OR_VIEW) {
+                    if (obj instanceof Table) {
+                        Table t = (Table) obj;
+                        if (t.getId() > table.getId()) {
+                            throw DbException.get(
+                                    ErrorCode.FEATURE_NOT_SUPPORTED_1,
+                                    "Table depends on another table " +
+                                    "with a higher ID: " + t +
+                                    ", this is currently not supported, " +
+                                    "as it would prevent the database from " +
+                                    "being re-opened");
+                        }
+                    }
+                }
+            }
+        } catch (DbException e) {
+            db.checkPowerOff();
+            db.removeSchemaObject(session, table);
+            if (!transactional) {
+                session.commit(true);
+            }
+            throw e;
         }
         return 0;
     }
@@ -241,11 +230,10 @@ public class CreateTable extends SchemaCommand {
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ArrayList<Expression> expressions = asQuery.getExpressions();
-        ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             int type = expr.getType();
-            String name = columnNamer.getColumnName(expr,i,expr.getAlias());
+            String name = expr.getAlias();
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);

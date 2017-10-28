@@ -100,10 +100,6 @@ public class CreateCluster extends Tool {
 
     private static void process(String urlSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
-        Connection connSource = null;
-        Statement statSource = null;
-        PipedReader pipeReader = null;
-
         org.h2.Driver.load();
 
         // verify that the database doesn't exist,
@@ -130,20 +126,17 @@ public class CreateCluster extends Tool {
                     urlTarget);
         }
 
-        try {
-            // use cluster='' so connecting is possible
-            // even if the cluster is enabled
-            connSource = DriverManager.getConnection(urlSource +
-                    ";CLUSTER=''", user, password);
-            statSource = connSource.createStatement();
-
+        try (Connection connSource = DriverManager.getConnection(
+                     // use cluster='' so connecting is possible
+                     // even if the cluster is enabled
+                     urlSource + ";CLUSTER=''", user, password);
+             Statement statSource = connSource.createStatement())
+        {
             // enable the exclusive mode and close other connections,
             // so that data can't change while restoring the second database
             statSource.execute("SET EXCLUSIVE 2");
 
-            pipeReader = new PipedReader();
-
-            try {
+            try (PipedReader pipeReader = new PipedReader()) {
                 /*
                  * Pipe writer is used + closed in the inner class, in a
                  * separate thread (needs to be final). It should be initialized
@@ -203,10 +196,6 @@ public class CreateCluster extends Tool {
                 // switch back to the regular mode
                 statSource.execute("SET EXCLUSIVE FALSE");
             }
-        } finally {
-            IOUtils.closeSilently(pipeReader);
-            JdbcUtils.closeSilently(statSource);
-            JdbcUtils.closeSilently(connSource);
         }
     }
 

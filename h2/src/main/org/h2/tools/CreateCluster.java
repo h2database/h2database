@@ -161,7 +161,7 @@ public class CreateCluster extends Tool {
                 }
 
                 new Thread(
-                    new Runnable(){
+                    new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -169,9 +169,9 @@ public class CreateCluster extends Tool {
                                     pipeWriter.write(rs.getString(1) + "\n");
                                 }
                             } catch (SQLException ex) {
-                                throw new IllegalStateException("Producing script from the source DB is failing.",ex);
+                                throw new IllegalStateException("Producing script from the source DB is failing.", ex);
                             } catch (IOException ex) {
-                                throw new IllegalStateException("Producing script from the source DB is failing.",ex);
+                                throw new IllegalStateException("Producing script from the source DB is failing.", ex);
                             } finally {
                                 IOUtils.closeSilently(pipeWriter);
                             }
@@ -184,7 +184,7 @@ public class CreateCluster extends Tool {
                              urlTarget, user, password);
                      Statement statTarget = connTarget.createStatement())
                 {
-                    RunScript.execute(connTarget,pipeReader);
+                    RunScript.execute(connTarget, pipeReader);
 
                     // set the cluster to the serverList on both databases
                     statSource.executeUpdate("SET CLUSTER '" + serverList + "'");

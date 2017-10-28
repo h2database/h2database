@@ -166,6 +166,7 @@ public class CreateCluster extends Tool {
                         urlTarget + ";CLUSTER=''", user, password);
                 statTarget = connTarget.createStatement();
                 statTarget.execute("DROP ALL OBJECTS DELETE FILES");
+                statTarget.close();
                 connTarget.close();
 
 

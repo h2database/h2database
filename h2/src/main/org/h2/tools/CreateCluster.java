@@ -124,16 +124,16 @@ public class CreateCluster extends Tool {
 
     private static void performTransfer(Statement statSource, String urlTarget,
             String user, String password, String serverList) throws SQLException {
+
+        // Delete the target database first.
+        try (Connection connTarget = DriverManager.getConnection(
+                     urlTarget + ";CLUSTER=''", user, password);
+             Statement statTarget = connTarget.createStatement())
+        {
+            statTarget.execute("DROP ALL OBJECTS DELETE FILES");
+        }
+
         try (PipedReader pipeReader = new PipedReader()) {
-
-            // Delete the target database first.
-            try (Connection connTarget = DriverManager.getConnection(
-                         urlTarget + ";CLUSTER=''", user, password);
-                 Statement statTarget = connTarget.createStatement())
-            {
-                statTarget.execute("DROP ALL OBJECTS DELETE FILES");
-            }
-
             Future<?> threadFuture = startWriter(pipeReader, statSource);
 
             // Read data from pipe reader, restore on target.

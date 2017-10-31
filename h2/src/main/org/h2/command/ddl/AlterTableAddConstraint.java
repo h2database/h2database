@@ -244,20 +244,20 @@ public class AlterTableAddConstraint extends SchemaCommand {
             }
             int id = getObjectId();
             String name = generateConstraintName(table);
-            ConstraintReferential ref = new ConstraintReferential(getSchema(),
+            ConstraintReferential refConstraint = new ConstraintReferential(getSchema(),
                     id, name, table);
-            ref.setColumns(indexColumns);
-            ref.setIndex(index, isOwner);
-            ref.setRefTable(refTable);
-            ref.setRefColumns(refIndexColumns);
-            ref.setRefIndex(refIndex, isRefOwner);
+            refConstraint.setColumns(indexColumns);
+            refConstraint.setIndex(index, isOwner);
+            refConstraint.setRefTable(refTable);
+            refConstraint.setRefColumns(refIndexColumns);
+            refConstraint.setRefIndex(refIndex, isRefOwner);
             if (checkExisting) {
-                ref.checkExistingData(session);
+                refConstraint.checkExistingData(session);
             }
-            constraint = ref;
-            refTable.addConstraint(constraint);
-            ref.setDeleteAction(deleteAction);
-            ref.setUpdateAction(updateAction);
+            refTable.addConstraint(refConstraint);
+            refConstraint.setDeleteAction(deleteAction);
+            refConstraint.setUpdateAction(updateAction);
+            constraint = refConstraint;
             break;
         }
         default:

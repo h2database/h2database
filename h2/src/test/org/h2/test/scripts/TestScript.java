@@ -77,7 +77,9 @@ public class TestScript extends TestBase {
             return;
         }
         reconnectOften = !config.memory && config.big;
+        
         testScript("testScript.sql");
+        testScript("altertable-index-reuse.sql");
         testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");

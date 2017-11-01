@@ -212,7 +212,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
                 isOwner = true;
                 index.getIndexType().setBelongsToConstraint(true);
             } else {
-                index = getIndex(table, indexColumns, true);
+                index = getIndex(table, indexColumns, false);
                 if (index == null) {
                     index = createIndex(table, indexColumns, false);
                     isOwner = true;
@@ -329,29 +329,30 @@ public class AlterTableAddConstraint extends SchemaCommand {
         }
         return null;
     }
+    
 
+    // all cols must be in the index key, the order doesn't matter and there must be no other fields in the index key
     private static boolean canUseUniqueIndex(Index idx, Table table,
-            IndexColumn[] cols) {
+        IndexColumn[] cols) {
         if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
         }
         Column[] indexCols = idx.getColumns();
-        if (indexCols.length > cols.length) {
-            return false;
-        }
-        HashSet<Column> set = New.hashSet();
-        for (IndexColumn c : cols) {
-            set.add(c.column);
-        }
+
+        HashSet<Column> indexColsSet = New.hashSet();
+
         for (Column c : indexCols) {
-            // all columns of the index must be part of the list,
-            // but not all columns of the list need to be part of the index
-            if (!set.contains(c)) {
-                return false;
-            }
+            indexColsSet.add(c);
         }
-        return true;
-    }
+
+        HashSet<Column> colsSet = New.hashSet();
+
+        for (IndexColumn c : cols) {
+            colsSet.add(c.column);
+        }
+    
+      return colsSet.equals(indexColsSet);
+    }        
 
     private static boolean canUseIndex(Index existingIndex, Table table,
             IndexColumn[] cols, boolean moreColumnsOk) {

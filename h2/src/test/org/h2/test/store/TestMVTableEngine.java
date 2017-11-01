@@ -1487,7 +1487,6 @@ public class TestMVTableEngine extends TestBase {
             reverse += testReverseDeletePerformance(true);
             direct += testReverseDeletePerformance(false);
         }
-        System.out.println("direct: " + direct + ", reverse: " + reverse);
         assertTrue("direct: " + direct + ", reverse: " + reverse, 2 * Math.abs(reverse - direct) < reverse + direct);
     }
 

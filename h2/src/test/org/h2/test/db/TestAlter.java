@@ -117,10 +117,11 @@ public class TestAlter extends TestBase {
         stat.execute("alter table test drop column name, name2");
         stat.execute("drop table test");
         // Test-Case: Same as above but using brackets (Oracle style)
-        stat.execute("create table test(id int, name varchar, name2 varchar)");
-        stat.execute("alter table test drop column (name, name2)");
+        stat.execute("create table test(id int, b varchar, c int, d int)");
+        stat.execute("alter table test drop column (b, c)");
         assertThrows(ErrorCode.COLUMN_NOT_FOUND_1, stat).
-            execute("alter table test drop column name");
+            execute("alter table test drop column b");
+        stat.execute("alter table test drop (d)");
         stat.execute("drop table test");
         // Test-Case: Error if dropping all columns 
         stat.execute("create table test(id int, name varchar, name2 varchar)");

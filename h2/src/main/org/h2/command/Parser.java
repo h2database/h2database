@@ -6073,6 +6073,7 @@ public class Parser {
                 command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 ArrayList<Column> columnsToRemove = New.arrayList();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
+                readIf("("); // For Oracle compatibility - open bracket required
                 do {
                     String columnName = readColumnIdentifier();
                     if (table == null) {
@@ -6084,6 +6085,7 @@ public class Parser {
                     Column column = table.getColumn(columnName);
                     columnsToRemove.add(column);
                 } while (readIf(","));
+                readIf(")"); // Fro Oracle compatibility - close bracket
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setColumnsToRemove(columnsToRemove);

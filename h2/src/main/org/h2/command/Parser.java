@@ -6085,7 +6085,7 @@ public class Parser {
                     Column column = table.getColumn(columnName);
                     columnsToRemove.add(column);
                 } while (readIf(","));
-                readIf(")"); // Fro Oracle compatibility - close bracket
+                readIf(")"); // For Oracle compatibility - close bracket
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setColumnsToRemove(columnsToRemove);

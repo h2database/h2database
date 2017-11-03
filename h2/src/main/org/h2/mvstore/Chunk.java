@@ -6,7 +6,7 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import org.h2.engine.SysProperties;
 
 /**
  * A chunk of data, containing one or multiple pages.
@@ -179,22 +179,104 @@ public class Chunk {
      * @return the block
      */
     public static Chunk fromString(String s) {
-        HashMap<String, String> map = DataUtils.parseMap(s);
-        int id = DataUtils.readHexInt(map, "chunk", 0);
-        Chunk c = new Chunk(id);
-        c.block = DataUtils.readHexLong(map, "block", 0);
-        c.len = DataUtils.readHexInt(map, "len", 0);
-        c.pageCount = DataUtils.readHexInt(map, "pages", 0);
-        c.pageCountLive = DataUtils.readHexInt(map, "livePages", c.pageCount);
-        c.mapId = DataUtils.readHexInt(map, "map", 0);
-        c.maxLen = DataUtils.readHexLong(map, "max", 0);
-        c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLen);
-        c.metaRootPos = DataUtils.readHexLong(map, "root", 0);
-        c.time = DataUtils.readHexLong(map, "time", 0);
-        c.unused = DataUtils.readHexLong(map, "unused", 0);
-        c.version = DataUtils.readHexLong(map, "version", id);
-        c.next = DataUtils.readHexLong(map, "next", 0);
-        return c;
+        // This is an inline version of DataUtils.parseMap, inlined
+        // because parseMap shows up quite high in CPU and garbage performance
+        // tracing.
+        long block = 0;
+        int id = 0;
+        int len = 0;
+        int pageCount = 0;
+        Integer livePages = null;
+        int mapId = 0;
+        long maxLen = 0;
+        Long maxLenLive = null;
+        long metaRootPos = 0;
+        long time = 0;
+        long unused = 0;
+        long version = 0;
+        long next = 0;
+        for (int i = 0, size = s.length(); i < size;) {
+            final int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
+            final String key = s.substring(startKey, i++);
+            final int startValue = i;
+            while (i < size) {
+                char c = s.charAt(i++);
+                if (c == ',') {
+                    break;
+                } else if (c == '\"') {
+                    throw DataUtils.newIllegalStateException(
+                            DataUtils.ERROR_FILE_CORRUPT,
+                            "there should be not quoted chars in this map: {0}", s);
+                }
+            }
+            final String val = s.substring(startValue, i);
+            if (key.equals("block")) {
+                block = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("chunk")) {
+                id = DataUtils.parseHexInt(val);
+            }
+            else if (key.equals("len")) {
+                len = DataUtils.parseHexInt(val);
+            }
+            else if (key.equals("pages")) {
+                pageCount = DataUtils.parseHexInt(val);
+            }
+            else if (key.equals("livePages")) {
+                livePages = DataUtils.parseHexInt(val);
+            }
+            else if (key.equals("map")) {
+                mapId = DataUtils.parseHexInt(val);
+            }
+            else if (key.equals("max")) {
+                maxLen = DataUtils.parseHexInt(val);
+            }
+            else if (key.equals("liveMax")) {
+                maxLenLive = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("root")) {
+                metaRootPos = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("time")) {
+                time = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("unused")) {
+                unused = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("unused")) {
+                unused = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("version")) {
+                version = DataUtils.parseHexLong(val);
+            }
+            else if (key.equals("next")) {
+                next = DataUtils.parseHexLong(val);
+            }
+            else if (SysProperties.CHECK) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT,
+                        "unknown key in this map: {0}", s);
+            }
+        }
+        final Chunk chunk = new Chunk(id);
+        chunk.block = block;
+        chunk.len = len;
+        chunk.pageCount = pageCount;
+        chunk.pageCountLive = livePages == null ? pageCount : livePages;
+        chunk.mapId = mapId;
+        chunk.maxLen = maxLen;
+        chunk.maxLenLive = maxLenLive == null ? maxLen : maxLenLive;
+        chunk.metaRootPos = metaRootPos;
+        chunk.time = time;
+        chunk.unused = unused;
+        chunk.version = version;
+        chunk.next = next;
+        return chunk;
     }
 
     /**

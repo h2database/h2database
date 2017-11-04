@@ -3486,6 +3486,20 @@ public class Parser {
         addExpected(token);
         return false;
     }
+    
+    /*
+     * Reads passed token in list, in order and returns true on first match.
+     * If none of the token matches returns false
+     */
+    private boolean readIfOr(String ... tokens) {
+        for(String token: tokens) {
+            if (readIf(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /*
      * Reads every token in list, in order - returns true if all are found.
      * If any are not found, returns false - AND resets parsing back to state when called.
@@ -4466,7 +4480,7 @@ public class Parser {
                     }
                     original += "(" + p;
                     // Oracle syntax
-                    readIf("CHAR");
+                    readIfOr("CHAR", "BYTE");
                     if (dataType.supportsScale) {
                         if (readIf(",")) {
                             scale = readInt();

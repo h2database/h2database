@@ -248,14 +248,18 @@ public class TestDataUtils extends TestBase {
         for (long i = -1; i != 0; i >>>= 1) {
             String x = Long.toHexString(i);
             assertEquals(i, DataUtils.parseHexLong(x));
+            assertEquals(i, DataUtils.parseHexLong(x.toCharArray(), x.length()));
             x = Long.toHexString(-i);
             assertEquals(-i, DataUtils.parseHexLong(x));
+            assertEquals(-i, DataUtils.parseHexLong(x.toCharArray(), x.length()));
             int j = (int) i;
             x = Integer.toHexString(j);
             assertEquals(j, DataUtils.parseHexInt(x));
+            assertEquals(j, DataUtils.parseHexInt(x.toCharArray(), x.length()));
             j = (int) -i;
             x = Integer.toHexString(j);
             assertEquals(j, DataUtils.parseHexInt(x));
+            assertEquals(j, DataUtils.parseHexInt(x.toCharArray(), x.length()));
         }
     }
 

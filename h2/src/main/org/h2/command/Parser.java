@@ -3486,6 +3486,20 @@ public class Parser {
         addExpected(token);
         return false;
     }
+    
+    /*
+     * Reads passed token in list, in order and returns true on first match.
+     * If none of the token matches returns false
+     */
+    private boolean readIfOr(String ... tokens) {
+        for(String token: tokens) {
+            if (readIf(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     /*
      * Reads every token in list, in order - returns true if all are found.
      * If any are not found, returns false - AND resets parsing back to state when called.
@@ -4466,7 +4480,7 @@ public class Parser {
                     }
                     original += "(" + p;
                     // Oracle syntax
-                    readIf("CHAR");
+                    readIfOr("CHAR", "BYTE");
                     if (dataType.supportsScale) {
                         if (readIf(",")) {
                             scale = readInt();
@@ -6073,6 +6087,7 @@ public class Parser {
                 command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 ArrayList<Column> columnsToRemove = New.arrayList();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
+                boolean openingBracketDetected = readIf("("); // For Oracle compatibility - open bracket required
                 do {
                     String columnName = readColumnIdentifier();
                     if (table == null) {
@@ -6084,6 +6099,9 @@ public class Parser {
                     Column column = table.getColumn(columnName);
                     columnsToRemove.add(column);
                 } while (readIf(","));
+                if (openingBracketDetected) {
+                    read(")"); // For Oracle compatibility - close bracket
+                }
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setColumnsToRemove(columnsToRemove);

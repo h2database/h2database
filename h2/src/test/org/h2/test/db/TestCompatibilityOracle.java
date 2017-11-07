@@ -40,6 +40,7 @@ public class TestCompatibilityOracle extends TestBase {
         testPoundSymbolInColumnName();
         testToDate();
         testForbidEmptyInClause();
+        testSpecialTypes();
     }
 
     private void testNotNullSyntax() throws SQLException {
@@ -85,13 +86,29 @@ public class TestCompatibilityOracle extends TestBase {
 
         conn.close();
     }
-
+    
+    private void testSpecialTypes() throws SQLException {
+        // Test VARCHAR, VARCHAR2 with CHAR and BYTE 
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+        stat.execute("create table T (ID NUMBER)");
+        stat.execute("alter table T add A_1 VARCHAR(1)");
+        stat.execute("alter table T add A_2 VARCHAR2(1)");
+        stat.execute("alter table T add B_1 VARCHAR(1 byte)"); // with BYTE
+        stat.execute("alter table T add B_2 VARCHAR2(1 byte)"); 
+        stat.execute("alter table T add C_1 VARCHAR(1 char)"); // with CHAR
+        stat.execute("alter table T add C_2 VARCHAR2(1 char)");
+        stat.execute("alter table T add B_255 VARCHAR(255 byte)");
+        stat.execute("alter table T add C_255 VARCHAR(255 char)");
+        stat.execute("drop table T");
+        conn.close();
+    }
     
     private void testTreatEmptyStringsAsNull() throws SQLException {
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();
-
         stat.execute("CREATE TABLE A (ID NUMBER, X VARCHAR2(1))");
         stat.execute("INSERT INTO A VALUES (1, 'a')");
         stat.execute("INSERT INTO A VALUES (2, '')");

@@ -261,7 +261,6 @@
           </signature>
         </configuration>
       </plugin>
-      <!-- Disable surefire since we don't use Junit -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>

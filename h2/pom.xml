@@ -210,7 +210,9 @@
         <executions>
           <execution>
             <phase>generate-test-sources</phase>
-            <goals><goal>add-test-source</goal></goals>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
             <configuration>
               <sources>
                 <source>src/tools</source>

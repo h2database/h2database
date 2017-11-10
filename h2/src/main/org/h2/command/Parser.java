@@ -4195,6 +4195,8 @@ public class Parser {
                 return KEYWORD;
             } else if ("FOR".equals(s)) {
                 return KEYWORD;
+            } else if ("FOREIGN".equals(s)) {
+                return KEYWORD;
             } else if ("FULL".equals(s)) {
                 return KEYWORD;
             } else if (supportOffsetFetch && "FETCH".equals(s)) {

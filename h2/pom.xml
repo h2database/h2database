@@ -221,36 +221,14 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Make sure we are not using anything outside JDK 1.6 -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>animal-sniffer-maven-plugin</artifactId>
-        <version>1.15</version>
-        <executions>
-          <execution>
-            <id>check-java-api</id>
-            <phase>test</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <signature>
-            <groupId>org.codehaus.mojo.signature</groupId>
-            <artifactId>java16</artifactId>
-            <version>1.1</version>
-          </signature>
-        </configuration>
-      </plugin>
-      <!-- Make sure none of our dependencies use anything outside JDK 1.7 -->
+      <!-- Make sure neither we nor one of our dependencies uses anything outside JDK 1.7 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
         <version>3.0.0-M1</version>
         <executions>
           <execution>
-            <id>enforce-bytecode-version</id>
+            <id>check-java-version</id>
             <goals>
               <goal>enforce</goal>
             </goals>
@@ -259,6 +237,13 @@
                 <enforceBytecodeVersion>
                   <maxJdkVersion>1.7</maxJdkVersion>
                 </enforceBytecodeVersion>
+                <checkSignatureRule implementation="org.codehaus.mojo.animal_sniffer.enforcer.CheckSignatureRule">
+                  <signature>
+                    <groupId>org.codehaus.mojo.signature</groupId>
+                    <artifactId>java17</artifactId>
+                    <version>1.0</version>
+                  </signature>
+                </checkSignatureRule>
               </rules>
               <fail>true</fail>
             </configuration>
@@ -269,6 +254,11 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>extra-enforcer-rules</artifactId>
             <version>1.0-beta-6</version>
+          </dependency>
+          <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-enforcer-rule</artifactId>
+            <version>1.16</version>
           </dependency>
         </dependencies>
       </plugin>

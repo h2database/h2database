@@ -5,9 +5,7 @@
  */
 package org.h2.test.unit;
 
-import java.math.BigInteger;
 import org.h2.test.TestBase;
-import org.h2.test.utils.AssertThrows;
 import org.h2.util.MathUtils;
 
 /**
@@ -27,7 +25,6 @@ public class TestMathUtils extends TestBase {
     @Override
     public void test() {
         testRandom();
-        testFactorial();
     }
 
     private void testRandom() {
@@ -49,44 +46,6 @@ public class TestMathUtils extends TestBase {
         // just verify the method doesn't throw an exception
         byte[] data = MathUtils.generateAlternativeSeed();
         assertTrue(data.length > 10);
-    }
-
-    private void testFactorial() {
-        new AssertThrows(IllegalArgumentException.class) { @Override
-        public void test() {
-            factorial(-1);
-        }};
-        assertEquals("1", factorial(0).toString());
-        assertEquals("1", factorial(1).toString());
-        assertEquals("2", factorial(2).toString());
-        assertEquals("6", factorial(3).toString());
-        assertEquals("3628800", factorial(10).toString());
-        assertEquals("2432902008176640000", factorial(20).toString());
-    }
-
-    /**
-     * Calculate the factorial (n!) of a number.
-     * This implementation uses a naive multiplication loop, and
-     * is very slow for large n.
-     * For n = 1000, it takes about 10 ms.
-     * For n = 8000, it takes about 800 ms.
-     *
-     * @param n the number
-     * @return the factorial of n
-     */
-    public static BigInteger factorial(int n) {
-        if (n < 0) {
-            throw new IllegalArgumentException(n + "<0");
-        } else if (n < 2) {
-            return BigInteger.ONE;
-        }
-        BigInteger x = new BigInteger("" + n);
-        BigInteger result = x;
-        for (int i = n - 1; i >= 2; i--) {
-            x = x.subtract(BigInteger.ONE);
-            result = result.multiply(x);
-        }
-        return result;
     }
 
 }

@@ -78,7 +78,7 @@ public class ChunkParser {
 			}
 			
 			for (Field f: Field.values()) {
-				if (f.key.regionMatches(0, source, startPos, len)) {
+				if (f.key.length() == len && f.key.regionMatches(0, source, startPos, len)) {
 					return f;
 				}
 			}
@@ -89,7 +89,7 @@ public class ChunkParser {
 	
 
 	// Maximum length of a long represented as a hex string in a serialized Chunk
-	private static final int STRING_LEN_MAX_VALUE = Long.BYTES * 2;
+	private static final int STRING_LEN_MAX_VALUE = 2 * Long.SIZE / Byte.SIZE; // TODO Java 8 Use: Long.BYTES * 2;
 
 	// Prevent instance creation
 	private ChunkParser() {}

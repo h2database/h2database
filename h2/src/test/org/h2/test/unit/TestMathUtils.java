@@ -25,6 +25,8 @@ public class TestMathUtils extends TestBase {
     @Override
     public void test() {
         testRandom();
+        testNextPowerOf2Int();
+        testNextPowerOf2Long();
     }
 
     private void testRandom() {
@@ -46,6 +48,32 @@ public class TestMathUtils extends TestBase {
         // just verify the method doesn't throw an exception
         byte[] data = MathUtils.generateAlternativeSeed();
         assertTrue(data.length > 10);
+    }
+
+    private void testNextPowerOf2Int() {
+        // the largest power of two that fits into an integer
+        final int LARGEST_POW2 = 0x40000000;
+        int[] testValues = { 0, 1, 2, 3, 4, 12, 17, 500, 1023,
+                LARGEST_POW2-500, LARGEST_POW2 };
+        int[] resultValues = { 1, 1, 2, 4, 4, 16, 32, 512, 1024,
+                LARGEST_POW2, LARGEST_POW2 };
+
+        for (int i = 0; i < testValues.length; i++) {
+            assertEquals(resultValues[i], MathUtils.nextPowerOf2(testValues[i]));
+        }
+    }
+
+    private void testNextPowerOf2Long() {
+        // the largest power of two that fits into a long
+        final long LARGEST_POW2 = 0x4000000000000000L;
+        long[] testValues = { 0, 1, 2, 3, 4, 12, 17, 500, 1023,
+                LARGEST_POW2-500, LARGEST_POW2 };
+        long[] resultValues = { 1, 1, 2, 4, 4, 16, 32, 512, 1024,
+                LARGEST_POW2, LARGEST_POW2 };
+
+        for (int i = 0; i < testValues.length; i++) {
+            assertEquals(resultValues[i], MathUtils.nextPowerOf2(testValues[i]));
+        }
     }
 
 }

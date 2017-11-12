@@ -338,8 +338,15 @@ public class SysProperties {
      * The maximum number of objects in the cache.
      * This value must be a power of 2.
      */
-    public static final int OBJECT_CACHE_SIZE =
-            MathUtils.nextPowerOf2(Utils.getProperty("h2.objectCacheSize", 1024));
+    public static final int OBJECT_CACHE_SIZE;
+    static {
+        try {
+            OBJECT_CACHE_SIZE = MathUtils.nextPowerOf2(
+                    Utils.getProperty("h2.objectCacheSize", 1024));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("Invalid h2.objectCacheSize", e);
+        }
+    }
 
     /**
      * System property <code>h2.oldStyleOuterJoin</code>

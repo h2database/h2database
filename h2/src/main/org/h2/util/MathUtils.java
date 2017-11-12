@@ -218,10 +218,14 @@ public class MathUtils {
      *
      * @param x the original value
      * @return the next power of two value
+     * @throws IllegalArgumentException if x < 0 or x > 0x40000000
      */
-    public static int nextPowerOf2(int x) {
+    public static int nextPowerOf2(int x) throws IllegalArgumentException {
         if (x == 0) {
             return 1;
+        } else if (x < 0 || x > 0x40000000 ) {
+            throw new IllegalArgumentException("Argument out of range"
+                    + " [0x0-0x40000000]. Argument was: " + x);
         }
         x--;
         x |= x >> 1;
@@ -238,10 +242,14 @@ public class MathUtils {
      *
      * @param x the original value
      * @return the next power of two value
+     * @throws IllegalArgumentException if x < 0 or x > 0x4000000000000000
      */
-    public static long nextPowerOf2(long x) {
+    public static long nextPowerOf2(long x) throws IllegalArgumentException {
         if (x == 0) {
             return 1;
+        } else if (x < 0 || x > 0x4000000000000000L ) {
+            throw new IllegalArgumentException("Argument out of range"
+                    + " [0x0-0x4000000000000000]. Argument was: " + x);
         }
         x--;
         x |= x >> 1;

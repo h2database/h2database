@@ -51,7 +51,12 @@ public class CacheLRU implements Cache {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);
-        long tmpLen = MathUtils.nextPowerOf2(maxMemory / 64);
+        long tmpLen;
+        try {
+            tmpLen = MathUtils.nextPowerOf2(maxMemory / 64);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("This much cache memory is not supported: " + maxMemoryKb + "kb", e);
+        }
         if (tmpLen > Integer.MAX_VALUE) {
             throw new IllegalStateException("do not support this much cache memory: " + maxMemoryKb + "kb");
         }

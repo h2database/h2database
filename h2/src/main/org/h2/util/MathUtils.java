@@ -237,31 +237,6 @@ public class MathUtils {
     }
 
     /**
-     * Get the value that is equal to or higher than this value, and that is a
-     * power of two.
-     *
-     * @param x the original value
-     * @return the next power of two value
-     * @throws IllegalArgumentException if x < 0 or x > 0x4000000000000000
-     */
-    public static long nextPowerOf2(long x) throws IllegalArgumentException {
-        if (x == 0) {
-            return 1;
-        } else if (x < 0 || x > 0x4000000000000000L ) {
-            throw new IllegalArgumentException("Argument out of range"
-                    + " [0x0-0x4000000000000000]. Argument was: " + x);
-        }
-        x--;
-        x |= x >> 1;
-        x |= x >> 2;
-        x |= x >> 4;
-        x |= x >> 8;
-        x |= x >> 16;
-        x |= x >> 32;
-        return ++x;
-    }
-
-    /**
      * Convert a long value to an int value. Values larger than the biggest int
      * value is converted to the biggest int value, and values smaller than the
      * smallest int value are converted to the smallest int value.

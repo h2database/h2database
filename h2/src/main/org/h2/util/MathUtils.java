@@ -213,33 +213,46 @@ public class MathUtils {
     }
 
     /**
-     * Get the value that is equal or higher than this value, and that is a
+     * Get the value that is equal to or higher than this value, and that is a
      * power of two.
      *
      * @param x the original value
      * @return the next power of two value
      */
     public static int nextPowerOf2(int x) {
-        long i = 1;
-        while (i < x && i < (Integer.MAX_VALUE / 2)) {
-            i += i;
+        if (x == 0) {
+            return 1;
         }
-        return (int) i;
+        x--;
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        x++;
+        return x;
     }
 
     /**
-     * Get the value that is equal or higher than this value, and that is a
+     * Get the value that is equal to or higher than this value, and that is a
      * power of two.
      *
      * @param x the original value
      * @return the next power of two value
      */
     public static long nextPowerOf2(long x) {
-        long i = 1;
-        while (i < x && i < (Long.MAX_VALUE / 2)) {
-            i += i;
+        if (x == 0) {
+            return 1;
         }
-        return i;
+        x--;
+        x |= x >> 1;
+        x |= x >> 2;
+        x |= x >> 4;
+        x |= x >> 8;
+        x |= x >> 16;
+        x |= x >> 32;
+        x++;
+        return x;
     }
 
     /**

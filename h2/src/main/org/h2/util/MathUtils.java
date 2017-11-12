@@ -229,8 +229,7 @@ public class MathUtils {
         x |= x >> 4;
         x |= x >> 8;
         x |= x >> 16;
-        x++;
-        return x;
+        return ++x;
     }
 
     /**
@@ -251,8 +250,7 @@ public class MathUtils {
         x |= x >> 8;
         x |= x >> 16;
         x |= x >> 32;
-        x++;
-        return x;
+        return ++x;
     }
 
     /**

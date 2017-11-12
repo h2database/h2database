@@ -143,7 +143,7 @@ public class MultiVersionCursor implements Cursor {
                     // version would be compared as well
                     long k1 = deltaRow.getKey();
                     long k2 = baseRow.getKey();
-                    compare = MathUtils.compareLong(k1, k2);
+                    compare = Long.compare(k1, k2);
                 }
                 if (compare == 0) {
                     if (isDeleted) {

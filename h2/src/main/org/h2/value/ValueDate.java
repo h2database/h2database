@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -121,7 +120,7 @@ public class ValueDate extends Value {
 
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
-        return MathUtils.compareLong(dateValue, ((ValueDate) o).dateValue);
+        return Long.compare(dateValue, ((ValueDate) o).dateValue);
     }
 
     @Override

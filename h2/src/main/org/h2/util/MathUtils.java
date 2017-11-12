@@ -292,18 +292,6 @@ public class MathUtils {
     }
 
     /**
-     * Compare two values. Returns -1 if the first value is smaller, 1 if
-     * bigger, and 0 if equal.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return the result
-     */
-    public static int compareLong(long a, long b) {
-        return a == b ? 0 : a < b ? -1 : 1;
-    }
-
-    /**
      * Get a cryptographically secure pseudo random long value.
      *
      * @return the random long value

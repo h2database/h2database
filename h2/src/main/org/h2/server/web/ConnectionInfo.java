@@ -5,7 +5,6 @@
  */
 package org.h2.server.web;
 
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -61,7 +60,7 @@ public class ConnectionInfo implements Comparable<ConnectionInfo> {
 
     @Override
     public int compareTo(ConnectionInfo o) {
-        return -MathUtils.compareInt(lastAccess, o.lastAccess);
+        return -Integer.compare(lastAccess, o.lastAccess);
     }
 
 }

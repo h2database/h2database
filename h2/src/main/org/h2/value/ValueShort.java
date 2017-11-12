@@ -10,7 +10,6 @@ import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the SMALLINT data type.
@@ -106,7 +105,7 @@ public class ValueShort extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueShort v = (ValueShort) o;
-        return MathUtils.compareInt(value, v.value);
+        return Integer.compare(value, v.value);
     }
 
     @Override

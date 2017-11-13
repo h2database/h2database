@@ -7,7 +7,6 @@ package org.h2.value;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import org.h2.util.MathUtils;
 
 /**
  * Base implementation of the ENUM data type.
@@ -35,7 +34,7 @@ public class ValueEnumBase extends Value {
 
     @Override
     protected int compareSecure(final Value v, final CompareMode mode) {
-        return MathUtils.compareInt(getInt(), v.getInt());
+        return Integer.compare(getInt(), v.getInt());
     }
 
     @Override

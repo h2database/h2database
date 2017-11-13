@@ -11,7 +11,6 @@ import java.sql.Time;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -129,7 +128,7 @@ public class ValueTime extends Value {
 
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
-        return MathUtils.compareLong(nanos, ((ValueTime) o).nanos);
+        return Long.compare(nanos, ((ValueTime) o).nanos);
     }
 
     @Override

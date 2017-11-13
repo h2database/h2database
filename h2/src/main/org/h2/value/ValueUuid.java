@@ -159,7 +159,7 @@ public class ValueUuid extends Value {
         }
         ValueUuid v = (ValueUuid) o;
         if (high == v.high) {
-            return MathUtils.compareLong(low, v.low);
+            return Long.compare(low, v.low);
         }
         return high > v.high ? 1 : -1;
     }

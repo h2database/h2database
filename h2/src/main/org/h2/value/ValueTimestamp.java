@@ -16,7 +16,6 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the TIMESTAMP data type.
@@ -310,11 +309,11 @@ public class ValueTimestamp extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueTimestamp t = (ValueTimestamp) o;
-        int c = MathUtils.compareLong(dateValue, t.dateValue);
+        int c = Long.compare(dateValue, t.dateValue);
         if (c != 0) {
             return c;
         }
-        return MathUtils.compareLong(timeNanos, t.timeNanos);
+        return Long.compare(timeNanos, t.timeNanos);
     }
 
     @Override

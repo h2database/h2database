@@ -21,7 +21,6 @@ import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.MathUtils;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.Value;
@@ -348,7 +347,7 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
             if (isMultiVersion) {
                 int v1 = rowData.getVersion();
                 int v2 = compare.getVersion();
-                return MathUtils.compareInt(v2, v1);
+                return Integer.compare(v2, v1);
             }
             return 0;
         }

@@ -48,6 +48,12 @@ select rank from card where suit = 'diamonds';
 > ----
 > 8
 
+select column_type from information_schema.columns where COLUMN_NAME = 'SUIT';
+> COLUMN_TYPE
+> ------------------------------------------
+> ENUM('hearts','clubs','spades','diamonds')
+> rows: 1
+
 --- ENUM integer-based operations
 
 select rank from card where suit = 1;

@@ -856,6 +856,9 @@ public class Session extends SessionWithState {
 
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
+                // sometimes Table#removeChildrenAndResources
+                // will take the meta lock
+                database.unlockMeta(this);
                 undoLog.clear();
                 database.removeSession(this);
             } finally {
@@ -965,6 +968,7 @@ public class Session extends SessionWithState {
             }
             locks.clear();
         }
+        database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;
     }
@@ -990,11 +994,6 @@ public class Session extends SessionWithState {
                     } else if (table.getOnCommitTruncate()) {
                         table.truncate(this);
                     }
-                }
-                // sometimes Table#removeChildrenAndResources
-                // will take the meta lock
-                if (closeSession) {
-                    database.unlockMeta(this);
                 }
             }
         }

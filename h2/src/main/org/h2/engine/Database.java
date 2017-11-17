@@ -1395,6 +1395,7 @@ public class Database implements DataHandler {
                     if (!readOnly) {
                         lockMeta(pageStore.getPageStoreSession());
                         pageStore.compact(compactMode);
+                        unlockMeta(pageStore.getPageStoreSession());
                     }
                 } catch (DbException e) {
                     if (SysProperties.CHECK2) {

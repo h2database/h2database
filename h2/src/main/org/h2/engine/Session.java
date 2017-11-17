@@ -856,10 +856,11 @@ public class Session extends SessionWithState {
 
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
-                // sometimes Table#removeChildrenAndResources
-                // will take the meta lock
-                database.unlockMeta(this);
                 undoLog.clear();
+                // Table#removeChildrenAndResources can take the meta lock,
+                // and we need to unlock before we call removeSession(), which might
+                // want to take the meta lock using the system session.
+                database.unlockMeta(this);
                 database.removeSession(this);
             } finally {
                 closed = true;

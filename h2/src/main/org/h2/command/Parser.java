@@ -5149,8 +5149,11 @@ public class Parser {
 
         if(isToken("SELECT")) {
             Query query = parseSelectUnion();
-            query.setPrepareAlways(!isPersistent);
+            query.setPrepareAlways(true);
             query.setNeverLazy(true);
+            if(isPersistent){
+                query.session = session.getDatabase().getSystemSession();
+            }
             p = query;
         }
         else if(readIf("INSERT")) {
@@ -5199,7 +5202,7 @@ public class Parser {
         Table recursiveTable=null;
         ArrayList<Column> columns = New.arrayList();
         String[] cols = null;
-        Database db = session.getDatabase();
+        Database db = targetSession.getDatabase();
 
         // column names are now optional - they can be inferred from the named
         // query, if not supplied by user
@@ -5214,7 +5217,7 @@ public class Parser {
         
         Table oldViewFound = null;
         if(isPersistent){
-            oldViewFound = getSchema().findTableOrView(session, cteViewName);
+            oldViewFound = getSchema().findTableOrView(targetSession, cteViewName);
         }
         else{
             oldViewFound = targetSession.findLocalTempTable(cteViewName);
@@ -5230,8 +5233,8 @@ public class Parser {
                         cteViewName);
             }
             if(isPersistent){
-                oldViewFound.lock(session, true, true);
-                session.getDatabase().removeSchemaObject(session, oldViewFound);                
+                oldViewFound.lock(targetSession, true, true);
+                targetSession.getDatabase().removeSchemaObject(targetSession, oldViewFound);                
                 
             }else{
                 targetSession.removeLocalTempTable(oldViewFound);
@@ -5256,10 +5259,10 @@ public class Parser {
             // this gets a meta table lock that is not released
             recursiveTable = schema.createTable(recursiveTableData);
             if(isPersistent){
-                // this unlock is to prevent beed from schema.createTable()
-                database.unlockMeta(targetSession);
+                // this unlock is to prevent lock leak from schema.createTable()
+                db.unlockMeta(targetSession);
                 synchronized (targetSession) {
-                    db.addSchemaObject(session, recursiveTable);
+                    db.addSchemaObject(targetSession, recursiveTable);
                 }
             }else{
                 targetSession.addLocalTempTable(recursiveTable);
@@ -5271,14 +5274,17 @@ public class Parser {
             read("AS");
             read("(");
             Query withQuery = parseSelect();
+            if(isPersistent){
+                withQuery.session = targetSession;
+            }            
             read(")");
             columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
             if(recursiveTable!=null){
                 if(isPersistent){
-                    recursiveTable.lock(session, true, true);
-                    session.getDatabase().removeSchemaObject(session, recursiveTable);
+                    recursiveTable.lock(targetSession, true, true);
+                    targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
                     
                 }else{
                     targetSession.removeLocalTempTable(recursiveTable);
@@ -5312,7 +5318,7 @@ public class Parser {
             Query theQuery, String[] querySQLOutput) {
         List<Column> columnTemplateList = new ArrayList<>();
         theQuery.prepare();
-        // array of length 1 is to receive extra 'output' field in addition to
+        // String array of length 1 is to receive extra 'output' field in addition to
         // return value
         querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
         ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
@@ -5332,10 +5338,10 @@ public class Parser {
     private TableView createCTEView(String cteViewName,  String querySQL,
             List<Column> columnTemplateList, boolean allowRecursiveQueryDetection, 
             boolean addViewToSession, boolean isPersistent) {
-        Session targetSession = /*isPersistent ? database.getSystemSession() :*/session;
-        Database db = session.getDatabase();
+        Session targetSession = isPersistent ? database.getSystemSession() : session;
+        Database db = targetSession.getDatabase();
         Schema schema = getSchemaWithDefault();
-        int id = database.allocateObjectId();
+        int id = db.allocateObjectId();
         Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
@@ -5347,9 +5353,9 @@ public class Parser {
                     allowRecursiveQueryDetection, false /* literalsChecked */);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if(isPersistent){
-                    db.addSchemaObject(session, view);
-                    view.lock(session, true, true);
-                    session.getDatabase().removeSchemaObject(session, view);                
+                    db.addSchemaObject(targetSession, view);
+                    view.lock(targetSession, true, true);
+                    targetSession.getDatabase().removeSchemaObject(targetSession, view);                
                 }else{
                     session.removeLocalTempTable(view);                    
                 }
@@ -5364,7 +5370,9 @@ public class Parser {
         view.setOnCommitDrop(false);
         if(addViewToSession){
             if(isPersistent){
-                db.addSchemaObject(session, view);
+                db.addSchemaObject(targetSession, view);
+                view.unlock(targetSession);
+                db.unlockMeta(targetSession);
             }
             else{
                 targetSession.addLocalTempTable(view);

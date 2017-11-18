@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -202,6 +204,7 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
+    private ConcurrentHashMap<SchemaObject, Session> removeSchemaObjectQueue = new ConcurrentHashMap<>();
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -917,6 +920,27 @@ public class Database implements DataHandler {
         return wasLocked;
     }
 
+    /**
+     * Lock the metadata table for updates - but don't wait if it's already locked...
+     *
+     * @param session the session
+     * @return whether it was already locked before by this session - or null if locked by other session
+     */
+    public Boolean lockMetaNoWait(Session session) {
+        // this method can not be synchronized on the database object,
+        // as unlocking is also synchronized on the database object -
+        // so if locking starts just before unlocking, locking could
+        // never be successful
+        if (meta == null) {
+            return true;
+        }
+        if(meta.isLockedExclusively() && ! meta.isLockedExclusivelyBy(session)){
+            return null;
+        }
+        boolean wasLocked = meta.lock(session, true, true);
+        return wasLocked;
+    }    
+    
     /**
      * Unlock the metadata table.
      *
@@ -1864,7 +1888,12 @@ public class Database implements DataHandler {
             }
         }
         checkWritingAllowed();
-        lockMeta(session);
+        Boolean wasLocked = lockMetaNoWait(session);
+        if(wasLocked==null){
+            removeSchemaObjectQueue.put(obj,session);
+            System.out.println("deferred removal scheduled="+obj.getName()+",wasLocked="+wasLocked);
+            return;
+        }
         synchronized (this) {
             Comment comment = findComment(obj);
             if (comment != null) {
@@ -1881,7 +1910,24 @@ public class Database implements DataHandler {
                 }
                 obj.removeChildrenAndResources(session);
             }
+            System.out.println("Removing meta lock");
             removeMeta(session, id);
+            
+            flushDeferredRemoveSchemaObject();
+            
+        }
+    }
+
+    public void flushDeferredRemoveSchemaObject() {
+        Iterator<Entry<SchemaObject, Session>> i = removeSchemaObjectQueue.entrySet().iterator();
+        while(i.hasNext()){
+            Entry<SchemaObject, Session> pair = i.next();
+            i.remove();
+            System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
+            removeSchemaObject(pair.getValue(),pair.getKey());
+            if(!removeSchemaObjectQueue.contains(pair.getKey())){
+                System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
+            }
         }
     }
 

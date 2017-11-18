@@ -1087,8 +1087,13 @@ public class Select extends Query {
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
             boolean isPersistent = !t.isTemporary();
+            System.out.println("topFilters[]="+t.getName());
             if (t.isView() && ((TableView) t).isRecursive()) {
-                buff.append("WITH RECURSIVE ");
+                TableView tv = ((TableView) t);
+                buff.append("WITH ");
+                if(tv.isRecursive()){
+                    buff.append("RECURSIVE ");
+                }
                 if(isPersistent){
                     buff.append("PERSISTENT ");
                 }
@@ -1099,7 +1104,15 @@ public class Select extends Query {
                     buff.append(c.getName());
                 }
                 String theSQL = t.getSQL();
-                if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
+                System.out.println("getPlanSQL.theSQL="+theSQL);
+                System.out.println("getPlanSQL.sqlStatement="+sqlStatement);
+                if(!sqlStatement.contains("?") && sqlStatement.toUpperCase().contains("SELECT") && session.isParsingView()){
+                    theSQL = extractNamedCTEQueryFromSQL(t.getName(),sqlStatement);
+                    if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
+                        theSQL = "( "+theSQL+" )";
+                    }
+                }
+                else if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
                     StatementBuilder buffSelect = new StatementBuilder();
                     buffSelect.append("( SELECT ");
                     buffSelect.resetCount();
@@ -1107,7 +1120,7 @@ public class Select extends Query {
                         buffSelect.appendExceptFirst(",");
                         buffSelect.append(c.getName());
                     }
-                    buffSelect.append(" FROM "+t.getSQL()+") ");
+                    buffSelect.append(" FROM "+t.getSQL()+" ) ");
                     theSQL = buffSelect.toString();
                 }
                 buff.append(") AS ").append(theSQL).append("\n");
@@ -1221,6 +1234,13 @@ public class Select extends Query {
         }
         // buff.append("\n/* cost: " + cost + " */");
         return buff.toString();
+    }
+
+    private String extractNamedCTEQueryFromSQL(String viewName, String sqlStatement) {
+        Table existingTableOrView = session.getDatabase().getSchema(session.getCurrentSchemaName()).findTableOrView(session, viewName);
+        TableView existingView = (TableView) existingTableOrView;
+        System.out.println("existingView.getSQL()="+existingView.getSQL());
+        return existingView.getSQL();
     }
 
     public void setHaving(Expression having) {

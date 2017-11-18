@@ -49,6 +49,14 @@ import org.h2.value.Value;
  */
 public class MVTable extends TableBase {
 
+    private static final String TRACE_LOCK_OK = "ok";
+    private static final String TRACE_LOCK_WAITING_FOR = "waiting for";
+    private static final String TRACE_LOCK_REQUESTING_FOR = "requesting for";
+    private static final String TRACE_LOCK_TIMEOUT_AFTER = "timeout after ";
+    private static final String TRACE_LOCK_UNLOCK = "unlock";
+    private static final String TRACE_LOCK_ADDED_FOR = "added for";
+    private static final String TRACE_LOCK_ADD_UPGRADED_FOR = "add (upgraded) for ";
+
     /**
      * The table name this thread is waiting to lock.
      */
@@ -80,6 +88,7 @@ public class MVTable extends TableBase {
     private final ArrayList<Index> indexes = New.arrayList();
     private volatile long lastModificationId;
     private volatile Session lockExclusiveSession;
+    private volatile Throwable lockExclusiveSessionStackTrace;
 
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
@@ -192,7 +201,7 @@ public class MVTable extends TableBase {
     }
 
     private void doLock1(Session session, int lockMode, boolean exclusive) {
-        traceLock(session, exclusive, "requesting for");
+        traceLock(session, exclusive, TRACE_LOCK_REQUESTING_FOR);
         // don't get the current time unless necessary
         long max = 0;
         boolean checkDeadlock = false;
@@ -219,11 +228,11 @@ public class MVTable extends TableBase {
                 max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
             } else if (now >= max) {
                 traceLock(session, exclusive,
-                        "timeout after " + session.getLockTimeout());
+                        TRACE_LOCK_TIMEOUT_AFTER + session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
             try {
-                traceLock(session, exclusive, "waiting for");
+                traceLock(session, exclusive, TRACE_LOCK_WAITING_FOR);
                 if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
                     for (int i = 0; i < 20; i++) {
                         long free = Runtime.getRuntime().freeMemory();
@@ -251,7 +260,7 @@ public class MVTable extends TableBase {
         if (exclusive) {
             if (lockExclusiveSession == null) {
                 if (lockSharedSessions.isEmpty()) {
-                    traceLock(session, exclusive, "added for");
+                    traceLock(session, exclusive, TRACE_LOCK_ADDED_FOR);
                     session.addLock(this);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -263,7 +272,7 @@ public class MVTable extends TableBase {
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
                         lockSharedSessions.containsKey(session)) {
-                    traceLock(session, exclusive, "add (upgraded) for ");
+                    traceLock(session, exclusive, TRACE_LOCK_ADD_UPGRADED_FOR);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                         if (EXCLUSIVE_LOCKS.get() == null) {
@@ -289,7 +298,7 @@ public class MVTable extends TableBase {
                     }
                 }
                 if (!lockSharedSessions.containsKey(session)) {
-                    traceLock(session, exclusive, "ok");
+                    traceLock(session, exclusive, TRACE_LOCK_OK);
                     session.addLock(this);
                     lockSharedSessions.put(session, session);
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -387,11 +396,26 @@ public class MVTable extends TableBase {
         }
     }
 
-    private void traceLock(Session session, boolean exclusive, String s) {
+    private void traceLock(Session session, boolean exclusive, String statusText) {
         if (traceLock.isDebugEnabled()) {
             traceLock.debug("{0} {1} {2} {3}", session.getId(),
-                    exclusive ? "exclusive write lock" : "shared read lock", s,
+                    exclusive ? "exclusive write lock" : "shared read lock", statusText,
                     getName());
+            
+            // create a stack trace when the lock is granted so we can debug where that was...
+            if(statusText.equals(TRACE_LOCK_ADDED_FOR) || statusText.equals(TRACE_LOCK_ADD_UPGRADED_FOR)){
+                lockExclusiveSessionStackTrace = new Throwable("trace lock - lock granted stack trace"); 
+            }
+            
+            // clear the stack trace of the granted lock, on unlock
+            if(statusText.equals(TRACE_LOCK_UNLOCK)){
+                lockExclusiveSessionStackTrace = null;                
+            }
+            
+            // show the stack trace where the lock was granted, if a timeout happens...
+            if(statusText.contains(TRACE_LOCK_TIMEOUT_AFTER) && lockExclusiveSessionStackTrace!=null){
+                lockExclusiveSessionStackTrace.printStackTrace();                
+            }
         }
     }
 
@@ -402,13 +426,23 @@ public class MVTable extends TableBase {
 
     @Override
     public boolean isLockedExclusivelyBy(Session session) {
-        return lockExclusiveSession == session;
+        Session localSession = lockExclusiveSession;
+        if(localSession!=null){
+            System.out.println("Meta was locked by "+localSession.getId()+" tested for "+session.getId());
+            if(lockExclusiveSessionStackTrace!=null){
+                lockExclusiveSessionStackTrace.printStackTrace();
+            }
+        }
+        else{
+            System.out.println("Meta was not locked by anyone, tested for "+session.getId());            
+        }
+        return localSession == session;
     }
 
     @Override
     public void unlock(Session s) {
         if (database != null) {
-            traceLock(s, lockExclusiveSession == s, "unlock");
+            traceLock(s, lockExclusiveSession == s, TRACE_LOCK_UNLOCK);
             if (lockExclusiveSession == s) {
                 lockExclusiveSession = null;
                 if (SysProperties.THREAD_DEADLOCK_DETECTOR) {

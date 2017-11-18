@@ -12,7 +12,6 @@ import java.sql.SQLException;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the BIGINT data type.
@@ -171,7 +170,7 @@ public class ValueLong extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueLong v = (ValueLong) o;
-        return MathUtils.compareLong(value, v.value);
+        return Long.compare(value, v.value);
     }
 
     @Override

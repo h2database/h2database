@@ -438,6 +438,7 @@ public class Data {
             writeByte((byte) type);
             writeShortInt(v.getShort());
             break;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {
@@ -728,6 +729,7 @@ public class Data {
             return ValueBoolean.get(false);
         case INT_NEG:
             return ValueInt.get(-readVarInt());
+        case Value.ENUM:
         case Value.INT:
             return ValueInt.get(readVarInt());
         case LONG_NEG:
@@ -933,6 +935,7 @@ public class Data {
             return 2;
         case Value.SHORT:
             return 3;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {

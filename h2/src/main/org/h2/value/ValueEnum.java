@@ -8,7 +8,6 @@ package org.h2.value;
 import java.util.Locale;
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.MathUtils;
 
 public class ValueEnum extends ValueEnumBase {
     private static enum Validation {
@@ -57,7 +56,7 @@ public class ValueEnum extends ValueEnumBase {
 
     @Override
     protected int compareSecure(final Value v, final CompareMode mode) {
-        return MathUtils.compareInt(getInt(), v.getInt());
+        return Integer.compare(getInt(), v.getInt());
     }
 
     /**

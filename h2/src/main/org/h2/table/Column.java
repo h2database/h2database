@@ -471,9 +471,17 @@ public class Column {
         }
     }
 
+    public String getCreateSQLWithoutName() {
+        return getCreateSQL(false);
+    }
+
     public String getCreateSQL() {
+        return getCreateSQL(true);
+    }
+
+    private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
-        if (name != null) {
+        if (includeName && name != null) {
             buff.append(Parser.quoteIdentifier(name)).append(' ');
         }
         if (originalSQL != null) {

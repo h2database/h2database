@@ -30,9 +30,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 import java.util.regex.Pattern;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.engine.ConnectionInfo;
@@ -1737,6 +1739,12 @@ public class JdbcConnection extends TraceObject
                         + ");");
             }
             checkClosed();
+            
+            // no change to property: Ignore call. This early exit fixes a problem with websphere liberty
+            // resetting the client info of a pooled connection to its initial values.
+            if (Objects.equals(value, getClientInfo(name))) {
+            	return;
+            }
 
             if (isInternalProperty(name)) {
                 throw new SQLClientInfoException(

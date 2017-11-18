@@ -16,7 +16,6 @@ import java.util.StringTokenizer;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -46,9 +45,9 @@ public class ConvertTraceFile extends Tool {
             if (other == this) {
                 return 0;
             }
-            int c = MathUtils.compareLong(other.time, time);
+            int c = Long.compare(other.time, time);
             if (c == 0) {
-                c = MathUtils.compareInt(other.executeCount, executeCount);
+                c = Integer.compare(other.executeCount, executeCount);
                 if (c == 0) {
                     c = sql.compareTo(other.sql);
                 }

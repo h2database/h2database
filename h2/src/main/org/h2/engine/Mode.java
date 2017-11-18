@@ -17,7 +17,7 @@ import org.h2.util.StringUtils;
  * PostgreSQL, MySQL). Each mode has different settings.
  */
 public class Mode {
-    
+
     public enum ModeEnum {
         REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite,
     }
@@ -323,6 +323,10 @@ public class Mode {
 
     public static Mode getOracle() {
         return getInstance(ModeEnum.Oracle.name());
+    }
+
+    public static Mode getRegular() {
+        return getInstance(ModeEnum.REGULAR.name());
     }
 
     public String getName() {

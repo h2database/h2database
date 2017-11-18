@@ -35,7 +35,7 @@ public class TestAutoReconnect extends TestBase {
         TestBase.createCaller().init().test();
     }
 
-    private void restart() throws SQLException {
+    private void restart() throws SQLException, InterruptedException {
         if (autoServer) {
             if (connServer != null) {
                 connServer.createStatement().execute("SHUTDOWN");
@@ -45,6 +45,7 @@ public class TestAutoReconnect extends TestBase {
             connServer = getConnection(url);
         } else {
             server.stop();
+            Thread.sleep(100); // try to prevent "port may be in use" error
             server.start();
         }
     }

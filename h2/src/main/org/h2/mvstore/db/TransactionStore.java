@@ -1470,7 +1470,7 @@ public class TransactionStore {
          * @param from the first key to return
          * @return the iterator
          */
-        public Iterator<Entry<K, V>> entryIterator(final K from) {
+        public Iterator<Entry<K, V>> entryIterator(final K from, final K to) {
             return new Iterator<Entry<K, V>>() {
                 private Entry<K, V> current;
                 private K currentKey = from;
@@ -1507,6 +1507,9 @@ public class TransactionStore {
                                 }
                             }
                             final K key = k;
+                            if (to != null && map.getKeyType().compare(k, to) > 0) {
+                                break;
+                            }
                             VersionedValue data = cursor.getValue();
                             data = getValue(key, readLogId, data);
                             if (data != null && data.value != null) {

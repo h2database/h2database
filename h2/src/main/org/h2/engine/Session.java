@@ -857,6 +857,10 @@ public class Session extends SessionWithState {
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();
+                // Table#removeChildrenAndResources can take the meta lock,
+                // and we need to unlock before we call removeSession(), which might
+                // want to take the meta lock using the system session.
+                database.unlockMeta(this);
                 database.removeSession(this);
             } finally {
                 closed = true;
@@ -965,6 +969,7 @@ public class Session extends SessionWithState {
             }
             locks.clear();
         }
+        database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;
     }
@@ -990,11 +995,6 @@ public class Session extends SessionWithState {
                     } else if (table.getOnCommitTruncate()) {
                         table.truncate(this);
                     }
-                }
-                // sometimes Table#removeChildrenAndResources
-                // will take the meta lock
-                if (closeSession) {
-                    database.unlockMeta(this);
                 }
             }
         }

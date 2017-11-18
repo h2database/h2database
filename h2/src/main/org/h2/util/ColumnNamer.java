@@ -8,12 +8,12 @@ import org.h2.expression.Expression;
 
 
 public class ColumnNamer {
- 
+
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
 
     private ColumnNamerConfiguration configuration;
     private Session session;
-    private Set<String> existingColumnNames = new HashSet<String>();
+    private final Set<String> existingColumnNames = new HashSet<>();
 
     public ColumnNamer(Session session) {
         this.session = session;
@@ -31,9 +31,8 @@ public class ColumnNamer {
     }
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
-     * @param columnExp the column expression
+     * @param expr the column expression
      * @param indexOfColumn index of column in below array
-     * @return
      */
     public String getColumnName(Expression expr, int indexOfColumn) {
         return getColumnName(expr,indexOfColumn,(String) null);
@@ -49,10 +48,10 @@ public class ColumnNamer {
         String columnNameOverride = null;
         if (columnNameOverides != null && columnNameOverides.length > indexOfColumn){
             columnNameOverride = columnNameOverides[indexOfColumn];
-        }  
+        }
         return getColumnName(columnExp, indexOfColumn, columnNameOverride);
-    } 
-    
+    }
+
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
      * @param columnExp the column expression
@@ -67,11 +66,11 @@ public class ColumnNamer {
             columnName = columnNameOverride;
             if(!isAllowableColumnName(columnName)){
                 columnName = fixColumnName(columnName);
-            }            
+            }
             if(!isAllowableColumnName(columnName)){
                 columnName = null;
             }
-        }  
+        }
         // try a name from the column alias
         if (columnName==null && columnExp.getAlias()!=null && !DEFAULT_COLUMN_NAME.equals(columnExp.getAlias())){
             columnName = columnExp.getAlias();
@@ -112,22 +111,22 @@ public class ColumnNamer {
         existingColumnNames.add(columnName);
         return columnName;
     }
-        
+
     private String generateUniqueName(String columnName) {
         String newColumnName = columnName;
         int loopCount = 2;
         while(existingColumnNames.contains(newColumnName)){
-            
+
             String loopCountString = "_"+loopCount;
             newColumnName = columnName.substring(0,Math.min(columnName.length(), configuration.getMaxIdentiferLength()-loopCountString.length()))+loopCountString;
-            
+
             loopCount++;
         }
         return newColumnName;
     }
-    
+
     public boolean isAllowableColumnName(String proposedName){
-        
+
         // check null
         if (proposedName == null){
             return false;
@@ -142,21 +141,21 @@ public class ColumnNamer {
         }
         return true;
     }
- 
+
     private String fixColumnName(String proposedName) {
         Matcher match = configuration.getCompiledRegularExpressionMatchDisallowed().matcher(proposedName);
         proposedName = match.replaceAll("");
-        
+
         // check size limits - then truncate
         if (proposedName.length() > configuration.getMaxIdentiferLength()){
             proposedName=proposedName.substring(0, configuration.getMaxIdentiferLength());
         }
-        
+
         return proposedName;
     }
-    
+
     public ColumnNamerConfiguration getConfiguration() {
         return configuration;
     }
-    
+
 }

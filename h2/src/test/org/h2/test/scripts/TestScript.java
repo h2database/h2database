@@ -11,8 +11,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.PrintStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -74,12 +72,15 @@ public class TestScript extends TestBase {
     }
 
     @Override
-    public void test() throws Exception {        
+    public void test() throws Exception {
         if (config.networked && config.big) {
             return;
         }
         reconnectOften = !config.memory && config.big;
+        
         testScript("testScript.sql");
+        testScript("altertable-index-reuse.sql");
+        testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");
         for (String s : new String[] { "array", "bigint", "binary", "blob",

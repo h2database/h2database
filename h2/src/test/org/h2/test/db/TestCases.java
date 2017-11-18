@@ -150,18 +150,6 @@ public class TestCases extends TestBase {
                 "foreign key(a_id) references a(id)");
         stat.execute("update a set x=200");
         stat.execute("drop table if exists a, b");
-
-        stat.execute("drop all objects");
-        stat.execute("create table parent(id int primary key)");
-        stat.execute("create table child(id int, parent_id int, x int)");
-        stat.execute("create index y on child(parent_id, x)");
-        stat.execute("alter table child add constraint z " +
-                "foreign key(parent_id) references parent(id)");
-        ResultSet rs = stat.executeQuery(
-                "select * from information_schema.indexes where table_name = 'CHILD'");
-        while (rs.next()) {
-            assertEquals("Y", rs.getString("index_name"));
-        }
         conn.close();
     }
 

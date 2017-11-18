@@ -77,7 +77,7 @@ public abstract class CacheObject implements Comparable<CacheObject> {
 
     @Override
     public int compareTo(CacheObject other) {
-        return MathUtils.compareInt(getPos(), other.getPos());
+        return Integer.compare(getPos(), other.getPos());
     }
 
     public boolean isStream() {

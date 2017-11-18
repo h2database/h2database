@@ -165,7 +165,7 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
-    private Mode mode = Mode.getInstance(Mode.REGULAR);
+    private Mode mode = Mode.getRegular();
     private boolean multiThreaded;
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
@@ -902,6 +902,9 @@ public class Database implements DataHandler {
         }
     }
 
+    private static final ThreadLocal<Session> metaLockDebugging = new ThreadLocal<Session>();
+    private static final ThreadLocal<Throwable> metaLockDebuggingStack = new ThreadLocal<Throwable>();
+
     /**
      * Lock the metadata table for updates.
      *
@@ -915,6 +918,19 @@ public class Database implements DataHandler {
         // never be successful
         if (meta == null) {
             return true;
+        }
+        if (SysProperties.CHECK2) {
+            final Session prev = metaLockDebugging.get();
+            if (prev == null) {
+                metaLockDebugging.set(session);
+                metaLockDebuggingStack.set(new Throwable());
+            } else if (prev != session) {
+                metaLockDebuggingStack.get().printStackTrace();
+                throw new IllegalStateException("meta currently locked by "
+                        + prev
+                        + " and trying to be locked by different session, "
+                        + session + " on same thread");
+            }
         }
         boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
@@ -947,8 +963,18 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMeta(Session session) {
+        unlockMetaDebug(session);
         meta.unlock(session);
         session.unlock(meta);
+    }
+
+    public void unlockMetaDebug(Session session) {
+        if (SysProperties.CHECK2) {
+            if (metaLockDebugging.get() == session) {
+                metaLockDebugging.set(null);
+                metaLockDebuggingStack.set(null);
+            }
+        }
     }
 
     /**
@@ -980,6 +1006,7 @@ public class Database implements DataHandler {
                     checkMetaFree(session, id);
                 }
             } else if (!wasLocked) {
+                unlockMetaDebug(session);
                 // must not keep the lock if it was not locked
                 // otherwise updating sequences may cause a deadlock
                 meta.unlock(session);
@@ -1392,6 +1419,7 @@ public class Database implements DataHandler {
                     if (!readOnly) {
                         lockMeta(pageStore.getPageStoreSession());
                         pageStore.compact(compactMode);
+                        unlockMeta(pageStore.getPageStoreSession());
                     }
                 } catch (DbException e) {
                     if (SysProperties.CHECK2) {

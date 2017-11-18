@@ -174,7 +174,8 @@ public class MetaTable extends Table {
                     "CHECK_CONSTRAINT",
                     "SEQUENCE_NAME",
                     "REMARKS",
-                    "SOURCE_DATA_TYPE SMALLINT"
+                    "SOURCE_DATA_TYPE SMALLINT",
+                    "COLUMN_TYPE"
             );
             indexColumnName = "TABLE_NAME";
             break;
@@ -828,7 +829,9 @@ public class MetaTable extends Table {
                             // REMARKS
                             replaceNullWithEmpty(c.getComment()),
                             // SOURCE_DATA_TYPE
-                            null
+                            null,
+                            // COLUMN_TYPE
+                            c.getCreateSQLWithoutName()
                     );
                 }
             }

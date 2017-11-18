@@ -96,7 +96,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
-import org.h2.engine.Mode;
+import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
 import org.h2.engine.Session;
@@ -869,7 +869,7 @@ public class Parser {
         }
         currentPrepared = command;
         int start = lastParseIndex;
-        if (!readIf("FROM") && database.getMode() == Mode.getMySQL()) {
+        if (!readIf("FROM") && database.getMode().getEnum() == ModeEnum.MySQL) {
             readIdentifierWithSchema();
             read("FROM");
         }
@@ -3477,6 +3477,20 @@ public class Parser {
         addExpected(token);
         return false;
     }
+
+    /*
+     * Reads passed token in list, in order and returns true on first match.
+     * If none of the token matches returns false
+     */
+    private boolean readIfOr(String ... tokens) {
+        for(String token: tokens) {
+            if (readIf(token)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /*
      * Reads every token in list, in order - returns true if all are found.
      * If any are not found, returns false - AND resets parsing back to state when called.
@@ -4156,6 +4170,8 @@ public class Parser {
         case 'C':
             if (s.equals("CHECK")) {
                 return KEYWORD;
+            } else if ("CONSTRAINT".equals(s)) {
+                return KEYWORD;
             }
             return getKeywordOrIdentifier(s, "CROSS", KEYWORD);
         case 'D':
@@ -4169,6 +4185,8 @@ public class Parser {
             if ("FROM".equals(s)) {
                 return KEYWORD;
             } else if ("FOR".equals(s)) {
+                return KEYWORD;
+            } else if ("FOREIGN".equals(s)) {
                 return KEYWORD;
             } else if ("FULL".equals(s)) {
                 return KEYWORD;
@@ -4275,14 +4293,21 @@ public class Parser {
         } else if (readIf("VISIBLE")) {
             column.setVisible(true);
         }
-        if (readIf("NOT")) {
-            read("NULL");
-            column.setNullable(false);
-        } else if (readIf("NULL")) {
+        NullConstraintType nullConstraint = parseNotNullConstraint();
+        switch (nullConstraint) {
+        case NULL_IS_ALLOWED:
             column.setNullable(true);
-        } else {
+            break;
+        case NULL_IS_NOT_ALLOWED:
+            column.setNullable(false);
+            break;
+        case NO_NULL_CONSTRAINT_FOUND:
             // domains may be defined as not nullable
             column.setNullable(defaultNullable & column.isNullable());
+            break;
+        default:
+            throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
+                    "Internal Error - unhandled case: " + nullConstraint.name());
         }
         if (readIf("AS")) {
             if (isIdentity) {
@@ -4315,23 +4340,16 @@ public class Parser {
             column.setPrimaryKey(true);
             column.setAutoIncrement(true, start, increment);
         }
-        if (readIf("NOT")) {
-            read("NULL");
+        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
             column.setNullable(false);
-        } else {
-            readIf("NULL");
         }
         if (readIf("AUTO_INCREMENT") || readIf("BIGSERIAL") || readIf("SERIAL")) {
             parseAutoIncrement(column);
-            if (readIf("NOT")) {
-                read("NULL");
-            }
+            parseNotNullConstraint();
         } else if (readIf("IDENTITY")) {
             parseAutoIncrement(column);
             column.setPrimaryKey(true);
-            if (readIf("NOT")) {
-                read("NULL");
-            }
+            parseNotNullConstraint();
         }
         if (readIf("NULL_TO_DEFAULT")) {
             column.setConvertNullToDefault(true);
@@ -4457,7 +4475,7 @@ public class Parser {
                     }
                     original += "(" + p;
                     // Oracle syntax
-                    readIf("CHAR");
+                    readIfOr("CHAR", "BYTE");
                     if (dataType.supportsScale) {
                         if (readIf(",")) {
                             scale = readInt();
@@ -6145,6 +6163,7 @@ public class Parser {
                 command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 ArrayList<Column> columnsToRemove = New.arrayList();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
+                boolean openingBracketDetected = readIf("("); // For Oracle compatibility - open bracket required
                 do {
                     String columnName = readColumnIdentifier();
                     if (table == null) {
@@ -6156,6 +6175,9 @@ public class Parser {
                     Column column = table.getColumn(columnName);
                     columnsToRemove.add(column);
                 } while (readIf(","));
+                if (openingBracketDetected) {
+                    read(")"); // For Oracle compatibility - close bracket
+                }
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setColumnsToRemove(columnsToRemove);
@@ -6179,25 +6201,32 @@ public class Parser {
             return command;
         } else if (readIf("MODIFY")) {
             // MySQL compatibility
-            readIf("COLUMN");
+            readIf("COLUMN"); // optional
             String columnName = readColumnIdentifier();
-            if ((isToken("NOT") || isToken("NULL"))) {
-                AlterTableAlterColumn command = new AlterTableAlterColumn(
-                        session, schema);
+            AlterTableAlterColumn command = null;
+            NullConstraintType nullConstraint = parseNotNullConstraint();
+            switch (nullConstraint) {
+            case NULL_IS_ALLOWED:
+            case NULL_IS_NOT_ALLOWED:
+                command = new AlterTableAlterColumn(session, schema);
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 Column column = columnIfTableExists(schema, tableName, columnName, ifTableExists);
                 command.setOldColumn(column);
-                if (readIf("NOT")) {
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
-                } else {
-                    read("NULL");
+                if (nullConstraint == NullConstraintType.NULL_IS_ALLOWED) {
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
+                } else {
+                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
                 }
-                return command;
-            } else {
-                return parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
+                break;
+            case NO_NULL_CONSTRAINT_FOUND:
+                command = parseAlterTableAlterColumnType(schema, tableName, columnName, ifTableExists);
+                break;
+            default:
+                throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
+                        "Internal Error - unhandled case: " + nullConstraint.name());
             }
+            return command;
         } else if (readIf("ALTER")) {
             readIf("COLUMN");
             String columnName = readColumnIdentifier();
@@ -6249,27 +6278,34 @@ public class Parser {
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
                 command.setOldColumn(column);
-                if (readIf("NULL")) {
+                NullConstraintType nullConstraint = parseNotNullConstraint();
+                switch (nullConstraint) {
+                case NULL_IS_ALLOWED:
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NULL);
-                    return command;
-                } else if (readIf("NOT")) {
-                    read("NULL");
+                    break;
+                case NULL_IS_NOT_ALLOWED:
                     command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_NOT_NULL);
-                    return command;
-                } else if (readIf("DEFAULT")) {
-                    Expression defaultExpression = readExpression();
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
-                    command.setDefaultExpression(defaultExpression);
-                    return command;
-                } else if (readIf("INVISIBLE")) {
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                    command.setVisible(false);
-                    return command;
-                } else if (readIf("VISIBLE")) {
-                    command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
-                    command.setVisible(true);
-                    return command;
+                    break;
+                case NO_NULL_CONSTRAINT_FOUND:
+                    if (readIf("DEFAULT")) {
+                        Expression defaultExpression = readExpression();
+                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_DEFAULT);
+                        command.setDefaultExpression(defaultExpression);
+
+                    } else if (readIf("INVISIBLE")) {
+                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
+                        command.setVisible(false);
+
+                    } else if (readIf("VISIBLE")) {
+                        command.setType(CommandInterface.ALTER_TABLE_ALTER_COLUMN_VISIBILITY);
+                        command.setVisible(true);
+                    }
+                    break;
+                default:
+                    throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
+                            "Internal Error - unhandled case: " + nullConstraint.name());
                 }
+                return command;
             } else if (readIf("RESTART")) {
                 readIf("WITH");
                 Expression start = readExpression();
@@ -6664,11 +6700,8 @@ public class Parser {
                             unique.setTableName(tableName);
                             command.addConstraintCommand(unique);
                         }
-                        if (readIf("NOT")) {
-                            read("NULL");
+                        if (NullConstraintType.NULL_IS_NOT_ALLOWED == parseNotNullConstraint()) {
                             column.setNullable(false);
-                        } else {
-                            readIf("NULL");
                         }
                         if (readIf("CHECK")) {
                             Expression expr = readExpression();
@@ -6771,6 +6804,36 @@ public class Parser {
         return command;
     }
 
+    private enum NullConstraintType {
+        NULL_IS_ALLOWED, NULL_IS_NOT_ALLOWED, NO_NULL_CONSTRAINT_FOUND
+    }
+
+    private NullConstraintType parseNotNullConstraint() {
+        NullConstraintType nullConstraint = NullConstraintType.NO_NULL_CONSTRAINT_FOUND;
+        if ((isToken("NOT") || isToken("NULL"))) {
+            if (readIf("NOT")) {
+                read("NULL");
+                nullConstraint = NullConstraintType.NULL_IS_NOT_ALLOWED;
+            } else {
+                read("NULL");
+                nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+            }
+            if (database.getMode().getEnum() == ModeEnum.Oracle) {
+                if (readIf("ENABLE")) {
+                    readIf("VALIDATE"); // Leave constraint 'as is'
+                    if (readIf("NOVALIDATE")) { // Turn off constraint, allow NULLs
+                        nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+                    }
+                }
+                if (readIf("DISABLE")) { // Turn off constraint, allow NULLs
+                    nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
+                    readIf("VALIDATE"); // ignore validate
+                    readIf("NOVALIDATE"); // ignore novalidate
+                }
+            }
+        }
+        return nullConstraint;
+    }
 
     private CreateSynonym parseCreateSynonym(boolean orReplace) {
         boolean ifNotExists = readIfNotExists();

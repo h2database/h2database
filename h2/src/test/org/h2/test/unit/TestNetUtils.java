@@ -158,7 +158,9 @@ public class TestNetUtils extends TestBase {
      */
     void closeSilently(Socket socket) {
         try {
-            socket.close();
+            if (socket != null) {
+                socket.close();
+            }
         } catch (Exception e) {
             // ignore
         }

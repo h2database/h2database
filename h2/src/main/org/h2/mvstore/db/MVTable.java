@@ -438,7 +438,7 @@ public class MVTable extends TableBase {
         }
         return localSession == session;
     }
-
+    
     @Override
     public void unlock(Session s) {
         if (database != null) {

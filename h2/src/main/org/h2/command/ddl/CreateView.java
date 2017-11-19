@@ -130,7 +130,9 @@ public class CreateView extends SchemaCommand {
             view.setComment(comment);
         }
         if (old == null) {
+            System.out.println("addSchemaObject="+view.getName()+",sessionId="+session.getId());
             db.addSchemaObject(session, view);
+            db.unlockMeta(session);
         } else {
             db.updateMeta(session, view);
         }

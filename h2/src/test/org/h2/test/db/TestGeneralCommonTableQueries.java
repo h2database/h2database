@@ -29,20 +29,23 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testSimpleSelect();
-        testImpliedColumnNames();
-        testChainedQuery();
-        testParameterizedQuery();
-        testNumberedParameterizedQuery();
-        testColumnNames();
-
-        testInsert();
-        testUpdate();
-        testDelete();
-        testMerge();
-        testCreateTable();
-        testNestedSQL();
-        testRecursiveTable();
+//        testSimpleSelect();
+//        testImpliedColumnNames();
+//        testChainedQuery();
+//        testParameterizedQuery();
+//        testNumberedParameterizedQuery();
+//        testColumnNames();
+//
+//        testInsert();
+//        testUpdate();
+//        testDelete();
+//        testMerge();
+//        testCreateTable();
+//        testNestedSQL();
+//        testRecursiveTable();
+        
+        // turn on special locking debug
+        System.setProperty("h2.check2", "true");
         
         // persistent cte tests
         testPersistentNonRecursiveTableInCreateView();
@@ -568,7 +571,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
         int expectedNumberOfRows = 11;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1);
+                WITH_QUERY, 0/*maxRetries-1*/);
     }
     private void testPersistentNonRecursiveTableInCreateView() throws Exception {    
         String SETUP_SQL = ""

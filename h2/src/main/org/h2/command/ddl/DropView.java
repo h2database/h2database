@@ -69,10 +69,11 @@ public class DropView extends SchemaCommand {
             }
             
             // TODO: Where is the ConstraintReferential.CASCADE style drop processing ? It's
-            // supported from imported keys - but not for dependant 
+            // supported from imported keys - but not for dependent db objects
 
             view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);
+            session.getDatabase().unlockMeta(session);
             session.getDatabase().flushDeferredRemoveSchemaObject();
         }
         return 0;

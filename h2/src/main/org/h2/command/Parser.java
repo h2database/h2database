@@ -5221,6 +5221,9 @@ public class Parser {
         ArrayList<Column> columns = New.arrayList();
         String[] cols = null;
         Database db = targetSession.getDatabase();
+        
+        System.out.println("systemSessionId="+database.getSystemSession().getId());
+        System.out.println("sessionId="+session.getId());
 
         // column names are now optional - they can be inferred from the named
         // query, if not supplied by user

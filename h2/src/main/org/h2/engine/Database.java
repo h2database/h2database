@@ -927,13 +927,19 @@ public class Database implements DataHandler {
             } else if (prev != session) {
                 metaLockDebuggingStack.get().printStackTrace();
                 throw new IllegalStateException("meta currently locked by "
-                        + prev
+                        + prev +", sessionid="+ prev.getId()
                         + " and trying to be locked by different session, "
-                        + session + " on same thread");
+                        + session +", sessionid="+ session.getId() + " on same thread");
             }
         }
         boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
+    }
+    public void traceLock(){
+        if(metaLockDebuggingStack.get()!=null && metaLockDebugging.get() !=null){
+            System.out.println("traceLock: Meta locked by sessionId="+metaLockDebugging.get().getId());
+            metaLockDebuggingStack.get().printStackTrace();
+        }
     }
 
     /**
@@ -1890,7 +1896,7 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the object to be removed
      */
-    public void removeSchemaObject(Session session,
+    public boolean removeSchemaObject(Session session,
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
@@ -1898,31 +1904,32 @@ public class Database implements DataHandler {
             table.setBeingDropped(true);
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
-                return;
+                return true;
             }
         } else if (type == DbObject.INDEX) {
             Index index = (Index) obj;
             Table table = index.getTable();
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableIndex(index);
-                return;
+                return true;
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
             Table table = constraint.getTable();
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableConstraint(constraint);
-                return;
+                return true;
             }
         }
         checkWritingAllowed();
-        Boolean wasLocked = lockMetaNoWait(session);
+        Boolean wasLocked = lockMetaNoWait(session);// was 
         if(wasLocked==null){
             removeSchemaObjectQueue.put(obj,session);
             System.out.println("deferred removal scheduled="+obj.getName()+",wasLocked="+wasLocked);
-            return;
+            return false;
         }
         synchronized (this) {
+            String savedName = obj.getName();
             Comment comment = findComment(obj);
             if (comment != null) {
                 removeDatabaseObject(session, comment);
@@ -1937,30 +1944,41 @@ public class Database implements DataHandler {
                             t.getSQL());
                 }
                 obj.removeChildrenAndResources(session);
+                
             }
-            System.out.println("Removing meta lock");
+            System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName);
             removeMeta(session, id);
             
             flushDeferredRemoveSchemaObject();
+            return true;
             
         }
     }
 
     public void flushDeferredRemoveSchemaObject() {
-        Iterator<Entry<SchemaObject, Session>> i = removeSchemaObjectQueue.entrySet().iterator();
-        while(i.hasNext()){
-            Entry<SchemaObject, Session> pair = i.next();
-            i.remove();
-            System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
-            removeSchemaObject(pair.getValue(),pair.getKey());
-            if(!removeSchemaObjectQueue.contains(pair.getKey())){
-                System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
+        boolean progress = true;
+        while(progress){
+            progress = false;
+            Iterator<Entry<SchemaObject, Session>> i = removeSchemaObjectQueue.entrySet().iterator();
+            while(i.hasNext()){
+                Entry<SchemaObject, Session> pair = i.next();
+                i.remove();
+                System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
+                progress = removeSchemaObject(pair.getValue(),pair.getKey());
+                if(progress){
+                    System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
+                    unlockMeta(pair.getValue());
+                }
             }
+        }
+        System.out.println("flushDeferredRemoveSchemaObject.remove_q_size="+removeSchemaObjectQueue.size());
+        if(removeSchemaObjectQueue.size()!=0){
+            traceLock();
         }
     }
 
     /**
-     * Check if this database disk-based.
+     * Check if this database is disk-based.
      *
      * @return true if it is disk-based, false it it is in-memory only.
      */

@@ -701,9 +701,10 @@ public class TableView extends Table {
         super.removeView(view);
         // if this is a table expression and the last view to use it is
         // being dropped - then remove itself from the schema
-        if(isTableExpression() && getViews()!=null && view.isBeingDropped()){
+        if(isTableExpression() && getViews()!=null){
             // check if any database objects are left using this view
-            if(getViews().size()==0){
+            if(getViews().size()==0 && !isBeingDropped()){
+                System.out.println("Detected unused CTE: Trying to remove="+this.getName()+",session="+session.toString()+",sessionId="+session.getId());
                 session.getDatabase().removeSchemaObject(session,this);
             }            
         }

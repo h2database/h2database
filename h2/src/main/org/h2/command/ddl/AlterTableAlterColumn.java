@@ -8,7 +8,6 @@ package org.h2.command.ddl;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -275,11 +274,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
         }
         String tableName = table.getName();
-        CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
-        if (dependentViews != null) {
-            for (TableView view : dependentViews) {
-                table.removeDependentView(view);
-            }
+        ArrayList<TableView> dependentViews = new ArrayList<>(table.getDependentViews());
+        for (TableView view : dependentViews) {
+            table.removeDependentView(view);
         }
         execute("DROP TABLE " + table.getSQL() + " IGNORE", true);
         db.renameSchemaObject(session, newTable, tableName);
@@ -306,11 +303,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 db.renameSchemaObject(session, so, name);
             }
         }
-        if (dependentViews != null) {
-            for (TableView view : dependentViews) {
-                String sql = view.getCreateSQL(true, true);
-                execute(sql, true);
-            }
+        for (TableView view : dependentViews) {
+            String sql = view.getCreateSQL(true, true);
+            execute(sql, true);
         }
     }
 

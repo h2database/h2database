@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
@@ -82,7 +81,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * views that depend on this table
      */
-    private final AtomicReference<CopyOnWriteArrayList<TableView>> dependentViews = new AtomicReference<>();
+    private final CopyOnWriteArrayList<TableView> dependentViews = new CopyOnWriteArrayList<>();
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
@@ -403,9 +402,7 @@ public abstract class Table extends SchemaObjectBase {
         if (sequences != null) {
             children.addAll(sequences);
         }
-        if (dependentViews.get() != null) {
-            children.addAll(dependentViews.get());
-        }
+        children.addAll(dependentViews);
         if (synonyms != null) {
             children.addAll(synonyms);
         }
@@ -525,14 +522,14 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     public CopyOnWriteArrayList<TableView> getDependentViews() {
-        return dependentViews.get();
+        return dependentViews;
     }
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (dependentViews.get() != null && dependentViews.get().size() > 0) {
-            TableView view = dependentViews.get().get(0);
-            dependentViews.get().remove(0);
+        while (dependentViews.size() > 0) {
+            TableView view = dependentViews.get(0);
+            dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
@@ -820,12 +817,6 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    private static <T> void remove(AtomicReference<CopyOnWriteArrayList<T>> list, T obj) {
-        if (list.get() != null) {
-            list.get().remove(obj);
-        }
-    }
-
     /**
      * Remove the given index from the list.
      *
@@ -849,7 +840,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param view the view to remove
      */
     public void removeDependentView(TableView view) {
-        remove(dependentViews, view);
+        dependentViews.remove(view);
     }
 
     /**
@@ -894,7 +885,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param view the view to add
      */
     public void addDependentView(TableView view) {
-        add(dependentViews, view);
+        dependentViews.add(view);
     }
 
     /**
@@ -946,14 +937,6 @@ public abstract class Table extends SchemaObjectBase {
         // self constraints are two entries in the list
         list.add(obj);
         return list;
-    }
-
-    private static <T> void add(AtomicReference<CopyOnWriteArrayList<T>> list, T obj) {
-        if (list.get() == null) {
-            list.compareAndSet(null, new CopyOnWriteArrayList<T>());
-        }
-        // self constraints are two entries in the list
-        list.get().add(obj);
     }
 
     /**

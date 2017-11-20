@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -136,14 +135,12 @@ public class TableView extends Table {
                 return e;
             }
         }
-        CopyOnWriteArrayList<TableView> dependentViews = getDependentViews();
+        ArrayList<TableView> dependentViews = new ArrayList<>(getDependentViews());
         initColumnsAndTables(session, false);
-        if (dependentViews != null) {
-            for (TableView v : dependentViews) {
-                DbException e = v.recompile(session, force, false);
-                if (e != null && !force) {
-                    return e;
-                }
+        for (TableView v : dependentViews) {
+            DbException e = v.recompile(session, force, false);
+            if (e != null && !force) {
+                return e;
             }
         }
         if (clearIndexCache) {

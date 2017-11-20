@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
@@ -135,10 +136,7 @@ public class TableView extends Table {
                 return e;
             }
         }
-        ArrayList<TableView> views = getViews();
-        if (views != null) {
-            views = New.arrayList(views);
-        }
+        CopyOnWriteArrayList<TableView> views = getViews();
         initColumnsAndTables(session, false);
         if (views != null) {
             for (TableView v : views) {
@@ -163,7 +161,7 @@ public class TableView extends Table {
             tables = New.arrayList(query.getTables());
             ArrayList<Expression> expressions = query.getExpressions();
             ArrayList<Column> list = New.arrayList();
-            ColumnNamer columnNamer= new ColumnNamer(session);                        
+            ColumnNamer columnNamer= new ColumnNamer(session);
             for (int i = 0, count = query.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;

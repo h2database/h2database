@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
@@ -77,7 +79,7 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;
-    private ArrayList<TableView> views;
+    private AtomicReference<CopyOnWriteArrayList<TableView>> views;
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
@@ -398,8 +400,8 @@ public abstract class Table extends SchemaObjectBase {
         if (sequences != null) {
             children.addAll(sequences);
         }
-        if (views != null) {
-            children.addAll(views);
+        if (views.get() != null) {
+            children.addAll(views.get());
         }
         if (synonyms != null) {
             children.addAll(synonyms);
@@ -519,15 +521,15 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public ArrayList<TableView> getViews() {
-        return views;
+    public CopyOnWriteArrayList<TableView> getViews() {
+        return views.get();
     }
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (views != null && views.size() > 0) {
-            TableView view = views.get(0);
-            views.remove(0);
+        while (views.get() != null && views.get().size() > 0) {
+            TableView view = views.get().get(0);
+            views.get().remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
@@ -811,10 +813,13 @@ public abstract class Table extends SchemaObjectBase {
 
     private static void remove(ArrayList<? extends DbObject> list, DbObject obj) {
         if (list != null) {
-            int i = list.indexOf(obj);
-            if (i >= 0) {
-                list.remove(i);
-            }
+            list.remove(obj);
+        }
+    }
+
+    private static <T> void remove(AtomicReference<CopyOnWriteArrayList<T>> list, T obj) {
+        if (list.get() != null) {
+            list.get().remove(obj);
         }
     }
 
@@ -886,7 +891,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param view the view to add
      */
     public void addView(TableView view) {
-        views = add(views, view);
+        add(views, view);
     }
 
     /**
@@ -938,6 +943,14 @@ public abstract class Table extends SchemaObjectBase {
         // self constraints are two entries in the list
         list.add(obj);
         return list;
+    }
+
+    private static <T> void add(AtomicReference<CopyOnWriteArrayList<T>> list, T obj) {
+        if (list.get() == null) {
+            list.compareAndSet(null, new CopyOnWriteArrayList<T>());
+        }
+        // self constraints are two entries in the list
+        list.get().add(obj);
     }
 
     /**

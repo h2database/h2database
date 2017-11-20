@@ -82,7 +82,7 @@ public abstract class Table extends SchemaObjectBase {
     /**
      * views that depend on this table
      */
-    private AtomicReference<CopyOnWriteArrayList<TableView>> dependentViews;
+    private final AtomicReference<CopyOnWriteArrayList<TableView>> dependentViews = new AtomicReference<>();
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;

@@ -136,10 +136,10 @@ public class TableView extends Table {
                 return e;
             }
         }
-        CopyOnWriteArrayList<TableView> views = getViews();
+        CopyOnWriteArrayList<TableView> dependentViews = getDependentViews();
         initColumnsAndTables(session, false);
-        if (views != null) {
-            for (TableView v : views) {
+        if (dependentViews != null) {
+            for (TableView v : dependentViews) {
                 DbException e = v.recompile(session, force, false);
                 if (e != null && !force) {
                     return e;
@@ -154,7 +154,7 @@ public class TableView extends Table {
 
     private void initColumnsAndTables(Session session, boolean literalsChecked) {
         Column[] cols;
-        removeViewFromTables();
+        removeDependentViewFromTables();
         try {
             Query query = compileViewQuery(session, querySQL, literalsChecked);
             this.querySQL = query.getPlanSQL();
@@ -229,7 +229,7 @@ public class TableView extends Table {
         }
         setColumns(cols);
         if (getId() != 0) {
-            addViewToTables();
+            addDependentViewToTables();
         }
     }
 
@@ -420,7 +420,7 @@ public class TableView extends Table {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        removeViewFromTables();
+        removeDependentViewFromTables();
         super.removeChildrenAndResources(session);
         database.removeMeta(session, getId());
         querySQL = null;
@@ -504,18 +504,18 @@ public class TableView extends Table {
         return null;
     }
 
-    private void removeViewFromTables() {
+    private void removeDependentViewFromTables() {
         if (tables != null) {
             for (Table t : tables) {
-                t.removeView(this);
+                t.removeDependentView(this);
             }
             tables.clear();
         }
     }
 
-    private void addViewToTables() {
+    private void addDependentViewToTables() {
         for (Table t : tables) {
-            t.addView(this);
+            t.addDependentView(this);
         }
     }
 

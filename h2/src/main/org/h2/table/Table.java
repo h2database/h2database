@@ -79,7 +79,10 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;
-    private AtomicReference<CopyOnWriteArrayList<TableView>> views;
+    /**
+     * views that depend on this table
+     */
+    private AtomicReference<CopyOnWriteArrayList<TableView>> dependentViews;
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
@@ -400,8 +403,8 @@ public abstract class Table extends SchemaObjectBase {
         if (sequences != null) {
             children.addAll(sequences);
         }
-        if (views.get() != null) {
-            children.addAll(views.get());
+        if (dependentViews.get() != null) {
+            children.addAll(dependentViews.get());
         }
         if (synonyms != null) {
             children.addAll(synonyms);
@@ -521,15 +524,15 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public CopyOnWriteArrayList<TableView> getViews() {
-        return views.get();
+    public CopyOnWriteArrayList<TableView> getDependentViews() {
+        return dependentViews.get();
     }
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (views.get() != null && views.get().size() > 0) {
-            TableView view = views.get().get(0);
-            views.get().remove(0);
+        while (dependentViews.get() != null && dependentViews.get().size() > 0) {
+            TableView view = dependentViews.get().get(0);
+            dependentViews.get().remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
@@ -845,8 +848,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to remove
      */
-    public void removeView(TableView view) {
-        remove(views, view);
+    public void removeDependentView(TableView view) {
+        remove(dependentViews, view);
     }
 
     /**
@@ -890,8 +893,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to add
      */
-    public void addView(TableView view) {
-        add(views, view);
+    public void addDependentView(TableView view) {
+        add(dependentViews, view);
     }
 
     /**

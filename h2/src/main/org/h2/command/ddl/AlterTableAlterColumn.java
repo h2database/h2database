@@ -275,10 +275,10 @@ public class AlterTableAlterColumn extends SchemaCommand {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
         }
         String tableName = table.getName();
-        CopyOnWriteArrayList<TableView> views = table.getViews();
-        if (views != null) {
-            for (TableView view : views) {
-                table.removeView(view);
+        CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
+        if (dependentViews != null) {
+            for (TableView view : dependentViews) {
+                table.removeDependentView(view);
             }
         }
         execute("DROP TABLE " + table.getSQL() + " IGNORE", true);
@@ -306,8 +306,8 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 db.renameSchemaObject(session, so, name);
             }
         }
-        if (views != null) {
-            for (TableView view : views) {
+        if (dependentViews != null) {
+            for (TableView view : dependentViews) {
                 String sql = view.getCreateSQL(true, true);
                 execute(sql, true);
             }

@@ -73,10 +73,10 @@ public class DropTable extends SchemaCommand {
                 throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
             if (dropAction == ConstraintReferential.RESTRICT) {
-                CopyOnWriteArrayList<TableView> views = table.getViews();
-                if (views != null && views.size() > 0) {
+                CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
+                if (dependentViews != null && dependentViews.size() > 0) {
                     StatementBuilder buff = new StatementBuilder();
-                    for (TableView v : views) {
+                    for (TableView v : dependentViews) {
                         buff.appendExceptFirst(", ");
                         buff.append(v.getName());
                     }

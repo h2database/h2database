@@ -678,6 +678,7 @@ public class Session extends SessionWithState {
             for (Table table : tablesToAnalyze) {
                 Analyze.analyzeTable(this, table, rows, false);
             }
+            database.unlockMeta(this); // analyze can lock the meta
         }
         tablesToAnalyze = null;
     }

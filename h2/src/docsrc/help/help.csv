@@ -1991,7 +1991,7 @@ The following options are supported:
 
 ""fieldDelimiter"" (a double quote by default),
 
-""fieldSeparator"" (a comma by default)),
+""fieldSeparator"" (a comma by default),
 
 ""lineComment"" (disabled by default),
 

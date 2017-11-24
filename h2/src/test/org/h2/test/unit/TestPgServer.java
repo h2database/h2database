@@ -368,7 +368,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        // Sometimes the previous pg server has not finished shutting and we get "port in use", so sleep for a bit.
+        // Sometimes the previous pg server has not finished shutting and we get
+        // "port in use", so sleep for a bit.
         Thread.sleep(100);
 
         Server server = Server.createPgServer(

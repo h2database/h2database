@@ -55,17 +55,19 @@ public class TestCompatibilityOracle extends TestBase {
         stat.execute("insert into T values(1)");
         stat.execute("drop table T");
         // can set NULL
-        stat.execute("create table T (C int not null disable)");           // can set NULL even with 'not null syntax' (oracle)
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("create table T (C int not null disable)");
         stat.execute("insert into T values(null)");
         stat.execute("drop table T");
-        stat.execute("create table T (C int not null enable novalidate)");  // can set NULL even with 'not null syntax' (oracle)
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("create table T (C int not null enable novalidate)");
         stat.execute("insert into T values(null)");
         stat.execute("drop table T");
-        
+
         // Some other variation with oracle syntax
         stat.execute("create table T (C int not null)");
         stat.execute("insert into T values(1)");
-        stat.execute("alter table T modify C not null"); 
+        stat.execute("alter table T modify C not null");
         stat.execute("insert into T values(1)");
         stat.execute("alter table T modify C not null enable");
         stat.execute("insert into T values(1)");
@@ -78,17 +80,19 @@ public class TestCompatibilityOracle extends TestBase {
         stat.execute("alter table T modify C null enable");
         stat.execute("alter table T modify C null enable validate");
         stat.execute("insert into T values(null)");
-        stat.execute("alter table T modify C not null disable");            // can set NULL even with 'not null syntax' (oracle)
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("alter table T modify C not null disable");
         stat.execute("insert into T values(null)");
-        stat.execute("alter table T modify C not null enable novalidate");  // can set NULL even with 'not null syntax' (oracle)
+        // can set NULL even with 'not null syntax' (oracle)
+        stat.execute("alter table T modify C not null enable novalidate");
         stat.execute("insert into T values(null)");
         stat.execute("drop table T");
 
         conn.close();
     }
-    
+
     private void testSpecialTypes() throws SQLException {
-        // Test VARCHAR, VARCHAR2 with CHAR and BYTE 
+        // Test VARCHAR, VARCHAR2 with CHAR and BYTE
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=Oracle");
         Statement stat = conn.createStatement();
@@ -96,7 +100,7 @@ public class TestCompatibilityOracle extends TestBase {
         stat.execute("alter table T add A_1 VARCHAR(1)");
         stat.execute("alter table T add A_2 VARCHAR2(1)");
         stat.execute("alter table T add B_1 VARCHAR(1 byte)"); // with BYTE
-        stat.execute("alter table T add B_2 VARCHAR2(1 byte)"); 
+        stat.execute("alter table T add B_2 VARCHAR2(1 byte)");
         stat.execute("alter table T add C_1 VARCHAR(1 char)"); // with CHAR
         stat.execute("alter table T add C_2 VARCHAR2(1 char)");
         stat.execute("alter table T add B_255 VARCHAR(255 byte)");
@@ -104,7 +108,7 @@ public class TestCompatibilityOracle extends TestBase {
         stat.execute("drop table T");
         conn.close();
     }
-    
+
     private void testTreatEmptyStringsAsNull() throws SQLException {
         deleteDb("oracle");
         Connection conn = getConnection("oracle;MODE=Oracle");

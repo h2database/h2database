@@ -944,6 +944,12 @@ public class Database implements DataHandler {
         session.unlock(meta);
     }
 
+    /**
+     * This method doesn't actually unlock the metadata table, all it does it
+     * reset the debugging flags.
+     *
+     * @param session the session
+     */
     public void unlockMetaDebug(Session session) {
         if (SysProperties.CHECK2) {
             if (metaLockDebugging.get() == session) {

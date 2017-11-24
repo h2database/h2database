@@ -5291,8 +5291,9 @@ public class Parser {
         ArrayList<Expression> withExpressions = theQuery.getExpressions();
         for (int i = 0; i < withExpressions.size(); ++i) {
             Expression columnExp = withExpressions.get(i);
-            // use the passed in column name if supplied, otherwise use alias (if found) otherwise use column name
-            // derived from column expression
+            // use the passed in column name if supplied, otherwise use alias
+            // (if found) otherwise use column name derived from column
+            // expression
             String columnName = columnNamer.getColumnName(columnExp,i,cols);
             columnTemplateList.add(new Column(columnName,
                     columnExp.getType()));

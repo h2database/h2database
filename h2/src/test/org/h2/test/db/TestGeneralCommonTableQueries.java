@@ -390,7 +390,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
-    
+
     private void testNestedSQL() throws Exception {
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
@@ -438,7 +438,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         }
         conn.close();
         deleteDb("commonTableExpressionQueries");
-    }    
+    }
 
     private void testColumnNames() throws Exception {
         deleteDb("commonTableExpressionQueries");
@@ -469,18 +469,37 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
-    
+
     private void testRecursiveTable() throws Exception {
         String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
         String[] expectedColumnNames =new String[]{"VAL",
-                "SUM(SELECT\n    X\nFROM PUBLIC.\"\" BB\n    /* SELECT\n        SUM(1) AS X,\n        A\n    FROM PUBLIC.B\n        /++ PUBLIC.B.tableScan ++/\n        /++ WHERE A IS ?1\n        ++/\n        /++ scanCount: 4 ++/\n    INNER JOIN PUBLIC.C\n        /++ PUBLIC.C.tableScan ++/\n        ON 1=1\n    WHERE (A IS ?1)\n        AND (B.VAL = C.B)\n    GROUP BY A: A IS A.VAL\n     */\n    /* scanCount: 1 */\nWHERE BB.A IS A.VAL)"};
-        
+                "SUM(SELECT\n" +
+                "    X\n" +
+                "FROM PUBLIC.\"\" BB\n" +
+                "    /* SELECT\n" +
+                "        SUM(1) AS X,\n" +
+                "        A\n" +
+                "    FROM PUBLIC.B\n" +
+                "        /++ PUBLIC.B.tableScan ++/\n" +
+                "        /++ WHERE A IS ?1\n" +
+                "        ++/\n" +
+                "        /++ scanCount: 4 ++/\n" +
+                "    INNER JOIN PUBLIC.C\n" +
+                "        /++ PUBLIC.C.tableScan ++/\n" +
+                "        ON 1=1\n" +
+                "    WHERE (A IS ?1)\n" +
+                "        AND (B.VAL = C.B)\n" +
+                "    GROUP BY A: A IS A.VAL\n" +
+                "     */\n" +
+                "    /* scanCount: 1 */\n" +
+                "WHERE BB.A IS A.VAL)"};
+
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
         PreparedStatement prep;
         ResultSet rs;
-        
-        String SETUP_SQL = 
+
+        String SETUP_SQL =
              "DROP TABLE IF EXISTS A;                           "
             +"DROP TABLE IF EXISTS B;                           "
             +"DROP TABLE IF EXISTS C;                           "
@@ -527,7 +546,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
                 assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
             }
-            
+
             int rowNdx=0;
             while (rs.next()) {
                 StringBuffer buf = new StringBuffer();
@@ -544,5 +563,5 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
         conn.close();
         deleteDb("commonTableExpressionQueries");
-    }     
+    }
 }

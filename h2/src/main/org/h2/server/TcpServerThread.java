@@ -62,8 +62,7 @@ public class TcpServerThread implements Runnable {
     TcpServerThread(Socket socket, TcpServer server, int id) {
         this.server = server;
         this.threadId = id;
-        transfer = new Transfer(null);
-        transfer.setSocket(socket);
+        transfer = new Transfer(null, socket);
     }
 
     private void trace(String s) {
@@ -78,6 +77,11 @@ public class TcpServerThread implements Runnable {
             // TODO server: should support a list of allowed databases
             // and a list of allowed clients
             try {
+                Socket socket = transfer.getSocket();
+                if (socket == null) {
+                    // the transfer is already closed, prevent NPE in TcpServer#allow(Socket)
+                    return;
+                }
                 if (!server.allow(transfer.getSocket())) {
                     throw DbException.get(ErrorCode.REMOTE_CONNECTION_NOT_ALLOWED);
                 }

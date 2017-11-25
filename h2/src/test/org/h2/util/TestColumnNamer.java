@@ -6,7 +6,7 @@ import org.h2.expression.ValueExpression;
 import org.h2.test.TestBase;
 
 public class TestColumnNamer extends TestBase {
-        
+
     private String[] ids = new String[]{
       "ABC"
       ,"123"
@@ -24,7 +24,7 @@ public class TestColumnNamer extends TestBase {
       ,"col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2"
       ,"col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2col2"
     };
-    
+
     private String[] expectedColumnName= {"ABC"
             ,"123"
             ,"a2"
@@ -39,12 +39,13 @@ public class TestColumnNamer extends TestBase {
             ,"col1_2"
             ,"col1_3"
             ,"col2col2col2col2col2col2col2co"
-            ,"col2col2col2col2col2col2col2_2"};    
+            ,"col2col2col2col2col2col2col2_2"};
     public static void main(String[] args){
-        
+
         new TestColumnNamer().test();
     }
 
+    @Override
     public void test() {
         ColumnNamer columnNamer = new ColumnNamer(null);
         columnNamer.getConfiguration().configure("MAX_IDENTIFIER_LENGTH = 30");
@@ -52,7 +53,7 @@ public class TestColumnNamer extends TestBase {
         columnNamer.getConfiguration().configure("REGULAR_EXPRESSION_MATCH_DISALLOWED = '[^A-Za-z0-9_]+'");
         columnNamer.getConfiguration().configure("DEFAULT_COLUMN_NAME_PATTERN = 'colName$$'");
         columnNamer.getConfiguration().configure("GENERATE_UNIQUE_COLUMN_NAMES = 1");
-        
+
         int index =0;
         for(String id : ids){
             Expression columnExp = ValueExpression.getDefault();

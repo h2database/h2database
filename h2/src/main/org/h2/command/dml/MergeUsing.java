@@ -245,7 +245,8 @@ public class MergeUsing extends Prepared {
             // throw and exception if we have processed this _ROWID_ before...
             if (targetRowidsRemembered.containsKey(targetRowIdValue[0])) {
                 throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Merge using ON column expression, duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
+                        "Merge using ON column expression, " +
+                        "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
                                 + targetRowIdValue[0].toString() + ":in:"
                                 + targetTableFilter.getTable()
                                 + ":conflicting source row number:"

@@ -13,7 +13,7 @@ public class ColumnNamerConfiguration {
     private static final String MAX_IDENTIFIER_LENGTH = "MAX_IDENTIFIER_LENGTH = ";
     private static final String EMULATE_COMMAND = "EMULATE = ";
     private static final String GENERATE_UNIQUE_COLUMN_NAMES = "GENERATE_UNIQUE_COLUMN_NAMES = ";
-    
+
     private int maxIdentiferLength;
     private String regularExpressionMatchAllowed;
     private String regularExpressionMatchDisallowed;
@@ -23,14 +23,15 @@ public class ColumnNamerConfiguration {
     private Pattern compiledRegularExpressionMatchDisallowed;
 
     public ColumnNamerConfiguration(int maxIdentiferLength, String regularExpressionMatchAllowed,
-            String regularExpressionMatchDisallowed, String defaultColumnNamePattern, boolean generateUniqueColumnNames) {
-        
+            String regularExpressionMatchDisallowed, String defaultColumnNamePattern,
+            boolean generateUniqueColumnNames) {
+
         this.maxIdentiferLength = maxIdentiferLength;
         this.regularExpressionMatchAllowed = regularExpressionMatchAllowed;
         this.regularExpressionMatchDisallowed = regularExpressionMatchDisallowed;
         this.defaultColumnNamePattern = defaultColumnNamePattern;
         this.generateUniqueColumnNames = generateUniqueColumnNames;
-        
+
         compiledRegularExpressionMatchAllowed = Pattern.compile(regularExpressionMatchAllowed);
         compiledRegularExpressionMatchDisallowed = Pattern.compile(regularExpressionMatchDisallowed);
     }
@@ -41,8 +42,9 @@ public class ColumnNamerConfiguration {
 
     public void setMaxIdentiferLength(int maxIdentiferLength) {
         this.maxIdentiferLength = Math.max(30,maxIdentiferLength);
-        if(maxIdentiferLength!=getMaxIdentiferLength()){
-            throw DbException.getInvalidValueException("Illegal value (<30) in SET COLUMN_NAME_RULES","MAX_IDENTIFIER_LENGTH="+maxIdentiferLength);
+        if (maxIdentiferLength != getMaxIdentiferLength()) {
+            throw DbException.getInvalidValueException("Illegal value (<30) in SET COLUMN_NAME_RULES",
+                    "MAX_IDENTIFIER_LENGTH=" + maxIdentiferLength);
         }
     }
 
@@ -85,32 +87,35 @@ public class ColumnNamerConfiguration {
     public void setCompiledRegularExpressionMatchDisallowed(Pattern compiledRegularExpressionMatchDisallowed) {
         this.compiledRegularExpressionMatchDisallowed = compiledRegularExpressionMatchDisallowed;
     }
-    
+
     public void configure(String stringValue) {
         try{
-            if(stringValue.equalsIgnoreCase(DEFAULT_COMMAND)){
+            if (stringValue.equalsIgnoreCase(DEFAULT_COMMAND)) {
                 configure(REGULAR);
-            } else if(stringValue.startsWith(EMULATE_COMMAND)){
-                 configure(ModeEnum.valueOf(unquoteString(stringValue.substring(EMULATE_COMMAND.length()))));
-            } else if(stringValue.startsWith(MAX_IDENTIFIER_LENGTH)){
+            } else if (stringValue.startsWith(EMULATE_COMMAND)) {
+                configure(ModeEnum.valueOf(
+                        unquoteString(stringValue.substring(EMULATE_COMMAND.length()))));
+            } else if (stringValue.startsWith(MAX_IDENTIFIER_LENGTH)) {
                 int maxLength = Integer.parseInt(stringValue.substring(MAX_IDENTIFIER_LENGTH.length()));
                 setMaxIdentiferLength(maxLength);
-            } else if(stringValue.startsWith(GENERATE_UNIQUE_COLUMN_NAMES)){
-                setGenerateUniqueColumnNames(Integer.parseInt(stringValue.substring(GENERATE_UNIQUE_COLUMN_NAMES.length()))==1);            
-            } else if(stringValue.startsWith(DEFAULT_COLUMN_NAME_PATTERN)){
-                setDefaultColumnNamePattern(unquoteString(stringValue.substring(DEFAULT_COLUMN_NAME_PATTERN.length())));            
-            } else if(stringValue.startsWith(REGULAR_EXPRESSION_MATCH_ALLOWED)){
-                setRegularExpressionMatchAllowed(unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_ALLOWED.length())));            
-            } else if(stringValue.startsWith(REGULAR_EXPRESSION_MATCH_DISALLOWED)){
-                setRegularExpressionMatchDisallowed(unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_DISALLOWED.length())));            
-            }
-            else
-            {
-                throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES: unknown id:"+stringValue,
+            } else if (stringValue.startsWith(GENERATE_UNIQUE_COLUMN_NAMES)) {
+                setGenerateUniqueColumnNames(
+                        Integer.parseInt(stringValue.substring(GENERATE_UNIQUE_COLUMN_NAMES.length())) == 1);
+            } else if (stringValue.startsWith(DEFAULT_COLUMN_NAME_PATTERN)) {
+                setDefaultColumnNamePattern(
+                        unquoteString(stringValue.substring(DEFAULT_COLUMN_NAME_PATTERN.length())));
+            } else if (stringValue.startsWith(REGULAR_EXPRESSION_MATCH_ALLOWED)) {
+                setRegularExpressionMatchAllowed(
+                        unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_ALLOWED.length())));
+            } else if (stringValue.startsWith(REGULAR_EXPRESSION_MATCH_DISALLOWED)) {
+                setRegularExpressionMatchDisallowed(
+                        unquoteString(stringValue.substring(REGULAR_EXPRESSION_MATCH_DISALLOWED.length())));
+            } else {
+                throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES: unknown id:" + stringValue,
                         stringValue);
-    
+
             }
-           
+
             recompilePatterns();
         }
         //Including NumberFormatException|PatternSyntaxException
@@ -118,7 +123,7 @@ public class ColumnNamerConfiguration {
             throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES:"+e.getMessage(),
                     stringValue);
 
-        }        
+        }
     }
 
     private void recompilePatterns() {
@@ -131,12 +136,12 @@ public class ColumnNamerConfiguration {
             configure(REGULAR);
             throw e;
         }
-    }    
-    
+    }
+
     public static ColumnNamerConfiguration getDefault(){
         return new ColumnNamerConfiguration(Integer.MAX_VALUE, "(?m)(?s).+", "(?m)(?s)[\\x00]", "_UNNAMED_$$",false);
     }
-    
+
     private static String unquoteString(String s){
         if(s.startsWith("'") && s.endsWith("'")){
             s = s.substring(1, s.length()-1);
@@ -156,30 +161,31 @@ public class ColumnNamerConfiguration {
     public void configure(ModeEnum modeEnum) {
         switch(modeEnum){
         case Oracle:
-            // Nonquoted identifiers can contain only alphanumeric characters 
-            // from your database character set and the underscore (_), dollar sign ($), and pound sign (#). 
+            // Nonquoted identifiers can contain only alphanumeric characters
+            // from your database character set and the underscore (_), dollar
+            // sign ($), and pound sign (#).
             setMaxIdentiferLength(128);
             setRegularExpressionMatchAllowed("(?m)(?s)\"?[A-Za-z0-9_\\$#]+\"?");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\"\\$#]");
-            setDefaultColumnNamePattern("_UNNAMED_$$");  
-            setGenerateUniqueColumnNames(false);            
+            setDefaultColumnNamePattern("_UNNAMED_$$");
+            setGenerateUniqueColumnNames(false);
             break;
-            
+
         case MSSQLServer:
             // https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server
             setMaxIdentiferLength(128);
             setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\[\\]]+");// allows [] around names
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\[\\]]");
             setDefaultColumnNamePattern("_UNNAMED_$$");
-            setGenerateUniqueColumnNames(false);            
+            setGenerateUniqueColumnNames(false);
             break;
-            
+
         case PostgreSQL:
             setMaxIdentiferLength(63);// this default can be changed to 128 by postgres config
             setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\$]+");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\$]");
             setDefaultColumnNamePattern("_UNNAMED_$$");
-            setGenerateUniqueColumnNames(false);            
+            setGenerateUniqueColumnNames(false);
             break;
 
         case MySQL:
@@ -190,7 +196,7 @@ public class ColumnNamerConfiguration {
             setDefaultColumnNamePattern("_UNNAMED_$$");
             setGenerateUniqueColumnNames(false);
             break;
-            
+
         default:
         case REGULAR:
         case DB2:
@@ -204,7 +210,7 @@ public class ColumnNamerConfiguration {
             setGenerateUniqueColumnNames(false);
             break;
         }
-        recompilePatterns();                
+        recompilePatterns();
     }
-        
+
 }

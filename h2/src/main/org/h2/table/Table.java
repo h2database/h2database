@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.constraint.Constraint;
@@ -77,7 +78,10 @@ public abstract class Table extends SchemaObjectBase {
     private ArrayList<TriggerObject> triggers;
     private ArrayList<Constraint> constraints;
     private ArrayList<Sequence> sequences;
-    private ArrayList<TableView> views; // remember which views are using this object 
+    /**
+     * views that depend on this table
+     */
+    private final CopyOnWriteArrayList<TableView> dependentViews = new CopyOnWriteArrayList<>();
     private ArrayList<TableSynonym> synonyms;
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
@@ -339,6 +343,7 @@ public abstract class Table extends SchemaObjectBase {
         return null;
     }
 
+    @Override
     public String getCreateSQLForCopy(Table table, String quotedName) {
         throw DbException.throwInternalError(toString());
     }
@@ -398,9 +403,7 @@ public abstract class Table extends SchemaObjectBase {
         if (sequences != null) {
             children.addAll(sequences);
         }
-        if (views != null) {
-            children.addAll(views);
-        }
+        children.addAll(dependentViews);
         if (synonyms != null) {
             children.addAll(synonyms);
         }
@@ -518,15 +521,15 @@ public abstract class Table extends SchemaObjectBase {
         }
     }
 
-    public ArrayList<TableView> getViews() {
-        return views;
+    public CopyOnWriteArrayList<TableView> getDependentViews() {
+        return dependentViews;
     }
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        while (views != null && views.size() > 0) {
-            TableView view = views.get(0);
-            views.remove(0);
+        while (dependentViews.size() > 0) {
+            TableView view = dependentViews.get(0);
+            dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
@@ -810,10 +813,7 @@ public abstract class Table extends SchemaObjectBase {
 
     private static void remove(ArrayList<? extends DbObject> list, DbObject obj) {
         if (list != null) {
-            int i = list.indexOf(obj);
-            if (i >= 0) {
-                list.remove(i);
-            }
+            list.remove(obj);
         }
     }
 
@@ -839,8 +839,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to remove
      */
-    public void removeView(TableView view) {
-        remove(views, view);
+    public void removeDependentView(TableView view) {
+        dependentViews.remove(view);
     }
 
     /**
@@ -884,8 +884,8 @@ public abstract class Table extends SchemaObjectBase {
      *
      * @param view the view to add
      */
-    public void addView(TableView view) {
-        views = add(views, view);
+    public void addDependentView(TableView view) {
+        dependentViews.add(view);
     }
 
     /**

@@ -29,6 +29,7 @@ public class ColumnNamer {
             }
         }
     }
+
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
      * @param expr the column expression
@@ -37,6 +38,7 @@ public class ColumnNamer {
     public String getColumnName(Expression expr, int indexOfColumn) {
         return getColumnName(expr,indexOfColumn,(String) null);
     }
+
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
      * @param columnExp the column expression
@@ -44,9 +46,9 @@ public class ColumnNamer {
      * @param columnNameOverides array of overriding column names
      * @return the new column name
      */
-    public String getColumnName(Expression columnExp, int indexOfColumn, String[] columnNameOverides){
+    public String getColumnName(Expression columnExp, int indexOfColumn, String[] columnNameOverides) {
         String columnNameOverride = null;
-        if (columnNameOverides != null && columnNameOverides.length > indexOfColumn){
+        if (columnNameOverides != null && columnNameOverides.length > indexOfColumn) {
             columnNameOverride = columnNameOverides[indexOfColumn];
         }
         return getColumnName(columnExp, indexOfColumn, columnNameOverride);
@@ -72,40 +74,43 @@ public class ColumnNamer {
             }
         }
         // try a name from the column alias
-        if (columnName==null && columnExp.getAlias()!=null && !DEFAULT_COLUMN_NAME.equals(columnExp.getAlias())){
+        if (columnName==null && columnExp.getAlias()!=null &&
+                !DEFAULT_COLUMN_NAME.equals(columnExp.getAlias())) {
             columnName = columnExp.getAlias();
-            if(!isAllowableColumnName(columnName)){
+            if (!isAllowableColumnName(columnName)) {
                 columnName = fixColumnName(columnName);
             }
-            if(!isAllowableColumnName(columnName)){
+            if (!isAllowableColumnName(columnName)) {
                 columnName = null;
             }
         }
         // try a name derived from the column expression SQL
-        if (columnName==null && columnExp.getColumnName()!=null && !DEFAULT_COLUMN_NAME.equals(columnExp.getColumnName())){
+        if (columnName == null && columnExp.getColumnName() != null &&
+                !DEFAULT_COLUMN_NAME.equals(columnExp.getColumnName())) {
              columnName =  columnExp.getColumnName();
-             if(!isAllowableColumnName(columnName)){
-                 columnName = fixColumnName(columnName);
-             }
-             if(!isAllowableColumnName(columnName)){
-                 columnName = null;
-             }
+            if (!isAllowableColumnName(columnName)) {
+                columnName = fixColumnName(columnName);
+            }
+            if (!isAllowableColumnName(columnName)) {
+                columnName = null;
+            }
         }
         // try a name derived from the column expression plan SQL
-        if (columnName==null && columnExp.getSQL()!=null && !DEFAULT_COLUMN_NAME.equals(columnExp.getSQL())){
+        if (columnName == null && columnExp.getSQL() != null &&
+                !DEFAULT_COLUMN_NAME.equals(columnExp.getSQL())) {
              columnName =  columnExp.getSQL();
-             if(!isAllowableColumnName(columnName)){
-                 columnName = fixColumnName(columnName);
-             }
-             if(!isAllowableColumnName(columnName)){
-                 columnName = null;
-             }
+            if (!isAllowableColumnName(columnName)) {
+                columnName = fixColumnName(columnName);
+            }
+            if (!isAllowableColumnName(columnName)) {
+                columnName = null;
+            }
         }
         // go with a innocuous default name pattern
-        if (columnName==null){
-            columnName =  configuration.getDefaultColumnNamePattern().replace("$$", ""+(indexOfColumn+1));
+        if (columnName == null) {
+            columnName = configuration.getDefaultColumnNamePattern().replace("$$", "" + (indexOfColumn + 1));
         }
-        if(existingColumnNames.contains(columnName) && configuration.isGenerateUniqueColumnNames()){
+        if (existingColumnNames.contains(columnName) && configuration.isGenerateUniqueColumnNames()) {
             columnName = generateUniqueName(columnName);
         }
         existingColumnNames.add(columnName);
@@ -115,11 +120,11 @@ public class ColumnNamer {
     private String generateUniqueName(String columnName) {
         String newColumnName = columnName;
         int loopCount = 2;
-        while(existingColumnNames.contains(newColumnName)){
-
+        while (existingColumnNames.contains(newColumnName)) {
             String loopCountString = "_"+loopCount;
-            newColumnName = columnName.substring(0,Math.min(columnName.length(), configuration.getMaxIdentiferLength()-loopCountString.length()))+loopCountString;
-
+            newColumnName = columnName.substring(0,
+                    Math.min(columnName.length(), configuration.getMaxIdentiferLength() - loopCountString.length()))
+                    + loopCountString;
             loopCount++;
         }
         return newColumnName;
@@ -132,11 +137,11 @@ public class ColumnNamer {
             return false;
         }
         // check size limits
-        if (proposedName.length() > configuration.getMaxIdentiferLength() || proposedName.length()==0){
+        if (proposedName.length() > configuration.getMaxIdentiferLength() || proposedName.length() == 0) {
             return false;
         }
         Matcher match = configuration.getCompiledRegularExpressionMatchAllowed().matcher(proposedName);
-        if(!match.matches()){
+        if (!match.matches()) {
             return false;
         }
         return true;

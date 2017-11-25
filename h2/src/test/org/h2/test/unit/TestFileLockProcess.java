@@ -106,7 +106,8 @@ public class TestFileLockProcess extends TestBase {
             }
             proc.waitFor();
 
-            // The travis build somehow generates messages like this from javac. No idea where it is coming from.
+            // The travis build somehow generates messages like this from javac.
+            // No idea where it is coming from.
             String processOutput = buff.toString();
             processOutput = processOutput.replaceAll("Picked up _JAVA_OPTIONS: -Xmx2048m -Xms512m", "").trim();
 

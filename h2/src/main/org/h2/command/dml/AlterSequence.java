@@ -114,16 +114,7 @@ public class AlterSequence extends SchemaCommand {
             Long inc = getLong(increment);
             sequence.modify(startValue, min, max, inc);
         }
-        // need to use the system session, so that the update
-        // can be committed immediately - not committing it
-        // would keep other transactions from using the sequence
-        Session sysSession = db.getSystemSession();
-        synchronized (sysSession) {
-            synchronized (db) {
-                db.updateMeta(sysSession, sequence);
-                sysSession.commit(true);
-            }
-        }
+        db.updateMeta(session, sequence);
         return 0;
     }
 

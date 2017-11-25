@@ -58,17 +58,9 @@ public class Transfer {
      *
      * @param session the session
      */
-    public Transfer(SessionInterface session) {
+    public Transfer(SessionInterface session, Socket s) {
         this.session = session;
-    }
-
-    /**
-     * Set the socket this object uses.
-     *
-     * @param s the socket
-     */
-    public void setSocket(Socket s) {
-        socket = s;
+        this.socket = s;
     }
 
     /**
@@ -764,8 +756,7 @@ public class Transfer {
         InetAddress address = socket.getInetAddress();
         int port = socket.getPort();
         Socket s2 = NetUtils.createSocket(address, port, ssl);
-        Transfer trans = new Transfer(null);
-        trans.setSocket(s2);
+        Transfer trans = new Transfer(null, s2);
         trans.setSSL(ssl);
         return trans;
     }

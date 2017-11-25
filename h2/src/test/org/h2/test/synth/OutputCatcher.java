@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.util.IOUtils;
 
 /**
@@ -51,29 +50,39 @@ public class OutputCatcher extends Thread {
 
     @Override
     public void run() {
-        StringBuilder buff = new StringBuilder();
-        while (true) {
-            try {
-                int x = in.read();
-                if (x < 0) {
+        final StringBuilder buff = new StringBuilder();
+        try {
+            while (true) {
+                try {
+                    int x = in.read();
+                    if (x < 0) {
+                        break;
+                    }
+                    if (x < ' ') {
+                        if (buff.length() > 0) {
+                            String s = buff.toString();
+                            buff.setLength(0);
+                            synchronized (list) {
+                                list.add(s);
+                                list.notifyAll();
+                            }
+                        }
+                    } else {
+                        buff.append((char) x);
+                    }
+                } catch (IOException e) {
                     break;
                 }
-                if (x < ' ') {
-                    if (buff.length() > 0) {
-                        String s = buff.toString();
-                        buff.setLength(0);
-                        synchronized (list) {
-                            list.add(s);
-                            list.notifyAll();
-                        }
-                    }
-                } else {
-                    buff.append((char) x);
+            }
+            IOUtils.closeSilently(in);
+        } finally {
+            // just in case something goes wrong, make sure we store any partial output we got
+            if (buff.length() > 0) {
+                synchronized (list) {
+                    list.add(buff.toString());
+                    list.notifyAll();
                 }
-            } catch (IOException e) {
-                break;
             }
         }
-        IOUtils.closeSilently(in);
     }
 }

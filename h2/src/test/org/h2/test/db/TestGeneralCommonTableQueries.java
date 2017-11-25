@@ -29,20 +29,20 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
     @Override
     public void test() throws Exception {
-//        testSimpleSelect();
-//        testImpliedColumnNames();
-//        testChainedQuery();
-//        testParameterizedQuery();
-//        testNumberedParameterizedQuery();
-//        testColumnNames();
-//
-//        testInsert();
-//        testUpdate();
-//        testDelete();
-//        testMerge();
-//        testCreateTable();
-//        testNestedSQL();
-//        testRecursiveTable();
+        testSimpleSelect();
+        testImpliedColumnNames();
+        testChainedQuery();
+        testParameterizedQuery();
+        testNumberedParameterizedQuery();
+        testColumnNames();
+
+        testInsert();
+        testUpdate();
+        testDelete();
+        testMerge();
+        testCreateTable();
+        testNestedSQL();
+        testRecursiveTable();
         
         // turn on special locking debug
         System.setProperty("h2.check2", "true");
@@ -398,7 +398,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
-    
+
     private void testNestedSQL() throws Exception {
         deleteDb("commonTableExpressionQueries");
         Connection conn = getConnection("commonTableExpressionQueries");
@@ -446,7 +446,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         }
         conn.close();
         deleteDb("commonTableExpressionQueries");
-    }    
+    }
 
     private void testColumnNames() throws Exception {
         deleteDb("commonTableExpressionQueries");
@@ -477,7 +477,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
-    
+
     private void testRecursiveTable() throws Exception {
 
         int maxRetries = 4;
@@ -619,6 +619,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         Connection conn = getConnection("commonTableExpressionQueries");
         PreparedStatement prep;
         ResultSet rs;
+
         
         for(int queryRunTries=1;queryRunTries<=maxRetries;queryRunTries++){
             System.out.println("Iteration #"+queryRunTries);
@@ -643,7 +644,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
                 assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
             }
-            
+
             int rowNdx=0;
             while (rs.next()) {
                 StringBuffer buf = new StringBuffer();
@@ -662,6 +663,6 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
         conn.close();
         deleteDb("commonTableExpressionQueries");
-    }     
-    
+
+    }
 }

@@ -133,23 +133,7 @@ public class Analyze extends DefineCommand {
                 columns[j].setSelectivity(selectivity);
             }
         }
-        if (manual) {
-            db.updateMeta(session, table);
-        } else {
-            Session sysSession = db.getSystemSession();
-            if (sysSession != session) {
-                // if the current session is the system session
-                // (which is the case if we are within a trigger)
-                // then we can't update the statistics because
-                // that would unlock all locked objects
-                synchronized (sysSession) {
-                    // can't take the db lock yet, updateMeta needs to call
-                    // lockMeta, and then it will take the db lock
-                    db.updateMeta(sysSession, table);
-                    sysSession.commit(true);
-                }
-            }
-        }
+        db.updateMeta(session, table);
     }
 
     public void setTop(int top) {

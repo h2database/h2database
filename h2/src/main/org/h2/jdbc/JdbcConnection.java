@@ -1739,11 +1739,12 @@ public class JdbcConnection extends TraceObject
                         + ");");
             }
             checkClosed();
-            
-            // no change to property: Ignore call. This early exit fixes a problem with websphere liberty
-            // resetting the client info of a pooled connection to its initial values.
+
+            // no change to property: Ignore call. This early exit fixes a
+            // problem with websphere liberty resetting the client info of a
+            // pooled connection to its initial values.
             if (Objects.equals(value, getClientInfo(name))) {
-            	return;
+                return;
             }
 
             if (isInternalProperty(name)) {

@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.dml.Query;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Parameter;
@@ -99,32 +98,18 @@ public class CreateView extends SchemaCommand {
             }
             querySQL = select.getPlanSQL();
         }
-        // The view creates a Prepared command object, which belongs to a
-        // session, so we pass the system session (not the current session) down.
-        // Why is the SYS session used here ? I think it might cause a problem...
-        Session sysSession = db.getSystemSession();
-        synchronized (sysSession) {
-            try {
-                Column[] columnTemplates = null;
-                if (columnNames != null) {
-                    columnTemplates = new Column[columnNames.length];
-                    for (int i = 0; i < columnNames.length; ++i) {
-                        columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
-                    }
-                }
-                if (view == null) {
-                    Schema schema = session.getDatabase().getSchema(
-                            session.getCurrentSchemaName());
-                    sysSession.setCurrentSchema(schema);
-                    view = new TableView(getSchema(), id, viewName, querySQL, null,
-                            columnTemplates, sysSession, false, false);
-                } else {
-                    view.replace(querySQL, columnTemplates, sysSession, false, force, false);
-                    view.setModified();
-                }
-            } finally {
-                sysSession.setCurrentSchema(db.getSchema(Constants.SCHEMA_MAIN));
+        Column[] columnTemplates = null;
+        if (columnNames != null) {
+            columnTemplates = new Column[columnNames.length];
+            for (int i = 0; i < columnNames.length; ++i) {
+                columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
             }
+        }
+        if (view == null) {
+            view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false, false);
+        } else {
+            view.replace(querySQL, columnTemplates, session, false, force, false);
+            view.setModified();
         }
         if (comment != null) {
             view.setComment(comment);

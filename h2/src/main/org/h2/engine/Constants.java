@@ -472,7 +472,8 @@ public class Constants {
     public static final String SUFFIX_TRACE_FILE = ".trace.db";
 
     /**
-     * How often we check to see if we need to apply a throttling delay if SET THROTTLE has been used.
+     * How often we check to see if we need to apply a throttling delay if SET
+     * THROTTLE has been used.
      */
     public static final int THROTTLE_DELAY = 50;
 

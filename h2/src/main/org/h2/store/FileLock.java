@@ -234,8 +234,7 @@ public class FileLock implements Runnable {
         try {
             Socket socket = NetUtils.createSocket(server,
                     Constants.DEFAULT_TCP_PORT, false);
-            Transfer transfer = new Transfer(null);
-            transfer.setSocket(socket);
+            Transfer transfer = new Transfer(null, socket);
             transfer.init();
             transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
             transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
@@ -523,10 +522,15 @@ public class FileLock implements Runnable {
                     trace.debug(e, "watchdog");
                 }
             }
-            while (serverSocket != null) {
+            while (true) {
+                // take a copy so we don't get an NPE between checking it and using it
+                ServerSocket local = serverSocket;
+                if (local == null) {
+                    break;
+                }
                 try {
                     trace.debug("watchdog accept");
-                    Socket s = serverSocket.accept();
+                    Socket s = local.accept();
                     s.close();
                 } catch (Exception e) {
                     trace.debug(e, "watchdog");

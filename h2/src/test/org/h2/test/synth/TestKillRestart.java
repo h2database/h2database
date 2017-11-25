@@ -42,7 +42,7 @@ public class TestKillRestart extends TestBase {
 
         int len = getSize(2, 15);
         for (int i = 0; i < len; i++) {
-            Process p = Runtime.getRuntime().exec(procDef);
+            Process p = new ProcessBuilder().redirectErrorStream(true).command(procDef).start();
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();

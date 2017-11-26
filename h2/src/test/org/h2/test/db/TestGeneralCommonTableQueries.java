@@ -45,9 +45,9 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testRecursiveTable();
         
         // turn on special locking debug
-        System.setProperty("h2.check2", "true");
+        //System.setProperty("h2.check2", "true");
         
-        // persistent cte tests
+        // persistent cte tests - also tests reconnects and database reloading...
         testPersistentNonRecursiveTableInCreateView();
         testPersistentRecursiveTableInCreateView();
     }

@@ -34,6 +34,7 @@ public class CreateView extends SchemaCommand {
     private String comment;
     private boolean orReplace;
     private boolean force;
+    private boolean isTableExpression;
 
     public CreateView(Session session, Schema schema) {
         super(session, schema);
@@ -70,6 +71,10 @@ public class CreateView extends SchemaCommand {
     public void setForce(boolean force) {
         this.force = force;
     }
+    
+    public void setTableExpression(boolean isTableExpression) {
+        this.isTableExpression=isTableExpression;
+     }
 
     @Override
     public int update() {
@@ -106,7 +111,7 @@ public class CreateView extends SchemaCommand {
             }
         }
         if (view == null) {
-            view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false, false);
+            view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false, false, isTableExpression);
         } else {
             view.replace(querySQL, columnTemplates, session, false, force, false);
             view.setModified();

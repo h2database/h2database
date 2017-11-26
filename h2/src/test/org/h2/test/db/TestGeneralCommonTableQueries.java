@@ -29,20 +29,20 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
     @Override
     public void test() throws Exception {
-        testSimpleSelect();
-        testImpliedColumnNames();
-        testChainedQuery();
-        testParameterizedQuery();
-        testNumberedParameterizedQuery();
-        testColumnNames();
-
-        testInsert();
-        testUpdate();
-        testDelete();
-        testMerge();
-        testCreateTable();
-        testNestedSQL();
-        testRecursiveTable();
+//        testSimpleSelect();
+//        testImpliedColumnNames();
+//        testChainedQuery();
+//        testParameterizedQuery();
+//        testNumberedParameterizedQuery();
+//        testColumnNames();
+//
+//        testInsert();
+//        testUpdate();
+//        testDelete();
+//        testMerge();
+//        testCreateTable();
+//        testNestedSQL();
+//        testRecursiveTable();
         
         // turn on special locking debug
         System.setProperty("h2.check2", "true");
@@ -622,7 +622,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
         
         for(int queryRunTries=1;queryRunTries<=maxRetries;queryRunTries++){
-            System.out.println("Iteration #"+queryRunTries);
+            System.out.println("==================================== Iteration #"+queryRunTries);
 
             Statement stat = conn.createStatement();
             stat.execute(SETUP_SQL);

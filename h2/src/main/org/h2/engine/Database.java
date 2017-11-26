@@ -764,10 +764,12 @@ public class Database implements DataHandler {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
             records.add(rec);
+            System.out.println("Loaded:"+rec.toString());
         }
         Collections.sort(records);
         synchronized (systemSession) {
             for (MetaRecord rec : records) {
+                System.out.println("Executing:"+rec.toString());
                 rec.execute(this, systemSession, eventListener);
             }
         }

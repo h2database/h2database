@@ -1087,8 +1087,10 @@ public class Select extends Query {
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
             boolean isPersistent = !t.isTemporary();
-            System.out.println("topFilters[]="+t.getName());
             if (t.isView() && ((TableView) t).isRecursive()) {
+                // hmmm - how do you generate a plan sql which is recursive
+                // for a system which does not natively support recursive SQLs... ?
+                // answer: you can't
                 TableView tv = ((TableView) t);
                 buff.append("WITH ");
                 if(tv.isRecursive()){

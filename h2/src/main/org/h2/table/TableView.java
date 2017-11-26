@@ -8,6 +8,7 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
@@ -58,13 +59,14 @@ public class TableView extends Table {
     private Query topQuery;
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
+    private boolean isTableExpression;
 //    private Session session;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
-            boolean recursive, boolean literalsChecked) {
+            boolean recursive, boolean literalsChecked, boolean isTableExpression) {
         super(schema, id, name, false, true);
-        init(querySQL, params, columnTemplates, session, recursive, literalsChecked);
+        init(querySQL, params, columnTemplates, session, recursive, literalsChecked, isTableExpression);
     }
 
     /**
@@ -84,33 +86,35 @@ public class TableView extends Table {
         init(querySQL, null,
                 newColumnTemplates == null ? this.columnTemplates
                         : newColumnTemplates,
-                session, recursive, literalsChecked);
+                session, recursive, literalsChecked, isTableExpression);
         DbException e = recompile(session, force, true);
         if (e != null) {
-            init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, literalsChecked);
+            init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, 
+                    literalsChecked, isTableExpression);
             recompile(session, true, false);
             throw e;
         }
     }
 
     private synchronized void init(String querySQL, ArrayList<Parameter> params,
-            Column[] columnTemplates, Session session, boolean recursive, boolean literalsChecked) {
+            Column[] columnTemplates, Session session, boolean recursive, boolean literalsChecked, boolean isTableExpression) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.recursive = recursive;
         this.isRecursiveQueryDetected = false;
+        this.isTableExpression = isTableExpression;
         //this.session = session;
         index = new ViewIndex(this, querySQL, params, recursive);
         initColumnsAndTables(session, literalsChecked);
     }
 
-    private static Query compileViewQuery(Session session, String sql, boolean literalsChecked) {
+    private static Query compileViewQuery(Session session, String sql, boolean literalsChecked, String viewName) {
         Prepared p;
-        session.setParsingView(true);
+        session.setParsingView(true,viewName);
         try {
             p = session.prepare(sql, false, literalsChecked);
         } finally {
-            session.setParsingView(false);
+            session.setParsingView(false,viewName);
         }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
@@ -130,7 +134,7 @@ public class TableView extends Table {
     public synchronized DbException recompile(Session session, boolean force,
             boolean clearIndexCache) {
         try {
-            compileViewQuery(session, querySQL, false);
+            compileViewQuery(session, querySQL, false, getName());
         } catch (DbException e) {
             if (!force) {
                 return e;
@@ -153,13 +157,14 @@ public class TableView extends Table {
     private void initColumnsAndTables(Session session, boolean literalsChecked) {
         Column[] cols;
         removeDependentViewFromTables();
+        setTableExpression(isTableExpression);
         try {
-            Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked);
+            Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked, getName());
             this.querySQL = compiledQuery.getPlanSQL();
             tables = New.arrayList(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();
             ArrayList<Column> list = New.arrayList();
-            ColumnNamer columnNamer= new ColumnNamer(session);
+            ColumnNamer columnNamer = new ColumnNamer(session);
             for (int i = 0, count = compiledQuery.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
@@ -320,6 +325,9 @@ public class TableView extends Table {
             buff.append("FORCE ");
         }
         buff.append("VIEW ");
+        if (isTableExpression) {
+            buff.append("TABLE_EXPRESSION ");
+        }
         buff.append(quotedName);
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
@@ -541,7 +549,7 @@ public class TableView extends Table {
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), null, session,
-                false, true /* literals have already been checked when parsing original query */);
+                false, true /* literals have already been checked when parsing original query */, false);
         if (v.createException != null) {
             throw v.createException;
         }
@@ -689,6 +697,10 @@ public class TableView extends Table {
             return false;
         }
         return true;
+    }
+    
+    public List<Table> getTables(){
+        return tables;
     }
     
 //    @Override

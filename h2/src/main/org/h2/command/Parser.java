@@ -1142,7 +1142,8 @@ public class Parser {
                     command.getQueryAlias(), querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
                     false/* do not add to session */,
-                    false /* isPersistent */);
+                    false /* isPersistent */,
+                    session);
             TableFilter sourceTableFilter = new TableFilter(session,
                     temporarySourceTableView, command.getQueryAlias(),
                     rightsChecked, (Select) command.getQuery(), 0, null);
@@ -5212,9 +5213,10 @@ public class Parser {
         return p;
     }
 
-    @SuppressWarnings("resource")// Eclipse thinks targetSession needs releasing
+    //@SuppressWarnings("resource")// Eclipse thinks targetSession needs releasing
     private TableView parseSingleCommonTableExpression(boolean isPersistent) {
-        Session targetSession =  isPersistent ? database.getSystemSession() : session;
+        //Session targetSession =  isPersistent ? database.getSystemSession() : session;
+        Session targetSession = session;
         String cteViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
         Table recursiveTable=null;
@@ -5243,7 +5245,8 @@ public class Parser {
         else{
             oldViewFound = targetSession.findLocalTempTable(cteViewName);
         }
-        if (oldViewFound != null && !isPersistent) {
+        // this persistent check conflicts with check 10 lines down
+        if (oldViewFound != null) {
             if (!(oldViewFound instanceof TableView)) {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
                         cteViewName);
@@ -5254,6 +5257,7 @@ public class Parser {
                         cteViewName);
             }
             if(isPersistent){
+                System.out.println("parseSingleCommonTableExpression removeSchemaObject "+oldViewFound.getName());
                 oldViewFound.lock(targetSession, true, true);
                 targetSession.getDatabase().removeSchemaObject(targetSession, oldViewFound);                
                 
@@ -5313,12 +5317,13 @@ public class Parser {
             }
         }
         // If it's persistent, a CTE and a TableView - return existing one, otherwise create new...
-        if(oldViewFound!=null && isPersistent && oldViewFound instanceof TableView && oldViewFound.isTableExpression()){
-            return (TableView) oldViewFound;
-        }
+        //if(oldViewFound!=null && isPersistent && oldViewFound instanceof TableView && oldViewFound.isTableExpression()){
+        //    return (TableView) oldViewFound;
+        //}
         TableView view = createCTEView(cteViewName,
                 querySQLOutput[0], columnTemplateList,
-                true/* allowRecursiveQueryDetection */, true/* add to session */, isPersistent);
+                true/* allowRecursiveQueryDetection */, true/* add to session */, 
+                isPersistent, targetSession);
         
         return view;
     }
@@ -5359,8 +5364,9 @@ public class Parser {
 
     private TableView createCTEView(String cteViewName,  String querySQL,
             List<Column> columnTemplateList, boolean allowRecursiveQueryDetection, 
-            boolean addViewToSession, boolean isPersistent) {
-        Session targetSession = isPersistent ? database.getSystemSession() : session;
+            boolean addViewToSession, boolean isPersistent, Session targetSession) {
+        //Session targetSession = isPersistent ? database.getSystemSession() : session;
+        //Session targetSession = session;
         Database db = targetSession.getDatabase();
         Schema schema = getSchemaWithDefault();
         int id = db.allocateObjectId();
@@ -5372,7 +5378,7 @@ public class Parser {
         synchronized(targetSession){            
             view = new TableView(schema, id, cteViewName, querySQL,
                     parameters, columnTemplateArray, targetSession,
-                    allowRecursiveQueryDetection, false /* literalsChecked */);
+                    allowRecursiveQueryDetection, false /* literalsChecked */, true /* isTableExpression */);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if(isPersistent){
                     db.addSchemaObject(targetSession, view);
@@ -5383,7 +5389,7 @@ public class Parser {
                 }
                 view = new TableView(schema, id, cteViewName, querySQL, parameters,
                         columnTemplateArray, targetSession,
-                        false/* assume recursive */, false /* literalsChecked */);
+                        false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */);
             }
         }
         view.setTableExpression(true);
@@ -5405,6 +5411,7 @@ public class Parser {
 
     private CreateView parseCreateView(boolean force, boolean orReplace) {
         boolean ifNotExists = readIfNotExists();
+        boolean isTableExpression = readIf("TABLE_EXPRESSION");
         String viewName = readIdentifierWithSchema();
         CreateView command = new CreateView(session, getSchema());
         this.createView = command;
@@ -5413,6 +5420,7 @@ public class Parser {
         command.setComment(readCommentIf());
         command.setOrReplace(orReplace);
         command.setForce(force);
+        command.setTableExpression(isTableExpression);
         if (readIf("(")) {
             String[] cols = parseColumnList();
             command.setColumnNames(cols);
@@ -5422,12 +5430,12 @@ public class Parser {
         read("AS");
         try {
             Query query;
-            session.setParsingView(true);
+            session.setParsingView(true,viewName);
             try {
                 query = parseSelect();
                 query.prepare();
             } finally {
-                session.setParsingView(false);
+                session.setParsingView(false,viewName);
             }
             command.setSelect(query);
         } catch (DbException e) {

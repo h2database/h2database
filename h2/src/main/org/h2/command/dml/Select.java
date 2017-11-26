@@ -1239,13 +1239,6 @@ public class Select extends Query {
         return buff.toString();
     }
 
-    private String extractNamedCTEQueryFromSQL(String viewName, String sqlStatement) {
-        Table existingTableOrView = session.getDatabase().getSchema(session.getCurrentSchemaName()).findTableOrView(session, viewName);
-        TableView existingView = (TableView) existingTableOrView;
-        System.out.println("existingView.getSQL()="+existingView.getSQL());
-        return existingView.getSQL();
-    }
-
     public void setHaving(Expression having) {
         this.having = having;
     }

@@ -107,12 +107,19 @@ public class CreateView extends SchemaCommand {
         if (columnNames != null) {
             columnTemplates = new Column[columnNames.length];
             for (int i = 0; i < columnNames.length; ++i) {
-                columnTemplates[i] = new Column(columnNames[i], Value.UNKNOWN);
+                columnTemplates[i] = new Column(columnNames[i], Value.STRING);
             }
         }
         if (view == null) {
-            view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false, false, isTableExpression);
+            if(isTableExpression){
+                view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false /* literalsChecked */, isTableExpression, true /*isPersistent*/ , db);
+            }
+            else
+            {
+                view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false/* allow recursive */, false/* literalsChecked */, isTableExpression);
+            }
         } else {
+            // TODO support isTableExpression in replace function...
             view.replace(querySQL, columnTemplates, session, false, force, false);
             view.setModified();
         }
@@ -120,7 +127,6 @@ public class CreateView extends SchemaCommand {
             view.setComment(comment);
         }
         if (old == null) {
-            System.out.println("addSchemaObject="+view.getName()+",sessionId="+session.getId());
             db.addSchemaObject(session, view);
             db.unlockMeta(session);
         } else {

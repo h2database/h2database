@@ -1071,6 +1071,8 @@ public class Database implements DataHandler {
      * @param obj the object to add
      */
     public void addSchemaObject(Session session, SchemaObject obj) {
+        System.out.println("addSchemaObject="+obj.getName()+",sessionId="+session.getId()+",obj="+obj);
+        
         int id = obj.getId();
         if (id > 0 && !starting) {
             checkWritingAllowed();
@@ -1909,7 +1911,7 @@ public class Database implements DataHandler {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
             Table table = (Table) obj;
-            table.setBeingDropped(true);
+            //table.setBeingDropped(true);
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
                 return true;
@@ -1954,7 +1956,10 @@ public class Database implements DataHandler {
                 obj.removeChildrenAndResources(session);
                 
             }
-            System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName);
+            else{
+                System.out.println("Starting database detected");
+            }
+            System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName+",obj="+obj);
             if("TREE_CTE".equals(savedName)){
                 new RuntimeException("TREE_CTE distruction").printStackTrace();
             }

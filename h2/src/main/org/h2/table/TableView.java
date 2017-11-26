@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.h2.api.ErrorCode;
+import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
@@ -51,7 +52,7 @@ public class TableView extends Table {
     private Column[] columnTemplates;
     private Query viewQuery;
     private ViewIndex index;
-    private boolean recursive;
+    private boolean allowRecursive;
     private DbException createException;
     private long lastModificationCheck;
     private long maxDataModificationId;
@@ -64,9 +65,9 @@ public class TableView extends Table {
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
-            boolean recursive, boolean literalsChecked, boolean isTableExpression) {
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression) {
         super(schema, id, name, false, true);
-        init(querySQL, params, columnTemplates, session, recursive, literalsChecked, isTableExpression);
+        init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
     }
 
     /**
@@ -82,7 +83,7 @@ public class TableView extends Table {
             boolean recursive, boolean force, boolean literalsChecked) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
-        boolean oldRecursive = this.recursive;
+        boolean oldRecursive = this.allowRecursive;
         init(querySQL, null,
                 newColumnTemplates == null ? this.columnTemplates
                         : newColumnTemplates,
@@ -97,14 +98,14 @@ public class TableView extends Table {
     }
 
     private synchronized void init(String querySQL, ArrayList<Parameter> params,
-            Column[] columnTemplates, Session session, boolean recursive, boolean literalsChecked, boolean isTableExpression) {
+            Column[] columnTemplates, Session session, boolean allowRecursive, boolean literalsChecked, boolean isTableExpression) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
-        this.recursive = recursive;
+        this.allowRecursive = allowRecursive;
         this.isRecursiveQueryDetected = false;
         this.isTableExpression = isTableExpression;
         //this.session = session;
-        index = new ViewIndex(this, querySQL, params, recursive);
+        index = new ViewIndex(this, querySQL, params, allowRecursive);
         initColumnsAndTables(session, literalsChecked);
     }
 
@@ -156,7 +157,7 @@ public class TableView extends Table {
 
     private void initColumnsAndTables(Session session, boolean literalsChecked) {
         Column[] cols;
-        removeDependentViewFromTables();
+        removeCurrentViewFromOtherTables();
         setTableExpression(isTableExpression);
         try {
             Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked, getName());
@@ -221,7 +222,7 @@ public class TableView extends Table {
             }
             tables = New.arrayList();
             cols = new Column[0];
-            if (recursive && columnTemplates != null) {
+            if (allowRecursive && columnTemplates != null) {
                 cols = new Column[columnTemplates.length];
                 for (int i = 0; i < columnTemplates.length; i++) {
                     cols[i] = columnTemplates[i].getClone();
@@ -426,7 +427,7 @@ public class TableView extends Table {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        removeDependentViewFromTables();
+        removeCurrentViewFromOtherTables();
         super.removeChildrenAndResources(session);
         database.removeMeta(session, getId());
         querySQL = null;
@@ -510,9 +511,10 @@ public class TableView extends Table {
         return null;
     }
 
-    private void removeDependentViewFromTables() {
+    private void removeCurrentViewFromOtherTables() {
         if (tables != null) {
             for (Table t : tables) {
+                System.out.println("removeCurrentViewFromOtherTables:"+t.getName());
                 t.removeDependentView(this);
             }
             tables.clear();
@@ -596,12 +598,12 @@ public class TableView extends Table {
     }
 
     public boolean isRecursive() {
-        return recursive;
+        return allowRecursive;
     }
 
     @Override
     public boolean isDeterministic() {
-        if (recursive || viewQuery == null) {
+        if (allowRecursive || viewQuery == null) {
             return false;
         }
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
@@ -703,17 +705,38 @@ public class TableView extends Table {
         return tables;
     }
     
-//    @Override
-//    public void removeView(TableView view){
-//        super.removeView(view);
-//        // if this is a table expression and the last view to use it is
-//        // being dropped - then remove itself from the schema
-//        if(isTableExpression() && getViews()!=null){
-//            // check if any database objects are left using this view
-//            if(getViews().size()==0 && !isBeingDropped()){
-//                System.out.println("Detected unused CTE: Trying to remove="+this.getName()+",session="+session.toString()+",sessionId="+session.getId());
-//                session.getDatabase().removeSchemaObject(session,this);
-//            }            
-//        }
-//    }
+    public static TableView createTableViewMaybeRecursive(Schema schema, int id, String name, String querySQL,
+            ArrayList<Parameter> parameters, Column[] columnTemplates, Session session,
+            boolean literalsChecked, boolean isTableExpression, boolean isPersistent, Database db){
+        
+        //Table shadowTable = Parser.createShadowTableForRecursiveTableExpression(isPersistent, session, name, schema, Arrays.asList(columnTemplates), db);
+        
+        TableView view = new TableView(schema, id, name, querySQL,
+                parameters, columnTemplates, session,
+                true/* try recursive */, literalsChecked, isTableExpression );
+        System.out.println("create recursive view:"+view);
+
+        //if(shadowTable!=null){
+        //    Parser.destroyShadowTableForRecursiveExpression(isPersistent, session, shadowTable);
+        //}
+        
+        System.out.println("view.isRecursiveQueryDetected()="+view.isRecursiveQueryDetected());
+        // is not recursion detected ? if so - recreate it without recursion flag
+        if (!view.isRecursiveQueryDetected()) {
+            if(isPersistent){
+                db.addSchemaObject(session, view);
+                view.lock(session, true, true);
+                session.getDatabase().removeSchemaObject(session, view);
+                view.removeChildrenAndResources(session);
+            }else{
+                session.removeLocalTempTable(view);                    
+            }
+            view = new TableView(schema, id, name, querySQL, parameters,
+                    columnTemplates, session,
+                    false/* detected not recursive */, literalsChecked, isTableExpression);  
+            System.out.println("create nr view:"+view);
+        }
+                
+        return view;
+    }
 }

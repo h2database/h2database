@@ -5153,7 +5153,7 @@ public class Parser {
         // this keyword. This is a work in progress feature and will not be documented
         boolean isPersistent = readIf("PERSISTENT");
         
-        // this WITH statement is not be temporary - it is part of a persistent view
+        // this WITH statement is not a temporary view - it is part of a persistent view
         // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition
         if(session.isParsingView()){
             isPersistent = true;
@@ -5272,26 +5272,8 @@ public class Parser {
         // to work (its removed after creation in this method)
         // only create table data and table if we don't have a working CTE already
         if(oldViewFound == null){
-            CreateTableData recursiveTableData = new CreateTableData();
-            recursiveTableData.id = database.allocateObjectId();
-            recursiveTableData.columns = columns;
-            recursiveTableData.tableName = cteViewName;
-            recursiveTableData.temporary = !isPersistent;
-            recursiveTableData.persistData = true;
-            recursiveTableData.persistIndexes = isPersistent;
-            recursiveTableData.create = true;
-            recursiveTableData.session = targetSession;
-            // this gets a meta table lock that is not released
-            recursiveTable = schema.createTable(recursiveTableData);
-            if(isPersistent){
-                // this unlock is to prevent lock leak from schema.createTable()
-                db.unlockMeta(targetSession);
-                synchronized (targetSession) {
-                    db.addSchemaObject(targetSession, recursiveTable);
-                }
-            }else{
-                targetSession.addLocalTempTable(recursiveTable);
-            }
+            recursiveTable = createShadowTableForRecursiveTableExpression(isPersistent, targetSession, cteViewName,
+                    schema, columns, db);
         }
         List<Column> columnTemplateList;
         String[] querySQLOutput = new String[]{null};
@@ -5306,26 +5288,57 @@ public class Parser {
             columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
-            if(recursiveTable!=null){
-                if(isPersistent){
-                    recursiveTable.lock(targetSession, true, true);
-                    targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
-                    
-                }else{
-                    targetSession.removeLocalTempTable(recursiveTable);
-                }
-            }
+            destroyShadowTableForRecursiveExpression(isPersistent, targetSession, recursiveTable);
         }
-        // If it's persistent, a CTE and a TableView - return existing one, otherwise create new...
-        //if(oldViewFound!=null && isPersistent && oldViewFound instanceof TableView && oldViewFound.isTableExpression()){
-        //    return (TableView) oldViewFound;
-        //}
+
         TableView view = createCTEView(cteViewName,
                 querySQLOutput[0], columnTemplateList,
                 true/* allowRecursiveQueryDetection */, true/* add to session */, 
                 isPersistent, targetSession);
         
         return view;
+    }
+
+    public static void destroyShadowTableForRecursiveExpression(boolean isPersistent, Session targetSession,
+            Table recursiveTable) {
+        if(recursiveTable!=null){
+            if(isPersistent){
+                recursiveTable.lock(targetSession, true, true);
+                targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
+                
+            }else{
+                targetSession.removeLocalTempTable(recursiveTable);
+            }
+        }
+    }
+
+    public static Table createShadowTableForRecursiveTableExpression(boolean isPersistent, Session targetSession,
+            String cteViewName, Schema schema, List<Column> columns, Database db) {
+        
+        // create table data object
+        CreateTableData recursiveTableData = new CreateTableData();
+        recursiveTableData.id = db.allocateObjectId();
+        recursiveTableData.columns = new ArrayList<Column>(columns);
+        recursiveTableData.tableName = cteViewName;
+        recursiveTableData.temporary = !isPersistent;
+        recursiveTableData.persistData = true;
+        recursiveTableData.persistIndexes = isPersistent;
+        recursiveTableData.create = true;
+        recursiveTableData.session = targetSession;
+        
+        // this gets a meta table lock that is not released
+        Table recursiveTable = schema.createTable(recursiveTableData);
+        
+        if(isPersistent){
+            // this unlock is to prevent lock leak from schema.createTable()
+            db.unlockMeta(targetSession);
+            synchronized (targetSession) {
+                db.addSchemaObject(targetSession, recursiveTable);
+            }
+        }else{
+            targetSession.addLocalTempTable(recursiveTable);
+        }
+        return recursiveTable;
     }
 
     /**
@@ -5365,8 +5378,6 @@ public class Parser {
     private TableView createCTEView(String cteViewName,  String querySQL,
             List<Column> columnTemplateList, boolean allowRecursiveQueryDetection, 
             boolean addViewToSession, boolean isPersistent, Session targetSession) {
-        //Session targetSession = isPersistent ? database.getSystemSession() : session;
-        //Session targetSession = session;
         Database db = targetSession.getDatabase();
         Schema schema = getSchemaWithDefault();
         int id = db.allocateObjectId();

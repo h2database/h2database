@@ -5309,6 +5309,7 @@ public class Parser {
             }else{
                 targetSession.removeLocalTempTable(recursiveTable);
             }
+            targetSession.getDatabase().unlockMeta(targetSession);
         }
     }
 

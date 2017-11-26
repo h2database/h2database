@@ -78,7 +78,7 @@ public class DropView extends SchemaCommand {
             view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);
             session.getDatabase().unlockMeta(session);
-            session.getDatabase().flushDeferredRemoveSchemaObject();
+            //session.getDatabase().flushDeferredRemoveSchemaObject();
 
             // remove dependent table expressions
             for( Table childTable: copyOfDependencies){

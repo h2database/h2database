@@ -100,7 +100,7 @@ public class DropTable extends SchemaCommand {
             Database db = session.getDatabase();
             db.lockMeta(session);
             db.removeSchemaObject(session, table);
-            session.getDatabase().flushDeferredRemoveSchemaObject();
+            //session.getDatabase().flushDeferredRemoveSchemaObject();
         }
         if (next != null) {
             next.executeDrop();

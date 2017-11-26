@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map.Entry;
+//import java.util.Iterator;
+//import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -204,7 +204,7 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
-    private ConcurrentHashMap<SchemaObject, Session> removeSchemaObjectQueue = new ConcurrentHashMap<>();
+//    private ConcurrentHashMap<SchemaObject, Session> removeSchemaObjectQueue = new ConcurrentHashMap<>();
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -925,7 +925,8 @@ public class Database implements DataHandler {
             final Session prev = metaLockDebugging.get();
             if (prev == null) {
                 metaLockDebugging.set(session);
-                metaLockDebuggingStack.set(new Throwable());
+                metaLockDebuggingStack.set(new Throwable("Last meta lock granted in this stack trace, "+
+                        "this is debug information for following IllegalStateException"));
             } else if (prev != session) {
                 metaLockDebuggingStack.get().printStackTrace();
                 throw new IllegalStateException("meta currently locked by "
@@ -1932,12 +1933,12 @@ public class Database implements DataHandler {
             }
         }
         checkWritingAllowed();
-        Boolean wasLocked = lockMetaNoWait(session);// was 
-        if(wasLocked==null){
-            removeSchemaObjectQueue.put(obj,session);
-            System.out.println("deferred removal scheduled="+obj.getName()+",wasLocked="+wasLocked);
-            return false;
-        }
+        /*Boolean wasLocked = */lockMeta(session);// was lockMetaNoWait
+        //if(wasLocked==null){
+        //    removeSchemaObjectQueue.put(obj,session);
+        //    System.out.println("deferred removal scheduled="+obj.getName()+",wasLocked="+wasLocked);
+        //    return false;
+        //}
         synchronized (this) {
             //String savedName = obj.getName();
             Comment comment = findComment(obj);
@@ -1963,33 +1964,33 @@ public class Database implements DataHandler {
 
             removeMeta(session, id);
             
-            flushDeferredRemoveSchemaObject();
+            //flushDeferredRemoveSchemaObject();
             return true;
             
         }
     }
 
-    public void flushDeferredRemoveSchemaObject() {
-        boolean progress = true;
-        while(progress){
-            progress = false;
-            Iterator<Entry<SchemaObject, Session>> i = removeSchemaObjectQueue.entrySet().iterator();
-            while(i.hasNext()){
-                Entry<SchemaObject, Session> pair = i.next();
-                i.remove();
-                //System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
-                progress = removeSchemaObject(pair.getValue(),pair.getKey());
-                if(progress){
-                    //System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
-                    unlockMeta(pair.getValue());
-                }
-            }
-        }
-        //System.out.println("flushDeferredRemoveSchemaObject.remove_q_size="+removeSchemaObjectQueue.size());
-        if(removeSchemaObjectQueue.size()!=0){
-            traceLock();
-        }
-    }
+//    public void flushDeferredRemoveSchemaObject() {
+//        boolean progress = true;
+//        while(progress){
+//            progress = false;
+//            Iterator<Entry<SchemaObject, Session>> i = removeSchemaObjectQueue.entrySet().iterator();
+//            while(i.hasNext()){
+//                Entry<SchemaObject, Session> pair = i.next();
+//                i.remove();
+//                //System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
+//                progress = removeSchemaObject(pair.getValue(),pair.getKey());
+//                if(progress){
+//                    //System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
+//                    unlockMeta(pair.getValue());
+//                }
+//            }
+//        }
+//        //System.out.println("flushDeferredRemoveSchemaObject.remove_q_size="+removeSchemaObjectQueue.size());
+//        if(removeSchemaObjectQueue.size()!=0){
+//            traceLock();
+//        }
+//    }
 
     /**
      * Check if this database is disk-based.

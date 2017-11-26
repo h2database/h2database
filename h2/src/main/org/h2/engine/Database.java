@@ -764,12 +764,12 @@ public class Database implements DataHandler {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
             records.add(rec);
-            System.out.println("Loaded:"+rec.toString());
+            //System.out.println("Loaded:"+rec.toString());
         }
         Collections.sort(records);
         synchronized (systemSession) {
             for (MetaRecord rec : records) {
-                System.out.println("Executing:"+rec.toString());
+                //System.out.println("Executing:"+rec.toString());
                 rec.execute(this, systemSession, eventListener);
             }
         }
@@ -1071,7 +1071,7 @@ public class Database implements DataHandler {
      * @param obj the object to add
      */
     public void addSchemaObject(Session session, SchemaObject obj) {
-        System.out.println("addSchemaObject="+obj.getName()+",sessionId="+session.getId()+",obj="+obj);
+        //System.out.println("addSchemaObject="+obj.getName()+",sessionId="+session.getId()+",obj="+obj);
         
         int id = obj.getId();
         if (id > 0 && !starting) {
@@ -1939,7 +1939,7 @@ public class Database implements DataHandler {
             return false;
         }
         synchronized (this) {
-            String savedName = obj.getName();
+            //String savedName = obj.getName();
             Comment comment = findComment(obj);
             if (comment != null) {
                 removeDatabaseObject(session, comment);
@@ -1957,12 +1957,10 @@ public class Database implements DataHandler {
                 
             }
             else{
-                System.out.println("Starting database detected");
+                //System.out.println("Starting database detected");
             }
-            System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName+",obj="+obj);
-            if("TREE_CTE".equals(savedName)){
-                new RuntimeException("TREE_CTE distruction").printStackTrace();
-            }
+            //System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName+",obj="+obj);
+
             removeMeta(session, id);
             
             flushDeferredRemoveSchemaObject();
@@ -1979,15 +1977,15 @@ public class Database implements DataHandler {
             while(i.hasNext()){
                 Entry<SchemaObject, Session> pair = i.next();
                 i.remove();
-                System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
+                //System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
                 progress = removeSchemaObject(pair.getValue(),pair.getKey());
                 if(progress){
-                    System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
+                    //System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
                     unlockMeta(pair.getValue());
                 }
             }
         }
-        System.out.println("flushDeferredRemoveSchemaObject.remove_q_size="+removeSchemaObjectQueue.size());
+        //System.out.println("flushDeferredRemoveSchemaObject.remove_q_size="+removeSchemaObjectQueue.size());
         if(removeSchemaObjectQueue.size()!=0){
             traceLock();
         }

@@ -5224,8 +5224,8 @@ public class Parser {
         String[] cols = null;
         Database db = targetSession.getDatabase();
         
-        System.out.println("systemSessionId="+database.getSystemSession().getId());
-        System.out.println("sessionId="+session.getId());
+        //System.out.println("systemSessionId="+database.getSystemSession().getId());
+        //System.out.println("sessionId="+session.getId());
 
         // column names are now optional - they can be inferred from the named
         // query, if not supplied by user
@@ -5257,7 +5257,7 @@ public class Parser {
                         cteViewName);
             }
             if(isPersistent){
-                System.out.println("parseSingleCommonTableExpression removeSchemaObject "+oldViewFound.getName());
+                //System.out.println("parseSingleCommonTableExpression removeSchemaObject "+oldViewFound.getName());
                 oldViewFound.lock(targetSession, true, true);
                 targetSession.getDatabase().removeSchemaObject(targetSession, oldViewFound);                
                 

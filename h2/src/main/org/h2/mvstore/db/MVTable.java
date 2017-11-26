@@ -428,13 +428,13 @@ public class MVTable extends TableBase {
     public boolean isLockedExclusivelyBy(Session session) {
         Session localSession = lockExclusiveSession;
         if(localSession!=null){
-            System.out.println("Meta was locked by "+localSession.getId()+" tested for "+session.getId());
+            //System.out.println("Meta was locked by "+localSession.getId()+" tested for "+session.getId());
             if(lockExclusiveSessionStackTrace!=null){
                 lockExclusiveSessionStackTrace.printStackTrace();
             }
         }
         else{
-            System.out.println("Meta was not locked by anyone, tested for "+session.getId());            
+            //System.out.println("Meta was not locked by anyone, tested for "+session.getId());            
         }
         return localSession == session;
     }

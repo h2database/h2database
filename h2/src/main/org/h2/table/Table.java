@@ -529,7 +529,7 @@ public abstract class Table extends SchemaObjectBase {
     public void removeChildrenAndResources(Session session) {
         while (dependentViews.size() > 0) {
             TableView view = dependentViews.get(0);
-            System.out.println("removeChildrenAndResources.dependentViews:"+view.getName());            
+            //System.out.println("removeChildrenAndResources.dependentViews:"+view.getName());            
             dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
@@ -841,9 +841,9 @@ public abstract class Table extends SchemaObjectBase {
      * @param view the view to remove
      */
     public void removeDependentView(TableView view) {
-        System.out.println("removeDependentView(Before):"+dependentViews.toString());
+        //System.out.println("removeDependentView(Before):"+dependentViews.toString());
         dependentViews.remove(view);
-        System.out.println("removeDependentView(Left):"+dependentViews.toString());
+        //System.out.println("removeDependentView(Left):"+dependentViews.toString());
     }
 
     /**

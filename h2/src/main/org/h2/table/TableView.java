@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
@@ -514,7 +513,7 @@ public class TableView extends Table {
     private void removeCurrentViewFromOtherTables() {
         if (tables != null) {
             for (Table t : tables) {
-                System.out.println("removeCurrentViewFromOtherTables:"+t.getName());
+                //System.out.println("removeCurrentViewFromOtherTables:"+t.getName());
                 t.removeDependentView(this);
             }
             tables.clear();
@@ -714,19 +713,21 @@ public class TableView extends Table {
         TableView view = new TableView(schema, id, name, querySQL,
                 parameters, columnTemplates, session,
                 true/* try recursive */, literalsChecked, isTableExpression );
-        System.out.println("create recursive view:"+view);
+        //System.out.println("create recursive view:"+view);
 
         //if(shadowTable!=null){
         //    Parser.destroyShadowTableForRecursiveExpression(isPersistent, session, shadowTable);
         //}
         
-        System.out.println("view.isRecursiveQueryDetected()="+view.isRecursiveQueryDetected());
+        //System.out.println("view.isRecursiveQueryDetected()="+view.isRecursiveQueryDetected());
         // is not recursion detected ? if so - recreate it without recursion flag
         if (!view.isRecursiveQueryDetected()) {
             if(isPersistent){
                 db.addSchemaObject(session, view);
                 view.lock(session, true, true);
                 session.getDatabase().removeSchemaObject(session, view);
+                // during database  startup - this method does not normally get called - and it needs to be
+                // to correctly un-register the table which the table expression uses... 
                 view.removeChildrenAndResources(session);
             }else{
                 session.removeLocalTempTable(view);                    
@@ -734,7 +735,7 @@ public class TableView extends Table {
             view = new TableView(schema, id, name, querySQL, parameters,
                     columnTemplates, session,
                     false/* detected not recursive */, literalsChecked, isTableExpression);  
-            System.out.println("create nr view:"+view);
+            //System.out.println("create nr view:"+view);
         }
                 
         return view;

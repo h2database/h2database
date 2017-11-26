@@ -84,9 +84,9 @@ public class DropView extends SchemaCommand {
             for( Table childTable: copyOfDependencies){
                 if(TableType.VIEW == childTable.getTableType()){
                     TableView childTableView = (TableView) childTable;
-                    System.out.println("considering dep "+childTableView.getName());
+                    //System.out.println("considering dep "+childTableView.getName());
                     if(childTableView.isTableExpression() && childTableView.getName()!=null){
-                        System.out.println("removing "+childTableView.getName());
+                        //System.out.println("removing "+childTableView.getName());
                         session.getDatabase().removeSchemaObject(session, childTableView);
                     }
                 }

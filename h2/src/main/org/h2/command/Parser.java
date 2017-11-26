@@ -5309,6 +5309,7 @@ public class Parser {
             }else{
                 targetSession.removeLocalTempTable(recursiveTable);
             }
+            // both removeSchemaObject and removeLocalTempTable hold meta locks
             targetSession.getDatabase().unlockMeta(targetSession);
         }
     }
@@ -5403,6 +5404,8 @@ public class Parser {
                         columnTemplateArray, targetSession,
                         false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */, isPersistent);
             }
+            // both removeSchemaObject and removeLocalTempTable hold meta locks
+            targetSession.getDatabase().unlockMeta(targetSession);            
         }
         view.setTableExpression(true);
         view.setTemporary(!isPersistent);

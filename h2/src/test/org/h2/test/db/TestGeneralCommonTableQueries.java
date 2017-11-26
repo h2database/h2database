@@ -571,7 +571,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
         int expectedNumberOfRows = 11;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, 0/*maxRetries-1*/);
+                WITH_QUERY, maxRetries-1);
     }
     private void testPersistentNonRecursiveTableInCreateView() throws Exception {    
         String SETUP_SQL = ""
@@ -635,7 +635,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 
                 conn = getConnection("commonTableExpressionQueries");
             }
-            
+            System.out.println("=========== test with query");
             prep = conn.prepareStatement(WITH_QUERY);
 
             rs = prep.executeQuery();

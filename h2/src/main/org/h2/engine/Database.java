@@ -1955,6 +1955,9 @@ public class Database implements DataHandler {
                 
             }
             System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName);
+            if("TREE_CTE".equals(savedName)){
+                new RuntimeException("TREE_CTE distruction").printStackTrace();
+            }
             removeMeta(session, id);
             
             flushDeferredRemoveSchemaObject();

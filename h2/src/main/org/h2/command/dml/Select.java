@@ -1086,46 +1086,47 @@ public class Select extends Query {
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
-            boolean isPersistent = !t.isTemporary();
             if (t.isView() && ((TableView) t).isRecursive()) {
-                // hmmm - how do you generate a plan sql which is recursive
-                // for a system which does not natively support recursive SQLs... ?
-                // answer: you can't
-                TableView tv = ((TableView) t);
-                buff.append("WITH ");
-                if(tv.isRecursive()){
-                    buff.append("RECURSIVE ");
-                }
-                if(isPersistent){
-                    buff.append("PERSISTENT ");
-                }
-                buff.append(t.getName()).append('(');
-                buff.resetCount();
-                for (Column c : t.getColumns()) {
-                    buff.appendExceptFirst(",");
-                    buff.append(c.getName());
-                }
-                String theSQL = t.getSQL();
-                System.out.println("getPlanSQL.theSQL="+theSQL);
-                System.out.println("getPlanSQL.sqlStatement="+sqlStatement);
-                if(!sqlStatement.contains("?") && sqlStatement.toUpperCase().contains("SELECT") && session.isParsingView()){
-                    theSQL = extractNamedCTEQueryFromSQL(t.getName(),sqlStatement);
-                    if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
-                        theSQL = "( "+theSQL+" )";
-                    }
-                }
-                else if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
-                    StatementBuilder buffSelect = new StatementBuilder();
-                    buffSelect.append("( SELECT ");
-                    buffSelect.resetCount();
-                    for (Column c : t.getColumns()) {
-                        buffSelect.appendExceptFirst(",");
-                        buffSelect.append(c.getName());
-                    }
-                    buffSelect.append(" FROM "+t.getSQL()+" ) ");
-                    theSQL = buffSelect.toString();
-                }
-                buff.append(") AS ").append(theSQL).append("\n");
+                continue;
+//                boolean isPersistent = !t.isTemporary();
+//                // hmmm - how do you generate a plan sql which is recursive
+//                // for a system which does not natively support recursive SQLs... ?
+//                // answer: you can't
+//                TableView tv = ((TableView) t);
+//                buff.append("WITH ");
+//                if(tv.isRecursive()){
+//                    buff.append("RECURSIVE ");
+//                }
+//                if(isPersistent){
+//                    buff.append("PERSISTENT ");
+//                }
+//                buff.append(t.getName()).append('(');
+//                buff.resetCount();
+//                for (Column c : t.getColumns()) {
+//                    buff.appendExceptFirst(",");
+//                    buff.append(c.getName());
+//                }
+//                String theSQL = t.getSQL();
+//                System.out.println("getPlanSQL.theSQL="+theSQL);
+//                System.out.println("getPlanSQL.sqlStatement="+sqlStatement);
+//                if(!sqlStatement.contains("?") && sqlStatement.toUpperCase().contains("SELECT") && session.isParsingView()){
+//                    theSQL = extractNamedCTEQueryFromSQL(t.getName(),sqlStatement);
+//                    if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
+//                        theSQL = "( "+theSQL+" )";
+//                    }
+//                }
+//                else if(!(theSQL.startsWith("(")&&theSQL.endsWith(")"))){
+//                    StatementBuilder buffSelect = new StatementBuilder();
+//                    buffSelect.append("( SELECT ");
+//                    buffSelect.resetCount();
+//                    for (Column c : t.getColumns()) {
+//                        buffSelect.appendExceptFirst(",");
+//                        buffSelect.append(c.getName());
+//                    }
+//                    buffSelect.append(" FROM "+t.getSQL()+" ) ");
+//                    theSQL = buffSelect.toString();
+//                }
+//                buff.append(") AS ").append(theSQL).append("\n");
             }
         }
         buff.resetCount();

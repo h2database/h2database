@@ -402,20 +402,20 @@ public class MVTable extends TableBase {
                     exclusive ? "exclusive write lock" : "shared read lock", statusText,
                     getName());
             
-            // create a stack trace when the lock is granted so we can debug where that was...
-            if(statusText.equals(TRACE_LOCK_ADDED_FOR) || statusText.equals(TRACE_LOCK_ADD_UPGRADED_FOR)){
-                lockExclusiveSessionStackTrace = new Throwable("trace lock - lock granted stack trace"); 
-            }
-            
-            // clear the stack trace of the granted lock, on unlock
-            if(statusText.equals(TRACE_LOCK_UNLOCK)){
-                lockExclusiveSessionStackTrace = null;                
-            }
-            
-            // show the stack trace where the lock was granted, if a timeout happens...
-            if(statusText.contains(TRACE_LOCK_TIMEOUT_AFTER) && lockExclusiveSessionStackTrace!=null){
-                lockExclusiveSessionStackTrace.printStackTrace();                
-            }
+//            // create a stack trace when the lock is granted so we can debug where that was...
+//            if(statusText.equals(TRACE_LOCK_ADDED_FOR) || statusText.equals(TRACE_LOCK_ADD_UPGRADED_FOR)){
+//                lockExclusiveSessionStackTrace = new Throwable("trace lock - lock granted stack trace"); 
+//            }
+//            
+//            // clear the stack trace of the granted lock, on unlock
+//            if(statusText.equals(TRACE_LOCK_UNLOCK)){
+//                lockExclusiveSessionStackTrace = null;                
+//            }
+//            
+//            // show the stack trace where the lock was granted, if a timeout happens...
+//            if(statusText.contains(TRACE_LOCK_TIMEOUT_AFTER) && lockExclusiveSessionStackTrace!=null){
+//                lockExclusiveSessionStackTrace.printStackTrace();                
+//            }
         }
     }
 

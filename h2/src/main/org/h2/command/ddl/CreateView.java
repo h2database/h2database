@@ -103,24 +103,29 @@ public class CreateView extends SchemaCommand {
             }
             querySQL = select.getPlanSQL();
         }
-        Column[] columnTemplates = null;
+        Column[] columnTemplatesAsUnknowns = null;
+        Column[] columnTemplatesAsStrings = null;
         if (columnNames != null) {
-            columnTemplates = new Column[columnNames.length];
+            columnTemplatesAsUnknowns = new Column[columnNames.length];
+            columnTemplatesAsStrings = new Column[columnNames.length];
             for (int i = 0; i < columnNames.length; ++i) {
-                columnTemplates[i] = new Column(columnNames[i], Value.STRING);
+                // non table expressions are fine to use unknown column type
+                columnTemplatesAsUnknowns[i] = new Column(columnNames[i], Value.UNKNOWN);
+                // table expressions can't have unknown types - so we use string instead
+                columnTemplatesAsStrings[i] = new Column(columnNames[i], Value.STRING);
             }
         }
         if (view == null) {
             if(isTableExpression){
-                view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false /* literalsChecked */, isTableExpression, true /*isPersistent*/ , db);
+                view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null, columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression, true /*isPersistent*/ , db);
             }
             else
             {
-                view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplates, session, false/* allow recursive */, false/* literalsChecked */, isTableExpression, true);
+                view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplatesAsUnknowns, session, false/* allow recursive */, false/* literalsChecked */, isTableExpression, true);
             }
         } else {
             // TODO support isTableExpression in replace function...
-            view.replace(querySQL, columnTemplates, session, false, force, false);
+            view.replace(querySQL, columnTemplatesAsUnknowns, session, false, force, false);
             view.setModified();
         }
         if (comment != null) {

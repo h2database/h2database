@@ -598,7 +598,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 ;
         
         String WITH_QUERY = "SELECT * FROM v_my_nr_tree";
-        int maxRetries = 4;
+        int maxRetries = 6;
         String[] expectedRowData =new String[]{
                 "|1|0|null|1",
                 "|11|0|1|11",
@@ -622,7 +622,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
         
         for(int queryRunTries=1;queryRunTries<=maxRetries;queryRunTries++){
-            //System.out.println("==================================== Iteration #"+queryRunTries);
+            System.out.println("==================================== Iteration #"+queryRunTries);
 
             Statement stat = conn.createStatement();
             stat.execute(SETUP_SQL);
@@ -630,12 +630,12 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
             // close and re-open connection for one iteration to make sure the query work between connections
             if(queryRunTries==closeAndReopenDatabaseConnectionOnIteration){
-                //System.out.println("Reconnecting to database on iteration#"+queryRunTries+" of "+maxRetries);
+                System.out.println("Reconnecting to database on iteration#"+queryRunTries+" of "+maxRetries);
                 conn.close();
                 
                 conn = getConnection("commonTableExpressionQueries");
             }
-            //System.out.println("=========== test with query");
+            System.out.println("=========== test with query");
             prep = conn.prepareStatement(WITH_QUERY);
 
             rs = prep.executeQuery();

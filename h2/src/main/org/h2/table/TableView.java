@@ -110,7 +110,7 @@ public class TableView extends Table {
         initColumnsAndTables(session, literalsChecked);
     }
 
-    private static Query compileViewQuery(Session session, String sql, boolean literalsChecked, String viewName) {
+    private Query compileViewQuery(Session session, String sql, boolean literalsChecked, String viewName) {
         Prepared p;
         session.setParsingView(true,viewName);
         try {
@@ -121,7 +121,11 @@ public class TableView extends Table {
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
         }
-        return (Query) p;
+        Query q = (Query) p;
+        if(isTableExpression){
+            q.setNeverLazy(true);
+        }
+        return q;
     }
 
     /**

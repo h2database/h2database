@@ -124,7 +124,6 @@ public abstract class TestBase {
      *
      * @param seed the random seed value
      */
-    @SuppressWarnings("unused")
     public void testCase(int seed) throws Exception {
         // do nothing
     }

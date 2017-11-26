@@ -5389,7 +5389,7 @@ public class Parser {
         synchronized(targetSession){            
             view = new TableView(schema, id, cteViewName, querySQL,
                     parameters, columnTemplateArray, targetSession,
-                    allowRecursiveQueryDetection, false /* literalsChecked */, true /* isTableExpression */);
+                    allowRecursiveQueryDetection, false /* literalsChecked */, true /* isTableExpression */, isPersistent);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
                 if(isPersistent){
                     db.addSchemaObject(targetSession, view);
@@ -5400,7 +5400,7 @@ public class Parser {
                 }
                 view = new TableView(schema, id, cteViewName, querySQL, parameters,
                         columnTemplateArray, targetSession,
-                        false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */);
+                        false/* assume recursive */, false /* literalsChecked */, true /* isTableExpression */, isPersistent);
             }
         }
         view.setTableExpression(true);

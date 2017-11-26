@@ -60,13 +60,13 @@ public class TableView extends Table {
     private ResultInterface recursiveResult;
     private boolean isRecursiveQueryDetected;
     private boolean isTableExpression;
-//    private Session session;
+    private boolean isPersistent;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
-            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression) {
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isPersistent) {
         super(schema, id, name, false, true);
-        init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression);
+        init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression, isPersistent);
     }
 
     /**
@@ -86,23 +86,25 @@ public class TableView extends Table {
         init(querySQL, null,
                 newColumnTemplates == null ? this.columnTemplates
                         : newColumnTemplates,
-                session, recursive, literalsChecked, isTableExpression);
+                session, recursive, literalsChecked, isTableExpression, isPersistent);
         DbException e = recompile(session, force, true);
         if (e != null) {
             init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, 
-                    literalsChecked, isTableExpression);
+                    literalsChecked, isTableExpression, isPersistent);
             recompile(session, true, false);
             throw e;
         }
     }
 
     private synchronized void init(String querySQL, ArrayList<Parameter> params,
-            Column[] columnTemplates, Session session, boolean allowRecursive, boolean literalsChecked, boolean isTableExpression) {
+            Column[] columnTemplates, Session session, boolean allowRecursive, boolean literalsChecked, 
+            boolean isTableExpression, boolean isPersistent) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
         this.allowRecursive = allowRecursive;
         this.isRecursiveQueryDetected = false;
         this.isTableExpression = isTableExpression;
+        this.isPersistent = isPersistent;
         //this.session = session;
         index = new ViewIndex(this, querySQL, params, allowRecursive);
         initColumnsAndTables(session, literalsChecked);
@@ -550,7 +552,7 @@ public class TableView extends Table {
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name,
                 querySQL, query.getParameters(), null, session,
-                false, true /* literals have already been checked when parsing original query */, false);
+                false, true /* literals have already been checked when parsing original query */, false, false/* is persistent*/);
         if (v.createException != null) {
             throw v.createException;
         }
@@ -712,7 +714,7 @@ public class TableView extends Table {
         
         TableView view = new TableView(schema, id, name, querySQL,
                 parameters, columnTemplates, session,
-                true/* try recursive */, literalsChecked, isTableExpression );
+                true/* try recursive */, literalsChecked, isTableExpression, isPersistent );
         //System.out.println("create recursive view:"+view);
 
         //if(shadowTable!=null){
@@ -734,10 +736,14 @@ public class TableView extends Table {
             }
             view = new TableView(schema, id, name, querySQL, parameters,
                     columnTemplates, session,
-                    false/* detected not recursive */, literalsChecked, isTableExpression);  
+                    false/* detected not recursive */, literalsChecked, isTableExpression, isPersistent);  
             //System.out.println("create nr view:"+view);
         }
                 
         return view;
+    }
+
+    public boolean isPersistent() {
+        return isPersistent;
     }
 }

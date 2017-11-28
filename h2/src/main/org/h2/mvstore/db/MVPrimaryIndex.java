@@ -5,7 +5,6 @@
  */
 package org.h2.mvstore.db;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;

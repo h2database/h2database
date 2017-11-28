@@ -9,7 +9,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
 import org.h2.test.utils.SelfDestructor;
 
 /**
@@ -38,6 +37,7 @@ public class TestHaltApp extends TestHalt {
         }
     }
 
+    @Override
     protected void execute(Statement stat, String sql) throws SQLException {
         traceOperation("execute: " + sql);
         super.execute(stat, sql);

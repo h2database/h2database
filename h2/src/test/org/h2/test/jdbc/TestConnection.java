@@ -58,28 +58,20 @@ public class TestConnection extends TestBase {
      * This is needed when using h2 in websphere liberty.
      */
     private void testSetInternalPropertyToInitialValue() throws SQLException {
-      // Use MySQL-mode since this allows all property names
-      // (apart from h2 internal names).
-      Connection conn = getConnection("clientInfoMySQL;MODE=MySQL");
-
-      String numServersPropertyName = "numServers";
-
-      String numServers = conn.getClientInfo(numServersPropertyName);
-
-      conn.setClientInfo(numServersPropertyName, numServers);
-
-      assertEquals(conn.getClientInfo(numServersPropertyName), numServers);
-
-      conn.close();
-  }
-
+        // Use MySQL-mode since this allows all property names
+        // (apart from h2 internal names).
+        Connection conn = getConnection("clientInfoMySQL;MODE=MySQL");
+        String numServersPropertyName = "numServers";
+        String numServers = conn.getClientInfo(numServersPropertyName);
+        conn.setClientInfo(numServersPropertyName, numServers);
+        assertEquals(conn.getClientInfo(numServersPropertyName), numServers);
+        conn.close();
+    }
 
     private void testSetUnsupportedClientInfoProperties() throws SQLException {
         Connection conn = getConnection("clientInfo");
-
         Properties properties = new Properties();
         properties.put("ClientUser", "someUser");
-
         assertThrows(SQLClientInfoException.class, conn).setClientInfo(properties);
         conn.close();
     }

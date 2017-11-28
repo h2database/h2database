@@ -500,7 +500,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         ResultSet rs;
 
         String SETUP_SQL =
-             "DROP TABLE IF EXISTS A;                           "
+            "DROP TABLE IF EXISTS A;                           "
             +"DROP TABLE IF EXISTS B;                           "
             +"DROP TABLE IF EXISTS C;                           "
             +"CREATE TABLE A(VAL VARCHAR(255));                 "
@@ -520,18 +520,17 @@ public class TestGeneralCommonTableQueries extends TestBase {
             +"INSERT INTO C VALUES(null, 'banapple');           "
             +"INSERT INTO A VALUES('meat');                     "
             ;
-        String WITH_QUERY =
-            "WITH BB as (SELECT                        \n"
-            +"sum(1) as X,                             \n"
-            +"a                                        \n"
-            +"FROM B                                   \n"
-            +"JOIN C ON B.val=C.b                      \n"
-            +"GROUP BY a)                              \n"
-            +"SELECT                                   \n"
-            +"A.val,                                   \n"
-            +"sum(SELECT X FROM BB WHERE BB.a IS A.val)\n"//AS SUM_X
-            +"FROM A                                   \n"
-            +"GROUP BY A.val";
+        String WITH_QUERY = "WITH BB as (SELECT                        \n" +
+            "sum(1) as X,                             \n" +
+            "a                                        \n" +
+            "FROM B                                   \n" +
+            "JOIN C ON B.val=C.b                      \n" +
+            "GROUP BY a)                              \n" +
+            "SELECT                                   \n" +
+            "A.val,                                   \n" +
+            "sum(SELECT X FROM BB WHERE BB.a IS A.val)\n" +
+            // AS SUM_X
+            "FROM A                                   \n" + "GROUP BY A.val";
 
         for(int queryRunTries=1;queryRunTries<4;queryRunTries++){
             Statement stat = conn.createStatement();

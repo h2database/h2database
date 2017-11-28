@@ -4,7 +4,8 @@
 08000=Une erreur est survenue lors de l'ouverture de la base de données: {0}
 21S02=Le nombre de colonnes ne correspond pas
 22001=Valeur trop longue pour la colonne {0}: {1}
-22003=Valeur numérique hors de portée: {0}
+22003=#Numeric value out of range: {0}
+22004=#Numeric value out of range: {0} in column {1}
 22007=Impossible d'analyser {0} constante {1}
 22012=Division par zéro: {0}
 22018=Erreur lors de la conversion de données {0}
@@ -100,7 +101,7 @@
 90066=Propriété dupliquée {0}
 90067=La connexion est cassée: {0}
 90068=L'expression Order by {0} doit être dans ce cas dans la liste des résultats
-90069Le rôle {0} existe déjà
+90069=#Role {0} already exists
 90070=Rôle {0} non trouvé
 90071=Utilisateur ou rôle {0} non trouvé
 90072=Les rôles et les droits ne peuvent être mélangés
@@ -171,7 +172,7 @@
 90140='ensemble des résultats est en lecture seule. Vous pouvez avoir besoin d'utiliser conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=Le sérialiseur ne peut être changé parce que il y a des données dans la table: {0}
 90142=La taille de l'étape ne doit pas être de 0
-90143=#Ligne {1} non trouvée dans l'index principal {0}
+90143=##Row {1} not found in primary index {0}
 HY000=Erreur générale: {0}
 HY004=Type de données inconnu: {0}
 HYC00=Fonctionnalité non supportée: {0}

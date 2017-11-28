@@ -535,13 +535,11 @@ public class Set extends Prepared {
             database.setAllowBuiltinAliasOverride(value == 1);
             break;
         }
-            
         case SetTypes.COLUMN_NAME_RULES: {
             session.getUser().checkAdmin();
             session.getColumnNamerConfiguration().configure(expression.getColumnName());
-           break;
+            break;
         }
-                        
         default:
             DbException.throwInternalError("type="+type);
         }

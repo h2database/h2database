@@ -14,7 +14,7 @@ insert into person select convert(x,varchar) as firstname, (convert(x,varchar) |
 
 -- Issue #643: verify that when using an index, we use the IN part of the query, if that part of the query
 -- can directly use the index.
--- 
+--
 explain analyze SELECT * FROM person WHERE firstname IN ('FirstName1', 'FirstName2') AND lastname='LastName1';
 > PLAN
 > -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

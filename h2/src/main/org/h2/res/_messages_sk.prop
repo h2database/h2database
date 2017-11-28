@@ -4,7 +4,7 @@
 08000=Chyba otvorenia databázy: {0}
 21S02=Počet stĺpcov sa nezhoduje
 22001=Hodnota je príliš dlhá pre stĺpec {0}: {1}
-22003=Číselná hodnota mimo rozsah: {0}
+22003=#Numeric value out of range: {0}
 22004=Numeric value out of range: {0} in column {1}
 22007=Nemožem rozobrať {0} konštantu {1}
 22012=Delenie nulou: {0}

@@ -133,6 +133,12 @@ public class BenchB implements Bench, Runnable {
 //        db.end();
     }
 
+    /**
+     * Get the number of transactions per client.
+     *
+     * @param size test size
+     * @return the transactions per client
+     */
     protected int getTransactionsPerClient(int size) {
         return size / 8;
     }

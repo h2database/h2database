@@ -34,7 +34,7 @@ public class TestCompatibilityOracle extends TestBase {
 
     @Override
     public void test() throws Exception {
-    	testNotNullSyntax();
+        testNotNullSyntax();
         testTreatEmptyStringsAsNull();
         testDecimalScale();
         testPoundSymbolInColumnName();

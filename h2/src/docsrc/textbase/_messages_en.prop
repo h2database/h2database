@@ -4,7 +4,8 @@
 08000=Error opening database: {0}
 21S02=Column count does not match
 22001=Value too long for column {0}: {1}
-22003=Numeric value out of range: {0} {1}
+22003=Numeric value out of range: {0}
+22004=Numeric value out of range: {0} in column {1}
 22007=Cannot parse {0} constant {1}
 22012=Division by zero: {0}
 22018=Data conversion error converting {0}

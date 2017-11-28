@@ -1,3 +1,7 @@
+/*
+ * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ */
 package org.h2.util;
 
 import java.util.regex.Pattern;
@@ -5,7 +9,11 @@ import org.h2.engine.Mode.ModeEnum;
 import static org.h2.engine.Mode.ModeEnum.*;
 import org.h2.message.DbException;
 
+/**
+ * The configuration for the allowed column names.
+ */
 public class ColumnNamerConfiguration {
+
     private static final String DEFAULT_COMMAND = "DEFAULT";
     private static final String REGULAR_EXPRESSION_MATCH_DISALLOWED = "REGULAR_EXPRESSION_MATCH_DISALLOWED = ";
     private static final String REGULAR_EXPRESSION_MATCH_ALLOWED = "REGULAR_EXPRESSION_MATCH_ALLOWED = ";
@@ -41,7 +49,7 @@ public class ColumnNamerConfiguration {
     }
 
     public void setMaxIdentiferLength(int maxIdentiferLength) {
-        this.maxIdentiferLength = Math.max(30,maxIdentiferLength);
+        this.maxIdentiferLength = Math.max(30, maxIdentiferLength);
         if (maxIdentiferLength != getMaxIdentiferLength()) {
             throw DbException.getInvalidValueException("Illegal value (<30) in SET COLUMN_NAME_RULES",
                     "MAX_IDENTIFIER_LENGTH=" + maxIdentiferLength);
@@ -89,12 +97,11 @@ public class ColumnNamerConfiguration {
     }
 
     public void configure(String stringValue) {
-        try{
+        try {
             if (stringValue.equalsIgnoreCase(DEFAULT_COMMAND)) {
                 configure(REGULAR);
             } else if (stringValue.startsWith(EMULATE_COMMAND)) {
-                configure(ModeEnum.valueOf(
-                        unquoteString(stringValue.substring(EMULATE_COMMAND.length()))));
+                configure(ModeEnum.valueOf(unquoteString(stringValue.substring(EMULATE_COMMAND.length()))));
             } else if (stringValue.startsWith(MAX_IDENTIFIER_LENGTH)) {
                 int maxLength = Integer.parseInt(stringValue.substring(MAX_IDENTIFIER_LENGTH.length()));
                 setMaxIdentiferLength(maxLength);
@@ -113,38 +120,34 @@ public class ColumnNamerConfiguration {
             } else {
                 throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES: unknown id:" + stringValue,
                         stringValue);
-
             }
-
             recompilePatterns();
         }
-        //Including NumberFormatException|PatternSyntaxException
-        catch(RuntimeException e){
-            throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES:"+e.getMessage(),
-                    stringValue);
+        // Including NumberFormatException|PatternSyntaxException
+        catch (RuntimeException e) {
+            throw DbException.getInvalidValueException("SET COLUMN_NAME_RULES:" + e.getMessage(), stringValue);
 
         }
     }
 
     private void recompilePatterns() {
-        try{
+        try {
             // recompile RE patterns
             setCompiledRegularExpressionMatchAllowed(Pattern.compile(getRegularExpressionMatchAllowed()));
             setCompiledRegularExpressionMatchDisallowed(Pattern.compile(getRegularExpressionMatchDisallowed()));
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             configure(REGULAR);
             throw e;
         }
     }
 
-    public static ColumnNamerConfiguration getDefault(){
-        return new ColumnNamerConfiguration(Integer.MAX_VALUE, "(?m)(?s).+", "(?m)(?s)[\\x00]", "_UNNAMED_$$",false);
+    public static ColumnNamerConfiguration getDefault() {
+        return new ColumnNamerConfiguration(Integer.MAX_VALUE, "(?m)(?s).+", "(?m)(?s)[\\x00]", "_UNNAMED_$$", false);
     }
 
-    private static String unquoteString(String s){
-        if(s.startsWith("'") && s.endsWith("'")){
-            s = s.substring(1, s.length()-1);
+    private static String unquoteString(String s) {
+        if (s.startsWith("'") && s.endsWith("'")) {
+            s = s.substring(1, s.length() - 1);
             return s;
         }
         return s;
@@ -159,7 +162,7 @@ public class ColumnNamerConfiguration {
     }
 
     public void configure(ModeEnum modeEnum) {
-        switch(modeEnum){
+        switch (modeEnum) {
         case Oracle:
             // Nonquoted identifiers can contain only alphanumeric characters
             // from your database character set and the underscore (_), dollar
@@ -174,14 +177,16 @@ public class ColumnNamerConfiguration {
         case MSSQLServer:
             // https://docs.microsoft.com/en-us/sql/sql-server/maximum-capacity-specifications-for-sql-server
             setMaxIdentiferLength(128);
-            setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\[\\]]+");// allows [] around names
+            // allows [] around names
+            setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\[\\]]+");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\[\\]]");
             setDefaultColumnNamePattern("_UNNAMED_$$");
             setGenerateUniqueColumnNames(false);
             break;
 
         case PostgreSQL:
-            setMaxIdentiferLength(63);// this default can be changed to 128 by postgres config
+            // this default can be changed to 128 by postgres config
+            setMaxIdentiferLength(63);
             setRegularExpressionMatchAllowed("(?m)(?s)[A-Za-z0-9_\\$]+");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_\\$]");
             setDefaultColumnNamePattern("_UNNAMED_$$");
@@ -189,7 +194,7 @@ public class ColumnNamerConfiguration {
             break;
 
         case MySQL:
-            //https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
+            // https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
             setMaxIdentiferLength(64);
             setRegularExpressionMatchAllowed("(?m)(?s)`?[A-Za-z0-9_`\\$]+`?");
             setRegularExpressionMatchDisallowed("(?m)(?s)[^A-Za-z0-9_`\\$]");

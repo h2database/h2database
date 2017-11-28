@@ -2453,10 +2453,10 @@ public class Database implements DataHandler {
      * @param closeOthers whether other sessions are closed
      */
     public void setExclusiveSession(Session session, boolean closeOthers) {
-      this.exclusiveSession.set(session);
-      if (closeOthers) {
-          closeAllSessionsException(session);
-      }
+        this.exclusiveSession.set(session);
+        if (closeOthers) {
+            closeAllSessionsException(session);
+        }
     }
 
     @Override

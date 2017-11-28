@@ -330,7 +330,7 @@ public class SelectUnion extends Query {
         expressions = New.arrayList();
         ArrayList<Expression> le = left.getExpressions();
         ArrayList<Expression> re = right.getExpressions();
-        ColumnNamer columnNamer= new ColumnNamer(session);                        
+        ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < len; i++) {
             Expression l = le.get(i);
             Expression r = re.get(i);

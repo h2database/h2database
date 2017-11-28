@@ -198,7 +198,7 @@ public class Parser {
             return o1 == o2 ? 0 : compareTableFilters(o1, o2);
         }
     };
-    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS =
+    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
             "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     private final Database database;
@@ -1453,7 +1453,7 @@ public class Parser {
                 }
             }
         }
-        // inherit alias for temporary views (usually CTE's) or explicity CTEs from table name
+        // inherit alias for CTE as views from table name
         if(table.isView() && table.isTableExpression() && alias==null){
             alias = table.getName();
         }
@@ -5170,9 +5170,6 @@ public class Parser {
             Query query = parseSelectUnion();
             query.setPrepareAlways(true);
             query.setNeverLazy(true);
-            if(isPersistent){
-                query.session = session.getDatabase().getSystemSession();
-            }
             p = query;
         }
         else if(readIf("INSERT")) {
@@ -5194,7 +5191,7 @@ public class Parser {
         else if(readIf("CREATE")) {
             if (!isToken("TABLE")){
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                        WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
+                        WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
 
             }
             p = parseCreate();
@@ -5202,7 +5199,7 @@ public class Parser {
         }
         else {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
-                    WITH_STATEMENT_SUPPORTS_LIMITED_STATEMENTS);
+                    WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
         }
 
         // clean up temporary views starting with last to first (in case of
@@ -5213,9 +5210,7 @@ public class Parser {
         return p;
     }
 
-    //@SuppressWarnings("resource")// Eclipse thinks targetSession needs releasing
     private TableView parseSingleCommonTableExpression(boolean isPersistent) {
-        //Session targetSession =  isPersistent ? database.getSystemSession() : session;
         Session targetSession = session;
         String cteViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
@@ -5224,16 +5219,13 @@ public class Parser {
         String[] cols = null;
         Database db = targetSession.getDatabase();
         
-        //System.out.println("systemSessionId="+database.getSystemSession().getId());
-        //System.out.println("sessionId="+session.getId());
-
         // column names are now optional - they can be inferred from the named
         // query, if not supplied by user
         if (readIf("(")) {
             cols = parseColumnList();
             for (String c : cols) {
                 // we don't really know the type of the column, so STRING will
-                // have to do
+                // have to do, UNKNOWN does not work here
                 columns.add(new Column(c, Value.STRING));
             }
         }
@@ -5257,7 +5249,6 @@ public class Parser {
                         cteViewName);
             }
             if(isPersistent){
-                //System.out.println("parseSingleCommonTableExpression removeSchemaObject "+oldViewFound.getName());
                 oldViewFound.lock(targetSession, true, true);
                 targetSession.getDatabase().removeSchemaObject(targetSession, oldViewFound);                
                 
@@ -5293,7 +5284,8 @@ public class Parser {
 
         TableView view = createCTEView(cteViewName,
                 querySQLOutput[0], columnTemplateList,
-                true/* allowRecursiveQueryDetection */, true/* add to session */, 
+                true/* allowRecursiveQueryDetection */, 
+                true/* add to session */, 
                 isPersistent, targetSession);
         
         return view;
@@ -5309,7 +5301,8 @@ public class Parser {
             }else{
                 targetSession.removeLocalTempTable(recursiveTable);
             }
-            // both removeSchemaObject and removeLocalTempTable hold meta locks
+            
+            // both removeSchemaObject and removeLocalTempTable hold meta locks - release them here
             targetSession.getDatabase().unlockMeta(targetSession);
         }
     }
@@ -5384,6 +5377,7 @@ public class Parser {
         Schema schema = getSchemaWithDefault();
         int id = db.allocateObjectId();
         Column[] columnTemplateArray = columnTemplateList.toArray(new Column[0]);
+        
         // No easy way to determine if this is a recursive query up front, so we just compile
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.

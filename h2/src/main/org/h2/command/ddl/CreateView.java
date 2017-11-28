@@ -137,6 +137,10 @@ public class CreateView extends SchemaCommand {
         } else {
             db.updateMeta(session, view);
         }
+        
+        // TODO: if we added any table expressions that aren't used by this view, detect them
+        // and drop them - otherwise they will leak and never get cleaned up.
+        
         return 0;
     }
 

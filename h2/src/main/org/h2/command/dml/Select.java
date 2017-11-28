@@ -1090,6 +1090,8 @@ public class Select extends Query {
             if (tableView!=null && tableView.isView() && tableView.isRecursive() && tableView.isTableExpression()) {
                 
                 if(tableView.isPersistent()){
+                    // skip the generation of plan SQL for this already recursive persistent ctes, since using a with 
+                    // statement will re-create the common table expression views.
                     continue;
                 }
                 else {

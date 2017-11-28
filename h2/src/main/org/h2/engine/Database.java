@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-//import java.util.Iterator;
-//import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -204,7 +202,6 @@ public class Database implements DataHandler {
     private int queryStatisticsMaxEntries = Constants.QUERY_STATISTICS_MAX_ENTRIES;
     private QueryStatisticsData queryStatisticsData;
     private RowFactory rowFactory = RowFactory.DEFAULT;
-//    private ConcurrentHashMap<SchemaObject, Session> removeSchemaObjectQueue = new ConcurrentHashMap<>();
 
     public Database(ConnectionInfo ci, String cipher) {
         String name = ci.getName();
@@ -764,12 +761,10 @@ public class Database implements DataHandler {
             MetaRecord rec = new MetaRecord(cursor.get());
             objectIds.set(rec.getId());
             records.add(rec);
-            //System.out.println("Loaded:"+rec.toString());
         }
         Collections.sort(records);
         synchronized (systemSession) {
             for (MetaRecord rec : records) {
-                //System.out.println("Executing:"+rec.toString());
                 rec.execute(this, systemSession, eventListener);
             }
         }
@@ -938,33 +933,6 @@ public class Database implements DataHandler {
         boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
     }
-    public void traceLock(){
-        if(metaLockDebuggingStack.get()!=null && metaLockDebugging.get() !=null){
-            System.out.println("traceLock: Meta locked by sessionId="+metaLockDebugging.get().getId());
-            metaLockDebuggingStack.get().printStackTrace();
-        }
-    }
-
-    /**
-     * Lock the metadata table for updates - but don't wait if it's already locked...
-     *
-     * @param session the session
-     * @return whether it was already locked before by this session - or null if locked by other session
-     */
-    public Boolean lockMetaNoWait(Session session) {
-        // this method can not be synchronized on the database object,
-        // as unlocking is also synchronized on the database object -
-        // so if locking starts just before unlocking, locking could
-        // never be successful
-        if (meta == null) {
-            return true;
-        }
-        if(meta.isLockedExclusively() && ! meta.isLockedExclusivelyBy(session)){
-            return null;
-        }
-        boolean wasLocked = meta.lock(session, true, true);
-        return wasLocked;
-    }    
     
     /**
      * Unlock the metadata table.

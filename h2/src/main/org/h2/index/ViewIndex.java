@@ -173,7 +173,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         Prepared p;
         session.pushSubQueryInfo(masks, filters, filter, sortOrder);
         try {
-            //System.out.println("ViewIndex.prepareSubQuery:"+sql);
             p = session.prepare(sql, true, true);
         } finally {
             session.popSubQueryInfo();

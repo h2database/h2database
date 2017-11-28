@@ -88,7 +88,6 @@ public class MVTable extends TableBase {
     private final ArrayList<Index> indexes = New.arrayList();
     private volatile long lastModificationId;
     private volatile Session lockExclusiveSession;
-    private volatile Throwable lockExclusiveSessionStackTrace;
 
     // using a ConcurrentHashMap as a set
     private final ConcurrentHashMap<Session, Session> lockSharedSessions =
@@ -401,21 +400,6 @@ public class MVTable extends TableBase {
             traceLock.debug("{0} {1} {2} {3}", session.getId(),
                     exclusive ? "exclusive write lock" : "shared read lock", statusText,
                     getName());
-            
-//            // create a stack trace when the lock is granted so we can debug where that was...
-//            if(statusText.equals(TRACE_LOCK_ADDED_FOR) || statusText.equals(TRACE_LOCK_ADD_UPGRADED_FOR)){
-//                lockExclusiveSessionStackTrace = new Throwable("trace lock - lock granted stack trace"); 
-//            }
-//            
-//            // clear the stack trace of the granted lock, on unlock
-//            if(statusText.equals(TRACE_LOCK_UNLOCK)){
-//                lockExclusiveSessionStackTrace = null;                
-//            }
-//            
-//            // show the stack trace where the lock was granted, if a timeout happens...
-//            if(statusText.contains(TRACE_LOCK_TIMEOUT_AFTER) && lockExclusiveSessionStackTrace!=null){
-//                lockExclusiveSessionStackTrace.printStackTrace();                
-//            }
         }
     }
 
@@ -426,17 +410,7 @@ public class MVTable extends TableBase {
 
     @Override
     public boolean isLockedExclusivelyBy(Session session) {
-        Session localSession = lockExclusiveSession;
-        if(localSession!=null){
-            //System.out.println("Meta was locked by "+localSession.getId()+" tested for "+session.getId());
-            if(lockExclusiveSessionStackTrace!=null){
-                lockExclusiveSessionStackTrace.printStackTrace();
-            }
-        }
-        else{
-            //System.out.println("Meta was not locked by anyone, tested for "+session.getId());            
-        }
-        return localSession == session;
+        return lockExclusiveSession == session;
     }
     
     @Override

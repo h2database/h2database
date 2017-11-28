@@ -1040,8 +1040,6 @@ public class Database implements DataHandler {
      * @param obj the object to add
      */
     public void addSchemaObject(Session session, SchemaObject obj) {
-        //System.out.println("addSchemaObject="+obj.getName()+",sessionId="+session.getId()+",obj="+obj);
-        
         int id = obj.getId();
         if (id > 0 && !starting) {
             checkWritingAllowed();
@@ -1875,7 +1873,7 @@ public class Database implements DataHandler {
      * @param session the session
      * @param obj the object to be removed
      */
-    public boolean removeSchemaObject(Session session,
+    public void removeSchemaObject(Session session,
             SchemaObject obj) {
         int type = obj.getType();
         if (type == DbObject.TABLE_OR_VIEW) {
@@ -1883,32 +1881,26 @@ public class Database implements DataHandler {
             //table.setBeingDropped(true);
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTable(table);
-                return true;
+                return;
             }
         } else if (type == DbObject.INDEX) {
             Index index = (Index) obj;
             Table table = index.getTable();
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableIndex(index);
-                return true;
+                return;
             }
         } else if (type == DbObject.CONSTRAINT) {
             Constraint constraint = (Constraint) obj;
             Table table = constraint.getTable();
             if (table.isTemporary() && !table.isGlobalTemporary()) {
                 session.removeLocalTempTableConstraint(constraint);
-                return true;
+                return;
             }
         }
         checkWritingAllowed();
-        /*Boolean wasLocked = */lockMeta(session);// was lockMetaNoWait
-        //if(wasLocked==null){
-        //    removeSchemaObjectQueue.put(obj,session);
-        //    System.out.println("deferred removal scheduled="+obj.getName()+",wasLocked="+wasLocked);
-        //    return false;
-        //}
+        lockMeta(session);
         synchronized (this) {
-            //String savedName = obj.getName();
             Comment comment = findComment(obj);
             if (comment != null) {
                 removeDatabaseObject(session, comment);
@@ -1925,40 +1917,10 @@ public class Database implements DataHandler {
                 obj.removeChildrenAndResources(session);
                 
             }
-            else{
-                //System.out.println("Starting database detected");
-            }
-            //System.out.println("Removing db object id - also remove meta lock from session and session lock from meta, id="+id+",sessionId="+session.getId()+",name="+savedName+",obj="+obj);
-
             removeMeta(session, id);
-            
-            //flushDeferredRemoveSchemaObject();
-            return true;
-            
+            return;
         }
     }
-
-//    public void flushDeferredRemoveSchemaObject() {
-//        boolean progress = true;
-//        while(progress){
-//            progress = false;
-//            Iterator<Entry<SchemaObject, Session>> i = removeSchemaObjectQueue.entrySet().iterator();
-//            while(i.hasNext()){
-//                Entry<SchemaObject, Session> pair = i.next();
-//                i.remove();
-//                //System.out.println("re-attempting deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());                
-//                progress = removeSchemaObject(pair.getValue(),pair.getKey());
-//                if(progress){
-//                    //System.out.println("completed deferred removal="+pair.getKey().getName()+",size="+removeSchemaObjectQueue.size());
-//                    unlockMeta(pair.getValue());
-//                }
-//            }
-//        }
-//        //System.out.println("flushDeferredRemoveSchemaObject.remove_q_size="+removeSchemaObjectQueue.size());
-//        if(removeSchemaObjectQueue.size()!=0){
-//            traceLock();
-//        }
-//    }
 
     /**
      * Check if this database is disk-based.

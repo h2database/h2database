@@ -87,8 +87,6 @@ public abstract class Table extends SchemaObjectBase {
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
     private boolean tableExpression;
-//    private boolean isBeingDropped;
-    
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -529,7 +527,6 @@ public abstract class Table extends SchemaObjectBase {
     public void removeChildrenAndResources(Session session) {
         while (dependentViews.size() > 0) {
             TableView view = dependentViews.get(0);
-            //System.out.println("removeChildrenAndResources.dependentViews:"+view.getName());            
             dependentViews.remove(0);
             database.removeSchemaObject(session, view);
         }
@@ -836,14 +833,12 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Remove the given view from the list.
+     * Remove the given view from the dependent views list.
      *
      * @param view the view to remove
      */
     public void removeDependentView(TableView view) {
-        //System.out.println("removeDependentView(Before):"+dependentViews.toString());
         dependentViews.remove(view);
-        //System.out.println("removeDependentView(Left):"+dependentViews.toString());
     }
 
     /**
@@ -1251,13 +1246,4 @@ public abstract class Table extends SchemaObjectBase {
     public boolean isTableExpression() {
         return tableExpression;
     }
-    
-//    public boolean isBeingDropped(){
-//        return isBeingDropped;
-//    }
-//    
-//    public void setBeingDropped(boolean isBeingDropped){
-//        this.isBeingDropped = isBeingDropped;
-//    }
-
 }

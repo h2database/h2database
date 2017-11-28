@@ -54,6 +54,7 @@ import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOptimizerHints;
 import org.h2.test.db.TestOutOfMemory;
+import org.h2.test.db.TestPersistentCommonTableExpressions;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
@@ -761,9 +762,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestOutOfMemory());
         addTest(new TestReadOnly());
         addTest(new TestRecursiveQueries());
+        addTest(new TestGeneralCommonTableQueries());
         if(!memory){
             // requires persistent store for reconnection tests
-            addTest(new TestGeneralCommonTableQueries());
+            addTest(new TestPersistentCommonTableExpressions());
         }
         addTest(new TestRights());
         addTest(new TestRunscript());

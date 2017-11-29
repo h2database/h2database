@@ -1312,8 +1312,8 @@ public class Session extends SessionWithState {
         }
         if (removeLobMap == null) {
             removeLobMap = New.hashMap();
-            removeLobMap.put(v.toString(), v);
         }
+        removeLobMap.put(v.toString(), v);
     }
 
     /**

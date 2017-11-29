@@ -4,8 +4,8 @@
 08000=Błąd otwarcia bazy danych: {0}
 21S02=Niezgodna ilość kolumn
 22001=Wartość za długa dla kolumny {0}: {1}
-22003=#Numeric value out of range: {0}
-22004=Numeric value out of range: {0} in column {1}
+22003=Wartość numeryczna poza zakresem: {0}
+22004=#Wartość numeryczna poza zakresem: {0} in column {1}
 22007=Nie można odczytać {0} jako {1}
 22012=Dzielenie przez zero: {0}
 22018=Błąd konwersji danych {0}
@@ -172,7 +172,7 @@
 90140=Wyniki są tylko do odczytu. Być może potrzebujesz użyć conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=Serializator nie może być zmieniony ponieważ istnieje tabela z danymi: {0}
 90142=#Step size must not be zero
-90143=##Row {1} not found in primary index {0}
+90143=#Row {1} not found in primary index {0}
 HY000=Błąd ogólny: {0}
 HY004=Nieznany typ danych: {0}
 HYC00=Cecha nie jest wspierana: {0}

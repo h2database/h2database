@@ -4,8 +4,8 @@
 08000=Error abriendo la base de datos: {0}
 21S02=La cantidad de columnas no coincide
 22001=Valor demasiado largo para la columna {0}: {1}
-22003=#Numeric value out of range: {0}
-22004=Numeric value out of range: {0} in column {1}
+22003=Valor numerico fuera de rango: {0}
+22004=#Valor numerico fuera de rango: {0} in column {1}
 22007=Imposible interpretar la constante {0} {1}
 22012=División por cero: {0}
 22018=Conversión de datos fallida, convirtiendo {0}
@@ -172,7 +172,7 @@
 90140=El conjunto de resultados es de solo lectura. Puede ser necesario usar conn.createStatement(.., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
 90142=#Step size must not be zero
-90143=##Row {1} not found in primary index {0}
+90143=#Row {1} not found in primary index {0}
 HY000=Error General : {0}
 HY004=Tipo de dato desconocido : {0}
 HYC00=Caracteristica no soportada: {0}

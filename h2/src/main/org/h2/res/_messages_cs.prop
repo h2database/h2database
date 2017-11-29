@@ -4,8 +4,8 @@
 08000=Chyba při otevírání databáze: {0}
 21S02=Počet sloupců nesouhlasí
 22001=Příliš dlouhá hodnota pro sloupec {0}: {1}
-22003=#Numeric value out of range: {0}
-22004=Numeric value out of range: {0} in column {1}
+22003=Číselná hodnota je mimo rozsah: {0}
+22004=#Číselná hodnota je mimo rozsah: {0} in column {1}
 22007=Nelze zpracovat konstantu {0} {1}
 22012=Dělení nulou: {0}
 22018=Chyba při převodu dat {0}
@@ -172,7 +172,7 @@
 90140=Vrácený výsledek je pouze pro čtení. Možná budete muset použít conn.createStatement(..., ResultSet.CONCUR_UPDATABLE).
 90141=#Serializer cannot be changed because there is a data table: {0}
 90142=#Step size must not be zero
-90143=##Row {1} not found in primary index {0}
+90143=#Row {1} not found in primary index {0}
 HY000=Obecná chyba: {0}
 HY004=Neznámý datový typ: {0}
 HYC00=Vlastnost není podporována: {0}

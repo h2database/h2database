@@ -20,6 +20,10 @@ import org.h2.util.IOUtils;
  */
 public class TestMvccMultiThreaded2 extends TestBase {
 
+    private static final int TEST_THREAD_COUNT = 100;
+    private static final int TEST_TIME_SECONDS = 60;
+    private static final boolean DISPLAY_STATS = false;
+
     private static final String URL = ";MVCC=TRUE;LOCK_TIMEOUT=120000;MULTI_THREADED=TRUE";
 
     /**
@@ -62,14 +66,36 @@ public class TestMvccMultiThreaded2 extends TestBase {
         conn.commit();
 
         ArrayList<SelectForUpdate> threads = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < TEST_THREAD_COUNT; i++) {
             SelectForUpdate sfu = new SelectForUpdate();
+            sfu.setName("Test SelectForUpdate Thread#"+i);
             threads.add(sfu);
             sfu.start();
         }
 
+        // give any of the 100 threads a chance to start by yielding the processor to them
+        Thread.yield();
+        
+        // make sure all threads have stopped by joining with them
+        @SuppressWarnings("unused")
+        int minProcessed=Integer.MAX_VALUE, maxProcessed=0, totalProcessed=0;
+        
         for (SelectForUpdate sfu : threads) {
             sfu.join();
+            totalProcessed+=sfu.interationsProcessed;
+            if(sfu.interationsProcessed>maxProcessed){
+                maxProcessed = sfu.interationsProcessed;
+            }
+            if(sfu.interationsProcessed<minProcessed){
+                minProcessed = sfu.interationsProcessed;
+            }
+        }
+        
+        if(DISPLAY_STATS){
+            System.out.println(String.format("+ INFO: TestMvccMultiThreaded2 RUN STATS threads=%d, minProcessed=%d, maxProcessed=%d, "+
+                    "totalProcessed=%d, averagePerThread=%d, averagePerThreadPerSecond=%d\n",
+                    TEST_THREAD_COUNT, minProcessed, maxProcessed, totalProcessed, totalProcessed/TEST_THREAD_COUNT, 
+                    totalProcessed/(TEST_THREAD_COUNT*TEST_TIME_SECONDS)));
         }
 
         IOUtils.closeSilently(conn);
@@ -77,6 +103,8 @@ public class TestMvccMultiThreaded2 extends TestBase {
     }
 
     private class SelectForUpdate extends Thread {
+        
+        public int interationsProcessed = 0;
 
         @Override
         public void run() {
@@ -86,6 +114,10 @@ public class TestMvccMultiThreaded2 extends TestBase {
             try {
                 conn = getConnection(getTestName() + URL);
                 conn.setAutoCommit(false);
+                
+                // give the other threads a chance to start up before going into our work loop
+                Thread.yield();
+                
                 while (!done) {
                     try {
                         PreparedStatement ps = conn.prepareStatement(
@@ -97,17 +129,23 @@ public class TestMvccMultiThreaded2 extends TestBase {
                         assertTrue(rs.getInt(2) == 100);
 
                         conn.commit();
+                        interationsProcessed++;
 
                         long now = System.currentTimeMillis();
-                        if (now - start > 1000 * 60)
+                        if (now - start > 1000 * TEST_TIME_SECONDS){
                             done = true;
+                        }
                     } catch (JdbcSQLException e1) {
                         throw e1;
                     }
                 }
             } catch (SQLException e) {
-                TestBase.logError("error", e);
+                TestBase.logError("SQL error from thread "+getName(), e);
             }
+            catch (Exception e) {
+                TestBase.logError("General error from thread "+getName(), e);
+                throw e;
+            }            
             IOUtils.closeSilently(conn);
         }
     }

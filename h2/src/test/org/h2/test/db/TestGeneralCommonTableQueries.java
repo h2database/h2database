@@ -41,7 +41,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         testMerge();
         testCreateTable();
         testNestedSQL();
-        testLazyQueryExecutionAndRecursiveTable();
+        testSimple4RowRecursiveQuery();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -470,20 +470,18 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         deleteDb("commonTableExpressionQueries");
     }
     
-    private void testLazyQueryExecutionAndRecursiveTable() throws Exception {
+    private void testSimple4RowRecursiveQuery() throws Exception {
                 
         String[] expectedRowData =new String[]{"|1","|2","|3"};
         String[] expectedColumnTypes =new String[]{"INTEGER"};
         String[] expectedColumnNames =new String[]{"N"};
-        //Test lazy mvStore memory mvcc multiThreaded 
-        String SETUP_SQL = "SET LAZY_QUERY_EXECUTION 1;\n"
-                //+ "SET MEMORY 1;SET MV_STORE true; SET MVCC TRUE;"
-                //+ "SET MULTI_THREADED TRUE;"
-                ;
-            String WITH_QUERY = "with recursive r(n) as (\n"+
-                    "(select 1) union all (select n+1 from r where n < 3)\n"+
-                    ")\n"+
-                    "select n from r";
+        
+        String SETUP_SQL = "-- do nothing";
+        String WITH_QUERY = "with recursive r(n) as (\n"+
+                "(select 1) union all (select n+1 from r where n < 3)\n"+
+                ")\n"+
+                "select n from r";
+
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;
             

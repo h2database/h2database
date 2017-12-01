@@ -49,6 +49,7 @@ import org.h2.value.Value;
  */
 public class MVTable extends TableBase {
 
+    // lock event types for tracing...
     private static final String TRACE_LOCK_OK = "ok";
     private static final String TRACE_LOCK_WAITING_FOR = "waiting for";
     private static final String TRACE_LOCK_REQUESTING_FOR = "requesting for";

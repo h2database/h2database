@@ -569,7 +569,8 @@ public class Select extends Query {
         }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && offsetExpr == null && isReadOnly();
+                limitRows != 0 && offsetExpr == null && isReadOnly() && 
+                !hasRecursiveTableView();
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
@@ -661,6 +662,19 @@ public class Select extends Query {
             return result;
         }
         return null;
+    }
+
+    private boolean hasRecursiveTableView() {
+        // go through the table filters to see if we have a recursive table query
+        for (TableFilter f : filters) {
+            if(f.getTable().isTableExpression()){
+                TableView v = (TableView)f.getTable();
+                if(v.isRecursive()){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void resetJoinBatchAfterQuery() {

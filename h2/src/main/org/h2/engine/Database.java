@@ -765,7 +765,7 @@ public class Database implements DataHandler {
         Collections.sort(records);
         synchronized (systemSession) {
             for (MetaRecord rec : records) {
-                rec.execute(this, systemSession, eventListener);
+                rec.execute(this, systemSession, eventListener);                
             }
         }
         if (mvStore != null) {

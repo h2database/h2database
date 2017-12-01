@@ -1051,7 +1051,7 @@ public class Parser {
         }
     }
 
-    private static Prepared prepare(Session s, String sql,
+    public static Prepared prepare(Session s, String sql,
             ArrayList<Value> paramValues) {
         Prepared prep = s.prepare(sql);
         ArrayList<Parameter> params = prep.getParameters();
@@ -5169,6 +5169,7 @@ public class Parser {
         // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition
         if(session.isParsingView()){
             isPersistent = true;
+            System.out.println("getParsingViewName="+session.getParsingViewName());
         }
         
         do {
@@ -5360,7 +5361,7 @@ public class Parser {
      *            Query object
      * @return a list of column object returned by withQuery
      */
-    private static List<Column> createQueryColumnTemplateList(String[] cols,
+    public static List<Column> createQueryColumnTemplateList(String[] cols,
             Query theQuery, String[] querySQLOutput) {
         List<Column> columnTemplateList = new ArrayList<>();
         theQuery.prepare();

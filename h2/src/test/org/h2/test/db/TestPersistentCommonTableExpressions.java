@@ -30,52 +30,68 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
     }
 
     private void testRecursiveTable() throws Exception {
-
-        int maxRetries = 4;
         String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
+        String[] expectedColumnTypes =new String[]{"VARCHAR","DECIMAL"};
         String[] expectedColumnNames =new String[]{"VAL",
-                "SUM(SELECT\n    X\nFROM PUBLIC.\"\" BB\n    /* SELECT\n        SUM(1) AS X,\n        A\n    FROM PUBLIC.B\n        /++ PUBLIC.B.tableScan ++/\n        /++ WHERE A IS ?1\n        ++/\n        /++ scanCount: 4 ++/\n    INNER JOIN PUBLIC.C\n        /++ PUBLIC.C.tableScan ++/\n        ON 1=1\n    WHERE (A IS ?1)\n        AND (B.VAL = C.B)\n    GROUP BY A: A IS A.VAL\n     */\n    /* scanCount: 1 */\nWHERE BB.A IS A.VAL)"};
-        int expectedNumberOfRows = 3;
+                "SUM(SELECT\n" +
+                "    X\n" +
+                "FROM PUBLIC.\"\" BB\n" +
+                "    /* SELECT\n" +
+                "        SUM(1) AS X,\n" +
+                "        A\n" +
+                "    FROM PUBLIC.B\n" +
+                "        /++ PUBLIC.B.tableScan ++/\n" +
+                "        /++ WHERE A IS ?1\n" +
+                "        ++/\n" +
+                "        /++ scanCount: 4 ++/\n" +
+                "    INNER JOIN PUBLIC.C\n" +
+                "        /++ PUBLIC.C.tableScan ++/\n" +
+                "        ON 1=1\n" +
+                "    WHERE (A IS ?1)\n" +
+                "        AND (B.VAL = C.B)\n" +
+                "    GROUP BY A: A IS A.VAL\n" +
+                "     */\n" +
+                "    /* scanCount: 1 */\n" +
+                "WHERE BB.A IS A.VAL)"};
         
-        String SETUP_SQL = 
+        String SETUP_SQL =
                 "DROP TABLE IF EXISTS A;                           "
-               +"DROP TABLE IF EXISTS B;                           "
-               +"DROP TABLE IF EXISTS C;                           "
-               +"CREATE TABLE A(VAL VARCHAR(255));                 "
-               +"CREATE TABLE B(A VARCHAR(255), VAL VARCHAR(255)); "
-               +"CREATE TABLE C(B VARCHAR(255), VAL VARCHAR(255)); "
-               +"                                                  "
-               +"INSERT INTO A VALUES('fruit');                    "
-               +"INSERT INTO B VALUES('fruit','apple');            "
-               +"INSERT INTO B VALUES('fruit','banana');           "
-               +"INSERT INTO C VALUES('apple', 'golden delicious');"
-               +"INSERT INTO C VALUES('apple', 'granny smith');    "
-               +"INSERT INTO C VALUES('apple', 'pippin');          "
-               +"INSERT INTO A VALUES('veg');                      "
-               +"INSERT INTO B VALUES('veg', 'carrot');            "
-               +"INSERT INTO C VALUES('carrot', 'nantes');         "
-               +"INSERT INTO C VALUES('carrot', 'imperator');      "
-               +"INSERT INTO C VALUES(null, 'banapple');           "
-               +"INSERT INTO A VALUES('meat');                     "
-               ;
-           String WITH_QUERY =
-               "WITH BB as (SELECT                        \n"
-               +"sum(1) as X,                             \n"
-               +"a                                        \n"
-               +"FROM B                                   \n"
-               +"JOIN C ON B.val=C.b                      \n"
-               +"GROUP BY a)                              \n"
-               +"SELECT                                   \n"
-               +"A.val,                                   \n"
-               +"sum(SELECT X FROM BB WHERE BB.a IS A.val)\n"
-               +"FROM A                                   \n"
-               +"GROUP BY A.val";
-
-           
+                +"DROP TABLE IF EXISTS B;                           "
+                +"DROP TABLE IF EXISTS C;                           "
+                +"CREATE TABLE A(VAL VARCHAR(255));                 "
+                +"CREATE TABLE B(A VARCHAR(255), VAL VARCHAR(255)); "
+                +"CREATE TABLE C(B VARCHAR(255), VAL VARCHAR(255)); "
+                +"                                                  "
+                +"INSERT INTO A VALUES('fruit');                    "
+                +"INSERT INTO B VALUES('fruit','apple');            "
+                +"INSERT INTO B VALUES('fruit','banana');           "
+                +"INSERT INTO C VALUES('apple', 'golden delicious');"
+                +"INSERT INTO C VALUES('apple', 'granny smith');    "
+                +"INSERT INTO C VALUES('apple', 'pippin');          "
+                +"INSERT INTO A VALUES('veg');                      "
+                +"INSERT INTO B VALUES('veg', 'carrot');            "
+                +"INSERT INTO C VALUES('carrot', 'nantes');         "
+                +"INSERT INTO C VALUES('carrot', 'imperator');      "
+                +"INSERT INTO C VALUES(null, 'banapple');           "
+                +"INSERT INTO A VALUES('meat');                     "
+                ;
+            String WITH_QUERY = "WITH BB as (SELECT                        \n" +
+                "sum(1) as X,                             \n" +
+                "a                                        \n" +
+                "FROM B                                   \n" +
+                "JOIN C ON B.val=C.b                      \n" +
+                "GROUP BY a)                              \n" +
+                "SELECT                                   \n" +
+                "A.val,                                   \n" +
+                "sum(SELECT X FROM BB WHERE BB.a IS A.val)\n" +
+                "FROM A                                   \n" + "GROUP BY A.val";
+        int maxRetries = 3;
+        int expectedNumberOfRows = expectedRowData.length;
+            
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1);
+                WITH_QUERY, maxRetries-1, expectedColumnTypes);
+            
     }
-
 
     private void testPersistentRecursiveTableInCreateView() throws Exception {    
         String SETUP_SQL = "--SET TRACE_LEVEL_SYSTEM_OUT 3;\n"
@@ -120,10 +136,12 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "|1|2|null|121"
                 };
         String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
+        String[] expectedColumnTypes =new String[]{"INTEGER","INTEGER","INTEGER","INTEGER"};        
         int expectedNumberOfRows = 11;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1);
+                WITH_QUERY, maxRetries-1,expectedColumnTypes);
     }
+    
     private void testPersistentNonRecursiveTableInCreateView() throws Exception {    
         String SETUP_SQL = ""
                 +"DROP VIEW IF EXISTS v_my_nr_tree;                                                            \n"
@@ -158,8 +176,9 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "|121|0|12|121",
                 };
         String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
+        String[] expectedColumnTypes =new String[]{"INTEGER","INTEGER","INTEGER","INTEGER"};        
         int expectedNumberOfRows = 5;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1);
+                WITH_QUERY, maxRetries-1, expectedColumnTypes);
     }
 }

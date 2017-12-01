@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.h2.api.ErrorCode;
+import org.h2.command.Parser;
 import org.h2.command.Prepared;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
@@ -713,9 +714,32 @@ public class TableView extends Table {
             ArrayList<Parameter> parameters, Column[] columnTemplates, Session session,
             boolean literalsChecked, boolean isTableExpression, boolean isPersistent, Database db){
         
+
+        Table recursiveTable = Parser.createShadowTableForRecursiveTableExpression(isPersistent, session, name,
+                schema, Arrays.asList(columnTemplates), db);
+
+        List<Column> columnTemplateList;
+        String[] querySQLOutput = new String[]{null};
+        ArrayList<String> columnNames = new ArrayList<String>();
+        for(Column columnTemplate: columnTemplates){
+            columnNames.add(columnTemplate.getName());
+        }
+        
+        try {
+            Prepared withQuery = session.prepare(querySQL, false, false);
+            if(isPersistent){
+                withQuery.setSession(session);
+            }            
+            columnTemplateList = Parser.createQueryColumnTemplateList(columnNames.toArray(new String[1]), 
+                    (Query) withQuery, querySQLOutput);
+
+        } finally {
+            Parser.destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
+        }
+        
         // build with recursion turned on
         TableView view = new TableView(schema, id, name, querySQL,
-                parameters, columnTemplates, session,
+                parameters, columnTemplateList.toArray(columnTemplates), session,
                 true/* try recursive */, literalsChecked, isTableExpression, isPersistent );
 
         // is recursion really detected ? if not - recreate it without recursion flag and no recursive index

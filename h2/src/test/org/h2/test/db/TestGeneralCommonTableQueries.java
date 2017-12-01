@@ -41,7 +41,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         testMerge();
         testCreateTable();
         testNestedSQL();
-        testRecursiveTable();
+        testLazyQueryExecutionAndRecursiveTable();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -469,66 +469,27 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
-    private void testRecursiveTable() throws Exception {
-        String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
-        String[] expectedColumnNames =new String[]{"VAL",
-                "SUM(SELECT\n" +
-                "    X\n" +
-                "FROM PUBLIC.\"\" BB\n" +
-                "    /* SELECT\n" +
-                "        SUM(1) AS X,\n" +
-                "        A\n" +
-                "    FROM PUBLIC.B\n" +
-                "        /++ PUBLIC.B.tableScan ++/\n" +
-                "        /++ WHERE A IS ?1\n" +
-                "        ++/\n" +
-                "        /++ scanCount: 4 ++/\n" +
-                "    INNER JOIN PUBLIC.C\n" +
-                "        /++ PUBLIC.C.tableScan ++/\n" +
-                "        ON 1=1\n" +
-                "    WHERE (A IS ?1)\n" +
-                "        AND (B.VAL = C.B)\n" +
-                "    GROUP BY A: A IS A.VAL\n" +
-                "     */\n" +
-                "    /* scanCount: 1 */\n" +
-                "WHERE BB.A IS A.VAL)"};
-        
-        String SETUP_SQL =
-                "DROP TABLE IF EXISTS A;                           "
-                +"DROP TABLE IF EXISTS B;                           "
-                +"DROP TABLE IF EXISTS C;                           "
-                +"CREATE TABLE A(VAL VARCHAR(255));                 "
-                +"CREATE TABLE B(A VARCHAR(255), VAL VARCHAR(255)); "
-                +"CREATE TABLE C(B VARCHAR(255), VAL VARCHAR(255)); "
-                +"                                                  "
-                +"INSERT INTO A VALUES('fruit');                    "
-                +"INSERT INTO B VALUES('fruit','apple');            "
-                +"INSERT INTO B VALUES('fruit','banana');           "
-                +"INSERT INTO C VALUES('apple', 'golden delicious');"
-                +"INSERT INTO C VALUES('apple', 'granny smith');    "
-                +"INSERT INTO C VALUES('apple', 'pippin');          "
-                +"INSERT INTO A VALUES('veg');                      "
-                +"INSERT INTO B VALUES('veg', 'carrot');            "
-                +"INSERT INTO C VALUES('carrot', 'nantes');         "
-                +"INSERT INTO C VALUES('carrot', 'imperator');      "
-                +"INSERT INTO C VALUES(null, 'banapple');           "
-                +"INSERT INTO A VALUES('meat');                     "
+    
+    private void testLazyQueryExecutionAndRecursiveTable() throws Exception {
+                
+        String[] expectedRowData =new String[]{"|1","|2","|3"};
+        String[] expectedColumnTypes =new String[]{"INTEGER"};
+        String[] expectedColumnNames =new String[]{"N"};
+        //Test lazy mvStore memory mvcc multiThreaded 
+        String SETUP_SQL = "SET LAZY_QUERY_EXECUTION 1;\n"
+                //+ "SET MEMORY 1;SET MV_STORE true; SET MVCC TRUE;"
+                //+ "SET MULTI_THREADED TRUE;"
                 ;
-            String WITH_QUERY = "WITH BB as (SELECT                        \n" +
-                "sum(1) as X,                             \n" +
-                "a                                        \n" +
-                "FROM B                                   \n" +
-                "JOIN C ON B.val=C.b                      \n" +
-                "GROUP BY a)                              \n" +
-                "SELECT                                   \n" +
-                "A.val,                                   \n" +
-                "sum(SELECT X FROM BB WHERE BB.a IS A.val)\n" +
-                "FROM A                                   \n" + "GROUP BY A.val";
+            String WITH_QUERY = "with recursive r(n) as (\n"+
+                    "(select 1) union all (select n+1 from r where n < 3)\n"+
+                    ")\n"+
+                    "select n from r";
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;
             
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1);
+                WITH_QUERY, maxRetries-1, expectedColumnTypes);
             
-    }
+    }    
+
 }

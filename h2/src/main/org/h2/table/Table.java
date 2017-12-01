@@ -161,6 +161,7 @@ public abstract class Table extends SchemaObjectBase {
      * @param key the primary key
      * @return the row
      */
+    @SuppressWarnings("unused")
     public Row getRow(Session session, long key) {
         return null;
     }

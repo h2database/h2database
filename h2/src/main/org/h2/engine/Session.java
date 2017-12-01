@@ -6,7 +6,6 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
-import java.util.EmptyStackException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -229,7 +228,7 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
-    public void setParsingView(boolean parsingView, String viewName) {
+    public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
         assert this.parsingView >= 0;
@@ -241,16 +240,14 @@ public class Session extends SessionWithState {
             viewNameStack.pop();
         }        
     }
-    public String getParsingViewName() {
-        try{
-        return viewNameStack.peek();
-        }
-        catch(EmptyStackException e){
+    public String getParsingCreateViewName() {
+        if(viewNameStack.size()==0){
             return null;
         }
+        return viewNameStack.peek();
     }
 
-    public boolean isParsingView() {
+    public boolean isParsingCreateView() {
         assert parsingView >= 0;
         return parsingView != 0;
     }

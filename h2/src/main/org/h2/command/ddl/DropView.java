@@ -77,7 +77,6 @@ public class DropView extends SchemaCommand {
             
             view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);
-            session.getDatabase().unlockMeta(session);
 
             // remove dependent table expressions
             for( Table childTable: copyOfDependencies){
@@ -88,6 +87,8 @@ public class DropView extends SchemaCommand {
                     }
                 }
             }
+            // make sure its all unlocked
+            session.getDatabase().unlockMeta(session);
         }
         return 0;
     }

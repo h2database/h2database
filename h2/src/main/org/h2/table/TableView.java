@@ -112,11 +112,11 @@ public class TableView extends Table {
 
     private Query compileViewQuery(Session session, String sql, boolean literalsChecked, String viewName) {
         Prepared p;
-        session.setParsingView(true,viewName);
+        session.setParsingCreateView(true,viewName);
         try {
             p = session.prepare(sql, false, literalsChecked);
         } finally {
-            session.setParsingView(false,viewName);
+            session.setParsingCreateView(false,viewName);
         }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);

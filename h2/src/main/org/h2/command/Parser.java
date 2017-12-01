@@ -5167,9 +5167,8 @@ public class Parser {
         
         // this WITH statement is not a temporary view - it is part of a persistent view
         // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition
-        if(session.isParsingView()){
+        if(session.isParsingCreateView()){
             isPersistent = true;
-            System.out.println("getParsingViewName="+session.getParsingViewName());
         }
         
         do {
@@ -5177,6 +5176,10 @@ public class Parser {
         } while (readIf(","));
 
         Prepared p = null;
+        // reverse the order of constructed CTE views - as the destruction order
+        // (since later created view may depend on previously created views - 
+        //  we preserve that dependency order in the destruction sequence )
+        // used in setCteCleanups
         Collections.reverse(viewsCreated);
 
         if(isToken("SELECT")) {
@@ -5224,13 +5227,12 @@ public class Parser {
     }
 
     private TableView parseSingleCommonTableExpression(boolean isPersistent) {
-        Session targetSession = session;
         String cteViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
         Table recursiveTable=null;
         ArrayList<Column> columns = New.arrayList();
         String[] cols = null;
-        Database db = targetSession.getDatabase();
+        Database db = session.getDatabase();
         
         // column names are now optional - they can be inferred from the named
         // query, if not supplied by user
@@ -5245,10 +5247,10 @@ public class Parser {
         
         Table oldViewFound = null;
         if(isPersistent){
-            oldViewFound = getSchema().findTableOrView(targetSession, cteViewName);
+            oldViewFound = getSchema().findTableOrView(session, cteViewName);
         }
         else{
-            oldViewFound = targetSession.findLocalTempTable(cteViewName);
+            oldViewFound = session.findLocalTempTable(cteViewName);
         }
         // this persistent check conflicts with check 10 lines down
         if (oldViewFound != null) {
@@ -5262,11 +5264,11 @@ public class Parser {
                         cteViewName);
             }
             if(isPersistent){
-                oldViewFound.lock(targetSession, true, true);
-                targetSession.getDatabase().removeSchemaObject(targetSession, oldViewFound);                
+                oldViewFound.lock(session, true, true);
+                session.getDatabase().removeSchemaObject(session, oldViewFound);                
                 
             }else{
-                targetSession.removeLocalTempTable(oldViewFound);
+                session.removeLocalTempTable(oldViewFound);
             }
             oldViewFound=null;
         }
@@ -5276,7 +5278,7 @@ public class Parser {
         // to work (its removed after creation in this method)
         // only create table data and table if we don't have a working CTE already
         if(oldViewFound == null){
-            recursiveTable = createShadowTableForRecursiveTableExpression(isPersistent, targetSession, cteViewName,
+            recursiveTable = createShadowTableForRecursiveTableExpression(isPersistent, session, cteViewName,
                     schema, columns, db);
         }
         List<Column> columnTemplateList;
@@ -5286,20 +5288,20 @@ public class Parser {
             read("(");
             Query withQuery = parseSelect();
             if(isPersistent){
-                withQuery.session = targetSession;
+                withQuery.session = session;
             }            
             read(")");
             columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
-            destroyShadowTableForRecursiveExpression(isPersistent, targetSession, recursiveTable);
+            destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
         }
 
         TableView view = createCTEView(cteViewName,
                 querySQLOutput[0], columnTemplateList,
                 true/* allowRecursiveQueryDetection */, 
                 true/* add to session */, 
-                isPersistent, targetSession);
+                isPersistent, session);
         
         return view;
     }
@@ -5452,12 +5454,12 @@ public class Parser {
         read("AS");
         try {
             Query query;
-            session.setParsingView(true,viewName);
+            session.setParsingCreateView(true,viewName);
             try {
                 query = parseSelect();
                 query.prepare();
             } finally {
-                session.setParsingView(false,viewName);
+                session.setParsingCreateView(false,viewName);
             }
             command.setSelect(query);
         } catch (DbException e) {

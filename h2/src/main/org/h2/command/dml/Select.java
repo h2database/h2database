@@ -875,7 +875,7 @@ public class Select extends Query {
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
-        cost = preparePlan(session.isParsingView());
+        cost = preparePlan(session.isParsingCreateView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
                 !isGroupQuery && filters.size() == 1 &&
                 expressions.size() == 1 && condition == null) {
@@ -1087,7 +1087,7 @@ public class Select extends Query {
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
             TableView tableView = (t instanceof TableView) ? (TableView) t : null;
-            if (tableView!=null && tableView.isView() && tableView.isRecursive() && tableView.isTableExpression()) {
+            if (tableView!=null && tableView.isRecursive() && tableView.isTableExpression()) {
                 
                 if(tableView.isPersistent()){
                     // skip the generation of plan SQL for this already recursive persistent ctes, since using a with 

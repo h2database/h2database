@@ -41,7 +41,7 @@ public class Update extends Prepared {
     private TableFilter targetTableFilter;// target of update
     /**
      * This table filter is for MERGE..USING support - not used in stand-alone DML
-     */    
+     */
     private TableFilter sourceTableFilter;
 
     /** The limit expression as specified in the LIMIT clause. */
@@ -61,7 +61,7 @@ public class Update extends Prepared {
     public void setCondition(Expression condition) {
         this.condition = condition;
     }
-    
+
     public Expression getCondition( ) {
         return this.condition;
     }

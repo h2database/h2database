@@ -124,7 +124,7 @@ public class TestAlter extends TestBase {
             execute("alter table test drop column b");
         stat.execute("alter table test drop (d)");
         stat.execute("drop table test");
-        // Test-Case: Error if dropping all columns 
+        // Test-Case: Error if dropping all columns
         stat.execute("create table test(id int, name varchar, name2 varchar)");
         assertThrows(ErrorCode.CANNOT_DROP_LAST_COLUMN, stat).
             execute("alter table test drop column id, name, name2");
@@ -218,7 +218,7 @@ public class TestAlter extends TestBase {
     }
 
 
-    
+
     // column and field names must be upper-case due to getMetaData sensitivity
     private void testAlterTableAddMultipleColumnsBefore() throws SQLException {
         stat.execute("create table T(X varchar)");
@@ -294,10 +294,10 @@ public class TestAlter extends TestBase {
         stat.execute("insert into t values('Hello')");
         stat.execute("drop table t");
     }
-    
+
     /**
-     * Test for fix "Change not-null / null -constraint to existing column" 
-     * (MySql/ORACLE - SQL style) that failed silently corrupting the changed 
+     * Test for fix "Change not-null / null -constraint to existing column"
+     * (MySql/ORACLE - SQL style) that failed silently corrupting the changed
      * column.<br/>
      * Before the change (added after v1.4.196) following was observed:
      * <pre>
@@ -311,7 +311,7 @@ public class TestAlter extends TestBase {
         stat.execute("alter table T modify C int null");
         stat.execute("insert into T values(null)");
         stat.execute("drop table T");
-        // This failed in v1.4.196 
+        // This failed in v1.4.196
         stat.execute("create table T (C int not null)");
         stat.execute("alter table T modify C null"); // Silently corrupted column C
         stat.execute("insert into T values(null)"); // <- Fixed in v1.4.196 - NULL is allowed

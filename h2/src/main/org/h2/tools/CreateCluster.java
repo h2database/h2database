@@ -103,16 +103,13 @@ public class CreateCluster extends Tool {
             String user, String password, String serverList) throws SQLException {
         org.h2.Driver.load();
 
-        try (Connection connSource = DriverManager.getConnection(
-                     // use cluster='' so connecting is possible
-                     // even if the cluster is enabled
-                     urlSource + ";CLUSTER=''", user, password);
-             Statement statSource = connSource.createStatement())
-        {
+        // use cluster='' so connecting is possible
+        // even if the cluster is enabled
+        try (Connection connSource = DriverManager.getConnection(urlSource + ";CLUSTER=''", user, password);
+                Statement statSource = connSource.createStatement()) {
             // enable the exclusive mode and close other connections,
             // so that data can't change while restoring the second database
             statSource.execute("SET EXCLUSIVE 2");
-
             try {
                 performTransfer(statSource, urlTarget, user, password, serverList);
             } finally {
@@ -122,14 +119,12 @@ public class CreateCluster extends Tool {
         }
     }
 
-    private static void performTransfer(Statement statSource, String urlTarget,
-            String user, String password, String serverList) throws SQLException {
+    private static void performTransfer(Statement statSource, String urlTarget, String user, String password,
+            String serverList) throws SQLException {
 
         // Delete the target database first.
-        try (Connection connTarget = DriverManager.getConnection(
-                     urlTarget + ";CLUSTER=''", user, password);
-             Statement statTarget = connTarget.createStatement())
-        {
+        try (Connection connTarget = DriverManager.getConnection(urlTarget + ";CLUSTER=''", user, password);
+                Statement statTarget = connTarget.createStatement()) {
             statTarget.execute("DROP ALL OBJECTS DELETE FILES");
         }
 
@@ -137,10 +132,8 @@ public class CreateCluster extends Tool {
             Future<?> threadFuture = startWriter(pipeReader, statSource);
 
             // Read data from pipe reader, restore on target.
-            try (Connection connTarget = DriverManager.getConnection(
-                         urlTarget, user, password);
-                 Statement statTarget = connTarget.createStatement())
-            {
+            try (Connection connTarget = DriverManager.getConnection(urlTarget, user, password);
+                    Statement statTarget = connTarget.createStatement()) {
                 RunScript.execute(connTarget, pipeReader);
 
                 // Check if the writer encountered any exception
@@ -170,17 +163,13 @@ public class CreateCluster extends Tool {
         Future<?> threadFuture = thread.submit(new Runnable() {
             @Override
             public void run() {
-                /*
-                 * If the creation of the piped writer fails, the reader will
-                 * throw an IOException as soon as read() is called:
-                 * IOException - if the pipe is broken, unconnected, closed,
-                 * or an I/O error occurs.
-                 * The reader's IOException will then trigger the finally{} that
-                 * releases exclusive mode on the source DB.
-                 */
+                // If the creation of the piped writer fails, the reader will
+                // throw an IOException as soon as read() is called: IOException
+                // - if the pipe is broken, unconnected, closed, or an I/O error
+                // occurs. The reader's IOException will then trigger the
+                // finally{} that releases exclusive mode on the source DB.
                 try (final PipedWriter pipeWriter = new PipedWriter(pipeReader);
-                     final ResultSet rs = statSource.executeQuery("SCRIPT"))
-                {
+                        final ResultSet rs = statSource.executeQuery("SCRIPT")) {
                     while (rs.next()) {
                         pipeWriter.write(rs.getString(1) + "\n");
                     }

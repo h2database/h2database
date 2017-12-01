@@ -5,17 +5,12 @@
  */
 package org.h2.test.db;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import org.h2.test.TestBase;
 
 /**
  * Test persistent common table expressions queries using WITH.
  */
-public class TestPersistentCommonTableExpressions extends TestBase {
+public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonTableExpressions {
 
     /**
      * Run just this test.
@@ -166,56 +161,5 @@ public class TestPersistentCommonTableExpressions extends TestBase {
         int expectedNumberOfRows = 5;
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
                 WITH_QUERY, maxRetries-1);
-    }    
-    
-    private void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
-            int expectedNumbeOfRows, String SETUP_SQL, String WITH_QUERY, int closeAndReopenDatabaseConnectionOnIteration) throws SQLException {
-
-        deleteDb("commonTableExpressionQueries");
-        Connection conn = getConnection("commonTableExpressionQueries");
-        PreparedStatement prep;
-        ResultSet rs;
-
-        
-        for(int queryRunTries=1;queryRunTries<=maxRetries;queryRunTries++){
-
-            Statement stat = conn.createStatement();
-            stat.execute(SETUP_SQL);
-            stat.close();
-
-            // close and re-open connection for one iteration to make sure the query work between connections
-            if(queryRunTries==closeAndReopenDatabaseConnectionOnIteration){
-                conn.close();
-                
-                conn = getConnection("commonTableExpressionQueries");
-            }
-            prep = conn.prepareStatement(WITH_QUERY);
-
-            rs = prep.executeQuery();
-            for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
-
-                assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
-                assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
-            }
-
-            int rowNdx=0;
-            while (rs.next()) {
-                StringBuffer buf = new StringBuffer();
-                for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
-                    buf.append("|"+rs.getString(columnIndex));
-                }
-                assertEquals(expectedRowData[rowNdx], buf.toString());
-                rowNdx++;
-            }
-
-            assertEquals(expectedNumbeOfRows,rowNdx);
-
-            rs.close();
-            prep.close();
-        }
-
-        conn.close();
-        deleteDb("commonTableExpressionQueries");
-
     }
 }

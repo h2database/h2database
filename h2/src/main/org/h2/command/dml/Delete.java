@@ -52,7 +52,7 @@ public class Delete extends Prepared {
     public void setCondition(Expression condition) {
         this.condition = condition;
     }
-    
+
     public Expression getCondition( ) {
         return this.condition;
     }
@@ -137,7 +137,7 @@ public class Delete extends Prepared {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0);
             if(sourceTableFilter!=null){
-                condition.mapColumns(sourceTableFilter, 0);                
+                condition.mapColumns(sourceTableFilter, 0);
             }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
@@ -180,7 +180,7 @@ public class Delete extends Prepared {
     }
 
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
-        this.sourceTableFilter = sourceTableFilter;        
+        this.sourceTableFilter = sourceTableFilter;
     }
 
     public TableFilter getTableFilter() {

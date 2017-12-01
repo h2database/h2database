@@ -20,8 +20,8 @@ public class CheckTextFiles {
     private static final int MAX_SOURCE_LINE_SIZE = 120;
 
     // must contain "+" otherwise this here counts as well
-    private static final String COPYRIGHT = "Copyright 2004-2014 " +
-            "H2 Group.";
+    private static final String COPYRIGHT1 = "Copyright 2004-201";
+    private static final String COPYRIGHT2 = "H2 Group.";
     private static final String LICENSE = "Multiple-Licensed " +
             "under the MPL 2.0";
 
@@ -144,10 +144,13 @@ public class CheckTextFiles {
         in.readFully(data);
         in.close();
         if (checkLicense) {
-            if (data.length > COPYRIGHT.length() + LICENSE.length()) {
+            if (data.length > COPYRIGHT1.length() + LICENSE.length()) {
                 // don't check tiny files
                 String text = new String(data);
-                if (text.indexOf(COPYRIGHT) < 0) {
+                if (text.indexOf(COPYRIGHT1) < 0) {
+                    fail(file, "copyright is missing", 0);
+                }
+                if (text.indexOf(COPYRIGHT2) < 0) {
                     fail(file, "copyright is missing", 0);
                 }
                 if (text.indexOf(LICENSE) < 0) {

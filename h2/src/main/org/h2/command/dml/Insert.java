@@ -49,7 +49,7 @@ public class Insert extends Prepared implements ResultTarget {
     private boolean insertFromSelect;
     /**
      * This table filter is for MERGE..USING support - not used in stand-alone DML
-     */    
+     */
     private TableFilter sourceTableFilter;
 
     /**
@@ -404,7 +404,7 @@ public class Insert extends Prepared implements ResultTarget {
     }
 
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
-        this.sourceTableFilter = sourceTableFilter;        
+        this.sourceTableFilter = sourceTableFilter;
     }
 
 }

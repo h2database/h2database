@@ -1417,23 +1417,19 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(date, ToDateParser.toDate("113029", "J"));
 
         if (Locale.getDefault() == Locale.ENGLISH) {
-          date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-                .parse("9999-12-31T23:59:59");
-          assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59",
-                "DD-MON-YYYY HH24:MI:SS"));
-          assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59",
-                "DD-MON-RRRR HH24:MI:SS"));
-
-          SimpleDateFormat ymd = new SimpleDateFormat("yyyy-MM-dd");
-          assertEquals(ymd.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("9999-03-01"), ToDateParser.toDate("1-MAR-9999", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-000", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-099", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("0100-03-01"), ToDateParser.toDate("1-MAR-100", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-00", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("2049-03-01"), ToDateParser.toDate("1-MAR-49", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("1950-03-01"), ToDateParser.toDate("1-MAR-50", "DD-MON-RRRR"));
-          assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-99", "DD-MON-RRRR"));
+            date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse("9999-12-31T23:59:59");
+            assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59", "DD-MON-YYYY HH24:MI:SS"));
+            assertEquals(date, ToDateParser.toDate("31-DEC-9999 23:59:59", "DD-MON-RRRR HH24:MI:SS"));
+            SimpleDateFormat ymd = new SimpleDateFormat("yyyy-MM-dd");
+            assertEquals(ymd.parse("0001-03-01"), ToDateParser.toDate("1-MAR-0001", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("9999-03-01"), ToDateParser.toDate("1-MAR-9999", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-000", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-099", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("0100-03-01"), ToDateParser.toDate("1-MAR-100", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("2000-03-01"), ToDateParser.toDate("1-MAR-00", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("2049-03-01"), ToDateParser.toDate("1-MAR-49", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("1950-03-01"), ToDateParser.toDate("1-MAR-50", "DD-MON-RRRR"));
+            assertEquals(ymd.parse("1999-03-01"), ToDateParser.toDate("1-MAR-99", "DD-MON-RRRR"));
         }
     }
 
@@ -1734,22 +1730,22 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(12345, '$9999') FROM DUAL");
         String expected = String.format("%,d", 12345);
         if (Locale.getDefault() == Locale.ENGLISH) {
-          assertResult(String.format("%5s12345", cs), stat,
+            assertResult(String.format("%5s12345", cs), stat,
                     "SELECT TO_CHAR(12345, '$99999999') FROM DUAL");
-          assertResult(String.format("%6s12,345.35", cs), stat,
+            assertResult(String.format("%6s12,345.35", cs), stat,
                     "SELECT TO_CHAR(12345.345, '$99,999,999.99') FROM DUAL");
-          assertResult(String.format("%5s%s", cs, expected), stat,
-                "SELECT TO_CHAR(12345.345, '$99g999g999') FROM DUAL");
-          assertResult("          " + cs + "123.45", stat,
-                  "SELECT TO_CHAR(123.45, 'L999.99') FROM DUAL");
-          assertResult("         -" + cs + "123.45", stat,
-                  "SELECT TO_CHAR(-123.45, 'L999.99') FROM DUAL");
-          assertResult(cs + "123.45", stat,
-                  "SELECT TO_CHAR(123.45, 'FML999.99') FROM DUAL");
-          assertResult("          " + cs + "123.45", stat,
-                  "SELECT TO_CHAR(123.45, 'U999.99') FROM DUAL");
-          assertResult("          " + cs + "123.45", stat,
-                  "SELECT TO_CHAR(123.45, 'u999.99') FROM DUAL");
+            assertResult(String.format("%5s%s", cs, expected), stat,
+                    "SELECT TO_CHAR(12345.345, '$99g999g999') FROM DUAL");
+            assertResult("          " + cs + "123.45", stat,
+                    "SELECT TO_CHAR(123.45, 'L999.99') FROM DUAL");
+            assertResult("         -" + cs + "123.45", stat,
+                    "SELECT TO_CHAR(-123.45, 'L999.99') FROM DUAL");
+            assertResult(cs + "123.45", stat,
+                    "SELECT TO_CHAR(123.45, 'FML999.99') FROM DUAL");
+            assertResult("          " + cs + "123.45", stat,
+                    "SELECT TO_CHAR(123.45, 'U999.99') FROM DUAL");
+            assertResult("          " + cs + "123.45", stat,
+                    "SELECT TO_CHAR(123.45, 'u999.99') FROM DUAL");
 
         }
         assertResult("     12,345.35", stat,
@@ -2130,12 +2126,12 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 getClass().getName() + ".currentTimestamp\"");
 
         stat.execute("set BUILTIN_ALIAS_OVERRIDE true");
-        
+
         stat.execute("create alias CURRENT_TIMESTAMP for \"" +
                 getClass().getName() + ".currentTimestampOverride\"");
-        
+
         assertCallResult("3141", stat, "CURRENT_TIMESTAMP");
-        
+
         conn.close();
     }
 
@@ -2456,7 +2452,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         }
         return new Object[] { buff.toString() };
     }
-    
+
     /**
      * This method is called via reflection from the database.
      */

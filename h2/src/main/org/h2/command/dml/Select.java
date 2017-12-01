@@ -840,7 +840,7 @@ public class Select extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        ColumnNamer columnNamer= new ColumnNamer(session);        
+        ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
             String proposedColumnName = e.getAlias();

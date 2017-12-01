@@ -333,26 +333,20 @@ public class AlterTableAddConstraint extends SchemaCommand {
 
     // all cols must be in the index key, the order doesn't matter and there
     // must be no other fields in the index key
-    private static boolean canUseUniqueIndex(Index idx, Table table,
-        IndexColumn[] cols) {
+    private static boolean canUseUniqueIndex(Index idx, Table table, IndexColumn[] cols) {
         if (idx.getTable() != table || !idx.getIndexType().isUnique()) {
             return false;
         }
         Column[] indexCols = idx.getColumns();
-
         HashSet<Column> indexColsSet = New.hashSet();
-
         for (Column c : indexCols) {
             indexColsSet.add(c);
         }
-
         HashSet<Column> colsSet = New.hashSet();
-
         for (IndexColumn c : cols) {
             colsSet.add(c.column);
         }
-
-      return colsSet.equals(indexColsSet);
+        return colsSet.equals(indexColsSet);
     }
 
     private static boolean canUseIndex(Index existingIndex, Table table,

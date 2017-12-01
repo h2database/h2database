@@ -36,7 +36,7 @@ public class SelectListColumnResolver implements ColumnResolver {
         columns = new Column[columnCount];
         expressions = new Expression[columnCount];
         ArrayList<Expression> columnList = select.getExpressions();
-        ColumnNamer columnNamer= new ColumnNamer(select.getSession());                
+        ColumnNamer columnNamer= new ColumnNamer(select.getSession());
         for (int i = 0; i < columnCount; i++) {
             Expression expr = columnList.get(i);
             String columnName = columnNamer.getColumnName(expr, i, expr.getAlias());

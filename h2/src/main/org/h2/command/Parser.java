@@ -43,7 +43,6 @@ import org.h2.command.ddl.CreateSchema;
 import org.h2.command.ddl.CreateSequence;
 import org.h2.command.ddl.CreateSynonym;
 import org.h2.command.ddl.CreateTable;
-import org.h2.command.ddl.CreateTableData;
 import org.h2.command.ddl.CreateTrigger;
 import org.h2.command.ddl.CreateUser;
 import org.h2.command.ddl.CreateUserDataType;
@@ -143,7 +142,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableFilter.TableFilterVisitor;
 import org.h2.table.TableView;
-import org.h2.util.ColumnNamer;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -1138,7 +1136,7 @@ public class Parser {
             command.setQueryAlias(readFromAlias(null, Arrays.asList("ON")));
 
             String[] querySQLOutput = new String[]{null};
-            List<Column> columnTemplateList = createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
+            List<Column> columnTemplateList = TableView.createQueryColumnTemplateList(null, command.getQuery(), querySQLOutput);
             TableView temporarySourceTableView = createCTEView(
                     command.getQueryAlias(), querySQLOutput[0],
                     columnTemplateList, false/* no recursion */,
@@ -5162,7 +5160,7 @@ public class Parser {
         readIf("RECURSIVE");
         
         // this WITH statement might not be a temporary view - allow optional keyword to tell us that
-        // this keyword. This is a work in progress feature and will not be documented
+        // this keyword. This feature will not be documented - H2 internal use only.
         boolean isPersistent = readIf("PERSISTENT");
         
         // this WITH statement is not a temporary view - it is part of a persistent view
@@ -5278,7 +5276,7 @@ public class Parser {
         // to work (its removed after creation in this method)
         // only create table data and table if we don't have a working CTE already
         if(oldViewFound == null){
-            recursiveTable = createShadowTableForRecursiveTableExpression(isPersistent, session, cteViewName,
+            recursiveTable = TableView.createShadowTableForRecursiveTableExpression(isPersistent, session, cteViewName,
                     schema, columns, db);
         }
         List<Column> columnTemplateList;
@@ -5291,10 +5289,10 @@ public class Parser {
                 withQuery.session = session;
             }            
             read(")");
-            columnTemplateList = createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
+            columnTemplateList = TableView.createQueryColumnTemplateList(cols, withQuery, querySQLOutput);
 
         } finally {
-            destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
+            TableView.destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
         }
 
         TableView view = createCTEView(cteViewName,
@@ -5304,85 +5302,6 @@ public class Parser {
                 isPersistent, session);
         
         return view;
-    }
-
-    public static void destroyShadowTableForRecursiveExpression(boolean isPersistent, Session targetSession,
-            Table recursiveTable) {
-        if(recursiveTable!=null){
-            if(isPersistent){
-                recursiveTable.lock(targetSession, true, true);
-                targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
-                
-            }else{
-                targetSession.removeLocalTempTable(recursiveTable);
-            }
-            
-            // both removeSchemaObject and removeLocalTempTable hold meta locks - release them here
-            targetSession.getDatabase().unlockMeta(targetSession);
-        }
-    }
-
-    public static Table createShadowTableForRecursiveTableExpression(boolean isPersistent, Session targetSession,
-            String cteViewName, Schema schema, List<Column> columns, Database db) {
-        
-        // create table data object
-        CreateTableData recursiveTableData = new CreateTableData();
-        recursiveTableData.id = db.allocateObjectId();
-        recursiveTableData.columns = new ArrayList<Column>(columns);
-        recursiveTableData.tableName = cteViewName;
-        recursiveTableData.temporary = !isPersistent;
-        recursiveTableData.persistData = true;
-        recursiveTableData.persistIndexes = isPersistent;
-        recursiveTableData.create = true;
-        recursiveTableData.session = targetSession;
-        
-        // this gets a meta table lock that is not released
-        Table recursiveTable = schema.createTable(recursiveTableData);
-        
-        if(isPersistent){
-            // this unlock is to prevent lock leak from schema.createTable()
-            db.unlockMeta(targetSession);
-            synchronized (targetSession) {
-                db.addSchemaObject(targetSession, recursiveTable);
-            }
-        }else{
-            targetSession.addLocalTempTable(recursiveTable);
-        }
-        return recursiveTable;
-    }
-
-    /**
-     * Creates a list of column templates from a query (usually from WITH query,
-     * but could be any query)
-     *
-     * @param cols - an optional list of column names (can be specified by WITH
-     *            clause overriding usual select names)
-     * @param theQuery - the query object we want the column list for
-     * @param querySQLOutput - array of length 1 to receive extra 'output' field
-     *            in addition to return value - containing the SQL query of the
-     *            Query object
-     * @return a list of column object returned by withQuery
-     */
-    public static List<Column> createQueryColumnTemplateList(String[] cols,
-            Query theQuery, String[] querySQLOutput) {
-        List<Column> columnTemplateList = new ArrayList<>();
-        theQuery.prepare();
-        // String array of length 1 is to receive extra 'output' field in addition to
-        // return value
-        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
-        ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
-        ArrayList<Expression> withExpressions = theQuery.getExpressions();
-        for (int i = 0; i < withExpressions.size(); ++i) {
-            Expression columnExp = withExpressions.get(i);
-            // use the passed in column name if supplied, otherwise use alias
-            // (if found) otherwise use column name derived from column
-            // expression
-            String columnName = columnNamer.getColumnName(columnExp,i,cols);
-            columnTemplateList.add(new Column(columnName,
-                    columnExp.getType()));
-
-        }
-        return columnTemplateList;
     }
 
     private TableView createCTEView(String cteViewName,  String querySQL,

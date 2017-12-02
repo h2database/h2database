@@ -11,8 +11,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import org.h2.api.ErrorCode;
-import org.h2.command.Parser;
 import org.h2.command.Prepared;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -709,13 +709,17 @@ public class TableView extends Table {
     public List<Table> getTables(){
         return tables;
     }
+
+    public boolean isPersistent() {
+        return isPersistent;
+    }
     
     public static TableView createTableViewMaybeRecursive(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> parameters, Column[] columnTemplates, Session session,
             boolean literalsChecked, boolean isTableExpression, boolean isPersistent, Database db){
         
 
-        Table recursiveTable = Parser.createShadowTableForRecursiveTableExpression(isPersistent, session, name,
+        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(isPersistent, session, name,
                 schema, Arrays.asList(columnTemplates), db);
 
         List<Column> columnTemplateList;
@@ -730,11 +734,11 @@ public class TableView extends Table {
             if(isPersistent){
                 withQuery.setSession(session);
             }            
-            columnTemplateList = Parser.createQueryColumnTemplateList(columnNames.toArray(new String[1]), 
+            columnTemplateList = TableView.createQueryColumnTemplateList(columnNames.toArray(new String[1]), 
                     (Query) withQuery, querySQLOutput);
 
         } finally {
-            Parser.destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
+            TableView.destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
         }
         
         // build with recursion turned on
@@ -763,7 +767,83 @@ public class TableView extends Table {
         return view;
     }
 
-    public boolean isPersistent() {
-        return isPersistent;
+
+    /**
+     * Creates a list of column templates from a query (usually from WITH query,
+     * but could be any query)
+     *
+     * @param cols - an optional list of column names (can be specified by WITH
+     *            clause overriding usual select names)
+     * @param theQuery - the query object we want the column list for
+     * @param querySQLOutput - array of length 1 to receive extra 'output' field
+     *            in addition to return value - containing the SQL query of the
+     *            Query object
+     * @return a list of column object returned by withQuery
+     */
+    public static List<Column> createQueryColumnTemplateList(String[] cols,
+            Query theQuery, String[] querySQLOutput) {
+        List<Column> columnTemplateList = new ArrayList<>();
+        theQuery.prepare();
+        // String array of length 1 is to receive extra 'output' field in addition to
+        // return value
+        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
+        ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
+        ArrayList<Expression> withExpressions = theQuery.getExpressions();
+        for (int i = 0; i < withExpressions.size(); ++i) {
+            Expression columnExp = withExpressions.get(i);
+            // use the passed in column name if supplied, otherwise use alias
+            // (if found) otherwise use column name derived from column
+            // expression
+            String columnName = columnNamer.getColumnName(columnExp,i,cols);
+            columnTemplateList.add(new Column(columnName,
+                    columnExp.getType()));
+    
+        }
+        return columnTemplateList;
+    }
+
+    public static Table createShadowTableForRecursiveTableExpression(boolean isPersistent, Session targetSession,
+            String cteViewName, Schema schema, List<Column> columns, Database db) {
+        
+        // create table data object
+        CreateTableData recursiveTableData = new CreateTableData();
+        recursiveTableData.id = db.allocateObjectId();
+        recursiveTableData.columns = new ArrayList<Column>(columns);
+        recursiveTableData.tableName = cteViewName;
+        recursiveTableData.temporary = !isPersistent;
+        recursiveTableData.persistData = true;
+        recursiveTableData.persistIndexes = isPersistent;
+        recursiveTableData.create = true;
+        recursiveTableData.session = targetSession;
+        
+        // this gets a meta table lock that is not released
+        Table recursiveTable = schema.createTable(recursiveTableData);
+        
+        if(isPersistent){
+            // this unlock is to prevent lock leak from schema.createTable()
+            db.unlockMeta(targetSession);
+            synchronized (targetSession) {
+                db.addSchemaObject(targetSession, recursiveTable);
+            }
+        }else{
+            targetSession.addLocalTempTable(recursiveTable);
+        }
+        return recursiveTable;
+    }
+
+    public static void destroyShadowTableForRecursiveExpression(boolean isPersistent, Session targetSession,
+            Table recursiveTable) {
+        if(recursiveTable!=null){
+            if(isPersistent){
+                recursiveTable.lock(targetSession, true, true);
+                targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
+                
+            }else{
+                targetSession.removeLocalTempTable(recursiveTable);
+            }
+            
+            // both removeSchemaObject and removeLocalTempTable hold meta locks - release them here
+            targetSession.getDatabase().unlockMeta(targetSession);
+        }
     }
 }

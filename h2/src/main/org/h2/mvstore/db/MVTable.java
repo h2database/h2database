@@ -49,14 +49,30 @@ import org.h2.value.Value;
  */
 public class MVTable extends TableBase {
 
+    private static final String NO_EXTRA_INFO = "";
+
     // lock event types for tracing...
-    private static final String TRACE_LOCK_OK = "ok";
-    private static final String TRACE_LOCK_WAITING_FOR = "waiting for";
-    private static final String TRACE_LOCK_REQUESTING_FOR = "requesting for";
-    private static final String TRACE_LOCK_TIMEOUT_AFTER = "timeout after ";
-    private static final String TRACE_LOCK_UNLOCK = "unlock";
-    private static final String TRACE_LOCK_ADDED_FOR = "added for";
-    private static final String TRACE_LOCK_ADD_UPGRADED_FOR = "add (upgraded) for ";
+    
+    private enum TraceLockEvent{
+        
+        TRACE_LOCK_OK("ok"),
+        TRACE_LOCK_WAITING_FOR("waiting for"),
+        TRACE_LOCK_REQUESTING_FOR("requesting for"),
+        TRACE_LOCK_TIMEOUT_AFTER("timeout after "),
+        TRACE_LOCK_UNLOCK("unlock"),
+        TRACE_LOCK_ADDED_FOR("added for"),
+        TRACE_LOCK_ADD_UPGRADED_FOR("add (upgraded) for ");
+    
+        private TraceLockEvent(String eventText){
+            this.eventText = eventText;
+        }
+        
+        private final String eventText;
+        
+        public String getEventText(){
+            return eventText;
+        }
+    }
 
     /**
      * The table name this thread is waiting to lock.
@@ -201,7 +217,7 @@ public class MVTable extends TableBase {
     }
 
     private void doLock1(Session session, int lockMode, boolean exclusive) {
-        traceLock(session, exclusive, TRACE_LOCK_REQUESTING_FOR);
+        traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_REQUESTING_FOR, NO_EXTRA_INFO);
         // don't get the current time unless necessary
         long max = 0;
         boolean checkDeadlock = false;
@@ -228,11 +244,11 @@ public class MVTable extends TableBase {
                 max = now + TimeUnit.MILLISECONDS.toNanos(session.getLockTimeout());
             } else if (now >= max) {
                 traceLock(session, exclusive,
-                        TRACE_LOCK_TIMEOUT_AFTER + session.getLockTimeout());
+                        TraceLockEvent.TRACE_LOCK_TIMEOUT_AFTER, NO_EXTRA_INFO+session.getLockTimeout());
                 throw DbException.get(ErrorCode.LOCK_TIMEOUT_1, getName());
             }
             try {
-                traceLock(session, exclusive, TRACE_LOCK_WAITING_FOR);
+                traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_WAITING_FOR, NO_EXTRA_INFO);
                 if (database.getLockMode() == Constants.LOCK_MODE_TABLE_GC) {
                     for (int i = 0; i < 20; i++) {
                         long free = Runtime.getRuntime().freeMemory();
@@ -260,7 +276,7 @@ public class MVTable extends TableBase {
         if (exclusive) {
             if (lockExclusiveSession == null) {
                 if (lockSharedSessions.isEmpty()) {
-                    traceLock(session, exclusive, TRACE_LOCK_ADDED_FOR);
+                    traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADDED_FOR, NO_EXTRA_INFO);
                     session.addLock(this);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -272,7 +288,7 @@ public class MVTable extends TableBase {
                     return true;
                 } else if (lockSharedSessions.size() == 1 &&
                         lockSharedSessions.containsKey(session)) {
-                    traceLock(session, exclusive, TRACE_LOCK_ADD_UPGRADED_FOR);
+                    traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_ADD_UPGRADED_FOR, NO_EXTRA_INFO);
                     lockExclusiveSession = session;
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
                         if (EXCLUSIVE_LOCKS.get() == null) {
@@ -298,7 +314,7 @@ public class MVTable extends TableBase {
                     }
                 }
                 if (!lockSharedSessions.containsKey(session)) {
-                    traceLock(session, exclusive, TRACE_LOCK_OK);
+                    traceLock(session, exclusive, TraceLockEvent.TRACE_LOCK_OK, NO_EXTRA_INFO);
                     session.addLock(this);
                     lockSharedSessions.put(session, session);
                     if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
@@ -396,10 +412,10 @@ public class MVTable extends TableBase {
         }
     }
 
-    private void traceLock(Session session, boolean exclusive, String statusText) {
+    private void traceLock(Session session, boolean exclusive, TraceLockEvent eventEnum, String extraInfo) {
         if (traceLock.isDebugEnabled()) {
             traceLock.debug("{0} {1} {2} {3}", session.getId(),
-                    exclusive ? "exclusive write lock" : "shared read lock", statusText,
+                    exclusive ? "exclusive write lock" : "shared read lock", eventEnum.getEventText(),
                     getName());
         }
     }
@@ -417,7 +433,7 @@ public class MVTable extends TableBase {
     @Override
     public void unlock(Session s) {
         if (database != null) {
-            traceLock(s, lockExclusiveSession == s, TRACE_LOCK_UNLOCK);
+            traceLock(s, lockExclusiveSession == s, TraceLockEvent.TRACE_LOCK_UNLOCK, NO_EXTRA_INFO);
             if (lockExclusiveSession == s) {
                 lockExclusiveSession = null;
                 if (SysProperties.THREAD_DEADLOCK_DETECTOR) {

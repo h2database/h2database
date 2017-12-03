@@ -73,7 +73,7 @@ public class DateTimeUtils {
      * use a fixed value throughout the duration of the JVM's life, rather than
      * have this offset change, possibly midway through a long-running query.
      */
-    private static int zoneOffsetMillis = Calendar.getInstance()
+    private static int zoneOffsetMillis = DateTimeUtils.createCalendar()
             .get(Calendar.ZONE_OFFSET);
 
     private DateTimeUtils() {
@@ -86,7 +86,7 @@ public class DateTimeUtils {
      */
     public static void resetCalendar() {
         CACHED_CALENDAR.remove();
-        zoneOffsetMillis = Calendar.getInstance().get(Calendar.ZONE_OFFSET);
+        zoneOffsetMillis = DateTimeUtils.createCalendar().get(Calendar.ZONE_OFFSET);
     }
 
     /**
@@ -97,7 +97,7 @@ public class DateTimeUtils {
     private static Calendar getCalendar() {
         Calendar c = CACHED_CALENDAR.get();
         if (c == null) {
-            c = Calendar.getInstance();
+            c = DateTimeUtils.createCalendar();
             CACHED_CALENDAR.set(c);
         }
         c.clear();
@@ -113,11 +113,30 @@ public class DateTimeUtils {
     private static Calendar getCalendar(TimeZone tz) {
         Calendar c = CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.get();
         if (c == null || !c.getTimeZone().equals(tz)) {
-            c = Calendar.getInstance(tz);
+            c = DateTimeUtils.createCalendar(tz);
             CACHED_CALENDAR_NON_DEFAULT_TIMEZONE.set(c);
         }
         c.clear();
         return c;
+    }
+
+    /**
+     * Creates a calendar for the default timezone.
+     *
+     * @return a calendar instance. A cached instance is returned where possible
+     */
+    public static Calendar createCalendar() {
+        return new GregorianCalendar();
+    }
+
+    /**
+     * Creates a calendar for the given timezone.
+     *
+     * @param tz timezone for the calendar, is never null
+     * @return a calendar instance. A cached instance is returned where possible
+     */
+    public static Calendar createCalendar(TimeZone tz) {
+        return new GregorianCalendar(tz);
     }
 
     /**
@@ -253,11 +272,9 @@ public class DateTimeUtils {
             throw DbException.getInvalidValueException("calendar", null);
         }
         target = (Calendar) target.clone();
-        Calendar local = Calendar.getInstance();
-        synchronized (local) {
-            local.setTime(x);
-            convertTime(local, target);
-        }
+        Calendar local = DateTimeUtils.createCalendar();
+        local.setTime(x);
+        convertTime(local, target);
         return target.getTime().getTime();
     }
 
@@ -531,7 +548,7 @@ public class DateTimeUtils {
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
     public static int getIsoDayOfWeek(java.util.Date date) {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = DateTimeUtils.createCalendar();
         cal.setTimeInMillis(date.getTime());
         int val = cal.get(Calendar.DAY_OF_WEEK) - 1;
         return val == 0 ? 7 : val;
@@ -552,7 +569,7 @@ public class DateTimeUtils {
      * @return the week of the year
      */
     public static int getIsoWeek(java.util.Date date) {
-        Calendar c = Calendar.getInstance();
+        Calendar c = DateTimeUtils.createCalendar();
         c.setTimeInMillis(date.getTime());
         c.setFirstDayOfWeek(Calendar.MONDAY);
         c.setMinimalDaysInFirstWeek(4);
@@ -567,7 +584,7 @@ public class DateTimeUtils {
      * @return the year
      */
     public static int getIsoYear(java.util.Date date) {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = DateTimeUtils.createCalendar();
         cal.setTimeInMillis(date.getTime());
         cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
@@ -942,7 +959,7 @@ public class DateTimeUtils {
      * @return the new timestamp
      */
     public static Timestamp addMonths(Timestamp refDate, int nrOfMonthsToAdd) {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createCalendar();
         calendar.setTime(refDate);
         calendar.add(Calendar.MONTH, nrOfMonthsToAdd);
 

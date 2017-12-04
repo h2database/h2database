@@ -486,7 +486,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             // TODO should use generated savepoints
             return null;
         } else if (type == Calendar.class) {
-            return DateTimeUtils.createCalendar();
+            return DateTimeUtils.createGregorianCalendar();
         } else if (type == java.net.URL.class) {
             return null;
         } else if (type == java.math.BigDecimal.class) {

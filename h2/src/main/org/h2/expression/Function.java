@@ -1252,7 +1252,7 @@ public class Function extends Expression implements FunctionCall {
         case TRUNCATE: {
             if (v0.getType() == Value.TIMESTAMP) {
                 java.sql.Timestamp d = v0.getTimestamp();
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(d);
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1261,7 +1261,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.DATE) {
                 ValueDate vd = (ValueDate) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(vd.getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1270,7 +1270,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.STRING) {
                 ValueString vd = (ValueString) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1822,7 +1822,7 @@ public class Function extends Expression implements FunctionCall {
         if (count > Integer.MAX_VALUE) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
         calendar.add(field, (int) count);
@@ -1846,7 +1846,7 @@ public class Function extends Expression implements FunctionCall {
      */
     private static long datediff(String part, Timestamp d1, Timestamp d2) {
         int field = getDatePart(part);
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         long t1 = d1.getTime(), t2 = d2.getTime();
         // need to convert to UTC, otherwise we get inconsistent results with
         // certain time zones (those that are 30 minutes off)
@@ -1896,7 +1896,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar = DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);

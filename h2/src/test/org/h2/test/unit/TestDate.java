@@ -352,7 +352,7 @@ public class TestDate extends TestBase {
     }
 
     private void testValidDate() {
-        Calendar c = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        Calendar c = DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC"));
         c.setLenient(false);
         for (int y = -2000; y < 3000; y++) {
             for (int m = -3; m <= 14; m++) {
@@ -467,9 +467,9 @@ public class TestDate extends TestBase {
         assertEquals("19999-08-07", d2.getString());
         assertEquals("13:14:15.16", t2.getString());
         ValueTimestamp ts1a = DateTimeUtils.convertTimestamp(
-                ts1.getTimestamp(), Calendar.getInstance());
+                ts1.getTimestamp(), DateTimeUtils.createGregorianCalendar());
         ValueTimestamp ts2a = DateTimeUtils.convertTimestamp(
-                ts2.getTimestamp(), Calendar.getInstance());
+                ts2.getTimestamp(), DateTimeUtils.createGregorianCalendar());
         assertEquals("-999-08-07 13:14:15.16", ts1a.getString());
         assertEquals("19999-08-07 13:14:15.16", ts2a.getString());
 

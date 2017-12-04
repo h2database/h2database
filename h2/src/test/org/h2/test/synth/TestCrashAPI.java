@@ -42,6 +42,7 @@ import org.h2.test.synth.sql.RandomGen;
 import org.h2.tools.Backup;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Restore;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 
@@ -485,7 +486,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
             // TODO should use generated savepoints
             return null;
         } else if (type == Calendar.class) {
-            return Calendar.getInstance();
+            return DateTimeUtils.createGregorianCalendar();
         } else if (type == java.net.URL.class) {
             return null;
         } else if (type == java.math.BigDecimal.class) {

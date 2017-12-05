@@ -42,6 +42,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         testCreateTable();
         testNestedSQL();
         testSimple4RowRecursiveQuery();
+        testSimple2By4RowRecursiveQuery();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -489,5 +490,24 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
                 WITH_QUERY, maxRetries-1, expectedColumnTypes);
             
     }    
+    
+    private void testSimple2By4RowRecursiveQuery() throws Exception {
+        
+        String[] expectedRowData =new String[]{"|0|1|10","|1|2|11","|2|3|12","|3|4|13"};
+        String[] expectedColumnTypes =new String[]{"INTEGER","INTEGER","INTEGER"};
+        String[] expectedColumnNames =new String[]{"K","N","N2"};
+        
+        String SETUP_SQL = "-- do nothing";
+        String WITH_QUERY = "with \n"+
+                "r1(n,k) as ((select 1, 0) union all (select n+1,k+1 from r1 where n <= 3)),"+
+                "r2(n,k) as ((select 10,0) union all (select n+1,k+1 from r2 where n <= 13))"+
+                "select r1.k, r1.n, r2.n AS n2 from r1 inner join r2 ON r1.k= r2.k          ";
 
+        int maxRetries = 3;
+        int expectedNumberOfRows = expectedRowData.length;
+            
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
+                WITH_QUERY, maxRetries-1, expectedColumnTypes);
+            
+    }    
 }

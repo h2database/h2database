@@ -37,7 +37,7 @@ public class LobStorageMap implements LobStorageInterface {
 
     private boolean init;
 
-    private Object nextLobIdSync = new Object();
+    private final Object nextLobIdSync = new Object();
     private long nextLobId;
 
     /**

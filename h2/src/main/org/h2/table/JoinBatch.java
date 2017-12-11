@@ -87,7 +87,7 @@ public final class JoinBatch {
     /**
      * The filters.
      */
-    JoinFilter[] filters;
+    final JoinFilter[] filters;
 
     /**
      * Whether this is a batched subquery.

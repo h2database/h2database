@@ -17,8 +17,8 @@ public class ColumnNamer {
 
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
 
-    private ColumnNamerConfiguration configuration;
-    private Session session;
+    private final ColumnNamerConfiguration configuration;
+    private final Session session;
     private final Set<String> existingColumnNames = new HashSet<>();
 
     public ColumnNamer(Session session) {

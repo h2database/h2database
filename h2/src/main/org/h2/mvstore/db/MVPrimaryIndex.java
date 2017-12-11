@@ -49,7 +49,7 @@ public class MVPrimaryIndex extends BaseIndex {
 
     private final MVTable mvTable;
     private final String mapName;
-    private TransactionMap<Value, Value> dataMap;
+    private final TransactionMap<Value, Value> dataMap;
     private final AtomicLong lastKey = new AtomicLong(0);
     private int mainIndexColumn = -1;
 

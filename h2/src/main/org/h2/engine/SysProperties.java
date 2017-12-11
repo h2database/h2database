@@ -86,17 +86,6 @@ public class SysProperties {
             Utils.getProperty("h2.allowedClasses", "*");
 
     /**
-     * System property <code>h2.browser</code> (default: null).<br />
-     * The preferred browser to use. If not set, the default browser is used.
-     * For Windows, to use the Internet Explorer, set this property to
-     * 'explorer'. For Mac OS, if the default browser is not Safari and you want
-     * to use Safari, use:
-     * <code>java -Dh2.browser="open,-a,Safari,%url" ...</code>.
-     */
-    public static final String BROWSER =
-            Utils.getProperty(H2_BROWSER, null);
-
-    /**
      * System property <code>h2.enableAnonymousTLS</code> (default: true).<br />
      * When using TLS connection, the anonymous cipher suites should be enabled.
      */

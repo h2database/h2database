@@ -344,12 +344,6 @@ public class DbSettings extends SettingsBase {
      */
     public final boolean compressData = get("COMPRESS", false);
 
-    /**
-     * Database setting <code>MULTI_THREADED</code>
-     * (default: false).<br />
-     */
-    public final boolean multiThreaded = get("MULTI_THREADED", false);
-
     private DbSettings(HashMap<String, String> s) {
         super(s);
     }

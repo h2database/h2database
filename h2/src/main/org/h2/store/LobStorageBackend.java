@@ -594,28 +594,6 @@ public class LobStorageBackend implements LobStorageInterface {
         return lob;
     }
 
-    @Override
-    public void setTable(ValueLobDb lob, int table) {
-        long lobId = lob.getLobId();
-        assertNotHolds(conn.getSession());
-        // see locking discussion at the top
-        synchronized (database) {
-            synchronized (conn.getSession()) {
-                try {
-                    init();
-                    String sql = "UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?";
-                    PreparedStatement prep = prepare(sql);
-                    prep.setInt(1, table);
-                    prep.setLong(2, lobId);
-                    prep.executeUpdate();
-                    reuse(sql, prep);
-                } catch (SQLException e) {
-                    throw DbException.convert(e);
-                }
-            }
-        }
-    }
-
     private static void assertNotHolds(Object lock) {
         if (Thread.holdsLock(lock)) {
             throw DbException.throwInternalError(lock.toString());

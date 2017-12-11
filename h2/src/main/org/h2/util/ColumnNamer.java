@@ -37,15 +37,6 @@ public class ColumnNamer {
 
     /**
      * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
-     * @param expr the column expression
-     * @param indexOfColumn index of column in below array
-     */
-    public String getColumnName(Expression expr, int indexOfColumn) {
-        return getColumnName(expr, indexOfColumn, (String) null);
-    }
-
-    /**
-     * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
      * @param columnExp the column expression
      * @param indexOfColumn index of column in below array
      * @param columnNameOverides array of overriding column names

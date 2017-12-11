@@ -22,11 +22,6 @@ public class Mode {
         REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite,
     }
 
-    /**
-     * The name of the default mode.
-     */
-    static final String REGULAR = ModeEnum.REGULAR.name();
-
     private static final HashMap<String, Mode> MODES = New.hashMap();
 
     // Modes are also documented in the features section
@@ -315,10 +310,6 @@ public class Mode {
      */
     public static Mode getInstance(String name) {
         return MODES.get(StringUtils.toUpperEnglish(name));
-    }
-
-    public static Mode getMySQL() {
-        return getInstance(ModeEnum.MySQL.name());
     }
 
     public static Mode getOracle() {

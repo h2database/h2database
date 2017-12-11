@@ -290,19 +290,6 @@ public class LobStorageMap implements LobStorageInterface {
     }
 
     @Override
-    public void setTable(ValueLobDb lob, int tableId) {
-        init();
-        long lobId = lob.getLobId();
-        Object[] value = lobMap.remove(lobId);
-        if (TRACE) {
-            trace("move " + lob.getTableId() + "/" + lob.getLobId() +
-                    " > " + tableId + "/" + lobId);
-        }
-        value[1] = tableId;
-        lobMap.put(lobId, value);
-    }
-
-    @Override
     public void removeAllForTable(int tableId) {
         init();
         if (database.getMvStore().getStore().isClosed()) {

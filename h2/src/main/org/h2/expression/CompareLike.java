@@ -422,6 +422,11 @@ public class CompareLike extends Condition {
         }
         patternString = new String(patternChars, 0, patternLength);
 
+        // Clear optimizations
+        shortcutToStartsWith = false;
+        shortcutToEndsWith = false;
+        shortcutToContains = false;
+
         // optimizes the common case of LIKE 'foo%'
         if (compareMode.getName().equals(CompareMode.OFF) && patternLength > 1) {
             int maxMatch = 0;

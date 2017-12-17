@@ -44,7 +44,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         testNestedSQL();
         testSimple4RowRecursiveQuery();
         testSimple2By4RowRecursiveQuery();
-        testSimple4RowRecursiveQueryWithLazy();
+        testSimple3RowRecursiveQueryWithLazyEval();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -538,7 +538,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         at org.h2.command.dml.Select$LazyResultQueryFlat.fetchNextRow(Select.java:1487)
      */
     
-    private void testSimple4RowRecursiveQueryWithLazy() throws Exception {
+    private void testSimple3RowRecursiveQueryWithLazyEval() throws Exception {
         
         String[] expectedRowData =new String[]{"|1","|2","|3"};
         String[] expectedColumnTypes =new String[]{"INTEGER"};
@@ -550,7 +550,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         
         try{
             //Test with settings: lazy mvStore memory mvcc multiThreaded
-            // url=mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
+            // connection url is =mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
             config.lazy = true;
             config.mvStore = true;
             config.memory = true;
@@ -565,10 +565,6 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
     
             int maxRetries = 10;
             int expectedNumberOfRows = expectedRowData.length;
-            
-            //System.out.println();
-            //System.out.println("Test " + config.toString() +
-            //        " (" + Utils.getMemoryUsed() + " KB used)");
             
             testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
                     WITH_QUERY, maxRetries-1, expectedColumnTypes);

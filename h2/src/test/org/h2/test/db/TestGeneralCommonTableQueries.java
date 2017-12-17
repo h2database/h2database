@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
 /**
@@ -43,6 +44,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         testNestedSQL();
         testSimple4RowRecursiveQuery();
         testSimple2By4RowRecursiveQuery();
+        testSimple4RowRecursiveQueryWithLazy();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -510,4 +512,70 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
                 WITH_QUERY, maxRetries-1, expectedColumnTypes);
             
     }    
+
+    /*
+        Caused by: java.lang.StackOverflowError
+        at org.h2.result.LazyResult.reset(LazyResult.java:43)
+        at org.h2.command.dml.Select$LazyResultSelect.reset(Select.java:1464)
+        at org.h2.index.ViewIndex.findRecursive(ViewIndex.java:187)
+        at org.h2.index.ViewIndex.find(ViewIndex.java:284)
+        at org.h2.index.ViewIndex.find(ViewIndex.java:161)
+        at org.h2.index.BaseIndex.find(BaseIndex.java:127)
+        at org.h2.index.IndexCursor.find(IndexCursor.java:169)
+        at org.h2.table.TableFilter.next(TableFilter.java:468)
+        at org.h2.command.dml.Select$LazyResultQueryFlat.fetchNextRow(Select.java:1487)
+        at org.h2.result.LazyResult.hasNext(LazyResult.java:79)
+        at org.h2.result.LazyResult.next(LazyResult.java:59)
+        at org.h2.index.ViewCursor.next(ViewCursor.java:49)
+        at org.h2.index.IndexCursor.next(IndexCursor.java:309)
+        at org.h2.table.TableFilter.next(TableFilter.java:499)
+        at org.h2.command.dml.Select$LazyResultQueryFlat.fetchNextRow(Select.java:1487)
+        at org.h2.result.LazyResult.hasNext(LazyResult.java:79)
+        at org.h2.result.LazyResult.next(LazyResult.java:59)
+        at org.h2.index.ViewCursor.next(ViewCursor.java:49)
+        at org.h2.index.IndexCursor.next(IndexCursor.java:309)
+        at org.h2.table.TableFilter.next(TableFilter.java:499)
+        at org.h2.command.dml.Select$LazyResultQueryFlat.fetchNextRow(Select.java:1487)
+     */
+    
+    private void testSimple4RowRecursiveQueryWithLazy() throws Exception {
+        
+        String[] expectedRowData =new String[]{"|1","|2","|3"};
+        String[] expectedColumnTypes =new String[]{"INTEGER"};
+        String[] expectedColumnNames =new String[]{"N"};
+        
+        // back up the config - to restore it after this test
+        TestAll backupConfig = config;
+        config = new TestAll();
+        
+        try{
+            //Test with settings: lazy mvStore memory mvcc multiThreaded
+            // url=mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
+            config.lazy = true;
+            config.mvStore = true;
+            config.memory = true;
+            config.mvcc = true;
+            config.multiThreaded = true;
+            
+            String SETUP_SQL = "--no config set";
+            String WITH_QUERY = "with recursive r(n) as (\n"+
+                    "(select 1) union all (select n+1 from r where n < 3)\n"+
+                    ")\n"+
+                    "select n from r";
+    
+            int maxRetries = 10;
+            int expectedNumberOfRows = expectedRowData.length;
+            
+            //System.out.println();
+            //System.out.println("Test " + config.toString() +
+            //        " (" + Utils.getMemoryUsed() + " KB used)");
+            
+            testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
+                    WITH_QUERY, maxRetries-1, expectedColumnTypes);
+        }
+        finally{
+            config = backupConfig;
+        }
+            
+    }        
 }

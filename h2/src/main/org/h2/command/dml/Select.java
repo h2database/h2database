@@ -569,8 +569,8 @@ public class Select extends Query {
         }
         boolean lazy = session.isLazyQueryExecution() &&
                 target == null && !isForUpdate && !isQuickAggregateQuery &&
-                limitRows != 0 && offsetExpr == null && isReadOnly() && 
-                !hasRecursiveTableView();
+                limitRows != 0 && offsetExpr == null && isReadOnly() /*&& 
+                !hasRecursiveTableView()*/;
         int columnCount = expressions.size();
         LocalResult result = null;
         if (!lazy && (target == null ||
@@ -664,16 +664,16 @@ public class Select extends Query {
         return null;
     }
 
-    private boolean hasRecursiveTableView() {
-        //check the top table filter only to see if we have a recursive table query
-        if(this.topTableFilter.getTable().isTableExpression()){
-            TableView v = (TableView)this.topTableFilter.getTable();
-            if(v.isRecursive()){
-                return true;
-            }
-        }
-        return false;
-    }
+//    private boolean hasRecursiveTableView() {
+//        //check the top table filter only to see if we have a recursive table query
+////        if(this.topTableFilter.getTable().isTableExpression()){
+////            TableView v = (TableView)this.topTableFilter.getTable();
+////            if(v.isRecursive()){
+////                return true;
+////            }
+////        }
+//        return false;
+//    }
 
     private void resetJoinBatchAfterQuery() {
         JoinBatch jb = getJoinBatch();

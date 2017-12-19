@@ -44,7 +44,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -1637,18 +1636,21 @@ public class Function extends Expression implements FunctionCall {
             boolean blob = args.length == 1;
             try {
                 long fileLength = FileUtils.size(fileName);
-                InputStream in = new AutoCloseInputStream(
-                        FileUtils.newInputStream(fileName));
-                if (blob) {
-                    result = database.getLobStorage().createBlob(in, fileLength);
-                } else {
-                    Reader reader;
-                    if (v1 == ValueNull.INSTANCE) {
-                        reader = new InputStreamReader(in);
+                final InputStream in = FileUtils.newInputStream(fileName);
+                try {
+                    if (blob) {
+                        result = database.getLobStorage().createBlob(in, fileLength);
                     } else {
-                        reader = new InputStreamReader(in, v1.getString());
+                        Reader reader;
+                        if (v1 == ValueNull.INSTANCE) {
+                            reader = new InputStreamReader(in);
+                        } else {
+                            reader = new InputStreamReader(in, v1.getString());
+                        }
+                        result = database.getLobStorage().createClob(reader, fileLength);
                     }
-                    result = database.getLobStorage().createClob(reader, fileLength);
+                } finally {
+                    IOUtils.closeSilently(in);
                 }
                 session.addTemporaryLob(result);
             } catch (IOException e) {

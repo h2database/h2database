@@ -292,7 +292,8 @@ public class JdbcUtils {
             if (java.sql.Driver.class.isAssignableFrom(d)) {
                 try {
                     Driver driverInstance = (Driver) d.newInstance();
-                    return driverInstance.connect(url, prop);
+                    return driverInstance.connect(url, prop); /*fix issue #695 with drivers with the same
+                    jdbc subprotocol in classpath of jdbc drivers (as example redshift and postgresql drivers)*/
                 } catch (Exception e) {
                     throw DbException.toSQLException(e);
                 }

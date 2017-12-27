@@ -5,10 +5,6 @@
  */
 package org.h2.command.dml;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.command.CommandInterface;
@@ -16,39 +12,22 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.engine.SysProperties;
-import org.h2.expression.Alias;
-import org.h2.expression.Comparison;
-import org.h2.expression.ConditionAndOr;
-import org.h2.expression.Expression;
-import org.h2.expression.ExpressionColumn;
-import org.h2.expression.ExpressionVisitor;
-import org.h2.expression.Parameter;
+import org.h2.expression.*;
 import org.h2.index.Cursor;
 import org.h2.index.Index;
 import org.h2.index.IndexType;
 import org.h2.message.DbException;
-import org.h2.result.LazyResult;
-import org.h2.result.LocalResult;
-import org.h2.result.ResultInterface;
-import org.h2.result.ResultTarget;
-import org.h2.result.Row;
-import org.h2.result.SearchRow;
-import org.h2.result.SortOrder;
-import org.h2.table.Column;
-import org.h2.table.ColumnResolver;
-import org.h2.table.IndexColumn;
-import org.h2.table.JoinBatch;
-import org.h2.table.Table;
-import org.h2.table.TableFilter;
-import org.h2.table.TableView;
-import org.h2.util.ColumnNamer;
-import org.h2.util.New;
-import org.h2.util.StatementBuilder;
-import org.h2.util.StringUtils;
-import org.h2.util.ValueHashMap;
+import org.h2.result.*;
+import org.h2.table.*;
+import org.h2.util.*;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
 import org.h2.value.ValueNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * This class represents a simple SELECT statement.
@@ -409,13 +388,13 @@ public class Select extends Query {
             sortColumns.add(exprCol.getColumn());
         }
         Column[] sortCols = sortColumns.toArray(new Column[sortColumns.size()]);
-        int[] sortTypes = sort.getSortTypes();
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
             return topTableFilter.getTable().getScanIndex(session);
         }
         ArrayList<Index> list = topTableFilter.getTable().getIndexes();
         if (list != null) {
+            int[] sortTypes = sort.getSortTypesWithNullPosition();
             for (int i = 0, size = list.size(); i < size; i++) {
                 Index index = list.get(i);
                 if (index.getCreateSQL() == null) {
@@ -439,9 +418,7 @@ public class Select extends Query {
                         ok = false;
                         break;
                     }
-                    if (idxCol.sortType != sortTypes[j]) {
-                        // NULL FIRST for ascending and NULLS LAST
-                        // for descending would actually match the default
+                    if (SortOrder.addExplicitNullPosition(idxCol.sortType) != sortTypes[j]) {
                         ok = false;
                         break;
                     }

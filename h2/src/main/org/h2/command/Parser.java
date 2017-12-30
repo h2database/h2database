@@ -6143,6 +6143,7 @@ public class Parser {
         } else if (readIf("MODIFY")) {
             // MySQL compatibility
             readIf("COLUMN"); // optional
+            boolean hasOpeningBracket = readIf("("); // Oracle specifies (but will not require) an opening parenthesis
             String columnName = readColumnIdentifier();
             AlterTableAlterColumn command = null;
             NullConstraintType nullConstraint = parseNotNullConstraint();
@@ -6166,6 +6167,9 @@ public class Parser {
             default:
                 throw DbException.get(ErrorCode.UNKNOWN_MODE_1,
                         "Internal Error - unhandled case: " + nullConstraint.name());
+            }
+            if(hasOpeningBracket) {
+                read(")");
             }
             return command;
         } else if (readIf("ALTER")) {

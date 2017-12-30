@@ -26,13 +26,12 @@ public class TestColumnNamer extends TestBase {
 
     /**
      * Run just this test.
-     *
-     * @param a ignored
      */
     public static void main(String[] args) {
         new TestColumnNamer().test();
     }
 
+    @Override
     public void test() {
         ColumnNamer columnNamer = new ColumnNamer(null);
         columnNamer.getConfiguration().configure("MAX_IDENTIFIER_LENGTH = 30");

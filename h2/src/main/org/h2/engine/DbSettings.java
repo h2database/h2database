@@ -78,7 +78,7 @@ public class DbSettings extends SettingsBase {
      * performance reasons. Please note the Oracle JDBC driver will try to
      * resolve this database URL if it is loaded before the H2 driver.
      */
-    public boolean defaultConnection = get("DEFAULT_CONNECTION", false);
+    public final boolean defaultConnection = get("DEFAULT_CONNECTION", false);
 
     /**
      * Database setting <code>DEFAULT_ESCAPE</code> (default: \).<br />
@@ -162,7 +162,7 @@ public class DbSettings extends SettingsBase {
      * no limit. Please note the actual query timeout may be set to a lower
      * value.
      */
-    public int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
+    public final int maxQueryTimeout = get("MAX_QUERY_TIMEOUT", 0);
 
     /**
      * Database setting <code>NESTED_JOINS</code> (default: true).<br />

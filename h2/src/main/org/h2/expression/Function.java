@@ -44,7 +44,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -1252,7 +1251,7 @@ public class Function extends Expression implements FunctionCall {
         case TRUNCATE: {
             if (v0.getType() == Value.TIMESTAMP) {
                 java.sql.Timestamp d = v0.getTimestamp();
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(d);
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1261,7 +1260,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.DATE) {
                 ValueDate vd = (ValueDate) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(vd.getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1270,7 +1269,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.STRING) {
                 ValueString vd = (ValueString) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1637,18 +1636,21 @@ public class Function extends Expression implements FunctionCall {
             boolean blob = args.length == 1;
             try {
                 long fileLength = FileUtils.size(fileName);
-                InputStream in = new AutoCloseInputStream(
-                        FileUtils.newInputStream(fileName));
-                if (blob) {
-                    result = database.getLobStorage().createBlob(in, fileLength);
-                } else {
-                    Reader reader;
-                    if (v1 == ValueNull.INSTANCE) {
-                        reader = new InputStreamReader(in);
+                final InputStream in = FileUtils.newInputStream(fileName);
+                try {
+                    if (blob) {
+                        result = database.getLobStorage().createBlob(in, fileLength);
                     } else {
-                        reader = new InputStreamReader(in, v1.getString());
+                        Reader reader;
+                        if (v1 == ValueNull.INSTANCE) {
+                            reader = new InputStreamReader(in);
+                        } else {
+                            reader = new InputStreamReader(in, v1.getString());
+                        }
+                        result = database.getLobStorage().createClob(reader, fileLength);
                     }
-                    result = database.getLobStorage().createClob(reader, fileLength);
+                } finally {
+                    IOUtils.closeSilently(in);
                 }
                 session.addTemporaryLob(result);
             } catch (IOException e) {
@@ -1822,7 +1824,7 @@ public class Function extends Expression implements FunctionCall {
         if (count > Integer.MAX_VALUE) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
         calendar.add(field, (int) count);
@@ -1846,7 +1848,7 @@ public class Function extends Expression implements FunctionCall {
      */
     private static long datediff(String part, Timestamp d1, Timestamp d2) {
         int field = getDatePart(part);
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         long t1 = d1.getTime(), t2 = d2.getTime();
         // need to convert to UTC, otherwise we get inconsistent results with
         // certain time zones (those that are 30 minutes off)
@@ -1896,7 +1898,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar = DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);

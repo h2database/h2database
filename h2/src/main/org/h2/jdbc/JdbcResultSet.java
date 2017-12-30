@@ -3799,7 +3799,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (type == java.util.Date.class) {
             return type.cast(new java.util.Date(value.getTimestamp().getTime()));
         } else if (type == Calendar.class) {
-            Calendar calendar = Calendar.getInstance();
+            Calendar calendar = DateTimeUtils.createGregorianCalendar();
             calendar.setTime(value.getTimestamp());
             return type.cast(calendar);
         } else if (type == UUID.class) {

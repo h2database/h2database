@@ -52,8 +52,8 @@ public class MVSpatialIndex extends BaseIndex implements SpatialIndex, MVIndex {
     final MVTable mvTable;
 
     private final String mapName;
-    private TransactionMap<SpatialKey, Value> dataMap;
-    private MVRTreeMap<VersionedValue> spatialMap;
+    private final TransactionMap<SpatialKey, Value> dataMap;
+    private final MVRTreeMap<VersionedValue> spatialMap;
 
     /**
      * Constructor.

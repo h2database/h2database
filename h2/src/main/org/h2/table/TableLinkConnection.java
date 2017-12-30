@@ -8,10 +8,10 @@ package org.h2.table;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Objects;
 import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * A connection for a linked table. The same connection may be used for multiple
@@ -95,10 +95,10 @@ public class TableLinkConnection {
 
     @Override
     public int hashCode() {
-        return Utils.hashCode(driver)
-                ^ Utils.hashCode(url)
-                ^ Utils.hashCode(user)
-                ^ Utils.hashCode(password);
+        return Objects.hashCode(driver)
+                ^ Objects.hashCode(url)
+                ^ Objects.hashCode(user)
+                ^ Objects.hashCode(password);
     }
 
     @Override

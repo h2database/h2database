@@ -24,7 +24,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
-
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -187,22 +186,6 @@ public class WebServer implements Service {
             trace(" size=" + data.length);
         }
         return data;
-    }
-
-    /**
-     * Check if this is a simple name (only contains '.', '-', '_', letters, or
-     * digits).
-     *
-     * @param s the string
-     * @return true if it's a simple name
-     */
-    static boolean isSimpleName(String s) {
-        for (char c : s.toCharArray()) {
-            if (c != '.' && c != '_' && c != '-' && !Character.isLetterOrDigit(c)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

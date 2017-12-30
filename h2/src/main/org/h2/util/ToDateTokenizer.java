@@ -194,7 +194,7 @@ class ToDateTokenizer {
                 result.set(Calendar.YEAR, dateNr);
                 break;
             case RR:
-                Calendar calendar = Calendar.getInstance();
+                Calendar calendar = DateTimeUtils.createGregorianCalendar();
                 int cc = calendar.get(Calendar.YEAR) / 100;
                 inputFragmentStr = matchStringOrThrow(PATTERN_TWO_DIGITS,
                         params, formatTokenEnum);

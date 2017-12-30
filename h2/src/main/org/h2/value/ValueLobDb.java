@@ -54,7 +54,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     private final String fileName;
     private final FileStore tempFile;
-    private int tableId;
+    private final int tableId;
     private int hash;
 
     //Arbonaut: 13.07.2016
@@ -84,6 +84,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         this.handler = null;
         this.fileName = null;
         this.tempFile = null;
+        this.tableId = 0;
     }
 
     /**
@@ -115,6 +116,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             }
         }
         this.precision = tmpPrecision;
+        this.tableId = 0;
     }
 
     /**
@@ -151,6 +153,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
             out.close();
         }
         this.precision = tmpPrecision;
+        this.tableId = 0;
     }
 
     private static String createTempLobFileName(DataHandler handler)

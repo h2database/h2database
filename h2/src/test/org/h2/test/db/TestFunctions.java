@@ -1199,7 +1199,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT CURRENT_TIMESTAMP(), " +
                 "TRUNCATE(CURRENT_TIMESTAMP()) FROM dual");
         rs.next();
-        Calendar c = Calendar.getInstance();
+        Calendar c = DateTimeUtils.createGregorianCalendar();
         c.setTime(rs.getTimestamp(1));
         c.set(Calendar.HOUR_OF_DAY, 0);
         c.set(Calendar.MINUTE, 0);
@@ -1305,7 +1305,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private void testToDate() throws ParseException {
-        final int month = Calendar.getInstance().get(Calendar.MONTH);
+        final int month = DateTimeUtils.createGregorianCalendar().get(Calendar.MONTH);
 
         Date date = null;
         date = new SimpleDateFormat("yyyy-MM-dd").parse("1979-11-12");
@@ -1434,7 +1434,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     }
 
     private static void setMonth(Date date, int month) {
-        Calendar c = Calendar.getInstance();
+        Calendar c = DateTimeUtils.createGregorianCalendar();
         c.setTime(date);
         c.set(Calendar.MONTH, month);
         date.setTime(c.getTimeInMillis());

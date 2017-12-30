@@ -271,16 +271,6 @@ public class Utils {
     }
 
     /**
-     * Calculate the hash code of the given object. The object may be null.
-     *
-     * @param o the object
-     * @return the hash code, or 0 if the object is null
-     */
-    public static int hashCode(Object o) {
-        return o == null ? 0 : o.hashCode();
-    }
-
-    /**
      * Get the used memory in KB.
      * This method possibly calls System.gc().
      *

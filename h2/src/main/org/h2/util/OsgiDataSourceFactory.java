@@ -8,11 +8,9 @@ package org.h2.util;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
-
 import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
 import javax.sql.XADataSource;
-
 import org.h2.engine.Constants;
 import org.h2.jdbcx.JdbcDataSource;
 import org.osgi.framework.BundleContext;
@@ -38,7 +36,7 @@ import org.osgi.service.jdbc.DataSourceFactory;
  * @author Per Otterstrom
  */
 public class OsgiDataSourceFactory implements DataSourceFactory {
-    private org.h2.Driver driver;
+    private final org.h2.Driver driver;
 
     public OsgiDataSourceFactory(org.h2.Driver driver) {
         this.driver = driver;

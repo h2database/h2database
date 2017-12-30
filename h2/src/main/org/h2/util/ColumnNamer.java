@@ -17,8 +17,8 @@ public class ColumnNamer {
 
     private static final String DEFAULT_COLUMN_NAME = "DEFAULT";
 
-    private ColumnNamerConfiguration configuration;
-    private Session session;
+    private final ColumnNamerConfiguration configuration;
+    private final Session session;
     private final Set<String> existingColumnNames = new HashSet<>();
 
     public ColumnNamer(Session session) {
@@ -33,15 +33,6 @@ public class ColumnNamer {
                 session.setColumnNamerConfiguration(this.configuration);
             }
         }
-    }
-
-    /**
-     * Create a standardized column name that isn't null and doesn't have a CR/LF in it.
-     * @param expr the column expression
-     * @param indexOfColumn index of column in below array
-     */
-    public String getColumnName(Expression expr, int indexOfColumn) {
-        return getColumnName(expr, indexOfColumn, (String) null);
     }
 
     /**

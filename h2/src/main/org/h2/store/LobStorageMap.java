@@ -37,7 +37,7 @@ public class LobStorageMap implements LobStorageInterface {
 
     private boolean init;
 
-    private Object nextLobIdSync = new Object();
+    private final Object nextLobIdSync = new Object();
     private long nextLobId;
 
     /**
@@ -287,19 +287,6 @@ public class LobStorageMap implements LobStorageInterface {
         }
         byte[] streamStoreId = (byte[]) value[0];
         return streamStore.get(streamStoreId);
-    }
-
-    @Override
-    public void setTable(ValueLobDb lob, int tableId) {
-        init();
-        long lobId = lob.getLobId();
-        Object[] value = lobMap.remove(lobId);
-        if (TRACE) {
-            trace("move " + lob.getTableId() + "/" + lob.getLobId() +
-                    " > " + tableId + "/" + lobId);
-        }
-        value[1] = tableId;
-        lobMap.put(lobId, value);
     }
 
     @Override

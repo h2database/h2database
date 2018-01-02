@@ -5,7 +5,6 @@
  */
 package org.h2.schema;
 
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -94,11 +93,7 @@ public class TriggerObject extends SchemaObjectBase {
             String fullClassName = Constants.USER_PACKAGE + ".trigger." + getName();
             compiler.setSource(fullClassName, triggerSource);
             try {
-                Method m = compiler.getMethod(fullClassName);
-                if (m.getParameterTypes().length > 0) {
-                    throw new IllegalStateException("No parameters are allowed for a trigger");
-                }
-                return (Trigger) m.invoke(null);
+                return (Trigger) compiler.invoke(fullClassName);
             } catch (DbException e) {
                 throw e;
             } catch (Exception e) {

@@ -735,6 +735,7 @@ The class must be available in the classpath of the database engine
 
 The sourceCodeString must define a single method with no parameters that returns ""org.h2.api.Trigger"".
 See CREATE ALIAS for requirements regarding the compilation.
+Alternatively, it can be a javascript (see javax.script.ScriptEngineManager) that returns ""org.h2.api.Trigger"". In that case the source must begin by ""//javascript"".
 
 BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
@@ -773,6 +774,7 @@ This command commits an open transaction in this connection.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
 CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); } $$;
+CREATE TRIGGER TRIG_SCRIPT BEFORE INSERT ON TEST AS $$//javascript\nreturn new Packages.MyTrigger(""constructorParam""); $$;
 "
 "Commands (DDL)","CREATE USER","
 CREATE USER [ IF NOT EXISTS ] newUserName

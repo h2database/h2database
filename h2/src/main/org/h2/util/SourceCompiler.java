@@ -24,6 +24,14 @@ import java.net.URI;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -33,6 +41,7 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -64,6 +73,8 @@ public class SourceCompiler {
      * The class name to byte code map.
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
+
+    final Map<String, CompiledScript> compiledScripts = New.hashMap();
 
     /**
      * Whether to use the ToolProvider.getSystemJavaCompiler().
@@ -168,6 +179,32 @@ public class SourceCompiler {
         return source.startsWith("//groovy") || source.startsWith("@groovy");
     }
 
+    private static boolean isJavascriptSource(String source) {
+        return source.startsWith("//javascript");
+    }
+
+    // whether the passed source should be compiled using javax.script.ScriptEngineManager
+    private static boolean isJavaxScriptSource(String source) {
+        return isJavascriptSource(source);
+    }
+
+    public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
+        CompiledScript compiledScript = compiledScripts.get(packageAndClassName);
+        if (compiledScript == null) {
+            String source = sources.get(packageAndClassName);
+            final String lang;
+            if (isJavascriptSource(source))
+                lang = "javascript";
+            else
+                throw new IllegalStateException("Unkown language for " + source);
+
+            final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
+            compiledScript = jsEngine.compile(source);
+            compiledScripts.put(packageAndClassName, compiledScript);
+        }
+        return compiledScript;
+    }
+
     /**
      * Get the first public static method of the given class.
      *
@@ -187,6 +224,24 @@ public class SourceCompiler {
             }
         }
         return null;
+    }
+
+    public Object invoke(String className, final Object... args) throws Exception {
+        String source = sources.get(className);
+        if (isJavaxScriptSource(source)) {
+            final Bindings bindings = new SimpleBindings();
+            int i = 0;
+            for (final Object arg : args) {
+                bindings.put("arg" + i, arg);
+                i++;
+            }
+            return this.getCompiledScript(className).eval(bindings);
+        } else {
+            final Method m = this.getMethod(className);
+            if (m.getParameterTypes().length != args.length)
+                throw new IllegalStateException("Wrong number of parameters, " + args.length + " were pased but " + m.getParameterTypes().length + " were needed");
+            return m.invoke(null, args);
+        }
     }
 
     /**

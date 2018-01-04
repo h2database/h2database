@@ -735,7 +735,7 @@ The class must be available in the classpath of the database engine
 
 The sourceCodeString must define a single method with no parameters that returns ""org.h2.api.Trigger"".
 See CREATE ALIAS for requirements regarding the compilation.
-Alternatively, it can be a javascript (see javax.script.ScriptEngineManager) that returns ""org.h2.api.Trigger"". In that case the source must begin by ""//javascript"".
+Alternatively, it can be a javascript (see javax.script.ScriptEngineManager) that returns ""org.h2.api.Trigger"". In that case the source must begin with ""//javascript"".
 
 BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;

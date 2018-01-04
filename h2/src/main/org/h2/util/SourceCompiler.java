@@ -74,6 +74,9 @@ public class SourceCompiler {
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
 
+    /**
+     * The class name to compiled scripts map.
+     */
     final Map<String, CompiledScript> compiledScripts = New.hashMap();
 
     /**

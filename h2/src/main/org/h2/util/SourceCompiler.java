@@ -186,9 +186,13 @@ public class SourceCompiler {
         return source.startsWith("//javascript");
     }
 
+    private static boolean isRubySource(String source) {
+        return source.startsWith("#ruby");
+    }
+
     // whether the passed source should be compiled using javax.script.ScriptEngineManager
     private static boolean isJavaxScriptSource(String source) {
-        return isJavascriptSource(source);
+        return isJavascriptSource(source) || isRubySource(source);
     }
 
     public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
@@ -198,6 +202,8 @@ public class SourceCompiler {
             final String lang;
             if (isJavascriptSource(source))
                 lang = "javascript";
+            else if (isRubySource(source))
+                lang = "ruby";
             else
                 throw new IllegalStateException("Unkown language for " + source);
 

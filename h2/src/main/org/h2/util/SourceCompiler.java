@@ -26,12 +26,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.script.SimpleBindings;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -238,24 +236,6 @@ public class SourceCompiler {
             }
         }
         return null;
-    }
-
-    public Object invoke(String className, final Object... args) throws Exception {
-        String source = sources.get(className);
-        if (isJavaxScriptSource(source)) {
-            final Bindings bindings = new SimpleBindings();
-            int i = 0;
-            for (final Object arg : args) {
-                bindings.put("arg" + i, arg);
-                i++;
-            }
-            return this.getCompiledScript(className).eval(bindings);
-        } else {
-            final Method m = this.getMethod(className);
-            if (m.getParameterTypes().length != args.length)
-                throw new IllegalStateException("Wrong number of parameters, " + args.length + " were pased but " + m.getParameterTypes().length + " were needed");
-            return m.invoke(null, args);
-        }
     }
 
     /**

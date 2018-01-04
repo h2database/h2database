@@ -190,8 +190,13 @@ public class SourceCompiler {
         return source.startsWith("#ruby");
     }
 
-    // whether the passed source should be compiled using javax.script.ScriptEngineManager
-    private static boolean isJavaxScriptSource(String source) {
+    /**
+     * Whether the passed source can be compiled using {@link javax.script.ScriptEngineManager}.
+     * 
+     * @param source the source to test.
+     * @return <code>true</code> if {@link #getCompiledScript(String)} can be called.
+     */
+    public static boolean isJavaxScriptSource(String source) {
         return isJavascriptSource(source) || isRubySource(source);
     }
 

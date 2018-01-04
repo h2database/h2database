@@ -205,7 +205,7 @@ public class SourceCompiler {
             else if (isRubySource(source))
                 lang = "ruby";
             else
-                throw new IllegalStateException("Unkown language for " + source);
+                throw new IllegalStateException("Unknown language for " + source);
 
             final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
             compiledScript = jsEngine.compile(source);

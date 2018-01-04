@@ -94,11 +94,15 @@ public class TriggerObject extends SchemaObjectBase {
             String fullClassName = Constants.USER_PACKAGE + ".trigger." + getName();
             compiler.setSource(fullClassName, triggerSource);
             try {
-                Method m = compiler.getMethod(fullClassName);
-                if (m.getParameterTypes().length > 0) {
-                    throw new IllegalStateException("No parameters are allowed for a trigger");
+                if (SourceCompiler.isJavaxScriptSource(triggerSource)) {
+                    return (Trigger) compiler.getCompiledScript(fullClassName).eval();
+                } else {
+                    final Method m = compiler.getMethod(fullClassName);
+                    if (m.getParameterTypes().length > 0) {
+                        throw new IllegalStateException("No parameters are allowed for a trigger");
+                    }
+                    return (Trigger) m.invoke(null);
                 }
-                return (Trigger) m.invoke(null);
             } catch (DbException e) {
                 throw e;
             } catch (Exception e) {

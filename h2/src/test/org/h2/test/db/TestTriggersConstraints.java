@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.HashSet;
+
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
 import org.h2.engine.Session;
@@ -50,6 +51,7 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         testTriggerBeforeSelect();
         testTriggerAlterTable();
         testTriggerAsSource();
+        testTriggerAsJavascript();
         testTriggers();
         testConstraints();
         testCheckConstraintErrorMessage();
@@ -471,15 +473,20 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
 
     private void testTriggerAlterTable() throws SQLException {
         deleteDb("trigger");
-        testTrigger(false);
+        testTrigger(null);
     }
 
     private void testTriggerAsSource() throws SQLException {
         deleteDb("trigger");
-        testTrigger(true);
+        testTrigger("java");
     }
 
-    private void testTrigger(final boolean asSource) throws SQLException {
+    private void testTriggerAsJavascript() throws SQLException {
+        deleteDb("trigger");
+        testTrigger("javascript");
+    }
+
+    private void testTrigger(final String sourceLang) throws SQLException {
         final String callSeq = "call seq.nextval";
         Connection conn = getConnection("trigger");
         Statement stat = conn.createStatement();
@@ -490,12 +497,18 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         conn.setAutoCommit(false);
         Trigger t = new org.h2.test.db.TestTriggersConstraints.TestTriggerAlterTable();
         t.close();
-        if (asSource) {
+        if ("java".equals(sourceLang)) {
             String triggerClassName = this.getClass().getName() + "."
                     + TestTriggerAlterTable.class.getSimpleName();
             stat.execute("create trigger test_upd before insert on test "
                     + "as $$org.h2.api.Trigger create() " + "{ return new "
                     + triggerClassName + "(); } $$");
+        } else if ("javascript".equals(sourceLang)) {
+            String triggerClassName = this.getClass().getName() + "."
+                    + TestTriggerAlterTable.class.getSimpleName();
+            final String body = "//javascript\nnew Packages." + triggerClassName + "();";
+            stat.execute("create trigger test_upd before insert on test as $$"
+                    + body + " $$");
         } else {
             stat.execute("create trigger test_upd before insert on test call \""
                     + TestTriggerAlterTable.class.getName() + "\"");

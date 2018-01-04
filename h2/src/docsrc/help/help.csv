@@ -735,6 +735,9 @@ The class must be available in the classpath of the database engine
 
 The sourceCodeString must define a single method with no parameters that returns ""org.h2.api.Trigger"".
 See CREATE ALIAS for requirements regarding the compilation.
+Alternatively, javax.script.ScriptEngineManager can be used to create an instance of ""org.h2.api.Trigger"".
+Currently javascript (included in every JRE) and ruby (with JRuby) are supported.
+In that case the source must begin respectively with ""//javascript"" or ""#ruby"".
 
 BEFORE triggers are called after data conversion is made, default values are set,
 null and length constraint checks have been made;
@@ -773,6 +776,8 @@ This command commits an open transaction in this connection.
 ","
 CREATE TRIGGER TRIG_INS BEFORE INSERT ON TEST FOR EACH ROW CALL ""MyTrigger"";
 CREATE TRIGGER TRIG_SRC BEFORE INSERT ON TEST AS $$org.h2.api.Trigger create() { return new MyTrigger(""constructorParam""); } $$;
+CREATE TRIGGER TRIG_JS BEFORE INSERT ON TEST AS $$//javascript\nreturn new Packages.MyTrigger(""constructorParam""); $$;
+CREATE TRIGGER TRIG_RUBY BEFORE INSERT ON TEST AS $$#ruby\nJava::MyPackage::MyTrigger.new(""constructorParam"") $$;
 "
 "Commands (DDL)","CREATE USER","
 CREATE USER [ IF NOT EXISTS ] newUserName

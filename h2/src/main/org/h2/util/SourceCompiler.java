@@ -24,6 +24,12 @@ import java.net.URI;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -33,6 +39,7 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -64,6 +71,11 @@ public class SourceCompiler {
      * The class name to byte code map.
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
+
+    /**
+     * The class name to compiled scripts map.
+     */
+    final Map<String, CompiledScript> compiledScripts = New.hashMap();
 
     /**
      * Whether to use the ToolProvider.getSystemJavaCompiler().
@@ -166,6 +178,43 @@ public class SourceCompiler {
 
     private static boolean isGroovySource(String source) {
         return source.startsWith("//groovy") || source.startsWith("@groovy");
+    }
+
+    private static boolean isJavascriptSource(String source) {
+        return source.startsWith("//javascript");
+    }
+
+    private static boolean isRubySource(String source) {
+        return source.startsWith("#ruby");
+    }
+
+    /**
+     * Whether the passed source can be compiled using {@link javax.script.ScriptEngineManager}.
+     * 
+     * @param source the source to test.
+     * @return <code>true</code> if {@link #getCompiledScript(String)} can be called.
+     */
+    public static boolean isJavaxScriptSource(String source) {
+        return isJavascriptSource(source) || isRubySource(source);
+    }
+
+    public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
+        CompiledScript compiledScript = compiledScripts.get(packageAndClassName);
+        if (compiledScript == null) {
+            String source = sources.get(packageAndClassName);
+            final String lang;
+            if (isJavascriptSource(source))
+                lang = "javascript";
+            else if (isRubySource(source))
+                lang = "ruby";
+            else
+                throw new IllegalStateException("Unknown language for " + source);
+
+            final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
+            compiledScript = jsEngine.compile(source);
+            compiledScripts.put(packageAndClassName, compiledScript);
+        }
+        return compiledScript;
     }
 
     /**

@@ -4013,6 +4013,14 @@ This function may be expensive since it has to load every page in the table.
 CALL DISK_SPACE_USED('my_table');
 "
 
+"Functions (System)","SIGNAL","
+SIGNAL(sqlStateString, messageString)
+","
+Throw an SQLException with the passed SQLState and reason.
+","
+CALL SIGNAL('23505', 'Duplicate user ID: ' || user_id);
+"
+
 "Functions (System)","FILE_READ","
 FILE_READ(fileNameString [,encodingString])
 ","

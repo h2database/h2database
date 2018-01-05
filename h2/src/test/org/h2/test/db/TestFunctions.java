@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
+
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
@@ -119,6 +120,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         testThatCurrentTimestampUpdatesOutsideATransaction();
         testAnnotationProcessorsOutput();
         testRound();
+        testSignal();
 
         deleteDb("functions");
     }
@@ -2034,6 +2036,26 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(1, rs.getInt(7));
 
         rs.close();
+        conn.close();
+    }
+
+    private void testSignal() throws SQLException {
+        deleteDb("functions");
+
+        Connection conn = getConnection("functions");
+        Statement stat = conn.createStatement();
+
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('00145', 'success class is invalid')");
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('foo', 'SQLSTATE has 5 chars')");
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('Ab123', 'SQLSTATE has only digits or upper-case letters')");
+        try {
+            stat.execute("select signal('AB123', 'some custom error')");
+            fail("Should have thrown");
+        } catch (SQLException e) {
+            assertEquals("AB123", e.getSQLState());
+            assertContains(e.getMessage(), "some custom error");
+        }
+
         conn.close();
     }
 

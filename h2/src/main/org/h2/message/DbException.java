@@ -180,6 +180,17 @@ public class DbException extends RuntimeException {
     }
 
     /**
+     * Create a database exception for an arbitrary SQLState.
+     *
+     * @param sqlstate the state to use
+     * @param message the message to use
+     * @return the exception
+     */
+    public static DbException fromUser(String sqlstate, String message) {
+        return new DbException(getJdbcSQLException(sqlstate, message));
+    }
+
+    /**
      * Create a syntax error exception.
      *
      * @param sql the SQL statement
@@ -343,6 +354,11 @@ public class DbException extends RuntimeException {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);
         return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
+    }
+
+    private static JdbcSQLException getJdbcSQLException(String sqlstate, String message) {
+        // do not translate as sqlstate is arbitrary : avoid "message not found"
+        return new JdbcSQLException(message, null, sqlstate, 0, null, null);
     }
 
     /**

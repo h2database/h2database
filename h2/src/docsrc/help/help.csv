@@ -4014,7 +4014,7 @@ CALL DISK_SPACE_USED('my_table');
 "
 
 "Functions (System)","SIGNAL","
-SIGNAL(sqlState, message)
+SIGNAL(sqlStateString, messageString)
 ","
 Throw an SQLException with the passed SQLState and reason.
 ","

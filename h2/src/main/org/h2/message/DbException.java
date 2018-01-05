@@ -187,7 +187,8 @@ public class DbException extends RuntimeException {
      * @return the exception
      */
     public static DbException fromUser(String sqlstate, String message) {
-        return new DbException(getJdbcSQLException(sqlstate, message));
+        // do not translate as sqlstate is arbitrary : avoid "message not found"
+        return new DbException(new JdbcSQLException(message, null, sqlstate, 0, null, null));
     }
 
     /**
@@ -354,11 +355,6 @@ public class DbException extends RuntimeException {
         String sqlstate = ErrorCode.getState(errorCode);
         String message = translate(sqlstate, params);
         return new JdbcSQLException(message, null, sqlstate, errorCode, cause, null);
-    }
-
-    private static JdbcSQLException getJdbcSQLException(String sqlstate, String message) {
-        // do not translate as sqlstate is arbitrary : avoid "message not found"
-        return new JdbcSQLException(message, null, sqlstate, 0, null, null);
     }
 
     /**

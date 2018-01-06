@@ -654,7 +654,7 @@ public class ToChar {
                         cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = StringUtils.toUpperEnglish(new SimpleDateFormat("EEE").format(ts));
+                String day = new SimpleDateFormat("EEE").format(ts);
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {

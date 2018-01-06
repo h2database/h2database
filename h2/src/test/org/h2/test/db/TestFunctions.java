@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
+import org.h2.util.ToChar.Capitalization;
 import org.h2.util.ToDateParser;
 import org.h2.value.Value;
 
@@ -1572,7 +1574,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'ds') FROM T");
         expected = String.format("%1$ta", timestamp1979);
         assertResult(expected.toUpperCase(), stat, "SELECT TO_CHAR(X, 'DY') FROM T");
-        assertResult(expected, stat, "SELECT TO_CHAR(X, 'Dy') FROM T");
+        assertResult(Capitalization.CAPITALIZE.apply(expected), stat, "SELECT TO_CHAR(X, 'Dy') FROM T");
         assertResult(expected.toLowerCase(), stat, "SELECT TO_CHAR(X, 'dy') FROM T");
         assertResult(expected.toLowerCase(), stat, "SELECT TO_CHAR(X, 'dY') FROM T");
         assertResult("08:12:34.560000", stat,
@@ -1627,11 +1629,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         expected = (expected + "        ").substring(0, 9);
         assertResult(expected.toUpperCase(), stat,
                 "SELECT TO_CHAR(X, 'MONTH') FROM T");
-        assertResult(expected, stat,
+        assertResult(Capitalization.CAPITALIZE.apply(expected), stat,
                 "SELECT TO_CHAR(X, 'Month') FROM T");
         assertResult(expected.toLowerCase(), stat,
                 "SELECT TO_CHAR(X, 'month') FROM T");
-        assertResult(expected.trim(), stat,
+        assertResult(Capitalization.CAPITALIZE.apply(expected.trim()), stat,
                 "SELECT TO_CHAR(X, 'fmMonth') FROM T");
         assertResult("4", stat, "SELECT TO_CHAR(X, 'Q') FROM T");
         assertResult("XI", stat, "SELECT TO_CHAR(X, 'RM') FROM T");
@@ -1641,7 +1643,11 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("1979", stat, "SELECT TO_CHAR(X, 'RRRR') FROM T");
         assertResult("34", stat, "SELECT TO_CHAR(X, 'SS') FROM T");
         assertResult("29554", stat, "SELECT TO_CHAR(X, 'SSSSS') FROM T");
-        assertResult("8:12:34 AM", stat, "SELECT TO_CHAR(X, 'TS') FROM T");
+        expected = new SimpleDateFormat("h:mm:ss aa").format(timestamp1979);
+        if (Locale.getDefault().getLanguage().equals(Locale.ENGLISH.getLanguage())) {
+            assertEquals("8:12:34 AM", expected);
+        }
+        assertResult(expected, stat, "SELECT TO_CHAR(X, 'TS') FROM T");
         assertResult(tzLongName, stat, "SELECT TO_CHAR(X, 'TZR') FROM T");
         assertResult(tzShortName, stat, "SELECT TO_CHAR(X, 'TZD') FROM T");
         expected = String.format("%f", 1.1).substring(1, 2);
@@ -1928,14 +1934,17 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("0.001", stat, "select to_char(0.001, 'FM0.099') from dual;");
         assertResult("0.001", stat, "select to_char(0.0012, 'FM0.099') from dual;");
         assertResult("0.002", stat, "select to_char(0.0019, 'FM0.099') from dual;");
-        assertResult("0.0", stat, "select to_char(0, 'FM0D099') from dual;");
-        assertResult("0.00", stat, "select to_char(0., 'FM0D009') from dual;");
-        assertResult("0.", stat, "select to_char(0, 'FM0D9') from dual;");
-        assertResult("0.0", stat, "select to_char(0.0, 'FM0D099') from dual;");
-        assertResult("0.00", stat, "select to_char(0.00, 'FM0D009') from dual;");
-        assertResult("0.00", stat, "select to_char(0, 'FM0D009') from dual;");
-        assertResult("0.0", stat, "select to_char(0, 'FM0D09') from dual;");
-        assertResult("0.0", stat, "select to_char(0, 'FM0D0') from dual;");
+        final char decimalSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+        final String oneDecimal = "0" + decimalSeparator + "0";
+        final String twoDecimals = "0" + decimalSeparator + "00";
+        assertResult(oneDecimal, stat, "select to_char(0, 'FM0D099') from dual;");
+        assertResult(twoDecimals, stat, "select to_char(0., 'FM0D009') from dual;");
+        assertResult("0" + decimalSeparator, stat, "select to_char(0, 'FM0D9') from dual;");
+        assertResult(oneDecimal, stat, "select to_char(0.0, 'FM0D099') from dual;");
+        assertResult(twoDecimals, stat, "select to_char(0.00, 'FM0D009') from dual;");
+        assertResult(twoDecimals, stat, "select to_char(0, 'FM0D009') from dual;");
+        assertResult(oneDecimal, stat, "select to_char(0, 'FM0D09') from dual;");
+        assertResult(oneDecimal, stat, "select to_char(0, 'FM0D0') from dual;");
         conn.close();
     }
 

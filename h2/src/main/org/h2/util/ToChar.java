@@ -17,6 +17,7 @@ import java.util.Currency;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
@@ -653,7 +654,7 @@ public class ToChar {
                         cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = StringUtils.toUpperEnglish(new SimpleDateFormat("EEE").format(ts));
+                String day = new SimpleDateFormat("EEE").format(ts);
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
@@ -884,7 +885,7 @@ public class ToChar {
     }
 
     /** Represents a capitalization / casing strategy. */
-    private enum Capitalization {
+    static public enum Capitalization {
 
         /**
          * All letters are uppercased.
@@ -911,7 +912,7 @@ public class ToChar {
          * @return the capitalization / casing strategy which should be used
          *         when the first and second letters have the specified casing
          */
-        public static Capitalization toCapitalization(Boolean up1, Boolean up2) {
+        private static Capitalization toCapitalization(Boolean up1, Boolean up2) {
             if (up1 == null) {
                 return Capitalization.CAPITALIZE;
             } else if (up2 == null) {

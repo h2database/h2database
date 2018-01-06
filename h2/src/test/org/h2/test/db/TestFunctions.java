@@ -1484,18 +1484,18 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         boolean daylight = tz.inDaylightTime(new Date());
         String tzShortName = tz.getDisplayName(daylight, TimeZone.SHORT);
         String tzLongName = tz.getID();
+        final Timestamp timestamp1979 = Timestamp.valueOf("1979-11-12 08:12:34.560");
 
         stat.executeUpdate("CREATE TABLE T (X TIMESTAMP(6))");
         stat.executeUpdate("INSERT INTO T VALUES " +
-                "(TIMESTAMP '1979-11-12 08:12:34.560')");
+                "(TIMESTAMP '"+timestamp1979.toString()+"')");
         stat.executeUpdate("CREATE TABLE U (X TIMESTAMP(6))");
         stat.executeUpdate("INSERT INTO U VALUES " +
                 "(TIMESTAMP '-100-01-15 14:04:02.120')");
 
         assertResult("1979-11-12 08:12:34.56", stat, "SELECT X FROM T");
         assertResult("-100-01-15 14:04:02.12", stat, "SELECT X FROM U");
-        String expected = String.format("%tb",
-                Timestamp.valueOf("1979-11-12 08:12:34.560")).toUpperCase();
+        String expected = String.format("%tb", timestamp1979).toUpperCase();
         assertResult("12-" + expected + "-79 08.12.34.560000 AM", stat,
                 "SELECT TO_CHAR(X) FROM T");
         assertResult("- / , . ; : text - /", stat,
@@ -1544,8 +1544,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("am", stat, "SELECT TO_CHAR(X, 'pm') FROM T");
         assertResult("2", stat, "SELECT TO_CHAR(X, 'D') FROM T");
         assertResult("2", stat, "SELECT TO_CHAR(X, 'd') FROM T");
-        expected = String.format("%tA",
-                Timestamp.valueOf("1979-11-12 08:12:34.560"));
+        expected = String.format("%tA", timestamp1979);
         expected = expected.substring(0, 1).toUpperCase() + expected.substring(1);
         String spaces = "         ";
         String first9 = (expected + spaces).substring(0, 9);
@@ -1564,16 +1563,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("316", stat, "SELECT TO_CHAR(X, 'DdD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'dDD') FROM T");
         assertResult("316", stat, "SELECT TO_CHAR(X, 'ddd') FROM T");
-        expected = String.format("%1$tA, %1$tB %1$te, %1$tY",
-                Timestamp.valueOf("1979-11-12 08:12:34.560"));
+        expected = String.format("%1$tA, %1$tB %1$te, %1$tY", timestamp1979);
         assertResult(expected, stat,
                 "SELECT TO_CHAR(X, 'DL') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'DS') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'Ds') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'dS') FROM T");
         assertResult("11/12/1979", stat, "SELECT TO_CHAR(X, 'ds') FROM T");
-        expected = String.format("%1$ta",
-                Timestamp.valueOf("1979-11-12 08:12:34.560"));
+        expected = String.format("%1$ta", timestamp1979);
         assertResult(expected.toUpperCase(), stat, "SELECT TO_CHAR(X, 'DY') FROM T");
         assertResult(expected, stat, "SELECT TO_CHAR(X, 'Dy') FROM T");
         assertResult(expected.toLowerCase(), stat, "SELECT TO_CHAR(X, 'dy') FROM T");
@@ -1618,8 +1615,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("11", stat, "SELECT TO_CHAR(X, 'Mm') FROM T");
         assertResult("11", stat, "SELECT TO_CHAR(X, 'mM') FROM T");
         assertResult("11", stat, "SELECT TO_CHAR(X, 'mm') FROM T");
-        expected = String.format("%1$tb",
-                Timestamp.valueOf("1979-11-12 08:12:34.560"));
+        expected = String.format("%1$tb", timestamp1979);
         expected = expected.substring(0, 1).toUpperCase() + expected.substring(1);
         assertResult(expected.toUpperCase(), stat,
                 "SELECT TO_CHAR(X, 'MON') FROM T");
@@ -1627,8 +1623,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
                 "SELECT TO_CHAR(X, 'Mon') FROM T");
         assertResult(expected.toLowerCase(), stat,
                 "SELECT TO_CHAR(X, 'mon') FROM T");
-        expected = String.format("%1$tB",
-                Timestamp.valueOf("1979-11-12 08:12:34.560"));
+        expected = String.format("%1$tB", timestamp1979);
         expected = (expected + "        ").substring(0, 9);
         assertResult(expected.toUpperCase(), stat,
                 "SELECT TO_CHAR(X, 'MONTH') FROM T");

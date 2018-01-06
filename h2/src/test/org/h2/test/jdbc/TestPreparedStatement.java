@@ -634,6 +634,13 @@ public class TestPreparedStatement extends TestBase {
         Object localDate2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
         assertEquals(localDate, localDate2);
         rs.close();
+        localDate = LocalDateTimeUtils.parseLocalDate("-0509-01-01");
+        prep.setObject(1, localDate);
+        rs = prep.executeQuery();
+        rs.next();
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        assertEquals(localDate, localDate2);
+        rs.close();
     }
 
     private void testTime8(Connection conn) throws SQLException {

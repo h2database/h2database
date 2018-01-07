@@ -185,7 +185,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         ResultInterface recursiveResult = view.getRecursiveResult();
         if (recursiveResult != null) {
             recursiveResult.reset();
-            //System.out.println("findRecursive.return ViewCursor=recResult="+recursiveResult+",first="+first+",last="+last);
             return new ViewCursor(this, recursiveResult, first, last);
         }
         if (query == null) {
@@ -193,7 +192,6 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
             parser.setRightsChecked(true);
             parser.setSuppliedParameterList(originalParameters);
             query = (Query) parser.prepare(querySQL);
-            //System.out.println("findRecursive.querySQL="+querySQL);
             query.setNeverLazy(true);
         }
         if (!query.isUnion()) {
@@ -212,12 +210,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         localResult.setMaxMemoryRows(Integer.MAX_VALUE);
         while (resultInterface.next()) {
             Value[] cr = resultInterface.currentRow();
-            //System.out.println("findRecursive.while left resultinterface next row="+Arrays.toString(cr));
             localResult.addRow(cr);
         }
         Query right = union.getRight();
         right.setNeverLazy(true);
-        //System.out.println("right="+right.getSQL());
         resultInterface.reset();
         view.setRecursiveResult(resultInterface);
         // to ensure the last result is not closed
@@ -225,12 +221,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         while (true) {
             resultInterface = right.query(0);
             if (!resultInterface.hasNext()) {
-                //System.out.println("right query has no results");
                 break;
             }
             while (resultInterface.next()) {
                 Value[] cr = resultInterface.currentRow();
-                //System.out.println("findRecursive.while right resultinterface next row="+Arrays.toString(cr));                
                 localResult.addRow(cr);
             }
             resultInterface.reset();

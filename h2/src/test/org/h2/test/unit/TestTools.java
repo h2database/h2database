@@ -35,6 +35,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.store.FileLister;
@@ -56,6 +58,7 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.tools.SimpleResultSet.SimpleArray;
 import org.h2.util.JdbcUtils;
 import org.h2.util.Task;
+import org.h2.value.ValueUuid;
 
 /**
  * Tests the database tools.
@@ -457,6 +460,13 @@ public class TestTools extends TestBase {
         assertFalse(rs.isClosed());
         rs.close();
         assertTrue(rs.isClosed());
+        rs = new SimpleResultSet();
+        rs.addColumn("TEST", Types.BINARY, 0, 0);
+        UUID uuid = UUID.randomUUID();
+        rs.addRow(uuid);
+        rs.next();
+        assertEquals(uuid, rs.getObject(1));
+        assertEquals(uuid, ValueUuid.get(rs.getBytes(1)).getObject());
     }
 
     private void testJdbcDriverUtils() {

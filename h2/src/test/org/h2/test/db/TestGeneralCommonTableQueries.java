@@ -540,9 +540,9 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
     
     private void testSimple3RowRecursiveQueryWithLazyEval() throws Exception {
         
-        String[] expectedRowData =new String[]{"|1","|2","|3"};
-        String[] expectedColumnTypes =new String[]{"INTEGER"};
-        String[] expectedColumnNames =new String[]{"N"};
+        String[] expectedRowData =new String[]{"|6",};
+        String[] expectedColumnTypes =new String[]{"BIGINT"};
+        String[] expectedColumnNames =new String[]{"SUM(N)"};
         
         // back up the config - to restore it after this test
         TestAll backupConfig = config;
@@ -558,10 +558,12 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             config.multiThreaded = true;
             
             String SETUP_SQL = "--no config set";
-            String WITH_QUERY = "with recursive r(n) as (\n"+
-                    "(select 1) union all (select n+1 from r where n < 3)\n"+
-                    ")\n"+
-                    "select n from r";
+            String WITH_QUERY = "select sum(n) from (\n"
+                +"    with recursive r(n) as (\n"
+                +"        (select 1) union all (select n+1 from r where n < 3) \n"
+                +"    )\n"
+                +"    select n from r \n"
+                +")\n";
     
             int maxRetries = 10;
             int expectedNumberOfRows = expectedRowData.length;

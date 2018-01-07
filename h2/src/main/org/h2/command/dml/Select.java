@@ -666,12 +666,12 @@ public class Select extends Query {
 
     private boolean hasRecursiveTopTableView() {
         //check the top table filter only to see if we have a recursive table query
-        if(this.topTableFilter.getTable().isTableExpression()){
-            TableView v = (TableView)this.topTableFilter.getTable();
-            if(v.isRecursive()){
-                return true;
-            }
-        }
+//        if(this.topTableFilter.getTable().isTableExpression()){
+//            TableView v = (TableView)this.topTableFilter.getTable();
+//            if(v.isRecursive()){
+//                return true;
+//            }
+//        }
         return false;
     }
 

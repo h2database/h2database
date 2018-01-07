@@ -260,10 +260,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static long secureRandomLong() {
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            return sr.nextLong();
-        }
+        return getSecureRandom().nextLong();
     }
 
     /**
@@ -286,10 +283,7 @@ public class MathUtils {
             len = 1;
         }
         byte[] buff = new byte[len];
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            sr.nextBytes(buff);
-        }
+        getSecureRandom().nextBytes(buff);
         return buff;
     }
 
@@ -312,10 +306,7 @@ public class MathUtils {
      * @return the random long value
      */
     public static int secureRandomInt(int lowerThan) {
-        SecureRandom sr = getSecureRandom();
-        synchronized (sr) {
-            return sr.nextInt(lowerThan);
-        }
+        return getSecureRandom().nextInt(lowerThan);
     }
 
 }

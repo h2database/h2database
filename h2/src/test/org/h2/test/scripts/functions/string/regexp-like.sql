@@ -2,3 +2,17 @@
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
+
+call select 1 from dual where regexp_like('x', 'x', '\');
+> exception
+
+select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
+> X
+> -
+> 1
+> rows: 1
+
+select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
+> X
+> -
+> rows: 0

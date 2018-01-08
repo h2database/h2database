@@ -1414,6 +1414,22 @@ public class Function extends Expression implements FunctionCall {
         case REGEXP_REPLACE: {
             String regexp = v1.getString();
             String replacement = v2.getString();
+            if (database.getMode().regexpReplaceBackslashReferences) {
+                if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < replacement.length(); i++) {
+                        char c = replacement.charAt(i);
+                        if (c == '$') {
+                            sb.append('\\');
+                        } else if (c == '\\' && ++i < replacement.length()) {
+                            c = replacement.charAt(i);
+                            sb.append(c >= '0' && c <= '9' ? '$' : '\\');
+                        }
+                        sb.append(c);
+                    }
+                    replacement = sb.toString();
+                }
+            }
             String regexpMode = v3 == null || v3.getString() == null ? "" :
                     v3.getString();
             int flags = makeRegexpFlags(regexpMode);

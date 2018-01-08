@@ -120,6 +120,11 @@ public class Mode {
     public boolean logIsLogBase10;
 
     /**
+     * The function REGEXP_REPLACE() uses \ for back-references.
+     */
+    public boolean regexpReplaceBackslashReferences;
+
+    /**
      * SERIAL and BIGSERIAL columns are not automatically primary keys.
      */
     public boolean serialColumnIsNotPK;
@@ -255,6 +260,7 @@ public class Mode {
         mode.convertOnlyToSmallerScale = true;
         mode.uniqueIndexSingleNullExceptAllColumnsAreNull = true;
         mode.treatEmptyStringsAsNull = true;
+        mode.regexpReplaceBackslashReferences = true;
         mode.supportPoundSymbolForColumnNames = true;
         // Oracle accepts keys of the form <namespace>.*. See
         // https://docs.oracle.com/database/121/JJDBC/jdbcvers.htm#JJDBC29006

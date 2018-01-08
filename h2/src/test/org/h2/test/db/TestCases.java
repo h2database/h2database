@@ -151,7 +151,7 @@ public class TestCases extends TestBase {
         stat.execute("alter table b add constraint x " +
                 "foreign key(a_id) references a(id)");
         stat.execute("update a set x=200");
-        stat.execute("drop table if exists a, b");
+        stat.execute("drop table if exists a, b cascade");
         conn.close();
     }
 

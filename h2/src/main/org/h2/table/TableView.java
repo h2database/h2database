@@ -122,9 +122,9 @@ public class TableView extends Table {
             throw DbException.getSyntaxError(sql, 0);
         }
         Query q = (Query) p;
-        if(isTableExpression){
-            // only potentially recursive queries need to be non-lazy
-            q.setNeverLazy(allowRecursive);
+        // only potentially recursive cte queries need to be non-lazy
+        if(isTableExpression && allowRecursive){
+            q.setNeverLazy(true);
         }
         return q;
     }

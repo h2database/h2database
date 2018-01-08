@@ -17,3 +17,31 @@ select regexp_replace('Sylvain', 'S..', 'TOTO', 'mni') as X;
 > --------
 > TOTOvain
 > rows: 1
+
+set mode oracle;
+
+select regexp_replace('first last', '(\w+) (\w+)', '\2 \1') as X from dual;
+> X
+> ----------
+> last first
+> rows: 1
+
+select regexp_replace('first last', '(\w+) (\w+)', '$2 $1') as X from dual;
+> X
+> -----
+> $2 $1
+> rows: 1
+
+set mode regular;
+
+select regexp_replace('first last', '(\w+) (\w+)', '\2 \1') as X from dual;
+> X
+> ---
+> 2 1
+> rows: 1
+
+select regexp_replace('first last', '(\w+) (\w+)', '$2 $1') as X from dual;
+> X
+> ----------
+> last first
+> rows: 1

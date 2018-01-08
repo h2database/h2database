@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
@@ -209,6 +210,7 @@ public class TestStatement extends TestBase {
 
         ResultSet rs;
         int count;
+        long largeCount;
         boolean result;
 
         stat.execute("CREATE TABLE TEST(ID INT)");
@@ -256,6 +258,15 @@ public class TestStatement extends TestBase {
         assertEquals(0, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
         assertEquals(1, count);
+        largeCount = stat.executeLargeUpdate("DELETE FROM TEST WHERE ID=-1");
+        assertEquals(0, largeCount);
+        assertEquals(0, stat.getLargeUpdateCount());
+        largeCount = stat.executeLargeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        assertEquals(1, largeCount);
+        assertEquals(1, stat.getLargeUpdateCount());
+        largeCount = stat.executeLargeUpdate("DELETE FROM TEST WHERE ID=2");
+        assertEquals(1, largeCount);
+        assertEquals(1, stat.getLargeUpdateCount());
 
         assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY, stat).
                 executeUpdate("SELECT * FROM TEST");
@@ -428,6 +439,21 @@ public class TestStatement extends TestBase {
         assertTrue(rs.next());
         assertEquals("World", rs.getString("name"));
         assertFalse(rs.next());
+        ps = conn.prepareStatement("insert into test values(?, ?)");
+        ps.setInt(1, 3);
+        ps.setString(2, "v3");
+        ps.addBatch();
+        ps.setInt(1, 4);
+        ps.setString(2, "v4");
+        ps.addBatch();
+        assertTrue(Arrays.equals(new int[] {1, 1}, ps.executeBatch()));
+        ps.setInt(1, 5);
+        ps.setString(2, "v5");
+        ps.addBatch();
+        ps.setInt(1, 6);
+        ps.setString(2, "v6");
+        ps.addBatch();
+        assertTrue(Arrays.equals(new long[] {1, 1}, ps.executeLargeBatch()));
         stat.execute("drop table test");
     }
 

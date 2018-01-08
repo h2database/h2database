@@ -198,8 +198,7 @@ public class TableView extends Table {
                 }
                 list.add(col);
             }
-            cols = new Column[list.size()];
-            list.toArray(cols);
+            cols = list.toArray(new Column[0]);
             createException = null;
             viewQuery = query;
         } catch (DbException e) {

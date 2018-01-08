@@ -905,8 +905,7 @@ public class FullText {
             index = new IndexInfo();
             index.schema = schemaName;
             index.table = tableName;
-            index.columns = new String[columnList.size()];
-            columnList.toArray(index.columns);
+            index.columns = columnList.toArray(new String[0]);
             rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),

@@ -492,9 +492,7 @@ public class StringUtils {
         }
         String e = buff.toString();
         list.add(trim ? e.trim() : e);
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new String[0]);
     }
 
     /**

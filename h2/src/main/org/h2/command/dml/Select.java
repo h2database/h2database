@@ -387,7 +387,7 @@ public class Select extends Query {
             }
             sortColumns.add(exprCol.getColumn());
         }
-        Column[] sortCols = sortColumns.toArray(new Column[sortColumns.size()]);
+        Column[] sortCols = sortColumns.toArray(new Column[0]);
         if (sortCols.length == 0) {
             // sort just on constants - can use scan index
             return topTableFilter.getTable().getScanIndex(session);
@@ -930,8 +930,7 @@ public class Select extends Query {
                 isGroupSortedQuery = true;
             }
         }
-        expressionArray = new Expression[expressions.size()];
-        expressions.toArray(expressionArray);
+        expressionArray = expressions.toArray(new Expression[0]);
         isPrepared = true;
     }
 
@@ -947,7 +946,7 @@ public class Select extends Query {
             list.add(f);
             f = f.getJoin();
         } while (f != null);
-        TableFilter[] fs = list.toArray(new TableFilter[list.size()]);
+        TableFilter[] fs = list.toArray(new TableFilter[0]);
         // prepare join batch
         JoinBatch jb = null;
         for (int i = fs.length - 1; i >= 0; i--) {
@@ -982,8 +981,7 @@ public class Select extends Query {
     }
 
     private double preparePlan(boolean parse) {
-        TableFilter[] topArray = topFilters.toArray(
-                new TableFilter[topFilters.size()]);
+        TableFilter[] topArray = topFilters.toArray(new TableFilter[0]);
         for (TableFilter t : topArray) {
             t.setFullCondition(condition);
         }
@@ -1058,8 +1056,7 @@ public class Select extends Query {
         // can not use the field sqlStatement because the parameter
         // indexes may be incorrect: ? may be in fact ?2 for a subquery
         // but indexes may be set manually as well
-        Expression[] exprList = expressions.toArray(
-                new Expression[expressions.size()]);
+        Expression[] exprList = expressions.toArray(new Expression[0]);
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();

@@ -57,8 +57,7 @@ public class TaskProcess {
             if (args != null && args.length > 0) {
                 list.addAll(Arrays.asList(args));
             }
-            String[] procDef = new String[list.size()];
-            list.toArray(procDef);
+            String[] procDef = list.toArray(new String[0]);
             process = Runtime.getRuntime().exec(procDef);
             copyInThread(process.getErrorStream(), System.err);
             reader = new BufferedReader(new InputStreamReader(process.getInputStream()));

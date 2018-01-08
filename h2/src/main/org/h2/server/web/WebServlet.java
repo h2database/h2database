@@ -46,8 +46,7 @@ public class WebServlet extends HttpServlet {
                 list.add(value);
             }
         }
-        String[] args = new String[list.size()];
-        list.toArray(args);
+        String[] args = list.toArray(new String[0]);
         server = new WebServer();
         server.setAllowChunked(false);
         server.init(args);

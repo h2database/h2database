@@ -497,8 +497,7 @@ public class FullTextLucene extends FullText {
                 columnList.add(rs.getString("COLUMN_NAME"));
             }
             columnTypes = new int[columnList.size()];
-            columns = new String[columnList.size()];
-            columnList.toArray(columns);
+            columns = columnList.toArray(new String[0]);
             rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),

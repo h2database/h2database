@@ -348,8 +348,7 @@ public class SelectUnion extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        expressionArray = new Expression[expressions.size()];
-        expressions.toArray(expressionArray);
+        expressionArray = expressions.toArray(new Expression[0]);
     }
 
     @Override
@@ -435,7 +434,7 @@ public class SelectUnion extends Query {
             DbException.throwInternalError("type=" + unionType);
         }
         buff.append('(').append(right.getPlanSQL()).append(')');
-        Expression[] exprList = expressions.toArray(new Expression[expressions.size()]);
+        Expression[] exprList = expressions.toArray(new Expression[0]);
         if (sort != null) {
             buff.append("\nORDER BY ").append(sort.getSQL(exprList, exprList.length));
         }

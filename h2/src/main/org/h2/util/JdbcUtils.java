@@ -156,8 +156,7 @@ public class JdbcUtils {
                     classNames.add(p);
                 }
             }
-            allowedClassNamePrefixes = new String[prefixes.size()];
-            prefixes.toArray(allowedClassNamePrefixes);
+            allowedClassNamePrefixes = prefixes.toArray(new String[0]);
             allowAllClasses = allowAll;
             allowedClassNames = classNames;
         }

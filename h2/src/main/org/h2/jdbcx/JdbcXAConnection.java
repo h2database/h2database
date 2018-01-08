@@ -201,8 +201,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
                 list.add(xid);
             }
             rs.close();
-            Xid[] result = new Xid[list.size()];
-            list.toArray(result);
+            Xid[] result = list.toArray(new Xid[0]);
             if (list.size() > 0) {
                 prepared = true;
             }

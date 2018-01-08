@@ -47,9 +47,7 @@ public class Expression {
             exp.add(sql);
             sql = "";
         }
-        String[] list = new String[exp.size()];
-        exp.toArray(list);
-        return list;
+        return exp.toArray(new String[0]);
     }
 
     /**

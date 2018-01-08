@@ -2308,10 +2308,8 @@ public class Function extends Expression implements FunctionCall {
      */
     public void doneWithParameters() {
         if (info.parameterCount == VAR_ARGS) {
-            int len = varArgs.size();
-            checkParameterCount(len);
-            args = new Expression[len];
-            varArgs.toArray(args);
+            checkParameterCount(varArgs.size());
+            args = varArgs.toArray(new Expression[0]);
             varArgs = null;
         } else {
             int len = args.length;

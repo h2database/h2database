@@ -359,8 +359,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 i++;
             }
         }
-        columns = new Column[columnList.size()];
-        columnList.toArray(columns);
+        columns = columnList.toArray(new Column[0]);
 
         // reconstruct the index columns from the masks
         this.indexColumns = new IndexColumn[indexColumnCount];

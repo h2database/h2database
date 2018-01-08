@@ -212,9 +212,7 @@ public class ValueArray extends Value {
             }
             list.add(v);
         }
-        Value[] array = new Value[list.size()];
-        list.toArray(array);
-        return get(array);
+        return get(list.toArray(new Value[0]));
     }
 
 }

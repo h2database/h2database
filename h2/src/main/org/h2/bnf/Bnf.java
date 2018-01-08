@@ -283,7 +283,7 @@ public class Bnf {
             }
             list.add(s);
         }
-        return list.toArray(new String[list.size()]);
+        return list.toArray(new String[0]);
     }
 
     /**

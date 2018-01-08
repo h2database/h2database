@@ -131,8 +131,7 @@ public class FilePathSplit extends FilePathWrapper {
                 break;
             }
         }
-        FileChannel[] array = new FileChannel[list.size()];
-        list.toArray(array);
+        FileChannel[] array = list.toArray(new FileChannel[0]);
         long maxLength = array[0].size();
         long length = maxLength;
         if (array.length == 1) {

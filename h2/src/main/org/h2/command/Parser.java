@@ -913,7 +913,7 @@ public class Parser {
             }
         } while (readIf(","));
         read(")");
-        return columns.toArray(new IndexColumn[columns.size()]);
+        return columns.toArray(new IndexColumn[0]);
     }
 
     private String[] parseColumnList() {
@@ -922,7 +922,7 @@ public class Parser {
             String columnName = readColumnIdentifier();
             columns.add(columnName);
         } while (readIfMore());
-        return columns.toArray(new String[columns.size()]);
+        return columns.toArray(new String[0]);
     }
 
     private Column[] parseColumnList(Table table) {
@@ -938,7 +938,7 @@ public class Parser {
                 columns.add(column);
             } while (readIfMore());
         }
-        return columns.toArray(new Column[columns.size()]);
+        return columns.toArray(new Column[0]);
     }
 
     private Column parseColumn(Table table) {
@@ -1117,7 +1117,7 @@ public class Parser {
                         }
                     } while (readIfMore());
                 }
-                command.addRow(values.toArray(new Expression[values.size()]));
+                command.addRow(values.toArray(new Expression[0]));
             } while (readIf(","));
         } else {
             command.setQuery(parseSelect());
@@ -1283,7 +1283,7 @@ public class Parser {
                         }
                     } while (readIfMore());
                 }
-                command.addRow(values.toArray(new Expression[values.size()]));
+                command.addRow(values.toArray(new Expression[0]));
                 // the following condition will allow (..),; and (..);
             } while (readIf(",") && readIf("("));
         } else if (readIf("SET")) {
@@ -1303,8 +1303,8 @@ public class Parser {
                 }
                 values.add(expression);
             } while (readIf(","));
-            command.setColumns(columnList.toArray(new Column[columnList.size()]));
-            command.addRow(values.toArray(new Expression[values.size()]));
+            command.setColumns(columnList.toArray(new Column[0]));
+            command.addRow(values.toArray(new Expression[0]));
         } else {
             command.setQuery(parseSelect());
         }
@@ -1342,7 +1342,7 @@ public class Parser {
                         }
                     } while (readIfMore());
                 }
-                command.addRow(values.toArray(new Expression[values.size()]));
+                command.addRow(values.toArray(new Expression[0]));
             } while (readIf(","));
         } else {
             command.setQuery(parseSelect());
@@ -2712,8 +2712,7 @@ public class Parser {
             }
             argList.add(readExpression());
         }
-        args = new Expression[numArgs];
-        argList.toArray(args);
+        args = argList.toArray(new Expression[0]);
         JavaFunction func = new JavaFunction(functionAlias, args);
         return func;
     }
@@ -2724,8 +2723,7 @@ public class Parser {
             params.add(readExpression());
         } while (readIf(","));
         read(")");
-        Expression[] list = new Expression[params.size()];
-        params.toArray(list);
+        Expression[] list = params.toArray(new Expression[0]);
         JavaAggregate agg = new JavaAggregate(aggregate, list, currentSelect);
         currentSelect.setGroupQuery();
         return agg;
@@ -3227,9 +3225,7 @@ public class Parser {
                             break;
                         }
                     }
-                    Expression[] array = new Expression[list.size()];
-                    list.toArray(array);
-                    r = new ExpressionList(array);
+                    r = new ExpressionList(list.toArray(new Expression[0]));
                 } else {
                     read(")");
                 }
@@ -4533,7 +4529,7 @@ public class Parser {
                 }
                 read(")");
                 original += ')';
-                enumerators = enumeratorList.toArray(new String[enumeratorList.size()]);
+                enumerators = enumeratorList.toArray(new String[0]);
             }
             try {
                 ValueEnum.check(enumerators);
@@ -5756,9 +5752,7 @@ public class Parser {
             while (readIf(",")) {
                 list.add(readAliasIdentifier());
             }
-            String[] schemaNames = new String[list.size()];
-            list.toArray(schemaNames);
-            command.setStringArray(schemaNames);
+            command.setStringArray(list.toArray(new String[0]));
             return command;
         } else if (readIf("JAVA_OBJECT_SERIALIZER")) {
             readIfEqualOrTo();

@@ -209,7 +209,7 @@ public class SortOrder implements Comparator<Value[]> {
             rows.set(0, Collections.min(rows, this));
             return;
         }
-        Value[][] arr = rows.toArray(new Value[rowsSize][]);
+        Value[][] arr = rows.toArray(new Value[0][]);
         Utils.sortTopN(arr, offset, limit, this);
         for (int i = 0, end = Math.min(offset + limit, rowsSize); i < end; i++) {
             rows.set(i, arr[i]);

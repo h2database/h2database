@@ -26,6 +26,12 @@ select regexp_replace('first last', '(\w+) (\w+)', '\2 \1') as X from dual;
 > last first
 > rows: 1
 
+select regexp_replace('first last', '(\w+) (\w+)', '\\2 \1') as X from dual;
+> X
+> --------
+> \2 first
+> rows: 1
+
 select regexp_replace('first last', '(\w+) (\w+)', '$2 $1') as X from dual;
 > X
 > -----

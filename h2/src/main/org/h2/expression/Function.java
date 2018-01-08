@@ -1430,6 +1430,10 @@ public class Function extends Expression implements FunctionCall {
                                     sb.append('$');
                                     continue;
                                 }
+                                if (c == '\\') {
+                                    sb.append('\\');
+                                    i++;
+                                }
                             }
                         }
                         sb.append(c);

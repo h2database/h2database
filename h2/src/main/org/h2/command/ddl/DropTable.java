@@ -84,12 +84,15 @@ public class DropTable extends SchemaCommand {
                         buff.append(v.getName());
                     }
                 }
-                final List<Constraint> constraints = table.getConstraints();
-                if (constraints != null && constraints.size() > 0) {
-                    for (Constraint c : constraints) {
-                        if (c.getTable() != table) {
-                            buff.appendExceptFirst(", ");
-                            buff.append(c.getName());
+                if (session.getDatabase()
+                        .getSettings().standardDropTableRestrict) {
+                    final List<Constraint> constraints = table.getConstraints();
+                    if (constraints != null && constraints.size() > 0) {
+                        for (Constraint c : constraints) {
+                            if (c.getTable() != table) {
+                                buff.appendExceptFirst(", ");
+                                buff.append(c.getName());
+                            }
                         }
                     }
                 }

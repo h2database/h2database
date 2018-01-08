@@ -279,11 +279,23 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
+    private void testDropTable() throws SQLException {
+        final boolean prevVal = config.stdDropTableRestrict;
+        try {
+            for (final boolean newVal : new boolean[] { true, false }) {
+                config.stdDropTableRestrict = newVal;
+                _testDropTable();
+            }
+        } finally {
+            config.stdDropTableRestrict = prevVal;
+        }
+    }
+
     private static enum DropDependent {
         NONE, VIEW, FOREIGN_KEY;
     }
 
-    private void testDropTable() throws SQLException {
+    private void _testDropTable() throws SQLException {
         trace("testDrop");
 
         for (final boolean restrict : new boolean[] { true, false }) {
@@ -301,7 +313,10 @@ public class TestCases extends TestBase {
                 }
 
                 // drop allowed if no references or cascade
-                final boolean expectedDropSuccess = dropDep == DropDependent.NONE || !restrict;
+                final boolean expectedDropSuccess = dropDep == DropDependent.NONE
+                        || (!config.stdDropTableRestrict
+                                && dropDep == DropDependent.FOREIGN_KEY)
+                        || !restrict;
                 assertThrows(expectedDropSuccess ? 0 : ErrorCode.CANNOT_DROP_2, stat).execute("drop table test " + (restrict ? "restrict" : "cascade"));
                 assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from test");
 

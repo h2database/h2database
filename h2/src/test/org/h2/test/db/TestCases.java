@@ -54,6 +54,7 @@ public class TestCases extends TestBase {
         testGroupSubquery();
         testCountDistinctNotNull();
         testDependencies();
+        testDropTable();
         testConvertType();
         testSortedSelect();
         testMaxMemoryRows();
@@ -276,6 +277,53 @@ public class TestCases extends TestBase {
                         "set default ifnull((select max(id) from test for update)+1, 0)");
         stat.execute("drop table test");
         conn.close();
+    }
+
+    private static enum DropDependent {
+        NONE, VIEW, FOREIGN_KEY;
+    }
+
+    private void testDropTable() throws SQLException {
+        trace("testDrop");
+
+        for (final boolean restrict : new boolean[] { true, false }) {
+            for (final DropDependent dropDep : DropDependent.values()) {
+                deleteDb("cases");
+                Connection conn = getConnection("cases");
+                Statement stat = conn.createStatement();
+                stat.execute("create table test(id int)");
+                if (dropDep == DropDependent.VIEW) {
+                    stat.execute("create view abc as select * from test");
+                } else if (dropDep == DropDependent.FOREIGN_KEY) {
+                    stat.execute("create table ref(id int, id_test int, foreign key (id_test) references test (id)) ");
+                    // test table is empty so the foreign key forces ref table to be also empty
+                    assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat).execute("insert into ref values(1,2)");
+                }
+
+                // drop allowed if no references or cascade
+                final boolean expectedDropSuccess = dropDep == DropDependent.NONE || !restrict;
+                assertThrows(expectedDropSuccess ? 0 : ErrorCode.CANNOT_DROP_2, stat).execute("drop table test " + (restrict ? "restrict" : "cascade"));
+                assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from test");
+
+                // missing view if it was never created or if the drop succeeded
+                assertThrows(dropDep != DropDependent.VIEW || expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from abc");
+
+                final int refError;
+                if (dropDep != DropDependent.FOREIGN_KEY) {
+                    // never created
+                    refError = ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1;
+                } else if (expectedDropSuccess) {
+                    // foreign key dropped
+                    refError = 0;
+                } else {
+                    // foreign key not dropped
+                    refError = ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1;
+                }
+                assertThrows(refError, stat).execute("insert into ref values(1,2)");
+
+                conn.close();
+            }
+        }
     }
 
     private void testConvertType() throws SQLException {

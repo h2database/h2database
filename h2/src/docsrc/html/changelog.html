@@ -21,6 +21,34 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Make ALL a reserved keyword
+</li>
+<li>Issue #311: Avoid calling list.toArray(new X[list.size()]) for performance 
+</li>
+<li>PR #715: Better getObject error message
+</li>
+<li>PR #714: SecureRandom is already synchronized
+</li>
+<li>PR #712: Return properly encoded UUID from SimpleResultSet.getBytes()
+</li>
+<li>PR #711: TestFunctions less english dependent
+</li>
+<li>Issue #644: Year changing from negative -509 to a positive 510.
+</li>
+<li>PR #706: SIGNAL function
+</li>
+<li>PR #704: added Javascript support for Triggers' source
+</li>
+<li>Issue #694: Oracle syntax for adding NOT NULL constraint not supported.
+</li>
+<li>Issue #699: When using an index for sorting, the index is ignored when also using NULLS LAST/FIRST
+</li>
+<li>Issue #697: FilePathDisk.newInputStream fails for contextual class loading          
+</li>
+<li>Issue #695: jdbc:postgresql protocol connection issue in H2 Console Application in case of redshift driver in classpath
+</li>
+<li>Fix 'file not closed' when using FILE_READ 
+</li>
 <li>Fix bug in LinkSchema tool when object exists with same name in different schemas
 </li>
 <li>Issue #675: Fix date operations on Locales with non-Gregorian calendars

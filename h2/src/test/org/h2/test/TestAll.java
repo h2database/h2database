@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.Driver;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FilePathRec;
@@ -432,8 +431,6 @@ java org.h2.test.TestAll timer
     /** If not null the database should be opened with the collation parameter */
     public String collation;
 
-    public boolean stdDropTableRestrict;
-
     /**
      * The AB-BA locking detector.
      */
@@ -620,7 +617,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         defrag = false;
         traceLevelFile = throttle = 0;
         cipher = null;
-        stdDropTableRestrict = false;
 
         // memory is a good match for multi-threaded, makes things happen
         // faster, more chance of exposing race conditions
@@ -1130,7 +1126,6 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         appendIf(buff, defrag, "defrag");
         appendIf(buff, splitFileSystem, "split");
         appendIf(buff, collation != null, collation);
-        appendIf(buff, stdDropTableRestrict, "stdDropTableRestrict");
         return buff.toString();
     }
 

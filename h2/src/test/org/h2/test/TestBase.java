@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.jdbc.JdbcConnection;
 import org.h2.message.DbException;
 import org.h2.store.fs.FilePath;
@@ -167,8 +166,15 @@ public abstract class TestBase {
      * @return the connection
      */
     public Connection getConnection(String name) throws SQLException {
-        return getConnectionInternal(getURL(name, true), getUser(),
-                getPassword());
+        return getConnection(name, null);
+    }
+
+    public Connection getConnection(final String name, final Boolean stdDropTableRestrict) throws SQLException {
+        String url = getURL(name, true);
+        if (stdDropTableRestrict != null) {
+            url = addOption(url, "STANDARD_DROP_TABLE_RESTRICT", stdDropTableRestrict.toString());
+        }
+        return getConnectionInternal(url, getUser(), getPassword());
     }
 
     /**
@@ -333,9 +339,6 @@ public abstract class TestBase {
         }
         if (config.collation != null) {
             url = addOption(url, "COLLATION", config.collation);
-        }
-        if (config.stdDropTableRestrict) {
-            url = addOption(url, "STANDARD_DROP_TABLE_RESTRICT", "TRUE");
         }
         return "jdbc:h2:" + url;
     }

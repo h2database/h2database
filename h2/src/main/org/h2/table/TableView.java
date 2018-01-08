@@ -123,7 +123,8 @@ public class TableView extends Table {
         }
         Query q = (Query) p;
         if(isTableExpression){
-            q.setNeverLazy(true);
+            // only potentially recursive queries need to be non-lazy
+            q.setNeverLazy(allowRecursive);
         }
         return q;
     }

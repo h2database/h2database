@@ -4184,6 +4184,8 @@ public class Parser {
 
     private static int getSaveTokenType(String s, boolean supportOffsetFetch) {
         switch (s.charAt(0)) {
+        case 'A':
+            return getKeywordOrIdentifier(s, "ALL", KEYWORD);
         case 'C':
             if (s.equals("CHECK")) {
                 return KEYWORD;

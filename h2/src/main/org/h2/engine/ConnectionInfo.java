@@ -225,8 +225,7 @@ public class ConnectionInfo implements Cloneable {
     }
 
     private void readProperties(Properties info) {
-        Object[] list = new Object[info.size()];
-        info.keySet().toArray(list);
+        Object[] list = info.keySet().toArray();
         DbSettings s = null;
         for (Object k : list) {
             String key = StringUtils.toUpperEnglish(k.toString());

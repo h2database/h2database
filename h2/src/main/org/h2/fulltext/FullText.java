@@ -469,10 +469,8 @@ public class FullText {
         Parser p = new Parser(session);
         Expression expr = p.parseExpression(key);
         addColumnData(columns, data, expr);
-        Object[] col = new Object[columns.size()];
-        columns.toArray(col);
-        Object[] dat = new Object[columns.size()];
-        data.toArray(dat);
+        Object[] col = columns.toArray();
+        Object[] dat = data.toArray();
         Object[][] columnData = { col, dat };
         return columnData;
     }

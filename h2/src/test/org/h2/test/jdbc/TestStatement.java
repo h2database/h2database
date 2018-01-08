@@ -454,6 +454,14 @@ public class TestStatement extends TestBase {
         ps.setString(2, "v6");
         ps.addBatch();
         assertTrue(Arrays.equals(new long[] {1, 1}, ps.executeLargeBatch()));
+        ps.setInt(1, 7);
+        ps.setString(2, "v7");
+        assertEquals(1, ps.executeUpdate());
+        assertEquals(1, ps.getUpdateCount());
+        ps.setInt(1, 8);
+        ps.setString(2, "v8");
+        assertEquals(1, ps.executeLargeUpdate());
+        assertEquals(1, ps.getLargeUpdateCount());
         stat.execute("drop table test");
     }
 

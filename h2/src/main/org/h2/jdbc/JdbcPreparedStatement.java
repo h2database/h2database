@@ -56,7 +56,7 @@ import org.h2.value.ValueTimestamp;
  * Represents a prepared statement.
  */
 public class JdbcPreparedStatement extends JdbcStatement implements
-        PreparedStatement {
+        PreparedStatement, JdbcPreparedStatementBackwardsCompat {
 
     protected CommandInterface command;
     private final String sqlStatement;
@@ -144,6 +144,38 @@ public class JdbcPreparedStatement extends JdbcStatement implements
     public int executeUpdate() throws SQLException {
         try {
             debugCodeCall("executeUpdate");
+            checkClosedForWrite();
+            batchIdentities = null;
+            try {
+                return executeUpdateInternal();
+            } finally {
+                afterWriting();
+            }
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long executeLargeUpdate() throws SQLException {
+        try {
+            debugCodeCall("executeLargeUpdate");
             checkClosedForWrite();
             batchIdentities = null;
             try {

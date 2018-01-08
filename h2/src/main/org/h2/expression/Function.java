@@ -1419,22 +1419,11 @@ public class Function extends Expression implements FunctionCall {
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < replacement.length(); i++) {
                         char c = replacement.charAt(i);
-                        switch (c) {
-                        case '$':
+                        if (c == '$') {
                             sb.append('\\');
-                            break;
-                        case '\\':
-                            if (i + 1 < replacement.length()) {
-                                c = replacement.charAt(i + 1);
-                                if (c >= '0' && c <= '9') {
-                                    sb.append('$');
-                                    continue;
-                                }
-                                if (c == '\\') {
-                                    sb.append('\\');
-                                    i++;
-                                }
-                            }
+                        } else if (c == '\\' && ++i < replacement.length()) {
+                            c = replacement.charAt(i);
+                            sb.append(c >= '0' && c <= '9' ? '$' : '\\');
                         }
                         sb.append(c);
                     }

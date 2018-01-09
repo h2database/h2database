@@ -840,14 +840,14 @@ public class Select extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        ColumnNamer columnNamer= new ColumnNamer(session);
+        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
             String proposedColumnName = e.getAlias();
-            String columnName = columnNamer.getColumnName(e,i,proposedColumnName);
+            String columnName = columnNamer.getColumnName(e, i, proposedColumnName);
             // if the name changed, create an alias
-            if(!columnName.equals(proposedColumnName)){
-                e = new Alias(e,columnName,true);
+            if (!columnName.equals(proposedColumnName)) {
+                e = new Alias(e, columnName, true);
             }
             expressions.set(i, e.optimize(session));
         }
@@ -1087,14 +1087,13 @@ public class Select extends Query {
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
             TableView tableView = (t instanceof TableView) ? (TableView) t : null;
-            if (tableView!=null && tableView.isRecursive() && tableView.isTableExpression()) {
+            if (tableView != null && tableView.isRecursive() && tableView.isTableExpression()) {
                 
-                if(tableView.isPersistent()){
+                if (tableView.isPersistent()) {
                     // skip the generation of plan SQL for this already recursive persistent ctes, since using a with 
                     // statement will re-create the common table expression views.
                     continue;
-                }
-                else {
+                } else {
                     buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
                     buff.resetCount();
                     for (Column c : t.getColumns()) {

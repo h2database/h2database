@@ -79,10 +79,10 @@ public class DropView extends SchemaCommand {
             session.getDatabase().removeSchemaObject(session, view);
 
             // remove dependent table expressions
-            for( Table childTable: copyOfDependencies){
-                if(TableType.VIEW == childTable.getTableType()){
+            for (Table childTable: copyOfDependencies) {
+                if (TableType.VIEW == childTable.getTableType()) {
                     TableView childTableView = (TableView) childTable;
-                    if(childTableView.isTableExpression() && childTableView.getName()!=null){
+                    if (childTableView.isTableExpression() && childTableView.getName() != null) {
                         session.getDatabase().removeSchemaObject(session, childTableView);
                     }
                 }

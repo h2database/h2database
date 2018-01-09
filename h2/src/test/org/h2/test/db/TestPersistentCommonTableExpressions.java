@@ -30,9 +30,9 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
     }
 
     private void testRecursiveTable() throws Exception {
-        String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
-        String[] expectedColumnTypes =new String[]{"VARCHAR","DECIMAL"};
-        String[] expectedColumnNames =new String[]{"VAL",
+        String[] expectedRowData = new String[]{"|meat|null", "|fruit|3", "|veg|2"};
+        String[] expectedColumnTypes = new String[]{"VARCHAR", "DECIMAL"};
+        String[] expectedColumnNames = new String[]{"VAL",
                 "SUM(SELECT\n" +
                 "    X\n" +
                 "FROM PUBLIC.\"\" BB\n" +
@@ -54,7 +54,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "    /* scanCount: 1 */\n" +
                 "WHERE BB.A IS A.VAL)"};
         
-        String SETUP_SQL =
+        String setupSQL =
                 "DROP TABLE IF EXISTS A;                           "
                 +"DROP TABLE IF EXISTS B;                           "
                 +"DROP TABLE IF EXISTS C;                           "
@@ -73,9 +73,9 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"INSERT INTO C VALUES('carrot', 'nantes');         "
                 +"INSERT INTO C VALUES('carrot', 'imperator');      "
                 +"INSERT INTO C VALUES(null, 'banapple');           "
-                +"INSERT INTO A VALUES('meat');                     "
-                ;
-            String WITH_QUERY = "WITH BB as (SELECT                        \n" +
+                +"INSERT INTO A VALUES('meat');                     ";
+        
+            String withQuery = "WITH BB as (SELECT                        \n" +
                 "sum(1) as X,                             \n" +
                 "a                                        \n" +
                 "FROM B                                   \n" +
@@ -88,13 +88,13 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;
             
-        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1, expectedColumnTypes);
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
+                withQuery, maxRetries - 1, expectedColumnTypes);
             
     }
 
     private void testPersistentRecursiveTableInCreateView() throws Exception {    
-        String SETUP_SQL = "--SET TRACE_LEVEL_SYSTEM_OUT 3;\n"
+        String setuoSQL = "--SET TRACE_LEVEL_SYSTEM_OUT 3;\n"
                 +"DROP TABLE IF EXISTS my_tree;                                                                \n"
                 +"DROP VIEW IF EXISTS v_my_tree;                                                               \n"
                 +"CREATE TABLE my_tree (                                                                       \n"
@@ -118,12 +118,11 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"INNER JOIN tree_cte mtc ON mtc.child_fk = mt.parent_fk                                       \n"
                 +"),                                                                                           \n"
                 +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
-                +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n"
-                ;
+                +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte;                      \n";
         
-        String WITH_QUERY = "SELECT * FROM v_my_tree";
+        String withQuery = "SELECT * FROM v_my_tree";
         int maxRetries = 4;
-        String[] expectedRowData =new String[]{"|1|0|null|1",
+        String[] expectedRowData = new String[]{"|1|0|null|1",
                 "|11|0|1|11",
                 "|111|0|11|111",
                 "|12|0|1|12",
@@ -135,15 +134,15 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 "|1|2|null|111",
                 "|1|2|null|121"
                 };
-        String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
-        String[] expectedColumnTypes =new String[]{"INTEGER","INTEGER","INTEGER","INTEGER"};        
+        String[] expectedColumnNames = new String[]{"SUB_TREE_ROOT_ID", "TREE_LEVEL", "PARENT_FK", "CHILD_FK"};
+        String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};        
         int expectedNumberOfRows = 11;
-        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1,expectedColumnTypes);
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setuoSQL,
+                withQuery, maxRetries - 1, expectedColumnTypes);
     }
     
     private void testPersistentNonRecursiveTableInCreateView() throws Exception {    
-        String SETUP_SQL = ""
+        String setupSQL = ""
                 +"DROP VIEW IF EXISTS v_my_nr_tree;                                                            \n"
                 +"DROP TABLE IF EXISTS my_table;                                                               \n"
                 +"CREATE TABLE my_table (                                                                      \n"
@@ -163,22 +162,21 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
                 +"      FROM my_table mt                                                                       \n"
                 +"),                                                                                            \n"
                 +"unused_cte AS ( SELECT 1 AS unUsedColumn )                                                   \n"
-                +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte_nr;                   \n"
-                ;
+                +"SELECT sub_tree_root_id, tree_level, parent_fk, child_fk FROM tree_cte_nr;                   \n";
         
-        String WITH_QUERY = "SELECT * FROM v_my_nr_tree";
+        String withQuery = "SELECT * FROM v_my_nr_tree";
         int maxRetries = 6;
-        String[] expectedRowData =new String[]{
+        String[] expectedRowData = new String[]{
                 "|1|0|null|1",
                 "|11|0|1|11",
                 "|111|0|11|111",
                 "|12|0|1|12",
                 "|121|0|12|121",
                 };
-        String[] expectedColumnNames =new String[]{"SUB_TREE_ROOT_ID","TREE_LEVEL","PARENT_FK","CHILD_FK"};
-        String[] expectedColumnTypes =new String[]{"INTEGER","INTEGER","INTEGER","INTEGER"};        
+        String[] expectedColumnNames = new String[]{"SUB_TREE_ROOT_ID", "TREE_LEVEL", "PARENT_FK", "CHILD_FK"};
+        String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};        
         int expectedNumberOfRows = 5;
-        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, SETUP_SQL,
-                WITH_QUERY, maxRetries-1, expectedColumnTypes);
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
+                withQuery, maxRetries - 1, expectedColumnTypes);
     }
 }

@@ -232,16 +232,15 @@ public class Session extends SessionWithState {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
         assert this.parsingView >= 0;
-        if(parsingView){
+        if (parsingView) {
             viewNameStack.push(viewName);
-        }else
-        {
+        } else {
             assert viewName.equals(viewNameStack.peek());
             viewNameStack.pop();
         }        
     }
     public String getParsingCreateViewName() {
-        if(viewNameStack.size()==0){
+        if (viewNameStack.size() == 0) {
             return null;
         }
         return viewNameStack.peek();
@@ -694,7 +693,8 @@ public class Session extends SessionWithState {
             for (Table table : tablesToAnalyze) {
                 Analyze.analyzeTable(this, table, rows, false);
             }
-            database.unlockMeta(this); // analyze can lock the meta
+            // analyze can lock the meta
+            database.unlockMeta(this); 
         }
         tablesToAnalyze = null;
     }

@@ -48,32 +48,6 @@ import org.h2.value.Value;
  * A table stored in a MVStore.
  */
 public class MVTable extends TableBase {
-
-    private static final String NO_EXTRA_INFO = "";
-
-    // lock event types for tracing...
-    
-    private enum TraceLockEvent{
-        
-        TRACE_LOCK_OK("ok"),
-        TRACE_LOCK_WAITING_FOR("waiting for"),
-        TRACE_LOCK_REQUESTING_FOR("requesting for"),
-        TRACE_LOCK_TIMEOUT_AFTER("timeout after "),
-        TRACE_LOCK_UNLOCK("unlock"),
-        TRACE_LOCK_ADDED_FOR("added for"),
-        TRACE_LOCK_ADD_UPGRADED_FOR("add (upgraded) for ");
-    
-        private TraceLockEvent(String eventText){
-            this.eventText = eventText;
-        }
-        
-        private final String eventText;
-        
-        public String getEventText(){
-            return eventText;
-        }
-    }
-
     /**
      * The table name this thread is waiting to lock.
      */
@@ -88,7 +62,32 @@ public class MVTable extends TableBase {
      * The tables names this thread has a shared lock on.
      */
     public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS;
+    
+    /**
+     * The type of trace lock events
+     */
+    private enum TraceLockEvent{
+        
+        TRACE_LOCK_OK("ok"),
+        TRACE_LOCK_WAITING_FOR("waiting for"),
+        TRACE_LOCK_REQUESTING_FOR("requesting for"),
+        TRACE_LOCK_TIMEOUT_AFTER("timeout after "),
+        TRACE_LOCK_UNLOCK("unlock"),
+        TRACE_LOCK_ADDED_FOR("added for"),
+        TRACE_LOCK_ADD_UPGRADED_FOR("add (upgraded) for ");
 
+        private final String eventText;
+
+        TraceLockEvent(String eventText) {
+            this.eventText = eventText;
+        }
+                
+        public String getEventText() {
+            return eventText;
+        }
+    }
+    private static final String NO_EXTRA_INFO = "";
+    
     static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
             WAITING_FOR_LOCK = new DebuggingThreadLocal<>();

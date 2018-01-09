@@ -170,6 +170,8 @@ import org.h2.value.ValueTimestampTimeZone;
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class Parser {
+    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
+            "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     // used during the tokenizer phase
     private static final int CHAR_END = 1, CHAR_VALUE = 2, CHAR_QUOTED = 3;
@@ -197,9 +199,7 @@ public class Parser {
             return o1 == o2 ? 0 : compareTableFilters(o1, o2);
         }
     };
-    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
-            "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
-
+    
     private final Database database;
     private final Session session;
     /**
@@ -722,7 +722,7 @@ public class Parser {
      *
      */
     private Schema getSchemaWithDefault() {
-        if(schemaName==null){
+        if (schemaName == null) {
             schemaName = session.getCurrentSchemaName();
         }
         return getSchema(schemaName);
@@ -845,13 +845,13 @@ public class Parser {
                 currentSelect, orderInFrom, null);
     }
 
-    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom,Collection<String> excludeTokens) {
+    private TableFilter readSimpleTableFilterWithAliasExcludes(int orderInFrom, Collection<String> excludeTokens) {
         Table table = readTableOrView();
         String alias = null;
         if (readIf("AS")) {
             alias = readAliasIdentifier();
         } else if (currentTokenType == IDENTIFIER) {
-            if (!equalsTokenIgnoreCase(currentToken,"SET") && !isTokenInList(excludeTokens)) {
+            if (!equalsTokenIgnoreCase(currentToken, "SET") && !isTokenInList(excludeTokens)) {
                 // SET is not a keyword (PostgreSQL supports it as a table name)
                 alias = readAliasIdentifier();
             }
@@ -1080,13 +1080,13 @@ public class Parser {
         currentPrepared = command;
         int start = lastParseIndex;
         read("INTO");
-        List<String> excludeIdentifiers = Arrays.asList("USING","KEY","VALUES");
-        TableFilter targetTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
+        List<String> excludeIdentifiers = Arrays.asList("USING", "KEY", "VALUES");
+        TableFilter targetTableFilter = readSimpleTableFilterWithAliasExcludes(0, excludeIdentifiers);
         command.setTargetTableFilter(targetTableFilter);
         Table table = command.getTargetTable();
 
-        if (readIf("USING")){
-            return parseMergeUsing(command,start);
+        if (readIf("USING")) {
+            return parseMergeUsing(command, start);
         }
         if (readIf("(")) {
             if (isSelect()) {
@@ -1147,20 +1147,19 @@ public class Parser {
                     temporarySourceTableView, command.getQueryAlias(),
                     rightsChecked, (Select) command.getQuery(), 0, null);
             command.setSourceTableFilter(sourceTableFilter);
-        }
-        else{
+        } else {
             /* Its a table name, simulate a query by building a select query for the table */
             List<String> excludeIdentifiers = Arrays.asList("ON");
-            TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0,excludeIdentifiers);
+            TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0, excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);
 
             StringBuilder buff = new StringBuilder(
                     "SELECT * FROM "+sourceTableFilter.getTable().getName());
-            if(sourceTableFilter.getTableAlias()!=null){
+            if (sourceTableFilter.getTableAlias() != null) {
                 buff.append(" AS "+sourceTableFilter.getTableAlias());
             }
             Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
-            command.setQuery((Select)preparedQuery);
+            command.setQuery((Select) preparedQuery);
 
         }
         read("ON");
@@ -1169,27 +1168,27 @@ public class Parser {
         command.setOnCondition(condition);
         read(")");
 
-        if(readIfAll("WHEN","MATCHED","THEN")){
+        if (readIfAll("WHEN", "MATCHED", "THEN")) {
             int startMatched = lastParseIndex;
-            if (readIf("UPDATE")){
+            if (readIf("UPDATE")) {
                 Update updateCommand = new Update(session);
                 //currentPrepared = updateCommand;
                 TableFilter filter = command.getTargetTableFilter();
                 updateCommand.setTableFilter(filter);
-                parseUpdateSetClause(updateCommand, filter,startMatched);
+                parseUpdateSetClause(updateCommand, filter, startMatched);
                 command.setUpdateCommand(updateCommand);
             }
             startMatched = lastParseIndex;
-            if (readIf("DELETE")){
+            if (readIf("DELETE")) {
                 Delete deleteCommand = new Delete(session);
                 TableFilter filter = command.getTargetTableFilter();
                 deleteCommand.setTableFilter(filter);
-                parseDeleteGivenTable(deleteCommand,null,startMatched);
+                parseDeleteGivenTable(deleteCommand, null, startMatched);
                 command.setDeleteCommand(deleteCommand);
             }
         }
-        if(readIfAll("WHEN","NOT","MATCHED","THEN")){
-            if (readIf("INSERT")){
+        if (readIfAll("WHEN", "NOT", "MATCHED", "THEN")) {
+            if (readIf("INSERT")) {
                 Insert insertCommand = new Insert(session);
                 insertCommand.setTable(command.getTargetTable());
                 parseInsertGivenTable(insertCommand, command.getTargetTable());
@@ -1222,7 +1221,7 @@ public class Parser {
         Table table = readTableOrView();
         command.setTable(table);
         Insert returnedCommand = parseInsertGivenTable(command, table);
-        if (returnedCommand!=null){
+        if (returnedCommand != null) {
             return returnedCommand;
         }
         if (database.getMode().onDuplicateKeyUpdate) {
@@ -1453,7 +1452,7 @@ public class Parser {
             }
         }
         // inherit alias for CTE as views from table name
-        if(table.isView() && table.isTableExpression() && alias==null){
+        if (table.isView() && table.isTableExpression() && alias == null) {
             alias = table.getName();
         }
         return new TableFilter(session, table, alias, rightsChecked,
@@ -1489,7 +1488,7 @@ public class Parser {
     private String readFromAlias(String alias) {
         // left and right are not keywords (because they are functions as
         // well)
-        List<String> excludeIdentifiers = Arrays.asList("LEFT","RIGHT","FULL");
+        List<String> excludeIdentifiers = Arrays.asList("LEFT", "RIGHT", "FULL");
         return readFromAlias(alias, excludeIdentifiers);
     }
 
@@ -1942,7 +1941,7 @@ public class Parser {
             params.add(parameters.get(i));
         }
         command.setParameterList(params);
-        if(command instanceof Query){
+        if (command instanceof Query) {
             Query query = (Query) command;
             query.init();
         }
@@ -2134,8 +2133,7 @@ public class Parser {
             Query query = null;
             try {
                 query = (Query) parseWith();
-            }
-            catch(ClassCastException e){
+            } catch (ClassCastException e) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                         "WITH statement supports only SELECT (query) in this context");
             }
@@ -3493,8 +3491,8 @@ public class Parser {
      * Reads passed token in list, in order and returns true on first match.
      * If none of the token matches returns false
      */
-    private boolean readIfOr(String ... tokens) {
-        for(String token: tokens) {
+    private boolean readIfOr(String... tokens) {
+        for (String token: tokens) {
             if (readIf(token)) {
                 return true;
             }
@@ -3506,14 +3504,13 @@ public class Parser {
      * Reads every token in list, in order - returns true if all are found.
      * If any are not found, returns false - AND resets parsing back to state when called.
      */
-    private boolean readIfAll(String ... tokens) {
+    private boolean readIfAll(String... tokens) {
         // save parse location in case we have to fail this test
         int start = lastParseIndex;
-        for(String token: tokens){
+        for (String token: tokens) {
             if (!currentTokenQuoted && equalsToken(token, currentToken)) {
                 read();
-            }
-            else{
+            } else {
                 // read failed - revert parse location to before when called
                 parseIndex = start;
                 read();
@@ -3555,7 +3552,7 @@ public class Parser {
         return false;
     }
 
-    private boolean isTokenInList(Collection<String> upperCaseTokenList){
+    private boolean isTokenInList(Collection<String> upperCaseTokenList) {
         String upperCaseCurrentToken = currentToken.toUpperCase();
         return upperCaseTokenList.contains(upperCaseCurrentToken);
     }
@@ -4515,7 +4512,7 @@ public class Parser {
                 String enumerator0 = readString();
                 enumeratorList.add(enumerator0);
                 original += "'" + enumerator0 + "'";
-                while(readIf(",")) {
+                while (readIf(",")) {
                     original += ',';
                     String enumeratorN = readString();
                     original += "'" + enumeratorN + "'";
@@ -4527,7 +4524,7 @@ public class Parser {
             }
             try {
                 ValueEnum.check(enumerators);
-            } catch(DbException e) {
+            } catch (DbException e) {
                 throw e.addSQL(original);
             }
         } else if (readIf("(")) {
@@ -5165,7 +5162,7 @@ public class Parser {
         
         // this WITH statement is not a temporary view - it is part of a persistent view
         // as in CREATE VIEW abc AS WITH my_cte - this auto detects that condition
-        if(session.isParsingCreateView()){
+        if (session.isParsingCreateView()) {
             isPersistent = true;
         }
         
@@ -5180,45 +5177,39 @@ public class Parser {
         // used in setCteCleanups
         Collections.reverse(viewsCreated);
 
-        if(isToken("SELECT")) {
+        if (isToken("SELECT")) {
             Query query = parseSelectUnion();
             query.setPrepareAlways(true);
             query.setNeverLazy(true);
             p = query;
-        }
-        else if(readIf("INSERT")) {
+        } else if (readIf("INSERT")) {
             p = parseInsert();
             p.setPrepareAlways(true);
-        }
-        else if(readIf("UPDATE")) {
+        } else if (readIf("UPDATE")) {
             p = parseUpdate();
             p.setPrepareAlways(true);
-        }
-        else if(readIf("MERGE")) {
+        } else if (readIf("MERGE")) {
             p = parseMerge();
             p.setPrepareAlways(true);
-        }
-        else if(readIf("DELETE")) {
+        } else if (readIf("DELETE")) {
             p = parseDelete();
             p.setPrepareAlways(true);
-        }
-        else if(readIf("CREATE")) {
-            if (!isToken("TABLE")){
+        } else if (readIf("CREATE")) {
+            if (!isToken("TABLE")) {
                 throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                         WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
 
             }
             p = parseCreate();
             p.setPrepareAlways(true);
-        }
-        else {
+        } else {
             throw DbException.get(ErrorCode.SYNTAX_ERROR_1,
                     WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS);
         }
 
         // clean up temporary views starting with last to first (in case of
         // dependencies) - but only if they are not persistent
-        if(!isPersistent){
+        if (!isPersistent) {
             p.setCteCleanups(viewsCreated);
         }
         return p;
@@ -5227,7 +5218,7 @@ public class Parser {
     private TableView parseSingleCommonTableExpression(boolean isPersistent) {
         String cteViewName = readIdentifierWithSchema();
         Schema schema = getSchema();
-        Table recursiveTable=null;
+        Table recursiveTable = null;
         ArrayList<Column> columns = New.arrayList();
         String[] cols = null;
         Database db = session.getDatabase();
@@ -5244,10 +5235,9 @@ public class Parser {
         }
         
         Table oldViewFound = null;
-        if(isPersistent){
+        if (isPersistent) {
             oldViewFound = getSchema().findTableOrView(session, cteViewName);
-        }
-        else{
+        } else {
             oldViewFound = session.findLocalTempTable(cteViewName);
         }
         // this persistent check conflicts with check 10 lines down
@@ -5261,21 +5251,21 @@ public class Parser {
                 throw DbException.get(ErrorCode.TABLE_OR_VIEW_ALREADY_EXISTS_1,
                         cteViewName);
             }
-            if(isPersistent){
+            if (isPersistent) {
                 oldViewFound.lock(session, true, true);
                 session.getDatabase().removeSchemaObject(session, oldViewFound);                
                 
-            }else{
+            } else {
                 session.removeLocalTempTable(oldViewFound);
             }
-            oldViewFound=null;
+            oldViewFound = null;
         }
         // this table is created as a work around because recursive
         // table expressions need to reference something that look like
         // themselves
         // to work (its removed after creation in this method)
         // only create table data and table if we don't have a working CTE already
-        if(oldViewFound == null){
+        if (oldViewFound == null) {
             recursiveTable = TableView.createShadowTableForRecursiveTableExpression(isPersistent, session, cteViewName,
                     schema, columns, db);
         }
@@ -5285,7 +5275,7 @@ public class Parser {
             read("AS");
             read("(");
             Query withQuery = parseSelect();
-            if(isPersistent){
+            if (isPersistent) {
                 withQuery.session = session;
             }            
             read(")");
@@ -5316,16 +5306,16 @@ public class Parser {
         // it twice - once without the flag set, and if we didn't see a recursive term,
         // then we just compile it again.
         TableView view;
-        synchronized(targetSession){            
+        synchronized (targetSession) {            
             view = new TableView(schema, id, cteViewName, querySQL,
                     parameters, columnTemplateArray, targetSession,
                     allowRecursiveQueryDetection, false /* literalsChecked */, true /* isTableExpression */, isPersistent);
             if (!view.isRecursiveQueryDetected() && allowRecursiveQueryDetection) {
-                if(isPersistent){
+                if (isPersistent) {
                     db.addSchemaObject(targetSession, view);
                     view.lock(targetSession, true, true);
                     targetSession.getDatabase().removeSchemaObject(targetSession, view);                
-                }else{
+                } else {
                     session.removeLocalTempTable(view);                    
                 }
                 view = new TableView(schema, id, cteViewName, querySQL, parameters,
@@ -5339,13 +5329,12 @@ public class Parser {
         view.setTemporary(!isPersistent);
         view.setHidden(true);
         view.setOnCommitDrop(false);
-        if(addViewToSession){
-            if(isPersistent){
+        if (addViewToSession) {
+            if (isPersistent) {
                 db.addSchemaObject(targetSession, view);
                 view.unlock(targetSession);
                 db.unlockMeta(targetSession);
-            }
-            else{
+            } else {
                 targetSession.addLocalTempTable(view);
             }
         }
@@ -5373,12 +5362,12 @@ public class Parser {
         read("AS");
         try {
             Query query;
-            session.setParsingCreateView(true,viewName);
+            session.setParsingCreateView(true, viewName);
             try {
                 query = parseSelect();
                 query.prepare();
             } finally {
-                session.setParsingCreateView(false,viewName);
+                session.setParsingCreateView(false, viewName);
             }
             command.setSelect(query);
         } catch (DbException e) {
@@ -6118,7 +6107,8 @@ public class Parser {
                 command.setType(CommandInterface.ALTER_TABLE_DROP_COLUMN);
                 ArrayList<Column> columnsToRemove = New.arrayList();
                 Table table = tableIfTableExists(schema, tableName, ifTableExists);
-                boolean openingBracketDetected = readIf("("); // For Oracle compatibility - open bracket required
+                // For Oracle compatibility - open bracket required
+                boolean openingBracketDetected = readIf("("); 
                 do {
                     String columnName = readColumnIdentifier();
                     if (table == null) {
@@ -6131,7 +6121,8 @@ public class Parser {
                     columnsToRemove.add(column);
                 } while (readIf(","));
                 if (openingBracketDetected) {
-                    read(")"); // For Oracle compatibility - close bracket
+                    // For Oracle compatibility - close bracket
+                    read(")"); 
                 }
                 command.setTableName(tableName);
                 command.setIfTableExists(ifTableExists);
@@ -6155,8 +6146,8 @@ public class Parser {
             command.setNewColumnName(newColumnName);
             return command;
         } else if (readIf("MODIFY")) {
-            // MySQL compatibility
-            readIf("COLUMN"); // optional
+            // MySQL compatibility (optional)
+            readIf("COLUMN");
             String columnName = readColumnIdentifier();
             AlterTableAlterColumn command = null;
             NullConstraintType nullConstraint = parseNotNullConstraint();
@@ -6759,13 +6750,16 @@ public class Parser {
         return command;
     }
 
-    private enum NullConstraintType {
+    /**
+     * Enumeration describing null constraints
+     */
+    private enum NullConstraintType {    
         NULL_IS_ALLOWED, NULL_IS_NOT_ALLOWED, NO_NULL_CONSTRAINT_FOUND
     }
 
     private NullConstraintType parseNotNullConstraint() {
         NullConstraintType nullConstraint = NullConstraintType.NO_NULL_CONSTRAINT_FOUND;
-        if ((isToken("NOT") || isToken("NULL"))) {
+        if (isToken("NOT") || isToken("NULL")) {
             if (readIf("NOT")) {
                 read("NULL");
                 nullConstraint = NullConstraintType.NULL_IS_NOT_ALLOWED;
@@ -6775,15 +6769,20 @@ public class Parser {
             }
             if (database.getMode().getEnum() == ModeEnum.Oracle) {
                 if (readIf("ENABLE")) {
-                    readIf("VALIDATE"); // Leave constraint 'as is'
-                    if (readIf("NOVALIDATE")) { // Turn off constraint, allow NULLs
+                    // Leave constraint 'as is'
+                    readIf("VALIDATE"); 
+                    // Turn off constraint, allow NULLs
+                    if (readIf("NOVALIDATE")) { 
                         nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
                     }
                 }
-                if (readIf("DISABLE")) { // Turn off constraint, allow NULLs
+                // Turn off constraint, allow NULLs
+                if (readIf("DISABLE")) { 
                     nullConstraint = NullConstraintType.NULL_IS_ALLOWED;
-                    readIf("VALIDATE"); // ignore validate
-                    readIf("NOVALIDATE"); // ignore novalidate
+                    // ignore validate
+                    readIf("VALIDATE"); 
+                    // ignore novalidate
+                    readIf("NOVALIDATE"); 
                 }
             }
         }

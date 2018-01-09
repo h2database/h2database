@@ -112,11 +112,11 @@ public class MergeUsing extends Prepared {
     private Delete deleteCommand;
     private Insert insertCommand;
     private String queryAlias;
-    private int countUpdatedRows = 0;
+    private int countUpdatedRows;
     private Column[] sourceKeys;
     private Select targetMatchQuery;
     private HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
-    private int sourceQueryRowNumber = 0;
+    private int sourceQueryRowNumber;
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());

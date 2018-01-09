@@ -73,7 +73,7 @@ public class CreateView extends SchemaCommand {
     }
     
     public void setTableExpression(boolean isTableExpression) {
-        this.isTableExpression=isTableExpression;
+        this.isTableExpression = isTableExpression;
      }
 
     @Override
@@ -116,11 +116,9 @@ public class CreateView extends SchemaCommand {
             }
         }
         if (view == null) {
-            if(isTableExpression){
-                view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null, columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression, true /*isPersistent*/ , db);
-            }
-            else
-            {
+            if (isTableExpression) {
+                view = TableView.createTableViewMaybeRecursive(getSchema(), id, viewName, querySQL, null, columnTemplatesAsStrings, session, false /* literalsChecked */, isTableExpression, true /*isPersistent*/, db);
+            } else {
                 view = new TableView(getSchema(), id, viewName, querySQL, null, columnTemplatesAsUnknowns, session, false/* allow recursive */, false/* literalsChecked */, isTableExpression, true);
             }
         } else {

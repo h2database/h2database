@@ -90,6 +90,9 @@ import org.h2.value.ValueInt;
 public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
+    
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<Session>();
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<Throwable>();
 
     /**
      * The default name of the system user. This name is only used as long as
@@ -296,7 +299,7 @@ public class Database implements DataHandler {
                 e.fillInStackTrace();
             }
             boolean alreadyOpen = e instanceof DbException
-                    && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+                    && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
             if (alreadyOpen) {
                 stopServer();
             }
@@ -899,10 +902,7 @@ public class Database implements DataHandler {
         }
     }
 
-    private static final ThreadLocal<Session> metaLockDebugging = new ThreadLocal<Session>();
-    private static final ThreadLocal<Throwable> metaLockDebuggingStack = new ThreadLocal<Throwable>();
-
-    /**
+  /**
      * Lock the metadata table for updates.
      *
      * @param session the session
@@ -917,13 +917,13 @@ public class Database implements DataHandler {
             return true;
         }
         if (SysProperties.CHECK2) {
-            final Session prev = metaLockDebugging.get();
+            final Session prev = META_LOCK_DEBUGGING.get();
             if (prev == null) {
-                metaLockDebugging.set(session);
-                metaLockDebuggingStack.set(new Throwable("Last meta lock granted in this stack trace, "+
+                META_LOCK_DEBUGGING.set(session);
+                META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
                         "this is debug information for following IllegalStateException"));
             } else if (prev != session) {
-                metaLockDebuggingStack.get().printStackTrace();
+                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
                 throw new IllegalStateException("meta currently locked by "
                         + prev +", sessionid="+ prev.getId()
                         + " and trying to be locked by different session, "
@@ -953,9 +953,9 @@ public class Database implements DataHandler {
      */
     public void unlockMetaDebug(Session session) {
         if (SysProperties.CHECK2) {
-            if (metaLockDebugging.get() == session) {
-                metaLockDebugging.set(null);
-                metaLockDebuggingStack.set(null);
+            if (META_LOCK_DEBUGGING.get() == session) {
+                META_LOCK_DEBUGGING.set(null);
+                META_LOCK_DEBUGGING_STACK.set(null);
             }
         }
     }

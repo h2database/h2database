@@ -763,7 +763,7 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestReadOnly());
         addTest(new TestRecursiveQueries());
         addTest(new TestGeneralCommonTableQueries());
-        if(!memory){
+        if (!memory) {
             // requires persistent store for reconnection tests
             addTest(new TestPersistentCommonTableExpressions());
         }

@@ -1498,6 +1498,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("1979-11-12 08:12:34.56", stat, "SELECT X FROM T");
         assertResult("-100-01-15 14:04:02.12", stat, "SELECT X FROM U");
         String expected = String.format("%tb", timestamp1979).toUpperCase();
+        expected = stripTrailingPeriod(expected);
         assertResult("12-" + expected + "-79 08.12.34.560000 AM", stat,
                 "SELECT TO_CHAR(X) FROM T");
         assertResult("- / , . ; : text - /", stat,
@@ -1618,6 +1619,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("11", stat, "SELECT TO_CHAR(X, 'mM') FROM T");
         assertResult("11", stat, "SELECT TO_CHAR(X, 'mm') FROM T");
         expected = String.format("%1$tb", timestamp1979);
+        expected = stripTrailingPeriod(expected);
         expected = expected.substring(0, 1).toUpperCase() + expected.substring(1);
         assertResult(expected.toUpperCase(), stat,
                 "SELECT TO_CHAR(X, 'MON') FROM T");
@@ -1670,6 +1672,14 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertResult("19850101", stat, "SELECT TO_CHAR(X, 'YYYYMMDD') FROM T");
 
         conn.close();
+    }
+
+    String stripTrailingPeriod(String expected) {
+        // CLDR provider appends period on some locales
+        int l = expected.length() - 1;
+        if (expected.charAt(l) == '.')
+            expected = expected.substring(0, l);
+        return expected;
     }
 
     private void testIfNull() throws SQLException {

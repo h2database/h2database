@@ -523,7 +523,7 @@ public class LocalDateTimeUtils {
         try {
             Object localDate = LOCAL_DATE_TIME_TO_LOCAL_DATE.invoke(localDateTime);
             long dateValue = dateValueFromLocalDate(localDate);
-            long timeNanos = timeNanosFromLocalDate(localDateTime);
+            long timeNanos = timeNanosFromLocalDateTime(localDateTime);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
@@ -545,7 +545,7 @@ public class LocalDateTimeUtils {
             Object zoneOffset = OFFSET_DATE_TIME_GET_OFFSET.invoke(offsetDateTime);
 
             long dateValue = dateValueFromLocalDate(localDate);
-            long timeNanos = timeNanosFromLocalDate(localDateTime);
+            long timeNanos = timeNanosFromLocalDateTime(localDateTime);
             short timeZoneOffsetMins = zoneOffsetToOffsetMinute(zoneOffset);
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue,
                     timeNanos, timeZoneOffsetMins);
@@ -564,7 +564,7 @@ public class LocalDateTimeUtils {
         return DateTimeUtils.dateValue(year, month, day);
     }
 
-    private static long timeNanosFromLocalDate(Object localDateTime)
+    private static long timeNanosFromLocalDateTime(Object localDateTime)
                     throws IllegalAccessException, InvocationTargetException {
         Object midnight = LOCAL_DATE_TIME_TRUNCATED_TO.invoke(localDateTime, CHRONO_UNIT_DAYS);
         Object duration = DURATION_BETWEEN.invoke(null, midnight, localDateTime);

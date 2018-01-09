@@ -27,22 +27,10 @@ import org.h2.value.ValueTimestampTimeZone;
  * <p>This class is implemented using reflection so that it compiles on
  * Java 7 as well.</p>
  *
- * <p>For LocalDate and LocalTime the conversion methods provided by
- * the JDK are used. For OffsetDateTime a custom conversion method is
- * used because it has no equivalent in JDBC. For LocalDateTime a
- * custom conversion method is used instead of the one provided by the
- * JDK as well.</p>
- *
- * <p>Using the JDK provided conversion method for LocalDateTime would
- * introduces some errors in edge cases. Consider the following case:
- * at 2016-03-27 02:00 in Europe/Berlin the clocks were set to
- * 2016-03-27 03:00. This means that 2016-03-27 02:15 does not exist in
- * Europe/Berlin. Unfortunately java.sql.Timestamp is in the the time
- * zone of the JVM. That means if you run a JVM with the time zone
- * Europe/Berlin then the SQL value 'TIMESTAMP 2016-03-27 02:15:00' can
- * not be represented. java.time.LocalDateTime does not have these
- * limitations but if we convert through java.sql.Timestamp we inherit
- * its limitations. Therefore that conversion must be avoided.</p>
+ * <p>Custom conversion methods between H2 internal values and JSR-310 classes
+ * are used without intermediate conversions to java.sql classes. Direct
+ * conversion is simpler, faster, and it does not inherit limitations and
+ * issues from java.sql classes and conversion methods provided by JDK.</p>
  *
  * <p>Once the driver requires Java 8 all the reflection can be removed.</p>
  */

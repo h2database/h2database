@@ -11,14 +11,17 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.command.Parser;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.result.ResultInterface;
 import org.h2.util.New;
+import org.h2.util.StringUtils;
 
 /**
  * Represents a statement.
@@ -1293,6 +1296,33 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
         if (isDebugEnabled()) {
             debugCode("setPoolable("+poolable+");");
         }
+    }
+
+    /**
+     * @param identifier
+     *            identifier to quote if required
+     * @param alwaysQuote
+     *            if {@code true} identifier will be quoted unconditionally
+     * @return specified identifier quoted if required or explicitly requested
+     */
+    @Override
+    public String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException {
+        if (alwaysQuote)
+            return StringUtils.quoteIdentifier(identifier);
+        return Parser.quoteIdentifier(identifier);
+    }
+
+    /**
+     * @param identifier
+     *            identifier to check
+     * @return is specified identifier may be used without quotes
+     */
+    @Override
+    public boolean isSimpleIdentifier(String identifier) throws SQLException {
+        if (identifier == null)
+            // To conform with JDBC specification
+            throw new NullPointerException();
+        return Parser.isSimpleIdentifier(identifier);
     }
 
     /**

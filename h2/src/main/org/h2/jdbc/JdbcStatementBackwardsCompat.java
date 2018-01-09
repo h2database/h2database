@@ -32,4 +32,10 @@ public interface JdbcStatementBackwardsCompat {
     long executeLargeUpdate(String sql, int columnIndexes[]) throws SQLException;
 
     long executeLargeUpdate(String sql, String columnNames[]) throws SQLException;
+
+    // JDBC 4.3 (incomplete)
+
+    String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException;
+
+    boolean isSimpleIdentifier(String identifier) throws SQLException;
 }

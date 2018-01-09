@@ -6851,6 +6851,30 @@ public class Parser {
         return s;
     }
 
+    /**
+     * @param s
+     *            identifier to check
+     * @return is specified identifier may be used without quotes
+     */
+    public static boolean isSimpleIdentifier(String s) {
+        if (s == null || s.length() == 0) {
+            return false;
+        }
+        char c = s.charAt(0);
+        // lowercase a-z is quoted as well
+        if ((!Character.isLetter(c) && c != '_') || Character.isLowerCase(c)) {
+            return false;
+        }
+        for (int i = 1, length = s.length(); i < length; i++) {
+            c = s.charAt(i);
+            if ((!Character.isLetterOrDigit(c) && c != '_') ||
+                    Character.isLowerCase(c)) {
+                return false;
+            }
+        }
+        return !isKeyword(s, true);
+    }
+
     public void setLiteralsChecked(boolean literalsChecked) {
         this.literalsChecked = literalsChecked;
     }

@@ -305,7 +305,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
                     + expectedResultsSQL + " )");
 
             int rowCount = 0;
-            StringBuffer diffBuffer = new StringBuffer("");
+            StringBuilder diffBuffer = new StringBuilder("");
             while (rs.next()) {
                 rowCount++;
                 diffBuffer.append("|");
@@ -401,7 +401,7 @@ public class TestMergeUsing extends TestBase implements Trigger {
     }
 
     private String getCreateTriggerSQL() {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         buf.append("CREATE TRIGGER INS_BEFORE " + "BEFORE INSERT ON PARENT "
                 + "FOR EACH ROW NOWAIT CALL \"" + getClass().getName() + "\";");
         buf.append("CREATE TRIGGER UPD_BEFORE " + "BEFORE UPDATE ON PARENT "

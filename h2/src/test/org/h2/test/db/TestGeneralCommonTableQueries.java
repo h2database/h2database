@@ -548,7 +548,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
             int rowNdx=0;
             while (rs.next()) {
-                StringBuffer buf = new StringBuffer();
+                StringBuilder buf = new StringBuilder();
                 for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
                     buf.append("|"+rs.getString(columnIndex));
                 }

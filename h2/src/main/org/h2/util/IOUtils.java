@@ -271,7 +271,6 @@ public class IOUtils {
     public static void closeSilently(Writer writer) {
         if (writer != null) {
             try {
-                writer.flush();
                 writer.close();
             } catch (Exception e) {
                 // ignore

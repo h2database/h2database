@@ -431,6 +431,7 @@ java org.h2.test.TestAll timer
     /** If not null the database should be opened with the collation parameter */
     public String collation;
 
+
     /**
      * The AB-BA locking detector.
      */

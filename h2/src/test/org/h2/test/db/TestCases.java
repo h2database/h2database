@@ -58,6 +58,7 @@ public class TestCases extends TestBase {
         testSortedSelect();
         testMaxMemoryRows();
         testDeleteTop();
+        testLikeExpressions();
         testUnicode();
         testOuterJoin();
         testCommentOnColumnWithSchemaEqualDatabase();
@@ -1841,4 +1842,15 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
+    /** Tests fix for bug #682: Queries with 'like' expressions may filter rows incorrectly */
+    private void testLikeExpressions() throws SQLException {
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from (select 'fo%' a union all select '%oo') where 'foo' like a");
+        assertTrue(rs.next());
+        assertEquals("fo%", rs.getString(1));
+        assertTrue(rs.next());
+        assertEquals("%oo", rs.getString(1));
+        conn.close();
+    }
 }

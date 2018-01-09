@@ -1455,9 +1455,7 @@ public class Session extends SessionWithState {
                 break;
             }
         }
-        Table[] list = new Table[copy.size()];
-        copy.toArray(list);
-        return list;
+        return copy.toArray(new Table[0]);
     }
 
     /**

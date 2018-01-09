@@ -17,7 +17,7 @@ import org.h2.value.ValueLong;
  */
 class RangeCursor implements Cursor {
 
-    private Session session;
+    private final Session session;
     private boolean beforeFirst;
     private long current;
     private Row currentRow;

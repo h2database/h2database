@@ -95,10 +95,6 @@ public class Column {
         this(name, type, -1, -1, -1, null);
     }
 
-    public Column(String name, int type, String[] enumerators) {
-        this(name, type, -1, -1, -1, enumerators);
-    }
-
     public Column(String name, int type, long precision, int scale,
             int displaySize) {
         this(name, type, precision, scale, displaySize, null);

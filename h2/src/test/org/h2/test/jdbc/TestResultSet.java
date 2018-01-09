@@ -37,6 +37,7 @@ import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.LocalDateTimeUtils;
 
@@ -1408,7 +1409,7 @@ public class TestResultSet extends TestBase {
                 "D DATE, T TIME, TS TIMESTAMP)");
         PreparedStatement prep = conn.prepareStatement(
                 "INSERT INTO TEST VALUES(?, ?, ?, ?)");
-        Calendar regular = Calendar.getInstance();
+        Calendar regular = DateTimeUtils.createGregorianCalendar();
         Calendar other = null;
         // search a locale that has a _different_ raw offset
         long testTime = java.sql.Date.valueOf("2001-02-03").getTime();
@@ -1421,7 +1422,7 @@ public class TestResultSet extends TestBase {
             if (rawOffsetDiff != 0 && rawOffsetDiff != 1000 * 60 * 60 * 24) {
                 if (regular.getTimeZone().getOffset(testTime) !=
                         zone.getOffset(testTime)) {
-                    other = Calendar.getInstance(zone);
+                    other = DateTimeUtils.createGregorianCalendar(zone);
                     break;
                 }
             }

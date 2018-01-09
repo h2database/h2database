@@ -168,8 +168,7 @@ public class FunctionAlias extends SchemaObjectBase {
                     ErrorCode.PUBLIC_STATIC_JAVA_METHOD_NOT_FOUND_1,
                     methodName + " (" + className + ")");
         }
-        javaMethods = new JavaMethod[list.size()];
-        list.toArray(javaMethods);
+        javaMethods = list.toArray(new JavaMethod[0]);
         // Sort elements. Methods with a variable number of arguments must be at
         // the end. Reason: there could be one method without parameters and one
         // with a variable number. The one without parameters needs to be used

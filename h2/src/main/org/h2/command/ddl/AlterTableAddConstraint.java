@@ -50,7 +50,7 @@ public class AlterTableAddConstraint extends SchemaCommand {
     private boolean primaryKeyHash;
     private boolean ifTableExists;
     private final boolean ifNotExists;
-    private ArrayList<Index> createdIndexes = New.arrayList();
+    private final ArrayList<Index> createdIndexes = New.arrayList();
 
     public AlterTableAddConstraint(Session session, Schema schema,
             boolean ifNotExists) {

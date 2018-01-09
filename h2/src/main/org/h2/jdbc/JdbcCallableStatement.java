@@ -83,6 +83,36 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
     }
 
     /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long executeLargeUpdate() throws SQLException {
+        try {
+            checkClosed();
+            if (command.isQuery()) {
+                super.executeQuery();
+                return 0;
+            }
+            return super.executeLargeUpdate();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
      * Registers the given OUT parameter.
      *
      * @param parameterIndex the parameter index (1, 2, ...)

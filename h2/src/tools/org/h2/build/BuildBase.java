@@ -178,13 +178,13 @@ public class BuildBase {
     /**
      * The full path to the executable of the current JRE.
      */
-    protected String javaExecutable = System.getProperty("java.home") +
+    protected final String javaExecutable = System.getProperty("java.home") +
             File.separator + "bin" + File.separator + "java";
 
     /**
      * The full path to the tools jar of the current JDK.
      */
-    protected String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
+    protected final String javaToolsJar = System.getProperty("java.home") + File.separator + ".." +
             File.separator + "lib" + File.separator + "tools.jar";
 
     /**

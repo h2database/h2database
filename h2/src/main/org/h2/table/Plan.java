@@ -54,10 +54,8 @@ public class Plan {
                 }
             });
         }
-        allConditions = new Expression[allCond.size()];
-        allCond.toArray(allConditions);
-        allFilters = new TableFilter[all.size()];
-        all.toArray(allFilters);
+        allConditions = allCond.toArray(new Expression[0]);
+        allFilters = all.toArray(new TableFilter[0]);
     }
 
     /**

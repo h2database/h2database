@@ -17,7 +17,7 @@ import org.h2.value.Value;
  */
 public class FunctionCursor implements Cursor {
 
-    private Session session;
+    private final Session session;
     private final ResultInterface result;
     private Value[] values;
     private Row row;

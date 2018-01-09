@@ -73,8 +73,7 @@ public class TableFunction extends Function {
     }
 
     public void setColumns(ArrayList<Column> columns) {
-        this.columnList = new Column[columns.size()];
-        columns.toArray(columnList);
+        this.columnList = columns.toArray(new Column[0]);
     }
 
     private ValueResultSet getTable(Session session, Expression[] argList,

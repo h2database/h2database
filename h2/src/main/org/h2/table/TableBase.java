@@ -40,8 +40,7 @@ public abstract class TableBase extends Table {
             this.tableEngineParams = data.tableEngineParams;
         }
         setTemporary(data.temporary);
-        Column[] cols = new Column[data.columns.size()];
-        data.columns.toArray(cols);
+        Column[] cols = data.columns.toArray(new Column[0]);
         setColumns(cols);
     }
 

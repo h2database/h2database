@@ -92,7 +92,7 @@ public class SessionRemote extends SessionWithState implements DataHandler {
     private JavaObjectSerializer javaObjectSerializer;
     private volatile boolean javaObjectSerializerInitialized;
 
-    private CompareMode compareMode = CompareMode.getInstance(null, 0);
+    private final CompareMode compareMode = CompareMode.getInstance(null, 0);
 
     public SessionRemote(ConnectionInfo ci) {
         this.connectionInfo = ci;

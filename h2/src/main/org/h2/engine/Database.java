@@ -1678,9 +1678,7 @@ public class Database implements DataHandler {
         if (includingSystemSession && lob != null) {
             list.add(lob);
         }
-        Session[] array = new Session[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new Session[0]);
     }
 
     /**

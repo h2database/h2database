@@ -395,21 +395,6 @@ public class XMLParser {
     }
 
     /**
-     * Read the next start, end, or character tag. This method skips comments,
-     * DTDs, and processing instructions.
-     *
-     * @return the event type of the next tag
-     */
-    public int nextTag() {
-        while (true) {
-            int type = next();
-            if (type != COMMENT && type != DTD && type != PROCESSING_INSTRUCTION) {
-                return type;
-            }
-        }
-    }
-
-    /**
      * Get the event type of the current token.
      *
      * @return the event type
@@ -463,46 +448,6 @@ public class XMLParser {
      */
     public String getAttributeLocalName(int index) {
         return attributeValues[index * 3 + 1];
-    }
-
-    /**
-     * Get the full name of the attribute. If there is no prefix, only the local
-     * name is returned, otherwise the prefix, ':', and the local name.
-     *
-     * @param index the index of the attribute (starting with 0)
-     * @return the full name
-     */
-    public String getAttributeName(int index) {
-        String pre = getAttributePrefix(index);
-        String name = getAttributeLocalName(index);
-        return pre == null || pre.length() == 0 ? name : pre + ":" + name;
-    }
-
-    /**
-     * Get the value of this attribute.
-     *
-     * @param index the index of the attribute (starting with 0)
-     * @return the value
-     */
-    public String getAttributeValue(int index) {
-        return attributeValues[index * 3 + 2];
-    }
-
-    /**
-     * Get the value of this attribute.
-     *
-     * @param namespaceURI the namespace URI (currently ignored)
-     * @param name the local name of the attribute
-     * @return the value or null
-     */
-    public String getAttributeValue(@SuppressWarnings("unused") String namespaceURI, String name) {
-        int len = getAttributeCount();
-        for (int i = 0; i < len; i++) {
-            if (getAttributeLocalName(i).equals(name)) {
-                return getAttributeValue(i);
-            }
-        }
-        return null;
     }
 
     /**

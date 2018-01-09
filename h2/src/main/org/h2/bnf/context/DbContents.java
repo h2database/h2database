@@ -234,9 +234,7 @@ public class DbContents {
             schemaList.add(schema);
         }
         rs.close();
-        String[] list = new String[schemaList.size()];
-        schemaList.toArray(list);
-        return list;
+        return schemaList.toArray(new String[0]);
     }
 
     private String getDefaultSchemaName(DatabaseMetaData meta) {

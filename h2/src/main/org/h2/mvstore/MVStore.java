@@ -277,7 +277,7 @@ public final class MVStore {
     private int autoCompactFillRate;
     private long autoCompactLastFileOpCount;
 
-    private Object compactSync = new Object();
+    private final Object compactSync = new Object();
 
     private IllegalStateException panicException;
 

@@ -15,11 +15,11 @@ import org.h2.result.SortOrder;
  */
 public class SubQueryInfo {
 
-    private int[] masks;
-    private TableFilter[] filters;
-    private int filter;
-    private SortOrder sortOrder;
-    private SubQueryInfo upper;
+    private final int[] masks;
+    private final TableFilter[] filters;
+    private final int filter;
+    private final SortOrder sortOrder;
+    private final SubQueryInfo upper;
 
     /**
      * @param upper upper level sub-query if any

@@ -1192,7 +1192,7 @@ public class CacheLongKeyLIRS<V> {
          * The number of entries in the non-resident queue, as a factor of the
          * number of all other entries in the map.
          */
-        public int nonResidentQueueSize = 3;
+        public final int nonResidentQueueSize = 3;
 
     }
 

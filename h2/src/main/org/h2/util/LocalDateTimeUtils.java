@@ -9,7 +9,6 @@ package org.h2.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.sql.Date;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -60,14 +59,8 @@ public class LocalDateTimeUtils {
     // Class<java.time.ZoneOffset>
     private static final Class<?> ZONE_OFFSET;
 
-    // java.sql.Date#toLocalDate()
-    private static final Method TO_LOCAL_DATE;
-
     // java.time.LocalTime#ofNanoOfDay()
     private static final Method LOCAL_TIME_OF_NANO;
-
-    // java.sql.Date#valueOf(LocalDate)
-    private static final Method DATE_VALUE_OF;
 
     // java.time.LocalTime#toNanoOfDay()
     private static final Method LOCAL_TIME_TO_NANO;
@@ -140,11 +133,7 @@ public class LocalDateTimeUtils {
             Class<?> duration = getClass("java.time.Duration");
             Class<?> temporal = getClass("java.time.temporal.Temporal");
 
-            TO_LOCAL_DATE = getMethod(java.sql.Date.class, "toLocalDate");
-
             LOCAL_TIME_OF_NANO = getMethod(LOCAL_TIME, "ofNanoOfDay", long.class);
-
-            DATE_VALUE_OF = getMethod(java.sql.Date.class, "valueOf", LOCAL_DATE);
 
             LOCAL_TIME_TO_NANO = getMethod(LOCAL_TIME, "toNanoOfDay");
 
@@ -179,9 +168,7 @@ public class LocalDateTimeUtils {
 
             CHRONO_UNIT_DAYS = getFieldValue(chronoUnit, "DAYS");
         } else {
-            TO_LOCAL_DATE = null;
             LOCAL_TIME_OF_NANO = null;
-            DATE_VALUE_OF = null;
             LOCAL_TIME_TO_NANO = null;
             LOCAL_DATE_OF_YEAR_MONTH_DAY = null;
             LOCAL_DATE_PARSE = null;
@@ -409,7 +396,13 @@ public class LocalDateTimeUtils {
      * @return the LocalDate
      */
     public static Object valueToLocalDate(Value value) {
-        return dateToLocalDate(value.getDate());
+        try {
+            return localDateFromDateValue(((ValueDate) value.convertTo(Value.DATE)).getDateValue());
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "date conversion failed");
+        }
     }
 
     /**
@@ -428,16 +421,6 @@ public class LocalDateTimeUtils {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
             throw DbException.convertInvocation(e, "time conversion failed");
-        }
-    }
-
-    private static Object dateToLocalDate(Date date) {
-        try {
-            return TO_LOCAL_DATE.invoke(date);
-        } catch (IllegalAccessException e) {
-            throw DbException.convert(e);
-        } catch (InvocationTargetException e) {
-            throw DbException.convertInvocation(e, "date conversion failed");
         }
     }
 
@@ -506,8 +489,7 @@ public class LocalDateTimeUtils {
      */
     public static Value localDateToDateValue(Object localDate) {
         try {
-            Date date = (Date) DATE_VALUE_OF.invoke(null, localDate);
-            return ValueDate.get(date);
+            return ValueDate.fromDateValue(dateValueFromLocalDate(localDate));
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

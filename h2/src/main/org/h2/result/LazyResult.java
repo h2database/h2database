@@ -17,7 +17,7 @@ import org.h2.value.Value;
  */
 public abstract class LazyResult implements ResultInterface {
 
-    private Expression[] expressions;
+    private final Expression[] expressions;
     private int rowId = -1;
     private Value[] currentRow;
     private Value[] nextRow;

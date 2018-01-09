@@ -71,7 +71,7 @@ public class ThreadDumpCleaner {
 
     };
 
-    private ArrayList<Pattern> patterns = new ArrayList<>();
+    private final ArrayList<Pattern> patterns = new ArrayList<>();
 
     {
         for (String s : PATTERN) {

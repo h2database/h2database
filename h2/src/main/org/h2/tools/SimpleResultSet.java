@@ -28,6 +28,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
+import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
@@ -35,6 +37,7 @@ import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.value.DataType;
+import org.h2.value.ValueUuid;
 
 /**
  * This class is a simple result set and meta data implementation.
@@ -529,6 +532,10 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
         Object o = get(columnIndex);
         if (o == null || o instanceof byte[]) {
             return (byte[]) o;
+        }
+        if (o instanceof UUID) {
+            final UUID u = (UUID) o;
+            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits()).getBytes();
         }
         return JdbcUtils.serialize(o, null);
     }

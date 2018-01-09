@@ -162,7 +162,6 @@ class Statement {
     }
 
     public void setArgs(ArrayList<Arg> list) {
-        args = new Arg[list.size()];
-        list.toArray(args);
+        args = list.toArray(new Arg[0]);
     }
 }

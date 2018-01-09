@@ -56,14 +56,6 @@ public interface LobStorageInterface {
             throws IOException;
 
     /**
-     * Set the table reference of this lob.
-     *
-     * @param lob the lob
-     * @param table the table
-     */
-    void setTable(ValueLobDb lob, int table);
-
-    /**
      * Delete a LOB (from the database, if it is stored there).
      *
      * @param lob the lob

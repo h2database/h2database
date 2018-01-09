@@ -59,7 +59,7 @@ public class TransactionStore {
     /**
      * The map of maps.
      */
-    private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
+    private final HashMap<Integer, MVMap<Object, VersionedValue>> maps =
             New.hashMap();
 
     private final DataType dataType;
@@ -896,7 +896,7 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
-        private Transaction transaction;
+        private final Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
                 int mapId) {

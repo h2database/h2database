@@ -56,7 +56,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     private final DataType keyType;
     private final DataType valueType;
 
-    private ConcurrentArrayList<Page> oldRoots =
+    private final ConcurrentArrayList<Page> oldRoots =
             new ConcurrentArrayList<>();
 
 

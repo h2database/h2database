@@ -98,8 +98,7 @@ public class DbTableOrView {
             list.add(column);
         }
         rs.close();
-        columns = new DbColumn[list.size()];
-        list.toArray(columns);
+        columns = list.toArray(new DbColumn[0]);
     }
 
 }

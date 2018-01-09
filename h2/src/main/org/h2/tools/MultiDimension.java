@@ -222,9 +222,7 @@ public class MultiDimension implements Comparator<long[]> {
         ArrayList<long[]> list = New.arrayList();
         addMortonRanges(list, min, max, len, 0);
         combineEntries(list, total);
-        long[][] ranges = new long[list.size()][2];
-        list.toArray(ranges);
-        return ranges;
+        return list.toArray(new long[0][]);
     }
 
     private static int getSize(int[] min, int[] max, int len) {

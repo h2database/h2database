@@ -164,12 +164,6 @@ select 1 from test group by x;
 drop table test;
 > ok
 
-call regexp_replace('x', 'x', '\');
-> exception
-
-call select 1 from dual where regexp_like('x', 'x', '\');
-> exception
-
 select * from dual where x = x + 1 or x in(2, 0);
 > X
 > -
@@ -2108,29 +2102,6 @@ drop table test;
 
 set autocommit true;
 > ok
-
-CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
-> 'abckabom'
-> ----------
-> abckabom
-> rows: 1
-
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
-> X
-> -
-> 1
-> rows: 1
-
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
-> X
-> -
-> rows: 0
-
-select regexp_replace('Sylvain', 'S..', 'TOTO', 'mni') as X;
-> X
-> --------
-> TOTOvain
-> rows: 1
 
 SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
 > T1   F2    T3

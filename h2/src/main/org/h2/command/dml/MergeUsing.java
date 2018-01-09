@@ -115,8 +115,9 @@ public class MergeUsing extends Prepared {
     private int countUpdatedRows;
     private Column[] sourceKeys;
     private Select targetMatchQuery;
-    private HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
+    private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
     private int sourceQueryRowNumber;
+
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());

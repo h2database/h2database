@@ -21,7 +21,7 @@ public class DbColumn {
 
     private final String dataType;
 
-    private int position;
+    private final int position;
 
     private DbColumn(DbContents contents, ResultSet rs, boolean procedureColumn)
             throws SQLException {

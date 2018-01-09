@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-
 import org.h2.message.DbException;
 import org.h2.tools.SimpleResultSet;
 import org.h2.util.JdbcUtils;
@@ -80,6 +79,8 @@ public class LinkSchema {
                     append(StringUtils.quoteStringSQL(user)).
                     append(", ").
                     append(StringUtils.quoteStringSQL(password)).
+                    append(", ").
+                    append(StringUtils.quoteStringSQL(sourceSchema)).
                     append(", ").
                     append(StringUtils.quoteStringSQL(table)).
                     append(')');

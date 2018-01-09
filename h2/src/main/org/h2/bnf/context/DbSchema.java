@@ -117,8 +117,7 @@ public class DbSchema {
             list.add(table);
         }
         rs.close();
-        tables = new DbTableOrView[list.size()];
-        list.toArray(tables);
+        tables = list.toArray(new DbTableOrView[0]);
         if (tables.length < SysProperties.CONSOLE_MAX_TABLES_LIST_COLUMNS) {
             for (DbTableOrView tab : tables) {
                 try {
@@ -146,8 +145,7 @@ public class DbSchema {
             list.add(new DbProcedure(this, rs));
         }
         rs.close();
-        procedures = new DbProcedure[list.size()];
-        list.toArray(procedures);
+        procedures = list.toArray(new DbProcedure[0]);
         if (procedures.length < SysProperties.CONSOLE_MAX_PROCEDURES_LIST_COLUMNS) {
             for (DbProcedure procedure : procedures) {
                 procedure.readParameters(meta);

@@ -23,7 +23,7 @@ import java.util.WeakHashMap;
  */
 public class AbbaLockingDetector implements Runnable {
 
-    private int tickIntervalMs = 2;
+    private final int tickIntervalMs = 2;
     private volatile boolean stop;
 
     private final ThreadMXBean threadMXBean =

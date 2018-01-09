@@ -933,7 +933,7 @@ public class ArchiveTool {
     static class Chunk implements Comparable<Chunk> {
         ArrayList<Long> idList;
         final byte[] value;
-        private int[] sortKey;
+        private final int[] sortKey;
 
         Chunk(ArrayList<Long> idList, int[] sortKey, byte[] value) {
             this.idList = idList;

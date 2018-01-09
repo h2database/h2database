@@ -195,8 +195,7 @@ public class TableLink extends Table {
             throw DbException.get(ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1, e,
                     originalTable + "(" + e.toString() + ")");
         }
-        Column[] cols = new Column[columnList.size()];
-        columnList.toArray(cols);
+        Column[] cols = columnList.toArray(new Column[0]);
         setColumns(cols);
         int id = getId();
         linkedIndex = new LinkedIndex(this, id, IndexColumn.wrap(cols),
@@ -344,8 +343,7 @@ public class TableLink extends Table {
                     "recognized columns of {1} total columns.", firstNull, list.size());
             list = list.subList(0, firstNull);
         }
-        Column[] cols = new Column[list.size()];
-        list.toArray(cols);
+        Column[] cols = list.toArray(new Column[0]);
         Index index = new LinkedIndex(this, 0, IndexColumn.wrap(cols), indexType);
         indexes.add(index);
     }

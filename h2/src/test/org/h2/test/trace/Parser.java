@@ -214,8 +214,7 @@ class Parser {
                         values.add(parseValue().getValue());
                     } while (readIf(","));
                     read("}");
-                    String[] list = new String[values.size()];
-                    values.toArray(list);
+                    String[] list = values.toArray(new String[0]);
                     return new Arg(String[].class, list);
                 } else if (readIf("BigDecimal")) {
                     read("(");

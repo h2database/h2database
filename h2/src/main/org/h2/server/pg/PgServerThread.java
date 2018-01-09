@@ -62,7 +62,7 @@ public class PgServerThread implements Runnable {
     private String userName;
     private String databaseName;
     private int processId;
-    private int secret;
+    private final int secret;
     private JdbcStatement activeRequest;
     private String clientEncoding = SysProperties.PG_DEFAULT_CLIENT_ENCODING;
     private String dateStyle = "ISO";

@@ -11,11 +11,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
+import org.h2.jdbc.JdbcPreparedStatementBackwardsCompat;
 import org.h2.jdbc.JdbcStatement;
+import org.h2.jdbc.JdbcStatementBackwardsCompat;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -209,6 +212,7 @@ public class TestStatement extends TestBase {
 
         ResultSet rs;
         int count;
+        long largeCount;
         boolean result;
 
         stat.execute("CREATE TABLE TEST(ID INT)");
@@ -256,6 +260,16 @@ public class TestStatement extends TestBase {
         assertEquals(0, count);
         count = stat.executeUpdate("DELETE FROM TEST WHERE ID=2");
         assertEquals(1, count);
+        JdbcStatementBackwardsCompat statBC = (JdbcStatementBackwardsCompat) stat;
+        largeCount = statBC.executeLargeUpdate("DELETE FROM TEST WHERE ID=-1");
+        assertEquals(0, largeCount);
+        assertEquals(0, statBC.getLargeUpdateCount());
+        largeCount = statBC.executeLargeUpdate("INSERT INTO TEST(VALUE,ID) VALUES('JDBC',2)");
+        assertEquals(1, largeCount);
+        assertEquals(1, statBC.getLargeUpdateCount());
+        largeCount = statBC.executeLargeUpdate("DELETE FROM TEST WHERE ID=2");
+        assertEquals(1, largeCount);
+        assertEquals(1, statBC.getLargeUpdateCount());
 
         assertThrows(ErrorCode.METHOD_NOT_ALLOWED_FOR_QUERY, stat).
                 executeUpdate("SELECT * FROM TEST");
@@ -428,6 +442,29 @@ public class TestStatement extends TestBase {
         assertTrue(rs.next());
         assertEquals("World", rs.getString("name"));
         assertFalse(rs.next());
+        ps = conn.prepareStatement("insert into test values(?, ?)");
+        ps.setInt(1, 3);
+        ps.setString(2, "v3");
+        ps.addBatch();
+        ps.setInt(1, 4);
+        ps.setString(2, "v4");
+        ps.addBatch();
+        assertTrue(Arrays.equals(new int[] {1, 1}, ps.executeBatch()));
+        ps.setInt(1, 5);
+        ps.setString(2, "v5");
+        ps.addBatch();
+        ps.setInt(1, 6);
+        ps.setString(2, "v6");
+        ps.addBatch();
+        assertTrue(Arrays.equals(new long[] {1, 1}, ((JdbcStatementBackwardsCompat) ps).executeLargeBatch()));
+        ps.setInt(1, 7);
+        ps.setString(2, "v7");
+        assertEquals(1, ps.executeUpdate());
+        assertEquals(1, ps.getUpdateCount());
+        ps.setInt(1, 8);
+        ps.setString(2, "v8");
+        assertEquals(1, ((JdbcPreparedStatementBackwardsCompat) ps).executeLargeUpdate());
+        assertEquals(1, ((JdbcStatementBackwardsCompat) ps).getLargeUpdateCount());
         stat.execute("drop table test");
     }
 

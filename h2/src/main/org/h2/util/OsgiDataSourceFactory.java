@@ -197,7 +197,7 @@ public class OsgiDataSourceFactory implements DataSourceFactory {
         }
 
         // Setting URL
-        StringBuffer connectionUrl = new StringBuffer();
+        StringBuilder connectionUrl = new StringBuilder();
         if (p.containsKey(DataSourceFactory.JDBC_URL)) {
             // Use URL if specified
             connectionUrl.append(p.remove(DataSourceFactory.JDBC_URL));

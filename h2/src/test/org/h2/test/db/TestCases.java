@@ -292,7 +292,7 @@ public class TestCases extends TestBase {
 
     private Statement createTable(final boolean stdDropTableRestrict) throws SQLException {
         deleteDb("cases");
-        Connection conn = getConnection("cases", stdDropTableRestrict);
+        Connection conn = getConnection("cases;STANDARD_DROP_TABLE_RESTRICT=" + stdDropTableRestrict);
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int)");
         return stat;

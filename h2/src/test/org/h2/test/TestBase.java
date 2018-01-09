@@ -166,15 +166,8 @@ public abstract class TestBase {
      * @return the connection
      */
     public Connection getConnection(String name) throws SQLException {
-        return getConnection(name, null);
-    }
-
-    public Connection getConnection(final String name, final Boolean stdDropTableRestrict) throws SQLException {
-        String url = getURL(name, true);
-        if (stdDropTableRestrict != null) {
-            url = addOption(url, "STANDARD_DROP_TABLE_RESTRICT", stdDropTableRestrict.toString());
-        }
-        return getConnectionInternal(url, getUser(), getPassword());
+        return getConnectionInternal(getURL(name, true), getUser(),
+                getPassword());
     }
 
     /**

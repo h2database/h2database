@@ -73,7 +73,7 @@ public class Word {
             Collections.sort(weightList, new Comparator<Weight>() {
                 @Override
                 public int compare(Weight w0, Weight w1) {
-                    return w0.value < w1.value ? 1 : w0.value == w1.value ? 0 : -1;
+                    return Integer.compare(w1.value, w0.value);
                 }
             });
         }

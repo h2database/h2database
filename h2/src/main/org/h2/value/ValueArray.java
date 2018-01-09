@@ -116,7 +116,7 @@ public class ValueArray extends Value {
                 return comp;
             }
         }
-        return l > ol ? 1 : l == ol ? 0 : -1;
+        return Integer.compare(l, ol);
     }
 
     @Override

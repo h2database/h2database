@@ -1323,7 +1323,7 @@ public class ObjectDataType implements DataType {
                     } else if (type == int.class) {
                         int a = ((int[]) aObj)[i];
                         int b = ((int[]) bObj)[i];
-                        x = a == b ? 0 : a < b ? -1 : 1;
+                        x = Integer.compare(a, b);
                     } else if (type == float.class) {
                         x = Float.compare(((float[]) aObj)[i],
                                 ((float[]) bObj)[i]);
@@ -1333,7 +1333,7 @@ public class ObjectDataType implements DataType {
                     } else {
                         long a = ((long[]) aObj)[i];
                         long b = ((long[]) bObj)[i];
-                        x = a == b ? 0 : a < b ? -1 : 1;
+                        x = Long.compare(a, b);
                     }
                     if (x != 0) {
                         return x;
@@ -1349,7 +1349,7 @@ public class ObjectDataType implements DataType {
                     }
                 }
             }
-            return aLen == bLen ? 0 : aLen < bLen ? -1 : 1;
+            return Integer.compare(aLen, bLen);
         }
 
         @Override

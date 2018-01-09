@@ -330,6 +330,17 @@ public class TestStatement extends TestBase {
         assertTrue(stat.getWarnings() == null);
         assertTrue(conn == stat.getConnection());
 
+        assertEquals("SOME_ID", statBC.enquoteIdentifier("SOME_ID", false));
+        assertEquals("\"SOME ID\"", statBC.enquoteIdentifier("SOME ID", false));
+        assertEquals("\"SOME_ID\"", statBC.enquoteIdentifier("SOME_ID", true));
+        assertEquals("\"FROM\"", statBC.enquoteIdentifier("FROM", false));
+        assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
+
+        assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
+        assertFalse(statBC.isSimpleIdentifier("SOME ID"));
+        assertFalse(statBC.isSimpleIdentifier("FROM"));
+        assertFalse(statBC.isSimpleIdentifier("Test"));
+
         stat.close();
     }
 

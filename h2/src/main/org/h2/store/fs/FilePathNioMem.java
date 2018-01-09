@@ -386,8 +386,7 @@ class FileNioMem extends FileBase {
             }
         }
 
-        // cast to FileChannel to avoid JDK 1.7 ambiguity
-        FileLock lock = new FileLock((FileChannel) null, position, size, shared) {
+        FileLock lock = new FileLock(new FakeFileChannel(), position, size, shared) {
 
             @Override
             public boolean isValid() {

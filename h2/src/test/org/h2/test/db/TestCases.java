@@ -19,7 +19,6 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
@@ -54,6 +53,7 @@ public class TestCases extends TestBase {
         testGroupSubquery();
         testCountDistinctNotNull();
         testDependencies();
+        testDropTable();
         testConvertType();
         testSortedSelect();
         testMaxMemoryRows();
@@ -150,7 +150,7 @@ public class TestCases extends TestBase {
         stat.execute("alter table b add constraint x " +
                 "foreign key(a_id) references a(id)");
         stat.execute("update a set x=200");
-        stat.execute("drop table if exists a, b");
+        stat.execute("drop table if exists a, b cascade");
         conn.close();
     }
 
@@ -276,6 +276,70 @@ public class TestCases extends TestBase {
                         "set default ifnull((select max(id) from test for update)+1, 0)");
         stat.execute("drop table test");
         conn.close();
+    }
+
+    private void testDropTable() throws SQLException {
+        trace("testDropTable");
+        final boolean[] booleans = new boolean[] { true, false };
+        for (final boolean stdDropTableRestrict : booleans) {
+            for (final boolean restrict : booleans) {
+                testDropTableNoReference(stdDropTableRestrict, restrict);
+                testDropTableViewReference(stdDropTableRestrict, restrict);
+                testDropTableForeignKeyReference(stdDropTableRestrict, restrict);
+            }
+        }
+    }
+
+    private Statement createTable(final boolean stdDropTableRestrict) throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases;STANDARD_DROP_TABLE_RESTRICT=" + stdDropTableRestrict);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        return stat;
+    }
+
+    private void dropTable(final boolean restrict, Statement stat, final boolean expectedDropSuccess)
+            throws SQLException {
+        assertThrows(expectedDropSuccess ? 0 : ErrorCode.CANNOT_DROP_2, stat)
+                .execute("drop table test " + (restrict ? "restrict" : "cascade"));
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from test");
+    }
+
+    private void testDropTableNoReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        // always succeed as there's no reference to the table
+        dropTable(restrict, stat, true);
+        stat.getConnection().close();
+    }
+
+    private void testDropTableViewReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        stat.execute("create view abc as select * from test");
+        // drop allowed only if cascade
+        final boolean expectedDropSuccess = !restrict;
+        dropTable(restrict, stat, expectedDropSuccess);
+        // missing view if the drop succeeded
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from abc");
+        stat.getConnection().close();
+    }
+
+    private void testDropTableForeignKeyReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        stat.execute("create table ref(id int, id_test int, foreign key (id_test) references test (id)) ");
+        // test table is empty, so the foreign key forces ref table to be also
+        // empty
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat)
+                .execute("insert into ref values(1,2)");
+        // drop allowed if cascade or old style
+        final boolean expectedDropSuccess = !stdDropTableRestrict || !restrict;
+        dropTable(restrict, stat, expectedDropSuccess);
+        // insertion succeeds if the foreign key was dropped
+        assertThrows(expectedDropSuccess ? 0 : ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat)
+                .execute("insert into ref values(1,2)");
+        stat.getConnection().close();
     }
 
     private void testConvertType() throws SQLException {

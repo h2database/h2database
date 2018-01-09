@@ -5,9 +5,12 @@
  */
 package org.h2.command.ddl;
 
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
+import org.h2.constraint.Constraint;
 import org.h2.constraint.ConstraintReferential;
 import org.h2.engine.Database;
 import org.h2.engine.Right;
@@ -73,15 +76,29 @@ public class DropTable extends SchemaCommand {
                 throw DbException.get(ErrorCode.CANNOT_DROP_TABLE_1, tableName);
             }
             if (dropAction == ConstraintReferential.RESTRICT) {
+                StatementBuilder buff = new StatementBuilder();
                 CopyOnWriteArrayList<TableView> dependentViews = table.getDependentViews();
                 if (dependentViews != null && dependentViews.size() > 0) {
-                    StatementBuilder buff = new StatementBuilder();
                     for (TableView v : dependentViews) {
                         buff.appendExceptFirst(", ");
                         buff.append(v.getName());
                     }
-                    throw DbException.get(ErrorCode.CANNOT_DROP_2, tableName, buff.toString());
                 }
+                if (session.getDatabase()
+                        .getSettings().standardDropTableRestrict) {
+                    final List<Constraint> constraints = table.getConstraints();
+                    if (constraints != null && constraints.size() > 0) {
+                        for (Constraint c : constraints) {
+                            if (c.getTable() != table) {
+                                buff.appendExceptFirst(", ");
+                                buff.append(c.getName());
+                            }
+                        }
+                    }
+                }
+                if (buff.length() > 0)
+                    throw DbException.get(ErrorCode.CANNOT_DROP_2, tableName, buff.toString());
+
             }
             table.lock(session, true, true);
         }

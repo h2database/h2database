@@ -350,6 +350,17 @@ public class DbSettings extends SettingsBase {
      */
     public final boolean multiThreaded = get("MULTI_THREADED", false);
 
+    /**
+     * Database setting <code>STANDARD_DROP_TABLE_RESTRICT</code> (default:
+     * false).<br />
+     * <code>true</code> if DROP TABLE RESTRICT should fail if there's any
+     * foreign key referencing the table to be dropped. <code>false</code> if
+     * foreign keys referencing the table to be dropped should be silently
+     * dropped as well.
+     */
+    public final boolean standardDropTableRestrict = get(
+            "STANDARD_DROP_TABLE_RESTRICT", false);
+
     private DbSettings(HashMap<String, String> s) {
         super(s);
     }

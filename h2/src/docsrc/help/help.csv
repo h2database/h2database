@@ -907,8 +907,8 @@ DROP SEQUENCE SEQ_ID
 DROP TABLE [ IF EXISTS ] tableName [,...] [ RESTRICT | CASCADE ]
 ","
 Drops an existing table, or a list of tables.
-The command will fail if dependent views exist and the RESTRICT clause is used (the default).
-All dependent views are dropped as well if the CASCADE clause is used.
+The command will fail if dependent objects exist and the RESTRICT clause is used (the default).
+All dependent views and constraints are dropped as well if the CASCADE clause is used.
 This command commits an open transaction in this connection.
 ","
 DROP TABLE TEST

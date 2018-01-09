@@ -286,7 +286,7 @@ ALTER SEQUENCE SEQ_ID RESTART WITH 1000
 
 "Commands (DDL)","ALTER TABLE ADD","
 ALTER TABLE [ IF EXISTS ] tableName ADD [ COLUMN ]
-{ [ IF NOT EXISTS ] columnDefinition | ( { columnDefinition } [,...] ) }
+{ [ IF NOT EXISTS ] columnName columnDefinition | ( { columnName columnDefinition } [,...] ) }
 [ { BEFORE | AFTER } columnName ]
 ","
 Adds a new column to a table.
@@ -318,7 +318,7 @@ ALTER TABLE TEST RENAME CONSTRAINT FOO TO BAR
 
 "Commands (DDL)","ALTER TABLE ALTER COLUMN","
 ALTER TABLE [ IF EXISTS ] tableName ALTER COLUMN columnName
-{ { dataType [ VISIBLE | INVISIBLE ] [ DEFAULT expression ] [ [ NOT ] NULL ] [ AUTO_INCREMENT | IDENTITY ] }
+{ { columnDefinition }
     | { RENAME TO name }
     | { RESTART WITH long }
     | { SELECTIVITY int }
@@ -683,7 +683,7 @@ CREATE SEQUENCE SEQ_ID
 "Commands (DDL)","CREATE TABLE","
 CREATE [ CACHED | MEMORY ] [ TEMP | [ GLOBAL | LOCAL ] TEMPORARY ]
 TABLE [ IF NOT EXISTS ] name
-[ ( { columnDefinition | constraint } [,...] ) ]
+[ ( { columnName columnDefinition | constraint } [,...] ) ]
 [ ENGINE tableEngineName ]
 [ WITH tableEngineParamName [,...] ]
 [ NOT PERSISTENT ] [ TRANSACTIONAL ]
@@ -1865,8 +1865,7 @@ AES
 "
 
 "Other Grammar","Column Definition","
-columnName dataType
-[ VISIBLE | INVISIBLE ]
+dataType [ VISIBLE | INVISIBLE ]
 [ { DEFAULT expression | AS computedColumnExpression } ] [ [ NOT ] NULL ]
 [ { AUTO_INCREMENT | IDENTITY } [ ( startInt [, incrementInt ] ) ] ]
 [ SELECTIVITY selectivity ] [ COMMENT expression ]

@@ -189,7 +189,7 @@ public class FreeSpaceTree {
 
         @Override
         public int compareTo(BlockRange o) {
-            return start < o.start ? -1 : start > o.start ? 1 : 0;
+            return Integer.compare(start, o.start);
         }
 
         @Override

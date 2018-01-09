@@ -30,7 +30,7 @@ public class TestSort extends TestBase {
         @Override
         public int compare(Long o1, Long o2) {
             compareCount.incrementAndGet();
-            return Long.valueOf(o1 >> 32).compareTo(o2 >> 32);
+            return Long.compare(o1 >> 32, o2 >> 32);
         }
     };
 

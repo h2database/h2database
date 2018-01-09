@@ -1200,7 +1200,7 @@ public class Parser {
 
         // build and prepare the targetMatchQuery ready to test each rows
         // existence in the target table (using source row to match)
-        StringBuffer targetMatchQuerySQL = new StringBuffer(
+        StringBuilder targetMatchQuerySQL = new StringBuilder(
                 "SELECT _ROWID_ FROM " + command.getTargetTable().getName());
         if (command.getTargetTableFilter().getTableAlias() != null) {
             targetMatchQuerySQL.append(

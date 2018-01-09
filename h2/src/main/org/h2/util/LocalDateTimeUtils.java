@@ -27,22 +27,10 @@ import org.h2.value.ValueTimestampTimeZone;
  * <p>This class is implemented using reflection so that it compiles on
  * Java 7 as well.</p>
  *
- * <p>For LocalDate and LocalTime the conversion methods provided by
- * the JDK are used. For OffsetDateTime a custom conversion method is
- * used because it has no equivalent in JDBC. For LocalDateTime a
- * custom conversion method is used instead of the one provided by the
- * JDK as well.</p>
- *
- * <p>Using the JDK provided conversion method for LocalDateTime would
- * introduces some errors in edge cases. Consider the following case:
- * at 2016-03-27 02:00 in Europe/Berlin the clocks were set to
- * 2016-03-27 03:00. This means that 2016-03-27 02:15 does not exist in
- * Europe/Berlin. Unfortunately java.sql.Timestamp is in the the time
- * zone of the JVM. That means if you run a JVM with the time zone
- * Europe/Berlin then the SQL value 'TIMESTAMP 2016-03-27 02:15:00' can
- * not be represented. java.time.LocalDateTime does not have these
- * limitations but if we convert through java.sql.Timestamp we inherit
- * its limitations. Therefore that conversion must be avoided.</p>
+ * <p>Custom conversion methods between H2 internal values and JSR-310 classes
+ * are used without intermediate conversions to java.sql classes. Direct
+ * conversion is simpler, faster, and it does not inherit limitations and
+ * issues from java.sql classes and conversion methods provided by JDK.</p>
  *
  * <p>Once the driver requires Java 8 all the reflection can be removed.</p>
  */
@@ -85,8 +73,8 @@ public class LocalDateTimeUtils {
     private static final Method LOCAL_DATE_TIME_PLUS_NANOS;
     // java.time.LocalDateTime#toLocalDate()
     private static final Method LOCAL_DATE_TIME_TO_LOCAL_DATE;
-    // java.time.LocalDateTime#truncatedTo(TemporalUnit)
-    private static final Method LOCAL_DATE_TIME_TRUNCATED_TO;
+    // java.time.LocalDateTime#toLocalTime()
+    private static final Method LOCAL_DATE_TIME_TO_LOCAL_TIME;
     // java.time.LocalDateTime#parse(CharSequence)
     private static final Method LOCAL_DATE_TIME_PARSE;
 
@@ -105,16 +93,7 @@ public class LocalDateTimeUtils {
     // java.time.ZoneOffset#getTotalSeconds()
     private static final Method ZONE_OFFSET_GET_TOTAL_SECONDS;
 
-    // java.time.Duration#between(Temporal, Temporal)
-    private static final Method DURATION_BETWEEN;
-    // java.time.Duration#toNanos()
-    private static final Method DURATION_TO_NANOS;
-
-    // java.time.temporal.ChronoUnit#DAYS
-    private static final Object CHRONO_UNIT_DAYS;
-
     private static final boolean IS_JAVA8_DATE_API_PRESENT;
-
 
     static {
         LOCAL_DATE = tryGetClass("java.time.LocalDate");
@@ -127,12 +106,6 @@ public class LocalDateTimeUtils {
                 ZONE_OFFSET != null;
 
         if (IS_JAVA8_DATE_API_PRESENT) {
-
-            Class<?> temporalUnit = getClass("java.time.temporal.TemporalUnit");
-            Class<?> chronoUnit = getClass("java.time.temporal.ChronoUnit");
-            Class<?> duration = getClass("java.time.Duration");
-            Class<?> temporal = getClass("java.time.temporal.Temporal");
-
             LOCAL_TIME_OF_NANO = getMethod(LOCAL_TIME, "ofNanoOfDay", long.class);
 
             LOCAL_TIME_TO_NANO = getMethod(LOCAL_TIME, "toNanoOfDay");
@@ -150,7 +123,7 @@ public class LocalDateTimeUtils {
 
             LOCAL_DATE_TIME_PLUS_NANOS = getMethod(LOCAL_DATE_TIME, "plusNanos", long.class);
             LOCAL_DATE_TIME_TO_LOCAL_DATE = getMethod(LOCAL_DATE_TIME, "toLocalDate");
-            LOCAL_DATE_TIME_TRUNCATED_TO = getMethod(LOCAL_DATE_TIME, "truncatedTo", temporalUnit);
+            LOCAL_DATE_TIME_TO_LOCAL_TIME = getMethod(LOCAL_DATE_TIME, "toLocalTime");
             LOCAL_DATE_TIME_PARSE = getMethod(LOCAL_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_OF_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "ofTotalSeconds", int.class);
@@ -162,11 +135,6 @@ public class LocalDateTimeUtils {
             OFFSET_DATE_TIME_PARSE = getMethod(OFFSET_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_GET_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "getTotalSeconds");
-
-            DURATION_BETWEEN = getMethod(duration, "between", temporal, temporal);
-            DURATION_TO_NANOS = getMethod(duration, "toNanos");
-
-            CHRONO_UNIT_DAYS = getFieldValue(chronoUnit, "DAYS");
         } else {
             LOCAL_TIME_OF_NANO = null;
             LOCAL_TIME_TO_NANO = null;
@@ -179,7 +147,7 @@ public class LocalDateTimeUtils {
             LOCAL_TIME_PARSE = null;
             LOCAL_DATE_TIME_PLUS_NANOS = null;
             LOCAL_DATE_TIME_TO_LOCAL_DATE = null;
-            LOCAL_DATE_TIME_TRUNCATED_TO = null;
+            LOCAL_DATE_TIME_TO_LOCAL_TIME = null;
             LOCAL_DATE_TIME_PARSE = null;
             ZONE_OFFSET_OF_TOTAL_SECONDS = null;
             OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME = null;
@@ -187,9 +155,6 @@ public class LocalDateTimeUtils {
             OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = null;
             OFFSET_DATE_TIME_PARSE = null;
             ZONE_OFFSET_GET_TOTAL_SECONDS = null;
-            DURATION_BETWEEN = null;
-            DURATION_TO_NANOS = null;
-            CHRONO_UNIT_DAYS = null;
         }
     }
 
@@ -310,15 +275,6 @@ public class LocalDateTimeUtils {
         }
     }
 
-    private static Class<?> getClass(String className) {
-        try {
-            return Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Java 8 or later but class " +
-                    className + " is missing", e);
-        }
-    }
-
     private static Method getMethod(Class<?> clazz, String methodName,
             Class<?>... parameterTypes) {
         try {
@@ -327,15 +283,6 @@ public class LocalDateTimeUtils {
             throw new IllegalStateException("Java 8 or later but method " +
                     clazz.getName() + "#" + methodName + "(" +
                     Arrays.toString(parameterTypes) + ") is missing", e);
-        }
-    }
-
-    private static Object getFieldValue(Class<?> clazz, String fieldName) {
-        try {
-            return clazz.getField(fieldName).get(null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new IllegalStateException("Java 8 or later but field " +
-                    clazz.getName() + "#" + fieldName + " is missing", e);
         }
     }
 
@@ -523,7 +470,7 @@ public class LocalDateTimeUtils {
         try {
             Object localDate = LOCAL_DATE_TIME_TO_LOCAL_DATE.invoke(localDateTime);
             long dateValue = dateValueFromLocalDate(localDate);
-            long timeNanos = timeNanosFromLocalDate(localDateTime);
+            long timeNanos = timeNanosFromLocalDateTime(localDateTime);
             return ValueTimestamp.fromDateValueAndNanos(dateValue, timeNanos);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
@@ -545,7 +492,7 @@ public class LocalDateTimeUtils {
             Object zoneOffset = OFFSET_DATE_TIME_GET_OFFSET.invoke(offsetDateTime);
 
             long dateValue = dateValueFromLocalDate(localDate);
-            long timeNanos = timeNanosFromLocalDate(localDateTime);
+            long timeNanos = timeNanosFromLocalDateTime(localDateTime);
             short timeZoneOffsetMins = zoneOffsetToOffsetMinute(zoneOffset);
             return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue,
                     timeNanos, timeZoneOffsetMins);
@@ -564,11 +511,10 @@ public class LocalDateTimeUtils {
         return DateTimeUtils.dateValue(year, month, day);
     }
 
-    private static long timeNanosFromLocalDate(Object localDateTime)
+    private static long timeNanosFromLocalDateTime(Object localDateTime)
                     throws IllegalAccessException, InvocationTargetException {
-        Object midnight = LOCAL_DATE_TIME_TRUNCATED_TO.invoke(localDateTime, CHRONO_UNIT_DAYS);
-        Object duration = DURATION_BETWEEN.invoke(null, midnight, localDateTime);
-        return (Long) DURATION_TO_NANOS.invoke(duration);
+        Object localTime = LOCAL_DATE_TIME_TO_LOCAL_TIME.invoke(localDateTime);
+        return (Long) LOCAL_TIME_TO_NANO.invoke(localTime);
     }
 
     private static short zoneOffsetToOffsetMinute(Object zoneOffset)

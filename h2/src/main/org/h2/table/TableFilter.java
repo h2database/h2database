@@ -788,7 +788,7 @@ public class TableFilter implements ColumnResolver {
             }
         }
         if (nestedJoin != null) {
-            StringBuffer buffNested = new StringBuffer();
+            StringBuilder buffNested = new StringBuilder();
             TableFilter n = nestedJoin;
             do {
                 buffNested.append(n.getPlanSQL(n != nestedJoin));

@@ -344,7 +344,7 @@ class ForStatement extends StatementBase {
 
     @Override
     public String asString() {
-        StringBuffer buff = new StringBuffer();
+        StringBuilder buff = new StringBuilder();
         buff.append("for (");
         if (iterableType != null) {
             Type it = iterable.getType();

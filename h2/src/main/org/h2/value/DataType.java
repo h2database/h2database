@@ -1122,6 +1122,8 @@ public class DataType {
             return LocalDateTimeUtils.localTimeToTimeValue(x);
         } else if (LocalDateTimeUtils.isLocalDateTime(x.getClass())) {
             return LocalDateTimeUtils.localDateTimeToValue(x);
+        } else if (LocalDateTimeUtils.isInstant(x.getClass())) {
+            return LocalDateTimeUtils.instantToValue(x);
         } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else if (x instanceof TimestampWithTimeZone) {

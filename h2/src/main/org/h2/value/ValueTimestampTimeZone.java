@@ -8,7 +8,6 @@ package org.h2.value;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
@@ -201,11 +200,6 @@ public class ValueTimestampTimeZone extends Value {
      */
     public short getTimeZoneOffsetMins() {
         return timeZoneOffsetMins;
-    }
-
-    @Override
-    public Timestamp getTimestamp() {
-        throw new UnsupportedOperationException("unimplemented");
     }
 
     @Override

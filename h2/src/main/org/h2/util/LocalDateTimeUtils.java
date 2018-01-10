@@ -44,6 +44,8 @@ public class LocalDateTimeUtils {
     private static final Class<?> LOCAL_DATE_TIME;
     // Class<java.time.OffsetDateTime>
     private static final Class<?> OFFSET_DATE_TIME;
+    // Class<java.time.Instant>
+    private static final Class<?> INSTANT;
     // Class<java.time.ZoneOffset>
     private static final Class<?> ZONE_OFFSET;
 
@@ -81,17 +83,25 @@ public class LocalDateTimeUtils {
     // java.time.ZoneOffset#ofTotalSeconds(int)
     private static final Method ZONE_OFFSET_OF_TOTAL_SECONDS;
 
+    // java.time.ZoneOffset#UTC
+    private static final Object ZONE_OFFSET_UTC;
+
     // java.time.OffsetDateTime#of(LocalDateTime, ZoneOffset)
     private static final Method OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET;
     // java.time.OffsetDateTime#parse(CharSequence)
     private static final Method OFFSET_DATE_TIME_PARSE;
     // java.time.OffsetDateTime#toLocalDateTime()
     private static final Method OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME;
+    // java.time.OffsetDateTime#toInstant()
+    private static final Method OFFSET_DATE_TIME_TO_INSTANT;
     // java.time.OffsetDateTime#getOffset()
     private static final Method OFFSET_DATE_TIME_GET_OFFSET;
 
     // java.time.ZoneOffset#getTotalSeconds()
     private static final Method ZONE_OFFSET_GET_TOTAL_SECONDS;
+
+    // java.time.Instant#atOffset(ZoneOffset)
+    private static final Method INSTANT_AT_OFFSET;
 
     private static final boolean IS_JAVA8_DATE_API_PRESENT;
 
@@ -100,10 +110,11 @@ public class LocalDateTimeUtils {
         LOCAL_TIME = tryGetClass("java.time.LocalTime");
         LOCAL_DATE_TIME = tryGetClass("java.time.LocalDateTime");
         OFFSET_DATE_TIME = tryGetClass("java.time.OffsetDateTime");
+        INSTANT = tryGetClass("java.time.Instant");
         ZONE_OFFSET = tryGetClass("java.time.ZoneOffset");
         IS_JAVA8_DATE_API_PRESENT = LOCAL_DATE != null && LOCAL_TIME != null &&
                 LOCAL_DATE_TIME != null && OFFSET_DATE_TIME != null &&
-                ZONE_OFFSET != null;
+                INSTANT != null && ZONE_OFFSET != null;
 
         if (IS_JAVA8_DATE_API_PRESENT) {
             LOCAL_TIME_OF_NANO = getMethod(LOCAL_TIME, "ofNanoOfDay", long.class);
@@ -127,14 +138,18 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_TIME_PARSE = getMethod(LOCAL_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_OF_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "ofTotalSeconds", int.class);
+            ZONE_OFFSET_UTC = getStaticField(ZONE_OFFSET, "UTC");
 
             OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME = getMethod(OFFSET_DATE_TIME, "toLocalDateTime");
+            OFFSET_DATE_TIME_TO_INSTANT = getMethod(OFFSET_DATE_TIME, "toInstant");
             OFFSET_DATE_TIME_GET_OFFSET = getMethod(OFFSET_DATE_TIME, "getOffset");
             OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = getMethod(
                     OFFSET_DATE_TIME, "of", LOCAL_DATE_TIME, ZONE_OFFSET);
             OFFSET_DATE_TIME_PARSE = getMethod(OFFSET_DATE_TIME, "parse", CharSequence.class);
 
             ZONE_OFFSET_GET_TOTAL_SECONDS = getMethod(ZONE_OFFSET, "getTotalSeconds");
+
+            INSTANT_AT_OFFSET = getMethod(INSTANT, "atOffset", ZONE_OFFSET);
         } else {
             LOCAL_TIME_OF_NANO = null;
             LOCAL_TIME_TO_NANO = null;
@@ -150,11 +165,14 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_TIME_TO_LOCAL_TIME = null;
             LOCAL_DATE_TIME_PARSE = null;
             ZONE_OFFSET_OF_TOTAL_SECONDS = null;
+            ZONE_OFFSET_UTC = null;
             OFFSET_DATE_TIME_TO_LOCAL_DATE_TIME = null;
+            OFFSET_DATE_TIME_TO_INSTANT = null;
             OFFSET_DATE_TIME_GET_OFFSET = null;
             OFFSET_DATE_TIME_OF_LOCAL_DATE_TIME_ZONE_OFFSET = null;
             OFFSET_DATE_TIME_PARSE = null;
             ZONE_OFFSET_GET_TOTAL_SECONDS = null;
+            INSTANT_AT_OFFSET = null;
         }
     }
 
@@ -209,6 +227,15 @@ public class LocalDateTimeUtils {
      */
     public static Class<?> getOffsetDateTimeClass() {
         return OFFSET_DATE_TIME;
+    }
+
+    /**
+     * Returns the class java.time.Instant.
+     *
+     * @return the class java.time.Instant, null on Java 7
+     */
+    public static Class<?> getInstantClass() {
+        return INSTANT;
     }
 
     /**
@@ -286,6 +313,17 @@ public class LocalDateTimeUtils {
         }
     }
 
+    private static Object getStaticField(Class<?> clazz, String name)  {
+        try {
+            return clazz.getField(name).get(null);
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (NoSuchFieldException e) {
+            throw new IllegalStateException("Java 8 or later but field " +
+                    clazz.getName() + "#" + name + " is missing", e);
+        }
+    }
+
     /**
      * Checks if the given class is LocalDate.
      *
@@ -332,6 +370,18 @@ public class LocalDateTimeUtils {
      */
     public static boolean isOffsetDateTime(Class<?> clazz) {
         return OFFSET_DATE_TIME == clazz;
+    }
+
+    /**
+     * Checks if the given class is Instant.
+     *
+     * <p>This method can be called from Java 7.</p>
+     *
+     * @param clazz the class to check
+     * @return if the class is Instant
+     */
+    public static boolean isInstant(Class<?> clazz) {
+        return INSTANT == clazz;
     }
 
     /**
@@ -404,6 +454,24 @@ public class LocalDateTimeUtils {
      */
     public static Object valueToOffsetDateTime(ValueTimestampTimeZone value) {
         return timestampWithTimeZoneToOffsetDateTime((TimestampWithTimeZone) value.getObject());
+    }
+
+    /**
+     * Converts a value to a Instant.
+     *
+     * <p>This method should only called from Java 8 or later.</p>
+     *
+     * @param value the value to convert
+     * @return the Instant
+     */
+    public static Object valueToInstant(ValueTimestampTimeZone value) {
+        try {
+            return OFFSET_DATE_TIME_TO_INSTANT.invoke(valueToOffsetDateTime(value));
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "timestamp with time zone conversion failed");
+        }
     }
 
     private static Object timestampWithTimeZoneToOffsetDateTime(
@@ -499,7 +567,23 @@ public class LocalDateTimeUtils {
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
-            throw DbException.convertInvocation(e, "time conversion failed");
+            throw DbException.convertInvocation(e, "date time conversion failed");
+        }
+    }
+
+    /**
+     * Converts a Instant to a Value.
+     *
+     * @param instant the Instant to convert, not {@code null}
+     * @return the value
+     */
+    public static Value instantToValue(Object instant) {
+        try {
+            return offsetDateTimeToValue(INSTANT_AT_OFFSET.invoke(instant, ZONE_OFFSET_UTC));
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "date time conversion failed");
         }
     }
 

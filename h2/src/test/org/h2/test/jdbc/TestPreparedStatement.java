@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -76,6 +77,7 @@ public class TestPreparedStatement extends TestBase {
         testTime8(conn);
         testDateTime8(conn);
         testOffsetDateTime8(conn);
+        testInstant8(conn);
         testArray(conn);
         testUUIDGeneratedKeys(conn);
         testSetObject(conn);
@@ -678,10 +680,13 @@ public class TestPreparedStatement extends TestBase {
         rs.close();
     }
 
-    private void testOffsetDateTime8(Connection conn) throws SQLException {
+    private void testOffsetDateTime8(Connection conn) throws Exception {
         if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
             return;
         }
+        Method timestampToInstant = Timestamp.class.getMethod("toInstant"),
+                offsetToInstant = LocalDateTimeUtils.getOffsetDateTimeClass().getMethod("toInstant");
+
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
         Object offsetDateTime = LocalDateTimeUtils
                 .parseOffsetDateTime("2001-02-03T04:05:06+02:30");
@@ -690,6 +695,9 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         Object offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
         assertEquals(offsetDateTime, offsetDateTime2);
+        Timestamp ts = rs.getTimestamp(1);
+        Object instant = timestampToInstant.invoke(ts);
+        assertEquals(offsetToInstant.invoke(offsetDateTime), instant);
         assertFalse(rs.next());
         rs.close();
 
@@ -698,6 +706,42 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
         assertEquals(offsetDateTime, offsetDateTime2);
+        assertFalse(rs.next());
+        rs.close();
+
+        prep.setObject(1, ts);
+        rs = prep.executeQuery();
+        rs.next();
+        offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
+        assertEquals(instant, offsetToInstant.invoke(offsetDateTime2));
+        assertFalse(rs.next());
+        rs.close();
+    }
+
+    private void testInstant8(Connection conn) throws Exception {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        Method timestampToInstant = Timestamp.class.getMethod("toInstant"),
+                now = LocalDateTimeUtils.getInstantClass().getMethod("now");
+
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object instant1 = now.invoke(null);
+        prep.setObject(1, instant1);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object instant2 = rs.getObject(1, LocalDateTimeUtils.getInstantClass());
+        assertEquals(instant1, instant2);
+        Timestamp ts = rs.getTimestamp(1);
+        assertEquals(instant1, timestampToInstant.invoke(ts));
+        assertFalse(rs.next());
+        rs.close();
+
+        prep.setTimestamp(1, ts);
+        rs = prep.executeQuery();
+        rs.next();
+        instant2 = rs.getObject(1, LocalDateTimeUtils.getInstantClass());
+        assertEquals(instant1, instant2);
         assertFalse(rs.next());
         rs.close();
     }

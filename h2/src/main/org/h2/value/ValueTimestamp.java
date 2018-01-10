@@ -347,7 +347,7 @@ public class ValueTimestamp extends Value {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalizeTimestamp(d1 + d2, timeNanos + t.timeNanos);
+        return DateTimeUtils.normalizeTimestamp(d1 + d2, timeNanos + t.timeNanos, false);
     }
 
     @Override
@@ -355,7 +355,7 @@ public class ValueTimestamp extends Value {
         ValueTimestamp t = (ValueTimestamp) v.convertTo(Value.TIMESTAMP);
         long d1 = DateTimeUtils.absoluteDayFromDateValue(dateValue);
         long d2 = DateTimeUtils.absoluteDayFromDateValue(t.dateValue);
-        return DateTimeUtils.normalizeTimestamp(d1 - d2, timeNanos - t.timeNanos);
+        return DateTimeUtils.normalizeTimestamp(d1 - d2, timeNanos - t.timeNanos, false);
     }
 
 }

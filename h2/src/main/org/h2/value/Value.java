@@ -835,14 +835,41 @@ public abstract class Value {
                 switch (getType()) {
                 case TIME:
                     return DateTimeUtils.normalizeTimestamp(
-                            0, ((ValueTime) this).getNanos());
+                            0, ((ValueTime) this).getNanos(), false);
                 case DATE:
                     return ValueTimestamp.fromDateValueAndNanos(
                             ((ValueDate) this).getDateValue(), 0);
-                case TIMESTAMP_TZ:
-                    return ValueTimestamp.fromDateValueAndNanos(
-                            ((ValueTimestampTimeZone) this).getDateValue(),
-                            ((ValueTimestampTimeZone) this).getTimeNanos());
+                case TIMESTAMP_TZ: {
+                    ValueTimestampTimeZone v = (ValueTimestampTimeZone) this;
+                    long absoluteDay = DateTimeUtils.absoluteDayFromDateValue(v.getDateValue());
+                    long nanos = v.getTimeNanos() - v.getTimeZoneOffsetMins() * (60L * 1000 * 1000 * 1000);
+                    return DateTimeUtils.normalizeTimestamp(absoluteDay, nanos, true);
+                }
+                case ENUM:
+                    throw DbException.get(
+                            ErrorCode.DATA_CONVERSION_ERROR_1, getString());
+                }
+                break;
+            }
+            case TIMESTAMP_TZ: {
+                switch (getType()) {
+                case TIME: {
+                    long timeNanos = ((ValueTime) this).getNanos();
+                    return ValueTimestampTimeZone.fromDateValueAndNanos(0, timeNanos,
+                            DateTimeUtils.getZoneOffsetMins(0, timeNanos));
+                }
+                case DATE: {
+                    long dateValue = ((ValueDate) this).getDateValue();
+                    return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, 0,
+                            DateTimeUtils.getZoneOffsetMins(dateValue, 0));
+                }
+                case TIMESTAMP: {
+                    ValueTimestamp v = (ValueTimestamp) this;
+                    long dateValue = v.getDateValue();
+                    long timeNanos = v.getTimeNanos();
+                    return ValueTimestampTimeZone.fromDateValueAndNanos(dateValue, timeNanos,
+                            DateTimeUtils.getZoneOffsetMins(dateValue, timeNanos));
+                }
                 case ENUM:
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());

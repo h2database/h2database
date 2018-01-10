@@ -873,10 +873,12 @@ public class DateTimeUtils {
      *
      * @param absoluteDay the absolute day
      * @param nanos the nanoseconds (may be negative or larger than one day)
+     * @param utcValues {@code true} if passed values are in UTC,
+     *            {@code false} if passed values are in local time
      * @return the timestamp
      */
     public static ValueTimestamp normalizeTimestamp(long absoluteDay,
-            long nanos) {
+            long nanos, boolean utcValues) {
         if (nanos > NANOS_PER_DAY || nanos < 0) {
             long d;
             if (nanos > NANOS_PER_DAY) {
@@ -886,6 +888,20 @@ public class DateTimeUtils {
             }
             nanos -= d * NANOS_PER_DAY;
             absoluteDay += d;
+        }
+        if (utcValues) {
+            nanos += getZoneOffsetMins(dateValueFromAbsoluteDay(absoluteDay), nanos)
+                    * (60L * 1000 * 1000 * 1000);
+            if (nanos > NANOS_PER_DAY || nanos < 0) {
+                long d;
+                if (nanos > NANOS_PER_DAY) {
+                    d = nanos / NANOS_PER_DAY;
+                } else {
+                    d = (nanos - NANOS_PER_DAY + 1) / NANOS_PER_DAY;
+                }
+                nanos -= d * NANOS_PER_DAY;
+                absoluteDay += d;
+            }
         }
         return ValueTimestamp.fromDateValueAndNanos(
                 dateValueFromAbsoluteDay(absoluteDay), nanos);
@@ -954,6 +970,18 @@ public class DateTimeUtils {
             m -= 12;
         }
         return dateValue(y, m + 3, (int) d);
+    }
+
+    /**
+     * @param dateValue
+     *            the date value
+     * @param timeNanos
+     *            the nanoseconds since midnight
+     * @return time zone offset in minutes
+     */
+    public static short getZoneOffsetMins(long dateValue, long timeNanos) {
+        Timestamp t = convertDateValueToTimestamp(dateValue, timeNanos);
+        return (short) (TimeZone.getDefault().getOffset(t.getTime()) / (60 * 1000));
     }
 
     /**

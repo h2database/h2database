@@ -687,7 +687,8 @@ public class StringUtils {
                 buff.append("&amp;");
                 break;
             case '\'':
-                buff.append("&apos;");
+                // &apos; is not valid in HTML
+                buff.append("&#39;");
                 break;
             case '\"':
                 buff.append("&quot;");

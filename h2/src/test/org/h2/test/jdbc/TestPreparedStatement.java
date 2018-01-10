@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
@@ -76,6 +77,7 @@ public class TestPreparedStatement extends TestBase {
         testTime8(conn);
         testDateTime8(conn);
         testOffsetDateTime8(conn);
+        testInstant8(conn);
         testArray(conn);
         testUUIDGeneratedKeys(conn);
         testSetObject(conn);
@@ -698,6 +700,34 @@ public class TestPreparedStatement extends TestBase {
         rs.next();
         offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
         assertEquals(offsetDateTime, offsetDateTime2);
+        assertFalse(rs.next());
+        rs.close();
+    }
+
+    private void testInstant8(Connection conn) throws Exception {
+        if (!LocalDateTimeUtils.isJava8DateApiPresent()) {
+            return;
+        }
+        Method timestampToInstant = Timestamp.class.getMethod("toInstant"),
+                now = LocalDateTimeUtils.getInstantClass().getMethod("now");
+
+        PreparedStatement prep = conn.prepareStatement("SELECT ?");
+        Object instant1 = now.invoke(null);
+        prep.setObject(1, instant1);
+        ResultSet rs = prep.executeQuery();
+        rs.next();
+        Object instant2 = rs.getObject(1, LocalDateTimeUtils.getInstantClass());
+        assertEquals(instant1, instant2);
+        Timestamp ts = rs.getTimestamp(1);
+        assertEquals(instant1, timestampToInstant.invoke(ts));
+        assertFalse(rs.next());
+        rs.close();
+
+        prep.setTimestamp(1, ts);
+        rs = prep.executeQuery();
+        rs.next();
+        instant2 = rs.getObject(1, LocalDateTimeUtils.getInstantClass());
+        assertEquals(instant1, instant2);
         assertFalse(rs.next());
         rs.close();
     }

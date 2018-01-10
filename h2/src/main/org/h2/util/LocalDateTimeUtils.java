@@ -9,6 +9,7 @@ package org.h2.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -28,11 +29,15 @@ import org.h2.value.ValueTimestampTimeZone;
  * Java 7 as well.</p>
  *
  * <p>Custom conversion methods between H2 internal values and JSR-310 classes
- * are used without intermediate conversions to java.sql classes. Direct
- * conversion is simpler, faster, and it does not inherit limitations and
- * issues from java.sql classes and conversion methods provided by JDK.</p>
+ * are used in most cases without intermediate conversions to java.sql classes.
+ * Direct conversion is simpler, faster, and it does not inherit limitations
+ * and issues from java.sql classes and conversion methods provided by JDK.</p>
  *
- * <p>Once the driver requires Java 8 all the reflection can be removed.</p>
+ * <p>The only one exclusion is a conversion between {@link Timestamp} and
+ * Instant.</p>
+ *
+ * <p>Once the driver requires Java 8 and Android API 26 all the reflection
+ * can be removed.</p>
  */
 public class LocalDateTimeUtils {
 
@@ -42,6 +47,8 @@ public class LocalDateTimeUtils {
     private static final Class<?> LOCAL_TIME;
     // Class<java.time.LocalDateTime>
     private static final Class<?> LOCAL_DATE_TIME;
+    // Class<java.time.Instant>
+    private static final Class<?> INSTANT;
     // Class<java.time.OffsetDateTime>
     private static final Class<?> OFFSET_DATE_TIME;
     // Class<java.time.ZoneOffset>
@@ -65,6 +72,11 @@ public class LocalDateTimeUtils {
     private static final Method LOCAL_DATE_GET_DAY_OF_MONTH;
     // java.time.LocalDate#atStartOfDay()
     private static final Method LOCAL_DATE_AT_START_OF_DAY;
+
+    // java.sql.Timestamp.from(java.time.Instant)
+    private static final Method TIMESTAMP_FROM;
+    // java.sql.Timestamp.toInstant()
+    private static final Method TIMESTAMP_TO_INSTANT;
 
     // java.time.LocalTime#parse(CharSequence)
     private static final Method LOCAL_TIME_PARSE;
@@ -99,11 +111,12 @@ public class LocalDateTimeUtils {
         LOCAL_DATE = tryGetClass("java.time.LocalDate");
         LOCAL_TIME = tryGetClass("java.time.LocalTime");
         LOCAL_DATE_TIME = tryGetClass("java.time.LocalDateTime");
+        INSTANT = tryGetClass("java.time.Instant");
         OFFSET_DATE_TIME = tryGetClass("java.time.OffsetDateTime");
         ZONE_OFFSET = tryGetClass("java.time.ZoneOffset");
         IS_JAVA8_DATE_API_PRESENT = LOCAL_DATE != null && LOCAL_TIME != null &&
-                LOCAL_DATE_TIME != null && OFFSET_DATE_TIME != null &&
-                ZONE_OFFSET != null;
+                LOCAL_DATE_TIME != null && INSTANT != null &&
+                OFFSET_DATE_TIME != null && ZONE_OFFSET != null;
 
         if (IS_JAVA8_DATE_API_PRESENT) {
             LOCAL_TIME_OF_NANO = getMethod(LOCAL_TIME, "ofNanoOfDay", long.class);
@@ -118,6 +131,9 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_GET_MONTH_VALUE = getMethod(LOCAL_DATE, "getMonthValue");
             LOCAL_DATE_GET_DAY_OF_MONTH = getMethod(LOCAL_DATE, "getDayOfMonth");
             LOCAL_DATE_AT_START_OF_DAY = getMethod(LOCAL_DATE, "atStartOfDay");
+
+            TIMESTAMP_FROM = getMethod(Timestamp.class, "from", INSTANT);
+            TIMESTAMP_TO_INSTANT = getMethod(Timestamp.class, "toInstant");
 
             LOCAL_TIME_PARSE = getMethod(LOCAL_TIME, "parse", CharSequence.class);
 
@@ -144,6 +160,8 @@ public class LocalDateTimeUtils {
             LOCAL_DATE_GET_MONTH_VALUE = null;
             LOCAL_DATE_GET_DAY_OF_MONTH = null;
             LOCAL_DATE_AT_START_OF_DAY = null;
+            TIMESTAMP_FROM = null;
+            TIMESTAMP_TO_INSTANT = null;
             LOCAL_TIME_PARSE = null;
             LOCAL_DATE_TIME_PLUS_NANOS = null;
             LOCAL_DATE_TIME_TO_LOCAL_DATE = null;
@@ -200,6 +218,15 @@ public class LocalDateTimeUtils {
      */
     public static Class<?> getLocalDateTimeClass() {
         return LOCAL_DATE_TIME;
+    }
+
+    /**
+     * Returns the class java.time.Instant.
+     *
+     * @return the class java.time.Instant, null on Java 7
+     */
+    public static Class<?> getInstantClass() {
+        return INSTANT;
     }
 
     /**
@@ -323,6 +350,18 @@ public class LocalDateTimeUtils {
     }
 
     /**
+     * Checks if the given class is Instant.
+     *
+     * <p>This method can be called from Java 7.</p>
+     *
+     * @param clazz the class to check
+     * @return if the class is Instant
+     */
+    public static boolean isInstant(Class<?> clazz) {
+        return INSTANT == clazz;
+    }
+
+    /**
      * Checks if the given class is OffsetDateTime.
      *
      * <p>This method can be called from Java 7.</p>
@@ -380,13 +419,30 @@ public class LocalDateTimeUtils {
      * @return the LocalDateTime
      */
     public static Object valueToLocalDateTime(ValueTimestamp value) {
-
         long dateValue = value.getDateValue();
         long timeNanos = value.getTimeNanos();
         try {
             Object localDate = localDateFromDateValue(dateValue);
             Object localDateTime = LOCAL_DATE_AT_START_OF_DAY.invoke(localDate);
             return LOCAL_DATE_TIME_PLUS_NANOS.invoke(localDateTime, timeNanos);
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "timestamp conversion failed");
+        }
+    }
+
+    /**
+     * Converts a value to a Instant.
+     *
+     * <p>This method should only called from Java 8 or later.</p>
+     *
+     * @param value the value to convert
+     * @return the Instant
+     */
+    public static Object valueToInstant(Value value) {
+        try {
+            return TIMESTAMP_TO_INSTANT.invoke(value.getTimestamp());
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -476,6 +532,22 @@ public class LocalDateTimeUtils {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
             throw DbException.convertInvocation(e, "local date time conversion failed");
+        }
+    }
+
+    /**
+     * Converts a Instant to a Value.
+     *
+     * @param instant the Instant to convert, not {@code null}
+     * @return the value
+     */
+    public static Value instantToValue(Object instant) {
+        try {
+            return ValueTimestamp.get((Timestamp) TIMESTAMP_FROM.invoke(null, instant));
+        } catch (IllegalAccessException e) {
+            throw DbException.convert(e);
+        } catch (InvocationTargetException e) {
+            throw DbException.convertInvocation(e, "instant conversion failed");
         }
     }
 

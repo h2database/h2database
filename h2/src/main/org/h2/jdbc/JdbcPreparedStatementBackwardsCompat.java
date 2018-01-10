@@ -17,5 +17,21 @@ public interface JdbcPreparedStatementBackwardsCompat {
 
     // JDBC 4.2 (incomplete)
 
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
     long executeLargeUpdate() throws SQLException;
 }

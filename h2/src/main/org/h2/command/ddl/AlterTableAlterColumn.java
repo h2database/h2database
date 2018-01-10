@@ -319,7 +319,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 Column foundCol = null;
                 for (Iterator<Column> it = newColumns.iterator(); it.hasNext();) {
                     Column newCol = it.next();
-                    if (newCol.getName() == removeCol.getName()) {
+                    if (newCol.getName().equals(removeCol.getName())) {
                         foundCol = newCol;
                         break;
                     }

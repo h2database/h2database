@@ -5,6 +5,7 @@
  */
 package org.h2.command.ddl;
 
+import java.util.ArrayList;
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.constraint.ConstraintReferential;
@@ -67,9 +68,27 @@ public class DropView extends SchemaCommand {
                     }
                 }
             }
+            
+             // TODO: Where is the ConstraintReferential.CASCADE style drop processing ? It's
+            // supported from imported keys - but not for dependent db objects            
 
+            TableView tableView = (TableView) view;
+            ArrayList<Table> copyOfDependencies = new ArrayList<Table>(tableView.getTables());
+            
             view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);
+
+            // remove dependent table expressions
+            for (Table childTable: copyOfDependencies) {
+                if (TableType.VIEW == childTable.getTableType()) {
+                    TableView childTableView = (TableView) childTable;
+                    if (childTableView.isTableExpression() && childTableView.getName() != null) {
+                        session.getDatabase().removeSchemaObject(session, childTableView);
+                    }
+                }
+            }
+            // make sure its all unlocked
+            session.getDatabase().unlockMeta(session);
         }
         return 0;
     }

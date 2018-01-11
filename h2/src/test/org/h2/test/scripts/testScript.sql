@@ -9369,49 +9369,6 @@ select 0 from ((
 };
 > update count: 0
 
-explain with recursive r(n) as (
-    (select 1) union all (select n+1 from r where n < 3)
-)
-select n from r;
-> PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> WITH RECURSIVE R(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC.R /* PUBLIC.R.tableScan */ WHERE N < 3) ) SELECT N FROM R R /* null */
-> rows: 1
-
-select sum(n) from (
-    with recursive r(n) as (
-        (select 1) union all (select n+1 from r where n < 3)
-    )
-    select n from r
-);
-> SUM(N)
-> ------
-> 6
-> rows: 1
-
-select sum(n) from (select 0) join (
-    with recursive r(n) as (
-        (select 1) union all (select n+1 from r where n < 3)
-    )
-    select n from r
-) on 1=1;
-> SUM(N)
-> ------
-> 6
-> rows: 1
-
-select 0 from (
-    select 0 where 0 in (
-        with recursive r(n) as (
-            (select 1) union all (select n+1 from r where n < 3)
-        )
-        select n from r
-    )
-);
-> 0
-> -
-> rows: 0
-
 create table x(id int not null);
 > ok
 

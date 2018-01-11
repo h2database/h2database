@@ -53,7 +53,7 @@ public class Delete extends Prepared {
         this.condition = condition;
     }
 
-    public Expression getCondition( ) {
+    public Expression getCondition() {
         return this.condition;
     }
 
@@ -136,17 +136,16 @@ public class Delete extends Prepared {
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0);
-            if(sourceTableFilter!=null){
+            if (sourceTableFilter != null) {
                 condition.mapColumns(sourceTableFilter, 0);
             }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
         TableFilter[] filters;
-        if(sourceTableFilter==null){
+        if (sourceTableFilter == null) {
             filters = new TableFilter[] { targetTableFilter };
-        }
-        else{
+        } else {
             filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
         }
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,

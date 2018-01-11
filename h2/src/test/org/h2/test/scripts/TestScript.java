@@ -133,6 +133,9 @@ public class TestScript extends TestBase {
                 "parsedatetime", "quarter", "second", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
         }
+        for (String s : new String[] { "with", "mergeUsing" }) {
+            testScript("dml/" + s + ".sql");
+        }        
         deleteDb("script");
         System.out.flush();
     }

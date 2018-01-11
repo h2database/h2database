@@ -6,12 +6,14 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
+import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -121,6 +123,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private Deque<String> viewNameStack = new ArrayDeque<String>();    
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
@@ -226,13 +229,25 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
-    public void setParsingView(boolean parsingView) {
+    public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
         assert this.parsingView >= 0;
+        if (parsingView) {
+            viewNameStack.push(viewName);
+        } else {
+            assert viewName.equals(viewNameStack.peek());
+            viewNameStack.pop();
+        }        
+    }
+    public String getParsingCreateViewName() {
+        if (viewNameStack.size() == 0) {
+            return null;
+        }
+        return viewNameStack.peek();
     }
 
-    public boolean isParsingView() {
+    public boolean isParsingCreateView() {
         assert parsingView >= 0;
         return parsingView != 0;
     }
@@ -679,7 +694,8 @@ public class Session extends SessionWithState {
             for (Table table : tablesToAnalyze) {
                 Analyze.analyzeTable(this, table, rows, false);
             }
-            database.unlockMeta(this); // analyze can lock the meta
+            // analyze can lock the meta
+            database.unlockMeta(this); 
         }
         tablesToAnalyze = null;
     }

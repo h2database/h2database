@@ -10,12 +10,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.h2.jdbc.JdbcSQLException;
+import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 
 /**
  * Test non-recursive queries using WITH, but more than one common table defined.
  */
-public class TestGeneralCommonTableQueries extends TestBase {
+public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExpressions {
 
     /**
      * Run just this test.
@@ -41,7 +42,9 @@ public class TestGeneralCommonTableQueries extends TestBase {
         testMerge();
         testCreateTable();
         testNestedSQL();
-        testRecursiveTable();
+        testSimple4RowRecursiveQuery();
+        testSimple2By4RowRecursiveQuery();
+        testSimple3RowRecursiveQueryWithLazyEval();
     }
 
     private void testSimpleSelect() throws Exception {
@@ -52,18 +55,18 @@ public class TestGeneralCommonTableQueries extends TestBase {
         ResultSet rs;
 
         stat = conn.createStatement();
-        final String simple_two_column_query = "with " +
+        final String simpleTwoColumnQuery = "with " +
             "t1(n) as (select 1 as first) " +
             ",t2(n) as (select 2 as first) " +
             "select * from t1 union all select * from t2";
-        rs = stat.executeQuery(simple_two_column_query);
+        rs = stat.executeQuery(simpleTwoColumnQuery);
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
         assertFalse(rs.next());
 
-        prep = conn.prepareStatement(simple_two_column_query);
+        prep = conn.prepareStatement(simpleTwoColumnQuery);
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(1, rs.getInt(1));
@@ -75,7 +78,8 @@ public class TestGeneralCommonTableQueries extends TestBase {
             "t1(n) as (select 2 as first) " +
             ",t2(n) as (select 3 as first) " +
             "select * from t1 union all select * from t2 where n<>?");
-        prep.setInt(1, 0); // omit no lines since zero is not in list
+        
+        prep.setInt(1, 0); 
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -88,7 +92,8 @@ public class TestGeneralCommonTableQueries extends TestBase {
             ",t2(n) as (select 3 as first) " +
             ",t3(n) as (select 4 as first) " +
             "select * from t1 union all select * from t2 union all select * from t3 where n<>?");
-        prep.setInt(1, 4); // omit 4 line (last)
+
+        prep.setInt(1, 4); 
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -111,15 +116,16 @@ public class TestGeneralCommonTableQueries extends TestBase {
             ",t2 as (select first_col+1 from t1) " +
             ",t3 as (select 4 as first_col) " +
             "select * from t1 union all select * from t2 union all select * from t3 where first_col<>?");
-        prep.setInt(1, 4); // omit 4 line (last)
+        
+        prep.setInt(1, 4); 
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
         assertTrue(rs.next());
         assertEquals(3, rs.getInt("FIRST_COL"));
         assertFalse(rs.next());
-        assertEquals(rs.getMetaData().getColumnCount(),1);
-        assertEquals("FIRST_COL",rs.getMetaData().getColumnLabel(1));
+        assertEquals(rs.getMetaData().getColumnCount(), 1);
+        assertEquals("FIRST_COL", rs.getMetaData().getColumnLabel(1));
 
         conn.close();
         deleteDb("commonTableExpressionQueries");
@@ -171,7 +177,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         prep.setInt(6, 6);
         rs = prep.executeQuery();
 
-        for(int n: new int[]{1,2,3,4,5,6} ){
+        for (int n: new int[]{1, 2, 3, 4, 5, 6}) {
             assertTrue(rs.next());
             assertEquals(n, rs.getInt(1));
         }
@@ -180,7 +186,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
         // call it twice
         rs = prep.executeQuery();
 
-        for(int n: new int[]{1,2,3,4,5,6} ){
+        for (int n: new int[]{1, 2, 3, 4, 5, 6}) {
             assertTrue(rs.next());
             assertEquals(n, rs.getInt(1));
         }
@@ -217,21 +223,20 @@ public class TestGeneralCommonTableQueries extends TestBase {
             assertTrue(rs.next());
             assertEquals(n, rs.getInt(1));
         }
-        assertEquals("X",rs.getMetaData().getColumnLabel(1));
-        assertEquals("'T1'",rs.getMetaData().getColumnLabel(2));
+        assertEquals("X", rs.getMetaData().getColumnLabel(1));
+        assertEquals("'T1'", rs.getMetaData().getColumnLabel(2));
 
         assertFalse(rs.next());
 
-        try{
+        try {
             prep = conn.prepareStatement("SELECT * FROM t1 UNION ALL SELECT * FROM t2 "+
                     "UNION ALL SELECT X, 'Q' FROM SYSTEM_RANGE(5,6)");
             rs = prep.executeQuery();
             fail("Temp view T1 was accessible after previous WITH statement finished "+
                     "- but should not have been.");
-        }
-        catch(JdbcSQLException e){
+        } catch (JdbcSQLException e) {
             // ensure the T1 table has been removed even without auto commit
-            assertContains(e.getMessage(),"Table \"T1\" not found;");
+            assertContains(e.getMessage(), "Table \"T1\" not found;");
         }
 
         conn.close();
@@ -290,13 +295,13 @@ public class TestGeneralCommonTableQueries extends TestBase {
         prep.setInt(2, 2);
         rowCount = prep.executeUpdate();
 
-        assertEquals(2,rowCount);
+        assertEquals(2, rowCount);
 
         rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
 
         for (int n : new int[] { 1, 2 }) {
             assertTrue(rs.next());
-            assertTrue(rs.getInt(1)!=0);
+            assertTrue(rs.getInt(1) != 0);
             assertEquals(n, rs.getInt(2));
             assertEquals("Y1", rs.getString(3));
         }
@@ -321,7 +326,7 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 +"DELETE FROM T1 WHERE X IN ( SELECT v1.X FROM v1 )");
         rowCount = prep.executeUpdate();
 
-        assertEquals(2,rowCount);
+        assertEquals(2, rowCount);
 
         rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
 
@@ -348,13 +353,13 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 +"MERGE INTO T1 KEY(ID) SELECT v1.X AS ID, v1.X, v1.Y FROM v1");
         rowCount = prep.executeUpdate();
 
-        assertEquals(3,rowCount);
+        assertEquals(3, rowCount);
 
         rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
 
         for (int n : new int[] { 1, 2, 3 }) {
             assertTrue(rs.next());
-            assertTrue(rs.getInt(1)!=0);
+            assertTrue(rs.getInt(1) != 0);
             assertEquals(n, rs.getInt(2));
             assertEquals("X1", rs.getString(3));
         }
@@ -377,13 +382,13 @@ public class TestGeneralCommonTableQueries extends TestBase {
                 +"CREATE TABLE IF NOT EXISTS T1 AS SELECT v1.X AS ID, v1.X, v1.Y FROM v1");
         success = prep.execute();
 
-        assertEquals(false,success);
+        assertEquals(false, success);
 
         rs = stat.executeQuery("SELECT ID, X,Y FROM T1");
 
         for (int n : new int[] { 1, 2, 3 }) {
             assertTrue(rs.next());
-            assertTrue(rs.getInt(1)!=0);
+            assertTrue(rs.getInt(1) != 0);
             assertEquals(n, rs.getInt(2));
             assertEquals("X1", rs.getString(3));
         }
@@ -432,9 +437,9 @@ public class TestGeneralCommonTableQueries extends TestBase {
 
         for (String keyLetter : new String[] { "a", "b" }) {
             assertTrue(rs.next());
-            assertContains("ab",rs.getString(1));
-            assertEquals(rs.getString(1),keyLetter);
-            assertTrue(rs.getInt(2)!=0);
+            assertContains("ab", rs.getString(1));
+            assertEquals(rs.getString(1), keyLetter);
+            assertTrue(rs.getInt(2) != 0);
         }
         conn.close();
         deleteDb("commonTableExpressionQueries");
@@ -459,108 +464,92 @@ public class TestGeneralCommonTableQueries extends TestBase {
             assertEquals(n, rs.getInt(1));
             assertEquals(n, rs.getInt(4));
         }
-        assertEquals("ONE",rs.getMetaData().getColumnLabel(1));
-        assertEquals("TWO",rs.getMetaData().getColumnLabel(2));
-        assertEquals("THREE",rs.getMetaData().getColumnLabel(3));
-        assertEquals("X",rs.getMetaData().getColumnLabel(4));
+        assertEquals("ONE", rs.getMetaData().getColumnLabel(1));
+        assertEquals("TWO", rs.getMetaData().getColumnLabel(2));
+        assertEquals("THREE", rs.getMetaData().getColumnLabel(3));
+        assertEquals("X", rs.getMetaData().getColumnLabel(4));
 
         assertFalse(rs.next());
 
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
+    
+    private void testSimple4RowRecursiveQuery() throws Exception {
+                
+        String[] expectedRowData = new String[]{"|1", "|2", "|3"};
+        String[] expectedColumnTypes = new String[]{"INTEGER"};
+        String[] expectedColumnNames = new String[]{"N"};
+        
+        String setupSQL = "-- do nothing";
+        String withQuery = "with recursive r(n) as (\n"+
+                "(select 1) union all (select n+1 from r where n < 3)\n"+
+                ")\n"+
+                "select n from r";
 
-    private void testRecursiveTable() throws Exception {
-        String[] expectedRowData =new String[]{"|meat|null","|fruit|3","|veg|2"};
-        String[] expectedColumnNames =new String[]{"VAL",
-                "SUM(SELECT\n" +
-                "    X\n" +
-                "FROM PUBLIC.\"\" BB\n" +
-                "    /* SELECT\n" +
-                "        SUM(1) AS X,\n" +
-                "        A\n" +
-                "    FROM PUBLIC.B\n" +
-                "        /++ PUBLIC.B.tableScan ++/\n" +
-                "        /++ WHERE A IS ?1\n" +
-                "        ++/\n" +
-                "        /++ scanCount: 4 ++/\n" +
-                "    INNER JOIN PUBLIC.C\n" +
-                "        /++ PUBLIC.C.tableScan ++/\n" +
-                "        ON 1=1\n" +
-                "    WHERE (A IS ?1)\n" +
-                "        AND (B.VAL = C.B)\n" +
-                "    GROUP BY A: A IS A.VAL\n" +
-                "     */\n" +
-                "    /* scanCount: 1 */\n" +
-                "WHERE BB.A IS A.VAL)"};
+        int maxRetries = 3;
+        int expectedNumberOfRows = expectedRowData.length;
+            
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
+                withQuery, maxRetries - 1, expectedColumnTypes);
+            
+    }    
+    
+    private void testSimple2By4RowRecursiveQuery() throws Exception {
+        
+        String[] expectedRowData = new String[]{"|0|1|10", "|1|2|11", "|2|3|12", "|3|4|13"};
+        String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER"};
+        String[] expectedColumnNames = new String[]{"K", "N", "N2"};
+        
+        String setupSQL = "-- do nothing";
+        String withQuery = "with \n"+
+                "r1(n,k) as ((select 1, 0) union all (select n+1,k+1 from r1 where n <= 3)),"+
+                "r2(n,k) as ((select 10,0) union all (select n+1,k+1 from r2 where n <= 13))"+
+                "select r1.k, r1.n, r2.n AS n2 from r1 inner join r2 ON r1.k= r2.k          ";
 
-        deleteDb("commonTableExpressionQueries");
-        Connection conn = getConnection("commonTableExpressionQueries");
-        PreparedStatement prep;
-        ResultSet rs;
-
-        String SETUP_SQL =
-            "DROP TABLE IF EXISTS A;                           "
-            +"DROP TABLE IF EXISTS B;                           "
-            +"DROP TABLE IF EXISTS C;                           "
-            +"CREATE TABLE A(VAL VARCHAR(255));                 "
-            +"CREATE TABLE B(A VARCHAR(255), VAL VARCHAR(255)); "
-            +"CREATE TABLE C(B VARCHAR(255), VAL VARCHAR(255)); "
-            +"                                                  "
-            +"INSERT INTO A VALUES('fruit');                    "
-            +"INSERT INTO B VALUES('fruit','apple');            "
-            +"INSERT INTO B VALUES('fruit','banana');           "
-            +"INSERT INTO C VALUES('apple', 'golden delicious');"
-            +"INSERT INTO C VALUES('apple', 'granny smith');    "
-            +"INSERT INTO C VALUES('apple', 'pippin');          "
-            +"INSERT INTO A VALUES('veg');                      "
-            +"INSERT INTO B VALUES('veg', 'carrot');            "
-            +"INSERT INTO C VALUES('carrot', 'nantes');         "
-            +"INSERT INTO C VALUES('carrot', 'imperator');      "
-            +"INSERT INTO C VALUES(null, 'banapple');           "
-            +"INSERT INTO A VALUES('meat');                     "
-            ;
-        String WITH_QUERY = "WITH BB as (SELECT                        \n" +
-            "sum(1) as X,                             \n" +
-            "a                                        \n" +
-            "FROM B                                   \n" +
-            "JOIN C ON B.val=C.b                      \n" +
-            "GROUP BY a)                              \n" +
-            "SELECT                                   \n" +
-            "A.val,                                   \n" +
-            "sum(SELECT X FROM BB WHERE BB.a IS A.val)\n" +
-            // AS SUM_X
-            "FROM A                                   \n" + "GROUP BY A.val";
-
-        for(int queryRunTries=1;queryRunTries<4;queryRunTries++){
-            Statement stat = conn.createStatement();
-            stat.execute(SETUP_SQL);
-            stat.close();
-
-            prep = conn.prepareStatement(WITH_QUERY);
-
-            rs = prep.executeQuery();
-            for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
-                // previously the column label was null or had \n or \r in the string
-                assertTrue(rs.getMetaData().getColumnLabel(columnIndex)!=null);
-                assertEquals(expectedColumnNames[columnIndex-1],rs.getMetaData().getColumnLabel(columnIndex));
-            }
-
-            int rowNdx=0;
-            while (rs.next()) {
-                StringBuilder buf = new StringBuilder();
-                for(int columnIndex = 1; columnIndex <= rs.getMetaData().getColumnCount(); columnIndex++){
-                    buf.append("|"+rs.getString(columnIndex));
-                }
-                assertEquals(expectedRowData[rowNdx], buf.toString());
-                rowNdx++;
-            }
-            assertEquals(3,rowNdx);
-            rs.close();
-            prep.close();
+        int maxRetries = 3;
+        int expectedNumberOfRows = expectedRowData.length;
+            
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
+                withQuery, maxRetries - 1, expectedColumnTypes);
+            
+    }    
+    
+    private void testSimple3RowRecursiveQueryWithLazyEval() throws Exception {
+        
+        String[] expectedRowData = new String[]{"|6"};
+        String[] expectedColumnTypes = new String[]{"BIGINT"};
+        String[] expectedColumnNames = new String[]{"SUM(N)"};
+        
+        // back up the config - to restore it after this test
+        TestAll backupConfig = config;
+        config = new TestAll();
+        
+        try {
+            //Test with settings: lazy mvStore memory mvcc multiThreaded
+            // connection url is =mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
+            config.lazy = true;
+            config.mvStore = true;
+            config.memory = true;
+            config.mvcc = true;
+            config.multiThreaded = true;
+            
+            String setupSQL = "--no config set";
+            String withQuery = "select sum(n) from (\n"
+                +"    with recursive r(n) as (\n"
+                +"        (select 1) union all (select n+1 from r where n < 3) \n"
+                +"    )\n"
+                +"    select n from r \n"
+                +")\n";
+    
+            int maxRetries = 10;
+            int expectedNumberOfRows = expectedRowData.length;
+            
+            testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
+                    withQuery, maxRetries - 1, expectedColumnTypes);
+        } finally {
+            config = backupConfig;
         }
-
-        conn.close();
-        deleteDb("commonTableExpressionQueries");
-    }
+            
+    }        
 }

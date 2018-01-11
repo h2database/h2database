@@ -8,9 +8,11 @@ package org.h2.table;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
+import org.h2.command.ddl.CreateTableData;
 import org.h2.command.dml.Query;
 import org.h2.engine.Constants;
 import org.h2.engine.Database;
@@ -50,21 +52,22 @@ public class TableView extends Table {
     private Column[] columnTemplates;
     private Query viewQuery;
     private ViewIndex index;
-    private boolean recursive;
+    private boolean allowRecursive;
     private DbException createException;
     private long lastModificationCheck;
     private long maxDataModificationId;
     private User owner;
     private Query topQuery;
     private ResultInterface recursiveResult;
-    private boolean tableExpression;
     private boolean isRecursiveQueryDetected;
+    private boolean isTableExpression;
+    private boolean isPersistent;
 
     public TableView(Schema schema, int id, String name, String querySQL,
             ArrayList<Parameter> params, Column[] columnTemplates, Session session,
-            boolean recursive, boolean literalsChecked) {
+            boolean allowRecursive, boolean literalsChecked, boolean isTableExpression, boolean isPersistent) {
         super(schema, id, name, false, true);
-        init(querySQL, params, columnTemplates, session, recursive, literalsChecked);
+        init(querySQL, params, columnTemplates, session, allowRecursive, literalsChecked, isTableExpression, isPersistent);
     }
 
     /**
@@ -80,41 +83,50 @@ public class TableView extends Table {
             boolean recursive, boolean force, boolean literalsChecked) {
         String oldQuerySQL = this.querySQL;
         Column[] oldColumnTemplates = this.columnTemplates;
-        boolean oldRecursive = this.recursive;
+        boolean oldRecursive = this.allowRecursive;
         init(querySQL, null,
                 newColumnTemplates == null ? this.columnTemplates
                         : newColumnTemplates,
-                session, recursive, literalsChecked);
+                session, recursive, literalsChecked, isTableExpression, isPersistent);
         DbException e = recompile(session, force, true);
         if (e != null) {
-            init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, literalsChecked);
+            init(oldQuerySQL, null, oldColumnTemplates, session, oldRecursive, 
+                    literalsChecked, isTableExpression, isPersistent);
             recompile(session, true, false);
             throw e;
         }
     }
 
     private synchronized void init(String querySQL, ArrayList<Parameter> params,
-            Column[] columnTemplates, Session session, boolean recursive, boolean literalsChecked) {
+            Column[] columnTemplates, Session session, boolean allowRecursive, boolean literalsChecked, 
+            boolean isTableExpression, boolean isPersistent) {
         this.querySQL = querySQL;
         this.columnTemplates = columnTemplates;
-        this.recursive = recursive;
+        this.allowRecursive = allowRecursive;
         this.isRecursiveQueryDetected = false;
-        index = new ViewIndex(this, querySQL, params, recursive);
+        this.isTableExpression = isTableExpression;
+        this.isPersistent = isPersistent;
+        index = new ViewIndex(this, querySQL, params, allowRecursive);
         initColumnsAndTables(session, literalsChecked);
     }
 
-    private static Query compileViewQuery(Session session, String sql, boolean literalsChecked) {
+    private Query compileViewQuery(Session session, String sql, boolean literalsChecked, String viewName) {
         Prepared p;
-        session.setParsingView(true);
+        session.setParsingCreateView(true, viewName);
         try {
             p = session.prepare(sql, false, literalsChecked);
         } finally {
-            session.setParsingView(false);
+            session.setParsingCreateView(false, viewName);
         }
         if (!(p instanceof Query)) {
             throw DbException.getSyntaxError(sql, 0);
         }
-        return (Query) p;
+        Query q = (Query) p;
+        // only potentially recursive cte queries need to be non-lazy
+        if (isTableExpression && allowRecursive) {
+            q.setNeverLazy(true);
+        }
+        return q;
     }
 
     /**
@@ -129,7 +141,7 @@ public class TableView extends Table {
     public synchronized DbException recompile(Session session, boolean force,
             boolean clearIndexCache) {
         try {
-            compileViewQuery(session, querySQL, false);
+            compileViewQuery(session, querySQL, false, getName());
         } catch (DbException e) {
             if (!force) {
                 return e;
@@ -151,15 +163,16 @@ public class TableView extends Table {
 
     private void initColumnsAndTables(Session session, boolean literalsChecked) {
         Column[] cols;
-        removeDependentViewFromTables();
+        removeCurrentViewFromOtherTables();
+        setTableExpression(isTableExpression);
         try {
-            Query query = compileViewQuery(session, querySQL, literalsChecked);
-            this.querySQL = query.getPlanSQL();
-            tables = New.arrayList(query.getTables());
-            ArrayList<Expression> expressions = query.getExpressions();
+            Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked, getName());
+            this.querySQL = compiledQuery.getPlanSQL();
+            tables = New.arrayList(compiledQuery.getTables());
+            ArrayList<Expression> expressions = compiledQuery.getExpressions();
             ArrayList<Column> list = New.arrayList();
-            ColumnNamer columnNamer= new ColumnNamer(session);
-            for (int i = 0, count = query.getColumnCount(); i < count; i++) {
+            ColumnNamer columnNamer = new ColumnNamer(session);
+            for (int i = 0, count = compiledQuery.getColumnCount(); i < count; i++) {
                 Expression expr = expressions.get(i);
                 String name = null;
                 int type = Value.UNKNOWN;
@@ -170,7 +183,7 @@ public class TableView extends Table {
                 if (name == null) {
                     name = expr.getAlias();
                 }
-                name = columnNamer.getColumnName(expr,i,name);
+                name = columnNamer.getColumnName(expr, i, name);
                 if (type == Value.UNKNOWN) {
                     type = expr.getType();
                 }
@@ -200,7 +213,7 @@ public class TableView extends Table {
             }
             cols = list.toArray(new Column[0]);
             createException = null;
-            viewQuery = query;
+            viewQuery = compiledQuery;
         } catch (DbException e) {
             e.addSQL(getCreateSQL());
             createException = e;
@@ -214,7 +227,7 @@ public class TableView extends Table {
             }
             tables = New.arrayList();
             cols = new Column[0];
-            if (recursive && columnTemplates != null) {
+            if (allowRecursive && columnTemplates != null) {
                 cols = new Column[columnTemplates.length];
                 for (int i = 0; i < columnTemplates.length; i++) {
                     cols[i] = columnTemplates[i].getClone();
@@ -318,6 +331,9 @@ public class TableView extends Table {
             buff.append("FORCE ");
         }
         buff.append("VIEW ");
+        if (isTableExpression) {
+            buff.append("TABLE_EXPRESSION ");
+        }
         buff.append(quotedName);
         if (comment != null) {
             buff.append(" COMMENT ").append(StringUtils.quoteStringSQL(comment));
@@ -416,7 +432,7 @@ public class TableView extends Table {
 
     @Override
     public void removeChildrenAndResources(Session session) {
-        removeDependentViewFromTables();
+        removeCurrentViewFromOtherTables();
         super.removeChildrenAndResources(session);
         database.removeMeta(session, getId());
         querySQL = null;
@@ -438,7 +454,7 @@ public class TableView extends Table {
 
     @Override
     public String getSQL() {
-        if (isTemporary() && querySQL!=null) {
+        if (isTemporary() && querySQL != null) {
             return "(\n" + StringUtils.indent(querySQL) + ")";
         }
         return super.getSQL();
@@ -500,7 +516,7 @@ public class TableView extends Table {
         return null;
     }
 
-    private void removeDependentViewFromTables() {
+    private void removeCurrentViewFromOtherTables() {
         if (tables != null) {
             for (Table t : tables) {
                 t.removeDependentView(this);
@@ -538,8 +554,9 @@ public class TableView extends Table {
         Schema mainSchema = session.getDatabase().getSchema(Constants.SCHEMA_MAIN);
         String querySQL = query.getPlanSQL();
         TableView v = new TableView(mainSchema, 0, name,
-                querySQL, query.getParameters(), null, session,
-                false, true /* literals have already been checked when parsing original query */);
+                querySQL, query.getParameters(), null /* column templates */, session,
+                false/* allow recursive */, true /* literals have already been checked when parsing original query */, 
+                false /* is table expression */, false/* is persistent*/);
         if (v.createException != null) {
             throw v.createException;
         }
@@ -586,12 +603,12 @@ public class TableView extends Table {
     }
 
     public boolean isRecursive() {
-        return recursive;
+        return allowRecursive;
     }
 
     @Override
     public boolean isDeterministic() {
-        if (recursive || viewQuery == null) {
+        if (allowRecursive || viewQuery == null) {
             return false;
         }
         return viewQuery.isEverything(ExpressionVisitor.DETERMINISTIC_VISITOR);
@@ -606,14 +623,6 @@ public class TableView extends Table {
 
     public ResultInterface getRecursiveResult() {
         return recursiveResult;
-    }
-
-    public void setTableExpression(boolean tableExpression) {
-        this.tableExpression = tableExpression;
-    }
-
-    public boolean isTableExpression() {
-        return tableExpression;
     }
 
     @Override
@@ -696,5 +705,145 @@ public class TableView extends Table {
         }
         return true;
     }
+    
+    public List<Table> getTables() {
+        return tables;
+    }
 
+    public boolean isPersistent() {
+        return isPersistent;
+    }
+    
+    public static TableView createTableViewMaybeRecursive(Schema schema, int id, String name, String querySQL,
+            ArrayList<Parameter> parameters, Column[] columnTemplates, Session session,
+            boolean literalsChecked, boolean isTableExpression, boolean isPersistent, Database db) {
+        
+
+        Table recursiveTable = TableView.createShadowTableForRecursiveTableExpression(isPersistent, session, name,
+                schema, Arrays.asList(columnTemplates), db);
+
+        List<Column> columnTemplateList;
+        String[] querySQLOutput = new String[]{null};
+        ArrayList<String> columnNames = new ArrayList<String>();
+        for (Column columnTemplate: columnTemplates) {
+            columnNames.add(columnTemplate.getName());
+        }
+        
+        try {
+            Prepared withQuery = session.prepare(querySQL, false, false);
+            if (isPersistent) {
+                withQuery.setSession(session);
+            }            
+            columnTemplateList = TableView.createQueryColumnTemplateList(columnNames.toArray(new String[1]), 
+                    (Query) withQuery, querySQLOutput);
+
+        } finally {
+            TableView.destroyShadowTableForRecursiveExpression(isPersistent, session, recursiveTable);
+        }
+        
+        // build with recursion turned on
+        TableView view = new TableView(schema, id, name, querySQL,
+                parameters, columnTemplateList.toArray(columnTemplates), session,
+                true/* try recursive */, literalsChecked, isTableExpression, isPersistent);
+
+        // is recursion really detected ? if not - recreate it without recursion flag and no recursive index
+        if (!view.isRecursiveQueryDetected()) {
+            if (isPersistent) {
+                db.addSchemaObject(session, view);
+                view.lock(session, true, true);
+                session.getDatabase().removeSchemaObject(session, view);
+                
+                // during database  startup - this method does not normally get called - and it needs to be
+                // to correctly un-register the table which the table expression uses... 
+                view.removeChildrenAndResources(session);
+            } else {
+                session.removeLocalTempTable(view);                    
+            }
+            view = new TableView(schema, id, name, querySQL, parameters,
+                    columnTemplates, session,
+                    false/* detected not recursive */, literalsChecked, isTableExpression, isPersistent);  
+        }
+                
+        return view;
+    }
+
+
+    /**
+     * Creates a list of column templates from a query (usually from WITH query,
+     * but could be any query)
+     *
+     * @param cols - an optional list of column names (can be specified by WITH
+     *            clause overriding usual select names)
+     * @param theQuery - the query object we want the column list for
+     * @param querySQLOutput - array of length 1 to receive extra 'output' field
+     *            in addition to return value - containing the SQL query of the
+     *            Query object
+     * @return a list of column object returned by withQuery
+     */
+    public static List<Column> createQueryColumnTemplateList(String[] cols,
+            Query theQuery, String[] querySQLOutput) {
+        List<Column> columnTemplateList = new ArrayList<>();
+        theQuery.prepare();
+        // String array of length 1 is to receive extra 'output' field in addition to
+        // return value
+        querySQLOutput[0] = StringUtils.cache(theQuery.getPlanSQL());
+        ColumnNamer columnNamer = new ColumnNamer(theQuery.getSession());
+        ArrayList<Expression> withExpressions = theQuery.getExpressions();
+        for (int i = 0; i < withExpressions.size(); ++i) {
+            Expression columnExp = withExpressions.get(i);
+            // use the passed in column name if supplied, otherwise use alias
+            // (if found) otherwise use column name derived from column
+            // expression
+            String columnName = columnNamer.getColumnName(columnExp, i, cols);
+            columnTemplateList.add(new Column(columnName,
+                    columnExp.getType()));
+    
+        }
+        return columnTemplateList;
+    }
+
+    public static Table createShadowTableForRecursiveTableExpression(boolean isPersistent, Session targetSession,
+            String cteViewName, Schema schema, List<Column> columns, Database db) {
+        
+        // create table data object
+        CreateTableData recursiveTableData = new CreateTableData();
+        recursiveTableData.id = db.allocateObjectId();
+        recursiveTableData.columns = new ArrayList<Column>(columns);
+        recursiveTableData.tableName = cteViewName;
+        recursiveTableData.temporary = !isPersistent;
+        recursiveTableData.persistData = true;
+        recursiveTableData.persistIndexes = isPersistent;
+        recursiveTableData.create = true;
+        recursiveTableData.session = targetSession;
+        
+        // this gets a meta table lock that is not released
+        Table recursiveTable = schema.createTable(recursiveTableData);
+        
+        if (isPersistent) {
+            // this unlock is to prevent lock leak from schema.createTable()
+            db.unlockMeta(targetSession);
+            synchronized (targetSession) {
+                db.addSchemaObject(targetSession, recursiveTable);
+            }
+        } else {
+            targetSession.addLocalTempTable(recursiveTable);
+        }
+        return recursiveTable;
+    }
+
+    public static void destroyShadowTableForRecursiveExpression(boolean isPersistent, Session targetSession,
+            Table recursiveTable) {
+        if (recursiveTable != null) {
+            if (isPersistent) {
+                recursiveTable.lock(targetSession, true, true);
+                targetSession.getDatabase().removeSchemaObject(targetSession, recursiveTable);
+                
+            } else {
+                targetSession.removeLocalTempTable(recursiveTable);
+            }
+            
+            // both removeSchemaObject and removeLocalTempTable hold meta locks - release them here
+            targetSession.getDatabase().unlockMeta(targetSession);
+        }
+    }
 }

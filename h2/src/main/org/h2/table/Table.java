@@ -86,6 +86,7 @@ public abstract class Table extends SchemaObjectBase {
     private boolean checkForeignKeyConstraints = true;
     private boolean onCommitDrop, onCommitTruncate;
     private volatile Row nullRow;
+    private boolean tableExpression;
 
     public Table(Schema schema, int id, String name, boolean persistIndexes,
             boolean persistData) {
@@ -195,7 +196,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param operation the operation
      * @param row the row
      */
-    @SuppressWarnings("unused")
     public void commit(short operation, Row row) {
         // nothing to do
     }
@@ -233,7 +233,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param allColumnsSet all columns
      * @return the scan index
      */
-    @SuppressWarnings("unused")
     public Index getScanIndex(Session session, int[] masks,
             TableFilter[] filters, int filter, SortOrder sortOrder,
             HashSet<Column> allColumnsSet) {
@@ -465,7 +464,6 @@ public abstract class Table extends SchemaObjectBase {
      * @param session the session
      * @return true if it is
      */
-    @SuppressWarnings("unused")
     public boolean isLockedExclusivelyBy(Session session) {
         return false;
     }
@@ -836,7 +834,7 @@ public abstract class Table extends SchemaObjectBase {
     }
 
     /**
-     * Remove the given view from the list.
+     * Remove the given view from the dependent views list.
      *
      * @param view the view to remove
      */
@@ -1166,7 +1164,6 @@ public abstract class Table extends SchemaObjectBase {
      * @return an object array with the sessions involved in the deadlock, or
      *         null
      */
-    @SuppressWarnings("unused")
     public ArrayList<Session> checkDeadlock(Session session, Session clash,
             Set<Session> visited) {
         return null;
@@ -1242,5 +1239,12 @@ public abstract class Table extends SchemaObjectBase {
     public boolean isMVStore() {
         return false;
     }
+    
+    public void setTableExpression(boolean tableExpression) {
+        this.tableExpression = tableExpression;
+    }
 
+    public boolean isTableExpression() {
+        return tableExpression;
+    }
 }

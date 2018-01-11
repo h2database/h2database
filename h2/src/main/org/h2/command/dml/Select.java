@@ -817,14 +817,14 @@ public class Select extends Query {
             sort = prepareOrder(orderList, expressions.size());
             orderList = null;
         }
-        ColumnNamer columnNamer= new ColumnNamer(session);
+        ColumnNamer columnNamer = new ColumnNamer(session);
         for (int i = 0; i < expressions.size(); i++) {
             Expression e = expressions.get(i);
             String proposedColumnName = e.getAlias();
-            String columnName = columnNamer.getColumnName(e,i,proposedColumnName);
+            String columnName = columnNamer.getColumnName(e, i, proposedColumnName);
             // if the name changed, create an alias
-            if(!columnName.equals(proposedColumnName)){
-                e = new Alias(e,columnName,true);
+            if (!columnName.equals(proposedColumnName)) {
+                e = new Alias(e, columnName, true);
             }
             expressions.set(i, e.optimize(session));
         }
@@ -852,7 +852,7 @@ public class Select extends Query {
                 isQuickAggregateQuery = isEverything(optimizable);
             }
         }
-        cost = preparePlan(session.isParsingView());
+        cost = preparePlan(session.isParsingCreateView());
         if (distinct && session.getDatabase().getSettings().optimizeDistinct &&
                 !isGroupQuery && filters.size() == 1 &&
                 expressions.size() == 1 && condition == null) {
@@ -1060,14 +1060,22 @@ public class Select extends Query {
         StatementBuilder buff = new StatementBuilder();
         for (TableFilter f : topFilters) {
             Table t = f.getTable();
-            if (t.isView() && ((TableView) t).isRecursive()) {
-                buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
-                buff.resetCount();
-                for (Column c : t.getColumns()) {
-                    buff.appendExceptFirst(",");
-                    buff.append(c.getName());
+            TableView tableView = t.isView() ? (TableView) t : null;
+            if (tableView != null && tableView.isRecursive() && tableView.isTableExpression()) {
+                
+                if (tableView.isPersistent()) {
+                    // skip the generation of plan SQL for this already recursive persistent ctes, since using a with 
+                    // statement will re-create the common table expression views.
+                    continue;
+                } else {
+                    buff.append("WITH RECURSIVE ").append(t.getName()).append('(');
+                    buff.resetCount();
+                    for (Column c : t.getColumns()) {
+                        buff.appendExceptFirst(",");
+                        buff.append(c.getName());
+                    }
+                    buff.append(") AS ").append(t.getSQL()).append("\n");                    
                 }
-                buff.append(") AS ").append(t.getSQL()).append("\n");
             }
         }
         buff.resetCount();

@@ -436,9 +436,11 @@ class FileDisk extends FileBase {
         if (readOnly) {
             throw new NonWritableChannelException();
         }
-        if (newLength < file.length()) {
-            file.setLength(newLength);
-        }
+        /*
+         * RandomAccessFile.setLength() does not always work here since Java 9 for
+         * unknown reason so use FileChannel.truncate().
+         */
+        file.getChannel().truncate(newLength);
         return this;
     }
 

@@ -6,13 +6,14 @@
 package org.h2.engine;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
-import java.util.Stack;
+import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -122,7 +123,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
-    private Stack<String> viewNameStack = new Stack<String>();    
+    private Deque<String> viewNameStack = new ArrayDeque<String>();    
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;

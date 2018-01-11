@@ -13,7 +13,6 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -461,13 +460,12 @@ public class LocalDateTimeUtils {
      */
     public static Object valueToOffsetDateTime(Value value) {
         ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
-        TimestampWithTimeZone timestampWithTimeZone = (TimestampWithTimeZone) valueTimestampTimeZone.getObject();
-        long dateValue = timestampWithTimeZone.getYMD();
-        long timeNanos = timestampWithTimeZone.getNanosSinceMidnight();
+        long dateValue = valueTimestampTimeZone.getDateValue();
+        long timeNanos = valueTimestampTimeZone.getTimeNanos();
         try {
             Object localDateTime = localDateTimeFromDateNanos(dateValue, timeNanos);
 
-            short timeZoneOffsetMins = timestampWithTimeZone.getTimeZoneOffsetMins();
+            short timeZoneOffsetMins = valueTimestampTimeZone.getTimeZoneOffsetMins();
             int offsetSeconds = (int) TimeUnit.MINUTES.toSeconds(timeZoneOffsetMins);
 
             Object offset = ZONE_OFFSET_OF_TOTAL_SECONDS.invoke(null, offsetSeconds);

@@ -459,8 +459,9 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the OffsetDateTime
      */
-    public static Object valueToOffsetDateTime(ValueTimestampTimeZone value) {
-        return timestampWithTimeZoneToOffsetDateTime((TimestampWithTimeZone) value.getObject());
+    public static Object valueToOffsetDateTime(Value value) {
+        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+        return timestampWithTimeZoneToOffsetDateTime((TimestampWithTimeZone) valueTimestampTimeZone.getObject());
     }
 
     private static Object timestampWithTimeZoneToOffsetDateTime(

@@ -1332,9 +1332,6 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        if (identifier == null)
-            // To conform with JDBC specification
-            throw new NullPointerException();
         return Parser.isSimpleIdentifier(identifier);
     }
 

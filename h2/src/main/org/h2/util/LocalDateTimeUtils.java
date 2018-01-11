@@ -13,7 +13,6 @@ import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.value.Value;
 import org.h2.value.ValueDate;
@@ -418,13 +417,12 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the LocalDateTime
      */
-    public static Object valueToLocalDateTime(ValueTimestamp value) {
-        long dateValue = value.getDateValue();
-        long timeNanos = value.getTimeNanos();
+    public static Object valueToLocalDateTime(Value value) {
+        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+        long dateValue = valueTimestamp.getDateValue();
+        long timeNanos = valueTimestamp.getTimeNanos();
         try {
-            Object localDate = localDateFromDateValue(dateValue);
-            Object localDateTime = LOCAL_DATE_AT_START_OF_DAY.invoke(localDate);
-            return LOCAL_DATE_TIME_PLUS_NANOS.invoke(localDateTime, timeNanos);
+            return localDateTimeFromDateNanos(dateValue, timeNanos);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {
@@ -458,19 +456,14 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the OffsetDateTime
      */
-    public static Object valueToOffsetDateTime(ValueTimestampTimeZone value) {
-        return timestampWithTimeZoneToOffsetDateTime((TimestampWithTimeZone) value.getObject());
-    }
-
-    private static Object timestampWithTimeZoneToOffsetDateTime(
-            TimestampWithTimeZone timestampWithTimeZone) {
-
-        long dateValue = timestampWithTimeZone.getYMD();
-        long timeNanos = timestampWithTimeZone.getNanosSinceMidnight();
+    public static Object valueToOffsetDateTime(Value value) {
+        ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
+        long dateValue = valueTimestampTimeZone.getDateValue();
+        long timeNanos = valueTimestampTimeZone.getTimeNanos();
         try {
             Object localDateTime = localDateTimeFromDateNanos(dateValue, timeNanos);
 
-            short timeZoneOffsetMins = timestampWithTimeZone.getTimeZoneOffsetMins();
+            short timeZoneOffsetMins = valueTimestampTimeZone.getTimeZoneOffsetMins();
             int offsetSeconds = (int) TimeUnit.MINUTES.toSeconds(timeZoneOffsetMins);
 
             Object offset = ZONE_OFFSET_OF_TOTAL_SECONDS.invoke(null, offsetSeconds);

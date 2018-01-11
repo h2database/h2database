@@ -1099,7 +1099,7 @@ public class WebApp {
         if (isBuiltIn(sql, "@best_row_identifier")) {
             String[] p = split(sql);
             int scale = p[4] == null ? 0 : Integer.parseInt(p[4]);
-            boolean nullable = p[5] == null ? false : Boolean.parseBoolean(p[5]);
+            boolean nullable = Boolean.parseBoolean(p[5]);
             return meta.getBestRowIdentifier(p[1], p[2], p[3], scale, nullable);
         } else if (isBuiltIn(sql, "@catalogs")) {
             return meta.getCatalogs();
@@ -1120,8 +1120,8 @@ public class WebApp {
             return meta.getImportedKeys(p[1], p[2], p[3]);
         } else if (isBuiltIn(sql, "@index_info")) {
             String[] p = split(sql);
-            boolean unique = p[4] == null ? false : Boolean.parseBoolean(p[4]);
-            boolean approx = p[5] == null ? false : Boolean.parseBoolean(p[5]);
+            boolean unique = Boolean.parseBoolean(p[4]);
+            boolean approx = Boolean.parseBoolean(p[5]);
             return meta.getIndexInfo(p[1], p[2], p[3], unique, approx);
         } else if (isBuiltIn(sql, "@primary_keys")) {
             String[] p = split(sql);

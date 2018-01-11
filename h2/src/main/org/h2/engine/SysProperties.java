@@ -344,7 +344,7 @@ public class SysProperties {
      */
     public static final boolean OLD_STYLE_OUTER_JOIN =
             Utils.getProperty("h2.oldStyleOuterJoin",
-                    Constants.VERSION_MINOR >= 4 ? false : true);
+                    Constants.VERSION_MINOR < 4);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
@@ -401,7 +401,7 @@ public class SysProperties {
      */
     public static final boolean SORT_BINARY_UNSIGNED =
             Utils.getProperty("h2.sortBinaryUnsigned",
-                    Constants.VERSION_MINOR >= 4 ? true : false);
+                    Constants.VERSION_MINOR >= 4);
 
     /**
      * System property <code>h2.sortNullsHigh</code> (default: false).<br />
@@ -455,7 +455,7 @@ public class SysProperties {
      */
     public static final boolean IMPLICIT_RELATIVE_PATH =
             Utils.getProperty("h2.implicitRelativePath",
-                    Constants.VERSION_MINOR >= 4 ? false : true);
+                    Constants.VERSION_MINOR < 4);
 
     /**
      * System property <code>h2.urlMap</code> (default: null).<br />

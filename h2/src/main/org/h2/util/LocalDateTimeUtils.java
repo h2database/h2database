@@ -461,12 +461,7 @@ public class LocalDateTimeUtils {
      */
     public static Object valueToOffsetDateTime(Value value) {
         ValueTimestampTimeZone valueTimestampTimeZone = (ValueTimestampTimeZone) value.convertTo(Value.TIMESTAMP_TZ);
-        return timestampWithTimeZoneToOffsetDateTime((TimestampWithTimeZone) valueTimestampTimeZone.getObject());
-    }
-
-    private static Object timestampWithTimeZoneToOffsetDateTime(
-            TimestampWithTimeZone timestampWithTimeZone) {
-
+        TimestampWithTimeZone timestampWithTimeZone = (TimestampWithTimeZone) valueTimestampTimeZone.getObject();
         long dateValue = timestampWithTimeZone.getYMD();
         long timeNanos = timestampWithTimeZone.getNanosSinceMidnight();
         try {

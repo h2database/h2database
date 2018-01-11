@@ -418,9 +418,10 @@ public class LocalDateTimeUtils {
      * @param value the value to convert
      * @return the LocalDateTime
      */
-    public static Object valueToLocalDateTime(ValueTimestamp value) {
-        long dateValue = value.getDateValue();
-        long timeNanos = value.getTimeNanos();
+    public static Object valueToLocalDateTime(Value value) {
+        ValueTimestamp valueTimestamp = (ValueTimestamp) value.convertTo(Value.TIMESTAMP);
+        long dateValue = valueTimestamp.getDateValue();
+        long timeNanos = valueTimestamp.getTimeNanos();
         try {
             Object localDate = localDateFromDateValue(dateValue);
             Object localDateTime = LOCAL_DATE_AT_START_OF_DAY.invoke(localDate);

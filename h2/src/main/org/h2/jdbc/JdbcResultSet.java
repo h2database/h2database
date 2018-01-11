@@ -3824,8 +3824,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         } else if (LocalDateTimeUtils.isLocalTime(type)) {
             return type.cast(LocalDateTimeUtils.valueToLocalTime(value));
         } else if (LocalDateTimeUtils.isLocalDateTime(type)) {
-            return type.cast(LocalDateTimeUtils.valueToLocalDateTime(
-                            (ValueTimestamp) value));
+            return type.cast(LocalDateTimeUtils.valueToLocalDateTime(value));
         } else if (LocalDateTimeUtils.isInstant(type)) {
             return type.cast(LocalDateTimeUtils.valueToInstant(value));
         } else if (LocalDateTimeUtils.isOffsetDateTime(type) &&

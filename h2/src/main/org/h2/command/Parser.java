@@ -6830,34 +6830,22 @@ public class Parser {
      * @return the quoted identifier
      */
     public static String quoteIdentifier(String s) {
-        if (s == null || s.length() == 0) {
+        if (s == null) {
             return "\"\"";
         }
-        char c = s.charAt(0);
-        // lowercase a-z is quoted as well
-        if ((!Character.isLetter(c) && c != '_') || Character.isLowerCase(c)) {
-            return StringUtils.quoteIdentifier(s);
-        }
-        for (int i = 1, length = s.length(); i < length; i++) {
-            c = s.charAt(i);
-            if ((!Character.isLetterOrDigit(c) && c != '_') ||
-                    Character.isLowerCase(c)) {
-                return StringUtils.quoteIdentifier(s);
-            }
-        }
-        if (isKeyword(s, true)) {
-            return StringUtils.quoteIdentifier(s);
-        }
-        return s;
+        if (isSimpleIdentifier(s))
+            return s;
+        return StringUtils.quoteIdentifier(s);
     }
 
     /**
      * @param s
      *            identifier to check
      * @return is specified identifier may be used without quotes
+     * @throws NullPointerException if s is {@code null}
      */
     public static boolean isSimpleIdentifier(String s) {
-        if (s == null || s.length() == 0) {
+        if (s.length() == 0) {
             return false;
         }
         char c = s.charAt(0);

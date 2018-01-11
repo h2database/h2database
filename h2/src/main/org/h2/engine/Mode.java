@@ -245,6 +245,8 @@ public class Mode {
         mode.convertInsertNullToZero = true;
         mode.indexDefinitionInCreateTable = true;
         mode.lowerCaseIdentifiers = true;
+        // Next one is for MariaDB
+        mode.regexpReplaceBackslashReferences = true;
         mode.onDuplicateKeyUpdate = true;
         // MySQL allows to use any key for client info entries. See
         // http://grepcode.com/file/repo1.maven.org/maven2/mysql/
@@ -275,6 +277,7 @@ public class Mode {
         mode.supportOffsetFetch = true;
         mode.systemColumns = true;
         mode.logIsLogBase10 = true;
+        mode.regexpReplaceBackslashReferences = true;
         mode.serialColumnIsNotPK = true;
         // PostgreSQL only supports the ApplicationName property. See
         // https://github.com/hhru/postgres-jdbc/blob/master/postgresql-jdbc-9.2-1002.src/

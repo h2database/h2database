@@ -422,9 +422,7 @@ public class LocalDateTimeUtils {
         long dateValue = valueTimestamp.getDateValue();
         long timeNanos = valueTimestamp.getTimeNanos();
         try {
-            Object localDate = localDateFromDateValue(dateValue);
-            Object localDateTime = LOCAL_DATE_AT_START_OF_DAY.invoke(localDate);
-            return LOCAL_DATE_TIME_PLUS_NANOS.invoke(localDateTime, timeNanos);
+            return localDateTimeFromDateNanos(dateValue, timeNanos);
         } catch (IllegalAccessException e) {
             throw DbException.convert(e);
         } catch (InvocationTargetException e) {

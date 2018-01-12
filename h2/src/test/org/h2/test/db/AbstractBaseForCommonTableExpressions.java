@@ -18,7 +18,7 @@ import org.h2.test.TestBase;
 public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
 
     protected void testRepeatedQueryWithSetup(int maxRetries, String[] expectedRowData, String[] expectedColumnNames,
-            int expectedNumbeOfRows, String setupSQL, String withQuery,
+            int expectedNumberOfRows, String setupSQL, String withQuery,
             int closeAndReopenDatabaseConnectionOnIteration, String[] expectedColumnTypes) throws SQLException {
 
         deleteDb("commonTableExpressionQueries");
@@ -47,7 +47,7 @@ public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
                 assertTrue(rs.getMetaData().getColumnLabel(columnIndex) != null);
                 assertEquals(expectedColumnNames[columnIndex - 1], rs.getMetaData().getColumnLabel(columnIndex));
                 assertEquals(
-                        "wrongly type column " + rs.getMetaData().getColumnLabel(columnIndex) + " on iteration#"
+                        "wrong type of column " + rs.getMetaData().getColumnLabel(columnIndex) + " on iteration #"
                                 + queryRunTries,
                         expectedColumnTypes[columnIndex - 1], rs.getMetaData().getColumnTypeName(columnIndex));
             }
@@ -62,7 +62,7 @@ public abstract class AbstractBaseForCommonTableExpressions extends TestBase {
                 rowNdx++;
             }
 
-            assertEquals(expectedNumbeOfRows, rowNdx);
+            assertEquals(expectedNumberOfRows, rowNdx);
 
             rs.close();
             prep.close();

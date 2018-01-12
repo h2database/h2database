@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -256,7 +257,7 @@ public class Indexer {
 
     private void readPage(File file) throws Exception {
         byte[] data = IOUtils.readBytesAndClose(new FileInputStream(file), 0);
-        String text = new String(data, "UTF-8");
+        String text = new String(data, StandardCharsets.UTF_8);
         StringTokenizer t = new StringTokenizer(text, "<> \r\n", true);
         boolean inTag = false;
         title = false;

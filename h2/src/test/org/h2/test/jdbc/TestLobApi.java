@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -76,7 +77,7 @@ public class TestLobApi extends TestBase {
         rs.next();
         Clob clob = rs.getClob(2);
         byte[] data = IOUtils.readBytesAndClose(clob.getAsciiStream(), -1);
-        assertEquals("x", new String(data, "UTF-8"));
+        assertEquals("x", new String(data, StandardCharsets.UTF_8));
         assertTrue(clob.toString().endsWith("'x'"));
         clob.free();
         assertTrue(clob.toString().endsWith("null"));

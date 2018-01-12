@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Connection;
@@ -860,7 +861,7 @@ public class TestTools extends TestBase {
         byte[] large = new byte[getSize(10 * 1024, 100 * 1024)];
         random.nextBytes(large);
         prep.setBytes(2, large);
-        String largeText = new String(large, "ISO-8859-1");
+        String largeText = new String(large, StandardCharsets.ISO_8859_1);
         prep.setString(3, largeText);
         prep.execute();
 

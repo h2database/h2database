@@ -15,6 +15,7 @@ import java.io.LineNumberReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map.Entry;
@@ -104,7 +105,7 @@ public class SortedProperties extends Properties {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         store(out, null);
         ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        InputStreamReader reader = new InputStreamReader(in, "ISO8859-1");
+        InputStreamReader reader = new InputStreamReader(in, StandardCharsets.ISO_8859_1);
         LineNumberReader r = new LineNumberReader(reader);
         Writer w;
         try {

@@ -8,6 +8,7 @@ package org.h2.build.code;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Enable / disable AB-BA deadlock detector code.
@@ -46,7 +47,7 @@ public class AbbaDetect {
         byte[] data = new byte[(int) file.length()];
         in.readFully(data);
         in.close();
-        String source = new String(data, "UTF-8");
+        String source = new String(data, StandardCharsets.UTF_8);
         String original = source;
 
         source = disable(source);
@@ -63,7 +64,7 @@ public class AbbaDetect {
         }
         File newFile = new File(file + ".new");
         RandomAccessFile out = new RandomAccessFile(newFile, "rw");
-        out.write(source.getBytes("UTF-8"));
+        out.write(source.getBytes(StandardCharsets.UTF_8));
         out.close();
 
         File oldFile = new File(file + ".old");

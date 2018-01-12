@@ -8,6 +8,7 @@ package org.h2.java;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -166,7 +167,7 @@ public class JavaParser {
             RandomAccessFile file = new RandomAccessFile(fileName, "r");
             byte[] buff = new byte[(int) file.length()];
             file.readFully(buff);
-            source = new String(buff, "UTF-8");
+            source = new String(buff, StandardCharsets.UTF_8);
             file.close();
         } catch (IOException e) {
             throw new RuntimeException(e);

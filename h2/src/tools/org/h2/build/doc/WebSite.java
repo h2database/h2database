@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import org.h2.samples.Newsfeed;
@@ -65,7 +66,7 @@ public class WebSite {
             if (f.getName().startsWith("fragments")) {
                 FileInputStream in = new FileInputStream(f);
                 byte[] bytes = IOUtils.readBytesAndClose(in, 0);
-                String page = new String(bytes, "UTF-8");
+                String page = new String(bytes, StandardCharsets.UTF_8);
                 fragments.put(f.getName(), page);
             }
         }
@@ -140,7 +141,7 @@ public class WebSite {
             FileInputStream in = new FileInputStream(source);
             byte[] bytes = IOUtils.readBytesAndClose(in, 0);
             if (name.endsWith(".html")) {
-                String page = new String(bytes, "UTF-8");
+                String page = new String(bytes, StandardCharsets.UTF_8);
                 if (web) {
                     page = StringUtils.replaceAll(page, ANALYTICS_TAG, ANALYTICS_SCRIPT);
                 }
@@ -155,7 +156,7 @@ public class WebSite {
                     page = StringUtils.replaceAll(page, "<pre>", "<pre class=\"notranslate\">");
                     page = StringUtils.replaceAll(page, "<code>", "<code class=\"notranslate\">");
                 }
-                bytes = page.getBytes("UTF-8");
+                bytes = page.getBytes(StandardCharsets.UTF_8);
             }
             FileOutputStream out = new FileOutputStream(target);
             out.write(bytes);

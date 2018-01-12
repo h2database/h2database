@@ -433,12 +433,7 @@ public class IOUtils {
      * @return the reader
      */
     public static Reader getAsciiReader(InputStream in) {
-        try {
-            return in == null ? null : new InputStreamReader(in, "US-ASCII");
-        } catch (Exception e) {
-            // UnsupportedEncodingException
-            throw DbException.convert(e);
-        }
+        return in == null ? null : new InputStreamReader(in, StandardCharsets.US_ASCII);
     }
 
     /**

@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -151,7 +152,7 @@ public class MathUtils {
                 // can't use writeUTF, as the string
                 // might be larger than 64 KB
                 out.writeInt(s.length());
-                out.write(s.getBytes("UTF-8"));
+                out.write(s.getBytes(StandardCharsets.UTF_8));
             } catch (Exception e) {
                 warn("generateAlternativeSeed", e);
             }

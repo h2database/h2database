@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -257,37 +258,37 @@ public class TestResultSet extends TestBase {
 
         rs.moveToInsertRow();
         rs.updateInt(1, 6);
-        in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 7);
-        in = new ByteArrayInputStream("Hello".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 8);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in, 5);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 9);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in, 5);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 10);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream(2, in, 5L);
         rs.insertRow();
 
         rs.moveToInsertRow();
         rs.updateInt(1, 11);
-        in = new ByteArrayInputStream("Hello-".getBytes("UTF-8"));
+        in = new ByteArrayInputStream("Hello-".getBytes(StandardCharsets.UTF_8));
         rs.updateAsciiStream("data", in, 5L);
         rs.insertRow();
 
@@ -1615,7 +1616,7 @@ public class TestResultSet extends TestBase {
         rs.next();
         InputStreamReader reader = null;
         try {
-            reader = new InputStreamReader(rs.getAsciiStream(2), "ISO-8859-1");
+            reader = new InputStreamReader(rs.getAsciiStream(2), StandardCharsets.ISO_8859_1);
         } catch (Exception e) {
             assertTrue(false);
         }
@@ -1625,7 +1626,7 @@ public class TestResultSet extends TestBase {
         assertTrue(string != null && string.equals("Hello"));
         rs.next();
         try {
-            reader = new InputStreamReader(rs.getAsciiStream("value"), "ISO-8859-1");
+            reader = new InputStreamReader(rs.getAsciiStream("value"), StandardCharsets.ISO_8859_1);
         } catch (Exception e) {
             assertTrue(false);
         }

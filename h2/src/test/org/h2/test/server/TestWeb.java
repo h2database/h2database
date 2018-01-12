@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.ConnectException;
 import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -556,7 +557,7 @@ public class TestWeb extends TestBase {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Server.startWebServer(conn);
+                    Server.startWebServer(conn, true);
                 }
             };
             t.execute();
@@ -572,7 +573,7 @@ public class TestWeb extends TestBase {
             url = client.getBaseUrl(url);
             try {
                 client.get(url, "logout.do");
-            } catch (Exception e) {
+            } catch (ConnectException e) {
                 // the server stops on logout
             }
             t.get();

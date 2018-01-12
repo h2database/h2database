@@ -15,6 +15,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Prepared;
 import org.h2.engine.Session;
@@ -137,8 +139,8 @@ public class TableLink extends Table {
             if (schema == null) {
                 schema = thisSchema;
             }
-            if (!StringUtils.equals(catalog, thisCatalog) ||
-                    !StringUtils.equals(schema, thisSchema)) {
+            if (!Objects.equals(catalog, thisCatalog) ||
+                    !Objects.equals(schema, thisSchema)) {
                 // if the table exists in multiple schemas or tables,
                 // use the alternative solution
                 columnMap.clear();

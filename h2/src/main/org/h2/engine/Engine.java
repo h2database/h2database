@@ -6,6 +6,8 @@
 package org.h2.engine;
 
 import java.util.HashMap;
+import java.util.Objects;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -15,7 +17,6 @@ import org.h2.message.Trace;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.StringUtils;
 import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 
@@ -245,7 +246,7 @@ public class Engine implements SessionFactory {
         String clusterDb = database.getCluster();
         if (!Constants.CLUSTERING_DISABLED.equals(clusterDb)) {
             if (!Constants.CLUSTERING_ENABLED.equals(clusterSession)) {
-                if (!StringUtils.equals(clusterSession, clusterDb)) {
+                if (!Objects.equals(clusterSession, clusterDb)) {
                     if (clusterDb.equals(Constants.CLUSTERING_DISABLED)) {
                         throw DbException.get(
                                 ErrorCode.CLUSTER_ERROR_DATABASE_RUNS_ALONE);

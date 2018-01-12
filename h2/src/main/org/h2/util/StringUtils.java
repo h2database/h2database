@@ -77,20 +77,6 @@ public class StringUtils {
     }
 
     /**
-     * Check if two strings are equal. Here, null is equal to null.
-     *
-     * @param a the first value
-     * @param b the second value
-     * @return true if both are null or both are equal
-     */
-    public static boolean equals(String a, String b) {
-        if (a == null) {
-            return b == null;
-        }
-        return a.equals(b);
-    }
-
-    /**
      * Convert a string to uppercase using the English locale.
      *
      * @param s the test to convert

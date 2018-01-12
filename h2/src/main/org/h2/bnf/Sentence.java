@@ -7,6 +7,7 @@ package org.h2.bnf;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.bnf.context.DbSchema;
@@ -186,7 +187,7 @@ public class Sentence {
      * @param query the query string
      */
     public void setQuery(String query) {
-        if (!StringUtils.equals(this.query, query)) {
+        if (!Objects.equals(this.query, query)) {
             this.query = query;
             this.queryUpper = StringUtils.toUpperEnglish(query);
         }

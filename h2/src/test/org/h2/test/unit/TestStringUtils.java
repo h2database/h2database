@@ -39,6 +39,7 @@ public class TestStringUtils extends TestBase {
         testURL();
         testPad();
         testReplaceAll();
+        testTrim();
     }
 
     private void testHex() {
@@ -225,5 +226,29 @@ public class TestStringUtils extends TestBase {
         assertEquals("abcabcabc",
                 StringUtils.replaceAll("abcabcabc", "aBc", ""));
     }
+
+    private void testTrim() {
+        assertEquals("a a",
+                StringUtils.trim("a a", true, true, null));
+        assertEquals("  a a  ",
+                StringUtils.trim("  a a  ", false, false, null));
+        assertEquals("  a a",
+                StringUtils.trim("  a a  ", false, true, null));
+        assertEquals("a a  ",
+                StringUtils.trim("  a a  ", true, false, null));
+        assertEquals("a a",
+                StringUtils.trim("  a a  ", true, true, null));
+        assertEquals("a a",
+                StringUtils.trim("  a a  ", true, true, ""));
+        assertEquals("zzbbzz",
+                StringUtils.trim("zzbbzz", false, false, "z"));
+        assertEquals("zzbb",
+                StringUtils.trim("zzbbzz", false, true, "z"));
+        assertEquals("bbzz",
+                StringUtils.trim("zzbbzz", true, false, "z"));
+        assertEquals("bb",
+                StringUtils.trim("zzbbzz", true, true, "z"));
+    }
+
 
 }

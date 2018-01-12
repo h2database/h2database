@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -579,7 +580,7 @@ public class Database implements DataHandler {
      * @return true if the cipher algorithm and the password match
      */
     boolean validateFilePasswordHash(String testCipher, byte[] testHash) {
-        if (!StringUtils.equals(testCipher, this.cipher)) {
+        if (!Objects.equals(testCipher, this.cipher)) {
             return false;
         }
         return Utils.compareSecure(testHash, filePasswordHash);

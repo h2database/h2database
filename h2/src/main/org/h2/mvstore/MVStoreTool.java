@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -124,7 +125,7 @@ public class MVStoreTool {
                 block.rewind();
                 int headerType = block.get();
                 if (headerType == 'H') {
-                    String header = new String(block.array(), DataUtils.LATIN).trim();
+                    String header = new String(block.array(), StandardCharsets.ISO_8859_1).trim();
                     pw.printf("%0" + len + "x fileHeader %s%n",
                             pos, header);
                     pos += blockSize;
@@ -293,7 +294,7 @@ public class MVStoreTool {
                             "+%0" + len + "x chunkFooter %s%n",
                             footerPos,
                             new String(chunk.array(), chunk.position(),
-                                    Chunk.FOOTER_LENGTH, DataUtils.LATIN).trim());
+                                    Chunk.FOOTER_LENGTH, StandardCharsets.ISO_8859_1).trim());
                 } catch (IllegalArgumentException e) {
                     // too far
                     pw.printf("ERROR illegal footer position %d%n", footerPos);

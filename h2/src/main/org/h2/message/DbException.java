@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -17,7 +18,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
@@ -51,7 +51,7 @@ public class DbException extends RuntimeException {
                 // (otherwise certain applications don't work)
                 if (translations != null) {
                     Properties p = SortedProperties.fromLines(
-                            new String(translations, Constants.UTF8));
+                            new String(translations, StandardCharsets.UTF_8));
                     for (Entry<Object, Object> e : p.entrySet()) {
                         String key = (String) e.getKey();
                         String translation = (String) e.getValue();

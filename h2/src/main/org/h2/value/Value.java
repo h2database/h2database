@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,7 +20,6 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -1028,7 +1028,7 @@ public abstract class Value {
                 return ValueFloat.get(Float.parseFloat(s.trim()));
             case CLOB:
                 return ValueLobDb.createSmallLob(
-                        CLOB, s.getBytes(Constants.UTF8));
+                        CLOB, s.getBytes(StandardCharsets.UTF_8));
             case BLOB:
                 return ValueLobDb.createSmallLob(
                         BLOB, StringUtils.convertHexToBytes(s.trim()));

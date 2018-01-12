@@ -13,7 +13,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.h2.engine.Constants;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
 
@@ -47,7 +48,7 @@ public class FtpControl extends Thread {
     public void run() {
         try {
             output = new PrintWriter(new OutputStreamWriter(
-                    control.getOutputStream(), Constants.UTF8));
+                    control.getOutputStream(), StandardCharsets.UTF_8));
             if (stop) {
                 reply(421, "Too many users");
             } else {

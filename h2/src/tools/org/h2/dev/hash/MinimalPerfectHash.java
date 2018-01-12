@@ -7,7 +7,7 @@ package org.h2.dev.hash;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Set;
@@ -677,8 +677,6 @@ public class MinimalPerfectHash<K> {
      */
     public static class StringHash implements UniversalHash<String> {
 
-        private static final Charset UTF8 = Charset.forName("UTF-8");
-
         @Override
         public int hashCode(String o, int index, int seed) {
             if (index == 0) {
@@ -723,7 +721,7 @@ public class MinimalPerfectHash<K> {
          * @return the hash value
          */
         public static int getSipHash24(String o, long k0, long k1) {
-            byte[] b = o.getBytes(UTF8);
+            byte[] b = o.getBytes(StandardCharsets.UTF_8);
             return getSipHash24(b, 0, b.length, k0, k1);
         }
 

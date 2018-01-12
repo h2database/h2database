@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -25,7 +26,6 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
-import org.h2.engine.Constants;
 import org.h2.engine.SessionInterface;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcArray;
@@ -619,7 +619,7 @@ public class DataType {
                 if (session == null) {
                     String s = rs.getString(columnIndex);
                     v = s == null ? ValueNull.INSTANCE :
-                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
+                        ValueLobDb.createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
                 } else {
                     Reader in = rs.getCharacterStream(columnIndex);
                     if (in == null) {

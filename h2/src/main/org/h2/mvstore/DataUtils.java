@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -153,16 +152,6 @@ public final class DataUtils {
      * The marker size of a very large page.
      */
     public static final int PAGE_LARGE = 2 * 1024 * 1024;
-
-    /**
-     * The UTF-8 character encoding format.
-     */
-    public static final Charset UTF8 = Charset.forName("UTF-8");
-
-    /**
-     * The ISO Latin character encoding format.
-     */
-    public static final Charset LATIN = Charset.forName("ISO-8859-1");
 
     /**
      * An 0-size byte array.

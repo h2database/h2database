@@ -8,6 +8,7 @@ package org.h2.server.web;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Properties;
@@ -18,7 +19,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.h2.engine.Constants;
 import org.h2.util.New;
 
 /**
@@ -134,12 +134,12 @@ public class WebServlet extends HttpServlet {
         byte[] bytes = server.getFile(file);
         if (bytes == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            bytes = ("File not found: " + file).getBytes(Constants.UTF8);
+            bytes = ("File not found: " + file).getBytes(StandardCharsets.UTF_8);
         } else {
             if (session != null && file.endsWith(".jsp")) {
-                String page = new String(bytes, Constants.UTF8);
+                String page = new String(bytes, StandardCharsets.UTF_8);
                 page = PageParser.parse(page, session.map);
-                bytes = page.getBytes(Constants.UTF8);
+                bytes = page.getBytes(StandardCharsets.UTF_8);
             }
             resp.setContentType(mimeType);
             if (!cache) {

@@ -12,6 +12,8 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.engine.Constants;
 
 /**
@@ -25,7 +27,7 @@ public class CountingReaderInputStream extends InputStream {
     private final CharBuffer charBuffer =
             CharBuffer.allocate(Constants.IO_BUFFER_SIZE);
 
-    private final CharsetEncoder encoder = Constants.UTF8.newEncoder().
+    private final CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder().
             onMalformedInput(CodingErrorAction.REPLACE).
             onUnmappableCharacter(CodingErrorAction.REPLACE);
 

@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.engine.Constants;
@@ -286,7 +287,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         try {
             if (type == Value.CLOB) {
                 if (small != null) {
-                    return new String(small, Constants.UTF8);
+                    return new String(small, StandardCharsets.UTF_8);
                 }
                 return IOUtils.readStringAndClose(getReader(), len);
             }
@@ -537,7 +538,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 len = IOUtils.readFully(reader, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
+                byte[] small = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, len);
             }
             reader.reset();
@@ -620,7 +621,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 try {
                     int p = MathUtils.convertLongToInt(precision);
                     String s = IOUtils.readStringAndClose(getReader(), p);
-                    byte[] data = s.getBytes(Constants.UTF8);
+                    byte[] data = s.getBytes(StandardCharsets.UTF_8);
                     lob = ValueLobDb.createSmallLob(type, data, s.length());
                 } catch (IOException e) {
                     throw DbException.convertIOException(e, null);
@@ -654,7 +655,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     public static Value createSmallLob(int type, byte[] small) {
         int precision;
         if (type == Value.CLOB) {
-            precision = new String(small, Constants.UTF8).length();
+            precision = new String(small, StandardCharsets.UTF_8).length();
         } else {
             precision = small.length;
         }

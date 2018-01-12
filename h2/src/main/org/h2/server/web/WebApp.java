@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ParameterMetaData;
@@ -399,7 +400,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = new String(outBuff.toByteArray(), Constants.UTF8);
+                String o = new String(outBuff.toByteArray(), StandardCharsets.UTF_8);
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {
@@ -993,7 +994,7 @@ public class WebApp {
             }
             final Connection conn = session.getConnection();
             if (SysProperties.CONSOLE_STREAM && server.getAllowChunked()) {
-                String page = new String(server.getFile("result.jsp"), Constants.UTF8);
+                String page = new String(server.getFile("result.jsp"), StandardCharsets.UTF_8);
                 int idx = page.indexOf("${result}");
                 // the first element of the list is the header, the last the
                 // footer

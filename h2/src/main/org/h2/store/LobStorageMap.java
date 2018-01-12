@@ -8,11 +8,11 @@ package org.h2.store;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map.Entry;
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.message.DbException;
 import org.h2.mvstore.MVMap;
@@ -182,7 +182,7 @@ public class LobStorageMap implements LobStorageInterface {
                             "len > blobLength, " + len + " > " + maxLength);
                 }
                 byte[] utf8 = new String(small, 0, len)
-                        .getBytes(Constants.UTF8);
+                        .getBytes(StandardCharsets.UTF_8);
                 if (utf8.length > database.getMaxLengthInplaceLob()) {
                     throw new IllegalStateException(
                             "len > maxinplace, " + utf8.length + " > "

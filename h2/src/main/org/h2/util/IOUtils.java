@@ -19,6 +19,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -393,7 +395,7 @@ public class IOUtils {
      */
     public static Reader getBufferedReader(InputStream in) {
         return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, Constants.UTF8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     /**
@@ -408,7 +410,7 @@ public class IOUtils {
     public static Reader getReader(InputStream in) {
         // InputStreamReader may read some more bytes
         return in == null ? null : new BufferedReader(
-                new InputStreamReader(in, Constants.UTF8));
+                new InputStreamReader(in, StandardCharsets.UTF_8));
     }
 
     /**
@@ -420,7 +422,7 @@ public class IOUtils {
      */
     public static Writer getBufferedWriter(OutputStream out) {
         return out == null ? null : new BufferedWriter(
-                new OutputStreamWriter(out, Constants.UTF8));
+                new OutputStreamWriter(out, StandardCharsets.UTF_8));
     }
 
     /**
@@ -464,7 +466,7 @@ public class IOUtils {
         if (s == null) {
             return null;
         }
-        return new ByteArrayInputStream(s.getBytes(Constants.UTF8));
+        return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

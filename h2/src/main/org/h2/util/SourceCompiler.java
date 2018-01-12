@@ -21,6 +21,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +42,6 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
@@ -368,7 +368,7 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String output = new String(buff.toByteArray(), Constants.UTF8);
+            String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
             handleSyntaxError(output);
             return p.exitValue();
         } catch (Exception e) {
@@ -400,7 +400,7 @@ public class SourceCompiler {
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            String output = new String(buff.toByteArray(), Constants.UTF8);
+            String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
             handleSyntaxError(output);
         } catch (Exception e) {
             throw DbException.convert(e);

@@ -12,9 +12,9 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import org.h2.engine.Constants;
 import org.h2.mvstore.DataUtils;
 import org.h2.security.AES;
 import org.h2.security.BlockCipher;
@@ -39,7 +39,7 @@ public class FilePathEncrypt extends FilePathWrapper {
     public FileChannel open(String mode) throws IOException {
         String[] parsed = parse(name);
         FileChannel file = FileUtils.open(parsed[1], mode);
-        byte[] passwordBytes = parsed[0].getBytes(Constants.UTF8);
+        byte[] passwordBytes = parsed[0].getBytes(StandardCharsets.UTF_8);
         return new FileEncrypt(name, passwordBytes, file);
     }
 

@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -662,7 +663,7 @@ public class Transfer {
                     throw DbException.get(
                             ErrorCode.CONNECTION_BROKEN_1, "magic=" + magic);
                 }
-                byte[] small = new String(buff).getBytes(Constants.UTF8);
+                byte[] small = new String(buff).getBytes(StandardCharsets.UTF_8);
                 return ValueLobDb.createSmallLob(Value.CLOB, small, length);
             }
             Value v = session.getDataHandler().getLobStorage().

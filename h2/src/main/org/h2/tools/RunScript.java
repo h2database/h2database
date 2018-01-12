@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -323,7 +324,7 @@ public class RunScript extends Tool {
             org.h2.Driver.load();
             Connection conn = DriverManager.getConnection(url, user, password);
             if (charset == null) {
-                charset = Constants.UTF8;
+                charset = StandardCharsets.UTF_8;
             }
             try {
                 process(conn, fileName, continueOnError, charset);

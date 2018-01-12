@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -809,11 +810,11 @@ public class Function extends Expression implements FunctionCall {
             break;
         case STRINGTOUTF8:
             result = ValueBytes.getNoCopy(v0.getString().
-                    getBytes(Constants.UTF8));
+                    getBytes(StandardCharsets.UTF_8));
             break;
         case UTF8TOSTRING:
             result = ValueString.get(new String(v0.getBytesNoCopy(),
-                    Constants.UTF8),
+                    StandardCharsets.UTF_8),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLCOMMENT:

@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 
 import org.h2.engine.Constants;
 
@@ -33,7 +34,7 @@ public class ReaderInputStream extends InputStream {
         chars = new char[Constants.IO_BUFFER_SIZE];
         this.reader = reader;
         out = new ByteArrayOutputStream(Constants.IO_BUFFER_SIZE);
-        writer = new BufferedWriter(new OutputStreamWriter(out, Constants.UTF8));
+        writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
     }
 
     private void fillBuffer() throws IOException {

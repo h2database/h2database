@@ -7,12 +7,12 @@ package org.h2.util;
 
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
@@ -454,7 +454,7 @@ public class StringUtils {
                 buff[j++] = (byte) ch;
             }
         }
-        String s = new String(buff, 0, j, Constants.UTF8);
+        String s = new String(buff, 0, j, StandardCharsets.UTF_8);
         return s;
     }
 

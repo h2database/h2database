@@ -94,11 +94,7 @@ public class TraceObject {
 
     private static final int LAST = ARRAY + 1;
     private static final AtomicIntegerArray ID = new AtomicIntegerArray(LAST);
-    static {
-        for (int i=0; i<LAST; i++) {
-            ID.set(i, -1);
-        }
-    }
+
     private static final String[] PREFIX = { "call", "conn", "dbMeta", "prep",
             "rs", "rsMeta", "sp", "ex", "stat", "blob", "clob", "pMeta", "ds",
             "xads", "xares", "xid", "ar" };
@@ -145,7 +141,7 @@ public class TraceObject {
      * @return the new trace object id
      */
     protected static int getNextId(int type) {
-        return ID.incrementAndGet(type);
+        return ID.getAndIncrement(type);
     }
 
     /**

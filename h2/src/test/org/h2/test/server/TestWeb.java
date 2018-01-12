@@ -557,7 +557,7 @@ public class TestWeb extends TestBase {
             Task t = new Task() {
                 @Override
                 public void call() throws Exception {
-                    Server.startWebServer(conn);
+                    Server.startWebServer(conn, true);
                 }
             };
             t.execute();

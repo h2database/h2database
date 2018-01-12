@@ -1239,7 +1239,7 @@ public abstract class Table extends SchemaObjectBase {
     public boolean isMVStore() {
         return false;
     }
-    
+
     public void setTableExpression(boolean tableExpression) {
         this.tableExpression = tableExpression;
     }

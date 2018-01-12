@@ -62,12 +62,12 @@ public class MVTable extends TableBase {
      * The tables names this thread has a shared lock on.
      */
     public static final DebuggingThreadLocal<ArrayList<String>> SHARED_LOCKS;
-    
+
     /**
      * The type of trace lock events
      */
     private enum TraceLockEvent{
-        
+
         TRACE_LOCK_OK("ok"),
         TRACE_LOCK_WAITING_FOR("waiting for"),
         TRACE_LOCK_REQUESTING_FOR("requesting for"),
@@ -81,13 +81,13 @@ public class MVTable extends TableBase {
         TraceLockEvent(String eventText) {
             this.eventText = eventText;
         }
-                
+
         public String getEventText() {
             return eventText;
         }
     }
     private static final String NO_EXTRA_INFO = "";
-    
+
     static {
         if (SysProperties.THREAD_DEADLOCK_DETECTOR) {
             WAITING_FOR_LOCK = new DebuggingThreadLocal<>();
@@ -428,7 +428,7 @@ public class MVTable extends TableBase {
     public boolean isLockedExclusivelyBy(Session session) {
         return lockExclusiveSession == session;
     }
-    
+
     @Override
     public void unlock(Session s) {
         if (database != null) {

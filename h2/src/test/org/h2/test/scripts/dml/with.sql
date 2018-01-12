@@ -48,8 +48,8 @@ with
     r0(n,k) as (select -1, 0),
     r1(n,k) as ((select 1, 0) union all (select n+1,k+1 from r1 where n <= 3)),
     r2(n,k) as ((select 10,0) union all (select n+1,k+1 from r2 where n <= 13))
-    select r1.k, r0.n as N0, r1.n AS N1, r2.n AS n2 from r0 inner join r1 ON r1.k= r0.k inner join r2 ON r1.k= r2.k; 
-> K N0 N1 N2  
+    select r1.k, r0.n as N0, r1.n AS N1, r2.n AS n2 from r0 inner join r1 ON r1.k= r0.k inner join r2 ON r1.k= r2.k;
+> K N0 N1 N2
 > - -- -- --
 > 0 -1 1  10
 > rows: 1

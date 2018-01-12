@@ -121,7 +121,7 @@ public interface JdbcStatementBackwardsCompat {
     /**
      * Enquotes the specified identifier.
      *
-     * @param identifier 
+     * @param identifier
      *            identifier to quote if required
      * @param alwaysQuote
      *            if {@code true} identifier will be quoted unconditionally

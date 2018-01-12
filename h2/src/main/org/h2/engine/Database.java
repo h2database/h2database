@@ -90,7 +90,7 @@ import org.h2.value.ValueInt;
 public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
-    
+
     private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<Session>();
     private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<Throwable>();
 
@@ -768,7 +768,7 @@ public class Database implements DataHandler {
         Collections.sort(records);
         synchronized (systemSession) {
             for (MetaRecord rec : records) {
-                rec.execute(this, systemSession, eventListener);                
+                rec.execute(this, systemSession, eventListener);
             }
         }
         if (mvStore != null) {
@@ -902,7 +902,7 @@ public class Database implements DataHandler {
         }
     }
 
-  /**
+    /**
      * Lock the metadata table for updates.
      *
      * @param session the session
@@ -933,7 +933,7 @@ public class Database implements DataHandler {
         boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
     }
-    
+
     /**
      * Unlock the metadata table.
      *
@@ -1912,7 +1912,7 @@ public class Database implements DataHandler {
                             t.getSQL());
                 }
                 obj.removeChildrenAndResources(session);
-                
+
             }
             removeMeta(session, id);
         }

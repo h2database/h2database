@@ -302,7 +302,8 @@ public class TestCases extends TestBase {
             throws SQLException {
         assertThrows(expectedDropSuccess ? 0 : ErrorCode.CANNOT_DROP_2, stat)
                 .execute("drop table test " + (restrict ? "restrict" : "cascade"));
-        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from test");
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat)
+                .execute("select * from test");
     }
 
     private void testDropTableNoReference(final boolean stdDropTableRestrict, final boolean restrict)

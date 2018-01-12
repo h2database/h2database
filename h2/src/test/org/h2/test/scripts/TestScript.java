@@ -135,7 +135,7 @@ public class TestScript extends TestBase {
         }
         for (String s : new String[] { "with", "mergeUsing" }) {
             testScript("dml/" + s + ".sql");
-        }        
+        }
         deleteDb("script");
         System.out.flush();
     }

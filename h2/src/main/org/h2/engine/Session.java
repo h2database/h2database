@@ -123,7 +123,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
-    private Deque<String> viewNameStack = new ArrayDeque<String>();    
+    private Deque<String> viewNameStack = new ArrayDeque<String>();
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
@@ -248,7 +248,7 @@ public class Session extends SessionWithState {
         } else {
             assert viewName.equals(viewNameStack.peek());
             viewNameStack.pop();
-        }        
+        }
     }
     public String getParsingCreateViewName() {
         if (viewNameStack.size() == 0) {
@@ -705,7 +705,7 @@ public class Session extends SessionWithState {
                 Analyze.analyzeTable(this, table, rows, false);
             }
             // analyze can lock the meta
-            database.unlockMeta(this); 
+            database.unlockMeta(this);
         }
         tablesToAnalyze = null;
     }

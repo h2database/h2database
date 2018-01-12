@@ -80,7 +80,7 @@ import org.h2.value.Value;
  *    action is always triggered. This is because the embedded UPDATE and DELETE statement's
  *    returned update row count is used to detect a matching join.
  *    If neither of the two the statements are provided, no matching join is NEVER detected.
- *    
+ *
  *    A fix for this is now implemented as described below:
  *    We now generate a "matchSelect" query and use that to always detect
  *    a match join - rather than relying on UPDATE or DELETE statements.

@@ -2061,7 +2061,8 @@ public class TestFunctions extends TestBase implements AggregateFunction {
 
         assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('00145', 'success class is invalid')");
         assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('foo', 'SQLSTATE has 5 chars')");
-        assertThrows(ErrorCode.INVALID_VALUE_2, stat).execute("select signal('Ab123', 'SQLSTATE has only digits or upper-case letters')");
+        assertThrows(ErrorCode.INVALID_VALUE_2, stat)
+                .execute("select signal('Ab123', 'SQLSTATE has only digits or upper-case letters')");
         try {
             stat.execute("select signal('AB123', 'some custom error')");
             fail("Should have thrown");

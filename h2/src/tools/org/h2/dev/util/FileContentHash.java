@@ -7,6 +7,7 @@ package org.h2.dev.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
@@ -99,8 +100,8 @@ public class FileContentHash {
                     checkCollision(f, length, StringUtils.convertHexToBytes(hash));
                 }
                 propNew.put(entry, hash);
-                mdDir.update(entry.getBytes("UTF-8"));
-                mdDir.update(hash.getBytes("UTF-8"));
+                mdDir.update(entry.getBytes(StandardCharsets.UTF_8));
+                mdDir.update(hash.getBytes(StandardCharsets.UTF_8));
             }
             String oldFile = propOld.toString();
             String newFile = propNew.toString();

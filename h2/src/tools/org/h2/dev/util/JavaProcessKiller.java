@@ -8,6 +8,7 @@ package org.h2.dev.util;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -91,11 +92,11 @@ public class JavaProcessKiller {
             copyInThread(p.getInputStream(), out);
             copyInThread(p.getErrorStream(), err);
             p.waitFor();
-            String e = new String(err.toByteArray(), "UTF-8");
+            String e = new String(err.toByteArray(), StandardCharsets.UTF_8);
             if (e.length() > 0) {
                 throw new RuntimeException(e);
             }
-            String output = new String(out.toByteArray(), "UTF-8");
+            String output = new String(out.toByteArray(), StandardCharsets.UTF_8);
             return output;
         } catch (Exception e) {
             throw new RuntimeException(e);

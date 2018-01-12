@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -131,7 +132,7 @@ public class TestSampleApps extends TestBase {
         out.flush();
         System.setOut(oldOut);
         System.setErr(oldErr);
-        String s = new String(buff.toByteArray(), "UTF-8");
+        String s = new String(buff.toByteArray(), StandardCharsets.UTF_8);
         s = StringUtils.replaceAll(s, "\r\n", "\n");
         s = s.trim();
         expected = expected.trim();

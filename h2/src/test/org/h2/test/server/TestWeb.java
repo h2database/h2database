@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -1175,11 +1176,7 @@ public class TestWeb extends TestBase {
 
         @Override
         public String toString() {
-            try {
-                return new String(buff.toByteArray(), "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                return e.toString();
-            }
+            return new String(buff.toByteArray(), StandardCharsets.UTF_8);
         }
 
         @Override

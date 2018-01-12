@@ -10,6 +10,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Array;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -365,15 +366,15 @@ public class TestCallableStatement extends TestBase {
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
         call.setAsciiStream("B",
-                new ByteArrayInputStream("xyz".getBytes("UTF-8")));
+                new ByteArrayInputStream("xyz".getBytes(StandardCharsets.UTF_8)));
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
         call.setAsciiStream("B",
-                new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3);
+                new ByteArrayInputStream("xyz-".getBytes(StandardCharsets.UTF_8)), 3);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
         call.setAsciiStream("B",
-                new ByteArrayInputStream("xyz-".getBytes("UTF-8")), 3L);
+                new ByteArrayInputStream("xyz-".getBytes(StandardCharsets.UTF_8)), 3L);
         call.executeUpdate();
         assertEquals("XYZ", call.getString("B"));
 

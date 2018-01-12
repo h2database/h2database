@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -153,7 +154,7 @@ public class PrepareTranslation {
                 target = targetDir + "/" + name + "_" + language + ".html";
             }
             OutputStream out = new FileOutputStream(target);
-            OutputStreamWriter writer = new OutputStreamWriter(out, "UTF-8");
+            OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
             writer.write(html);
             writer.close();
         }
@@ -231,7 +232,7 @@ public class PrepareTranslation {
     private static String extract(String documentName, File f, String target)
             throws Exception {
         String xml = IOUtils.readStringAndClose(new InputStreamReader(
-                new FileInputStream(f), "UTF-8"), -1);
+                new FileInputStream(f), StandardCharsets.UTF_8), -1);
         // the template contains ${} instead of text
         StringBuilder template = new StringBuilder(xml.length());
         int id = 0;
@@ -444,7 +445,7 @@ public class PrepareTranslation {
             throws IOException {
         if (utf8) {
             String s = new String(IOUtils.readBytesAndClose(
-                    new FileInputStream(fileName), -1), "UTF-8");
+                    new FileInputStream(fileName), -1), StandardCharsets.UTF_8);
             return SortedProperties.fromLines(s);
         }
         return SortedProperties.loadProperties(fileName);
@@ -455,7 +456,7 @@ public class PrepareTranslation {
         if (utf8) {
             String s = p.toLines();
             FileOutputStream f = new FileOutputStream(fileName);
-            f.write(s.getBytes("UTF-8"));
+            f.write(s.getBytes(StandardCharsets.UTF_8));
             f.close();
         } else {
             p.store(fileName);

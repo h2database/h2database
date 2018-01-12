@@ -111,7 +111,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 if (len == 0) {
                     break;
                 }
-                byte[] data = new String(buff, 0, len).getBytes("UTF-8");
+                byte[] data = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(data);
                 tmpPrecision += len;
             }

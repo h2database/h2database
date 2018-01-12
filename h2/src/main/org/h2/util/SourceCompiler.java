@@ -190,7 +190,7 @@ public class SourceCompiler {
 
     /**
      * Whether the passed source can be compiled using {@link javax.script.ScriptEngineManager}.
-     * 
+     *
      * @param source the source to test.
      * @return <code>true</code> if {@link #getCompiledScript(String)} can be called.
      */

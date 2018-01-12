@@ -78,8 +78,8 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             "t1(n) as (select 2 as first) " +
             ",t2(n) as (select 3 as first) " +
             "select * from t1 union all select * from t2 where n<>?");
-        
-        prep.setInt(1, 0); 
+
+        prep.setInt(1, 0);
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -93,7 +93,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             ",t3(n) as (select 4 as first) " +
             "select * from t1 union all select * from t2 union all select * from t3 where n<>?");
 
-        prep.setInt(1, 4); 
+        prep.setInt(1, 4);
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -116,8 +116,8 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             ",t2 as (select first_col+1 from t1) " +
             ",t3 as (select 4 as first_col) " +
             "select * from t1 union all select * from t2 union all select * from t3 where first_col<>?");
-        
-        prep.setInt(1, 4); 
+
+        prep.setInt(1, 4);
         rs = prep.executeQuery();
         assertTrue(rs.next());
         assertEquals(2, rs.getInt(1));
@@ -474,13 +474,13 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
         conn.close();
         deleteDb("commonTableExpressionQueries");
     }
-    
+
     private void testSimple4RowRecursiveQuery() throws Exception {
-                
+
         String[] expectedRowData = new String[]{"|1", "|2", "|3"};
         String[] expectedColumnTypes = new String[]{"INTEGER"};
         String[] expectedColumnNames = new String[]{"N"};
-        
+
         String setupSQL = "-- do nothing";
         String withQuery = "with recursive r(n) as (\n"+
                 "(select 1) union all (select n+1 from r where n < 3)\n"+
@@ -489,18 +489,18 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
 
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;
-            
+
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
                 withQuery, maxRetries - 1, expectedColumnTypes);
-            
-    }    
-    
+
+    }
+
     private void testSimple2By4RowRecursiveQuery() throws Exception {
-        
+
         String[] expectedRowData = new String[]{"|0|1|10", "|1|2|11", "|2|3|12", "|3|4|13"};
         String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER"};
         String[] expectedColumnNames = new String[]{"K", "N", "N2"};
-        
+
         String setupSQL = "-- do nothing";
         String withQuery = "with \n"+
                 "r1(n,k) as ((select 1, 0) union all (select n+1,k+1 from r1 where n <= 3)),"+
@@ -509,31 +509,33 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
 
         int maxRetries = 3;
         int expectedNumberOfRows = expectedRowData.length;
-            
+
         testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
                 withQuery, maxRetries - 1, expectedColumnTypes);
-            
-    }    
-    
+
+    }
+
     private void testSimple3RowRecursiveQueryWithLazyEval() throws Exception {
-        
+
         String[] expectedRowData = new String[]{"|6"};
         String[] expectedColumnTypes = new String[]{"BIGINT"};
         String[] expectedColumnNames = new String[]{"SUM(N)"};
-        
+
         // back up the config - to restore it after this test
         TestAll backupConfig = config;
         config = new TestAll();
-        
+
         try {
-            //Test with settings: lazy mvStore memory mvcc multiThreaded
-            // connection url is =mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
+            // Test with settings: lazy mvStore memory mvcc multiThreaded
+            // connection url is
+            // mem:script;MV_STORE=true;LOG=1;LOCK_TIMEOUT=50;MVCC=TRUE;
+            // MULTI_THREADED=TRUE;LAZY_QUERY_EXECUTION=1
             config.lazy = true;
             config.mvStore = true;
             config.memory = true;
             config.mvcc = true;
             config.multiThreaded = true;
-            
+
             String setupSQL = "--no config set";
             String withQuery = "select sum(n) from (\n"
                 +"    with recursive r(n) as (\n"
@@ -541,15 +543,15 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
                 +"    )\n"
                 +"    select n from r \n"
                 +")\n";
-    
+
             int maxRetries = 10;
             int expectedNumberOfRows = expectedRowData.length;
-            
-            testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
-                    withQuery, maxRetries - 1, expectedColumnTypes);
+
+            testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows,
+                    setupSQL, withQuery, maxRetries - 1, expectedColumnTypes);
         } finally {
             config = backupConfig;
         }
-            
-    }        
+
+    }
 }

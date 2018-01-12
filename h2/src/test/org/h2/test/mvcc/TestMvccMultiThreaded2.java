@@ -75,11 +75,11 @@ public class TestMvccMultiThreaded2 extends TestBase {
 
         // give any of the 100 threads a chance to start by yielding the processor to them
         Thread.yield();
-        
+
         // gather stats on threads after they finished
         @SuppressWarnings("unused")
         int minProcessed = Integer.MAX_VALUE, maxProcessed = 0, totalProcessed = 0;
-        
+
         for (SelectForUpdate sfu : threads) {
             // make sure all threads have stopped by joining with them
             sfu.join();
@@ -91,12 +91,13 @@ public class TestMvccMultiThreaded2 extends TestBase {
                 minProcessed = sfu.iterationsProcessed;
             }
         }
-        
+
         if (DISPLAY_STATS) {
-            System.out.println(String.format("+ INFO: TestMvccMultiThreaded2 RUN STATS threads=%d, minProcessed=%d, maxProcessed=%d, "+
-                    "totalProcessed=%d, averagePerThread=%d, averagePerThreadPerSecond=%d\n",
-                    TEST_THREAD_COUNT, minProcessed, maxProcessed, totalProcessed, totalProcessed/TEST_THREAD_COUNT, 
-                    totalProcessed/(TEST_THREAD_COUNT * TEST_TIME_SECONDS)));
+            System.out.println(String.format(
+                    "+ INFO: TestMvccMultiThreaded2 RUN STATS threads=%d, minProcessed=%d, maxProcessed=%d, "
+                            + "totalProcessed=%d, averagePerThread=%d, averagePerThreadPerSecond=%d\n",
+                    TEST_THREAD_COUNT, minProcessed, maxProcessed, totalProcessed, totalProcessed / TEST_THREAD_COUNT,
+                    totalProcessed / (TEST_THREAD_COUNT * TEST_TIME_SECONDS)));
         }
 
         IOUtils.closeSilently(conn);
@@ -107,7 +108,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
      *  Worker test thread selecting for update
      */
     private class SelectForUpdate extends Thread {
-        
+
         public int iterationsProcessed;
 
         @Override
@@ -118,10 +119,10 @@ public class TestMvccMultiThreaded2 extends TestBase {
             try {
                 conn = getConnection(getTestName() + URL);
                 conn.setAutoCommit(false);
-                
+
                 // give the other threads a chance to start up before going into our work loop
                 Thread.yield();
-                
+
                 while (!done) {
                     try {
                         PreparedStatement ps = conn.prepareStatement(
@@ -148,7 +149,7 @@ public class TestMvccMultiThreaded2 extends TestBase {
             } catch (Exception e) {
                 TestBase.logError("General error from thread "+getName(), e);
                 throw e;
-            }            
+            }
             IOUtils.closeSilently(conn);
         }
     }

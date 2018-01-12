@@ -506,7 +506,8 @@ public class TestTriggersConstraints extends TestBase implements Trigger {
         } else if ("javascript".equals(sourceLang)) {
             String triggerClassName = this.getClass().getName() + "."
                     + TestTriggerAlterTable.class.getSimpleName();
-            final String body = "//javascript\nnew Packages." + triggerClassName + "();";
+            final String body = "//javascript\n"
+                    + "new Packages." + triggerClassName + "();";
             stat.execute("create trigger test_upd before insert on test as $$"
                     + body + " $$");
         } else {

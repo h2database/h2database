@@ -299,7 +299,7 @@ public class FilePathDisk extends FilePath {
             // file name with a colon
             if (name.startsWith(CLASSPATH_PREFIX)) {
                 String fileName = name.substring(CLASSPATH_PREFIX.length());
-		// Force absolute resolution in Class.getResourceAsStream
+                // Force absolute resolution in Class.getResourceAsStream
                 if (!fileName.startsWith("/")) {
                     fileName = "/" + fileName;
                 }

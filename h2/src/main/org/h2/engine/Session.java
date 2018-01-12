@@ -123,7 +123,7 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
-    private Deque<String> viewNameStack = new ArrayDeque<String>();    
+    private Deque<String> viewNameStack = new ArrayDeque<String>();
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
@@ -229,6 +229,16 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
+    /**
+     * Stores name of currently parsed view in a stack so it can be determined
+     * during {@code prepare()}.
+     *
+     * @param parsingView
+     *            {@code true} to store one more name, {@code false} to remove it
+     *            from stack
+     * @param viewName
+     *            name of the view
+     */
     public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
@@ -238,7 +248,7 @@ public class Session extends SessionWithState {
         } else {
             assert viewName.equals(viewNameStack.peek());
             viewNameStack.pop();
-        }        
+        }
     }
     public String getParsingCreateViewName() {
         if (viewNameStack.size() == 0) {
@@ -695,7 +705,7 @@ public class Session extends SessionWithState {
                 Analyze.analyzeTable(this, table, rows, false);
             }
             // analyze can lock the meta
-            database.unlockMeta(this); 
+            database.unlockMeta(this);
         }
         tablesToAnalyze = null;
     }

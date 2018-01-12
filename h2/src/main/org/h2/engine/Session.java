@@ -229,6 +229,16 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
+    /**
+     * Stores name of currently parsed view in a stack so it can be determined
+     * during {@code prepare()}.
+     *
+     * @param parsingView
+     *            {@code true} to store one more name, {@code false} to remove it
+     *            from stack
+     * @param viewName
+     *            name of the view
+     */
     public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;

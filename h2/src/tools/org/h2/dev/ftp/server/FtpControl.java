@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,7 +13,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import org.h2.engine.Constants;
+import java.nio.charset.StandardCharsets;
+
 import org.h2.store.fs.FileUtils;
 import org.h2.util.StringUtils;
 
@@ -47,7 +48,7 @@ public class FtpControl extends Thread {
     public void run() {
         try {
             output = new PrintWriter(new OutputStreamWriter(
-                    control.getOutputStream(), Constants.UTF8));
+                    control.getOutputStream(), StandardCharsets.UTF_8));
             if (stop) {
                 reply(421, "Too many users");
             } else {

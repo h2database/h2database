@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version
  * 1.0, and under the Eclipse Public License, Version 1.0
  * (http://h2database.com/html/license.html). Initial Developer: H2 Group
  */
@@ -23,7 +23,7 @@ import java.util.WeakHashMap;
  */
 public class AbbaLockingDetector implements Runnable {
 
-    private int tickIntervalMs = 2;
+    private final int tickIntervalMs = 2;
     private volatile boolean stop;
 
     private final ThreadMXBean threadMXBean =

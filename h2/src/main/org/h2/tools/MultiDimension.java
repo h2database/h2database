@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -222,9 +222,7 @@ public class MultiDimension implements Comparator<long[]> {
         ArrayList<long[]> list = New.arrayList();
         addMortonRanges(list, min, max, len, 0);
         combineEntries(list, total);
-        long[][] ranges = new long[list.size()][2];
-        list.toArray(ranges);
-        return ranges;
+        return list.toArray(new long[0][]);
     }
 
     private static int getSize(int[] min, int[] max, int len) {

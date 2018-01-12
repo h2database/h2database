@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -116,7 +116,7 @@ public class ValueArray extends Value {
                 return comp;
             }
         }
-        return l > ol ? 1 : l == ol ? 0 : -1;
+        return Integer.compare(l, ol);
     }
 
     @Override
@@ -212,9 +212,7 @@ public class ValueArray extends Value {
             }
             list.add(v);
         }
-        Value[] array = new Value[list.size()];
-        list.toArray(array);
-        return get(array);
+        return get(list.toArray(new Value[0]));
     }
 
 }

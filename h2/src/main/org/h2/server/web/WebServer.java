@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -24,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
-
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
@@ -187,22 +187,6 @@ public class WebServer implements Service {
             trace(" size=" + data.length);
         }
         return data;
-    }
-
-    /**
-     * Check if this is a simple name (only contains '.', '-', '_', letters, or
-     * digits).
-     *
-     * @param s the string
-     * @return true if it's a simple name
-     */
-    static boolean isSimpleName(String s) {
-        for (char c : s.toCharArray()) {
-            if (c != '.' && c != '_' && c != '-' && !Character.isLetterOrDigit(c)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -470,7 +454,7 @@ public class WebServer implements Service {
             trace("translation: "+language);
             byte[] trans = getFile("_text_"+language+".prop");
             trace("  "+new String(trans));
-            text = SortedProperties.fromLines(new String(trans, Constants.UTF8));
+            text = SortedProperties.fromLines(new String(trans, StandardCharsets.UTF_8));
             // remove starting # (if not translated yet)
             for (Entry<Object, Object> entry : text.entrySet()) {
                 String value = (String) entry.getValue();

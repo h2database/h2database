@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -59,7 +59,7 @@ public class TransactionStore {
     /**
      * The map of maps.
      */
-    private HashMap<Integer, MVMap<Object, VersionedValue>> maps =
+    private final HashMap<Integer, MVMap<Object, VersionedValue>> maps =
             New.hashMap();
 
     private final DataType dataType;
@@ -896,7 +896,7 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
-        private Transaction transaction;
+        private final Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
                 int mapId) {
@@ -1470,7 +1470,7 @@ public class TransactionStore {
          * @param from the first key to return
          * @return the iterator
          */
-        public Iterator<Entry<K, V>> entryIterator(final K from) {
+        public Iterator<Entry<K, V>> entryIterator(final K from, final K to) {
             return new Iterator<Entry<K, V>>() {
                 private Entry<K, V> current;
                 private K currentKey = from;
@@ -1507,6 +1507,9 @@ public class TransactionStore {
                                 }
                             }
                             final K key = k;
+                            if (to != null && map.getKeyType().compare(k, to) > 0) {
+                                break;
+                            }
                             VersionedValue data = cursor.getValue();
                             data = getValue(key, readLogId, data);
                             if (data != null && data.value != null) {

@@ -1,17 +1,19 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.engine;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
+import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -42,6 +44,7 @@ import org.h2.table.SubQueryInfo;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.table.TableType;
+import org.h2.util.ColumnNamerConfiguration;
 import org.h2.util.New;
 import org.h2.util.SmallLRUCache;
 import org.h2.value.Value;
@@ -120,12 +123,14 @@ public class Session extends SessionWithState {
     private long modificationMetaID = -1;
     private SubQueryInfo subQueryInfo;
     private int parsingView;
+    private Deque<String> viewNameStack = new ArrayDeque<String>();
     private int preparingQueryExpression;
     private volatile SmallLRUCache<Object, ViewIndex> viewIndexCache;
     private HashMap<Object, ViewIndex> subQueryIndexCache;
     private boolean joinBatchEnabled;
     private boolean forceJoinOrder;
     private boolean lazyQueryExecution;
+    private ColumnNamerConfiguration columnNamerConfiguration;
     /**
      * Tables marked for ANALYZE after the current transaction is committed.
      * Prevents us calling ANALYZE repeatedly in large transactions.
@@ -162,6 +167,7 @@ public class Session extends SessionWithState {
         this.lockTimeout = setting == null ?
                 Constants.INITIAL_LOCK_TIMEOUT : setting.getIntValue();
         this.currentSchemaName = Constants.SCHEMA_MAIN;
+        this.columnNamerConfiguration = ColumnNamerConfiguration.getDefault();
     }
 
     public void setLazyQueryExecution(boolean lazyQueryExecution) {
@@ -223,13 +229,35 @@ public class Session extends SessionWithState {
         return subQueryInfo;
     }
 
-    public void setParsingView(boolean parsingView) {
+    /**
+     * Stores name of currently parsed view in a stack so it can be determined
+     * during {@code prepare()}.
+     *
+     * @param parsingView
+     *            {@code true} to store one more name, {@code false} to remove it
+     *            from stack
+     * @param viewName
+     *            name of the view
+     */
+    public void setParsingCreateView(boolean parsingView, String viewName) {
         // It can be recursive, thus implemented as counter.
         this.parsingView += parsingView ? 1 : -1;
         assert this.parsingView >= 0;
+        if (parsingView) {
+            viewNameStack.push(viewName);
+        } else {
+            assert viewName.equals(viewNameStack.peek());
+            viewNameStack.pop();
+        }
+    }
+    public String getParsingCreateViewName() {
+        if (viewNameStack.size() == 0) {
+            return null;
+        }
+        return viewNameStack.peek();
     }
 
-    public boolean isParsingView() {
+    public boolean isParsingCreateView() {
         assert parsingView >= 0;
         return parsingView != 0;
     }
@@ -373,6 +401,9 @@ public class Session extends SessionWithState {
      * @param table the table
      */
     public void removeLocalTempTable(Table table) {
+        // Exception thrown in org.h2.engine.Database.removeMeta if line below
+        // is missing with TestGeneralCommonTableQueries
+        database.lockMeta(this);
         modificationId++;
         localTempTables.remove(table.getName());
         synchronized (database) {
@@ -673,6 +704,8 @@ public class Session extends SessionWithState {
             for (Table table : tablesToAnalyze) {
                 Analyze.analyzeTable(this, table, rows, false);
             }
+            // analyze can lock the meta
+            database.unlockMeta(this);
         }
         tablesToAnalyze = null;
     }
@@ -852,6 +885,10 @@ public class Session extends SessionWithState {
                 removeTemporaryLobs(false);
                 cleanTempTables(true);
                 undoLog.clear();
+                // Table#removeChildrenAndResources can take the meta lock,
+                // and we need to unlock before we call removeSession(), which might
+                // want to take the meta lock using the system session.
+                database.unlockMeta(this);
                 database.removeSession(this);
             } finally {
                 closed = true;
@@ -960,6 +997,7 @@ public class Session extends SessionWithState {
             }
             locks.clear();
         }
+        database.unlockMetaDebug(this);
         savepoints = null;
         sessionStateChanged = true;
     }
@@ -974,6 +1012,9 @@ public class Session extends SessionWithState {
                         modificationId++;
                         table.setModified();
                         it.remove();
+                        // Exception thrown in org.h2.engine.Database.removeMeta
+                        // if line below is missing with TestDeadlock
+                        database.lockMeta(this);
                         table.removeChildrenAndResources(this);
                         if (closeSession) {
                             // need to commit, otherwise recovery might
@@ -983,11 +1024,6 @@ public class Session extends SessionWithState {
                     } else if (table.getOnCommitTruncate()) {
                         table.truncate(this);
                     }
-                }
-                // sometimes Table#removeChildrenAndResources
-                // will take the meta lock
-                if (closeSession) {
-                    database.unlockMeta(this);
                 }
             }
         }
@@ -1302,8 +1338,8 @@ public class Session extends SessionWithState {
         }
         if (removeLobMap == null) {
             removeLobMap = New.hashMap();
-            removeLobMap.put(v.toString(), v);
         }
+        removeLobMap.put(v.toString(), v);
     }
 
     /**
@@ -1430,9 +1466,7 @@ public class Session extends SessionWithState {
                 break;
             }
         }
-        Table[] list = new Table[copy.size()];
-        copy.toArray(list);
-        return list;
+        return copy.toArray(new Table[0]);
     }
 
     /**
@@ -1746,5 +1780,13 @@ public class Session extends SessionWithState {
             this.value = v;
         }
 
+    }
+
+    public ColumnNamerConfiguration getColumnNamerConfiguration() {
+        return columnNamerConfiguration;
+    }
+
+    public void setColumnNamerConfiguration(ColumnNamerConfiguration columnNamerConfiguration) {
+        this.columnNamerConfiguration = columnNamerConfiguration;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -7,12 +7,12 @@ package org.h2.util;
 
 import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
@@ -454,7 +454,7 @@ public class StringUtils {
                 buff[j++] = (byte) ch;
             }
         }
-        String s = new String(buff, 0, j, Constants.UTF8);
+        String s = new String(buff, 0, j, StandardCharsets.UTF_8);
         return s;
     }
 
@@ -492,9 +492,7 @@ public class StringUtils {
         }
         String e = buff.toString();
         list.add(trim ? e.trim() : e);
-        String[] array = new String[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -689,7 +687,8 @@ public class StringUtils {
                 buff.append("&amp;");
                 break;
             case '\'':
-                buff.append("&apos;");
+                // &apos; is not valid in HTML
+                buff.append("&#39;");
                 break;
             case '\"':
                 buff.append("&quot;");

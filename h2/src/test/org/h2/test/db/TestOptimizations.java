@@ -1,21 +1,9 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.test.db;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
 
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
@@ -23,6 +11,13 @@ import org.h2.tools.SimpleResultSet;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
+import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test various optimizations (query cache, optimization for MIN(..), and
@@ -81,6 +76,7 @@ public class TestOptimizations extends TestBase {
         testMinMaxCountOptimization(true);
         testMinMaxCountOptimization(false);
         testOrderedIndexes();
+        testIndexUseDespiteNullsFirst();
         testConvertOrToIn();
         deleteDb("optimizations");
     }
@@ -1031,6 +1027,85 @@ public class TestOptimizations extends TestBase {
         rs.next();
         assertContains(rs.getString(1), "/* PUBLIC.MY_INDEX2: K1 = 7 */");
 
+        conn.close();
+    }
+
+    private void testIndexUseDespiteNullsFirst() throws SQLException {
+        deleteDb("optimizations");
+        Connection conn = getConnection("optimizations");
+        Statement stat = conn.createStatement();
+
+        stat.execute("CREATE TABLE my_table(K1 INT)");
+        stat.execute("CREATE INDEX my_index ON my_table(K1)");
+        stat.execute("INSERT INTO my_table VALUES (NULL)");
+        stat.execute("INSERT INTO my_table VALUES (1)");
+        stat.execute("INSERT INTO my_table VALUES (2)");
+
+        ResultSet rs;
+        String result;
+
+
+        rs = stat.executeQuery(
+            "EXPLAIN PLAN FOR SELECT * FROM my_table " +
+                "ORDER BY K1 ASC NULLS FIRST");
+        rs.next();
+        result = rs.getString(1);
+        assertContains(result, "/* index sorted */");
+
+        rs = stat.executeQuery(
+            "SELECT * FROM my_table " +
+                "ORDER BY K1 ASC NULLS FIRST");
+        rs.next();
+        assertNull(rs.getObject(1));
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+
+        // ===
+        rs = stat.executeQuery(
+            "EXPLAIN PLAN FOR SELECT * FROM my_table " +
+                "ORDER BY K1 DESC NULLS FIRST");
+        rs.next();
+        result = rs.getString(1);
+        if (result.contains("/* index sorted */")) {
+            fail(result + " does not contain: /* index sorted */");
+        }
+
+        rs = stat.executeQuery(
+            "SELECT * FROM my_table " +
+                "ORDER BY K1 DESC NULLS FIRST");
+        rs.next();
+        assertNull(rs.getObject(1));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+
+        // ===
+        rs = stat.executeQuery(
+            "EXPLAIN PLAN FOR SELECT * FROM my_table " +
+                "ORDER BY K1 ASC NULLS LAST");
+        rs.next();
+        result = rs.getString(1);
+        if (result.contains("/* index sorted */")) {
+            fail(result + " does not contain: /* index sorted */");
+        }
+
+        rs = stat.executeQuery(
+            "SELECT * FROM my_table " +
+                "ORDER BY K1 ASC NULLS LAST");
+        rs.next();
+        assertEquals(1, rs.getInt(1));
+        rs.next();
+        assertEquals(2, rs.getInt(1));
+        rs.next();
+        assertNull(rs.getObject(1));
+
+        // TODO: Test "EXPLAIN PLAN FOR SELECT * FROM my_table ORDER BY K1 DESC NULLS FIRST"
+        // Currently fails, as using the index when sorting DESC is currently not supported.
+
+        stat.execute("DROP TABLE my_table");
         conn.close();
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: Daniel Gredler
  */
@@ -17,6 +17,7 @@ import java.util.Currency;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 
@@ -29,6 +30,12 @@ public class ToChar {
      * The beginning of the Julian calendar.
      */
     private static final long JULIAN_EPOCH;
+
+    private static final int[] ROMAN_VALUES = { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
+            5, 4, 1 };
+
+    private static final String[] ROMAN_NUMERALS = { "M", "CM", "D", "CD", "C", "XC",
+            "L", "XL", "X", "IX", "V", "IV", "I" };
 
     static {
         GregorianCalendar epoch = new GregorianCalendar(Locale.ENGLISH);
@@ -409,14 +416,10 @@ public class ToChar {
     }
 
     private static String toRomanNumeral(int number) {
-        int[] values = new int[] { 1000, 900, 500, 400, 100, 90, 50, 40, 10, 9,
-                5, 4, 1 };
-        String[] numerals = new String[] { "M", "CM", "D", "CD", "C", "XC",
-                "L", "XL", "X", "IX", "V", "IV", "I" };
         StringBuilder result = new StringBuilder();
-        for (int i = 0; i < values.length; i++) {
-            int value = values[i];
-            String numeral = numerals[i];
+        for (int i = 0; i < ROMAN_VALUES.length; i++) {
+            int value = ROMAN_VALUES[i];
+            String numeral = ROMAN_NUMERALS[i];
             while (number >= value) {
                 result.append(numeral);
                 number -= value;
@@ -653,7 +656,7 @@ public class ToChar {
                         cal.get(Calendar.DAY_OF_MONTH)));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DY")) != null) {
-                String day = StringUtils.toUpperEnglish(new SimpleDateFormat("EEE").format(ts));
+                String day = new SimpleDateFormat("EEE").format(ts);
                 output.append(cap.apply(day));
                 i += 2;
             } else if ((cap = containsAt(format, i, "DAY")) != null) {
@@ -884,7 +887,7 @@ public class ToChar {
     }
 
     /** Represents a capitalization / casing strategy. */
-    private enum Capitalization {
+    static public enum Capitalization {
 
         /**
          * All letters are uppercased.
@@ -911,7 +914,7 @@ public class ToChar {
          * @return the capitalization / casing strategy which should be used
          *         when the first and second letters have the specified casing
          */
-        public static Capitalization toCapitalization(Boolean up1, Boolean up2) {
+        private static Capitalization toCapitalization(Boolean up1, Boolean up2) {
             if (up1 == null) {
                 return Capitalization.CAPITALIZE;
             } else if (up2 == null) {

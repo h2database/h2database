@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -77,6 +77,36 @@ public class JdbcCallableStatement extends JdbcPreparedStatement implements
                 return 0;
             }
             return super.executeUpdate();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
+    }
+
+    /**
+     * Executes a statement (insert, update, delete, create, drop)
+     * and returns the update count.
+     * If another result set exists for this statement, this will be closed
+     * (even if this statement fails).
+     *
+     * If auto commit is on, this statement will be committed.
+     * If the statement is a DDL statement (create, drop, alter) and does not
+     * throw an exception, the current transaction (if any) is committed after
+     * executing the statement.
+     *
+     * @return the update count (number of row affected by an insert, update or
+     *         delete, or 0 if no rows or the statement was a create, drop,
+     *         commit or rollback)
+     * @throws SQLException if this object is closed or invalid
+     */
+    @Override
+    public long executeLargeUpdate() throws SQLException {
+        try {
+            checkClosed();
+            if (command.isQuery()) {
+                super.executeQuery();
+                return 0;
+            }
+            return super.executeLargeUpdate();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

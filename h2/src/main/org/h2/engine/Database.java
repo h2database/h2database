@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -91,6 +91,9 @@ public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
 
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<Session>();
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<Throwable>();
+
     /**
      * The default name of the system user. This name is only used as long as
      * there is no administrator user registered.
@@ -163,7 +166,7 @@ public class Database implements DataHandler {
     private boolean referentialIntegrity = true;
     private boolean multiVersion;
     private DatabaseCloser closeOnExit;
-    private Mode mode = Mode.getInstance(Mode.REGULAR);
+    private Mode mode = Mode.getRegular();
     private boolean multiThreaded;
     private int maxOperationMemory =
             Constants.DEFAULT_MAX_OPERATION_MEMORY;
@@ -296,7 +299,7 @@ public class Database implements DataHandler {
                 e.fillInStackTrace();
             }
             boolean alreadyOpen = e instanceof DbException
-                    && ((DbException)e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
+                    && ((DbException) e).getErrorCode() == ErrorCode.DATABASE_ALREADY_OPEN_1;
             if (alreadyOpen) {
                 stopServer();
             }
@@ -913,6 +916,20 @@ public class Database implements DataHandler {
         if (meta == null) {
             return true;
         }
+        if (SysProperties.CHECK2) {
+            final Session prev = META_LOCK_DEBUGGING.get();
+            if (prev == null) {
+                META_LOCK_DEBUGGING.set(session);
+                META_LOCK_DEBUGGING_STACK.set(new Throwable("Last meta lock granted in this stack trace, "+
+                        "this is debug information for following IllegalStateException"));
+            } else if (prev != session) {
+                META_LOCK_DEBUGGING_STACK.get().printStackTrace();
+                throw new IllegalStateException("meta currently locked by "
+                        + prev +", sessionid="+ prev.getId()
+                        + " and trying to be locked by different session, "
+                        + session +", sessionid="+ session.getId() + " on same thread");
+            }
+        }
         boolean wasLocked = meta.lock(session, true, true);
         return wasLocked;
     }
@@ -923,8 +940,24 @@ public class Database implements DataHandler {
      * @param session the session
      */
     public void unlockMeta(Session session) {
+        unlockMetaDebug(session);
         meta.unlock(session);
         session.unlock(meta);
+    }
+
+    /**
+     * This method doesn't actually unlock the metadata table, all it does it
+     * reset the debugging flags.
+     *
+     * @param session the session
+     */
+    public void unlockMetaDebug(Session session) {
+        if (SysProperties.CHECK2) {
+            if (META_LOCK_DEBUGGING.get() == session) {
+                META_LOCK_DEBUGGING.set(null);
+                META_LOCK_DEBUGGING_STACK.set(null);
+            }
+        }
     }
 
     /**
@@ -956,6 +989,7 @@ public class Database implements DataHandler {
                     checkMetaFree(session, id);
                 }
             } else if (!wasLocked) {
+                unlockMetaDebug(session);
                 // must not keep the lock if it was not locked
                 // otherwise updating sequences may cause a deadlock
                 meta.unlock(session);
@@ -1368,6 +1402,7 @@ public class Database implements DataHandler {
                     if (!readOnly) {
                         lockMeta(pageStore.getPageStoreSession());
                         pageStore.compact(compactMode);
+                        unlockMeta(pageStore.getPageStoreSession());
                     }
                 } catch (DbException e) {
                     if (SysProperties.CHECK2) {
@@ -1643,9 +1678,7 @@ public class Database implements DataHandler {
         if (includingSystemSession && lob != null) {
             list.add(lob);
         }
-        Session[] array = new Session[list.size()];
-        list.toArray(array);
-        return array;
+        return list.toArray(new Session[0]);
     }
 
     /**
@@ -1879,13 +1912,14 @@ public class Database implements DataHandler {
                             t.getSQL());
                 }
                 obj.removeChildrenAndResources(session);
+
             }
             removeMeta(session, id);
         }
     }
 
     /**
-     * Check if this database disk-based.
+     * Check if this database is disk-based.
      *
      * @return true if it is disk-based, false it it is in-memory only.
      */
@@ -2419,10 +2453,10 @@ public class Database implements DataHandler {
      * @param closeOthers whether other sessions are closed
      */
     public void setExclusiveSession(Session session, boolean closeOthers) {
-      this.exclusiveSession.set(session);
-      if (closeOthers) {
-          closeAllSessionsException(session);
-      }
+        this.exclusiveSession.set(session);
+        if (closeOthers) {
+            closeAllSessionsException(session);
+        }
     }
 
     @Override

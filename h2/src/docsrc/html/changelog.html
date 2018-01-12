@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <!--
-Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
+Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, Version 1.0,
 and under the Eclipse Public License, Version 1.0
 Initial Developer: H2 Group
 -->
@@ -21,6 +21,54 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>Make ALL a reserved keyword
+</li>
+<li>Issue #311: Avoid calling list.toArray(new X[list.size()]) for performance 
+</li>
+<li>PR #715: Better getObject error message
+</li>
+<li>PR #714: SecureRandom is already synchronized
+</li>
+<li>PR #712: Return properly encoded UUID from SimpleResultSet.getBytes()
+</li>
+<li>PR #711: TestFunctions less english dependent
+</li>
+<li>Issue #644: Year changing from negative -509 to a positive 510.
+</li>
+<li>PR #706: SIGNAL function
+</li>
+<li>PR #704: added Javascript support for Triggers' source
+</li>
+<li>Issue #694: Oracle syntax for adding NOT NULL constraint not supported.
+</li>
+<li>Issue #699: When using an index for sorting, the index is ignored when also using NULLS LAST/FIRST
+</li>
+<li>Issue #697: FilePathDisk.newInputStream fails for contextual class loading          
+</li>
+<li>Issue #695: jdbc:postgresql protocol connection issue in H2 Console Application in case of redshift driver in classpath
+</li>
+<li>Fix 'file not closed' when using FILE_READ 
+</li>
+<li>Fix bug in LinkSchema tool when object exists with same name in different schemas
+</li>
+<li>Issue #675: Fix date operations on Locales with non-Gregorian calendars
+</li>
+<li>Fix removal of LOB when rolling back transaction on a table containing more than one LOB column.
+</li>
+<li>Issue #654: List ENUM type values in INFORMATION_SCHEMA.COLUMNS
+</li>
+<li>Issue #650: Simple nested SELECT causes error for table with TIMESTAMP WITH TIMEZONE column 
+</li>
+<li>Issue #654: List ENUM type values in INFORMATION_SCHEMA.COLUMNS 
+</li>
+<li>Issue #668: Fail of an update command on large table with ENUM column
+</li>
+<li>Issue #662: column called CONSTRAINT is not properly escaped when storing to metadata
+</li>
+<li>Issue #660: Outdated java version mentioned on http://h2database.com/html/build.html#providing_patches
+</li>
+<li>Issue #643: H2 doesn't use index when I use IN and EQUAL in one query
+</li>
 <li>Reset transaction start timestamp on ROLLBACK
 </li>
 <li>Issue #632: CREATE OR REPLACE VIEW creates incorrect columns names
@@ -123,7 +171,7 @@ Change Log
 </li>
 <li>Added support for invisible columns.
 </li>
-<li>Added an ENUM data type, with syntax similar to that of MySQL and Oracle.
+<li>Added an ENUM data type, with syntax similar to that of MySQL.
 </li>
 <li>MVStore: for object data types, the cache size memory estimation
     was sometimes far off in a read-only scenario.

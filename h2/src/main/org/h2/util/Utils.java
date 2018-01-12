@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -268,16 +268,6 @@ public class Utils {
         byte[] copy = new byte[len];
         System.arraycopy(b, 0, copy, 0, len);
         return copy;
-    }
-
-    /**
-     * Calculate the hash code of the given object. The object may be null.
-     *
-     * @param o the object
-     * @return the hash code, or 0 if the object is null
-     */
-    public static int hashCode(Object o) {
-        return o == null ? 0 : o.hashCode();
     }
 
     /**

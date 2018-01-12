@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -23,6 +23,7 @@ import org.h2.schema.Sequence;
 import org.h2.table.Column;
 import org.h2.table.IndexColumn;
 import org.h2.table.Table;
+import org.h2.util.ColumnNamer;
 import org.h2.util.New;
 import org.h2.value.DataType;
 import org.h2.value.Value;
@@ -230,10 +231,11 @@ public class CreateTable extends SchemaCommand {
     private void generateColumnsFromQuery() {
         int columnCount = asQuery.getColumnCount();
         ArrayList<Expression> expressions = asQuery.getExpressions();
+        ColumnNamer columnNamer= new ColumnNamer(session);
         for (int i = 0; i < columnCount; i++) {
             Expression expr = expressions.get(i);
             int type = expr.getType();
-            String name = expr.getAlias();
+            String name = columnNamer.getColumnName(expr,i,expr.getAlias());
             long precision = expr.getPrecision();
             int displaySize = expr.getDisplaySize();
             DataType dt = DataType.getDataType(type);

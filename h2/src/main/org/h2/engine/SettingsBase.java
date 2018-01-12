@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -64,6 +64,10 @@ public class SettingsBase {
      * @return the setting
      */
     protected String get(String key, String defaultValue) {
+        String v = settings.get(key);
+        if (v != null) {
+            return v;
+        }
         StringBuilder buff = new StringBuilder("h2.");
         boolean nextUpper = false;
         for (char c : key.toCharArray()) {
@@ -76,11 +80,8 @@ public class SettingsBase {
             }
         }
         String sysProperty = buff.toString();
-        String v = settings.get(key);
-        if (v == null) {
-            v = Utils.getProperty(sysProperty, defaultValue);
-            settings.put(key, v);
-        }
+        v = Utils.getProperty(sysProperty, defaultValue);
+        settings.put(key, v);
         return v;
     }
 

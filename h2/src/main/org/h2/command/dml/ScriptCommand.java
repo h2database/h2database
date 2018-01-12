@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -67,7 +68,7 @@ import org.h2.value.ValueString;
  */
 public class ScriptCommand extends ScriptBase {
 
-    private Charset charset = Constants.UTF8;
+    private Charset charset = StandardCharsets.UTF_8;
     private Set<String> schemaNames;
     private Collection<Table> tables;
     private boolean passwords;

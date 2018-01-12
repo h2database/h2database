@@ -79,7 +79,8 @@ import org.h2.value.Value;
  * 4) Previously if neither UPDATE or DELETE clause is supplied, but INSERT is supplied - the INSERT
  *    action is always triggered. This is because the embedded UPDATE and DELETE statement's
  *    returned update row count is used to detect a matching join.
- *    If neither of the two the statements are provided, no matching join is EVER detected.
+ *    If neither of the two the statements are provided, no matching join is NEVER detected.
+ *
  *    A fix for this is now implemented as described below:
  *    We now generate a "matchSelect" query and use that to always detect
  *    a match join - rather than relying on UPDATE or DELETE statements.
@@ -111,11 +112,12 @@ public class MergeUsing extends Prepared {
     private Delete deleteCommand;
     private Insert insertCommand;
     private String queryAlias;
-    private int countUpdatedRows = 0;
+    private int countUpdatedRows;
     private Column[] sourceKeys;
     private Select targetMatchQuery;
-    private HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
-    private int sourceQueryRowNumber = 0;
+    private final HashMap<Value, Integer> targetRowidsRemembered = new HashMap<>();
+    private int sourceQueryRowNumber;
+
 
     public MergeUsing(Merge merge) {
         super(merge.getSession());
@@ -245,7 +247,8 @@ public class MergeUsing extends Prepared {
             // throw and exception if we have processed this _ROWID_ before...
             if (targetRowidsRemembered.containsKey(targetRowIdValue[0])) {
                 throw DbException.get(ErrorCode.DUPLICATE_KEY_1,
-                        "Merge using ON column expression, duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
+                        "Merge using ON column expression, " +
+                        "duplicate _ROWID_ target record already updated, deleted or inserted:_ROWID_="
                                 + targetRowIdValue[0].toString() + ":in:"
                                 + targetTableFilter.getTable()
                                 + ":conflicting source row number:"

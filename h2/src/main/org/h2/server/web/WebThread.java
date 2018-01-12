@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,11 +12,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import org.h2.engine.Constants;
+
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
@@ -145,11 +146,11 @@ class WebThread extends WebApp implements Runnable {
                 bytes = server.getFile(file);
                 if (bytes == null) {
                     message = "HTTP/1.1 404 Not Found\r\n";
-                    bytes = ("File not found: " + file).getBytes(Constants.UTF8);
+                    bytes = ("File not found: " + file).getBytes(StandardCharsets.UTF_8);
                     message += "Content-Length: " + bytes.length + "\r\n";
                 } else {
                     if (session != null && file.endsWith(".jsp")) {
-                        String page = new String(bytes, Constants.UTF8);
+                        String page = new String(bytes, StandardCharsets.UTF_8);
                         if (SysProperties.CONSOLE_STREAM) {
                             Iterator<String> it = (Iterator<String>) session.map.remove("chunks");
                             if (it != null) {
@@ -163,7 +164,7 @@ class WebThread extends WebApp implements Runnable {
                                 while (it.hasNext()) {
                                     String s = it.next();
                                     s = PageParser.parse(s, session.map);
-                                    bytes = s.getBytes(Constants.UTF8);
+                                    bytes = s.getBytes(StandardCharsets.UTF_8);
                                     if (bytes.length == 0) {
                                         continue;
                                     }
@@ -179,7 +180,7 @@ class WebThread extends WebApp implements Runnable {
                             }
                         }
                         page = PageParser.parse(page, session.map);
-                        bytes = page.getBytes(Constants.UTF8);
+                        bytes = page.getBytes(StandardCharsets.UTF_8);
                     }
                     message = "HTTP/1.1 200 OK\r\n";
                     message += "Content-Type: " + mimeType + "\r\n";

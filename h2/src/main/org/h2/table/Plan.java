@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -54,10 +54,8 @@ public class Plan {
                 }
             });
         }
-        allConditions = new Expression[allCond.size()];
-        allCond.toArray(allConditions);
-        allFilters = new TableFilter[all.size()];
-        all.toArray(allFilters);
+        allConditions = allCond.toArray(new Expression[0]);
+        allFilters = all.toArray(new TableFilter[0]);
     }
 
     /**

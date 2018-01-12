@@ -1,4 +1,4 @@
--- Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+-- Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
 -- and the EPL 1.0 (http://h2database.com/html/license.html).
 -- Initial Developer: H2 Group
 --
@@ -163,12 +163,6 @@ select 1 from test group by x;
 
 drop table test;
 > ok
-
-call regexp_replace('x', 'x', '\');
-> exception
-
-call select 1 from dual where regexp_like('x', 'x', '\');
-> exception
 
 select * from dual where x = x + 1 or x in(2, 0);
 > X
@@ -2109,29 +2103,6 @@ drop table test;
 set autocommit true;
 > ok
 
-CALL REGEXP_REPLACE('abckaboooom', 'o+', 'o');
-> 'abckabom'
-> ----------
-> abckabom
-> rows: 1
-
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'i');
-> X
-> -
-> 1
-> rows: 1
-
-select x from dual where REGEXP_LIKE('A', '[a-z]', 'c');
-> X
-> -
-> rows: 0
-
-select regexp_replace('Sylvain', 'S..', 'TOTO', 'mni') as X;
-> X
-> --------
-> TOTOvain
-> rows: 1
-
 SELECT 'Hello' ~ 'He.*' T1, 'HELLO' ~ 'He.*' F2, CAST('HELLO' AS VARCHAR_IGNORECASE) ~ 'He.*' T3;
 > T1   F2    T3
 > ---- ----- ----
@@ -2705,13 +2676,13 @@ create memory table orders ( orderid varchar(10), name varchar(20),  customer_id
 > ok
 
 select * from information_schema.columns where table_name = 'ORDERS';
-> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE
-> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ----------------
-> SCRIPT        PUBLIC       ORDERS     COMPLETED   4                null           NO          3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   0        FALSE       50                           null                  null
-> SCRIPT        PUBLIC       ORDERS     CUSTOMER_ID 3                null           YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null
-> SCRIPT        PUBLIC       ORDERS     NAME        2                null           YES         12        20                       20                     20                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null
-> SCRIPT        PUBLIC       ORDERS     ORDERID     1                null           YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null
-> SCRIPT        PUBLIC       ORDERS     VERIFIED    5                null           YES         3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   1        FALSE       50                           null                  null
+> TABLE_CATALOG TABLE_SCHEMA TABLE_NAME COLUMN_NAME ORDINAL_POSITION COLUMN_DEFAULT IS_NULLABLE DATA_TYPE CHARACTER_MAXIMUM_LENGTH CHARACTER_OCTET_LENGTH NUMERIC_PRECISION NUMERIC_PRECISION_RADIX NUMERIC_SCALE CHARACTER_SET_NAME COLLATION_NAME TYPE_NAME NULLABLE IS_COMPUTED SELECTIVITY CHECK_CONSTRAINT SEQUENCE_NAME REMARKS SOURCE_DATA_TYPE COLUMN_TYPE
+> ------------- ------------ ---------- ----------- ---------------- -------------- ----------- --------- ------------------------ ---------------------- ----------------- ----------------------- ------------- ------------------ -------------- --------- -------- ----------- ----------- ---------------- ------------- ------- ---------------- -------------------
+> SCRIPT        PUBLIC       ORDERS     COMPLETED   4                null           NO          3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   0        FALSE       50                           null                  null             NUMERIC(1) NOT NULL
+> SCRIPT        PUBLIC       ORDERS     CUSTOMER_ID 3                null           YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(10)
+> SCRIPT        PUBLIC       ORDERS     NAME        2                null           YES         12        20                       20                     20                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(20)
+> SCRIPT        PUBLIC       ORDERS     ORDERID     1                null           YES         12        10                       10                     10                10                      0             Unicode            OFF            VARCHAR   1        FALSE       50                           null                  null             VARCHAR(10)
+> SCRIPT        PUBLIC       ORDERS     VERIFIED    5                null           YES         3         1                        1                      1                 10                      0             Unicode            OFF            DECIMAL   1        FALSE       50                           null                  null             NUMERIC(1)
 > rows: 5
 
 drop table orders;
@@ -9397,49 +9368,6 @@ select 0 from ((
 > rows: 0
 };
 > update count: 0
-
-explain with recursive r(n) as (
-    (select 1) union all (select n+1 from r where n < 3)
-)
-select n from r;
-> PLAN
-> -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-> WITH RECURSIVE R(N) AS ( (SELECT 1 FROM SYSTEM_RANGE(1, 1) /* PUBLIC.RANGE_INDEX */) UNION ALL (SELECT (N + 1) FROM PUBLIC.R /* PUBLIC.R.tableScan */ WHERE N < 3) ) SELECT N FROM R R /* null */
-> rows: 1
-
-select sum(n) from (
-    with recursive r(n) as (
-        (select 1) union all (select n+1 from r where n < 3)
-    )
-    select n from r
-);
-> SUM(N)
-> ------
-> 6
-> rows: 1
-
-select sum(n) from (select 0) join (
-    with recursive r(n) as (
-        (select 1) union all (select n+1 from r where n < 3)
-    )
-    select n from r
-) on 1=1;
-> SUM(N)
-> ------
-> 6
-> rows: 1
-
-select 0 from (
-    select 0 where 0 in (
-        with recursive r(n) as (
-            (select 1) union all (select n+1 from r where n < 3)
-        )
-        select n from r
-    )
-);
-> 0
-> -
-> rows: 0
 
 create table x(id int not null);
 > ok

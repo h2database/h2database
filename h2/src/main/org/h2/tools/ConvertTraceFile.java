@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -12,11 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
@@ -46,9 +44,9 @@ public class ConvertTraceFile extends Tool {
             if (other == this) {
                 return 0;
             }
-            int c = MathUtils.compareLong(other.time, time);
+            int c = Long.compare(other.time, time);
             if (c == 0) {
-                c = MathUtils.compareInt(other.executeCount, executeCount);
+                c = Integer.compare(other.executeCount, executeCount);
                 if (c == 0) {
                     c = sql.compareTo(other.sql);
                 }

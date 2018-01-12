@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -592,28 +592,6 @@ public class LobStorageBackend implements LobStorageInterface {
         CountingReaderInputStream in = new CountingReaderInputStream(reader, max);
         ValueLobDb lob = addLob(in, Long.MAX_VALUE, Value.CLOB, in);
         return lob;
-    }
-
-    @Override
-    public void setTable(ValueLobDb lob, int table) {
-        long lobId = lob.getLobId();
-        assertNotHolds(conn.getSession());
-        // see locking discussion at the top
-        synchronized (database) {
-            synchronized (conn.getSession()) {
-                try {
-                    init();
-                    String sql = "UPDATE " + LOBS + " SET TABLE = ? WHERE ID = ?";
-                    PreparedStatement prep = prepare(sql);
-                    prep.setInt(1, table);
-                    prep.setLong(2, lobId);
-                    prep.executeUpdate();
-                    reuse(sql, prep);
-                } catch (SQLException e) {
-                    throw DbException.convert(e);
-                }
-            }
-        }
     }
 
     private static void assertNotHolds(Object lock) {

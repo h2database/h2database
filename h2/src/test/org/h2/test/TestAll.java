@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -54,6 +54,7 @@ import org.h2.test.db.TestOpenClose;
 import org.h2.test.db.TestOptimizations;
 import org.h2.test.db.TestOptimizerHints;
 import org.h2.test.db.TestOutOfMemory;
+import org.h2.test.db.TestPersistentCommonTableExpressions;
 import org.h2.test.db.TestPowerOff;
 import org.h2.test.db.TestQueryCache;
 import org.h2.test.db.TestReadOnly;
@@ -227,6 +228,7 @@ import org.h2.test.unit.TestValueHashMap;
 import org.h2.test.unit.TestValueMemory;
 import org.h2.test.utils.OutputCatcher;
 import org.h2.test.utils.SelfDestructor;
+import org.h2.test.utils.TestColumnNamer;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.Server;
 import org.h2.util.AbbaLockingDetector;
@@ -761,6 +763,10 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestReadOnly());
         addTest(new TestRecursiveQueries());
         addTest(new TestGeneralCommonTableQueries());
+        if (!memory) {
+            // requires persistent store for reconnection tests
+            addTest(new TestPersistentCommonTableExpressions());
+        }
         addTest(new TestRights());
         addTest(new TestRunscript());
         addTest(new TestSQLInjection());
@@ -782,6 +788,8 @@ kill -9 `jps -l | grep "org.h2.test." | cut -d " " -f 1`
         addTest(new TestViewDropView());
         addTest(new TestReplace());
         addTest(new TestSynonymForTable());
+        addTest(new TestColumnNamer());
+
 
         // jaqu
         addTest(new AliasMapTest());

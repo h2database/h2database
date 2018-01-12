@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -48,11 +48,6 @@ public class PgServer implements Service {
      * The VARCHAR type.
      */
     public static final int PG_TYPE_VARCHAR = 1043;
-
-    /**
-     * The integer array type (for the column pg_index.indkey).
-     */
-    public static final int PG_TYPE_INT2VECTOR = 22;
 
     public static final int PG_TYPE_BOOL = 16;
     public static final int PG_TYPE_BYTEA = 17;

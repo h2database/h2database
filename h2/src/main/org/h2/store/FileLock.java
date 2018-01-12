@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -234,8 +234,7 @@ public class FileLock implements Runnable {
         try {
             Socket socket = NetUtils.createSocket(server,
                     Constants.DEFAULT_TCP_PORT, false);
-            Transfer transfer = new Transfer(null);
-            transfer.setSocket(socket);
+            Transfer transfer = new Transfer(null, socket);
             transfer.init();
             transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_6);
             transfer.writeInt(Constants.TCP_PROTOCOL_VERSION_16);
@@ -523,10 +522,15 @@ public class FileLock implements Runnable {
                     trace.debug(e, "watchdog");
                 }
             }
-            while (serverSocket != null) {
+            while (true) {
+                // take a copy so we don't get an NPE between checking it and using it
+                ServerSocket local = serverSocket;
+                if (local == null) {
+                    break;
+                }
                 try {
                     trace.debug("watchdog accept");
-                    Socket s = serverSocket.accept();
+                    Socket s = local.accept();
                     s.close();
                 } catch (Exception e) {
                     trace.debug(e, "watchdog");

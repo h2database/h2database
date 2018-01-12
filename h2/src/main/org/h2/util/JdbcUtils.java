@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,11 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Properties;
@@ -160,8 +156,7 @@ public class JdbcUtils {
                     classNames.add(p);
                 }
             }
-            allowedClassNamePrefixes = new String[prefixes.size()];
-            prefixes.toArray(allowedClassNamePrefixes);
+            allowedClassNamePrefixes = prefixes.toArray(new String[0]);
             allowAllClasses = allowAll;
             allowedClassNames = classNames;
         }
@@ -294,7 +289,13 @@ public class JdbcUtils {
         } else {
             Class<?> d = loadUserClass(driver);
             if (java.sql.Driver.class.isAssignableFrom(d)) {
-                return DriverManager.getConnection(url, prop);
+                try {
+                    Driver driverInstance = (Driver) d.newInstance();
+                    return driverInstance.connect(url, prop); /*fix issue #695 with drivers with the same
+                    jdbc subprotocol in classpath of jdbc drivers (as example redshift and postgresql drivers)*/
+                } catch (Exception e) {
+                    throw DbException.toSQLException(e);
+                }
             } else if (javax.naming.Context.class.isAssignableFrom(d)) {
                 // JNDI context
                 try {

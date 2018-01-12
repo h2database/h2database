@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -68,7 +68,7 @@ public class Merge extends Prepared {
     public void setQuery(Query query) {
         this.query = query;
     }
-    
+
     /**
      * Add a row to this merge statement.
      *
@@ -154,10 +154,10 @@ public class Merge extends Prepared {
             Parameter p = k.get(columns.length + i);
             p.setValue(v);
         }
-        
+
         // try and update
         int count = update.update();
-        
+
         // if update fails try an insert
         if (count == 0) {
             try {
@@ -315,11 +315,11 @@ public class Merge extends Prepared {
     public Table getTargetTable() {
         return targetTable;
     }
-    
+
     public TableFilter getTargetTableFilter() {
         return targetTableFilter;
     }
-    
+
     public void setTargetTableFilter(TableFilter targetTableFilter) {
         this.targetTableFilter = targetTableFilter;
         setTargetTable(targetTableFilter.getTable());

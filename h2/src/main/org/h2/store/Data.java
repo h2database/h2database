@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  *
@@ -438,6 +438,7 @@ public class Data {
             writeByte((byte) type);
             writeShortInt(v.getShort());
             break;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {
@@ -728,6 +729,7 @@ public class Data {
             return ValueBoolean.get(false);
         case INT_NEG:
             return ValueInt.get(-readVarInt());
+        case Value.ENUM:
         case Value.INT:
             return ValueInt.get(readVarInt());
         case LONG_NEG:
@@ -933,6 +935,7 @@ public class Data {
             return 2;
         case Value.SHORT:
             return 3;
+        case Value.ENUM:
         case Value.INT: {
             int x = v.getInt();
             if (x < 0) {

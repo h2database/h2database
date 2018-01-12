@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -32,7 +32,6 @@ public class Sequence extends SchemaObjectBase {
     private long maxValue;
     private boolean cycle;
     private boolean belongsToTable;
-    private final Object flushSync = new Object();
     private boolean writeWithMargin;
 
     /**
@@ -306,18 +305,16 @@ public class Sequence extends SchemaObjectBase {
     }
 
     private void flushInternal(Session session) {
-        synchronized (flushSync) {
-            final boolean metaWasLocked = database.lockMeta(session);
-            // just for this case, use the value with the margin
-            try {
-                writeWithMargin = true;
-                database.updateMeta(session, this);
-            } finally {
-                writeWithMargin = false;
-            }
-            if (!metaWasLocked) {
-                database.unlockMeta(session);
-            }
+        final boolean metaWasLocked = database.lockMeta(session);
+        // just for this case, use the value with the margin
+        try {
+            writeWithMargin = true;
+            database.updateMeta(session, this);
+        } finally {
+            writeWithMargin = false;
+        }
+        if (!metaWasLocked) {
+            database.unlockMeta(session);
         }
     }
 

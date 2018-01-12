@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -85,6 +86,7 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
+        testReverseDeletePerformance();
     }
 
     private void testLobCopy() throws Exception {
@@ -1478,4 +1480,33 @@ public class TestMVTableEngine extends TestBase {
         conn.close();
     }
 
+    private void testReverseDeletePerformance() throws Exception {
+        long direct = 0;
+        long reverse = 0;
+        for (int i = 0; i < 5; i++) {
+            reverse += testReverseDeletePerformance(true);
+            direct += testReverseDeletePerformance(false);
+        }
+        assertTrue("direct: " + direct + ", reverse: " + reverse, 2 * Math.abs(reverse - direct) < reverse + direct);
+    }
+
+    private long testReverseDeletePerformance(boolean reverse) throws Exception {
+        deleteDb(getTestName());
+        String dbName = getTestName() + ";MV_STORE=TRUE";
+        try (Connection conn = getConnection(dbName)) {
+            Statement stat = conn.createStatement();
+            stat.execute("CREATE TABLE test(id INT PRIMARY KEY, name VARCHAR) AS " +
+                    "SELECT x, x || space(1024) || x FROM system_range(1, 1000)");
+            conn.setAutoCommit(false);
+            PreparedStatement prep = conn.prepareStatement("DELETE FROM test WHERE id = ?");
+            long start = System.nanoTime();
+            for (int i = 0; i < 1000; i++) {
+                prep.setInt(1, reverse ? 1000 - i : i);
+                prep.execute();
+            }
+            long end = System.nanoTime();
+            conn.commit();
+            return TimeUnit.NANOSECONDS.toMillis(end - start);
+        }
+    }
 }

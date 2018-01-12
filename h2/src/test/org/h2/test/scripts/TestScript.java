@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -77,7 +77,10 @@ public class TestScript extends TestBase {
             return;
         }
         reconnectOften = !config.memory && config.big;
+
         testScript("testScript.sql");
+        testScript("altertable-index-reuse.sql");
+        testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");
         for (String s : new String[] { "array", "bigint", "binary", "blob",
@@ -129,6 +132,9 @@ public class TestScript extends TestBase {
                 "formatdatetime", "hour", "minute", "month", "monthname",
                 "parsedatetime", "quarter", "second", "week", "year" }) {
             testScript("functions/timeanddate/" + s + ".sql");
+        }
+        for (String s : new String[] { "with", "mergeUsing" }) {
+            testScript("dml/" + s + ".sql");
         }
         deleteDb("script");
         System.out.flush();

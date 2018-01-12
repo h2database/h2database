@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -8,7 +8,6 @@ package org.h2.index;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.Parser;
 import org.h2.command.Prepared;
@@ -182,10 +181,10 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
 
     private Cursor findRecursive(SearchRow first, SearchRow last) {
         assert recursive;
-        ResultInterface recResult = view.getRecursiveResult();
-        if (recResult != null) {
-            recResult.reset();
-            return new ViewCursor(this, recResult, first, last);
+        ResultInterface recursiveResult = view.getRecursiveResult();
+        if (recursiveResult != null) {
+            recursiveResult.reset();
+            return new ViewCursor(this, recursiveResult, first, last);
         }
         if (query == null) {
             Parser parser = new Parser(createSession);
@@ -200,35 +199,39 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
         }
         SelectUnion union = (SelectUnion) query;
         Query left = union.getLeft();
+        left.setNeverLazy(true);
         // to ensure the last result is not closed
         left.disableCache();
-        ResultInterface r = left.query(0);
-        LocalResult result = union.getEmptyResult();
+        ResultInterface resultInterface = left.query(0);
+        LocalResult localResult = union.getEmptyResult();
         // ensure it is not written to disk,
         // because it is not closed normally
-        result.setMaxMemoryRows(Integer.MAX_VALUE);
-        while (r.next()) {
-            result.addRow(r.currentRow());
+        localResult.setMaxMemoryRows(Integer.MAX_VALUE);
+        while (resultInterface.next()) {
+            Value[] cr = resultInterface.currentRow();
+            localResult.addRow(cr);
         }
         Query right = union.getRight();
-        r.reset();
-        view.setRecursiveResult(r);
+        right.setNeverLazy(true);
+        resultInterface.reset();
+        view.setRecursiveResult(resultInterface);
         // to ensure the last result is not closed
         right.disableCache();
         while (true) {
-            r = right.query(0);
-            if (!r.hasNext()) {
+            resultInterface = right.query(0);
+            if (!resultInterface.hasNext()) {
                 break;
             }
-            while (r.next()) {
-                result.addRow(r.currentRow());
+            while (resultInterface.next()) {
+                Value[] cr = resultInterface.currentRow();
+                localResult.addRow(cr);
             }
-            r.reset();
-            view.setRecursiveResult(r);
+            resultInterface.reset();
+            view.setRecursiveResult(resultInterface);
         }
         view.setRecursiveResult(null);
-        result.done();
-        return new ViewCursor(this, result, first, last);
+        localResult.done();
+        return new ViewCursor(this, localResult, first, last);
     }
 
     /**
@@ -359,8 +362,7 @@ public class ViewIndex extends BaseIndex implements SpatialIndex {
                 i++;
             }
         }
-        columns = new Column[columnList.size()];
-        columnList.toArray(columns);
+        columns = columnList.toArray(new Column[0]);
 
         // reconstruct the index columns from the masks
         this.indexColumns = new IndexColumn[indexColumnCount];

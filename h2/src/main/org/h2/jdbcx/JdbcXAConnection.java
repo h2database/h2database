@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -201,8 +201,7 @@ public class JdbcXAConnection extends TraceObject implements XAConnection,
                 list.add(xid);
             }
             rs.close();
-            Xid[] result = new Xid[list.size()];
-            list.toArray(result);
+            Xid[] result = list.toArray(new Xid[0]);
             if (list.size() > 0) {
                 prepared = true;
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import org.h2.engine.Constants;
@@ -169,7 +170,7 @@ public class ValueLob extends Value {
         try {
             if (handler == null) {
                 String s = IOUtils.readStringAndClose(in, (int) length);
-                return createSmallLob(Value.CLOB, s.getBytes(Constants.UTF8));
+                return createSmallLob(Value.CLOB, s.getBytes(StandardCharsets.UTF_8));
             }
             boolean compress = handler.getLobCompressionAlgorithm(Value.CLOB) != null;
             long remaining = Long.MAX_VALUE;
@@ -187,7 +188,7 @@ public class ValueLob extends Value {
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = new String(buff, 0, len).getBytes(Constants.UTF8);
+                byte[] small = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 return ValueLob.createSmallLob(Value.CLOB, small);
             }
             ValueLob lob = new ValueLob(Value.CLOB, null);
@@ -227,7 +228,7 @@ public class ValueLob extends Value {
             boolean compress = h.getLobCompressionAlgorithm(Value.CLOB) != null;
             while (true) {
                 precision += len;
-                byte[] b = new String(buff, 0, len).getBytes(Constants.UTF8);
+                byte[] b = new String(buff, 0, len).getBytes(StandardCharsets.UTF_8);
                 out.write(b, 0, b.length);
                 remaining -= len;
                 if (remaining <= 0) {
@@ -549,7 +550,7 @@ public class ValueLob extends Value {
         try {
             if (type == Value.CLOB) {
                 if (small != null) {
-                    return new String(small, Constants.UTF8);
+                    return new String(small, StandardCharsets.UTF_8);
                 }
                 return IOUtils.readStringAndClose(getReader(), len);
             }

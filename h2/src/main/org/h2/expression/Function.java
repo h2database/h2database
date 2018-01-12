@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,6 +23,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
 import org.h2.command.Parser;
@@ -44,7 +46,6 @@ import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.tools.CompressTool;
 import org.h2.tools.Csv;
-import org.h2.util.AutoCloseInputStream;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -110,7 +111,9 @@ public class Function extends Expression implements FunctionCall {
     public static final int DATABASE = 150, USER = 151, CURRENT_USER = 152,
             IDENTITY = 153, SCOPE_IDENTITY = 154, AUTOCOMMIT = 155,
             READONLY = 156, DATABASE_PATH = 157, LOCK_TIMEOUT = 158,
-            DISK_SPACE_USED = 159;
+            DISK_SPACE_USED = 159, SIGNAL = 160;
+
+    private static final Pattern SIGNAL_PATTERN = Pattern.compile("[0-9A-Z]{5}");
 
     public static final int IFNULL = 200, CASEWHEN = 201, CONVERT = 202,
             CAST = 203, COALESCE = 204, NULLIF = 205, CASE = 206,
@@ -481,6 +484,7 @@ public class Function extends Expression implements FunctionCall {
                 VAR_ARGS, Value.NULL);
         addFunctionNotDeterministic("DISK_SPACE_USED", DISK_SPACE_USED,
                 1, Value.LONG);
+        addFunctionWithNull("SIGNAL", SIGNAL, 2, Value.NULL);
         addFunction("H2VERSION", H2VERSION, 0, Value.STRING);
 
         // TableFunction
@@ -806,11 +810,11 @@ public class Function extends Expression implements FunctionCall {
             break;
         case STRINGTOUTF8:
             result = ValueBytes.getNoCopy(v0.getString().
-                    getBytes(Constants.UTF8));
+                    getBytes(StandardCharsets.UTF_8));
             break;
         case UTF8TOSTRING:
             result = ValueString.get(new String(v0.getBytesNoCopy(),
-                    Constants.UTF8),
+                    StandardCharsets.UTF_8),
                     database.getMode().treatEmptyStringsAsNull);
             break;
         case XMLCOMMENT:
@@ -1252,7 +1256,7 @@ public class Function extends Expression implements FunctionCall {
         case TRUNCATE: {
             if (v0.getType() == Value.TIMESTAMP) {
                 java.sql.Timestamp d = v0.getTimestamp();
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(d);
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1261,7 +1265,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.DATE) {
                 ValueDate vd = (ValueDate) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(vd.getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1270,7 +1274,7 @@ public class Function extends Expression implements FunctionCall {
                 result = ValueTimestamp.fromMillis(c.getTimeInMillis());
             } else if (v0.getType() == Value.STRING) {
                 ValueString vd = (ValueString) v0;
-                Calendar c = Calendar.getInstance();
+                Calendar c = DateTimeUtils.createGregorianCalendar();
                 c.setTime(ValueTimestamp.parse(vd.getString(), session.getDatabase().getMode()).getDate());
                 c.set(Calendar.HOUR_OF_DAY, 0);
                 c.set(Calendar.MINUTE, 0);
@@ -1411,6 +1415,22 @@ public class Function extends Expression implements FunctionCall {
         case REGEXP_REPLACE: {
             String regexp = v1.getString();
             String replacement = v2.getString();
+            if (database.getMode().regexpReplaceBackslashReferences) {
+                if ((replacement.indexOf('\\') >= 0) || (replacement.indexOf('$') >= 0)) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < replacement.length(); i++) {
+                        char c = replacement.charAt(i);
+                        if (c == '$') {
+                            sb.append('\\');
+                        } else if (c == '\\' && ++i < replacement.length()) {
+                            c = replacement.charAt(i);
+                            sb.append(c >= '0' && c <= '9' ? '$' : '\\');
+                        }
+                        sb.append(c);
+                    }
+                    replacement = sb.toString();
+                }
+            }
             String regexpMode = v3 == null || v3.getString() == null ? "" :
                     v3.getString();
             int flags = makeRegexpFlags(regexpMode);
@@ -1637,18 +1657,21 @@ public class Function extends Expression implements FunctionCall {
             boolean blob = args.length == 1;
             try {
                 long fileLength = FileUtils.size(fileName);
-                InputStream in = new AutoCloseInputStream(
-                        FileUtils.newInputStream(fileName));
-                if (blob) {
-                    result = database.getLobStorage().createBlob(in, fileLength);
-                } else {
-                    Reader reader;
-                    if (v1 == ValueNull.INSTANCE) {
-                        reader = new InputStreamReader(in);
+                final InputStream in = FileUtils.newInputStream(fileName);
+                try {
+                    if (blob) {
+                        result = database.getLobStorage().createBlob(in, fileLength);
                     } else {
-                        reader = new InputStreamReader(in, v1.getString());
+                        Reader reader;
+                        if (v1 == ValueNull.INSTANCE) {
+                            reader = new InputStreamReader(in);
+                        } else {
+                            reader = new InputStreamReader(in, v1.getString());
+                        }
+                        result = database.getLobStorage().createClob(reader, fileLength);
                     }
-                    result = database.getLobStorage().createClob(reader, fileLength);
+                } finally {
+                    IOUtils.closeSilently(in);
                 }
                 session.addTemporaryLob(result);
             } catch (IOException e) {
@@ -1703,6 +1726,13 @@ public class Function extends Expression implements FunctionCall {
             result = session.getVariable(args[0].getSchemaName() + "." +
                     args[0].getTableName() + "." + args[0].getColumnName());
             break;
+        case SIGNAL: {
+            String sqlState = v0.getString();
+            if (sqlState.startsWith("00") || !SIGNAL_PATTERN.matcher(sqlState).matches())
+                throw DbException.getInvalidValueException("SQLSTATE", sqlState);
+            String msgText = v1.getString();
+            throw DbException.fromUser(sqlState, msgText);
+        }
         default:
             throw DbException.throwInternalError("type=" + info.type);
         }
@@ -1822,7 +1852,7 @@ public class Function extends Expression implements FunctionCall {
         if (count > Integer.MAX_VALUE) {
             throw DbException.getInvalidValueException("DATEADD count", count);
         }
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
         calendar.add(field, (int) count);
@@ -1846,7 +1876,7 @@ public class Function extends Expression implements FunctionCall {
      */
     private static long datediff(String part, Timestamp d1, Timestamp d2) {
         int field = getDatePart(part);
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = DateTimeUtils.createGregorianCalendar();
         long t1 = d1.getTime(), t2 = d2.getTime();
         // need to convert to UTC, otherwise we get inconsistent results with
         // certain time zones (those that are 30 minutes off)
@@ -1896,7 +1926,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar = DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC"));
         calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);
@@ -2295,10 +2325,8 @@ public class Function extends Expression implements FunctionCall {
      */
     public void doneWithParameters() {
         if (info.parameterCount == VAR_ARGS) {
-            int len = varArgs.size();
-            checkParameterCount(len);
-            args = new Expression[len];
-            varArgs.toArray(args);
+            checkParameterCount(varArgs.size());
+            args = varArgs.toArray(new Expression[0]);
             varArgs = null;
         } else {
             int len = args.length;

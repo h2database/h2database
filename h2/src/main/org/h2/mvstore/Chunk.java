@@ -1,11 +1,12 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 /**
@@ -127,7 +128,7 @@ public class Chunk {
                 if (data[i] == '\n') {
                     // set the position to the start of the first page
                     buff.position(pos + i + 1);
-                    String s = new String(data, 0, i, DataUtils.LATIN).trim();
+                    String s = new String(data, 0, i, StandardCharsets.ISO_8859_1).trim();
                     return fromString(s);
                 }
             }
@@ -150,7 +151,7 @@ public class Chunk {
      */
     void writeChunkHeader(WriteBuffer buff, int minLength) {
         long pos = buff.position();
-        buff.put(asString().getBytes(DataUtils.LATIN));
+        buff.put(asString().getBytes(StandardCharsets.ISO_8859_1));
         while (buff.position() - pos < minLength - 1) {
             buff.put((byte) ' ');
         }
@@ -257,14 +258,14 @@ public class Chunk {
         DataUtils.appendMap(buff, "chunk", id);
         DataUtils.appendMap(buff, "block", block);
         DataUtils.appendMap(buff, "version", version);
-        byte[] bytes = buff.toString().getBytes(DataUtils.LATIN);
+        byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
         int checksum = DataUtils.getFletcher32(bytes, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
         while (buff.length() < Chunk.FOOTER_LENGTH - 1) {
             buff.append(' ');
         }
         buff.append("\n");
-        return buff.toString().getBytes(DataUtils.LATIN);
+        return buff.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 
     @Override

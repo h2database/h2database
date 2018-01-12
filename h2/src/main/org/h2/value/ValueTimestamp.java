@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -10,13 +10,11 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 
 /**
  * Implementation of the TIMESTAMP data type.
@@ -218,7 +216,7 @@ public class ValueTimestamp extends Value {
                         tz, year, month, day, hour, minute, (int) second, (int) ms);
                 ms = DateTimeUtils.convertToLocal(
                         new Date(millis),
-                        Calendar.getInstance(TimeZone.getTimeZone("UTC")));
+                        DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC")));
                 long md = DateTimeUtils.MILLIS_PER_DAY;
                 long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay);
@@ -310,11 +308,11 @@ public class ValueTimestamp extends Value {
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueTimestamp t = (ValueTimestamp) o;
-        int c = MathUtils.compareLong(dateValue, t.dateValue);
+        int c = Long.compare(dateValue, t.dateValue);
         if (c != 0) {
             return c;
         }
-        return MathUtils.compareLong(timeNanos, t.timeNanos);
+        return Long.compare(timeNanos, t.timeNanos);
     }
 
     @Override

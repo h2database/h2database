@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -93,10 +93,6 @@ public class Column {
 
     public Column(String name, int type) {
         this(name, type, -1, -1, -1, null);
-    }
-
-    public Column(String name, int type, String[] enumerators) {
-        this(name, type, -1, -1, -1, enumerators);
     }
 
     public Column(String name, int type, long precision, int scale,
@@ -471,9 +467,17 @@ public class Column {
         }
     }
 
+    public String getCreateSQLWithoutName() {
+        return getCreateSQL(false);
+    }
+
     public String getCreateSQL() {
+        return getCreateSQL(true);
+    }
+
+    private String getCreateSQL(boolean includeName) {
         StringBuilder buff = new StringBuilder();
-        if (name != null) {
+        if (includeName && name != null) {
             buff.append(Parser.quoteIdentifier(name)).append(' ');
         }
         if (originalSQL != null) {

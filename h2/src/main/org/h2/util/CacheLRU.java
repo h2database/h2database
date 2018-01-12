@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -51,11 +51,17 @@ public class CacheLRU implements Cache {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);
-        long tmpLen = MathUtils.nextPowerOf2(maxMemory / 64);
-        if (tmpLen > Integer.MAX_VALUE) {
-            throw new IllegalStateException("do not support this much cache memory: " + maxMemoryKb + "kb");
+        try {
+            // Since setMaxMemory() ensures that maxMemory is >=0,
+            // we don't have to worry about an underflow.
+            long tmpLen = maxMemory / 64;
+            if (tmpLen > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException();
+            }
+            this.len = MathUtils.nextPowerOf2((int) tmpLen);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalStateException("This much cache memory is not supported: " + maxMemoryKb + "kb", e);
         }
-        this.len = (int) tmpLen;
         this.mask = len - 1;
         clear();
     }

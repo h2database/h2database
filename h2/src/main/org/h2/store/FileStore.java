@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
@@ -139,7 +140,7 @@ public class FileStore {
      * @return the random salt or the magic
      */
     protected byte[] generateSalt() {
-        return HEADER.getBytes(Constants.UTF8);
+        return HEADER.getBytes(StandardCharsets.UTF_8);
     }
 
     /**
@@ -175,7 +176,7 @@ public class FileStore {
     public void init() {
         int len = Constants.FILE_BLOCK_SIZE;
         byte[] salt;
-        byte[] magic = HEADER.getBytes(Constants.UTF8);
+        byte[] magic = HEADER.getBytes(StandardCharsets.UTF_8);
         if (length() < HEADER_LENGTH) {
             // write unencrypted
             checkedWriting = false;

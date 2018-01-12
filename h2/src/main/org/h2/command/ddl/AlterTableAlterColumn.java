@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -274,12 +274,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
             throw DbException.get(ErrorCode.VIEW_IS_INVALID_2, e, getSQL(), e.getMessage());
         }
         String tableName = table.getName();
-        ArrayList<TableView> views = table.getViews();
-        if (views != null) {
-            views = New.arrayList(views);
-            for (TableView view : views) {
-                table.removeView(view);
-            }
+        ArrayList<TableView> dependentViews = new ArrayList<>(table.getDependentViews());
+        for (TableView view : dependentViews) {
+            table.removeDependentView(view);
         }
         execute("DROP TABLE " + table.getSQL() + " IGNORE", true);
         db.renameSchemaObject(session, newTable, tableName);
@@ -306,11 +303,9 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 db.renameSchemaObject(session, so, name);
             }
         }
-        if (views != null) {
-            for (TableView view : views) {
-                String sql = view.getCreateSQL(true, true);
-                execute(sql, true);
-            }
+        for (TableView view : dependentViews) {
+            String sql = view.getCreateSQL(true, true);
+            execute(sql, true);
         }
     }
 
@@ -324,7 +319,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
                 Column foundCol = null;
                 for (Iterator<Column> it = newColumns.iterator(); it.hasNext();) {
                     Column newCol = it.next();
-                    if (newCol.getName() == removeCol.getName()) {
+                    if (newCol.getName().equals(removeCol.getName())) {
                         foundCol = newCol;
                         break;
                     }

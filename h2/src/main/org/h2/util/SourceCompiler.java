@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -21,9 +21,16 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import javax.tools.FileObject;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaCompiler;
@@ -33,8 +40,8 @@ import javax.tools.JavaFileObject.Kind;
 import javax.tools.SimpleJavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
+
 import org.h2.api.ErrorCode;
-import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
@@ -64,6 +71,11 @@ public class SourceCompiler {
      * The class name to byte code map.
      */
     final HashMap<String, Class<?>> compiled = New.hashMap();
+
+    /**
+     * The class name to compiled scripts map.
+     */
+    final Map<String, CompiledScript> compiledScripts = New.hashMap();
 
     /**
      * Whether to use the ToolProvider.getSystemJavaCompiler().
@@ -166,6 +178,43 @@ public class SourceCompiler {
 
     private static boolean isGroovySource(String source) {
         return source.startsWith("//groovy") || source.startsWith("@groovy");
+    }
+
+    private static boolean isJavascriptSource(String source) {
+        return source.startsWith("//javascript");
+    }
+
+    private static boolean isRubySource(String source) {
+        return source.startsWith("#ruby");
+    }
+
+    /**
+     * Whether the passed source can be compiled using {@link javax.script.ScriptEngineManager}.
+     *
+     * @param source the source to test.
+     * @return <code>true</code> if {@link #getCompiledScript(String)} can be called.
+     */
+    public static boolean isJavaxScriptSource(String source) {
+        return isJavascriptSource(source) || isRubySource(source);
+    }
+
+    public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
+        CompiledScript compiledScript = compiledScripts.get(packageAndClassName);
+        if (compiledScript == null) {
+            String source = sources.get(packageAndClassName);
+            final String lang;
+            if (isJavascriptSource(source))
+                lang = "javascript";
+            else if (isRubySource(source))
+                lang = "ruby";
+            else
+                throw new IllegalStateException("Unknown language for " + source);
+
+            final Compilable jsEngine = (Compilable) new ScriptEngineManager().getEngineByName(lang);
+            compiledScript = jsEngine.compile(source);
+            compiledScripts.put(packageAndClassName, compiledScript);
+        }
+        return compiledScript;
     }
 
     /**
@@ -319,7 +368,7 @@ public class SourceCompiler {
             copyInThread(p.getInputStream(), buff);
             copyInThread(p.getErrorStream(), buff);
             p.waitFor();
-            String output = new String(buff.toByteArray(), Constants.UTF8);
+            String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
             handleSyntaxError(output);
             return p.exitValue();
         } catch (Exception e) {
@@ -351,7 +400,7 @@ public class SourceCompiler {
                     "-d", COMPILE_DIR,
                     "-encoding", "UTF-8",
                     javaFile.getAbsolutePath() });
-            String output = new String(buff.toByteArray(), Constants.UTF8);
+            String output = new String(buff.toByteArray(), StandardCharsets.UTF_8);
             handleSyntaxError(output);
         } catch (Exception e) {
             throw DbException.convert(e);

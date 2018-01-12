@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -469,10 +469,8 @@ public class FullText {
         Parser p = new Parser(session);
         Expression expr = p.parseExpression(key);
         addColumnData(columns, data, expr);
-        Object[] col = new Object[columns.size()];
-        columns.toArray(col);
-        Object[] dat = new Object[columns.size()];
-        data.toArray(dat);
+        Object[] col = columns.toArray();
+        Object[] dat = data.toArray();
         Object[][] columnData = { col, dat };
         return columnData;
     }
@@ -907,8 +905,7 @@ public class FullText {
             index = new IndexInfo();
             index.schema = schemaName;
             index.table = tableName;
-            index.columns = new String[columnList.size()];
-            columnList.toArray(index.columns);
+            index.columns = columnList.toArray(new String[0]);
             rs = meta.getColumns(null,
                     StringUtils.escapeMetaDataPattern(schemaName),
                     StringUtils.escapeMetaDataPattern(tableName),

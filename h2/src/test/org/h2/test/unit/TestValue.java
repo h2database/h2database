@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -265,7 +265,7 @@ public class TestValue extends TestBase {
             values[i] = v;
             assertTrue(values[i].compareTypeSafe(values[i], null) == 0);
             assertTrue(v.equals(v));
-            assertEquals(i < 2 ? -1 : i > 2 ? 1 : 0, v.getSignum());
+            assertEquals(Integer.compare(i, 2), v.getSignum());
         }
         for (int i = 0; i < d.length - 1; i++) {
             assertTrue(values[i].compareTypeSafe(values[i+1], null) < 0);

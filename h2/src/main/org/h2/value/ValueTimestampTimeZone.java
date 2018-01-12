@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0, and the
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0, and the
  * EPL 1.0 (http://h2database.com/html/license.html). Initial Developer: H2
  * Group
  */
@@ -14,7 +14,6 @@ import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
 import org.h2.message.DbException;
 import org.h2.util.DateTimeUtils;
-import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
 /**
@@ -310,14 +309,14 @@ public class ValueTimestampTimeZone extends Value {
         b -= t.timeZoneOffsetMins;
 
         // compare date
-        int c = MathUtils.compareLong(a, b);
+        int c = Long.compare(a, b);
         if (c != 0) {
             return c;
         }
         // compare time
         long na = timeNanos - (ma * 1000L * 1000L * 1000L * 60L);
         long nb = t.timeNanos - (mb * 1000L * 1000L * 1000L * 60L);
-        return MathUtils.compareLong(na, nb);
+        return Long.compare(na, nb);
     }
 
     @Override

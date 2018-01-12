@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ParameterMetaData;
@@ -399,7 +400,7 @@ public class WebApp {
             try {
                 tool.runTool(argList);
                 out.flush();
-                String o = new String(outBuff.toByteArray(), Constants.UTF8);
+                String o = new String(outBuff.toByteArray(), StandardCharsets.UTF_8);
                 String result = PageParser.escapeHtml(o);
                 session.put("toolResult", result);
             } catch (Exception e) {
@@ -993,7 +994,7 @@ public class WebApp {
             }
             final Connection conn = session.getConnection();
             if (SysProperties.CONSOLE_STREAM && server.getAllowChunked()) {
-                String page = new String(server.getFile("result.jsp"), Constants.UTF8);
+                String page = new String(server.getFile("result.jsp"), StandardCharsets.UTF_8);
                 int idx = page.indexOf("${result}");
                 // the first element of the list is the header, the last the
                 // footer
@@ -1099,7 +1100,7 @@ public class WebApp {
         if (isBuiltIn(sql, "@best_row_identifier")) {
             String[] p = split(sql);
             int scale = p[4] == null ? 0 : Integer.parseInt(p[4]);
-            boolean nullable = p[5] == null ? false : Boolean.parseBoolean(p[5]);
+            boolean nullable = Boolean.parseBoolean(p[5]);
             return meta.getBestRowIdentifier(p[1], p[2], p[3], scale, nullable);
         } else if (isBuiltIn(sql, "@catalogs")) {
             return meta.getCatalogs();
@@ -1120,8 +1121,8 @@ public class WebApp {
             return meta.getImportedKeys(p[1], p[2], p[3]);
         } else if (isBuiltIn(sql, "@index_info")) {
             String[] p = split(sql);
-            boolean unique = p[4] == null ? false : Boolean.parseBoolean(p[4]);
-            boolean approx = p[5] == null ? false : Boolean.parseBoolean(p[5]);
+            boolean unique = Boolean.parseBoolean(p[4]);
+            boolean approx = Boolean.parseBoolean(p[5]);
             return meta.getIndexInfo(p[1], p[2], p[3], unique, approx);
         } else if (isBuiltIn(sql, "@primary_keys")) {
             String[] p = split(sql);

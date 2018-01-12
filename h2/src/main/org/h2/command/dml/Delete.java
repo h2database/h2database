@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -52,8 +52,8 @@ public class Delete extends Prepared {
     public void setCondition(Expression condition) {
         this.condition = condition;
     }
-    
-    public Expression getCondition( ) {
+
+    public Expression getCondition() {
         return this.condition;
     }
 
@@ -136,17 +136,16 @@ public class Delete extends Prepared {
     public void prepare() {
         if (condition != null) {
             condition.mapColumns(targetTableFilter, 0);
-            if(sourceTableFilter!=null){
-                condition.mapColumns(sourceTableFilter, 0);                
+            if (sourceTableFilter != null) {
+                condition.mapColumns(sourceTableFilter, 0);
             }
             condition = condition.optimize(session);
             condition.createIndexConditions(session, targetTableFilter);
         }
         TableFilter[] filters;
-        if(sourceTableFilter==null){
+        if (sourceTableFilter == null) {
             filters = new TableFilter[] { targetTableFilter };
-        }
-        else{
+        } else {
             filters = new TableFilter[] { targetTableFilter, sourceTableFilter };
         }
         PlanItem item = targetTableFilter.getBestPlanItem(session, filters, 0,
@@ -180,7 +179,7 @@ public class Delete extends Prepared {
     }
 
     public void setSourceTableFilter(TableFilter sourceTableFilter) {
-        this.sourceTableFilter = sourceTableFilter;        
+        this.sourceTableFilter = sourceTableFilter;
     }
 
     public TableFilter getTableFilter() {

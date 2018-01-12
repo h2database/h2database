@@ -1,5 +1,5 @@
 /*
- * Copyright 2004-2014 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
  * and the EPL 1.0 (http://h2database.com/html/license.html).
  * Initial Developer: H2 Group
  */
@@ -19,7 +19,6 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.store.fs.FileUtils;
@@ -54,10 +53,12 @@ public class TestCases extends TestBase {
         testGroupSubquery();
         testCountDistinctNotNull();
         testDependencies();
+        testDropTable();
         testConvertType();
         testSortedSelect();
         testMaxMemoryRows();
         testDeleteTop();
+        testLikeExpressions();
         testUnicode();
         testOuterJoin();
         testCommentOnColumnWithSchemaEqualDatabase();
@@ -149,19 +150,7 @@ public class TestCases extends TestBase {
         stat.execute("alter table b add constraint x " +
                 "foreign key(a_id) references a(id)");
         stat.execute("update a set x=200");
-        stat.execute("drop table if exists a, b");
-
-        stat.execute("drop all objects");
-        stat.execute("create table parent(id int primary key)");
-        stat.execute("create table child(id int, parent_id int, x int)");
-        stat.execute("create index y on child(parent_id, x)");
-        stat.execute("alter table child add constraint z " +
-                "foreign key(parent_id) references parent(id)");
-        ResultSet rs = stat.executeQuery(
-                "select * from information_schema.indexes where table_name = 'CHILD'");
-        while (rs.next()) {
-            assertEquals("Y", rs.getString("index_name"));
-        }
+        stat.execute("drop table if exists a, b cascade");
         conn.close();
     }
 
@@ -287,6 +276,71 @@ public class TestCases extends TestBase {
                         "set default ifnull((select max(id) from test for update)+1, 0)");
         stat.execute("drop table test");
         conn.close();
+    }
+
+    private void testDropTable() throws SQLException {
+        trace("testDropTable");
+        final boolean[] booleans = new boolean[] { true, false };
+        for (final boolean stdDropTableRestrict : booleans) {
+            for (final boolean restrict : booleans) {
+                testDropTableNoReference(stdDropTableRestrict, restrict);
+                testDropTableViewReference(stdDropTableRestrict, restrict);
+                testDropTableForeignKeyReference(stdDropTableRestrict, restrict);
+            }
+        }
+    }
+
+    private Statement createTable(final boolean stdDropTableRestrict) throws SQLException {
+        deleteDb("cases");
+        Connection conn = getConnection("cases;STANDARD_DROP_TABLE_RESTRICT=" + stdDropTableRestrict);
+        Statement stat = conn.createStatement();
+        stat.execute("create table test(id int)");
+        return stat;
+    }
+
+    private void dropTable(final boolean restrict, Statement stat, final boolean expectedDropSuccess)
+            throws SQLException {
+        assertThrows(expectedDropSuccess ? 0 : ErrorCode.CANNOT_DROP_2, stat)
+                .execute("drop table test " + (restrict ? "restrict" : "cascade"));
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat)
+                .execute("select * from test");
+    }
+
+    private void testDropTableNoReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        // always succeed as there's no reference to the table
+        dropTable(restrict, stat, true);
+        stat.getConnection().close();
+    }
+
+    private void testDropTableViewReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        stat.execute("create view abc as select * from test");
+        // drop allowed only if cascade
+        final boolean expectedDropSuccess = !restrict;
+        dropTable(restrict, stat, expectedDropSuccess);
+        // missing view if the drop succeeded
+        assertThrows(expectedDropSuccess ? ErrorCode.TABLE_OR_VIEW_NOT_FOUND_1 : 0, stat).execute("select * from abc");
+        stat.getConnection().close();
+    }
+
+    private void testDropTableForeignKeyReference(final boolean stdDropTableRestrict, final boolean restrict)
+            throws SQLException {
+        Statement stat = createTable(stdDropTableRestrict);
+        stat.execute("create table ref(id int, id_test int, foreign key (id_test) references test (id)) ");
+        // test table is empty, so the foreign key forces ref table to be also
+        // empty
+        assertThrows(ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat)
+                .execute("insert into ref values(1,2)");
+        // drop allowed if cascade or old style
+        final boolean expectedDropSuccess = !stdDropTableRestrict || !restrict;
+        dropTable(restrict, stat, expectedDropSuccess);
+        // insertion succeeds if the foreign key was dropped
+        assertThrows(expectedDropSuccess ? 0 : ErrorCode.REFERENTIAL_INTEGRITY_VIOLATED_PARENT_MISSING_1, stat)
+                .execute("insert into ref values(1,2)");
+        stat.getConnection().close();
     }
 
     private void testConvertType() throws SQLException {
@@ -1853,4 +1907,15 @@ public class TestCases extends TestBase {
         conn.close();
     }
 
+    /** Tests fix for bug #682: Queries with 'like' expressions may filter rows incorrectly */
+    private void testLikeExpressions() throws SQLException {
+        Connection conn = getConnection("cases");
+        Statement stat = conn.createStatement();
+        ResultSet rs = stat.executeQuery("select * from (select 'fo%' a union all select '%oo') where 'foo' like a");
+        assertTrue(rs.next());
+        assertEquals("fo%", rs.getString(1));
+        assertTrue(rs.next());
+        assertEquals("%oo", rs.getString(1));
+        conn.close();
+    }
 }

@@ -888,7 +888,7 @@ public final class DataUtils {
     }
 
     /**
-     * Parse an unsigned, hex long.
+     * Parse an unsigned, hex int.
      *
      * @param x the string
      * @return the parsed value
@@ -902,6 +902,100 @@ public final class DataUtils {
         } catch (NumberFormatException e) {
             throw newIllegalStateException(ERROR_FILE_CORRUPT,
                     "Error parsing the value {0}", x, e);
+        }
+    }
+
+    /**
+     * Parse an unsigned, hex long character array.
+     *
+     * @param x the character array
+     * @param length Number of characters to parse
+     * @return the parsed value
+     * @throws IllegalStateException if parsing fails
+     */
+    public static long parseHexLong(char[] x, int length) {
+        if (x == null || length > x.length) {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                    "Error parsing the value {0}", new String(x));
+        }
+        
+        if (length == 0) {
+        	return 0;
+        }
+
+        // From Java 8 Long.parseLong(String s, int radix)
+        final int radix = 16;
+        final long limit = -Long.MAX_VALUE;
+        int digit;
+        long multmin = limit / radix;
+
+        long first = 0;
+        for (int i = 0; i < length - 1; i++) {
+            // Accumulating negatively avoids surprises near MAX_VALUE
+            digit = Character.digit(x[i], radix);
+            if (digit < 0) {
+                throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                        "Error parsing the value {0}", new String(x));
+            }
+            if (first < multmin) {
+                throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                        "Error parsing the value {0}", new String(x));
+            }
+            first *= radix;
+            if (first < limit + digit) {
+                throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                        "Error parsing the value {0}", new String(x));
+            }
+            first -= digit;
+        }
+
+        // From Java 8 Long.parseUnsignedLong(String s, int radix)
+        int second = Character.digit(x[length - 1], radix);
+        if (second < 0) {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+            		"Bad digit at end of {0}", new String(x));
+        }
+        long result = (-first) * radix + second;
+/* TODO Add for Java 8
+        if (Long.compareUnsigned(result, -first) < 0) {
+            /*
+             * The maximum unsigned value, (2^64)-1, takes at
+             * most one more digit to represent than the
+             * maximum signed value, (2^63)-1.  Therefore,
+             * parsing (len - 1) digits will be appropriately
+             * in-range of the signed parsing.  In other
+             * words, if parsing (len -1) digits overflows
+             * signed parsing, parsing len digits will
+             * certainly overflow unsigned parsing.
+             *
+             * The compareUnsigned check above catches
+             * situations where an unsigned overflow occurs
+             * incorporating the contribution of the final
+             * digit.
+             *
+        	throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                    "String value {0} exceeds range of unsigned long.", new String(x));
+        }
+*/
+        return result;
+    }
+
+    /**
+     * Parse an unsigned, hex int character array.
+     *
+     * @param x the character array
+     * @param length Number of characters to parse
+     * @return the parsed value
+     * @throws IllegalStateException if parsing fails
+     */
+    public static int parseHexInt(char[] x, int length) {
+    	// From Java 8 Integer.parseUnsignedInt(String s, int radix)
+    	long ell = parseHexLong(x, length);
+        if ((ell & 0xffff_ffff_0000_0000L) == 0) {
+            return (int) ell;
+        } else {
+            throw newIllegalStateException(ERROR_FILE_CORRUPT,
+                "String value {0} exceeds range of unsigned int.", new String(x));
         }
     }
 

@@ -6,7 +6,6 @@
 package org.h2.mvstore;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 
 /**
  * A chunk of data, containing one or multiple pages.
@@ -34,6 +33,8 @@ public class Chunk {
      */
     static final int FOOTER_LENGTH = 128;
 
+
+    
     /**
      * The chunk id.
      */
@@ -179,22 +180,7 @@ public class Chunk {
      * @return the block
      */
     public static Chunk fromString(String s) {
-        HashMap<String, String> map = DataUtils.parseMap(s);
-        int id = DataUtils.readHexInt(map, "chunk", 0);
-        Chunk c = new Chunk(id);
-        c.block = DataUtils.readHexLong(map, "block", 0);
-        c.len = DataUtils.readHexInt(map, "len", 0);
-        c.pageCount = DataUtils.readHexInt(map, "pages", 0);
-        c.pageCountLive = DataUtils.readHexInt(map, "livePages", c.pageCount);
-        c.mapId = DataUtils.readHexInt(map, "map", 0);
-        c.maxLen = DataUtils.readHexLong(map, "max", 0);
-        c.maxLenLive = DataUtils.readHexLong(map, "liveMax", c.maxLen);
-        c.metaRootPos = DataUtils.readHexLong(map, "root", 0);
-        c.time = DataUtils.readHexLong(map, "time", 0);
-        c.unused = DataUtils.readHexLong(map, "unused", 0);
-        c.version = DataUtils.readHexLong(map, "version", id);
-        c.next = DataUtils.readHexLong(map, "next", 0);
-        return c;
+        return ChunkParser.parse(s);
     }
 
     /**

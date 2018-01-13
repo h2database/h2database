@@ -514,9 +514,18 @@ public class DataType {
                 return ValueNull.INSTANCE;
             }
             case Value.BYTES: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE :
-                    ValueBytes.getNoCopy(buff);
+                /*
+                 * Both BINARY and UUID may be mapped to Value.BYTES. getObject() returns byte[]
+                 * for SQL BINARY, UUID for SQL UUID and null for SQL NULL.
+                 */
+                Object o = rs.getObject(columnIndex);
+                if (o instanceof byte[]) {
+                    v = ValueBytes.getNoCopy((byte[]) o);
+                } else if (o != null) {
+                    UUID u = (UUID) o;
+                    v = ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+                } else
+                    v = ValueNull.INSTANCE;
                 break;
             }
             case Value.UUID: {

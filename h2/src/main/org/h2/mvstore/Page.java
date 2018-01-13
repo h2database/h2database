@@ -259,18 +259,18 @@ public class Page {
     public String toString() {
         StringBuilder buff = new StringBuilder();
         buff.append("id: ").append(System.identityHashCode(this)).append('\n');
-        buff.append("version: ").append(Long.toHexString(version)).append("\n");
-        buff.append("pos: ").append(Long.toHexString(pos)).append("\n");
+        buff.append("version: ").append(Long.toHexString(version)).append('\n');
+        buff.append("pos: ").append(Long.toHexString(pos)).append('\n');
         if (pos != 0) {
             int chunkId = DataUtils.getPageChunkId(pos);
-            buff.append("chunk: ").append(Long.toHexString(chunkId)).append("\n");
+            buff.append("chunk: ").append(Long.toHexString(chunkId)).append('\n');
         }
         for (int i = 0; i <= keys.length; i++) {
             if (i > 0) {
                 buff.append(" ");
             }
             if (children != null) {
-                buff.append("[" + Long.toHexString(children[i].pos) + "] ");
+                buff.append('[').append(Long.toHexString(children[i].pos)).append("] ");
             }
             if (i < keys.length) {
                 buff.append(keys[i]);

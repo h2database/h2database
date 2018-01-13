@@ -423,10 +423,10 @@ public class ScriptCommand extends ScriptBase {
                     int id;
                     if (v.getType() == Value.CLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_CLOB(" + id + ")");
+                        buff.append("SYSTEM_COMBINE_CLOB(").append(id).append(')');
                     } else if (v.getType() == Value.BLOB) {
                         id = writeLobStream(v);
-                        buff.append("SYSTEM_COMBINE_BLOB(" + id + ")");
+                        buff.append("SYSTEM_COMBINE_BLOB(").append(id).append(')');
                     } else {
                         buff.append(v.getSQL());
                     }
@@ -471,8 +471,8 @@ public class ScriptCommand extends ScriptBase {
             try (InputStream input = v.getInputStream()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
-                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id +
-                            ", " + i + ", NULL, '");
+                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id)
+                            .append(", ").append(i).append(", NULL, '");
                     int len = IOUtils.readFully(input, bytes, lobBlockSize);
                     if (len <= 0) {
                         break;
@@ -490,7 +490,8 @@ public class ScriptCommand extends ScriptBase {
             try (Reader reader = v.getReader()) {
                 for (int i = 0;; i++) {
                     StringBuilder buff = new StringBuilder(lobBlockSize * 2);
-                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(" + id + ", " + i + ", ");
+                    buff.append("INSERT INTO SYSTEM_LOB_STREAM VALUES(").append(id).append(", ").append(i)
+                            .append(", ");
                     int len = IOUtils.readFully(reader, chars, lobBlockSize);
                     if (len == 0) {
                         break;

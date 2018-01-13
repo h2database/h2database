@@ -134,7 +134,7 @@ public class RowImpl implements Row {
         StatementBuilder buff = new StatementBuilder("( /* key:");
         buff.append(getKey());
         if (version != 0) {
-            buff.append(" v:" + version);
+            buff.append(" v:").append(version);
         }
         if (isDeleted()) {
             buff.append(" deleted");

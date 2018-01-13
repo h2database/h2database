@@ -64,7 +64,7 @@ public class SimpleRow implements SearchRow {
         StatementBuilder buff = new StatementBuilder("( /* key:");
         buff.append(getKey());
         if (version != 0) {
-            buff.append(" v:" + version);
+            buff.append(" v:").append(version);
         }
         buff.append(" */ ");
         for (Value v : data) {

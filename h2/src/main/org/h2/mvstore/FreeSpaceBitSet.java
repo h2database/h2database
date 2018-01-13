@@ -197,9 +197,9 @@ public class FreeSpaceBitSet {
                     on = 0;
                 }
             }
-            buff.append("\n");
-            buff.append(" on " + onCount + " off " + offCount);
-            buff.append(" " + 100 * onCount / (onCount+offCount) + "% used ");
+            buff.append('\n')
+                    .append(" on ").append(onCount).append(" off ").append(offCount)
+                    .append(' ').append(100 * onCount / (onCount+offCount)).append("% used ");
         }
         buff.append('[');
         for (int i = 0;;) {

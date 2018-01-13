@@ -28,7 +28,7 @@ import org.h2.util.Utils;
  * Encapsulates the connection settings, including user name and password.
  */
 public class ConnectionInfo implements Cloneable {
-    private static final HashSet<String> KNOWN_SETTINGS = New.hashSet();
+    private static final HashSet<String> KNOWN_SETTINGS;
 
     private Properties prop = new Properties();
     private String originalURL;
@@ -93,19 +93,19 @@ public class ConnectionInfo implements Cloneable {
 
     static {
         ArrayList<String> list = SetTypes.getTypes();
-        HashSet<String> set = KNOWN_SETTINGS;
-        set.addAll(list);
         String[] connectionTime = { "ACCESS_MODE_DATA", "AUTOCOMMIT", "CIPHER",
                 "CREATE", "CACHE_TYPE", "FILE_LOCK", "IGNORE_UNKNOWN_SETTINGS",
                 "IFEXISTS", "INIT", "PASSWORD", "RECOVER", "RECOVER_TEST",
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
+        HashSet<String> set = new HashSet<>(list.size() + connectionTime.length);
+        set.addAll(list);
         for (String key : connectionTime) {
-            if (SysProperties.CHECK && set.contains(key)) {
+            if (!set.add(key) && SysProperties.CHECK) {
                 DbException.throwInternalError(key);
             }
-            set.add(key);
         }
+        KNOWN_SETTINGS = set;
     }
 
     private static boolean isKnownSetting(String s) {

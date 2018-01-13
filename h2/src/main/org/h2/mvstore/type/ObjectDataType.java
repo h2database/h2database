@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.UUID;
 import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.WriteBuffer;
-import org.h2.util.New;
 
 /**
  * A data type implementation for the most common data types, including
@@ -94,8 +93,7 @@ public class ObjectDataType implements DataType {
             Float.class, Double.class, BigDecimal.class, String.class,
             UUID.class, Date.class };
 
-    private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = New
-            .hashMap();
+    private static final HashMap<Class<?>, Integer> COMMON_CLASSES_MAP = new HashMap<>(COMMON_CLASSES.length);
 
     private AutoDetectDataType last = new StringType(this);
 

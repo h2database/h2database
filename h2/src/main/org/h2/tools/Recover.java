@@ -1477,7 +1477,7 @@ public class Recover extends Tool implements DataHandler {
 
     private void writeRow(PrintWriter writer, Data s, Value[] data) {
         StringBuilder sb = new StringBuilder();
-        sb.append("INSERT INTO " + storageName + " VALUES(");
+        sb.append("INSERT INTO ").append(storageName).append(" VALUES(");
         for (valueId = 0; valueId < recordLength; valueId++) {
             try {
                 Value v = s.readValue();

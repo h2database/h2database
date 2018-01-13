@@ -1154,10 +1154,10 @@ public class Parser {
             TableFilter sourceTableFilter = readSimpleTableFilterWithAliasExcludes(0, excludeIdentifiers);
             command.setSourceTableFilter(sourceTableFilter);
 
-            StringBuilder buff = new StringBuilder(
-                    "SELECT * FROM "+sourceTableFilter.getTable().getName());
+            StringBuilder buff = new StringBuilder("SELECT * FROM ")
+                    .append(sourceTableFilter.getTable().getName());
             if (sourceTableFilter.getTableAlias() != null) {
-                buff.append(" AS "+sourceTableFilter.getTableAlias());
+                buff.append(" AS ").append(sourceTableFilter.getTableAlias());
             }
             Prepared preparedQuery = prepare(session, buff.toString(), null/*paramValues*/);
             command.setQuery((Select) preparedQuery);
@@ -1208,7 +1208,7 @@ public class Parser {
                     " AS " + command.getTargetTableFilter().getTableAlias());
         }
         targetMatchQuerySQL
-                .append(" WHERE " + command.getOnCondition().getSQL());
+                .append(" WHERE ").append(command.getOnCondition().getSQL());
         command.setTargetMatchQuery(
                 (Select) parse(targetMatchQuerySQL.toString()));
 

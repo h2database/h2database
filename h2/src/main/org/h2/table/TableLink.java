@@ -387,7 +387,7 @@ public class TableLink extends Table {
         if (readOnly) {
             buff.append(" READONLY");
         }
-        buff.append(" /*" + JdbcSQLException.HIDE_SQL + "*/");
+        buff.append(" /*").append(JdbcSQLException.HIDE_SQL).append("*/");
         return buff.toString();
     }
 

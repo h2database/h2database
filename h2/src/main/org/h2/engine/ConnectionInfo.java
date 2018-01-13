@@ -101,10 +101,9 @@ public class ConnectionInfo implements Cloneable {
                 "USER", "AUTO_SERVER", "AUTO_SERVER_PORT", "NO_UPGRADE",
                 "AUTO_RECONNECT", "OPEN_NEW", "PAGE_SIZE", "PASSWORD_HASH", "JMX" };
         for (String key : connectionTime) {
-            if (SysProperties.CHECK && set.contains(key)) {
+            if (!set.add(key) && SysProperties.CHECK) {
                 DbException.throwInternalError(key);
             }
-            set.add(key);
         }
     }
 

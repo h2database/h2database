@@ -6,7 +6,6 @@
 package org.h2.command.dml;
 
 import java.util.ArrayList;
-import org.h2.util.New;
 
 /**
  * The list of setting for a SET statement.
@@ -247,20 +246,22 @@ public class SetTypes {
      * The type of SET BUILTIN_ALIAS_OVERRIDE statement.
      */
     public static final int BUILTIN_ALIAS_OVERRIDE = 47;
+
     /**
      * The type of a SET COLUMN_NAME_RULES statement.
      */
     public static final int COLUMN_NAME_RULES = 48;
 
+    private static final int COUNT = COLUMN_NAME_RULES + 1;
 
-    private static final ArrayList<String> TYPES = New.arrayList();
+    private static final ArrayList<String> TYPES;
 
     private SetTypes() {
         // utility class
     }
 
     static {
-        ArrayList<String> list = TYPES;
+        ArrayList<String> list = new ArrayList<>(COUNT);
         list.add(null);
         list.add(IGNORECASE, "IGNORECASE");
         list.add(MAX_LOG_SIZE, "MAX_LOG_SIZE");
@@ -310,7 +311,7 @@ public class SetTypes {
         list.add(LAZY_QUERY_EXECUTION, "LAZY_QUERY_EXECUTION");
         list.add(BUILTIN_ALIAS_OVERRIDE, "BUILTIN_ALIAS_OVERRIDE");
         list.add(COLUMN_NAME_RULES, "COLUMN_NAME_RULES");
-
+        TYPES = list;
     }
 
     /**
@@ -320,12 +321,7 @@ public class SetTypes {
      * @return the number
      */
     public static int getType(String name) {
-        for (int i = 0; i < getTypes().size(); i++) {
-            if (name.equals(getTypes().get(i))) {
-                return i;
-            }
-        }
-        return -1;
+        return TYPES.indexOf(name);
     }
 
     public static ArrayList<String> getTypes() {
@@ -339,7 +335,7 @@ public class SetTypes {
      * @return the name
      */
     public static String getTypeName(int type) {
-        return getTypes().get(type);
+        return TYPES.get(type);
     }
 
 }

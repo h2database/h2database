@@ -514,15 +514,27 @@ public class DataType {
                 return ValueNull.INSTANCE;
             }
             case Value.BYTES: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE :
-                    ValueBytes.getNoCopy(buff);
+                /*
+                 * Both BINARY and UUID may be mapped to Value.BYTES. getObject() returns byte[]
+                 * for SQL BINARY, UUID for SQL UUID and null for SQL NULL.
+                 */
+                Object o = rs.getObject(columnIndex);
+                if (o instanceof byte[]) {
+                    v = ValueBytes.getNoCopy((byte[]) o);
+                } else if (o != null) {
+                    v = ValueUuid.get((UUID) o);
+                } else
+                    v = ValueNull.INSTANCE;
                 break;
             }
             case Value.UUID: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE :
-                    ValueUuid.get(buff);
+                Object o = rs.getObject(columnIndex);
+                if (o instanceof UUID) {
+                    v = ValueUuid.get((UUID) o);
+                } else if (o != null)
+                    v = ValueUuid.get((byte[]) o);
+                else
+                    v = ValueNull.INSTANCE;
                 break;
             }
             case Value.BOOLEAN: {
@@ -1100,8 +1112,7 @@ public class DataType {
             }
             return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
-            UUID u = (UUID) x;
-            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+            return ValueUuid.get((UUID) x);
         } else if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());

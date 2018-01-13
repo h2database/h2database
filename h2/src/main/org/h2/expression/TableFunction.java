@@ -136,6 +136,10 @@ public class TableFunction extends Function {
         simple.setAutoClose(false);
         for (int i = 0; i < columnCount; i++) {
             String name = rs.getColumnName(i);
+            /*
+             * TODO Some types, such as Value.BYTES and Value.UUID are mapped to the same
+             * SQL type and we can lose real type here.
+             */
             int sqlType = DataType.convertTypeToSQLType(rs.getColumnType(i));
             int precision = MathUtils.convertLongToInt(rs.getColumnPrecision(i));
             int scale = rs.getColumnScale(i);

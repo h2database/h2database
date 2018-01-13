@@ -8,17 +8,21 @@ package org.h2.test.unit;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.UUID;
+
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -50,6 +54,7 @@ public class TestValue extends TestBase {
     @Override
     public void test() throws SQLException {
         testResultSetOperations();
+        testBinaryAndUuid();
         testCastTrim();
         testValueResultSet();
         testDataType();
@@ -87,6 +92,7 @@ public class TestValue extends TestBase {
         testResultSetOperation(new Time(7));
         testResultSetOperation(new Timestamp(8));
         testResultSetOperation(new BigDecimal("9"));
+        testResultSetOperation(UUID.randomUUID());
 
         SimpleResultSet rs2 = new SimpleResultSet();
         rs2.setAutoClose(false);
@@ -111,6 +117,30 @@ public class TestValue extends TestBase {
             assertEquals(v.toString(), v2.toString());
         } else {
             assertTrue(v.equals(v2));
+        }
+    }
+
+    private void testBinaryAndUuid() throws SQLException {
+        Connection conn = getConnection("binaryAndUuid");
+        try {
+            UUID uuid = UUID.randomUUID();
+            PreparedStatement prep;
+            ResultSet rs;
+            // Check conversion to byte[]
+            prep = conn.prepareStatement("SELECT * FROM TABLE(X BINARY=?)");
+            prep.setObject(1, new Object[] { uuid });
+            rs = prep.executeQuery();
+            rs.next();
+            assertTrue(Arrays.equals(Utils.uuidToBytes(uuid), (byte[]) rs.getObject(1)));
+            // Check that type is not changed
+            prep = conn.prepareStatement("SELECT * FROM TABLE(X UUID=?)");
+            prep.setObject(1, new Object[] { uuid });
+            rs = prep.executeQuery();
+            rs.next();
+            assertEquals(uuid, rs.getObject(1));
+        } finally {
+            conn.close();
+            deleteDb("binaryAndUuid");
         }
     }
 

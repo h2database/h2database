@@ -944,9 +944,7 @@ public abstract class Value {
                     Object object = JdbcUtils.deserialize(getBytesNoCopy(),
                             getDataHandler());
                     if (object instanceof java.util.UUID) {
-                        java.util.UUID uuid = (java.util.UUID) object;
-                        return ValueUuid.get(uuid.getMostSignificantBits(),
-                                uuid.getLeastSignificantBits());
+                        return ValueUuid.get((java.util.UUID) object);
                     }
                     throw DbException.get(ErrorCode.DATA_CONVERSION_ERROR_1, getString());
                 case TIMESTAMP_TZ:

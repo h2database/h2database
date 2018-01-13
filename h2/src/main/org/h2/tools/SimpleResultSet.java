@@ -36,8 +36,8 @@ import org.h2.message.DbException;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
+import org.h2.util.Utils;
 import org.h2.value.DataType;
-import org.h2.value.ValueUuid;
 
 /**
  * This class is a simple result set and meta data implementation.
@@ -534,8 +534,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
             return (byte[]) o;
         }
         if (o instanceof UUID) {
-            final UUID u = (UUID) o;
-            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits()).getBytes();
+            return Utils.uuidToBytes((UUID) o);
         }
         return JdbcUtils.serialize(o, null);
     }

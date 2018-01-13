@@ -86,7 +86,9 @@ public class TestMVTableEngine extends TestBase {
         testDataTypes();
         testLocking();
         testSimple();
-        testReverseDeletePerformance();
+        if (!config.travis) {
+            testReverseDeletePerformance();
+        }
     }
 
     private void testLobCopy() throws Exception {

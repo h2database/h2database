@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -90,6 +91,28 @@ public class Utils {
     public static long readLong(byte[] buff, int pos) {
         return (((long) readInt(buff, pos)) << 32) +
                 (readInt(buff, pos + 4) & 0xffffffffL);
+    }
+
+    /**
+     * @param uuid UUID value
+     * @return byte array representation
+     */
+    public static byte[] uuidToBytes(UUID uuid) {
+        return uuidToBytes(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
+    }
+
+    /**
+     * @param msb most significant part of UUID
+     * @param lsb least significant part of UUID
+     * @return byte array representation
+     */
+    public static byte[] uuidToBytes(long msb, long lsb) {
+        byte[] buff = new byte[16];
+        for (int i = 0; i < 8; i++) {
+            buff[i] = (byte) ((msb >> (8 * (7 - i))) & 255);
+            buff[8 + i] = (byte) ((lsb >> (8 * (7 - i))) & 255);
+        }
+        return buff;
     }
 
     /**

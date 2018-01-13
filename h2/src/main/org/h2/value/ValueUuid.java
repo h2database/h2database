@@ -85,6 +85,16 @@ public class ValueUuid extends Value {
     }
 
     /**
+     * Get or create a UUID for the given Java UUID.
+     *
+     * @param uuid Java UUID
+     * @return the UUID
+     */
+    public static ValueUuid get(UUID uuid) {
+        return get(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
+    }
+
+    /**
      * Get or create a UUID for the given text representation.
      *
      * @param s the text representation of the UUID
@@ -176,12 +186,7 @@ public class ValueUuid extends Value {
 
     @Override
     public byte[] getBytes() {
-        byte[] buff = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((high >> (8 * (7 - i))) & 255);
-            buff[8 + i] = (byte) ((low >> (8 * (7 - i))) & 255);
-        }
-        return buff;
+        return Utils.uuidToBytes(high, low);
     }
 
     @Override

@@ -522,8 +522,7 @@ public class DataType {
                 if (o instanceof byte[]) {
                     v = ValueBytes.getNoCopy((byte[]) o);
                 } else if (o != null) {
-                    UUID u = (UUID) o;
-                    v = ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+                    v = ValueUuid.get((UUID) o);
                 } else
                     v = ValueNull.INSTANCE;
                 break;
@@ -531,8 +530,7 @@ public class DataType {
             case Value.UUID: {
                 Object o = rs.getObject(columnIndex);
                 if (o instanceof UUID) {
-                    UUID u = (UUID) o;
-                    v = ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+                    v = ValueUuid.get((UUID) o);
                 } else if (o != null)
                     v = ValueUuid.get((byte[]) o);
                 else
@@ -1114,8 +1112,7 @@ public class DataType {
             }
             return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
-            UUID u = (UUID) x;
-            return ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+            return ValueUuid.get((UUID) x);
         } else if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());

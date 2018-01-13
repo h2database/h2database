@@ -529,9 +529,14 @@ public class DataType {
                 break;
             }
             case Value.UUID: {
-                byte[] buff = rs.getBytes(columnIndex);
-                v = buff == null ? (Value) ValueNull.INSTANCE :
-                    ValueUuid.get(buff);
+                Object o = rs.getObject(columnIndex);
+                if (o instanceof UUID) {
+                    UUID u = (UUID) o;
+                    v = ValueUuid.get(u.getMostSignificantBits(), u.getLeastSignificantBits());
+                } else if (o != null)
+                    v = ValueUuid.get((byte[]) o);
+                else
+                    v = ValueNull.INSTANCE;
                 break;
             }
             case Value.BOOLEAN: {

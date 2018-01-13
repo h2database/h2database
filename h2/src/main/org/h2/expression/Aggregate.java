@@ -22,7 +22,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 import org.h2.util.StatementBuilder;
 import org.h2.util.StringUtils;
 import org.h2.value.DataType;
@@ -125,7 +124,7 @@ public class Aggregate extends Expression {
      */
     static final int HISTOGRAM = 16;
 
-    private static final HashMap<String, Integer> AGGREGATES = New.hashMap();
+    private static final HashMap<String, Integer> AGGREGATES = new HashMap<>(24);
 
     private final int type;
     private final Select select;
@@ -156,6 +155,9 @@ public class Aggregate extends Expression {
     }
 
     static {
+        /*
+         * Update initial size of AGGREGATES after editing the following list.
+         */
         addAggregate("COUNT", COUNT);
         addAggregate("SUM", SUM);
         addAggregate("MIN", MIN);

@@ -314,9 +314,9 @@ public class WebApp {
                         value = space + value;
                     }
                     key = StringUtils.urlEncode(key);
-                    key = StringUtils.replaceAll(key, "+", " ");
+                    key = key.replace('+', ' ');
                     value = StringUtils.urlEncode(value);
-                    value = StringUtils.replaceAll(value, "+", " ");
+                    value = value.replace('+', ' ');
                     list.add(type + "#" + key + "#" + value);
                 }
                 Collections.sort(list);

@@ -191,18 +191,18 @@ td.empty {
 }
 
 .error {
-    color: #882222;
+    color: #771111;
 }
 
 div.error {
-    background-color: #ffdddd;
-    border-color: #eecccc;
+    background-color: #eecccc;
+    border-color: #ddbbbb;
 }
 
 div.success {
-    color: #337733;
-    background-color: #ddffdd;
-    border-color: #cceecc;
+    color: #226622;
+    background-color: #cceecc;
+    border-color: #bbddbb;
 }
 
 div.error, div.success {

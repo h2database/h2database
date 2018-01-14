@@ -77,7 +77,7 @@ public class WebSite {
             return page;
         }
         String language = "";
-        int index = fileName.indexOf("_");
+        int index = fileName.indexOf('_');
         if (index >= 0) {
             int end = fileName.indexOf('.');
             language = fileName.substring(index, end);

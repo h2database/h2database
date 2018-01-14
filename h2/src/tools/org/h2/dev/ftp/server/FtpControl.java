@@ -160,7 +160,7 @@ public class FtpControl extends Thread {
                 }
             } else if ("CDUP".equals(command)) {
                 if (currentDir.length() > 1) {
-                    int idx = currentDir.lastIndexOf("/", currentDir.length() - 2);
+                    int idx = currentDir.lastIndexOf('/', currentDir.length() - 2);
                     currentDir = currentDir.substring(0, idx + 1);
                     reply(250, "Ok");
                 } else {

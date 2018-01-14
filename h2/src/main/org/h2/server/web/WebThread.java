@@ -120,7 +120,7 @@ class WebThread extends WebApp implements Runnable {
             trace(head + ": " + file);
             file = getAllowedFile(file);
             attributes = new Properties();
-            int paramIndex = file.indexOf("?");
+            int paramIndex = file.indexOf('?');
             session = null;
             if (paramIndex >= 0) {
                 String attrib = file.substring(paramIndex + 1);

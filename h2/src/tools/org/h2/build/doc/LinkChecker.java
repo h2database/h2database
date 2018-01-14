@@ -181,7 +181,7 @@ public class LinkChecker {
                 break;
             }
             int start = idx + " id=\"".length();
-            int end = html.indexOf("\"", start);
+            int end = html.indexOf('"', start);
             if (end < 0) {
                 error(fileName, "Expected \" after id= " + html.substring(idx, idx + 100));
             }
@@ -196,11 +196,11 @@ public class LinkChecker {
             if (idx < 0) {
                 break;
             }
-            int start = html.indexOf("\"", idx);
+            int start = html.indexOf('"', idx);
             if (start < 0) {
                 error(fileName, "Expected \" after href= at " + html.substring(idx, idx + 100));
             }
-            int end = html.indexOf("\"", start + 1);
+            int end = html.indexOf('"', start + 1);
             if (end < 0) {
                 error(fileName, "Expected \" after href= at " + html.substring(idx, idx + 100));
             }
@@ -237,16 +237,16 @@ public class LinkChecker {
             if (idx < 0) {
                 break;
             }
-            int equals = html.indexOf("=", idx);
+            int equals = html.indexOf('=', idx);
             if (equals < 0) {
                 error(fileName, "Expected = after <a at " + html.substring(idx, idx + 100));
             }
             String type = html.substring(idx + 2, equals).trim();
-            int start = html.indexOf("\"", idx);
+            int start = html.indexOf('"', idx);
             if (start < 0) {
                 error(fileName, "Expected \" after <a at " + html.substring(idx, idx + 100));
             }
-            int end = html.indexOf("\"", start + 1);
+            int end = html.indexOf('"', start + 1);
             if (end < 0) {
                 error(fileName, "Expected \" after <a at " + html.substring(idx, idx + 100));
             }

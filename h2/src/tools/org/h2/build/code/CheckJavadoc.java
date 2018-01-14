@@ -85,7 +85,7 @@ public class CheckJavadoc {
         int lineNumber = 1;
         boolean inComment = false;
         while (true) {
-            int next = text.indexOf("\n", pos);
+            int next = text.indexOf('\n', pos);
             if (next < 0) {
                 break;
             }

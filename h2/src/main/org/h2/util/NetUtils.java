@@ -260,7 +260,7 @@ public class NetUtils {
         } else {
             address = bind.getHostAddress();
             if (bind instanceof Inet6Address) {
-                if (address.indexOf("%") >= 0) {
+                if (address.indexOf('%') >= 0) {
                     address = "localhost";
                 } else if (address.indexOf(':') >= 0 && !address.startsWith("[")) {
                     // adds'[' and ']' if required for

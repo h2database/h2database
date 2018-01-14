@@ -178,7 +178,7 @@ public class ToChar {
             format = format.substring(0, format.length() - 2);
         }
 
-        int v = formatUp.indexOf("V");
+        int v = formatUp.indexOf('V');
         if (v >= 0) {
             int digits = 0;
             for (int i = v + 1; i < format.length(); i++) {

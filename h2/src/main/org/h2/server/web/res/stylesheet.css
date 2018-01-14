@@ -191,11 +191,25 @@ td.empty {
 }
 
 .error {
-    color: #ff0000;
+    color: #882222;
 }
 
-p.error {
-    color: #ff0000;
+div.error {
+    background-color: #ffdddd;
+    border-color: #eecccc;
+}
+
+div.success {
+    color: #337733;
+    background-color: #ddffdd;
+    border-color: #cceecc;
+}
+
+div.error, div.success {
+    border-radius: 4px;
+    padding: 10px;
+    border-width: 1px;
+    border-style: solid;
 }
 
 input.button {

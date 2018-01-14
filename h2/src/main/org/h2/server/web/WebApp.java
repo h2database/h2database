@@ -917,7 +917,7 @@ public class WebApp {
                     PageParser.escapeHtml(profClose) +
                     "</span>";
             } else {
-                success = "${text.login.testSuccessful}";
+                success = "<div class=\"success\">${text.login.testSuccessful}</div>";
             }
             session.put("error", success);
             // session.put("error", "${text.login.testSuccessful}");

@@ -109,9 +109,9 @@ public class Railroads {
             }
 
             String link = topic.toLowerCase();
-            link = StringUtils.replaceAll(link, " ", "_");
+            link = link.replace(' ', '_');
             // link = StringUtils.replaceAll(link, "_", "");
-            link = StringUtils.replaceAll(link, "@", "_");
+            link = link.replace('@', '_');
             map.put("link", StringUtils.urlEncode(link));
             list.add(map);
         }

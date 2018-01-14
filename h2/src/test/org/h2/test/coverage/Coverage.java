@@ -500,7 +500,7 @@ public class Coverage {
 
     private void nextDebug() throws IOException {
         if (perFunction) {
-            int i = function.indexOf("(");
+            int i = function.indexOf('(');
             String func = i < 0 ? function : function.substring(0, i);
             String fileLine = file + "." + func + "(";
             i = file.lastIndexOf('.');

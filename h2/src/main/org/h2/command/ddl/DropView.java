@@ -73,7 +73,7 @@ public class DropView extends SchemaCommand {
             // supported from imported keys - but not for dependent db objects
 
             TableView tableView = (TableView) view;
-            ArrayList<Table> copyOfDependencies = new ArrayList<Table>(tableView.getTables());
+            ArrayList<Table> copyOfDependencies = new ArrayList<>(tableView.getTables());
 
             view.lock(session, true, true);
             session.getDatabase().removeSchemaObject(session, view);

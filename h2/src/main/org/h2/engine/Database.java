@@ -92,8 +92,8 @@ public class Database implements DataHandler {
 
     private static int initialPowerOffCount;
 
-    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<Session>();
-    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<Throwable>();
+    private static final ThreadLocal<Session> META_LOCK_DEBUGGING = new ThreadLocal<>();
+    private static final ThreadLocal<Throwable> META_LOCK_DEBUGGING_STACK = new ThreadLocal<>();
 
     /**
      * The default name of the system user. This name is only used as long as

@@ -247,7 +247,7 @@ class Database {
             String key = (String) k;
             if (key.startsWith(databaseType + ".")) {
                 String pattern = key.substring(databaseType.length() + 1);
-                pattern = StringUtils.replaceAll(pattern, "_", " ");
+                pattern = pattern.replace('_', ' ');
                 pattern = StringUtils.toUpperEnglish(pattern);
                 String replacement = prop.getProperty(key);
                 replace.add(new String[]{pattern, replacement});

@@ -269,7 +269,7 @@ public class MVTableEngine implements TableEngine {
                     MVMap<?, ?> map = store.openMap(mapName);
                     store.removeMap(map);
                 } else if (mapName.startsWith("table.") || mapName.startsWith("index.")) {
-                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf(".")));
+                    int id = Integer.parseInt(mapName.substring(1 + mapName.indexOf('.')));
                     if (!objectIds.get(id)) {
                         ValueDataType keyType = new ValueDataType(null, null, null);
                         ValueDataType valueType = new ValueDataType(null, null, null);

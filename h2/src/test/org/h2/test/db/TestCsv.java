@@ -402,7 +402,7 @@ public class TestCsv extends TestBase {
         InputStreamReader reader = new InputStreamReader(
                 FileUtils.newInputStream(fileName));
         String text = IOUtils.readStringAndClose(reader, -1).trim();
-        text = StringUtils.replaceAll(text, "\n", " ");
+        text = text.replace('\n', ' ');
         assertEquals("ID|NAME 1|Hello", text);
         ResultSet rs = stat.executeQuery("select * from csvread('" +
                 fileName + "', null, null, '|', '')");

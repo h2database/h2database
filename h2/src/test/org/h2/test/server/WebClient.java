@@ -143,7 +143,7 @@ public class WebClient {
      */
     String getBaseUrl(String url) {
         int idx = url.indexOf("//");
-        idx = url.indexOf("/", idx + 2);
+        idx = url.indexOf('/', idx + 2);
         if (idx >= 0) {
             return url.substring(0, idx);
         }

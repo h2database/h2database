@@ -725,7 +725,7 @@ public class TableView extends Table {
 
         List<Column> columnTemplateList;
         String[] querySQLOutput = new String[]{null};
-        ArrayList<String> columnNames = new ArrayList<String>();
+        ArrayList<String> columnNames = new ArrayList<>();
         for (Column columnTemplate: columnTemplates) {
             columnNames.add(columnTemplate.getName());
         }
@@ -811,7 +811,7 @@ public class TableView extends Table {
         // create table data object
         CreateTableData recursiveTableData = new CreateTableData();
         recursiveTableData.id = db.allocateObjectId();
-        recursiveTableData.columns = new ArrayList<Column>(columns);
+        recursiveTableData.columns = new ArrayList<>(columns);
         recursiveTableData.tableName = cteViewName;
         recursiveTableData.temporary = !isPersistent;
         recursiveTableData.persistData = true;

@@ -248,8 +248,8 @@ class FilePathNioMemLZF extends FilePathNioMem {
             throw new IllegalArgumentException(path +
                     " doesn't start with " + getScheme());
         }
-        int idx1 = path.indexOf(":");
-        int idx2 = path.lastIndexOf(":");
+        int idx1 = path.indexOf(':');
+        int idx2 = path.lastIndexOf(':');
         final FilePathNioMemLZF p = new FilePathNioMemLZF();
         if (idx1 != -1 && idx1 != idx2) {
             p.compressLaterCachePercent = Float.parseFloat(path.substring(idx1 + 1, idx2));
@@ -260,7 +260,7 @@ class FilePathNioMemLZF extends FilePathNioMem {
 
     @Override
     protected boolean isRoot() {
-        return name.lastIndexOf(":") == name.length() - 1;
+        return name.lastIndexOf(':') == name.length() - 1;
     }
 
     @Override

@@ -681,7 +681,14 @@ public final class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
-        String s = new String(bytes, StandardCharsets.ISO_8859_1).trim();
+        int start = 0, end = bytes.length;
+        while (start < end && bytes[start] <= ' ') {
+            start++;
+        }
+        while (start < end && bytes[end - 1] <= ' ') {
+            end--;
+        }
+        String s = new String(bytes, start, end - start, StandardCharsets.ISO_8859_1);
         HashMap<String, String> map = New.hashMap();
         StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {

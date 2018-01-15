@@ -286,22 +286,17 @@ public class TestMergeUsing extends TestBase implements Trigger {
             String gatherResultsSQL, String expectedResultsSQL,
             int expectedRowUpdateCount) throws Exception {
         deleteDb("mergeUsingQueries");
-        Connection conn = getConnection("mergeUsingQueries");
-        Statement stat;
-        PreparedStatement prep;
-        ResultSet rs;
-        int rowCountUpdate;
 
-        try {
-            stat = conn.createStatement();
+        try (Connection conn = getConnection("mergeUsingQueries")) {
+            Statement stat = conn.createStatement();
             stat.execute(setupSQL);
 
-            prep = conn.prepareStatement(statementUnderTest);
-            rowCountUpdate = prep.executeUpdate();
+            PreparedStatement prep = conn.prepareStatement(statementUnderTest);
+            int rowCountUpdate = prep.executeUpdate();
 
             // compare actual results from SQL result set with expected results
             // - by diffing (aka set MINUS operation)
-            rs = stat.executeQuery("( " + gatherResultsSQL + " ) MINUS ( "
+            ResultSet rs = stat.executeQuery("( " + gatherResultsSQL + " ) MINUS ( "
                     + expectedResultsSQL + " )");
 
             int rowCount = 0;
@@ -319,7 +314,6 @@ public class TestMergeUsing extends TestBase implements Trigger {
             assertEquals("Expected update counts differ",
                     expectedRowUpdateCount, rowCountUpdate);
         } finally {
-            conn.close();
             deleteDb("mergeUsingQueries");
         }
     }

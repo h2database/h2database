@@ -322,14 +322,11 @@ public class RunScript extends Tool {
             boolean continueOnError) throws SQLException {
         try {
             org.h2.Driver.load();
-            Connection conn = DriverManager.getConnection(url, user, password);
             if (charset == null) {
                 charset = StandardCharsets.UTF_8;
             }
-            try {
+            try (Connection conn = DriverManager.getConnection(url, user, password)) {
                 process(conn, fileName, continueOnError, charset);
-            } finally {
-                conn.close();
             }
         } catch (IOException e) {
             throw DbException.convertIOException(e, fileName);

@@ -121,8 +121,7 @@ public class TestValue extends TestBase {
     }
 
     private void testBinaryAndUuid() throws SQLException {
-        Connection conn = getConnection("binaryAndUuid");
-        try {
+        try (Connection conn = getConnection("binaryAndUuid")) {
             UUID uuid = UUID.randomUUID();
             PreparedStatement prep;
             ResultSet rs;
@@ -139,7 +138,6 @@ public class TestValue extends TestBase {
             rs.next();
             assertEquals(uuid, rs.getObject(1));
         } finally {
-            conn.close();
             deleteDb("binaryAndUuid");
         }
     }
@@ -356,13 +354,11 @@ public class TestValue extends TestBase {
     }
 
     private void testModulusOperator() throws SQLException {
-        Connection conn = getConnection("modulus");
-        try {
+        try (Connection conn = getConnection("modulus")) {
             ResultSet rs = conn.createStatement().executeQuery("CALL 12 % 10");
             rs.next();
             assertEquals(2, rs.getInt(1));
         } finally {
-            conn.close();
             deleteDb("modulus");
         }
     }

@@ -100,17 +100,14 @@ public class SwitchSource {
     }
 
     private void processFile(File f) throws IOException {
-        RandomAccessFile read = new RandomAccessFile(f, "r");
         byte[] buffer;
-        try {
+        try (RandomAccessFile read = new RandomAccessFile(f, "r")) {
             long len = read.length();
             if (len >= Integer.MAX_VALUE) {
                 throw new IOException("Files bigger than Integer.MAX_VALUE are not supported");
             }
             buffer = new byte[(int) len];
             read.readFully(buffer);
-        } finally {
-            read.close();
         }
         boolean found = false;
         // check for ## without creating a string

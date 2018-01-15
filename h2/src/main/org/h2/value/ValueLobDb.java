@@ -133,10 +133,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         this.fileName = createTempLobFileName(handler);
         this.tempFile = this.handler.openFile(fileName, "rw", false);
         this.tempFile.autoDelete();
-        FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null);
         long tmpPrecision = 0;
         boolean compress = this.handler.getLobCompressionAlgorithm(Value.BLOB) != null;
-        try {
+        try (FileStoreOutputStream out = new FileStoreOutputStream(tempFile, null, null)) {
             while (true) {
                 tmpPrecision += len;
                 out.write(buff, 0, len);
@@ -150,8 +149,6 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                     break;
                 }
             }
-        } finally {
-            out.close();
         }
         this.precision = tmpPrecision;
         this.tableId = 0;

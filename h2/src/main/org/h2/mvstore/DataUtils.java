@@ -684,9 +684,8 @@ public final class DataUtils {
         HashMap<String, String> m = DataUtils.parseMap(s);
         int check = DataUtils.readHexInt(m, "fletcher", 0);
         m.remove("fletcher");
-        s = s.substring(0, s.lastIndexOf("fletcher") - 1);
         byte[] bytes = s.getBytes(StandardCharsets.ISO_8859_1);
-        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
+        int checksum = DataUtils.getFletcher32(bytes, s.lastIndexOf("fletcher") - 1);
         if (check == checksum) {
             return m;
         }

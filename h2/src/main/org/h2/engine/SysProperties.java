@@ -347,13 +347,13 @@ public class SysProperties {
                     Constants.VERSION_MINOR < 4);
 
     /**
-     * System property {@code h2.oldResultSetGetObject}, {@code false} by default.
+     * System property {@code h2.oldResultSetGetObject}, {@code true} by default.
      * Return {@code Byte} and {@code Short} instead of {@code Integer} from
      * {@code ResultSet#getObject(...)} for {@code TINYINT} and {@code SMALLINT}
      * values.
      */
     public static final boolean OLD_RESULT_SET_GET_OBJECT =
-            Utils.getProperty("h2.oldResultSetGetObject", false);
+            Utils.getProperty("h2.oldResultSetGetObject", true);
 
     /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />

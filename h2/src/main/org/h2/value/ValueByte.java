@@ -103,6 +103,11 @@ public class ValueByte extends Value {
     }
 
     @Override
+    public int getInt() {
+        return value;
+    }
+
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueByte v = (ValueByte) o;
         return Integer.compare(value, v.value);

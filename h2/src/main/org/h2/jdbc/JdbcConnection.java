@@ -2037,28 +2037,29 @@ public class JdbcConnection extends TraceObject
      * @return the object
      */
     Object convertToDefaultObject(Value v) {
-        Object o;
         switch (v.getType()) {
         case Value.CLOB: {
             int id = getNextId(TraceObject.CLOB);
-            o = new JdbcClob(this, v, id);
-            break;
+            return new JdbcClob(this, v, id);
         }
         case Value.BLOB: {
             int id = getNextId(TraceObject.BLOB);
-            o = new JdbcBlob(this, v, id);
-            break;
+            return new JdbcBlob(this, v, id);
         }
         case Value.JAVA_OBJECT:
             if (SysProperties.serializeJavaObject) {
-                o = JdbcUtils.deserialize(v.getBytesNoCopy(),
+                return JdbcUtils.deserialize(v.getBytesNoCopy(),
                         session.getDataHandler());
-                break;
             }
-        default:
-            o = v.getObject();
+            break;
+        case Value.BYTE:
+        case Value.SHORT:
+            if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
+                return v.getInt();
+            }
+            break;
         }
-        return o;
+        return v.getObject();
     }
 
     CompareMode getCompareMode() {

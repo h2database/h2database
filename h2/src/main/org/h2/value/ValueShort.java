@@ -103,6 +103,11 @@ public class ValueShort extends Value {
     }
 
     @Override
+    public int getInt() {
+        return value;
+    }
+
+    @Override
     protected int compareSecure(Value o, CompareMode mode) {
         ValueShort v = (ValueShort) o;
         return Integer.compare(value, v.value);

@@ -9,6 +9,7 @@ import java.lang.reflect.Array;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
 import org.h2.util.StatementBuilder;
@@ -124,7 +125,15 @@ public class ValueArray extends Value {
         int len = values.length;
         Object[] list = (Object[]) Array.newInstance(componentType, len);
         for (int i = 0; i < len; i++) {
-            list[i] = values[i].getObject();
+            final Value value = values[i];
+            if (!SysProperties.OLD_RESULT_SET_GET_OBJECT) {
+                final int type = value.getType();
+                if (type == Value.BYTE || type == Value.SHORT) {
+                    list[i] = value.getInt();
+                    continue;
+                }
+            }
+            list[i] = value.getObject();
         }
         return list;
     }

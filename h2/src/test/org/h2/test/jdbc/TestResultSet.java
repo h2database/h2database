@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.TimeZone;
 
 import org.h2.api.ErrorCode;
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
@@ -793,16 +794,16 @@ public class TestResultSet extends TestBase {
 
         o = rs.getObject("value");
         trace(o.getClass().getName());
-        assertTrue(o instanceof Short);
-        assertTrue(((Short) o).shortValue() == -1);
+        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject("value", Short.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Short);
         assertTrue(((Short) o).shortValue() == -1);
         o = rs.getObject(2);
         trace(o.getClass().getName());
-        assertTrue(o instanceof Short);
-        assertTrue(((Short) o).shortValue() == -1);
+        assertTrue(o.getClass() == (SysProperties.OLD_RESULT_SET_GET_OBJECT ? Short.class : Integer.class));
+        assertTrue(((Number) o).intValue() == -1);
         o = rs.getObject(2, Short.class);
         trace(o.getClass().getName());
         assertTrue(o instanceof Short);

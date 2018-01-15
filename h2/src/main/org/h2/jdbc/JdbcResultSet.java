@@ -60,7 +60,6 @@ import org.h2.value.ValueShort;
 import org.h2.value.ValueString;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
-import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * <p>
@@ -3773,7 +3772,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         if (type == BigDecimal.class) {
             return type.cast(value.getBigDecimal());
         } else if (type == BigInteger.class) {
-            return type.cast(BigInteger.valueOf(value.getLong()));
+            return type.cast(value.getBigDecimal().toBigInteger());
         } else if (type == String.class) {
             return type.cast(value.getString());
         } else if (type == Boolean.class) {
@@ -3827,8 +3826,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(LocalDateTimeUtils.valueToLocalDateTime(value));
         } else if (LocalDateTimeUtils.isInstant(type)) {
             return type.cast(LocalDateTimeUtils.valueToInstant(value));
-        } else if (LocalDateTimeUtils.isOffsetDateTime(type) &&
-                value instanceof ValueTimestampTimeZone) {
+        } else if (LocalDateTimeUtils.isOffsetDateTime(type)) {
             return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(value));
         } else {
             throw unsupported(type.getName());

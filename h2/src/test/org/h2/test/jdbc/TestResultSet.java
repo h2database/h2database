@@ -1152,6 +1152,18 @@ public class TestResultSet extends TestBase {
 
         assertTrue(!rs.next());
         stat.execute("DROP TABLE TEST");
+
+        stat.execute("CREATE TABLE TEST(ID INT PRIMARY KEY,VALUE DECIMAL(22,2))");
+        stat.execute("INSERT INTO TEST VALUES(1,-12345678909876543210)");
+        stat.execute("INSERT INTO TEST VALUES(2,12345678901234567890.12345)");
+        rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
+        rs.next();
+        assertEquals(new BigDecimal("-12345678909876543210.00"), rs.getBigDecimal(2));
+        assertEquals(new BigInteger("-12345678909876543210"), rs.getObject(2, BigInteger.class));
+        rs.next();
+        assertEquals(new BigDecimal("12345678901234567890.12"), rs.getBigDecimal(2));
+        assertEquals(new BigInteger("12345678901234567890"), rs.getObject(2, BigInteger.class));
+        stat.execute("DROP TABLE TEST");
     }
 
     private void testDoubleFloat() throws SQLException {

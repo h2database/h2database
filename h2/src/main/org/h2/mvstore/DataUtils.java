@@ -614,6 +614,40 @@ public final class DataUtils {
     }
 
     /**
+     * @param buff output buffer, should be empty
+     * @param s parsed string
+     * @param i offset to parse from
+     * @param size stop offset (exclusive)
+     * @return new offset
+     */
+    private static int parseMapValue(StringBuilder buff, String s, int i, int size) {
+        while (i < size) {
+            char c = s.charAt(i++);
+            if (c == ',') {
+                break;
+            } else if (c == '\"') {
+                while (i < size) {
+                    c = s.charAt(i++);
+                    if (c == '\\') {
+                        if (i == size) {
+                            throw DataUtils.newIllegalStateException(
+                                    DataUtils.ERROR_FILE_CORRUPT,
+                                    "Not a map: {0}", s);
+                        }
+                        c = s.charAt(i++);
+                    } else if (c == '\"') {
+                        break;
+                    }
+                    buff.append(c);
+                }
+            } else {
+                buff.append(c);
+            }
+        }
+        return i;
+    }
+
+    /**
      * Parse a key-value pair list.
      *
      * @param s the list
@@ -622,6 +656,7 @@ public final class DataUtils {
      */
     public static HashMap<String, String> parseMap(String s) {
         HashMap<String, String> map = New.hashMap();
+        StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
             i = s.indexOf(':', i);
@@ -630,33 +665,56 @@ public final class DataUtils {
                         DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
             }
             String key = s.substring(startKey, i++);
-            StringBuilder buff = new StringBuilder();
-            while (i < size) {
-                char c = s.charAt(i++);
-                if (c == ',') {
-                    break;
-                } else if (c == '\"') {
-                    while (i < size) {
-                        c = s.charAt(i++);
-                        if (c == '\\') {
-                            if (i == size) {
-                                throw DataUtils.newIllegalStateException(
-                                        DataUtils.ERROR_FILE_CORRUPT,
-                                        "Not a map: {0}", s);
-                            }
-                            c = s.charAt(i++);
-                        } else if (c == '\"') {
-                            break;
-                        }
-                        buff.append(c);
-                    }
-                } else {
-                    buff.append(c);
-                }
-            }
+            i = parseMapValue(buff, s, i, size);
             map.put(key, buff.toString());
+            buff.setLength(0);
         }
         return map;
+    }
+
+    /**
+     * Parse a name from key-value pair list.
+     *
+     * @param s the list
+     * @return value of name item, or {@code null}
+     * @throws IllegalStateException if parsing failed
+     */
+    public static String getMapName(String s) {
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
+            if (i++ - startKey == 4 && s.regionMatches(startKey, "name", 0, 4)) {
+                StringBuilder buff = new StringBuilder();
+                i = parseMapValue(buff, s, i, size);
+                return buff.toString();
+            } else {
+                while (i < size) {
+                    char c = s.charAt(i++);
+                    if (c == ',') {
+                        break;
+                    } else if (c == '\"') {
+                        while (i < size) {
+                            c = s.charAt(i++);
+                            if (c == '\\') {
+                                if (i == size) {
+                                    throw DataUtils.newIllegalStateException(
+                                            DataUtils.ERROR_FILE_CORRUPT,
+                                            "Not a map: {0}", s);
+                                }
+                                c = s.charAt(i++);
+                            } else if (c == '\"') {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**

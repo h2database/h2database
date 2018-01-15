@@ -99,16 +99,34 @@ public class TestDataUtils extends TestBase {
         DataUtils.appendMap(buff,  "c", "1,2");
         DataUtils.appendMap(buff,  "d", "\"test\"");
         DataUtils.appendMap(buff,  "e", "}");
-        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:}", buff.toString());
+        DataUtils.appendMap(buff,  "name", "1:1\",");
+        String encoded = buff.toString();
+        assertEquals(":,a:1,b:\",\",c:\"1,2\",d:\"\\\"test\\\"\",e:},name:\"1:1\\\",\"", encoded);
 
-        HashMap<String, String> m = DataUtils.parseMap(buff.toString());
-        assertEquals(6, m.size());
+        HashMap<String, String> m = DataUtils.parseMap(encoded);
+        assertEquals(7, m.size());
         assertEquals("", m.get(""));
         assertEquals("1", m.get("a"));
         assertEquals(",", m.get("b"));
         assertEquals("1,2", m.get("c"));
         assertEquals("\"test\"", m.get("d"));
         assertEquals("}", m.get("e"));
+        assertEquals("1:1\",", m.get("name"));
+        assertEquals("1:1\",", DataUtils.getMapName(encoded));
+
+        buff.setLength(0);
+        DataUtils.appendMap(buff,  "1", "1");
+        DataUtils.appendMap(buff,  "name", "2");
+        DataUtils.appendMap(buff,  "3", "3");
+        encoded = buff.toString();
+        assertEquals("2", DataUtils.parseMap(encoded).get("name"));
+        assertEquals("2", DataUtils.getMapName(encoded));
+
+        buff.setLength(0);
+        DataUtils.appendMap(buff,  "name", "xx");
+        encoded = buff.toString();
+        assertEquals("xx", DataUtils.parseMap(encoded).get("name"));
+        assertEquals("xx", DataUtils.getMapName(encoded));
     }
 
     private void testMapRandomized() {

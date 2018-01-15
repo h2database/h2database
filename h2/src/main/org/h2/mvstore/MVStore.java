@@ -2462,7 +2462,7 @@ public final class MVStore {
     public synchronized String getMapName(int id) {
         checkOpen();
         String m = meta.get(MVMap.getMapKey(id));
-        return m == null ? null : DataUtils.parseMap(m).get("name");
+        return m == null ? null : DataUtils.getMapName(m);
     }
 
     /**

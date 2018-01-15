@@ -104,25 +104,23 @@ function deleteRow(row, session, write, undo) {
     }
 }
 
-function editCancel(row) {
+function editFinish(row, res) {
     var editing = document.getElementById('editing');
     editing.row.value = row;
-    editing.op.value='3';
+    editing.op.value = res;
     editing.submit();
+}
+
+function editCancel(row) {
+    editFinish(row, '3');
 }
 
 function editOk(row) {
-    var editing = document.getElementById('editing');
-    editing.row.value = row;
-    editing.op.value='1';
-    editing.submit();
+    editFinish(row, '1');
 }
 
 function deleteOk(row) {
-    var editing = document.getElementById('editing');
-    editing.row.value = row;
-    editing.op.value='2';
-    editing.submit();
+    editFinish(row, '2');
 }
 
 function editKeyDown(row, object, event) {

@@ -525,7 +525,7 @@ public class ArchiveToolStore {
         }
         key[0] = cs;
         key[1] = bucket;
-        key[2] = DataUtils.getFletcher32(buff, buff.length);
+        key[2] = DataUtils.getFletcher32(buff, 0, buff.length);
         return key;
     }
 

@@ -259,7 +259,7 @@ public class Chunk {
         DataUtils.appendMap(buff, "block", block);
         DataUtils.appendMap(buff, "version", version);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
-        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
+        int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
         while (buff.length() < Chunk.FOOTER_LENGTH - 1) {
             buff.append(' ');

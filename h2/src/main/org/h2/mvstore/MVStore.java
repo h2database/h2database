@@ -818,7 +818,7 @@ public final class MVStore {
         }
         DataUtils.appendMap(buff, storeHeader);
         byte[] bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);
-        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
+        int checksum = DataUtils.getFletcher32(bytes, 0, bytes.length);
         DataUtils.appendMap(buff, "fletcher", checksum);
         buff.append("\n");
         bytes = buff.toString().getBytes(StandardCharsets.ISO_8859_1);

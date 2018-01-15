@@ -695,7 +695,7 @@ public final class DataUtils {
                 DataUtils.parseMapValue(buff, s, i + 1, size);
                 int check = (int) Long.parseLong(buff.toString(), 16);
                 bytes = s.getBytes(StandardCharsets.ISO_8859_1);
-                if (check == DataUtils.getFletcher32(bytes, startKey - 1)) {
+                if (check == DataUtils.getFletcher32(bytes, 0, startKey - 1)) {
                     return map;
                 }
                 // Corrupted map
@@ -759,22 +759,23 @@ public final class DataUtils {
      * Calculate the Fletcher32 checksum.
      *
      * @param bytes the bytes
+     * @param offset initial offset
      * @param length the message length (if odd, 0 is appended)
      * @return the checksum
      */
-    public static int getFletcher32(byte[] bytes, int length) {
+    public static int getFletcher32(byte[] bytes, int offset, int length) {
         int s1 = 0xffff, s2 = 0xffff;
-        int i = 0, evenLength = length & ~1;
-        while (i < evenLength) {
+        int i = offset, len = offset + (length & ~1);
+        while (i < len) {
             // reduce after 360 words (each word is two bytes)
-            for (int end = Math.min(i + 720, evenLength); i < end;) {
+            for (int end = Math.min(i + 720, len); i < end;) {
                 int x = ((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff);
                 s2 += s1 += x;
             }
             s1 = (s1 & 0xffff) + (s1 >>> 16);
             s2 = (s2 & 0xffff) + (s2 >>> 16);
         }
-        if (i < length) {
+        if ((length & 1) != 0) {
             // odd length: append 0
             int x = (bytes[i] & 0xff) << 8;
             s2 += s1 += x;

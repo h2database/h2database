@@ -102,8 +102,7 @@ public class TestBtreeIndex extends TestBase {
         }
         String prefix = buff.toString().substring(0, prefixLength);
         DeleteDbFiles.execute(getBaseDir() + "/" + getTestName(), null, true);
-        Connection conn = getConnection(getTestName());
-        try {
+        try (Connection conn = getConnection(getTestName())) {
             Statement stat = conn.createStatement();
             stat.execute("CREATE TABLE a(text VARCHAR PRIMARY KEY)");
             PreparedStatement prepInsert = conn.prepareStatement(
@@ -189,8 +188,6 @@ public class TestBtreeIndex extends TestBase {
             if (rs.next()) {
                 printError(seed, "testCount:" + testCount + " " + rs.getString(1));
             }
-        } finally {
-            conn.close();
         }
         deleteDb(getTestName());
     }

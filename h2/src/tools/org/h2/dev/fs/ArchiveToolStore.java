@@ -101,8 +101,7 @@ public class ArchiveToolStore {
             buff.clear();
             buff.flip();
             ArrayList<Integer> posList = new ArrayList<>();
-            FileChannel fc = FileUtils.open(s, "r");
-            try {
+            try (FileChannel fc = FileUtils.open(s, "r")) {
                 boolean eof = false;
                 while (true) {
                     while (!eof && buff.remaining() < 512 * 1024) {
@@ -153,8 +152,6 @@ public class ArchiveToolStore {
                     }
                     printProgress(0, 50, currentSize, totalSize);
                 }
-            } finally {
-                fc.close();
             }
             int[] posArray = new int[posList.size()];
             for (int i = 0; i < posList.size(); i++) {

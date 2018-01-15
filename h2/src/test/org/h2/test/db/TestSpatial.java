@@ -877,15 +877,12 @@ public class TestSpatial extends TestBase {
                 "SELECT null, CONCAT('POINT(',A.X,' ',B.X,')')::geometry the_geom " +
                 "from system_range(0,120) A,system_range(0,10) B;");
             stat.execute("create spatial index on pt_cloud(the_geom);");
-            ResultSet rs = stat.executeQuery(
+            try (ResultSet rs = stat.executeQuery(
                     "explain select * from  PT_CLOUD " +
-                    "where the_geom && 'POINT(1 1)'");
-            try {
+                            "where the_geom && 'POINT(1 1)'")) {
                 assertTrue(rs.next());
                 assertFalse("H2 should use spatial index got this explain:\n" +
                         rs.getString(1), rs.getString(1).contains("tableScan"));
-            } finally {
-                rs.close();
             }
         }
         deleteDb("spatial");

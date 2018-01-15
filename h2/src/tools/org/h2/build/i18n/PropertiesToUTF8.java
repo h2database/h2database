@@ -79,9 +79,8 @@ public class PropertiesToUTF8 {
         if (!new File(source).exists()) {
             return;
         }
-        LineNumberReader reader = new LineNumberReader(new InputStreamReader(
-                new FileInputStream(source), StandardCharsets.UTF_8));
-        try {
+        try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(
+                new FileInputStream(source), StandardCharsets.UTF_8))) {
             SortedProperties prop = new SortedProperties();
             StringBuilder buff = new StringBuilder();
             String key = null;
@@ -113,8 +112,6 @@ public class PropertiesToUTF8 {
                 prop.setProperty(key, buff.toString());
             }
             prop.store(target);
-        } finally {
-            reader.close();
         }
     }
 

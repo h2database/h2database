@@ -288,7 +288,7 @@ public class DateTimeUtils {
         Calendar local = DateTimeUtils.createGregorianCalendar();
         local.setTime(x);
         convertTime(local, target);
-        return target.getTime().getTime();
+        return target.getTimeInMillis();
     }
 
     private static void convertTime(Calendar from, Calendar to) {
@@ -474,7 +474,7 @@ public class DateTimeUtils {
         }
         c.setLenient(lenient);
         setCalendarFields(c, year, month, day, hour, minute, second, millis);
-        return c.getTime().getTime();
+        return c.getTimeInMillis();
     }
 
     private static void setCalendarFields(Calendar cal, int year, int month,

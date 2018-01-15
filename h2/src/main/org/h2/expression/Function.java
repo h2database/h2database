@@ -1856,8 +1856,7 @@ public class Function extends Expression implements FunctionCall {
         int nanos = d.getNanos() % 1000000;
         calendar.setTime(d);
         calendar.add(field, (int) count);
-        long t = calendar.getTime().getTime();
-        Timestamp ts = new Timestamp(t);
+        Timestamp ts = new Timestamp(calendar.getTimeInMillis());
         ts.setNanos(ts.getNanos() + nanos);
         return ts;
     }

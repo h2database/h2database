@@ -726,7 +726,7 @@ public final class DataUtils {
      */
     public static int getFletcher32(byte[] bytes, int length) {
         int s1 = 0xffff, s2 = 0xffff;
-        int i = 0, evenLength = length / 2 * 2;
+        int i = 0, evenLength = length & ~1;
         while (i < evenLength) {
             // reduce after 360 words (each word is two bytes)
             for (int end = Math.min(i + 720, evenLength); i < end;) {

@@ -3773,7 +3773,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
         if (type == BigDecimal.class) {
             return type.cast(value.getBigDecimal());
         } else if (type == BigInteger.class) {
-            return type.cast(BigInteger.valueOf(value.getLong()));
+            return type.cast(value.getBigDecimal().toBigInteger());
         } else if (type == String.class) {
             return type.cast(value.getString());
         } else if (type == Boolean.class) {

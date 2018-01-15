@@ -1926,7 +1926,7 @@ public class Function extends Expression implements FunctionCall {
         default:
             break;
         }
-        calendar = DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC"));
+        calendar = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
         calendar.setTimeInMillis(t1);
         int year1 = calendar.get(Calendar.YEAR);
         int month1 = calendar.get(Calendar.MONTH);

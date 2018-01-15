@@ -352,7 +352,7 @@ public class TestDate extends TestBase {
     }
 
     private void testValidDate() {
-        Calendar c = DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC"));
+        Calendar c = DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC);
         c.setLenient(false);
         for (int y = -2000; y < 3000; y++) {
             for (int m = -3; m <= 14; m++) {

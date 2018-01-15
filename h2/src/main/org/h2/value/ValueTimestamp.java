@@ -172,7 +172,7 @@ public class ValueTimestamp extends Value {
             int timeEnd = s.length();
             TimeZone tz = null;
             if (s.endsWith("Z")) {
-                tz = TimeZone.getTimeZone("UTC");
+                tz = DateTimeUtils.UTC;
                 timeEnd--;
             } else {
                 int timeZoneStart = s.indexOf('+', dateEnd + 1);

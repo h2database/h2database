@@ -40,8 +40,6 @@ public class ValueTimestampTimeZone extends Value {
      */
     static final int DEFAULT_SCALE = 10;
 
-    private static final TimeZone GMT_TIMEZONE = TimeZone.getTimeZone("GMT");
-
     /**
      * A bit field with bits for the year, month, and day (see DateTimeUtils for
      * encoding)
@@ -165,7 +163,7 @@ public class ValueTimestampTimeZone extends Value {
                 }
                 if (tz != null) {
                     long millis = DateTimeUtils
-                            .convertDateValueToMillis(GMT_TIMEZONE, dateValue);
+                            .convertDateValueToMillis(DateTimeUtils.UTC, dateValue);
                     tzMinutes = (short) (tz.getOffset(millis) / 1000 / 60);
                 }
             }
@@ -294,7 +292,7 @@ public class ValueTimestampTimeZone extends Value {
 
         // convert to minutes and add timezone offset
         long a = DateTimeUtils.convertDateValueToMillis(
-                TimeZone.getTimeZone("UTC"), dateValue) /
+                DateTimeUtils.UTC, dateValue) /
                 (1000L * 60L);
         long ma = timeNanos / (1000L * 1000L * 1000L * 60L);
         a += ma;
@@ -302,7 +300,7 @@ public class ValueTimestampTimeZone extends Value {
 
         // convert to minutes and add timezone offset
         long b = DateTimeUtils.convertDateValueToMillis(
-                TimeZone.getTimeZone("UTC"), t.dateValue) /
+                DateTimeUtils.UTC, t.dateValue) /
                 (1000L * 60L);
         long mb = t.timeNanos / (1000L * 1000L * 1000L * 60L);
         b += mb;

@@ -31,6 +31,7 @@ import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.server.ShutdownHandler;
 import org.h2.store.fs.FileUtils;
+import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.NetUtils;
@@ -257,7 +258,7 @@ public class WebServer implements Service {
         if (startDateTime == null) {
             SimpleDateFormat format = new SimpleDateFormat(
                     "EEE, d MMM yyyy HH:mm:ss z", new Locale("en", ""));
-            format.setTimeZone(TimeZone.getTimeZone("GMT"));
+            format.setTimeZone(DateTimeUtils.UTC);
             startDateTime = format.format(System.currentTimeMillis());
         }
         return startDateTime;

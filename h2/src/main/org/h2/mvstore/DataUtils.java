@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -670,6 +671,26 @@ public final class DataUtils {
             buff.setLength(0);
         }
         return map;
+    }
+
+    /**
+     * Parse a key-value pair list and checks its checksum.
+     *
+     * @param s the list
+     * @return the map without mapping for {@code "fletcher"}, or {@code null} if checksum is wrong
+     * @throws IllegalStateException if parsing failed
+     */
+    public static HashMap<String, String> parseChecksummedMap(String s) {
+        HashMap<String, String> m = DataUtils.parseMap(s);
+        int check = DataUtils.readHexInt(m, "fletcher", 0);
+        m.remove("fletcher");
+        s = s.substring(0, s.lastIndexOf("fletcher") - 1);
+        byte[] bytes = s.getBytes(StandardCharsets.ISO_8859_1);
+        int checksum = DataUtils.getFletcher32(bytes, bytes.length);
+        if (check == checksum) {
+            return m;
+        }
+        return null;
     }
 
     /**

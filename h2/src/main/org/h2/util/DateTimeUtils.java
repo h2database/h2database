@@ -471,7 +471,7 @@ public class DateTimeUtils {
         return convertToMillis(c, year, month, day, hour, minute, second, millis);
     }
 
-    static long convertToMillis(Calendar cal, int year, int month, int day,
+    private static long convertToMillis(Calendar cal, int year, int month, int day,
             int hour, int minute, int second, int millis) {
         if (year <= 0) {
             cal.set(Calendar.ERA, GregorianCalendar.BC);

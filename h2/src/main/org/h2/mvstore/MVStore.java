@@ -445,6 +445,7 @@ public final class MVStore {
      * @param builder the map builder
      * @return the map
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public synchronized <M extends MVMap<K, V>, K, V> M openMap(
             String name, MVMap.MapBuilder<M, K, V> builder) {
         checkOpen();
@@ -455,15 +456,14 @@ public final class MVStore {
         M map;
         if (x != null) {
             id = DataUtils.parseHexInt(x);
-            @SuppressWarnings("unchecked")
             M old = (M) maps.get(id);
             if (old != null) {
                 return old;
             }
             map = builder.create();
             String config = meta.get(MVMap.getMapKey(id));
-            c = New.hashMap();
-            c.putAll(DataUtils.parseMap(config));
+            // Cast from HashMap<String, String> to HashMap<String, Object> is safe
+            c = (HashMap) DataUtils.parseMap(config);
             c.put("id", id);
             map.init(this, c);
             root = getRootPos(meta, id);
@@ -2725,7 +2725,18 @@ public final class MVStore {
      */
     public static class Builder {
 
-        private final HashMap<String, Object> config = New.hashMap();
+        private final HashMap<String, Object> config;
+
+        private Builder(HashMap<String, Object> config) {
+            this.config = config;
+        }
+
+        /**
+         * Creates new instance of MVStore.Builder.
+         */
+        public Builder() {
+            config = New.hashMap();
+        }
 
         private Builder set(String key, Object value) {
             config.put(key, value);
@@ -2938,11 +2949,10 @@ public final class MVStore {
          * @param s the string representation
          * @return the builder
          */
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         public static Builder fromString(String s) {
-            HashMap<String, String> config = DataUtils.parseMap(s);
-            Builder builder = new Builder();
-            builder.config.putAll(config);
-            return builder;
+            // Cast from HashMap<String, String> to HashMap<String, Object> is safe
+            return new Builder((HashMap) DataUtils.parseMap(s));
         }
 
     }

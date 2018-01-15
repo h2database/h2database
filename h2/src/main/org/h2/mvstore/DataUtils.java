@@ -681,14 +681,31 @@ public final class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static HashMap<String, String> parseChecksummedMap(String s) {
-        HashMap<String, String> m = DataUtils.parseMap(s);
-        int check = DataUtils.readHexInt(m, "fletcher", 0);
-        m.remove("fletcher");
-        byte[] bytes = s.getBytes(StandardCharsets.ISO_8859_1);
-        int checksum = DataUtils.getFletcher32(bytes, s.lastIndexOf("fletcher") - 1);
-        if (check == checksum) {
-            return m;
+        HashMap<String, String> map = New.hashMap();
+        StringBuilder buff = new StringBuilder();
+        for (int i = 0, size = s.length(); i < size;) {
+            int startKey = i;
+            i = s.indexOf(':', i);
+            if (i < 0) {
+                throw DataUtils.newIllegalStateException(
+                        DataUtils.ERROR_FILE_CORRUPT, "Not a map: {0}", s);
+            }
+            if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
+                DataUtils.parseMapValue(buff, s, i + 1, size);
+                int check = (int) Long.parseLong(buff.toString(), 16);
+                byte[] bytes = s.getBytes(StandardCharsets.ISO_8859_1);
+                if (check == DataUtils.getFletcher32(bytes, startKey - 1)) {
+                    return map;
+                }
+                // Corrupted map
+                return null;
+            }
+            String key = s.substring(startKey, i++);
+            i = DataUtils.parseMapValue(buff, s, i, size);
+            map.put(key, buff.toString());
+            buff.setLength(0);
         }
+        // Corrupted map
         return null;
     }
 

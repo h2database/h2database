@@ -575,9 +575,7 @@ public final class MVStore {
             fileHeaderBlocks.get(buff);
             // the following can fail for various reasons
             try {
-                String s = new String(buff, 0, BLOCK_SIZE,
-                        StandardCharsets.ISO_8859_1).trim();
-                HashMap<String, String> m = DataUtils.parseChecksummedMap(s);
+                HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
                 if (m == null)
                     continue;
                 int blockSize = DataUtils.readHexInt(
@@ -797,8 +795,7 @@ public final class MVStore {
                     end - Chunk.FOOTER_LENGTH, Chunk.FOOTER_LENGTH);
             byte[] buff = new byte[Chunk.FOOTER_LENGTH];
             lastBlock.get(buff);
-            String s = new String(buff, StandardCharsets.ISO_8859_1).trim();
-            HashMap<String, String> m = DataUtils.parseChecksummedMap(s);
+            HashMap<String, String> m = DataUtils.parseChecksummedMap(buff);
             if (m != null) {
                 int chunk = DataUtils.readHexInt(m, "chunk", 0);
                 Chunk c = new Chunk(chunk);

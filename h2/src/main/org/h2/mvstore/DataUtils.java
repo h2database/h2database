@@ -676,11 +676,12 @@ public final class DataUtils {
     /**
      * Parse a key-value pair list and checks its checksum.
      *
-     * @param s the list
+     * @param bytes encoded map
      * @return the map without mapping for {@code "fletcher"}, or {@code null} if checksum is wrong
      * @throws IllegalStateException if parsing failed
      */
-    public static HashMap<String, String> parseChecksummedMap(String s) {
+    public static HashMap<String, String> parseChecksummedMap(byte[] bytes) {
+        String s = new String(bytes, StandardCharsets.ISO_8859_1).trim();
         HashMap<String, String> map = New.hashMap();
         StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {
@@ -693,7 +694,7 @@ public final class DataUtils {
             if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
                 DataUtils.parseMapValue(buff, s, i + 1, size);
                 int check = (int) Long.parseLong(buff.toString(), 16);
-                byte[] bytes = s.getBytes(StandardCharsets.ISO_8859_1);
+                bytes = s.getBytes(StandardCharsets.ISO_8859_1);
                 if (check == DataUtils.getFletcher32(bytes, startKey - 1)) {
                     return map;
                 }

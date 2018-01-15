@@ -186,7 +186,6 @@ public class ExpressionColumn extends Expression {
         }
         Value value = columnResolver.getValue(column);
         if (value == null) {
-            columnResolver.getValue(column);
             if (select == null) {
                 throw DbException.get(ErrorCode.NULL_NOT_ALLOWED, getSQL());
             } else {

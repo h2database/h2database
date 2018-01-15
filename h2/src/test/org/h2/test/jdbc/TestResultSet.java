@@ -1309,7 +1309,7 @@ public class TestResultSet extends TestBase {
                         java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
         o = rs.getObject(2, Calendar.class);
         assertTrue(o instanceof Calendar);
-        assertEquals(((Calendar) o).getTime().getTime(),
+        assertEquals(((Calendar) o).getTimeInMillis(),
                         java.sql.Timestamp.valueOf("2011-11-11 00:00:00.0").getTime());
         rs.next();
 

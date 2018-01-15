@@ -35,6 +35,11 @@ public class DateTimeUtils {
      */
     public static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000L;
 
+    /**
+     * UTC time zone.
+     */
+    public static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+
     private static final long NANOS_PER_DAY = MILLIS_PER_DAY * 1000000;
 
     private static final int SHIFT_YEAR = 9;
@@ -163,10 +168,9 @@ public class DateTimeUtils {
         cal.clear();
         cal.setLenient(true);
         long dateValue = d.getDateValue();
-        setCalendarFields(cal, yearFromDateValue(dateValue),
+        long ms = convertToMillis(cal, yearFromDateValue(dateValue),
                 monthFromDateValue(dateValue), dayFromDateValue(dateValue), 0,
                 0, 0, 0);
-        long ms = cal.getTimeInMillis();
         return new Date(ms);
     }
 
@@ -194,10 +198,7 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        setCalendarFields(cal, 1970, 1, 1, (int) h, (int) m, (int) s,
-                (int) millis);
-        long ms = cal.getTimeInMillis();
-        return new Time(ms);
+        return new Time(convertToMillis(cal, 1970, 1, 1, (int) h, (int) m, (int) s, (int) millis));
     }
 
     /**
@@ -225,10 +226,9 @@ public class DateTimeUtils {
         s -= m * 60;
         long h = m / 60;
         m -= h * 60;
-        setCalendarFields(cal, yearFromDateValue(dateValue),
+        long ms = convertToMillis(cal, yearFromDateValue(dateValue),
                 monthFromDateValue(dateValue), dayFromDateValue(dateValue),
                 (int) h, (int) m, (int) s, (int) millis);
-        long ms = cal.getTimeInMillis();
         Timestamp x = new Timestamp(ms);
         x.setNanos((int) (nanos + millis * 1000000));
         return x;
@@ -283,7 +283,7 @@ public class DateTimeUtils {
         Calendar local = DateTimeUtils.createGregorianCalendar();
         local.setTime(x);
         convertTime(local, target);
-        return target.getTime().getTime();
+        return target.getTimeInMillis();
     }
 
     private static void convertTime(Calendar from, Calendar to) {
@@ -468,12 +468,11 @@ public class DateTimeUtils {
             c = getCalendar(tz);
         }
         c.setLenient(lenient);
-        setCalendarFields(c, year, month, day, hour, minute, second, millis);
-        return c.getTime().getTime();
+        return convertToMillis(c, year, month, day, hour, minute, second, millis);
     }
 
-    private static void setCalendarFields(Calendar cal, int year, int month,
-            int day, int hour, int minute, int second, int millis) {
+    private static long convertToMillis(Calendar cal, int year, int month, int day,
+            int hour, int minute, int second, int millis) {
         if (year <= 0) {
             cal.set(Calendar.ERA, GregorianCalendar.BC);
             cal.set(Calendar.YEAR, 1 - year);
@@ -488,6 +487,7 @@ public class DateTimeUtils {
         cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, second);
         cal.set(Calendar.MILLISECOND, millis);
+        return cal.getTimeInMillis();
     }
 
     /**

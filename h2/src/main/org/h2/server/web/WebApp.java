@@ -1675,10 +1675,11 @@ public class WebApp {
                                 "onmouseout = \"this.className ='icon'\" " +
                                 "class=\"icon\" alt=\"${text.resultEdit.edit}\" " +
                                 "title=\"${text.resultEdit.edit}\" border=\"1\"/>").
-                        append("<a href=\"editResult.do?op=2&row=").
+                        append("<img onclick=\"javascript:deleteRow(").
                         append(rs.getRow()).
-                        append("&jsessionid=${sessionId}\" target=\"h2result\" >" +
-                                "<img width=16 height=16 src=\"ico_remove.gif\" " +
+                        append(",'${sessionId}', '${text.resultEdit.delete}', " +
+                                "'${text.resultEdit.cancel}'").
+                        append(")\" width=16 height=16 src=\"ico_remove.gif\" " +
                                 "onmouseover = \"this.className ='icon_hover'\" " +
                                 "onmouseout = \"this.className ='icon'\" " +
                                 "class=\"icon\" alt=\"${text.resultEdit.delete}\" " +

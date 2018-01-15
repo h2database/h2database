@@ -701,8 +701,7 @@ public final class DataUtils {
             if (i - startKey == 8 && s.regionMatches(startKey, "fletcher", 0, 8)) {
                 DataUtils.parseMapValue(buff, s, i + 1, size);
                 int check = (int) Long.parseLong(buff.toString(), 16);
-                bytes = s.getBytes(StandardCharsets.ISO_8859_1);
-                if (check == DataUtils.getFletcher32(bytes, 0, startKey - 1)) {
+                if (check == DataUtils.getFletcher32(bytes, start, startKey - 1)) {
                     return map;
                 }
                 // Corrupted map

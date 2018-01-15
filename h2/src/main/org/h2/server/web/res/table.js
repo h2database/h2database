@@ -82,6 +82,28 @@ function editRow(row, session, write, undo) {
     }
 }
 
+function deleteRow(row, session, write, undo) {
+    var table = document.getElementById('editTable');
+    var y = row < 0 ? table.rows.length - 1 : row;
+    var i;
+    for(i=1; i<table.rows.length; i++) {
+        var cell = table.rows[i].cells[0];
+        if (i == y) {
+            var edit = '<img width=16 height=16 src="ico_remove_ok.gif" onclick="deleteOk('+row+')" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+write+'" title="'+write+'" border="1"/>';
+            var undo = '<img width=16 height=16 src="ico_undo.gif" onclick="editCancel('+row+')" onmouseover = "this.className =\'icon_hover\'" onmouseout = "this.className=\'icon\'" class="icon" alt="'+undo+'" title="'+undo+'" border="1"/>';
+            cell.innerHTML = edit + undo;
+        } else {
+            cell.innerHTML = '';
+        }
+    }
+    var cells = table.rows[y].cells;
+    for (i=1; i<cells.length; i++) {
+        var s = cells[i].style;
+        s.color = 'red';
+        s.textDecoration = 'line-through';
+    }
+}
+
 function editCancel(row) {
     var editing = document.getElementById('editing');
     editing.row.value = row;
@@ -93,6 +115,13 @@ function editOk(row) {
     var editing = document.getElementById('editing');
     editing.row.value = row;
     editing.op.value='1';
+    editing.submit();
+}
+
+function deleteOk(row) {
+    var editing = document.getElementById('editing');
+    editing.row.value = row;
+    editing.op.value='2';
     editing.submit();
 }
 

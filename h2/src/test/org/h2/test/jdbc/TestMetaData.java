@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.sql.Types;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
+import org.h2.engine.SysProperties;
 import org.h2.test.TestBase;
 import org.h2.value.DataType;
 
@@ -177,6 +178,12 @@ public class TestMetaData extends TestBase {
     }
 
     private void testColumnPrecision() throws SQLException {
+        int numericType;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+        } else {
+            numericType = Types.NUMERIC;
+        }
         Connection conn = getConnection("metaData");
         Statement stat = conn.createStatement();
         stat.execute("CREATE TABLE ONE(X NUMBER(12,2), Y FLOAT)");
@@ -187,13 +194,13 @@ public class TestMetaData extends TestBase {
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(17, rsMeta.getPrecision(2));
-        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         rs = stat.executeQuery("SELECT * FROM TWO");
         rsMeta = rs.getMetaData();
         assertEquals(12, rsMeta.getPrecision(1));
         assertEquals(17, rsMeta.getPrecision(2));
-        assertEquals(Types.DECIMAL, rsMeta.getColumnType(1));
+        assertEquals(numericType, rsMeta.getColumnType(1));
         assertEquals(Types.DOUBLE, rsMeta.getColumnType(2));
         stat.execute("DROP TABLE ONE, TWO");
         conn.close();
@@ -597,6 +604,15 @@ public class TestMetaData extends TestBase {
     }
 
     private void testMore() throws SQLException {
+        int numericType;
+        String numericName;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+            numericName = "DECIMAL";
+        } else {
+            numericType = Types.NUMERIC;
+            numericName = "NUMERIC";
+        }
         Connection conn = getConnection("metaData");
         DatabaseMetaData meta = conn.getMetaData();
         Statement stat = conn.createStatement();
@@ -703,9 +719,9 @@ public class TestMetaData extends TestBase {
                         "" + DatabaseMetaData.columnNullable, "", null,
                         "" + Types.VARCHAR, "0", "120", "2", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DEC_V",
-                        "" + Types.DECIMAL, "DECIMAL", "12", "12", "3", "10",
+                        "" + numericType, numericName, "12", "12", "3", "10",
                         "" + DatabaseMetaData.columnNullable, "", null,
-                        "" + Types.DECIMAL, "0", "12", "3", "YES" },
+                        "" + numericType, "0", "12", "3", "YES" },
                 { CATALOG, Constants.SCHEMA_MAIN, "TEST", "DATE_V",
                         "" + Types.TIMESTAMP, "TIMESTAMP", "23", "23", "10",
                         "10", "" + DatabaseMetaData.columnNullable, "", null,

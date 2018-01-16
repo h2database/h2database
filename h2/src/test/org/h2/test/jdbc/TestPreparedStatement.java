@@ -769,6 +769,15 @@ public class TestPreparedStatement extends TestBase {
     }
 
     private void testParameterMetaData(Connection conn) throws SQLException {
+        int numericType;
+        String numericName;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            numericType = Types.DECIMAL;
+            numericName = "DECIMAL";
+        } else {
+            numericType = Types.NUMERIC;
+            numericName = "NUMERIC";
+        }
         PreparedStatement prep = conn.prepareStatement("SELECT ?, ?, ? FROM DUAL");
         ParameterMetaData pm = prep.getParameterMetaData();
         assertEquals("java.lang.String", pm.getParameterClassName(1));
@@ -794,15 +803,15 @@ public class TestPreparedStatement extends TestBase {
                 "INSERT INTO TEST3 VALUES(?, ?, ?)");
         checkParameter(prep1, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
         checkParameter(prep1, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
-        checkParameter(prep1, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
+        checkParameter(prep1, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
         checkParameter(prep2, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
         checkParameter(prep2, 2, "java.lang.String", 12, "VARCHAR", 255, 0);
-        checkParameter(prep2, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
+        checkParameter(prep2, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
         PreparedStatement prep3 = conn.prepareStatement(
                 "SELECT * FROM TEST3 WHERE ID=? AND NAME LIKE ? AND ?>DATA");
         checkParameter(prep3, 1, "java.lang.Integer", 4, "INTEGER", 10, 0);
         checkParameter(prep3, 2, "java.lang.String", 12, "VARCHAR", 0, 0);
-        checkParameter(prep3, 3, "java.math.BigDecimal", 3, "DECIMAL", 10, 2);
+        checkParameter(prep3, 3, "java.math.BigDecimal", numericType, numericName, 10, 2);
         stat.execute("DROP TABLE TEST3");
     }
 

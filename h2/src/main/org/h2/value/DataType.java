@@ -261,23 +261,13 @@ public class DataType {
                 new String[]{"IDENTITY", "BIGSERIAL"},
                 24
         );
-        add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"DECIMAL", "DEC"},
-                // 40 for ValueDecimal,
-                64
-        );
-        add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
-                createDecimal(Integer.MAX_VALUE,
-                        ValueDecimal.DEFAULT_PRECISION,
-                        ValueDecimal.DEFAULT_SCALE,
-                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
-                new String[]{"NUMERIC", "NUMBER"},
-                64
-        );
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            addDecimal();
+            addNumeric();
+        } else {
+            addNumeric();
+            addDecimal();
+        }
         add(Value.FLOAT, Types.REAL, "Float",
                 createDecimal(ValueFloat.PRECISION, ValueFloat.PRECISION,
                         0, ValueFloat.DISPLAY_SIZE, false, false),
@@ -396,6 +386,29 @@ public class DataType {
         for (Integer i : TYPES_BY_VALUE_TYPE.keySet()) {
             Value.getOrder(i);
         }
+    }
+
+    static void addDecimal() {
+        add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
+                createDecimal(Integer.MAX_VALUE,
+                        ValueDecimal.DEFAULT_PRECISION,
+                        ValueDecimal.DEFAULT_SCALE,
+                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                new String[]{"DECIMAL", "DEC"},
+                // 40 for ValueDecimal,
+                64
+        );
+    }
+
+    static void addNumeric() {
+        add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
+                createDecimal(Integer.MAX_VALUE,
+                        ValueDecimal.DEFAULT_PRECISION,
+                        ValueDecimal.DEFAULT_SCALE,
+                        ValueDecimal.DEFAULT_DISPLAY_SIZE, true, false),
+                new String[]{"NUMERIC", "NUMBER"},
+                64
+        );
     }
 
     private static void add(int type, int sqlType, String jdbc,

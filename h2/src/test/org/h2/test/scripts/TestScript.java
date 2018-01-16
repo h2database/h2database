@@ -19,6 +19,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Random;
+
+import org.h2.engine.SysProperties;
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.New;
@@ -83,8 +85,14 @@ public class TestScript extends TestBase {
         testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");
+        String decimal2;
+        if (SysProperties.BIG_DECIMAL_IS_DECIMAL) {
+            decimal2 = "decimal_decimal";
+        } else {
+            decimal2 = "decimal_numeric";
+        }
         for (String s : new String[] { "array", "bigint", "binary", "blob",
-                "boolean", "char", "clob", "date", "decimal", "double", "enum",
+                "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
                 "geometry", "identity", "int", "other", "real", "smallint",
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {

@@ -1,8 +1,9 @@
 package org.h2.store;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
+
+import org.h2.util.IOUtils;
 
 public final class RangeReader extends Reader {
     private final Reader r;
@@ -12,17 +13,7 @@ public final class RangeReader extends Reader {
     public RangeReader(Reader r, long offset, long limit) throws IOException {
         this.r = r;
         this.limit = limit;
-        while (offset > 0) {
-            long skip = r.skip(offset);
-            if (skip <= 0) {
-                int ch = read();
-                if (ch < 0)
-                    throw new EOFException();
-                offset--;
-            } else {
-                offset -= skip;
-            }
-        }
+        IOUtils.skipFully(r, offset);
     }
 
     @Override

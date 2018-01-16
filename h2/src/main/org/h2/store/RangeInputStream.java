@@ -1,9 +1,10 @@
 package org.h2.store;
 
-import java.io.EOFException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.h2.util.IOUtils;
 
 public final class RangeInputStream extends FilterInputStream {
     private long limit;
@@ -11,17 +12,7 @@ public final class RangeInputStream extends FilterInputStream {
     public RangeInputStream(InputStream in, long offset, long limit) throws IOException {
         super(in);
         this.limit = limit;
-        while (offset > 0) {
-            long skip = in.skip(offset);
-            if (skip <= 0) {
-                int b = read();
-                if (b < 0)
-                    throw new EOFException();
-                offset--;
-            } else {
-                offset -= skip;
-            }
-        }
+        IOUtils.skipFully(in, offset);
     }
 
     @Override

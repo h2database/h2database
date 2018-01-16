@@ -59,8 +59,11 @@ public class ValueLob extends Value {
         }
     }
 
-    static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length) {
-        rangeCheckUnknown(oneBasedOffset, length);
+    static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length, long dataSize) {
+        if (dataSize >= 0)
+            rangeCheck(oneBasedOffset - 1, length, dataSize);
+        else
+            rangeCheckUnknown(oneBasedOffset - 1, length);
         try {
             return new RangeInputStream(inputStream, oneBasedOffset - 1, length);
         } catch (IOException e) {
@@ -683,7 +686,12 @@ public class ValueLob extends Value {
         if (fileName == null) {
             return super.getInputStream(oneBasedOffset, length);
         }
-        return rangeInputStream(getInputStream(), oneBasedOffset, length);
+        FileStore store = handler.openFile(fileName, "r", true);
+        boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+        InputStream inputStream = new BufferedInputStream(
+                new FileStoreInputStream(store, handler, compressed, alwaysClose),
+                Constants.IO_BUFFER_SIZE);
+        return rangeInputStream(inputStream, oneBasedOffset, length, store.length());
     }
 
     @Override

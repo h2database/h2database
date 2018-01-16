@@ -1633,7 +1633,7 @@ public class TestResultSet extends TestBase {
             byte[] got = readAllBytes(blob.getBinaryStream(101, 50002));
             assertEqualsWithNull(expected, got);
             assertTrue(!rs.wasNull());
-            // TODO assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10001, 1);
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10001, 1);
             assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10002, 0);
         } finally {
             blob.free();

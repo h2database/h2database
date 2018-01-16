@@ -20,8 +20,10 @@ import java.awt.MenuItem;
 import java.awt.Panel;
 import java.awt.PopupMenu;
 import java.awt.SystemColor;
+import java.awt.SystemTray;
 import java.awt.TextField;
 import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -57,8 +59,8 @@ ShutdownHandler {
     private Font font;
     private Button startBrowser;
     private TextField urlText;
-    private Object tray;
-    private Object trayIcon;
+    private SystemTray tray;
+    private TrayIcon trayIcon;
 //*/
     private Server web, tcp, pg;
     private boolean isWindows;
@@ -344,8 +346,7 @@ ShutdownHandler {
         }
         if (trayIconUsed) {
             try {
-                // tray.remove(trayIcon);
-                Utils.callMethod(tray, "remove", trayIcon);
+                tray.remove(trayIcon);
             } catch (Exception e) {
                 // ignore
             } finally {
@@ -380,10 +381,7 @@ ShutdownHandler {
 
     private boolean createTrayIcon() {
         try {
-            // SystemTray.isSupported();
-            boolean supported = (Boolean) Utils.callStaticMethod(
-                    "java.awt.SystemTray.isSupported");
-            if (!supported) {
+            if (!SystemTray.isSupported()) {
                 return false;
             }
             PopupMenu menuConsole = new PopupMenu();
@@ -403,11 +401,9 @@ ShutdownHandler {
             itemExit.addActionListener(this);
             menuConsole.add(itemExit);
 
-            // tray = SystemTray.getSystemTray();
-            tray = Utils.callStaticMethod("java.awt.SystemTray.getSystemTray");
+            tray = SystemTray.getSystemTray();
 
-            // Dimension d = tray.getTrayIconSize();
-            Dimension d = (Dimension) Utils.callMethod(tray, "getTrayIconSize");
+            Dimension d = tray.getTrayIconSize();
             String iconFile;
             if (d.width >= 24 && d.height >= 24) {
                 iconFile = "/org/h2/res/h2-24.png";
@@ -421,18 +417,10 @@ ShutdownHandler {
                 iconFile = "/org/h2/res/h2.png";
             }
             Image icon = loadImage(iconFile);
+            trayIcon = new TrayIcon(icon, "H2 Database Engine", menuConsole);
+            trayIcon.addMouseListener(this);
 
-            // trayIcon = new TrayIcon(image, "H2 Database Engine",
-            //         menuConsole);
-            trayIcon = Utils.newInstance("java.awt.TrayIcon",
-                    icon, "H2 Database Engine", menuConsole);
-
-            // trayIcon.addMouseListener(this);
-            Utils.callMethod(trayIcon, "addMouseListener", this);
-
-            // tray.add(trayIcon);
-            Utils.callMethod(tray, "add", trayIcon);
-
+            tray.add(trayIcon);
             this.trayIconUsed = true;
 
             return true;

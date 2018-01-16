@@ -6,6 +6,7 @@
 package org.h2.tools;
 
 import java.io.BufferedReader;
+import java.io.Console;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,7 +30,6 @@ import org.h2.util.ScriptReader;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
-import org.h2.util.Utils;
 
 /**
  * Interactive command line tool to access a database using JDBC.
@@ -392,9 +392,9 @@ public class Shell extends Tool implements Runnable {
 
     private String readPassword() throws IOException {
         try {
-            Object console = Utils.callStaticMethod("java.lang.System.console");
+            Console console = System.console();
             print("Password  ");
-            char[] password = (char[]) Utils.callMethod(console, "readPassword");
+            char[] password = console.readPassword();
             return password == null ? null : new String(password);
         } catch (Exception e) {
             // ignore, use the default solution

@@ -83,8 +83,10 @@ public class TestScript extends TestBase {
         testScript("query-optimisations.sql");
         testScript("commands-dml-script.sql");
         testScript("commands-dml-create-view.sql");
+        String decimal2;
+        decimal2 = "decimal_decimal";
         for (String s : new String[] { "array", "bigint", "binary", "blob",
-                "boolean", "char", "clob", "date", "decimal", "double", "enum",
+                "boolean", "char", "clob", "date", "decimal", decimal2, "double", "enum",
                 "geometry", "identity", "int", "other", "real", "smallint",
                 "time", "timestamp-with-timezone", "timestamp", "tinyint",
                 "uuid", "varchar", "varchar-ignorecase" }) {

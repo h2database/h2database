@@ -356,6 +356,15 @@ public class SysProperties {
             Utils.getProperty("h2.oldResultSetGetObject", true);
 
     /**
+     * System property {@code h2.bigDecimalIsDecimal}, {@code true} by default. If
+     * {@code true} map {@code BigDecimal} to {@code DECIMAL} type, if {@code false}
+     * map it to {@code NUMERIC} as specified in JDBC specification (see Mapping
+     * from Java Object Types to JDBC Types).
+     */
+    public static final boolean BIG_DECIMAL_IS_DECIMAL =
+            Utils.getProperty("h2.bigDecimalIsDecimal", true);
+
+    /**
      * System property <code>h2.pgClientEncoding</code> (default: UTF-8).<br />
      * Default client encoding for PG server. It is used if the client does not
      * sends his encoding.

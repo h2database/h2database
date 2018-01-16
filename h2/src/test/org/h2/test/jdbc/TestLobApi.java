@@ -92,8 +92,6 @@ public class TestLobApi extends TestBase {
                 position("", 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 position((Clob) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
-                getCharacterStream(1, 1);
 
         Blob blob = rs.getBlob(3);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
@@ -104,8 +102,6 @@ public class TestLobApi extends TestBase {
                 position(new byte[1], 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
                 position((Blob) null, 0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
-                getBinaryStream(1, 1);
         assertTrue(blob.toString().endsWith("X'00'"));
         blob.free();
         assertTrue(blob.toString().endsWith("null"));

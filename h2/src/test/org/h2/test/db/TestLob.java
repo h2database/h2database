@@ -1074,18 +1074,34 @@ public class TestLob extends TestBase {
         prep2.getQueryTimeout();
         prep2.close();
         conn0.getAutoCommit();
-        Reader r = clob0.getCharacterStream();
+        Reader r;
+        int ch;
+        r = clob0.getCharacterStream();
         for (int i = 0; i < 10000; i++) {
-            int ch = r.read();
+            ch = r.read();
             if (ch != ('0' + (i % 10))) {
                 fail("expected " + (char) ('0' + (i % 10)) +
                         " got: " + ch + " (" + (char) ch + ")");
             }
         }
-        int ch = r.read();
+        ch = r.read();
         if (ch != -1) {
             fail("expected -1 got: " + ch);
         }
+        r.close();
+        r = clob0.getCharacterStream(1235, 1000);
+        for (int i = 1234; i < 2234; i++) {
+            ch = r.read();
+            if (ch != ('0' + (i % 10))) {
+                fail("expected " + (char) ('0' + (i % 10)) +
+                        " got: " + ch + " (" + (char) ch + ")");
+            }
+        }
+        ch = r.read();
+        if (ch != -1) {
+            fail("expected -1 got: " + ch);
+        }
+        r.close();
         conn0.close();
     }
 

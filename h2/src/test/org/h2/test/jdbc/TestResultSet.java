@@ -32,6 +32,7 @@ import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.TimeZone;
@@ -42,6 +43,8 @@ import org.h2.test.TestBase;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.LocalDateTimeUtils;
+import org.h2.util.MathUtils;
+import org.h2.util.StringUtils;
 
 /**
  * Tests for the ResultSet implementation.
@@ -1548,6 +1551,9 @@ public class TestResultSet extends TestBase {
         stat.execute("INSERT INTO TEST VALUES(5,X'0bcec1')");
         stat.execute("INSERT INTO TEST VALUES(6,X'03030303')");
         stat.execute("INSERT INTO TEST VALUES(7,NULL)");
+        byte[] random = new byte[0x10000];
+        MathUtils.randomBytes(random);
+        stat.execute("INSERT INTO TEST VALUES(8, X'" + StringUtils.convertBytesToHex(random) + "')");
         rs = stat.executeQuery("SELECT * FROM TEST ORDER BY ID");
         assertResultSetMeta(rs, 2, new String[] { "ID", "VALUE" },
                 new int[] { Types.INTEGER, Types.BLOB }, new int[] {
@@ -1587,14 +1593,27 @@ public class TestResultSet extends TestBase {
         InputStream in = rs.getBinaryStream("value");
         byte[] b = readAllBytes(in);
         assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 }, b);
+        Blob blob = rs.getObject("value", Blob.class);
+        try {
+            assertTrue(blob != null);
+            assertEqualsWithNull(new byte[] { (byte) 0x0b, (byte) 0xce, (byte) 0xc1 },
+                    readAllBytes(blob.getBinaryStream()));
+            assertEqualsWithNull(new byte[] { (byte) 0xce,
+                    (byte) 0xc1 }, readAllBytes(blob.getBinaryStream(2, 2)));
+            assertTrue(!rs.wasNull());
+        } finally {
+            blob.free();
+        }
         assertTrue(!rs.wasNull());
         rs.next();
 
-        Blob blob = rs.getObject("value", Blob.class);
+        blob = rs.getObject("value", Blob.class);
         try {
             assertTrue(blob != null);
             assertEqualsWithNull(new byte[] { (byte) 0x03, (byte) 0x03,
                     (byte) 0x03, (byte) 0x03 }, readAllBytes(blob.getBinaryStream()));
+            assertEqualsWithNull(new byte[] { (byte) 0x03,
+                    (byte) 0x03 }, readAllBytes(blob.getBinaryStream(2, 2)));
             assertTrue(!rs.wasNull());
         } finally {
             blob.free();
@@ -1603,6 +1622,20 @@ public class TestResultSet extends TestBase {
 
         assertEqualsWithNull(null, readAllBytes(rs.getBinaryStream("VaLuE")));
         assertTrue(rs.wasNull());
+        rs.next();
+
+        blob = rs.getObject("value", Blob.class);
+        try {
+            assertTrue(blob != null);
+            assertEqualsWithNull(random, readAllBytes(blob.getBinaryStream()));
+            byte[] expected = Arrays.copyOfRange(random, 100, 50102);
+            byte[] got = readAllBytes(blob.getBinaryStream(101, 50002));
+            assertEqualsWithNull(expected, got);
+            assertTrue(!rs.wasNull());
+        } finally {
+            blob.free();
+        }
+
         assertTrue(!rs.next());
         stat.execute("DROP TABLE TEST");
     }
@@ -1659,6 +1692,12 @@ public class TestResultSet extends TestBase {
         assertTrue(!rs.wasNull());
         trace(string);
         assertTrue(string != null && string.equals("Hallo"));
+        Clob clob = rs.getClob(2);
+        try {
+            assertEquals("all", readString(clob.getCharacterStream(2, 3)));
+        } finally {
+            clob.free();
+        }
         rs.next();
 
         string = readString(rs.getCharacterStream("value"));
@@ -1667,7 +1706,7 @@ public class TestResultSet extends TestBase {
         assertTrue(string != null && string.equals("Welt!"));
         rs.next();
 
-        Clob clob = rs.getObject("value", Clob.class);
+        clob = rs.getObject("value", Clob.class);
         try {
             assertTrue(clob != null);
             string = readString(clob.getCharacterStream());

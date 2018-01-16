@@ -304,7 +304,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * [Not supported] Returns the input stream, starting from an offset.
+     * Returns the input stream, starting from an offset.
      *
      * @param pos where to start reading
      * @param length the number of bytes that will be read
@@ -312,7 +312,13 @@ public class JdbcBlob extends TraceObject implements Blob {
      */
     @Override
     public InputStream getBinaryStream(long pos, long length) throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            debugCodeCall("getBinaryStream(pos, length)");
+            checkClosed();
+            return value.getInputStream(pos, length);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     private void checkClosed() {

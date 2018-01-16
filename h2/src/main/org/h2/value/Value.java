@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Mode;
 import org.h2.engine.SysProperties;
@@ -186,6 +187,15 @@ public abstract class Value {
             BigDecimal.valueOf(Long.MAX_VALUE);
     private static final BigDecimal MIN_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MIN_VALUE);
+
+    private static void rangeCheck(long zeroBasedOffset, long length, long dataSize) {
+        if ((zeroBasedOffset | length) < 0 || length > dataSize - zeroBasedOffset) {
+            if (zeroBasedOffset < 0 || zeroBasedOffset > dataSize) {
+                throw DbException.getInvalidValueException("offset", zeroBasedOffset + 1);
+            }
+            throw DbException.getInvalidValueException("length", length);
+        }
+    }
 
     /**
      * Get the SQL expression for this value.
@@ -469,8 +479,21 @@ public abstract class Value {
         return new ByteArrayInputStream(getBytesNoCopy());
     }
 
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        byte[] bytes = getBytesNoCopy();
+        rangeCheck(--oneBasedOffset, length, bytes.length);
+        return new ByteArrayInputStream(bytes, /* 0-based */ (int) oneBasedOffset, (int) length);
+    }
+
     public Reader getReader() {
         return new StringReader(getString());
+    }
+
+    public Reader getReader(long oneBasedOffset, long length) {
+        String string = getString();
+        rangeCheck(--oneBasedOffset, length, string.length());
+        int offset = /* 0-based */ (int) oneBasedOffset;
+        return new StringReader(string.substring(offset, offset + (int) length));
     }
 
     /**

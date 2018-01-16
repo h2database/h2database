@@ -23,6 +23,8 @@ import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
 import org.h2.store.FileStoreInputStream;
 import org.h2.store.FileStoreOutputStream;
+import org.h2.store.RangeInputStream;
+import org.h2.store.RangeReader;
 import org.h2.store.fs.FileUtils;
 import org.h2.table.Column;
 import org.h2.util.IOUtils;
@@ -47,6 +49,25 @@ import org.h2.util.Utils;
  * Data compression is supported.
  */
 public class ValueLob extends Value {
+
+    private static void rangeCheckUnknown(long zeroBasedOffset, long length) {
+        if (zeroBasedOffset < 0) {
+            throw DbException.getInvalidValueException("offset", zeroBasedOffset + 1);
+        }
+        if (length < 0) {
+            throw DbException.getInvalidValueException("length", length);
+        }
+    }
+
+    static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length) {
+        rangeCheckUnknown(--oneBasedOffset, length);
+        return new RangeInputStream(inputStream, /* 0-based */ oneBasedOffset, length);
+    }
+
+    static Reader rangeReader(Reader reader, long oneBasedOffset, long length) {
+        rangeCheckUnknown(--oneBasedOffset, length);
+        return new RangeReader(reader, /* 0-based */ oneBasedOffset, length);
+    }
 
     /**
      * This counter is used to calculate the next directory to store lobs. It is
@@ -633,6 +654,11 @@ public class ValueLob extends Value {
     }
 
     @Override
+    public Reader getReader(long oneBasedOffset, long length) {
+        return rangeReader(getReader(), oneBasedOffset, length);
+    }
+
+    @Override
     public InputStream getInputStream() {
         if (fileName == null) {
             return new ByteArrayInputStream(small);
@@ -642,6 +668,14 @@ public class ValueLob extends Value {
         return new BufferedInputStream(
                 new FileStoreInputStream(store, handler, compressed, alwaysClose),
                 Constants.IO_BUFFER_SIZE);
+    }
+
+    @Override
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        if (fileName == null) {
+            return super.getInputStream(oneBasedOffset, length);
+        }
+        return rangeInputStream(getInputStream(), oneBasedOffset, length);
     }
 
     @Override

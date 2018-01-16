@@ -375,6 +375,11 @@ public class ValueLobDb extends Value implements Value.ValueClob,
     }
 
     @Override
+    public Reader getReader(long oneBasedOffset, long length) {
+        return ValueLob.rangeReader(getReader(), oneBasedOffset, length);
+    }
+
+    @Override
     public InputStream getInputStream() {
         if (small != null) {
             return new ByteArrayInputStream(small);
@@ -390,6 +395,14 @@ public class ValueLobDb extends Value implements Value.ValueClob,
         } catch (IOException e) {
             throw DbException.convertIOException(e, toString());
         }
+    }
+
+    @Override
+    public InputStream getInputStream(long oneBasedOffset, long length) {
+        if (small != null) {
+            return super.getInputStream(oneBasedOffset, length);
+        }
+        return ValueLob.rangeInputStream(getInputStream(), oneBasedOffset, length);
     }
 
     @Override

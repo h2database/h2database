@@ -261,11 +261,17 @@ public class JdbcClob extends TraceObject implements NClob
     }
 
     /**
-     * [Not supported] Returns the reader, starting from an offset.
+     * Returns the reader, starting from an offset.
      */
     @Override
     public Reader getCharacterStream(long pos, long length) throws SQLException {
-        throw unsupported("LOB subset");
+        try {
+            debugCodeCall("getCharacterStream(pos, length)");
+            checkClosed();
+            return value.getReader(pos, length);
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     private void checkClosed() {

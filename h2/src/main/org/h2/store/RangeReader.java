@@ -1,28 +1,32 @@
 package org.h2.store;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.Reader;
 
 public final class RangeReader extends Reader {
     private final Reader r;
 
-    private long offset, limit;
+    private long limit;
 
-    public RangeReader(Reader r, long offset, long limit) {
+    public RangeReader(Reader r, long offset, long limit) throws IOException {
         this.r = r;
-        this.offset = offset;
         this.limit = limit;
-    }
-
-    private void before() throws IOException {
         while (offset > 0) {
-            offset -= r.skip(offset);
+            long skip = r.skip(offset);
+            if (skip <= 0) {
+                int ch = read();
+                if (ch < 0)
+                    throw new EOFException();
+                offset--;
+            } else {
+                offset -= skip;
+            }
         }
     }
 
     @Override
     public int read() throws IOException {
-        before();
         if (limit < 1) {
             return -1;
         }
@@ -35,7 +39,6 @@ public final class RangeReader extends Reader {
 
     @Override
     public int read(char cbuf[], int off, int len) throws IOException {
-        before();
         if (len > limit) {
             len = (int) limit;
         }
@@ -48,7 +51,6 @@ public final class RangeReader extends Reader {
 
     @Override
     public long skip(long n) throws IOException {
-        before();
         if (n > limit) {
             n = (int) limit;
         }
@@ -59,7 +61,6 @@ public final class RangeReader extends Reader {
 
     @Override
     public boolean ready() throws IOException {
-        before();
         if (limit > 0) {
             return r.ready();
         }

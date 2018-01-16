@@ -60,13 +60,21 @@ public class ValueLob extends Value {
     }
 
     static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length) {
-        rangeCheckUnknown(--oneBasedOffset, length);
-        return new RangeInputStream(inputStream, /* 0-based */ oneBasedOffset, length);
+        rangeCheckUnknown(oneBasedOffset, length);
+        try {
+            return new RangeInputStream(inputStream, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
     }
 
     static Reader rangeReader(Reader reader, long oneBasedOffset, long length) {
-        rangeCheckUnknown(--oneBasedOffset, length);
-        return new RangeReader(reader, /* 0-based */ oneBasedOffset, length);
+        rangeCheckUnknown(oneBasedOffset, length);
+        try {
+            return new RangeReader(reader, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
     }
 
     /**

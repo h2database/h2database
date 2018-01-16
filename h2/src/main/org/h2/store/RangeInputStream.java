@@ -1,27 +1,31 @@
 package org.h2.store;
 
+import java.io.EOFException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 public final class RangeInputStream extends FilterInputStream {
-    private long offset, limit;
+    private long limit;
 
-    public RangeInputStream(InputStream in, long offset, long limit) {
+    public RangeInputStream(InputStream in, long offset, long limit) throws IOException {
         super(in);
-        this.offset = offset;
         this.limit = limit;
-    }
-
-    private void before() throws IOException {
         while (offset > 0) {
-            offset -= in.skip(offset);
+            long skip = in.skip(offset);
+            if (skip <= 0) {
+                int b = read();
+                if (b < 0)
+                    throw new EOFException();
+                offset--;
+            } else {
+                offset -= skip;
+            }
         }
     }
 
     @Override
     public int read() throws IOException {
-        before();
         if (limit < 1) {
             return -1;
         }
@@ -34,7 +38,6 @@ public final class RangeInputStream extends FilterInputStream {
 
     @Override
     public int read(byte b[], int off, int len) throws IOException {
-        before();
         if (len > limit) {
             len = (int) limit;
         }
@@ -47,7 +50,6 @@ public final class RangeInputStream extends FilterInputStream {
 
     @Override
     public long skip(long n) throws IOException {
-        before();
         if (n > limit) {
             n = (int) limit;
         }
@@ -58,7 +60,6 @@ public final class RangeInputStream extends FilterInputStream {
 
     @Override
     public int available() throws IOException {
-        before();
         int cnt = in.available();
         if (cnt > limit) {
             return (int) limit;

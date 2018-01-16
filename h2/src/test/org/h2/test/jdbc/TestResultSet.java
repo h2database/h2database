@@ -1698,7 +1698,7 @@ public class TestResultSet extends TestBase {
         Clob clob = rs.getClob(2);
         try {
             assertEquals("all", readString(clob.getCharacterStream(2, 3)));
-            // TODO assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(6, 1);
+            assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(6, 1);
             assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(7, 0);
         } finally {
             clob.free();

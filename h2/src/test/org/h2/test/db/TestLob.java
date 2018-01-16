@@ -1103,7 +1103,7 @@ public class TestLob extends TestBase {
             fail("expected -1 got: " + ch);
         }
         r.close();
-        // TODO assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10001, 1);
+        assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10001, 1);
         assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10002, 0);
         conn0.close();
     }

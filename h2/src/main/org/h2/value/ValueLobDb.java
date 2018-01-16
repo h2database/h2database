@@ -376,7 +376,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public Reader getReader(long oneBasedOffset, long length) {
-        return ValueLob.rangeReader(getReader(), oneBasedOffset, length);
+        return ValueLob.rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
     }
 
     @Override

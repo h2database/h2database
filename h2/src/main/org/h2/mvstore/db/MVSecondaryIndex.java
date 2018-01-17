@@ -85,7 +85,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     private static final class Source {
         private final Iterator<ValueArray> iterator;
-                      ValueArray           currentRowData;
+        ValueArray currentRowData;
 
         public Source(Iterator<ValueArray> iterator) {
             this.iterator = iterator;

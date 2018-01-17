@@ -369,11 +369,24 @@ public class Build extends BuildBase {
         delete(files("bin").keep("*.jar"));
         jar();
         docs();
+        boolean pdfReady = false;
         try {
-            exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
-            copy("docs", files("../h2web/h2.pdf"), "../h2web");
-        } catch (Exception e) {
-            print("OpenOffice is not available: " + e);
+            if (exec("soffice", args("--convert-to", "pdf", "--outdir", "docs/html", "docs/html/onePage.html")) == 0) {
+                File f = new File("docs/html/onePage.pdf");
+                if (f.exists() && f.renameTo(new File("docs/h2.pdf"))) {
+                    pdfReady = true;
+                }
+            }
+        } catch (Exception ex) {
+        }
+        if (!pdfReady) {
+            // Old way
+            try {
+                exec("soffice", args("-invisible", "macro:///Standard.Module1.H2Pdf"));
+                copy("docs", files("../h2web/h2.pdf"), "../h2web");
+            } catch (Exception e) {
+                print("OpenOffice is not available: " + e);
+            }
         }
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");

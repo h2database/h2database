@@ -985,6 +985,7 @@ public abstract class Value {
                     if (DataType.isGeometry(object)) {
                         return ValueGeometry.getFromGeometry(object);
                     }
+                    //$FALL-THROUGH$
                 case TIMESTAMP_TZ:
                     throw DbException.get(
                             ErrorCode.DATA_CONVERSION_ERROR_1, getString());

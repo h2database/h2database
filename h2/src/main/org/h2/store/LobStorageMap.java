@@ -157,7 +157,7 @@ public class LobStorageMap implements LobStorageInterface {
                 return ValueLobDb.createSmallLob(type, small);
             }
             if (maxLength != -1) {
-                in = new LimitInputStream(in, maxLength);
+                in = new RangeInputStream(in, 0L, maxLength);
             }
             return createLob(in, type);
         } catch (IllegalStateException e) {

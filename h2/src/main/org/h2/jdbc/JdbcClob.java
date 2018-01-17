@@ -262,6 +262,10 @@ public class JdbcClob extends TraceObject implements NClob
 
     /**
      * Returns the reader, starting from an offset.
+     *
+     * @param pos 1-based offset
+     * @param length length of requested area
+     * @return the reader
      */
     @Override
     public Reader getCharacterStream(long pos, long length) throws SQLException {

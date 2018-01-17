@@ -1615,6 +1615,7 @@ public class TestResultSet extends TestBase {
             assertEqualsWithNull(new byte[] { (byte) 0x03,
                     (byte) 0x03 }, readAllBytes(blob.getBinaryStream(2, 2)));
             assertTrue(!rs.wasNull());
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(5, 1);
         } finally {
             blob.free();
         }
@@ -1632,6 +1633,8 @@ public class TestResultSet extends TestBase {
             byte[] got = readAllBytes(blob.getBinaryStream(101, 50002));
             assertEqualsWithNull(expected, got);
             assertTrue(!rs.wasNull());
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10001, 1);
+            assertThrows(ErrorCode.INVALID_VALUE_2, blob).getBinaryStream(0x10002, 0);
         } finally {
             blob.free();
         }
@@ -1695,6 +1698,8 @@ public class TestResultSet extends TestBase {
         Clob clob = rs.getClob(2);
         try {
             assertEquals("all", readString(clob.getCharacterStream(2, 3)));
+            assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(6, 1);
+            assertThrows(ErrorCode.INVALID_VALUE_2, clob).getCharacterStream(7, 0);
         } finally {
             clob.free();
         }

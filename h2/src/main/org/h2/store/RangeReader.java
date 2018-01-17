@@ -1,28 +1,43 @@
+/*
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.store;
 
 import java.io.IOException;
 import java.io.Reader;
 
+import org.h2.util.IOUtils;
+
+/**
+ * Reader that reads only a specified range from the source reader.
+ */
 public final class RangeReader extends Reader {
     private final Reader r;
 
-    private long offset, limit;
+    private long limit;
 
-    public RangeReader(Reader r, long offset, long limit) {
+    /**
+     * Creates new instance of range reader.
+     *
+     * @param r
+     *            source reader
+     * @param offset
+     *            offset of the range
+     * @param limit
+     *            length of the range
+     * @throws IOException
+     *             on I/O exception during seeking to the specified offset
+     */
+    public RangeReader(Reader r, long offset, long limit) throws IOException {
         this.r = r;
-        this.offset = offset;
         this.limit = limit;
-    }
-
-    private void before() throws IOException {
-        while (offset > 0) {
-            offset -= r.skip(offset);
-        }
+        IOUtils.skipFully(r, offset);
     }
 
     @Override
     public int read() throws IOException {
-        before();
         if (limit < 1) {
             return -1;
         }
@@ -35,7 +50,6 @@ public final class RangeReader extends Reader {
 
     @Override
     public int read(char cbuf[], int off, int len) throws IOException {
-        before();
         if (len > limit) {
             len = (int) limit;
         }
@@ -48,7 +62,6 @@ public final class RangeReader extends Reader {
 
     @Override
     public long skip(long n) throws IOException {
-        before();
         if (n > limit) {
             n = (int) limit;
         }
@@ -59,7 +72,6 @@ public final class RangeReader extends Reader {
 
     @Override
     public boolean ready() throws IOException {
-        before();
         if (limit > 0) {
             return r.ready();
         }

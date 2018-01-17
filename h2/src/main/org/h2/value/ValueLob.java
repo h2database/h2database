@@ -59,14 +59,28 @@ public class ValueLob extends Value {
         }
     }
 
-    static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length) {
-        rangeCheckUnknown(--oneBasedOffset, length);
-        return new RangeInputStream(inputStream, /* 0-based */ oneBasedOffset, length);
+    static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length, long dataSize) {
+        if (dataSize > 0)
+            rangeCheck(oneBasedOffset - 1, length, dataSize);
+        else
+            rangeCheckUnknown(oneBasedOffset - 1, length);
+        try {
+            return new RangeInputStream(inputStream, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
     }
 
-    static Reader rangeReader(Reader reader, long oneBasedOffset, long length) {
-        rangeCheckUnknown(--oneBasedOffset, length);
-        return new RangeReader(reader, /* 0-based */ oneBasedOffset, length);
+    static Reader rangeReader(Reader reader, long oneBasedOffset, long length, long dataSize) {
+        if (dataSize > 0)
+            rangeCheck(oneBasedOffset - 1, length, dataSize);
+        else
+            rangeCheckUnknown(oneBasedOffset - 1, length);
+        try {
+            return new RangeReader(reader, oneBasedOffset - 1, length);
+        } catch (IOException e) {
+            throw DbException.getInvalidValueException("offset", oneBasedOffset);
+        }
     }
 
     /**
@@ -655,7 +669,7 @@ public class ValueLob extends Value {
 
     @Override
     public Reader getReader(long oneBasedOffset, long length) {
-        return rangeReader(getReader(), oneBasedOffset, length);
+        return rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
     }
 
     @Override
@@ -675,7 +689,12 @@ public class ValueLob extends Value {
         if (fileName == null) {
             return super.getInputStream(oneBasedOffset, length);
         }
-        return rangeInputStream(getInputStream(), oneBasedOffset, length);
+        FileStore store = handler.openFile(fileName, "r", true);
+        boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+        InputStream inputStream = new BufferedInputStream(
+                new FileStoreInputStream(store, handler, compressed, alwaysClose),
+                Constants.IO_BUFFER_SIZE);
+        return rangeInputStream(inputStream, oneBasedOffset, length, store.length());
     }
 
     @Override

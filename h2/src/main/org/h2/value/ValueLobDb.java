@@ -376,7 +376,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public Reader getReader(long oneBasedOffset, long length) {
-        return ValueLob.rangeReader(getReader(), oneBasedOffset, length);
+        return ValueLob.rangeReader(getReader(), oneBasedOffset, length, type == Value.CLOB ? precision : -1);
     }
 
     @Override
@@ -399,10 +399,25 @@ public class ValueLobDb extends Value implements Value.ValueClob,
 
     @Override
     public InputStream getInputStream(long oneBasedOffset, long length) {
+        long byteCount;
+        InputStream inputStream;
         if (small != null) {
             return super.getInputStream(oneBasedOffset, length);
+        } else if (fileName != null) {
+            FileStore store = handler.openFile(fileName, "r", true);
+            boolean alwaysClose = SysProperties.lobCloseBetweenReads;
+            byteCount = store.length();
+            inputStream = new BufferedInputStream(new FileStoreInputStream(store,
+                    handler, false, alwaysClose), Constants.IO_BUFFER_SIZE);
+        } else {
+            byteCount = (type == Value.BLOB) ? precision : -1;
+            try {
+                inputStream = handler.getLobStorage().getInputStream(this, hmac, byteCount);
+            } catch (IOException e) {
+                throw DbException.convertIOException(e, toString());
+            }
         }
-        return ValueLob.rangeInputStream(getInputStream(), oneBasedOffset, length);
+        return ValueLob.rangeInputStream(inputStream, oneBasedOffset, length, byteCount);
     }
 
     @Override

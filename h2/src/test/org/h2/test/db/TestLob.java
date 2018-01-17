@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
@@ -1102,6 +1103,8 @@ public class TestLob extends TestBase {
             fail("expected -1 got: " + ch);
         }
         r.close();
+        assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10001, 1);
+        assertThrows(ErrorCode.INVALID_VALUE_2, clob0).getCharacterStream(10002, 0);
         conn0.close();
     }
 

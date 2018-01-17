@@ -656,7 +656,7 @@ public class ArchiveTool {
             }
         }
         int[] key = new int[4];
-        ; // TODO test if cs makes a difference
+        // TODO test if cs makes a difference
         key[0] = (int) (min >>> 32);
         key[1] = (int) min;
         key[2] = cs;

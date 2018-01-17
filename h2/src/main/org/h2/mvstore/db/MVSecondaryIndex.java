@@ -43,7 +43,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     /**
      * The multi-value table.
      */
-    private final MVTable                     mvTable;
+    final MVTable                             mvTable;
     private final int                         keyColumns;
     private final TransactionMap<Value,Value> dataMap;
 
@@ -85,7 +85,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     private static final class Source {
         private final Iterator<ValueArray> iterator;
-        private       ValueArray           currentRowData;
+                      ValueArray           currentRowData;
 
         public Source(Iterator<ValueArray> iterator) {
             this.iterator = iterator;
@@ -338,7 +338,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
      * @param key the index key
      * @return the row
      */
-    private SearchRow convertToSearchRow(ValueArray key) {
+    SearchRow convertToSearchRow(ValueArray key) {
         Value[] array = key.getList();
         SearchRow searchRow = mvTable.getTemplateRow();
         searchRow.setKey((array[array.length - 1]).getLong());
@@ -481,7 +481,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         private SearchRow searchRow;
         private Row row;
 
-        private MVStoreCursor(Session session, Iterator<Value> it, SearchRow last) {
+        MVStoreCursor(Session session, Iterator<Value> it, SearchRow last) {
             this.session = session;
             this.it = it;
             this.last = last;

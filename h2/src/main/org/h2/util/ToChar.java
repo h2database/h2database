@@ -914,7 +914,7 @@ public class ToChar {
          * @return the capitalization / casing strategy which should be used
          *         when the first and second letters have the specified casing
          */
-        private static Capitalization toCapitalization(Boolean up1, Boolean up2) {
+        static Capitalization toCapitalization(Boolean up1, Boolean up2) {
             if (up1 == null) {
                 return Capitalization.CAPITALIZE;
             } else if (up2 == null) {

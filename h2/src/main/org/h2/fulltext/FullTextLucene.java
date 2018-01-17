@@ -581,7 +581,7 @@ public class FullTextLucene extends FullText {
         /**
          * Commit all changes to the Lucene index.
          */
-        private void commitIndex() throws SQLException {
+        void commitIndex() throws SQLException {
             try {
                 indexAccess.commit();
             } catch (IOException e) {
@@ -697,18 +697,18 @@ public class FullTextLucene extends FullText {
          */
         private IndexSearcher searcher;
 
-        private IndexAccess(IndexWriter writer) throws IOException {
+        IndexAccess(IndexWriter writer) throws IOException {
             this.writer = writer;
             IndexReader reader = IndexReader.open(writer, true);
             searcher = new IndexSearcher(reader);
         }
 
-        private synchronized IndexSearcher getSearcher() {
+        synchronized IndexSearcher getSearcher() {
             ++counter;
             return searcher;
         }
 
-        private synchronized void returnSearcher(IndexSearcher searcher) {
+        synchronized void returnSearcher(IndexSearcher searcher) {
             if (this.searcher == searcher) {
                 --counter;
                 assert counter >= 0;

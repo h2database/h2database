@@ -43,19 +43,19 @@ import java.util.HashSet;
  * @author Joel Turkel (Group sorted query)
  */
 public class Select extends Query {
-    private TableFilter topTableFilter;
+    TableFilter topTableFilter;
     private final ArrayList<TableFilter> filters = New.arrayList();
     private final ArrayList<TableFilter> topFilters = New.arrayList();
-    private ArrayList<Expression> expressions;
+    ArrayList<Expression> expressions;
     private Expression[] expressionArray;
     private Expression having;
     private Expression condition;
-    private int visibleColumnCount, distinctColumnCount;
+    int visibleColumnCount, distinctColumnCount;
     private ArrayList<SelectOrderBy> orderList;
     private ArrayList<Expression> group;
-    private int[] groupIndex;
-    private boolean[] groupByExpression;
-    private HashMap<Expression, Object> currentGroup;
+    int[] groupIndex;
+    boolean[] groupByExpression;
+    HashMap<Expression, Object> currentGroup;
     private int havingIndex;
     private boolean isGroupQuery, isGroupSortedQuery;
     private boolean isForUpdate, isForUpdateMvcc;
@@ -64,7 +64,7 @@ public class Select extends Query {
     private boolean isPrepared, checkInit;
     private boolean sortUsingIndex;
     private SortOrder sort;
-    private int currentGroupRowId;
+    int currentGroupRowId;
 
     public Select(Session session) {
         super(session);
@@ -164,7 +164,7 @@ public class Select extends Query {
         return null;
     }
 
-    private Value[] createGroupSortedRow(Value[] keyValues, int columnCount) {
+    Value[] createGroupSortedRow(Value[] keyValues, int columnCount) {
         Value[] row = new Value[columnCount];
         for (int j = 0; groupIndex != null && j < groupIndex.length; j++) {
             row[groupIndex[j]] = keyValues[j];
@@ -280,7 +280,7 @@ public class Select extends Query {
         return count;
     }
 
-    private boolean isConditionMet() {
+    boolean isConditionMet() {
         return condition == null ||
                 Boolean.TRUE.equals(condition.getBooleanValue(session));
     }
@@ -640,7 +640,7 @@ public class Select extends Query {
         return null;
     }
 
-    private void resetJoinBatchAfterQuery() {
+    void resetJoinBatchAfterQuery() {
         JoinBatch jb = getJoinBatch();
         if (jb != null) {
             jb.reset(false);

@@ -156,7 +156,6 @@ public class TestSetCollation extends TestBase {
     private List<String> orderedWithCollator(String collator) throws SQLException {
         deleteDb(DB_NAME);
         try (Connection con = getConnection(DB_NAME); Statement statement = con.createStatement()) {
-            ;
             if (collator != null) {
                 statement.execute("SET COLLATION " + collator);
             }

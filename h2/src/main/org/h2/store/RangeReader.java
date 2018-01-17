@@ -38,7 +38,7 @@ public final class RangeReader extends Reader {
 
     @Override
     public int read() throws IOException {
-        if (limit < 1) {
+        if (limit <= 0) {
             return -1;
         }
         int c = r.read();
@@ -50,6 +50,8 @@ public final class RangeReader extends Reader {
 
     @Override
     public int read(char cbuf[], int off, int len) throws IOException {
+        if (limit <= 0)
+            return -1;
         if (len > limit) {
             len = (int) limit;
         }

@@ -37,7 +37,7 @@ public final class RangeInputStream extends FilterInputStream {
 
     @Override
     public int read() throws IOException {
-        if (limit < 1) {
+        if (limit <= 0) {
             return -1;
         }
         int b = in.read();
@@ -49,6 +49,8 @@ public final class RangeInputStream extends FilterInputStream {
 
     @Override
     public int read(byte b[], int off, int len) throws IOException {
+        if (limit <= 0)
+            return -1;
         if (len > limit) {
             len = (int) limit;
         }

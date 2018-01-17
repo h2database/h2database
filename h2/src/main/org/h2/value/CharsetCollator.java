@@ -15,7 +15,7 @@ import java.util.Comparator;
  */
 public class CharsetCollator extends Collator {
 
-    private static final Comparator<byte[]> COMPARATOR = new Comparator<byte[]>() {
+    static final Comparator<byte[]> COMPARATOR = new Comparator<byte[]>() {
         @Override
         public int compare(byte[] b1, byte[] b2) {
             int minLength = Math.min(b1.length, b2.length);
@@ -43,7 +43,7 @@ public class CharsetCollator extends Collator {
         return COMPARATOR.compare(toBytes(source), toBytes(target));
     }
 
-    private byte[] toBytes(String source) {
+    byte[] toBytes(String source) {
         return source.getBytes(charset);
     }
 

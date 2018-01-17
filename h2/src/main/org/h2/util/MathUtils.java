@@ -205,7 +205,7 @@ public class MathUtils {
      * @param s the message to print
      * @param t the stack trace
      */
-    private static void warn(String s, Throwable t) {
+    static void warn(String s, Throwable t) {
         // not a fatal problem, but maybe reduced security
         System.out.println("Warning: " + s);
         if (t != null) {

@@ -439,12 +439,12 @@ public class TestCustomDataTypesHandler extends TestBase {
         /**
          * Real part
          */
-        private double re;
+        double re;
 
         /**
          * Imaginary part
          */
-        private double im;
+        double im;
 
         /**
          * @param re real part

@@ -896,7 +896,7 @@ public class TransactionStore {
          */
         final MVMap<K, VersionedValue> map;
 
-        private final Transaction transaction;
+        final Transaction transaction;
 
         TransactionMap(Transaction transaction, MVMap<K, VersionedValue> map,
                 int mapId) {

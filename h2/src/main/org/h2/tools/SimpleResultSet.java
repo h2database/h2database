@@ -33,10 +33,10 @@ import java.util.UUID;
 import org.h2.api.ErrorCode;
 import org.h2.jdbc.JdbcResultSetBackwardsCompat;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
 import org.h2.value.DataType;
 
 /**
@@ -534,7 +534,7 @@ public class SimpleResultSet implements ResultSet, ResultSetMetaData,
             return (byte[]) o;
         }
         if (o instanceof UUID) {
-            return Utils.uuidToBytes((UUID) o);
+            return Bits.uuidToBytes((UUID) o);
         }
         return JdbcUtils.serialize(o, null);
     }

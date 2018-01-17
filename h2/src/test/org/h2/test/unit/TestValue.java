@@ -22,7 +22,7 @@ import org.h2.message.DbException;
 import org.h2.test.TestBase;
 import org.h2.test.utils.AssertThrows;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.Utils;
+import org.h2.util.Bits;
 import org.h2.value.DataType;
 import org.h2.value.Value;
 import org.h2.value.ValueArray;
@@ -130,7 +130,7 @@ public class TestValue extends TestBase {
             prep.setObject(1, new Object[] { uuid });
             rs = prep.executeQuery();
             rs.next();
-            assertTrue(Arrays.equals(Utils.uuidToBytes(uuid), (byte[]) rs.getObject(1)));
+            assertTrue(Arrays.equals(Bits.uuidToBytes(uuid), (byte[]) rs.getObject(1)));
             // Check that type is not changed
             prep = conn.prepareStatement("SELECT * FROM TABLE(X UUID=?)");
             prep.setObject(1, new Object[] { uuid });

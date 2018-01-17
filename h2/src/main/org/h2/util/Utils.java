@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -51,68 +50,6 @@ public class Utils {
 
     private Utils() {
         // utility class
-    }
-
-    private static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) +
-                ((buff[pos++] & 0xff) << 16) +
-                ((buff[pos++] & 0xff) << 8) +
-                (buff[pos] & 0xff);
-    }
-
-    /**
-     * Write a long value to the byte array at the given position. The most
-     * significant byte is written first.
-     *
-     * @param buff the byte array
-     * @param pos the position
-     * @param x the value to write
-     */
-    public static void writeLong(byte[] buff, int pos, long x) {
-        writeInt(buff, pos, (int) (x >> 32));
-        writeInt(buff, pos + 4, (int) x);
-    }
-
-    private static void writeInt(byte[] buff, int pos, int x) {
-        buff[pos++] = (byte) (x >> 24);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos]   = (byte) x;
-    }
-
-    /**
-     * Read a long value from the byte array at the given position. The most
-     * significant byte is read first.
-     *
-     * @param buff the byte array
-     * @param pos the position
-     * @return the value
-     */
-    public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) +
-                (readInt(buff, pos + 4) & 0xffffffffL);
-    }
-
-    /**
-     * @param uuid UUID value
-     * @return byte array representation
-     */
-    public static byte[] uuidToBytes(UUID uuid) {
-        return uuidToBytes(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
-    }
-
-    /**
-     * @param msb most significant part of UUID
-     * @param lsb least significant part of UUID
-     * @return byte array representation
-     */
-    public static byte[] uuidToBytes(long msb, long lsb) {
-        byte[] buff = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((msb >> (8 * (7 - i))) & 255);
-            buff[8 + i] = (byte) ((lsb >> (8 * (7 - i))) & 255);
-        }
-        return buff;
     }
 
     /**

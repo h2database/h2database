@@ -8,6 +8,7 @@ package org.h2.security;
 import org.h2.engine.Constants;
 import org.h2.store.DataHandler;
 import org.h2.store.FileStore;
+import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 
 /**
@@ -98,15 +99,7 @@ public class SecureFileStore extends FileStore {
         byte[] iv = bufferForInitVector;
         while (len > 0) {
             for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i += 8) {
-                long block = (p + i) >>> 3;
-                iv[i] = (byte) (block >> 56);
-                iv[i + 1] = (byte) (block >> 48);
-                iv[i + 2] = (byte) (block >> 40);
-                iv[i + 3] = (byte) (block >> 32);
-                iv[i + 4] = (byte) (block >> 24);
-                iv[i + 5] = (byte) (block >> 16);
-                iv[i + 6] = (byte) (block >> 8);
-                iv[i + 7] = (byte) block;
+                Bits.writeLong(iv, i, (p + i) >>> 3);
             }
             cipherForInitVector.encrypt(iv, 0, Constants.FILE_BLOCK_SIZE);
             for (int i = 0; i < Constants.FILE_BLOCK_SIZE; i++) {

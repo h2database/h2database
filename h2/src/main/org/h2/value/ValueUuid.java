@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import org.h2.api.ErrorCode;
 import org.h2.message.DbException;
-import org.h2.util.Utils;
+import org.h2.util.Bits;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
 
@@ -68,8 +68,8 @@ public class ValueUuid extends Value {
         if (binary.length < 16) {
             return get(StringUtils.convertBytesToHex(binary));
         }
-        long high = Utils.readLong(binary, 0);
-        long low = Utils.readLong(binary, 8);
+        long high = Bits.readLong(binary, 0);
+        long low = Bits.readLong(binary, 8);
         return (ValueUuid) Value.cache(new ValueUuid(high, low));
     }
 
@@ -186,7 +186,7 @@ public class ValueUuid extends Value {
 
     @Override
     public byte[] getBytes() {
-        return Utils.uuidToBytes(high, low);
+        return Bits.uuidToBytes(high, low);
     }
 
     @Override

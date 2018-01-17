@@ -5,7 +5,7 @@
  */
 package org.h2.security;
 
-import org.h2.util.Utils;
+import org.h2.util.Bits;
 
 /**
  * A pseudo-encryption algorithm that makes the data appear to be
@@ -31,14 +31,10 @@ public class Fog implements BlockCipher {
     }
 
     private void encryptBlock(byte[] in, byte[] out, int off) {
-        int x0 = (in[off] << 24) | ((in[off+1] & 255) << 16) |
-                ((in[off+2] & 255) << 8) | (in[off+3] & 255);
-        int x1 = (in[off+4] << 24) | ((in[off+5] & 255) << 16) |
-                ((in[off+6] & 255) << 8) | (in[off+7] & 255);
-        int x2 = (in[off+8] << 24) | ((in[off+9] & 255) << 16) |
-                ((in[off+10] & 255) << 8) | (in[off+11] & 255);
-        int x3 = (in[off+12] << 24) | ((in[off+13] & 255) << 16) |
-                ((in[off+14] & 255) << 8) | (in[off+15] & 255);
+        int x0 = Bits.readInt(in, off);
+        int x1 = Bits.readInt(in, off + 4);
+        int x2 = Bits.readInt(in, off + 8);
+        int x3 = Bits.readInt(in, off + 12);
         int k = key;
         int s = x1 & 31;
         x0 ^= k;
@@ -50,25 +46,17 @@ public class Fog implements BlockCipher {
         x1 = (x1 << s) | (x1 >>> (32 - s));
         x3 ^= k;
         x3 = (x3 << s) | (x3 >>> (32 - s));
-        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16);
-        out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
-        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16);
-        out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
-        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16);
-        out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
-        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16);
-        out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
+        Bits.writeInt(out, off, x0);
+        Bits.writeInt(out, off + 4, x1);
+        Bits.writeInt(out, off + 8, x2);
+        Bits.writeInt(out, off + 12, x3);
     }
 
     private void decryptBlock(byte[] in, byte[] out, int off) {
-        int x0 = (in[off] << 24) | ((in[off+1] & 255) << 16) |
-                ((in[off+2] & 255) << 8) | (in[off+3] & 255);
-        int x1 = (in[off+4] << 24) | ((in[off+5] & 255) << 16) |
-                ((in[off+6] & 255) << 8) | (in[off+7] & 255);
-        int x2 = (in[off+8] << 24) | ((in[off+9] & 255) << 16) |
-                ((in[off+10] & 255) << 8) | (in[off+11] & 255);
-        int x3 = (in[off+12] << 24) | ((in[off+13] & 255) << 16) |
-                ((in[off+14] & 255) << 8) | (in[off+15] & 255);
+        int x0 = Bits.readInt(in, off);
+        int x1 = Bits.readInt(in, off + 4);
+        int x2 = Bits.readInt(in, off + 8);
+        int x3 = Bits.readInt(in, off + 12);
         int k = key;
         int s = 32 - (x0 & 31);
         x1 = (x1 << s) | (x1 >>> (32 - s));
@@ -80,14 +68,10 @@ public class Fog implements BlockCipher {
         x0 ^= k;
         x2 = (x2 << s) | (x2 >>> (32 - s));
         x2 ^= k;
-        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16);
-        out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
-        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16);
-        out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
-        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16);
-        out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
-        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16);
-        out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
+        Bits.writeInt(out, off, x0);
+        Bits.writeInt(out, off + 4, x1);
+        Bits.writeInt(out, off + 8, x2);
+        Bits.writeInt(out, off + 12, x3);
     }
 
     @Override
@@ -97,7 +81,7 @@ public class Fog implements BlockCipher {
 
     @Override
     public void setKey(byte[] key) {
-        this.key = (int) Utils.readLong(key, 0);
+        this.key = (int) Bits.readLong(key, 0);
     }
 
 }

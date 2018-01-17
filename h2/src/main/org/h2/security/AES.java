@@ -5,6 +5,8 @@
  */
 package org.h2.security;
 
+import org.h2.util.Bits;
+
 /**
  * An implementation of the AES block cipher algorithm,
  * also known as Rijndael. Only AES-128 is supported by this class.
@@ -135,14 +137,10 @@ public class AES implements BlockCipher {
 
     private void encryptBlock(byte[] in, byte[] out, int off) {
         int[] k = encKey;
-        int x0 = ((in[off] << 24) | ((in[off + 1] & 255) << 16)
-                | ((in[off + 2] & 255) << 8) | (in[off + 3] & 255)) ^ k[0];
-        int x1 = ((in[off + 4] << 24) | ((in[off + 5] & 255) << 16)
-                | ((in[off + 6] & 255) << 8) | (in[off + 7] & 255)) ^ k[1];
-        int x2 = ((in[off + 8] << 24) | ((in[off + 9] & 255) << 16)
-                | ((in[off + 10] & 255) << 8) | (in[off + 11] & 255)) ^ k[2];
-        int x3 = ((in[off + 12] << 24) | ((in[off + 13] & 255) << 16)
-                | ((in[off + 14] & 255) << 8) | (in[off + 15] & 255)) ^ k[3];
+        int x0 = Bits.readInt(in, off) ^ k[0];
+        int x1 = Bits.readInt(in, off + 4) ^ k[1];
+        int x2 = Bits.readInt(in, off + 8) ^ k[2];
+        int x3 = Bits.readInt(in, off + 12) ^ k[3];
         int y0 = FT0[(x0 >> 24) & 255] ^ FT1[(x1 >> 16) & 255]
                 ^ FT2[(x2 >> 8) & 255] ^ FT3[x3 & 255] ^ k[4];
         int y1 = FT0[(x1 >> 24) & 255] ^ FT1[(x2 >> 16) & 255]
@@ -223,26 +221,18 @@ public class AES implements BlockCipher {
                 | (FS[(y0 >> 8) & 255] << 8) | FS[y1 & 255]) ^ k[42];
         x3 = ((FS[(y3 >> 24) & 255] << 24) | (FS[(y0 >> 16) & 255] << 16)
                 | (FS[(y1 >> 8) & 255] << 8) | FS[y2 & 255]) ^ k[43];
-        out[off] = (byte) (x0 >> 24); out[off+1] = (byte) (x0 >> 16);
-        out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
-        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16);
-        out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
-        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16);
-        out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
-        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16);
-        out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
+        Bits.writeInt(out, off, x0);
+        Bits.writeInt(out, off + 4, x1);
+        Bits.writeInt(out, off + 8, x2);
+        Bits.writeInt(out, off + 12, x3);
     }
 
     private void decryptBlock(byte[] in, byte[] out, int off) {
         int[] k = decKey;
-        int x0 = ((in[off] << 24) | ((in[off + 1] & 255) << 16)
-                | ((in[off + 2] & 255) << 8) | (in[off + 3] & 255)) ^ k[0];
-        int x1 = ((in[off + 4] << 24) | ((in[off + 5] & 255) << 16)
-                | ((in[off + 6] & 255) << 8) | (in[off + 7] & 255)) ^ k[1];
-        int x2 = ((in[off + 8] << 24) | ((in[off + 9] & 255) << 16)
-                | ((in[off + 10] & 255) << 8) | (in[off + 11] & 255)) ^ k[2];
-        int x3 = ((in[off + 12] << 24) | ((in[off + 13] & 255) << 16)
-                | ((in[off + 14] & 255) << 8) | (in[off + 15] & 255)) ^ k[3];
+        int x0 = Bits.readInt(in, off) ^ k[0];
+        int x1 = Bits.readInt(in, off + 4) ^ k[1];
+        int x2 = Bits.readInt(in, off + 8) ^ k[2];
+        int x3 = Bits.readInt(in, off + 12) ^ k[3];
         int y0 = RT0[(x0 >> 24) & 255] ^ RT1[(x3 >> 16) & 255]
                 ^ RT2[(x2 >> 8) & 255] ^ RT3[x1 & 255] ^ k[4];
         int y1 = RT0[(x1 >> 24) & 255] ^ RT1[(x0 >> 16) & 255]
@@ -323,15 +313,10 @@ public class AES implements BlockCipher {
                 | (RS[(y0 >> 8) & 255] << 8) | RS[y3 & 255]) ^ k[42];
         x3 = ((RS[(y3 >> 24) & 255] << 24) | (RS[(y2 >> 16) & 255] << 16)
                 | (RS[(y1 >> 8) & 255] << 8) | RS[y0 & 255]) ^ k[43];
-        out[off] = (byte) (x0 >> 24);
-        out[off + 1] = (byte) (x0 >> 16);
-        out[off+2] = (byte) (x0 >> 8); out[off+3] = (byte) x0;
-        out[off+4] = (byte) (x1 >> 24); out[off+5] = (byte) (x1 >> 16);
-        out[off+6] = (byte) (x1 >> 8); out[off+7] = (byte) x1;
-        out[off+8] = (byte) (x2 >> 24); out[off+9] = (byte) (x2 >> 16);
-        out[off+10] = (byte) (x2 >> 8); out[off+11] = (byte) x2;
-        out[off+12] = (byte) (x3 >> 24); out[off+13] = (byte) (x3 >> 16);
-        out[off+14] = (byte) (x3 >> 8); out[off+15] = (byte) x3;
+        Bits.writeInt(out, off, x0);
+        Bits.writeInt(out, off + 4, x1);
+        Bits.writeInt(out, off + 8, x2);
+        Bits.writeInt(out, off + 12, x3);
     }
 
     @Override

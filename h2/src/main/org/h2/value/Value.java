@@ -27,11 +27,11 @@ import org.h2.message.DbException;
 import org.h2.store.DataHandler;
 import org.h2.table.Column;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.JdbcUtils;
 import org.h2.util.MathUtils;
 import org.h2.util.StringUtils;
-import org.h2.util.Utils;
 
 /**
  * This is the base class for all value classes.
@@ -724,7 +724,7 @@ public abstract class Value {
                     // parseLong doesn't work for ffffffffffffffff
                     byte[] d = getBytes();
                     if (d.length == 8) {
-                        return ValueLong.get(Utils.readLong(d, 0));
+                        return ValueLong.get(Bits.readLong(d, 0));
                     }
                     return ValueLong.get(Long.parseLong(getString(), 16));
                 }

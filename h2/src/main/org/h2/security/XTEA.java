@@ -7,6 +7,7 @@ package org.h2.security;
 
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
+import org.h2.util.Bits;
 
 /**
  * An implementation of the XTEA block cipher algorithm.
@@ -25,9 +26,8 @@ public class XTEA implements BlockCipher {
     @Override
     public void setKey(byte[] b) {
         int[] key = new int[4];
-        for (int i = 0; i < 16;) {
-            key[i / 4] = (b[i++] << 24) + ((b[i++] & 255) << 16)
-                    + ((b[i++] & 255) << 8) + (b[i++] & 255);
+        for (int i = 0; i < 16; i += 4) {
+            key[i / 4] = Bits.readInt(b, i);
         }
         int[] r = new int[32];
         for (int i = 0, sum = 0; i < 32;) {
@@ -70,10 +70,8 @@ public class XTEA implements BlockCipher {
     }
 
     private void encryptBlock(byte[] in, byte[] out, int off) {
-        int y = (in[off] << 24) | ((in[off + 1] & 255) << 16)
-                | ((in[off + 2] & 255) << 8) | (in[off + 3] & 255);
-        int z = (in[off + 4] << 24) | ((in[off + 5] & 255) << 16)
-                | ((in[off + 6] & 255) << 8) | (in[off + 7] & 255);
+        int y = Bits.readInt(in, off);
+        int z = Bits.readInt(in, off + 4);
         y += (((z << 4) ^ (z >>> 5)) + z) ^ k0;
         z += (((y >>> 5) ^ (y << 4)) + y) ^ k1;
         y += (((z << 4) ^ (z >>> 5)) + z) ^ k2;
@@ -106,21 +104,13 @@ public class XTEA implements BlockCipher {
         z += (((y >>> 5) ^ (y << 4)) + y) ^ k29;
         y += (((z << 4) ^ (z >>> 5)) + z) ^ k30;
         z += (((y >>> 5) ^ (y << 4)) + y) ^ k31;
-        out[off] = (byte) (y >> 24);
-        out[off + 1] = (byte) (y >> 16);
-        out[off + 2] = (byte) (y >> 8);
-        out[off + 3] = (byte) y;
-        out[off + 4] = (byte) (z >> 24);
-        out[off + 5] = (byte) (z >> 16);
-        out[off + 6] = (byte) (z >> 8);
-        out[off + 7] = (byte) z;
+        Bits.writeInt(out, off, y);
+        Bits.writeInt(out, off + 4, z);
     }
 
     private void decryptBlock(byte[] in, byte[] out, int off) {
-        int y = (in[off] << 24) | ((in[off + 1] & 255) << 16)
-                | ((in[off + 2] & 255) << 8) | (in[off + 3] & 255);
-        int z = (in[off + 4] << 24) | ((in[off + 5] & 255) << 16)
-                | ((in[off + 6] & 255) << 8) | (in[off + 7] & 255);
+        int y = Bits.readInt(in, off);
+        int z = Bits.readInt(in, off + 4);
         z -= (((y >>> 5) ^ (y << 4)) + y) ^ k31;
         y -= (((z << 4) ^ (z >>> 5)) + z) ^ k30;
         z -= (((y >>> 5) ^ (y << 4)) + y) ^ k29;
@@ -153,14 +143,8 @@ public class XTEA implements BlockCipher {
         y -= (((z << 4) ^ (z >>> 5)) + z) ^ k2;
         z -= (((y >>> 5) ^ (y << 4)) + y) ^ k1;
         y -= (((z << 4) ^ (z >>> 5)) + z) ^ k0;
-        out[off] = (byte) (y >> 24);
-        out[off + 1] = (byte) (y >> 16);
-        out[off + 2] = (byte) (y >> 8);
-        out[off + 3] = (byte) y;
-        out[off + 4] = (byte) (z >> 24);
-        out[off + 5] = (byte) (z >> 16);
-        out[off + 6] = (byte) (z >> 8);
-        out[off + 7] = (byte) z;
+        Bits.writeInt(out, off, y);
+        Bits.writeInt(out, off + 4, z);
     }
 
     @Override

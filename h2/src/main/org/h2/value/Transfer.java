@@ -28,6 +28,7 @@ import org.h2.security.SHA256;
 import org.h2.store.Data;
 import org.h2.store.DataReader;
 import org.h2.tools.SimpleResultSet;
+import org.h2.util.Bits;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.JdbcUtils;
@@ -790,7 +791,7 @@ public class Transfer {
             lobMacSalt = MathUtils.secureRandomBytes(LOB_MAC_SALT_LENGTH);
         }
         byte[] data = new byte[8];
-        Utils.writeLong(data, 0, lobId);
+        Bits.writeLong(data, 0, lobId);
         byte[] hmacData = SHA256.getHashWithSalt(data, lobMacSalt);
         return hmacData;
     }

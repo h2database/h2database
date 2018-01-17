@@ -374,6 +374,16 @@ public class Build extends BuildBase {
             copy("docs", files("../h2web/h2.pdf"), "../h2web");
         } catch (Exception e) {
             print("OpenOffice is not available: " + e);
+            try {
+                if (exec("soffice", args("--convert-to", "pdf", "--outdir", "docs/html",
+                        "docs/html/onePage.html")) == 0) {
+                    File f = new File("docs/html/onePage.pdf");
+                    if (f.exists()) {
+                        f.renameTo(new File("docs/h2.pdf"));
+                    }
+                }
+            } catch (Exception ex) {
+            }
         }
         delete("docs/html/onePage.html");
         FileList files = files("../h2").keep("../h2/build.*");

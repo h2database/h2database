@@ -21,6 +21,88 @@ Change Log
 
 <h2>Next Version (unreleased)</h2>
 <ul>
+<li>PR #775: Fix building of documentation and zip 
+</li>
+<li>PR #774: Assorted changes 
+</li>
+<li>PR #773: Better checks for arguments of partial LOB reading methods 
+</li>
+<li>PR #772: getBinaryStream() and getCharacterStream() with pos and length
+</li>
+<li>Issue #754: Make NUMERIC type read as NUMERIC
+</li>
+<li>PR #768: Add DataUtils.parseChecksummedMap() 
+</li>
+<li>PR #769: Do not copy result of DataUtils.parseMap() to a new maps 
+</li>
+<li>PR #766: Minor clean up of DateTimeUtils 
+</li>
+<li>PR #764: Make use of try-with-resources statement
+</li>
+<li>Issue #406: Return from ResultSet.getObject not in line with JDBC specification
+</li>
+<li>Issue #710: Misleading exception message when INSERT has no value for self referential 'AS' column
+</li>
+<li>PR #763: Add DataUtils.getMapName()
+</li>
+<li>PR #762: Add row deletion confirmation to web console
+</li>
+<li>PR #760: Assorted minor optimizations
+</li>
+<li>PR #759: Improve the look of error messages in web console
+</li>
+<li>PR #758: Allocate less amount of garbage
+</li>
+<li>PR #757: Fix handling of UUID in Datatype.readValue()
+</li>
+<li>PR #753: Optimize StringUtils.trim() and remove StringUtils.equals()
+</li>
+<li>PR #752: Use predefined charsets instead of names where possible
+</li>
+<li>PR #750: Use AtomicIntegerArray and StandardCharsets
+</li>
+<li>PR #749: Fix some build checks in sources 
+</li>
+<li>Issue #740: TestWeb hangups if webSSL=true specified in configuration
+</li>
+<li>Issue #736: Copyright years in sources
+</li>
+<li>Issue #744: TestFile failure on Java 9 and Java 10
+</li>
+<li>PR #741: More cleanups in LocalDateTimeUtils and other minor changes
+</li>
+<li>PR #743: Change REGEXP_REPLACE mode for MariaDB and PostgreSQL
+</li>
+<li>Issue#646 NPE in CREATE VIEW WITH RECURSIVE & NON_RECURSIVE CTE
+</li>
+<li>PR #738: Copy javadoc to *BackwardsCompat to fix building of documentation
+</li>
+<li>PR #735: Add support of java.time.Instant V2 
+</li>
+<li>PR #733: Remove JPA/ORM configuration txt files as they're already integrated
+</li>
+<li>PR #732: Fix ==
+</li>
+<li>PR #730: Implement enquoteIdentifier() and isSimpleIdentifier() from JDBC 4.3
+</li>
+<li>PR #729: Grammar documentation change
+</li>
+<li>PR #727: Integer/Long.compare(x, y) can be used to compare primitive values
+</li>
+<li>PR #726: Fixes in tests
+</li>
+<li>Issue #725: FilePathMem.tryLock() fails since Java 9 
+</li>
+<li>PR #723: Clean up LocalDateTimeUtils 
+</li>
+<li>PR #724: Use StringBuilder instead of StringBuffer 
+</li>
+<li>PR #720: DROP TABLE RESTRICT shouldn't drop foreign keys in other tables
+</li>
+<li>PR #722: Assorted minor changes 
+</li>
+<li>Issue #638: Oracle mode: incompatible regexp back-reference syntax
+</li>
 <li>Make ALL a reserved keyword
 </li>
 <li>Issue #311: Avoid calling list.toArray(new X[list.size()]) for performance

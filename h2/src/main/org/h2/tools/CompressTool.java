@@ -26,6 +26,7 @@ import org.h2.compress.LZFOutputStream;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.mvstore.DataUtils;
+import org.h2.util.Bits;
 import org.h2.util.StringUtils;
 
 /**
@@ -158,10 +159,7 @@ public class CompressTool {
                     ((buff[pos++] & 0xff) << 8) +
                     (buff[pos] & 0xff);
         }
-        return ((buff[pos++] & 0xff) << 24) +
-                ((buff[pos++] & 0xff) << 16) +
-                ((buff[pos++] & 0xff) << 8) +
-                (buff[pos] & 0xff);
+        return Bits.readInt(buff, pos);
     }
 
     /**
@@ -176,10 +174,7 @@ public class CompressTool {
     public static int writeVariableInt(byte[] buff, int pos, int x) {
         if (x < 0) {
             buff[pos++] = (byte) 0xf0;
-            buff[pos++] = (byte) (x >> 24);
-            buff[pos++] = (byte) (x >> 16);
-            buff[pos++] = (byte) (x >> 8);
-            buff[pos] = (byte) x;
+            Bits.writeInt(buff, pos, x);
             return 5;
         } else if (x < 0x80) {
             buff[pos] = (byte) x;
@@ -194,17 +189,11 @@ public class CompressTool {
             buff[pos] = (byte) x;
             return 3;
         } else if (x < 0x10000000) {
-            buff[pos++] = (byte) (0xe0 | (x >> 24));
-            buff[pos++] = (byte) (x >> 16);
-            buff[pos++] = (byte) (x >> 8);
-            buff[pos] = (byte) x;
+            Bits.writeInt(buff, pos, x | 0xe0000000);
             return 4;
         } else {
             buff[pos++] = (byte) 0xf0;
-            buff[pos++] = (byte) (x >> 24);
-            buff[pos++] = (byte) (x >> 16);
-            buff[pos++] = (byte) (x >> 8);
-            buff[pos] = (byte) x;
+            Bits.writeInt(buff, pos, x);
             return 5;
         }
     }

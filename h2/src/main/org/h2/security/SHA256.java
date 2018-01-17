@@ -7,6 +7,8 @@ package org.h2.security;
 
 import java.util.Arrays;
 
+import org.h2.util.Bits;
+
 /**
  * This class implements the cryptographic hash function SHA-256.
  */
@@ -159,7 +161,7 @@ public class SHA256 {
             for (int i = 0; i < iterations; i++) {
                 if (i == 0) {
                     System.arraycopy(salt, 0, message, 0, salt.length);
-                    writeInt(message, salt.length, k);
+                    Bits.writeInt(message, salt.length, k);
                     len = salt.length + 4;
                 } else {
                     System.arraycopy(sha.result, 0, message, 0, 32);
@@ -219,7 +221,7 @@ public class SHA256 {
         byteBuff[len] = (byte) 0x80;
         Arrays.fill(byteBuff, len + 1, intLen * 4, (byte) 0);
         for (int i = 0, j = 0; j < intLen; i += 4, j++) {
-            intBuff[j] = readInt(byteBuff, i);
+            intBuff[j] = Bits.readInt(byteBuff, i);
         }
         intBuff[intLen - 2] = len >>> 29;
         intBuff[intLen - 1] = len << 3;
@@ -263,24 +265,12 @@ public class SHA256 {
             hh[7] += h;
         }
         for (int i = 0; i < 8; i++) {
-            writeInt(result, i * 4, hh[i]);
+            Bits.writeInt(result, i * 4, hh[i]);
         }
     }
 
     private static int rot(int i, int count) {
         return Integer.rotateRight(i, count);
-    }
-
-    private static int readInt(byte[] b, int i) {
-        return ((b[i] & 0xff) << 24) + ((b[i + 1] & 0xff) << 16)
-                + ((b[i + 2] & 0xff) << 8) + (b[i + 3] & 0xff);
-    }
-
-    private static void writeInt(byte[] b, int i, int value) {
-        b[i] = (byte) (value >> 24);
-        b[i + 1] = (byte) (value >> 16);
-        b[i + 2] = (byte) (value >> 8);
-        b[i + 3] = (byte) value;
     }
 
 }

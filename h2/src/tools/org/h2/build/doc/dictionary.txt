@@ -757,4 +757,4 @@ chittanoor carrot
 
 contextual unknowns enquote respectively sessionid reconnection selfreferential bbddbb instant subprotocol ddbbbb
 zzbbzz cldr booleans maria enquotes mtc cbuf checksummed nreturn despite bbzz readlimit retries cceecc reconnects
-unconditionally coco aren eecccc decimals charsets zzbb lsb msb usecount outdir
+unconditionally coco aren eecccc decimals charsets zzbb lsb msb usecount outdir endian

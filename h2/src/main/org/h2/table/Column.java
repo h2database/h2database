@@ -497,6 +497,7 @@ public class Column {
                     }
                 }
                 buff.append(')');
+                break;
             case Value.BYTES:
             case Value.STRING:
             case Value.STRING_IGNORECASE:

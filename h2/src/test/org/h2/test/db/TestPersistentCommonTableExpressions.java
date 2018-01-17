@@ -228,7 +228,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
     }
 
     private void testPersistentRecursiveTableInCreateViewDropAllObjects() throws Exception {
-        String setuoSQL = "--SET TRACE_LEVEL_SYSTEM_OUT 3;\n"
+        String setupSQL = "--SET TRACE_LEVEL_SYSTEM_OUT 3;\n"
                 +"DROP ALL OBJECTS;                                                                            \n"
                 +"CREATE TABLE my_tree (                                                                       \n"
                 +" id INTEGER,                                                                                 \n"
@@ -270,7 +270,7 @@ public class TestPersistentCommonTableExpressions extends AbstractBaseForCommonT
         String[] expectedColumnNames = new String[]{"SUB_TREE_ROOT_ID", "TREE_LEVEL", "PARENT_FK", "CHILD_FK"};
         String[] expectedColumnTypes = new String[]{"INTEGER", "INTEGER", "INTEGER", "INTEGER"};
         int expectedNumberOfRows = 11;
-        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setuoSQL,
+        testRepeatedQueryWithSetup(maxRetries, expectedRowData, expectedColumnNames, expectedNumberOfRows, setupSQL,
                 withQuery, maxRetries - 1, expectedColumnTypes);
     }
 }

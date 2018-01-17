@@ -566,7 +566,7 @@ public class TestGeneralCommonTableQueries extends AbstractBaseForCommonTableExp
             +"    with recursive r(n) as ("
             +"        (select 1) union all (select n+1 from r where n < 3)"
             +"    ),"
-            +"   dummyUnsedCte(n) as ("
+            +"   dummyUnusedCte(n) as ("
             +"   select 1 "
             +"   )"
             +"    select n from r"

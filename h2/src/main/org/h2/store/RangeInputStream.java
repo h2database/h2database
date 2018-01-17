@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.store;
 
 import java.io.FilterInputStream;
@@ -6,9 +11,24 @@ import java.io.InputStream;
 
 import org.h2.util.IOUtils;
 
+/**
+ * Input stream that reads only a specified range from the source stream.
+ */
 public final class RangeInputStream extends FilterInputStream {
     private long limit;
 
+    /**
+     * Creates new instance of range input stream.
+     *
+     * @param in
+     *            source stream
+     * @param offset
+     *            offset of the range
+     * @param limit
+     *            length of the range
+     * @throws IOException
+     *             on I/O exception during seeking to the specified offset
+     */
     public RangeInputStream(InputStream in, long offset, long limit) throws IOException {
         super(in);
         this.limit = limit;

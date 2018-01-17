@@ -1,3 +1,8 @@
+/*
+ * Copyright 2004-2018 H2 Group. Multiple-Licensed under the MPL 2.0,
+ * and the EPL 1.0 (http://h2database.com/html/license.html).
+ * Initial Developer: H2 Group
+ */
 package org.h2.store;
 
 import java.io.IOException;
@@ -5,11 +10,26 @@ import java.io.Reader;
 
 import org.h2.util.IOUtils;
 
+/**
+ * Reader that reads only a specified range from the source reader.
+ */
 public final class RangeReader extends Reader {
     private final Reader r;
 
     private long limit;
 
+    /**
+     * Creates new instance of range reader.
+     *
+     * @param r
+     *            source reader
+     * @param offset
+     *            offset of the range
+     * @param limit
+     *            length of the range
+     * @throws IOException
+     *             on I/O exception during seeking to the specified offset
+     */
     public RangeReader(Reader r, long offset, long limit) throws IOException {
         this.r = r;
         this.limit = limit;

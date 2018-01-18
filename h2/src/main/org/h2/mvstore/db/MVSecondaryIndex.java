@@ -228,13 +228,10 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private void requireUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
-        Iterator<Value> it = map.keyIterator(unique, true);
-        while (it.hasNext()) {
+        Iterator<Value> it = map.keyIterator(unique);
+        if (it.hasNext()) {
             ValueArray k = (ValueArray) it.next();
-            if (compareRows(row, convertToSearchRow(k)) != 0) {
-                break;
-            }
-            if (map.get(k) != null) {
+            if (compareRows(row, convertToSearchRow(k)) == 0) {
                 // committed
                 throw getDuplicateKeyException(k.toString());
             }

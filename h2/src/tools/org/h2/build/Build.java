@@ -446,8 +446,10 @@ public class Build extends BuildBase {
     @Description(summary = "Create the regular h2.jar file.")
     public void jar() {
         compile();
+        FileList files = files("src/java9/precompiled");
+        copy("temp/META-INF/versions/9", files, "src/java9/precompiled");
         manifest("H2 Database Engine", "org.h2.tools.Console");
-        FileList files = files("temp").
+        files = files("temp").
             exclude("temp/android/*").
             exclude("temp/org/h2/android/*").
             exclude("temp/org/h2/build/*").

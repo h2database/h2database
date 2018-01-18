@@ -13,6 +13,7 @@ Bundle-Vendor: H2 Group
 Bundle-Version: ${version}
 Bundle-License: http://www.h2database.com/html/license.html
 Bundle-Category: jdbc
+Multi-Release: true
 Import-Package: javax.management,
  javax.naming;resolution:=optional,
  javax.naming.spi;resolution:=optional,

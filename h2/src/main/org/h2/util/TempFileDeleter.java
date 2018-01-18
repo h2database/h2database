@@ -8,6 +8,7 @@ package org.h2.util;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.h2.engine.SysProperties;
@@ -20,7 +21,7 @@ import org.h2.store.fs.FileUtils;
 public class TempFileDeleter {
 
     private final ReferenceQueue<Object> queue = new ReferenceQueue<>();
-    private final HashMap<PhantomReference<?>, String> refMap = New.hashMap();
+    private final HashMap<PhantomReference<?>, String> refMap = new HashMap<>();
 
     private TempFileDeleter() {
         // utility class
@@ -78,7 +79,7 @@ public class TempFileDeleter {
      * Delete all registered temp files.
      */
     public void deleteAll() {
-        for (String tempFile : New.arrayList(refMap.values())) {
+        for (String tempFile : new ArrayList<>(refMap.values())) {
             deleteFile(null, tempFile);
         }
         deleteUnused();

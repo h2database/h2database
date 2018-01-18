@@ -602,7 +602,7 @@ public class FullText {
         if (!setting.isInitialized()) {
             init(conn);
         }
-        Set<String> words = New.hashSet();
+        Set<String> words = new HashSet<>();
         addWords(setting, words, text);
         Set<Integer> rIds = null, lastRowIds;
 
@@ -610,7 +610,7 @@ public class FullText {
                 SELECT_MAP_BY_WORD_ID);
         for (String word : words) {
             lastRowIds = rIds;
-            rIds = New.hashSet();
+            rIds = new HashSet<>();
             Integer wId = setting.getWordId(word);
             if (wId == null) {
                 continue;
@@ -1083,7 +1083,7 @@ public class FullText {
         }
 
         private int[] getWordIds(Connection conn, Object[] row) throws SQLException {
-            HashSet<String> words = New.hashSet();
+            HashSet<String> words = new HashSet<>();
             for (int idx : index.indexColumns) {
                 int type = columnTypes[idx];
                 Object data = row[idx];

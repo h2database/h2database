@@ -118,12 +118,12 @@ public class TestJmx extends TestBase {
 
         assertEquals(2, info.getOperations().length);
         assertContains(info.getDescription(), "database");
-        attrMap = New.hashMap();
+        attrMap = new HashMap<>();
         for (MBeanAttributeInfo a : info.getAttributes()) {
             attrMap.put(a.getName(), a);
         }
         assertContains(attrMap.get("CacheSize").getDescription(), "KB");
-        opMap = New.hashMap();
+        opMap = new HashMap<>();
         for (MBeanOperationInfo o : info.getOperations()) {
             opMap.put(o.getName(), o);
         }

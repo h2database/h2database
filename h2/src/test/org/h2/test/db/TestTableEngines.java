@@ -674,7 +674,7 @@ public class TestTableEngines extends TestBase {
     }
 
     private void doTestBatchedJoin(Statement stat, int... batchSizes) throws SQLException {
-        ArrayList<TreeSetTable> tables = New.arrayList(batchSizes.length);
+        ArrayList<TreeSetTable> tables = new ArrayList<>(batchSizes.length);
 
         for (int i = 0; i < batchSizes.length; i++) {
             stat.executeUpdate("DROP TABLE IF EXISTS T" + i);
@@ -870,7 +870,7 @@ public class TestTableEngines extends TestBase {
         int cols = rs.getMetaData().getColumnCount();
         List<List<Object>> list = New.arrayList();
         while (rs.next()) {
-            List<Object> row = New.arrayList(cols);
+            List<Object> row = new ArrayList<>(cols);
             for (int i = 1; i <= cols; i++) {
                 row.add(rs.getObject(i));
             }
@@ -1406,7 +1406,7 @@ public class TestTableEngines extends TestBase {
         public Index addIndex(Session session, String indexName, int indexId, IndexColumn[] cols,
                 IndexType indexType, boolean create, String indexComment) {
             if (indexes == null) {
-                indexes = New.arrayList(2);
+                indexes = new ArrayList<>(2);
                 // Scan must be always at 0.
                 indexes.add(scan);
             }
@@ -1573,7 +1573,7 @@ public class TestTableEngines extends TestBase {
 
         public List<Future<Cursor>> findBatched(final TableFilter filter,
                 List<SearchRow> firstLastPairs) {
-            ArrayList<Future<Cursor>> result = New.arrayList(firstLastPairs.size());
+            ArrayList<Future<Cursor>> result = new ArrayList<>(firstLastPairs.size());
             final Random rnd = new Random();
             for (int i = 0; i < firstLastPairs.size(); i += 2) {
                 final SearchRow first = firstLastPairs.get(i);

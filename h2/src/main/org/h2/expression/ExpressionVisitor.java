@@ -294,7 +294,7 @@ public class ExpressionVisitor {
      * @return the set of columns
      */
     public static HashSet<Column> allColumnsForTableFilters(TableFilter[] filters) {
-        HashSet<Column> allColumnsSet = New.hashSet();
+        HashSet<Column> allColumnsSet = new HashSet<>();
         for (int i = 0; i < filters.length; i++) {
             if (filters[i].getSelect() != null) {
                 filters[i].getSelect().isEverything(

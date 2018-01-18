@@ -11,9 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import org.h2.util.New;
 import org.h2.util.SoftHashMap;
 
 /**
@@ -24,7 +25,7 @@ final class FullTextSettings {
     /**
      * The settings of open indexes.
      */
-    private static final Map<String, FullTextSettings> SETTINGS = New.hashMap();
+    private static final Map<String, FullTextSettings> SETTINGS = new HashMap<>();
 
     /**
      * Whether this instance has been initialized.
@@ -34,17 +35,18 @@ final class FullTextSettings {
     /**
      * The set of words not to index (stop words).
      */
-    private final Set<String> ignoreList = New.hashSet();
+    private final Set<String> ignoreList = new HashSet<>();
 
     /**
      * The set of words / terms.
      */
-    private final Map<String, Integer> words = New.hashMap();
+    private final Map<String, Integer> words = new HashMap<>();
 
     /**
      * The set of indexes in this database.
      */
-    private final Map<Integer, IndexInfo> indexes = Collections.synchronizedMap(New.<Integer, IndexInfo>hashMap());
+    private final Map<Integer, IndexInfo> indexes = Collections
+            .synchronizedMap(new HashMap<Integer, IndexInfo>());
 
     /**
      * The prepared statement cache.

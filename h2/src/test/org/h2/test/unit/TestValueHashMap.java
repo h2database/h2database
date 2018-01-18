@@ -59,7 +59,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
 
     private void testRandomized() {
         ValueHashMap<Value> map = ValueHashMap.newInstance();
-        HashMap<Value, Value> hash = New.hashMap();
+        HashMap<Value, Value> hash = new HashMap<>();
         Random random = new Random(1);
         Comparator<Value> vc = new Comparator<Value>() {
             @Override
@@ -87,7 +87,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
                 break;
             case 3: {
                 ArrayList<Value> a1 = map.keys();
-                ArrayList<Value> a2 = New.arrayList(hash.keySet());
+                ArrayList<Value> a2 = new ArrayList<>(hash.keySet());
                 assertEquals(a1.size(), a2.size());
                 Collections.sort(a1, vc);
                 Collections.sort(a2, vc);
@@ -98,7 +98,7 @@ public class TestValueHashMap extends TestBase implements DataHandler {
             }
             case 4:
                 ArrayList<Value> a1 = map.values();
-                ArrayList<Value> a2 = New.arrayList(hash.values());
+                ArrayList<Value> a2 = new ArrayList<>(hash.values());
                 assertEquals(a1.size(), a2.size());
                 Collections.sort(a1, vc);
                 Collections.sort(a2, vc);

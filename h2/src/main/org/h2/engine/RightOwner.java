@@ -100,7 +100,7 @@ public abstract class RightOwner extends DbObjectBase {
      */
     public void grantRight(DbObject object, Right right) {
         if (grantedRights == null) {
-            grantedRights = New.hashMap();
+            grantedRights = new HashMap<>();
         }
         grantedRights.put(object, right);
     }
@@ -128,7 +128,7 @@ public abstract class RightOwner extends DbObjectBase {
      */
     public void grantRole(Role role, Right right) {
         if (grantedRoles == null) {
-            grantedRoles = New.hashMap();
+            grantedRoles = new HashMap<>();
         }
         grantedRoles.put(role, right);
     }

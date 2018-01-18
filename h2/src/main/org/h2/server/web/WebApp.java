@@ -297,7 +297,7 @@ public class WebApp {
                         space = " ";
                     }
                 }
-                ArrayList<String> list = New.arrayList(map.size());
+                ArrayList<String> list = new ArrayList<>(map.size());
                 for (Map.Entry<String, String> entry : map.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue();
@@ -542,7 +542,7 @@ public class WebApp {
             // SQLite
             return treeIndex;
         }
-        HashMap<String, IndexInfo> indexMap = New.hashMap();
+        HashMap<String, IndexInfo> indexMap = new HashMap<>();
         while (rs.next()) {
             String name = rs.getString("INDEX_NAME");
             IndexInfo info = indexMap.get(name);

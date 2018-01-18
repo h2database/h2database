@@ -161,7 +161,7 @@ public class ValueHashMap<V> extends HashBase {
      * @return all keys
      */
     public ArrayList<Value> keys() {
-        ArrayList<Value> list = New.arrayList(size);
+        ArrayList<Value> list = new ArrayList<>(size);
         for (Value k : keys) {
             if (k != null && k != ValueNull.DELETED) {
                 list.add(k);
@@ -176,7 +176,7 @@ public class ValueHashMap<V> extends HashBase {
      * @return all values
      */
     public ArrayList<V> values() {
-        ArrayList<V> list = New.arrayList(size);
+        ArrayList<V> list = new ArrayList<>(size);
         int len = keys.length;
         for (int i = 0; i < len; i++) {
             Value k = keys[i];

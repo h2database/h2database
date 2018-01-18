@@ -223,7 +223,7 @@ public class UndoLog {
     int getTableId(Table table) {
         int id = table.getId();
         if (tables == null) {
-            tables = New.hashMap();
+            tables = new HashMap<>();
         }
         // need to overwrite the old entry, because the old object
         // might be deleted in the meantime

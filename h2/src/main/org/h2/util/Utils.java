@@ -46,7 +46,7 @@ public class Utils {
     private static final int MAX_GC = 8;
     private static long lastGC;
 
-    private static final HashMap<String, byte[]> RESOURCES = New.hashMap();
+    private static final HashMap<String, byte[]> RESOURCES = new HashMap<>();
 
     private Utils() {
         // utility class

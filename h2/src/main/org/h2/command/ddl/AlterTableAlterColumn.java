@@ -215,7 +215,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
         if (defaultExpression == null) {
             return;
         }
-        HashSet<DbObject> dependencies = New.hashSet();
+        HashSet<DbObject> dependencies = new HashSet<>();
         ExpressionVisitor visitor = ExpressionVisitor
                 .getDependenciesVisitor(dependencies);
         defaultExpression.isEverything(visitor);

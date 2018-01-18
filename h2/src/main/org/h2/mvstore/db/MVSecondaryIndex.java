@@ -120,7 +120,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
 
     @Override
     public void addBufferedRows(List<String> bufferNames) {
-        ArrayList<String> mapNames = New.arrayList(bufferNames);
+        ArrayList<String> mapNames = new ArrayList<>(bufferNames);
         CompareMode compareMode = database.getCompareMode();
         int buffersCount = bufferNames.size();
         Queue<Source> queue = new PriorityQueue<>(buffersCount, new Source.Comparator(compareMode));

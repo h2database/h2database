@@ -412,7 +412,7 @@ public class MVTableEngine implements TableEngine {
          * @return the statistics
          */
         public Map<String, Integer> statisticsEnd() {
-            HashMap<String, Integer> map = New.hashMap();
+            HashMap<String, Integer> map = new HashMap<>();
             FileStore fs = store.getFileStore();
             int reads = fs == null ? 0 : (int) (fs.getReadCount() - statisticsStart);
             map.put("reads", reads);

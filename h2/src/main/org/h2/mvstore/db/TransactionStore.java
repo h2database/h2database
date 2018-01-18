@@ -60,7 +60,7 @@ public class TransactionStore {
      * The map of maps.
      */
     private final HashMap<Integer, MVMap<Object, VersionedValue>> maps =
-            New.hashMap();
+            new HashMap<>();
 
     private final DataType dataType;
 

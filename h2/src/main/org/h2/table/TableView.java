@@ -169,7 +169,7 @@ public class TableView extends Table {
         try {
             Query compiledQuery = compileViewQuery(session, querySQL, literalsChecked, getName());
             this.querySQL = compiledQuery.getPlanSQL();
-            tables = New.arrayList(compiledQuery.getTables());
+            tables = new ArrayList<>(compiledQuery.getTables());
             ArrayList<Expression> expressions = compiledQuery.getExpressions();
             ArrayList<Column> list = New.arrayList();
             ColumnNamer columnNamer = new ColumnNamer(session);

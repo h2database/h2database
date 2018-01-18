@@ -27,7 +27,7 @@ import org.h2.util.Tool;
  */
 public class ConvertTraceFile extends Tool {
 
-    private final HashMap<String, Stat> stats = New.hashMap();
+    private final HashMap<String, Stat> stats = new HashMap<>();
     private long timeTotal;
 
     /**
@@ -179,7 +179,7 @@ public class ConvertTraceFile extends Tool {
             scriptWriter.println("-----------------------------------------");
             scriptWriter.println("-- self accu    time   count  result sql");
             int accumTime = 0;
-            ArrayList<Stat> list = New.arrayList(stats.values());
+            ArrayList<Stat> list = new ArrayList<>(stats.values());
             Collections.sort(list);
             if (timeTotal == 0) {
                 timeTotal = 1;

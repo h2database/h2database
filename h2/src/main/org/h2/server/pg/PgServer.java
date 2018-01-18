@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -66,7 +67,7 @@ public class PgServer implements Service {
     public static final int PG_TYPE_TIMESTAMP_NO_TMZONE = 1114;
     public static final int PG_TYPE_NUMERIC = 1700;
 
-    private final HashSet<Integer> typeSet = New.hashSet();
+    private final HashSet<Integer> typeSet = new HashSet<>();
 
     private int port = PgServer.DEFAULT_PORT;
     private boolean portIsSet;
@@ -224,7 +225,7 @@ public class PgServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (PgServerThread c : New.arrayList(running)) {
+        for (PgServerThread c : new ArrayList<>(running)) {
             c.close();
             try {
                 Thread t = c.getThread();
@@ -262,7 +263,7 @@ public class PgServer implements Service {
      * @return the thread
      */
     PgServerThread getThread(int processId) {
-        for (PgServerThread c : New.arrayList(running)) {
+        for (PgServerThread c : new ArrayList<>(running)) {
             if (c.getProcessId() == processId) {
                 return c;
             }

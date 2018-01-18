@@ -1102,7 +1102,7 @@ public class Page {
          * indirectly point to other chunks).
          */
         void removeDuplicateChunkReferences() {
-            HashSet<Integer> chunks = New.hashSet();
+            HashSet<Integer> chunks = new HashSet<>();
             // we don't need references to leaves in the same chunk
             chunks.add(DataUtils.getPageChunkId(pos));
             for (int i = 0; i < children.length; i++) {

@@ -408,7 +408,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
         }
         if (external == null) {
             if (rows.size() > limit) {
-                rows = New.arrayList(rows.subList(0, limit));
+                rows = new ArrayList<>(rows.subList(0, limit));
                 rowCount = limit;
                 distinctRows = null;
             }
@@ -504,7 +504,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
             } else {
                 // avoid copying the whole array for each row
                 int remove = Math.min(offset, rows.size());
-                rows = New.arrayList(rows.subList(remove, rows.size()));
+                rows = new ArrayList<>(rows.subList(remove, rows.size()));
                 rowCount -= remove;
             }
         } else {

@@ -249,7 +249,7 @@ public class Query<T> {
     }
 
     public <A> QueryWhere<T> where(Filter filter) {
-        HashMap<String, Object> fieldMap = New.hashMap();
+        HashMap<String, Object> fieldMap = new HashMap<>();
         for (Field f : filter.getClass().getDeclaredFields()) {
             f.setAccessible(true);
             try {

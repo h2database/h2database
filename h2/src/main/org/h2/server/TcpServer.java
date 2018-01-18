@@ -14,6 +14,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -306,7 +307,7 @@ public class TcpServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (TcpServerThread c : New.arrayList(running)) {
+        for (TcpServerThread c : new ArrayList<>(running)) {
             if (c != null) {
                 c.close();
                 try {
@@ -483,7 +484,7 @@ public class TcpServer implements Service {
      * @param statementId the statement id
      */
     void cancelStatement(String sessionId, int statementId) {
-        for (TcpServerThread c : New.arrayList(running)) {
+        for (TcpServerThread c : new ArrayList<>(running)) {
             if (c != null) {
                 c.cancelStatement(sessionId, statementId);
             }

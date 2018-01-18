@@ -56,7 +56,7 @@ public class TestServlet extends TestBase {
     static class TestServletContext implements ServletContext {
 
         private final Properties initParams = new Properties();
-        private final HashMap<String, Object> attributes = New.hashMap();
+        private final HashMap<String, Object> attributes = new HashMap<>();
 
         @Override
         public void setAttribute(String key, Object value) {

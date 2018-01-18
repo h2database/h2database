@@ -16,6 +16,8 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,7 +101,7 @@ public class TableInspector {
 
             // indexes
             rs = metaData.getIndexInfo(null, schema, table, false, true);
-            indexes = New.hashMap();
+            indexes = new HashMap<>();
             while (rs.next()) {
                 IndexInspector info = new IndexInspector(rs);
                 if (info.type.equals(IndexType.UNIQUE)
@@ -117,7 +119,7 @@ public class TableInspector {
 
             // columns
             rs = metaData.getColumns(null, schema, table, null);
-            columns = New.hashMap();
+            columns = new HashMap<>();
             while (rs.next()) {
                 ColumnInspector col = new ColumnInspector();
                 col.name = rs.getString("COLUMN_NAME");
@@ -159,7 +161,7 @@ public class TableInspector {
             boolean trimStrings) {
 
         // import statements
-        Set<String> imports = New.hashSet();
+        Set<String> imports = new HashSet<>();
         imports.add(JQSchema.class.getCanonicalName());
         imports.add(JQTable.class.getCanonicalName());
         imports.add(JQIndex.class.getCanonicalName());
@@ -167,7 +169,7 @@ public class TableInspector {
 
         // fields
         StringBuilder fields = new StringBuilder();
-        List<ColumnInspector> sortedColumns = New.arrayList(columns.values());
+        List<ColumnInspector> sortedColumns = new ArrayList<>(columns.values());
         Collections.sort(sortedColumns);
         for (ColumnInspector col : sortedColumns) {
             fields.append(generateColumn(imports, col, trimStrings));

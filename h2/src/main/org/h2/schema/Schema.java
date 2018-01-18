@@ -56,7 +56,7 @@ public class Schema extends DbObjectBase {
      * avoid returning the same unique name twice when multiple threads
      * concurrently create objects.
      */
-    private final HashSet<String> temporaryUniqueNames = New.hashSet();
+    private final HashSet<String> temporaryUniqueNames = new HashSet<>();
 
     /**
      * Create a new schema object.
@@ -133,7 +133,7 @@ public class Schema extends DbObjectBase {
             runLoopAgain = false;
             if (tablesAndViews != null) {
                 // Loop over a copy because the map is modified underneath us.
-                for (Table obj : New.arrayList(tablesAndViews.values())) {
+                for (Table obj : new ArrayList<>(tablesAndViews.values())) {
                     // Check for null because multiple tables might be deleted
                     // in one go underneath us.
                     if (obj.getName() != null) {
@@ -584,7 +584,7 @@ public class Schema extends DbObjectBase {
      */
     public ArrayList<SchemaObject> getAll(int type) {
         Map<String, SchemaObject> map = getMap(type);
-        return New.arrayList(map.values());
+        return new ArrayList<>(map.values());
     }
 
     /**
@@ -594,14 +594,14 @@ public class Schema extends DbObjectBase {
      */
     public ArrayList<Table> getAllTablesAndViews() {
         synchronized (database) {
-            return New.arrayList(tablesAndViews.values());
+            return new ArrayList<>(tablesAndViews.values());
         }
     }
 
 
     public ArrayList<TableSynonym> getAllSynonyms() {
         synchronized (database) {
-            return New.arrayList(synonyms.values());
+            return new ArrayList<>(synonyms.values());
         }
     }
 

@@ -90,7 +90,7 @@ public class Insert extends Prepared implements ResultTarget {
      */
     public void addAssignmentForDuplicate(Column column, Expression expression) {
         if (duplicateKeyAssignmentMap == null) {
-            duplicateKeyAssignmentMap = New.hashMap();
+            duplicateKeyAssignmentMap = new HashMap<>();
         }
         if (duplicateKeyAssignmentMap.containsKey(column)) {
             throw DbException.get(ErrorCode.DUPLICATE_COLUMN_NAME_1,

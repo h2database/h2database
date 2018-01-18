@@ -65,17 +65,17 @@ public class SourceCompiler {
     /**
      * The class name to source code map.
      */
-    final HashMap<String, String> sources = New.hashMap();
+    final HashMap<String, String> sources = new HashMap<>();
 
     /**
      * The class name to byte code map.
      */
-    final HashMap<String, Class<?>> compiled = New.hashMap();
+    final HashMap<String, Class<?>> compiled = new HashMap<>();
 
     /**
      * The class name to compiled scripts map.
      */
-    final Map<String, CompiledScript> compiledScripts = New.hashMap();
+    final Map<String, CompiledScript> compiledScripts = new HashMap<>();
 
     /**
      * Whether to use the ToolProvider.getSystemJavaCompiler().

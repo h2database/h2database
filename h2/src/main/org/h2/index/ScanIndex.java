@@ -44,7 +44,7 @@ public class ScanIndex extends BaseIndex {
             IndexType indexType) {
         initBaseIndex(table, id, table.getName() + "_DATA", columns, indexType);
         if (database.isMultiVersion()) {
-            sessionRowCount = New.hashMap();
+            sessionRowCount = new HashMap<>();
         } else {
             sessionRowCount = null;
         }
@@ -103,7 +103,7 @@ public class ScanIndex extends BaseIndex {
         row.setDeleted(false);
         if (database.isMultiVersion()) {
             if (delta == null) {
-                delta = New.hashSet();
+                delta = new HashSet<>();
             }
             boolean wasDeleted = delta.remove(row);
             if (!wasDeleted) {
@@ -156,7 +156,7 @@ public class ScanIndex extends BaseIndex {
             // if storage is null, the delete flag is not yet set
             row.setDeleted(true);
             if (delta == null) {
-                delta = New.hashSet();
+                delta = new HashSet<>();
             }
             boolean wasAdded = delta.remove(row);
             if (!wasAdded) {

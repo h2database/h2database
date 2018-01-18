@@ -205,7 +205,7 @@ public final class MVStore {
     private final ConcurrentHashMap<Integer, MVMap<?, ?>> maps =
             new ConcurrentHashMap<>();
 
-    private final HashMap<String, Object> storeHeader = New.hashMap();
+    private final HashMap<String, Object> storeHeader = new HashMap<>();
 
     private WriteBuffer writeBuffer;
 
@@ -337,7 +337,7 @@ public final class MVStore {
                 (UncaughtExceptionHandler)config.get("backgroundExceptionHandler");
         meta = new MVMap<>(StringDataType.INSTANCE,
                 StringDataType.INSTANCE);
-        HashMap<String, Object> c = New.hashMap();
+        HashMap<String, Object> c = new HashMap<>();
         c.put("id", 0);
         c.put("createVersion", currentVersion);
         meta.init(this, c);
@@ -397,7 +397,7 @@ public final class MVStore {
      * @return the store
      */
     public static MVStore open(String fileName) {
-        HashMap<String, Object> config = New.hashMap();
+        HashMap<String, Object> config = new HashMap<>();
         config.put("fileName", fileName);
         return new MVStore(config);
     }
@@ -468,7 +468,7 @@ public final class MVStore {
             map.init(this, c);
             root = getRootPos(meta, id);
         } else {
-            c = New.hashMap();
+            c = new HashMap<>();
             id = ++lastMapId;
             c.put("id", id);
             c.put("createVersion", currentVersion);
@@ -491,7 +491,7 @@ public final class MVStore {
      * @return the set of names
      */
     public synchronized Set<String> getMapNames() {
-        HashSet<String> set = New.hashSet();
+        HashSet<String> set = new HashSet<>();
         checkOpen();
         for (Iterator<String> it = meta.keyIterator("name."); it.hasNext();) {
             String x = it.next();
@@ -891,7 +891,7 @@ public final class MVStore {
             if (cacheChunkRef != null) {
                 cacheChunkRef.clear();
             }
-            for (MVMap<?, ?> m : New.arrayList(maps.values())) {
+            for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
                 m.close();
             }
             chunks.clear();
@@ -1090,7 +1090,7 @@ public final class MVStore {
         // force a metadata update
         meta.put(Chunk.getMetaKey(c.id), c.asString());
         meta.remove(Chunk.getMetaKey(c.id));
-        ArrayList<MVMap<?, ?>> list = New.arrayList(maps.values());
+        ArrayList<MVMap<?, ?>> list = new ArrayList<>(maps.values());
         ArrayList<MVMap<?, ?>> changed = New.arrayList();
         for (MVMap<?, ?> m : list) {
             m.setWriteVersion(version);
@@ -1277,7 +1277,7 @@ public final class MVStore {
         long testVersion = lastChunk.version;
         DataUtils.checkArgument(testVersion > 0, "Collect references on version 0");
         long readCount = getFileStore().readCount.get();
-        Set<Integer> referenced = New.hashSet();
+        Set<Integer> referenced = new HashSet<>();
         for (Cursor<String, String> c = meta.cursor("root."); c.hasNext();) {
             String key = c.next();
             if (!key.startsWith("root.")) {
@@ -1305,7 +1305,7 @@ public final class MVStore {
         }
         PageChildren refs = readPageChunkReferences(mapId, pos, -1);
         if (!refs.chunkList) {
-            Set<Integer> target = New.hashSet();
+            Set<Integer> target = new HashSet<>();
             for (int i = 0; i < refs.children.length; i++) {
                 long p = refs.children[i];
                 collectReferencedChunks(target, mapId, p, level + 1);
@@ -1887,7 +1887,7 @@ public final class MVStore {
     }
 
     private void compactRewrite(ArrayList<Chunk> old) {
-        HashSet<Integer> set = New.hashSet();
+        HashSet<Integer> set = new HashSet<>();
         for (Chunk c : old) {
             set.add(c.id);
         }
@@ -2316,7 +2316,7 @@ public final class MVStore {
             writeStoreHeader();
             readStoreHeader();
         }
-        for (MVMap<?, ?> m : New.arrayList(maps.values())) {
+        for (MVMap<?, ?> m : new ArrayList<>(maps.values())) {
             int id = m.getId();
             if (m.getCreateVersion() >= version) {
                 m.close();
@@ -2720,7 +2720,7 @@ public final class MVStore {
          * Creates new instance of MVStore.Builder.
          */
         public Builder() {
-            config = New.hashMap();
+            config = new HashMap<>();
         }
 
         private Builder set(String key, Object value) {

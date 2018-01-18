@@ -925,7 +925,7 @@ public class Parser {
 
     private Column[] parseColumnList(Table table) {
         ArrayList<Column> columns = New.arrayList();
-        HashSet<Column> set = New.hashSet();
+        HashSet<Column> set = new HashSet<>();
         if (!readIf(")")) {
             do {
                 Column column = parseColumn(table);
@@ -1357,7 +1357,7 @@ public class Parser {
             if (isSelect()) {
                 Query query = parseSelectUnion();
                 read(")");
-                query.setParameterList(New.arrayList(parameters));
+                query.setParameterList(new ArrayList<>(parameters));
                 query.init();
                 Session s;
                 if (createView != null) {
@@ -5902,7 +5902,7 @@ public class Parser {
             }
         }
         if (readIf("SCHEMA")) {
-            HashSet<String> schemaNames = New.hashSet();
+            HashSet<String> schemaNames = new HashSet<>();
             do {
                 schemaNames.add(readUniqueIdentifier());
             } while (readIf(","));

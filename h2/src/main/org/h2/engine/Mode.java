@@ -22,7 +22,7 @@ public class Mode {
         REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite,
     }
 
-    private static final HashMap<String, Mode> MODES = New.hashMap();
+    private static final HashMap<String, Mode> MODES = new HashMap<>();
 
     // Modes are also documented in the features section
 

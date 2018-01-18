@@ -89,7 +89,7 @@ public class LobStorageBackend implements LobStorageInterface {
     JdbcConnection conn;
     final Database database;
 
-    private final HashMap<String, PreparedStatement> prepared = New.hashMap();
+    private final HashMap<String, PreparedStatement> prepared = new HashMap<>();
     private long nextBlock;
     private final CompressTool compress = CompressTool.getInstance();
     private long[] hashBlocks;

@@ -41,7 +41,7 @@ public class RecoverTester implements Recorder {
     private final long maxFileSize = Utils.getProperty(
             "h2.recoverTestMaxFileSize", Integer.MAX_VALUE) * 1024L * 1024;
     private int verifyCount;
-    private final HashSet<String> knownErrors = New.hashSet();
+    private final HashSet<String> knownErrors = new HashSet<>();
     private volatile boolean testing;
 
     /**

@@ -577,7 +577,7 @@ public abstract class Table extends SchemaObjectBase {
      */
     public void dropMultipleColumnsConstraintsAndIndexes(Session session,
             ArrayList<Column> columnsToDrop) {
-        HashSet<Constraint> constraintsToDrop = New.hashSet();
+        HashSet<Constraint> constraintsToDrop = new HashSet<>();
         if (constraints != null) {
             for (Column col : columnsToDrop) {
                 for (int i = 0, size = constraints.size(); i < size; i++) {
@@ -595,7 +595,7 @@ public abstract class Table extends SchemaObjectBase {
                 }
             }
         }
-        HashSet<Index> indexesToDrop = New.hashSet();
+        HashSet<Index> indexesToDrop = new HashSet<>();
         ArrayList<Index> indexes = getIndexes();
         if (indexes != null) {
             for (Column col : columnsToDrop) {

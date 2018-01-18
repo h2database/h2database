@@ -119,7 +119,7 @@ public class ConstraintCheck extends Constraint {
 
     @Override
     public HashSet<Column> getReferencedColumns(Table table) {
-        HashSet<Column> columns = New.hashSet();
+        HashSet<Column> columns = new HashSet<>();
         expr.isEverything(ExpressionVisitor.getColumnsVisitor(columns));
         for (Iterator<Column> it = columns.iterator(); it.hasNext();) {
             if (it.next().getTable() != table) {

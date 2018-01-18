@@ -208,7 +208,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 if (compareRows(row, r2) != 0) {
                     break;
                 }
-                if (containsNullAndAllowMultipleNull(r2)) {
+                if (mayHaveDuplicates(r2)) {
                     // this is allowed
                     continue;
                 }
@@ -233,7 +233,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                 break;
             }
             if (map.get(k) != null) {
-                if (!containsNullAndAllowMultipleNull(r2)) {
+                if (!mayHaveDuplicates(r2)) {
                     throw getDuplicateKeyException(k.toString());
                 }
             }

@@ -5259,15 +5259,14 @@ public class Parser {
             }
             oldViewFound = null;
         }
-        // this table is created as a work around because recursive
-        // table expressions need to reference something that look like
-        // themselves
-        // to work (its removed after creation in this method)
-        // only create table data and table if we don't have a working CTE already
-        if (oldViewFound == null) {
-            recursiveTable = TableView.createShadowTableForRecursiveTableExpression(isPersistent, session, cteViewName,
-                    schema, columns, db);
-        }
+        /*
+         * This table is created as a workaround because recursive table
+         * expressions need to reference something that look like themselves to
+         * work (its removed after creation in this method). Only create table
+         * data and table if we don't have a working CTE already.
+         */
+        recursiveTable = TableView.createShadowTableForRecursiveTableExpression(
+                isPersistent, session, cteViewName, schema, columns, db);
         List<Column> columnTemplateList;
         String[] querySQLOutput = new String[]{null};
         try {

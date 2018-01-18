@@ -48,7 +48,7 @@ public class Update extends Prepared {
     private Expression limitExpr;
 
     private final ArrayList<Column> columns = New.arrayList();
-    private final HashMap<Column, Expression> expressionMap  = New.hashMap();
+    private final HashMap<Column, Expression> expressionMap  = new HashMap<>();
 
     public Update(Session session) {
         super(session);

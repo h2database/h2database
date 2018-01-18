@@ -338,11 +338,11 @@ public class AlterTableAddConstraint extends SchemaCommand {
             return false;
         }
         Column[] indexCols = idx.getColumns();
-        HashSet<Column> indexColsSet = New.hashSet();
+        HashSet<Column> indexColsSet = new HashSet<>();
         for (Column c : indexCols) {
             indexColsSet.add(c);
         }
-        HashSet<Column> colsSet = New.hashSet();
+        HashSet<Column> colsSet = new HashSet<>();
         for (IndexColumn c : cols) {
             colsSet.add(c.column);
         }

@@ -1113,7 +1113,7 @@ public class MVMap<K, V> extends AbstractMap<K, V>
     MVMap<K, V> openReadOnly() {
         MVMap<K, V> m = new MVMap<>(keyType, valueType);
         m.readOnly = true;
-        HashMap<String, Object> config = New.hashMap();
+        HashMap<String, Object> config = new HashMap<>();
         config.put("id", id);
         config.put("createVersion", createVersion);
         m.init(store, config);

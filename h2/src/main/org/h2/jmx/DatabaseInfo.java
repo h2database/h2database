@@ -8,6 +8,7 @@ package org.h2.jmx;
 import java.lang.management.ManagementFactory;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.TreeMap;
@@ -31,7 +32,7 @@ import org.h2.util.New;
  */
 public class DatabaseInfo implements DatabaseInfoMBean {
 
-    private static final Map<String, ObjectName> MBEANS = New.hashMap();
+    private static final Map<String, ObjectName> MBEANS = new HashMap<>();
 
     /** Database. */
     private final Database database;

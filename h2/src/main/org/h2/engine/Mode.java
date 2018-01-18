@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**
@@ -45,7 +44,7 @@ public class Mode {
         FORBID_ANY_DUPLICATES;
     }
 
-    private static final HashMap<String, Mode> MODES = New.hashMap();
+    private static final HashMap<String, Mode> MODES = new HashMap<>();
 
     // Modes are also documented in the features section
 

@@ -553,7 +553,7 @@ public class Recover extends Tool implements DataHandler {
             dumpPageStore(devNull, pageCount);
             stat = new Stats();
             schema.clear();
-            objectIdSet = New.hashSet();
+            objectIdSet = new HashSet<>();
             dumpPageStore(writer, pageCount);
             writeSchema(writer);
             try {
@@ -1515,9 +1515,9 @@ public class Recover extends Tool implements DataHandler {
 
     private void resetSchema() {
         schema = New.arrayList();
-        objectIdSet = New.hashSet();
-        tableMap = New.hashMap();
-        columnTypeMap = New.hashMap();
+        objectIdSet = new HashSet<>();
+        tableMap = new HashMap<>();
+        columnTypeMap = new HashMap<>();
     }
 
     private void writeSchema(PrintWriter writer) {

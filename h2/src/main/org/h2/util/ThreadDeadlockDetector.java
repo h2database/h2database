@@ -97,9 +97,9 @@ public class ThreadDeadlockDetector {
             tableSharedLocksMap = MVTable.SHARED_LOCKS
                     .getSnapshotOfAllThreads();
         } else {
-            tableWaitingForLockMap = New.hashMap();
-            tableExclusiveLocksMap = New.hashMap();
-            tableSharedLocksMap = New.hashMap();
+            tableWaitingForLockMap = new HashMap<>();
+            tableExclusiveLocksMap = new HashMap<>();
+            tableSharedLocksMap = new HashMap<>();
         }
 
         final ThreadInfo[] infos = threadBean.getThreadInfo(threadIds, true,

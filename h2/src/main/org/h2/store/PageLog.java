@@ -150,7 +150,7 @@ public class PageLog {
      * The session state map.
      * Only used during recovery.
      */
-    private HashMap<Integer, SessionState> sessionStates = New.hashMap();
+    private HashMap<Integer, SessionState> sessionStates = new HashMap<>();
 
     /**
      * The map of pages used by the transaction log.
@@ -869,7 +869,7 @@ public class PageLog {
      * Called after the recovery has been completed.
      */
     void recoverEnd() {
-        sessionStates = New.hashMap();
+        sessionStates = new HashMap<>();
     }
 
     private void flushOut() {

@@ -134,7 +134,7 @@ public class ConstraintUnique extends Constraint {
 
     @Override
     public HashSet<Column> getReferencedColumns(Table table) {
-        HashSet<Column> result = New.hashSet();
+        HashSet<Column> result = new HashSet<>();
         for (IndexColumn c : columns) {
             result.add(c.column);
         }

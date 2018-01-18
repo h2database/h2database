@@ -54,7 +54,7 @@ public class RegularTable extends TableBase {
     private Index scanIndex;
     private long rowCount;
     private volatile Session lockExclusiveSession;
-    private HashSet<Session> lockSharedSessions = New.hashSet();
+    private HashSet<Session> lockSharedSessions = new HashSet<>();
 
     /**
      * The queue of sessions waiting to lock the table. It is a FIFO queue to
@@ -265,7 +265,7 @@ public class RegularTable extends TableBase {
                 Cursor cursor = scan.find(session, null, null);
                 long i = 0;
                 int bufferSize = (int) Math.min(rowCount, database.getMaxMemoryRows());
-                ArrayList<Row> buffer = New.arrayList(bufferSize);
+                ArrayList<Row> buffer = new ArrayList<>(bufferSize);
                 String n = getName() + ":" + index.getName();
                 int t = MathUtils.convertLongToInt(total);
                 while (cursor.next()) {
@@ -612,7 +612,7 @@ public class RegularTable extends TableBase {
             if (clash == null) {
                 // verification is started
                 clash = session;
-                visited = New.hashSet();
+                visited = new HashSet<>();
             } else if (clash == session) {
                 // we found a circle where this session is involved
                 return New.arrayList();

@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class Db {
             .synchronizedMap(new WeakIdentityHashMap<Object, Token>());
 
     private final Connection conn;
-    private final Map<Class<?>, TableDefinition<?>> classMap = New.hashMap();
+    private final Map<Class<?>, TableDefinition<?>> classMap = new HashMap<>();
     private final SQLDialect dialect;
     private DbUpgrader dbUpgrader = new DefaultDbUpgrader();
     private final Set<Class<?>> upgradeChecked = Collections

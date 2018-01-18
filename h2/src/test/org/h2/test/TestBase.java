@@ -265,9 +265,9 @@ public abstract class TestBase {
         }
         if (config.networked) {
             if (config.ssl) {
-                url = "ssl://localhost:9192/" + name;
+                url = "ssl://localhost:"+config.getPort()+"/" + name;
             } else {
-                url = "tcp://localhost:9192/" + name;
+                url = "tcp://localhost:"+config.getPort()+"/" + name;
             }
         } else if (config.googleAppEngine) {
             url = "gae://" + name +

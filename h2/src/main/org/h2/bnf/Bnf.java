@@ -31,7 +31,7 @@ public class Bnf {
      * The rule map. The key is lowercase, and all spaces
      * are replaces with underscore.
      */
-    private final HashMap<String, RuleHead> ruleMap = New.hashMap();
+    private final HashMap<String, RuleHead> ruleMap = new HashMap<>();
     private String syntax;
     private String currentToken;
     private String[] tokens;

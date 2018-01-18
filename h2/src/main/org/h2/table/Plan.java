@@ -23,7 +23,7 @@ import org.h2.util.New;
 public class Plan {
 
     private final TableFilter[] filters;
-    private final HashMap<TableFilter, PlanItem> planItems = New.hashMap();
+    private final HashMap<TableFilter, PlanItem> planItems = new HashMap<>();
     private final Expression[] allConditions;
     private final TableFilter[] allFilters;
 

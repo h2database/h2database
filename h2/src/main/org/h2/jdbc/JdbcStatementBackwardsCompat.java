@@ -30,7 +30,7 @@ public interface JdbcStatementBackwardsCompat {
     /**
      * Gets the maximum number of rows for a ResultSet.
      *
-     * @param maxRows the number of rows where 0 means no limit
+     * @param max the number of rows where 0 means no limit
      * @throws SQLException if this object is closed
      */
     void setLargeMaxRows(long max) throws SQLException;

@@ -16,7 +16,7 @@ import org.h2.message.DbException;
  */
 public class SmallMap {
 
-    private final HashMap<Integer, Object> map = New.hashMap();
+    private final HashMap<Integer, Object> map = new HashMap<>();
     private Object cache;
     private int cacheId;
     private int lastId;

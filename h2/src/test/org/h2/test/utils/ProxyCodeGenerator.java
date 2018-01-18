@@ -23,7 +23,7 @@ import org.h2.util.SourceCompiler;
 public class ProxyCodeGenerator {
 
     private static SourceCompiler compiler = new SourceCompiler();
-    private static HashMap<Class<?>, Class<?>> proxyMap = New.hashMap();
+    private static HashMap<Class<?>, Class<?>> proxyMap = new HashMap<>();
 
     private final TreeSet<String> imports = new TreeSet<>();
     private final TreeMap<String, Method> methods = new TreeMap<>();

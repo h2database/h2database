@@ -52,7 +52,7 @@ public class TableLink extends Table {
     private final String originalSchema;
     private String driver, url, user, password, originalTable, qualifiedTableName;
     private TableLinkConnection conn;
-    private HashMap<String, PreparedStatement> preparedMap = New.hashMap();
+    private HashMap<String, PreparedStatement> preparedMap = new HashMap<>();
     private final ArrayList<Index> indexes = New.arrayList();
     private final boolean emitUpdates;
     private LinkedIndex linkedIndex;
@@ -128,7 +128,7 @@ public class TableLink extends Table {
         rs = meta.getColumns(null, originalSchema, originalTable, null);
         int i = 0;
         ArrayList<Column> columnList = New.arrayList();
-        HashMap<String, Column> columnMap = New.hashMap();
+        HashMap<String, Column> columnMap = new HashMap<>();
         String catalog = null, schema = null;
         while (rs.next()) {
             String thisCatalog = rs.getString("TABLE_CAT");

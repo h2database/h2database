@@ -71,7 +71,7 @@ public class TestStatement extends TestBase {
 
     private void testUnsupportedOperations() throws Exception {
         conn.setTypeMap(null);
-        HashMap<String, Class<?>> map = New.hashMap();
+        HashMap<String, Class<?>> map = new HashMap<>();
         conn.setTypeMap(map);
         map.put("x", Object.class);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, conn).

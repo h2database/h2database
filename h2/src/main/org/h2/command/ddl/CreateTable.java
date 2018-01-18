@@ -195,7 +195,7 @@ public class CreateTable extends SchemaCommand {
                     session.setUndoLogEnabled(old);
                 }
             }
-            HashSet<DbObject> set = New.hashSet();
+            HashSet<DbObject> set = new HashSet<>();
             set.clear();
             table.addDependencies(set);
             for (DbObject obj : set) {

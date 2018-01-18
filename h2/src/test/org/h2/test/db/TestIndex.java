@@ -298,7 +298,7 @@ public class TestIndex extends TestBase {
                 "delete from test where id=?");
         PreparedStatement prepSelect = conn.prepareStatement(
                 "select count(*) from test where id=?");
-        HashMap<Long, Integer> map = New.hashMap();
+        HashMap<Long, Integer> map = new HashMap<>();
         for (int i = 0; i < 1000; i++) {
             long key = rand.nextInt(10) * 1000000000L;
             Integer r = map.get(key);

@@ -66,8 +66,8 @@ public class DataType {
      * when clearing references.
      */
     private static final ArrayList<DataType> TYPES = New.arrayList();
-    private static final HashMap<String, DataType> TYPES_BY_NAME = New.hashMap();
-    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = New.hashMap();
+    private static final HashMap<String, DataType> TYPES_BY_NAME = new HashMap<>();
+    private static final HashMap<Integer, DataType> TYPES_BY_VALUE_TYPE = new HashMap<>();
 
     /**
      * The value type of this data type.

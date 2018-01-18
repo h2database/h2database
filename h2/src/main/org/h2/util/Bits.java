@@ -14,6 +14,12 @@ import java.util.UUID;
  */
 public final class Bits {
 
+    /*
+     * Signatures of methods should match with
+     * h2/src/java9/src/org/h2/util/Bits.java and precompiled
+     * h2/src/java9/precompiled/org/h2/util/Bits.class.
+     */
+
     /**
      * Reads a int value from the byte array at the given position in big-endian
      * order.

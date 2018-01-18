@@ -129,7 +129,7 @@ public class PrepareTranslation {
             name = name.substring(0, name.length() - 4);
             String template = IOUtils.readStringAndClose(new FileReader(
                     templateDir + "/" + name + ".jsp"), -1);
-            HashMap<String, Object> map = New.hashMap();
+            HashMap<String, Object> map = new HashMap<>();
             for (Object k : prop.keySet()) {
                 map.put(k.toString(), prop.get(k));
             }

@@ -43,7 +43,7 @@ public class Sentence {
     /**
      * The map of next tokens in the form type#tokenName token.
      */
-    private final HashMap<String, String> next = New.hashMap();
+    private final HashMap<String, String> next = new HashMap<>();
 
     /**
      * The complete query string.
@@ -99,7 +99,7 @@ public class Sentence {
      */
     public void addAlias(String alias, DbTableOrView table) {
         if (aliases == null) {
-            aliases = New.hashMap();
+            aliases = new HashMap<>();
         }
         aliases.put(alias, table);
     }
@@ -112,7 +112,7 @@ public class Sentence {
     public void addTable(DbTableOrView table) {
         lastTable = table;
         if (tables == null) {
-            tables = New.hashSet();
+            tables = new HashSet<>();
         }
         tables.add(table);
     }

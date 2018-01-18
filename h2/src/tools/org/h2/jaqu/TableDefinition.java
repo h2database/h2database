@@ -142,7 +142,7 @@ class TableDefinition<T> {
      * @param columnNames the ordered list of column names
      */
     void setPrimaryKey(List<String> columnNames) {
-        primaryKeyColumnNames = New.arrayList(columnNames);
+        primaryKeyColumnNames = new ArrayList<>(columnNames);
         // set isPrimaryKey flag for all field definitions
         for (FieldDefinition fieldDefinition : fieldMap.values()) {
             fieldDefinition.isPrimaryKey = this.primaryKeyColumnNames
@@ -183,7 +183,7 @@ class TableDefinition<T> {
     void addIndex(IndexType type, List<String> columnNames) {
         IndexDefinition index = new IndexDefinition();
         index.indexName = tableName + "_" + indexes.size();
-        index.columnNames = New.arrayList(columnNames);
+        index.columnNames = new ArrayList<>(columnNames);
         index.type = type;
         indexes.add(index);
     }

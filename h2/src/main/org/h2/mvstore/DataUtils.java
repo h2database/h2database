@@ -569,7 +569,7 @@ public final class DataUtils {
      */
     public static StringBuilder appendMap(StringBuilder buff,
             HashMap<String, ?> map) {
-        ArrayList<String> list = New.arrayList(map.keySet());
+        ArrayList<String> list = new ArrayList<>(map.keySet());
         Collections.sort(list);
         for (String k : list) {
             appendMap(buff, k, map.get(k));
@@ -656,7 +656,7 @@ public final class DataUtils {
      * @throws IllegalStateException if parsing failed
      */
     public static HashMap<String, String> parseMap(String s) {
-        HashMap<String, String> map = New.hashMap();
+        HashMap<String, String> map = new HashMap<>();
         StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;
@@ -689,7 +689,7 @@ public final class DataUtils {
             end--;
         }
         String s = new String(bytes, start, end - start, StandardCharsets.ISO_8859_1);
-        HashMap<String, String> map = New.hashMap();
+        HashMap<String, String> map = new HashMap<>();
         StringBuilder buff = new StringBuilder();
         for (int i = 0, size = s.length(); i < size;) {
             int startKey = i;

@@ -59,7 +59,7 @@ public class FullTextLucene extends FullText {
     protected static final boolean STORE_DOCUMENT_TEXT_IN_INDEX =
             Utils.getProperty("h2.storeDocumentTextInIndex", false);
 
-    private static final HashMap<String, IndexAccess> INDEX_ACCESS = New.hashMap();
+    private static final HashMap<String, IndexAccess> INDEX_ACCESS = new HashMap<>();
     private static final String TRIGGER_PREFIX = "FTL_";
     private static final String SCHEMA = "FTL";
     private static final String LUCENE_FIELD_DATA = "_DATA";
@@ -685,7 +685,7 @@ public class FullTextLucene extends FullText {
         /**
          * Map of usage counters for outstanding searchers.
          */
-        private final Map<IndexSearcher,Integer> counters = New.hashMap();
+        private final Map<IndexSearcher,Integer> counters = new HashMap<>();
 
         /**
          * Usage counter for current searcher.

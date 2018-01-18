@@ -225,7 +225,7 @@ public class ConstraintReferential extends Constraint {
 
     @Override
     public HashSet<Column> getReferencedColumns(Table table) {
-        HashSet<Column> result = New.hashSet();
+        HashSet<Column> result = new HashSet<>();
         if (table == this.table) {
             for (IndexColumn c : columns) {
                 result.add(c.column);

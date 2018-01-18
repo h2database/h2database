@@ -154,11 +154,11 @@ public class WebServer implements Service {
     private final Set<WebThread> running =
             Collections.synchronizedSet(new HashSet<WebThread>());
     private boolean ssl;
-    private final HashMap<String, ConnectionInfo> connInfoMap = New.hashMap();
+    private final HashMap<String, ConnectionInfo> connInfoMap = new HashMap<>();
 
     private long lastTimeoutCheck;
-    private final HashMap<String, WebSession> sessions = New.hashMap();
-    private final HashSet<String> languages = New.hashSet();
+    private final HashMap<String, WebSession> sessions = new HashMap<>();
+    private final HashSet<String> languages = new HashSet<>();
     private String startDateTime;
     private ServerSocket serverSocket;
     private String url;
@@ -212,7 +212,7 @@ public class WebServer implements Service {
     WebSession getSession(String sessionId) {
         long now = System.currentTimeMillis();
         if (lastTimeoutCheck + SESSION_TIMEOUT < now) {
-            for (String id : New.arrayList(sessions.keySet())) {
+            for (String id : new ArrayList<>(sessions.keySet())) {
                 WebSession session = sessions.get(id);
                 if (session.lastAccess + SESSION_TIMEOUT < now) {
                     trace("timeout for " + id);
@@ -396,10 +396,10 @@ public class WebServer implements Service {
             }
         }
         // TODO server: using a boolean 'now' argument? a timeout?
-        for (WebSession session : New.arrayList(sessions.values())) {
+        for (WebSession session : new ArrayList<>(sessions.values())) {
             session.close();
         }
-        for (WebThread c : New.arrayList(running)) {
+        for (WebThread c : new ArrayList<>(running)) {
             try {
                 c.stopNow();
                 c.join(100);

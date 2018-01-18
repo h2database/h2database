@@ -66,17 +66,18 @@ public class TestReadOnly extends TestBase {
                 "jdbc:h2:zip:"+dir+"/readonly.zip!/readonlyInZip", getUser(), getPassword());
         conn.createStatement().execute("select * from test where id=1");
         conn.close();
-        Server server = Server.createTcpServer("-tcpPort", "9081", "-baseDir", dir);
+        Server server = Server.createTcpServer("-baseDir", dir);
         server.start();
+        int port = server.getPort();
         try {
             conn = getConnection(
-                    "jdbc:h2:tcp://localhost:9081/zip:readonly.zip!/readonlyInZip",
+                    "jdbc:h2:tcp://localhost:" + port + "/zip:readonly.zip!/readonlyInZip",
                         getUser(), getPassword());
             conn.createStatement().execute("select * from test where id=1");
             conn.close();
             FilePathZip2.register();
             conn = getConnection(
-                    "jdbc:h2:tcp://localhost:9081/zip2:readonly.zip!/readonlyInZip",
+                    "jdbc:h2:tcp://localhost:" + port + "/zip2:readonly.zip!/readonlyInZip",
                         getUser(), getPassword());
             conn.createStatement().execute("select * from test where id=1");
             conn.close();

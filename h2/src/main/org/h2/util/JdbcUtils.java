@@ -146,7 +146,7 @@ public class JdbcUtils {
             String s = SysProperties.ALLOWED_CLASSES;
             ArrayList<String> prefixes = New.arrayList();
             boolean allowAll = false;
-            HashSet<String> classNames = New.hashSet();
+            HashSet<String> classNames = new HashSet<>();
             for (String p : StringUtils.arraySplit(s, ',', true)) {
                 if (p.equals("*")) {
                     allowAll = true;

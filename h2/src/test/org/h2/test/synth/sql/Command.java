@@ -53,7 +53,7 @@ class Command {
         this.config = config;
         this.type = type;
         this.table = table;
-        this.tables = New.hashMap();
+        this.tables = new HashMap<>();
         this.tables.put(alias, table);
     }
 

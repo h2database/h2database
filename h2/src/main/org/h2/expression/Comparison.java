@@ -5,6 +5,7 @@
  */
 package org.h2.expression;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.h2.engine.Database;
 import org.h2.engine.Session;
@@ -565,16 +566,16 @@ public class Comparison extends Condition {
                 Database db = session.getDatabase();
                 if (rc && r2c && l.equals(l2)) {
                     return new ConditionIn(db, left,
-                            New.arrayList(Arrays.asList(right, other.right)));
+                            new ArrayList<>(Arrays.asList(right, other.right)));
                 } else if (rc && l2c && l.equals(r2)) {
                     return new ConditionIn(db, left,
-                            New.arrayList(Arrays.asList(right, other.left)));
+                            new ArrayList<>(Arrays.asList(right, other.left)));
                 } else if (lc && r2c && r.equals(l2)) {
                     return new ConditionIn(db, right,
-                            New.arrayList(Arrays.asList(left, other.right)));
+                            new ArrayList<>(Arrays.asList(left, other.right)));
                 } else if (lc && l2c && r.equals(r2)) {
                     return new ConditionIn(db, right,
-                            New.arrayList(Arrays.asList(left, other.left)));
+                            new ArrayList<>(Arrays.asList(left, other.left)));
                 }
             }
         }

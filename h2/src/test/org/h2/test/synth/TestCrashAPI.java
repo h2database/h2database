@@ -63,7 +63,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
 
     private final ArrayList<Object> objects = New.arrayList();
     private final HashMap<Class <?>, ArrayList<Method>> classMethods =
-            New.hashMap();
+            new HashMap<>();
     private RandomGen random = new RandomGen();
     private final ArrayList<String> statements = New.arrayList();
     private int openCount;

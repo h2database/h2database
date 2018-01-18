@@ -941,7 +941,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         assertEquals(0, ((Object[]) a.getArray(2, 0)).length);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(0, 0);
         assertThrows(ErrorCode.INVALID_VALUE_2, a).getArray(3, 0);
-        HashMap<String, Class<?>> map = New.hashMap();
+        HashMap<String, Class<?>> map = new HashMap<>();
         assertEquals(0, ((Object[]) a.getArray(1, 0, map)).length);
         assertEquals(2, ((Object[]) a.getArray(map)).length);
         assertEquals(2, ((Object[]) a.getArray(null)).length);

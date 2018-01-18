@@ -109,15 +109,15 @@ public class Database implements DataHandler {
     private final byte[] filePasswordHash;
     private final byte[] fileEncryptionKey;
 
-    private final HashMap<String, Role> roles = New.hashMap();
-    private final HashMap<String, User> users = New.hashMap();
-    private final HashMap<String, Setting> settings = New.hashMap();
-    private final HashMap<String, Schema> schemas = New.hashMap();
-    private final HashMap<String, Right> rights = New.hashMap();
-    private final HashMap<String, UserDataType> userDataTypes = New.hashMap();
-    private final HashMap<String, UserAggregate> aggregates = New.hashMap();
-    private final HashMap<String, Comment> comments = New.hashMap();
-    private final HashMap<String, TableEngine> tableEngines = New.hashMap();
+    private final HashMap<String, Role> roles = new HashMap<>();
+    private final HashMap<String, User> users = new HashMap<>();
+    private final HashMap<String, Setting> settings = new HashMap<>();
+    private final HashMap<String, Schema> schemas = new HashMap<>();
+    private final HashMap<String, Right> rights = new HashMap<>();
+    private final HashMap<String, UserDataType> userDataTypes = new HashMap<>();
+    private final HashMap<String, UserAggregate> aggregates = new HashMap<>();
+    private final HashMap<String, Comment> comments = new HashMap<>();
+    private final HashMap<String, TableEngine> tableEngines = new HashMap<>();
 
     private final Set<Session> userSessions =
             Collections.synchronizedSet(new HashSet<Session>());
@@ -1508,11 +1508,11 @@ public class Database implements DataHandler {
     }
 
     public ArrayList<UserAggregate> getAllAggregates() {
-        return New.arrayList(aggregates.values());
+        return new ArrayList<>(aggregates.values());
     }
 
     public ArrayList<Comment> getAllComments() {
-        return New.arrayList(comments.values());
+        return new ArrayList<>(comments.values());
     }
 
     public int getAllowLiterals() {
@@ -1523,11 +1523,11 @@ public class Database implements DataHandler {
     }
 
     public ArrayList<Right> getAllRights() {
-        return New.arrayList(rights.values());
+        return new ArrayList<>(rights.values());
     }
 
     public ArrayList<Role> getAllRoles() {
-        return New.arrayList(roles.values());
+        return new ArrayList<>(roles.values());
     }
 
     /**
@@ -1612,19 +1612,19 @@ public class Database implements DataHandler {
 
     public ArrayList<Schema> getAllSchemas() {
         initMetaTables();
-        return New.arrayList(schemas.values());
+        return new ArrayList<>(schemas.values());
     }
 
     public ArrayList<Setting> getAllSettings() {
-        return New.arrayList(settings.values());
+        return new ArrayList<>(settings.values());
     }
 
     public ArrayList<UserDataType> getAllUserDataTypes() {
-        return New.arrayList(userDataTypes.values());
+        return new ArrayList<>(userDataTypes.values());
     }
 
     public ArrayList<User> getAllUsers() {
-        return New.arrayList(users.values());
+        return new ArrayList<>(users.values());
     }
 
     public String getCacheType() {
@@ -1668,7 +1668,7 @@ public class Database implements DataHandler {
         // need to synchronized on userSession, otherwise the list
         // may contain null elements
         synchronized (userSessions) {
-            list = New.arrayList(userSessions);
+            list = new ArrayList<>(userSessions);
         }
         // copy, to ensure the reference is stable
         Session sys = systemSession;
@@ -1850,7 +1850,7 @@ public class Database implements DataHandler {
             return null;
         default:
         }
-        HashSet<DbObject> set = New.hashSet();
+        HashSet<DbObject> set = new HashSet<>();
         for (Table t : getAllTablesAndViews(false)) {
             if (except == t) {
                 continue;
@@ -2500,7 +2500,7 @@ public class Database implements DataHandler {
     public TableLinkConnection getLinkConnection(String driver, String url,
             String user, String password) {
         if (linkConnections == null) {
-            linkConnections = New.hashMap();
+            linkConnections = new HashMap<>();
         }
         return TableLinkConnection.open(linkConnections, driver, url, user,
                 password, dbSettings.shareLinkedConnections);

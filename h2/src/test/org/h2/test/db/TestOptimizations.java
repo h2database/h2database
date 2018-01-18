@@ -857,7 +857,7 @@ public class TestOptimizations extends TestBase {
                 " table test(id int primary key, value int)");
         stat.execute("create index idx_value_id on test(value, id);");
         int len = getSize(1000, 10000);
-        HashMap<Integer, Integer> map = New.hashMap();
+        HashMap<Integer, Integer> map = new HashMap<>();
         TreeSet<Integer> set = new TreeSet<>();
         Random random = new Random(1);
         for (int i = 0; i < len; i++) {
@@ -902,7 +902,7 @@ public class TestOptimizations extends TestBase {
                 break;
             }
             case 9: {
-                ArrayList<Integer> list = New.arrayList(map.values());
+                ArrayList<Integer> list = new ArrayList<>(map.values());
                 int count = list.size();
                 Integer min = null, max = null;
                 if (count > 0) {

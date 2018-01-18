@@ -39,7 +39,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
-
 import org.h2.api.Aggregate;
 import org.h2.api.AggregateFunction;
 import org.h2.api.ErrorCode;
@@ -2152,8 +2151,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         conn.close();
     }
 
-    private void testOverrideAlias()
-            throws SQLException, InterruptedException {
+    private void testOverrideAlias() throws SQLException {
         deleteDb("functions");
         Connection conn = getConnection("functions");
         conn.setAutoCommit(true);

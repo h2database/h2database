@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
 import org.h2.util.Tool;
 
 /**
@@ -155,7 +154,7 @@ public class CreateCluster extends Tool {
     }
 
     private static Future<?> startWriter(final PipedReader pipeReader,
-            final Statement statSource) throws SQLException, IOException {
+            final Statement statSource) {
         final ExecutorService thread = Executors.newFixedThreadPool(1);
 
         // Since exceptions cannot be thrown across thread boundaries, return

@@ -143,7 +143,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                     array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
                     ValueArray unique = ValueArray.get(array);
                     SearchRow row = convertToSearchRow(rowData);
-                    if (!mayHaveDuplicates(row)) {
+                    if (!mayHaveNullDuplicates(row)) {
                         requireUnique(row, dataMap, unique);
                     }
                 }
@@ -195,7 +195,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             // this will detect committed entries only
             unique = convertToKey(row);
             unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
-            if (mayHaveDuplicates(row)) {
+            if (mayHaveNullDuplicates(row)) {
                 // No further unique checks required
                 unique = null;
             } else {

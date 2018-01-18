@@ -302,14 +302,15 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
 
     /**
      * Check if this row may have duplicates with the same indexed values in the
-     * current compatibility mode.
+     * current compatibility mode. Duplicates with {@code NULL} values are
+     * allowed in some modes.
      *
      * @param searchRow
      *            the row to check
      * @return {@code true} if specified row may have duplicates,
      *         {@code false otherwise}
      */
-    protected boolean mayHaveDuplicates(SearchRow searchRow) {
+    protected boolean mayHaveNullDuplicates(SearchRow searchRow) {
         switch (database.getMode().uniqueIndexNullsHandling) {
         case ALLOW_DUPLICATES_WITH_ANY_NULL:
             for (int index : columnIds) {

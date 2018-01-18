@@ -5,20 +5,28 @@
  */
 package org.h2.util;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
+import java.nio.ByteOrder;
 import java.util.UUID;
 
 /**
- * Manipulations with bytes and arrays. This class can be overridden in
- * multi-release JAR with more efficient implementation for a newer versions of
- * Java.
+ * Manipulations with bytes and arrays. Specialized implementation for Java 9
+ * and later versions.
  */
 public final class Bits {
 
-    /*
-     * Signatures of methods should match with
-     * h2/src/java9/src/org/h2/util/Bits.java and precompiled
-     * h2/src/java9/precompiled/org/h2/util/Bits.class.
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it were a
+     * int[] array on big-endian system.
      */
+    private static final VarHandle INT_VH = MethodHandles.byteArrayViewVarHandle(int[].class, ByteOrder.BIG_ENDIAN);
+
+    /**
+     * VarHandle giving access to elements of a byte[] array viewed as if it were a
+     * long[] array on big-endian system.
+     */
+    private static final VarHandle LONG_VH = MethodHandles.byteArrayViewVarHandle(long[].class, ByteOrder.BIG_ENDIAN);
 
     /**
      * Reads a int value from the byte array at the given position in big-endian
@@ -31,7 +39,7 @@ public final class Bits {
      * @return the value
      */
     public static int readInt(byte[] buff, int pos) {
-        return (buff[pos++] << 24) + ((buff[pos++] & 0xff) << 16) + ((buff[pos++] & 0xff) << 8) + (buff[pos] & 0xff);
+        return (int) INT_VH.get(buff, pos);
     }
 
     /**
@@ -45,7 +53,7 @@ public final class Bits {
      * @return the value
      */
     public static long readLong(byte[] buff, int pos) {
-        return (((long) readInt(buff, pos)) << 32) + (readInt(buff, pos + 4) & 0xffffffffL);
+        return (long) LONG_VH.get(buff, pos);
     }
 
     /**
@@ -59,10 +67,8 @@ public final class Bits {
      */
     public static byte[] uuidToBytes(long msb, long lsb) {
         byte[] buff = new byte[16];
-        for (int i = 0; i < 8; i++) {
-            buff[i] = (byte) ((msb >> (8 * (7 - i))) & 0xff);
-            buff[8 + i] = (byte) ((lsb >> (8 * (7 - i))) & 0xff);
-        }
+        LONG_VH.set(buff, 0, msb);
+        LONG_VH.set(buff, 8, lsb);
         return buff;
     }
 
@@ -89,10 +95,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeInt(byte[] buff, int pos, int x) {
-        buff[pos++] = (byte) (x >> 24);
-        buff[pos++] = (byte) (x >> 16);
-        buff[pos++] = (byte) (x >> 8);
-        buff[pos] = (byte) x;
+        INT_VH.set(buff, pos, x);
     }
 
     /**
@@ -107,8 +110,7 @@ public final class Bits {
      *            the value to write
      */
     public static void writeLong(byte[] buff, int pos, long x) {
-        writeInt(buff, pos, (int) (x >> 32));
-        writeInt(buff, pos + 4, (int) x);
+        LONG_VH.set(buff, pos, x);
     }
 
     private Bits() {

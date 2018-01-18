@@ -30,7 +30,7 @@ public class CheckTextFiles {
             "Driver", "Processor", "prefs" };
     private static final String[] SUFFIX_IGNORE = { "gif", "png", "odg", "ico",
             "sxd", "layout", "res", "win", "jar", "task", "svg", "MF", "mf",
-            "sh", "DS_Store", "prop" };
+            "sh", "DS_Store", "prop", "class" };
     private static final String[] SUFFIX_CRLF = { "bat" };
 
     private static final boolean ALLOW_TAB = false;

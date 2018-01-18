@@ -697,7 +697,6 @@ public class Session extends SessionWithState {
                 autoCommitAtTransactionEnd = false;
             }
         }
-        endTransaction();
 
         int rows = getDatabase().getSettings().analyzeSample / 10;
         if (tablesToAnalyze != null) {
@@ -708,6 +707,8 @@ public class Session extends SessionWithState {
             database.unlockMeta(this);
         }
         tablesToAnalyze = null;
+
+        endTransaction();
     }
 
     private void removeTemporaryLobs(boolean onTimeout) {

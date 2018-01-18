@@ -326,21 +326,20 @@ public class SourceCompiler {
     Class<?> javaxToolsJavac(String packageName, String className, String source) {
         String fullClassName = packageName + "." + className;
         StringWriter writer = new StringWriter();
-        JavaFileManager fileManager = new
+        try (JavaFileManager fileManager = new
                 ClassFileManager(JAVA_COMPILER
-                    .getStandardFileManager(null, null, null));
-        ArrayList<JavaFileObject> compilationUnits = new ArrayList<>();
-        compilationUnits.add(new StringJavaFileObject(fullClassName, source));
-        // cannot concurrently compile
-        synchronized (JAVA_COMPILER) {
-            JAVA_COMPILER.getTask(writer, fileManager, null, null,
-                null, compilationUnits).call();
-        }
-        String output = writer.toString();
-        handleSyntaxError(output);
-        try {
+                    .getStandardFileManager(null, null, null))) {
+            ArrayList<JavaFileObject> compilationUnits = new ArrayList<>();
+            compilationUnits.add(new StringJavaFileObject(fullClassName, source));
+            // cannot concurrently compile
+            synchronized (JAVA_COMPILER) {
+                JAVA_COMPILER.getTask(writer, fileManager, null, null,
+                        null, compilationUnits).call();
+            }
+            String output = writer.toString();
+            handleSyntaxError(output);
             return fileManager.getClassLoader(null).loadClass(fullClassName);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException | IOException e) {
             throw DbException.convert(e);
         }
     }

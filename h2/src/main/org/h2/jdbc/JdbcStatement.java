@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.sql.SQLWarning;
 import java.sql.Statement;
 import java.util.ArrayList;
-
 import org.h2.api.ErrorCode;
 import org.h2.command.CommandInterface;
 import org.h2.command.Parser;
@@ -145,6 +144,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      * @throws SQLException if a database error occurred or a
      *         select statement was executed
      */
+    @Override
     public long executeLargeUpdate(String sql) throws SQLException {
         try {
             debugCodeCall("executeLargeUpdate", sql);

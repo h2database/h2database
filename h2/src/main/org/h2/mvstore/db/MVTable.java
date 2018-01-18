@@ -414,9 +414,9 @@ public class MVTable extends TableBase {
 
     private void traceLock(Session session, boolean exclusive, TraceLockEvent eventEnum, String extraInfo) {
         if (traceLock.isDebugEnabled()) {
-            traceLock.debug("{0} {1} {2} {3}", session.getId(),
+            traceLock.debug("{0} {1} {2} {3} {4}", session.getId(),
                     exclusive ? "exclusive write lock" : "shared read lock", eventEnum.getEventText(),
-                    getName());
+                    getName(), extraInfo);
         }
     }
 

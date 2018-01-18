@@ -6,7 +6,6 @@
 package org.h2.test.synth.sql;
 
 import java.util.ArrayList;
-
 import org.h2.test.TestAll;
 import org.h2.test.TestBase;
 import org.h2.util.MathUtils;
@@ -325,8 +324,7 @@ public class TestSynth extends TestBase {
         return this;
     }
 
-    @Override
-    public void testCase(int seed) throws Exception {
+    private void testCase(int seed) throws Exception {
         deleteDb("synth/synth");
         try {
             printTime("TestSynth " + seed);

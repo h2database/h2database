@@ -71,8 +71,7 @@ public class TestBtreeIndex extends TestBase {
         deleteDb(getTestName());
     }
 
-    @Override
-    public void testCase(int seed) throws SQLException {
+    private void testCase(int seed) throws SQLException {
         testOne(seed);
     }
 

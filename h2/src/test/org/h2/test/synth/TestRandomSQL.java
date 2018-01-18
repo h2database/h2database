@@ -92,8 +92,7 @@ public class TestRandomSQL extends TestBase {
         }
     }
 
-    @Override
-    public void testCase(int seed) throws Exception {
+    private void testCase(int seed) throws Exception {
         String old = SysProperties.getScriptDirectory();
         try {
             System.setProperty(SysProperties.H2_SCRIPT_DIRECTORY,

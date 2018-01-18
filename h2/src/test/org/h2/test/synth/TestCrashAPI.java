@@ -277,8 +277,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         return conn;
     }
 
-    @Override
-    public void testCase(int seed) throws SQLException {
+    private void testCase(int seed) throws SQLException {
         printTime("seed: " + seed);
         callCount = 0;
         openCount = 0;

@@ -120,15 +120,6 @@ public abstract class TestBase {
     }
 
     /**
-     * Run a test case using the given seed value.
-     *
-     * @param seed the random seed value
-     */
-    public void testCase(int seed) throws Exception {
-        // do nothing
-    }
-
-    /**
      * This method is initializes the test, runs the test by calling the test()
      * method, and prints status information. It also catches exceptions so that
      * the tests can continue.

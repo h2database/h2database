@@ -13,7 +13,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-import org.h2.util.New;
 
 /**
  * This utility class contains utility functions that use the file system

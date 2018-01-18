@@ -8,7 +8,6 @@ package org.h2.test.db;
 import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.SimpleResultSet;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Task;
 

@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.api.ErrorCode;
 import org.h2.result.SortOrder;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Index tests.

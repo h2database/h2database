@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 

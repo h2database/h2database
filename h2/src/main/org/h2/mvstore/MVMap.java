@@ -16,7 +16,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import org.h2.mvstore.type.DataType;
 import org.h2.mvstore.type.ObjectDataType;
-import org.h2.util.New;
 
 /**
  * A stored map.

@@ -21,7 +21,6 @@ import org.h2.jdbc.JdbcStatement;
 import org.h2.jdbc.JdbcStatementBackwardsCompat;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests for the Statement implementation.

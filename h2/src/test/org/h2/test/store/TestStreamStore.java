@@ -22,7 +22,6 @@ import org.h2.mvstore.StreamStore;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**

@@ -9,7 +9,6 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import org.h2.compress.Compressor;
 import org.h2.mvstore.type.DataType;
-import org.h2.util.New;
 
 /**
  * A page (a node or a leaf).

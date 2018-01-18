@@ -14,7 +14,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import org.h2.util.New;
 import org.h2.util.SourceCompiler;
 
 /**

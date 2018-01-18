@@ -16,7 +16,6 @@ import org.h2.message.DbException;
 import org.h2.message.Trace;
 import org.h2.store.FileLock;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.util.ThreadDeadlockDetector;
 import org.h2.util.Utils;
 

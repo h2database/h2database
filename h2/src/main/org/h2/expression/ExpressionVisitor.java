@@ -11,7 +11,6 @@ import org.h2.table.Column;
 import org.h2.table.ColumnResolver;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
-import org.h2.util.New;
 
 /**
  * The visitor pattern is used to iterate through all expressions of a query

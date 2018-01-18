@@ -15,7 +15,6 @@ import java.util.StringTokenizer;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Tool;
 

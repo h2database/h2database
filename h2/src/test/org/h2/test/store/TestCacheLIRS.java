@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 import org.h2.dev.cache.CacheLIRS;
 import org.h2.test.TestBase;
-import org.h2.util.New;
 
 /**
  * Tests the cache algorithm.

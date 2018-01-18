@@ -23,7 +23,6 @@ import org.h2.store.fs.FileUtils;
 import org.h2.store.fs.Recorder;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;
 

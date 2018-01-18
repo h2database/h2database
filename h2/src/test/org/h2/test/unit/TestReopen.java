@@ -22,7 +22,6 @@ import org.h2.store.fs.Recorder;
 import org.h2.test.TestBase;
 import org.h2.tools.Recover;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.Profiler;
 import org.h2.util.Utils;
 

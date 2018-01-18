@@ -26,7 +26,6 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.util.HashMap;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 
 /**
  * This tool can re-run Java style log files. There is no size limit.

@@ -23,7 +23,6 @@ import java.util.Stack;
 import org.h2.build.doc.XMLParser;
 import org.h2.server.web.PageParser;
 import org.h2.util.IOUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 

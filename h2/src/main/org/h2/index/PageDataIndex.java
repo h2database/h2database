@@ -26,7 +26,6 @@ import org.h2.table.IndexColumn;
 import org.h2.table.RegularTable;
 import org.h2.table.TableFilter;
 import org.h2.util.MathUtils;
-import org.h2.util.New;
 import org.h2.value.Value;
 import org.h2.value.ValueNull;
 

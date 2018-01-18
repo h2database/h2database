@@ -25,11 +25,9 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
-
 import org.h2.api.ErrorCode;
 import org.h2.engine.SysProperties;
 import org.h2.jdbc.JdbcConnection;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.message.DbException;
 import org.h2.store.fs.FileUtils;
 import org.h2.test.TestBase;

@@ -41,7 +41,6 @@ import org.h2.result.UpdatableRow;
 import org.h2.util.DateTimeUtils;
 import org.h2.util.IOUtils;
 import org.h2.util.LocalDateTimeUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 import org.h2.value.CompareMode;
 import org.h2.value.DataType;

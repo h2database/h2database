@@ -22,7 +22,6 @@ import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.store.PageStore;
 import org.h2.table.Table;
-import org.h2.util.New;
 
 /**
  * The MBean implementation.

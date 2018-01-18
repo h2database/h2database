@@ -19,7 +19,6 @@ import org.h2.bnf.Bnf;
 import org.h2.bnf.context.DbContents;
 import org.h2.bnf.context.DbContextRule;
 import org.h2.message.DbException;
-import org.h2.util.New;
 
 /**
  * The web session keeps all data of a user session.

@@ -19,7 +19,6 @@ import org.h2.security.SHA256;
 import org.h2.store.fs.FilePathEncrypt;
 import org.h2.store.fs.FilePathRec;
 import org.h2.store.fs.FileUtils;
-import org.h2.util.New;
 import org.h2.util.SortedProperties;
 import org.h2.util.StringUtils;
 import org.h2.util.Utils;

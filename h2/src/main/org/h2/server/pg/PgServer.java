@@ -25,7 +25,6 @@ import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.server.Service;
 import org.h2.util.NetUtils;
-import org.h2.util.New;
 import org.h2.util.Tool;
 
 /**

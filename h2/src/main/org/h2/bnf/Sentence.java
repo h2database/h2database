@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.h2.bnf.context.DbSchema;
 import org.h2.bnf.context.DbTableOrView;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**

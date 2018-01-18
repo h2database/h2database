@@ -30,7 +30,6 @@ import org.h2.expression.ParameterInterface;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
 import org.h2.util.BitField;
-import org.h2.util.New;
 import org.h2.value.ValueNull;
 
 /**

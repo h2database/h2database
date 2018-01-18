@@ -25,7 +25,6 @@ import org.h2.jaqu.Table.JQDatabase;
 import org.h2.jaqu.Table.JQTable;
 import org.h2.jaqu.util.WeakIdentityHashMap;
 import org.h2.util.JdbcUtils;
-import org.h2.util.New;
 import org.h2.util.StringUtils;
 
 /**

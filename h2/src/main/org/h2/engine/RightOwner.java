@@ -8,7 +8,6 @@ package org.h2.engine;
 import java.util.HashMap;
 
 import org.h2.table.Table;
-import org.h2.util.New;
 
 /**
  * A right owner (sometimes called principal).

@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.h2.engine.Constants;
-import org.h2.util.New;
 
 /**
  * Utility methods

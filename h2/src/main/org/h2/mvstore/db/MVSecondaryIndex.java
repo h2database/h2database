@@ -143,7 +143,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                     array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
                     ValueArray unique = ValueArray.get(array);
                     SearchRow row = convertToSearchRow(rowData);
-                    checkUnique(row, dataMap, unique);
+                    if (!mayHaveDuplicates(row)) {
+                        requireUnique(row, dataMap, unique);
+                    }
                 }
 
                 dataMap.putCommitted(rowData, ValueNull.INSTANCE);
@@ -193,24 +195,25 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
             // this will detect committed entries only
             unique = convertToKey(row);
             unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
-            checkUnique(row, map, unique);
+            if (mayHaveDuplicates(row)) {
+                // No further unique checks required
+                unique = null;
+            } else {
+                requireUnique(row, map, unique);
+            }
         }
         try {
             map.put(array, ValueNull.INSTANCE);
         } catch (IllegalStateException e) {
             throw mvTable.convertException(e);
         }
-        if (indexType.isUnique()) {
+        if (unique != null) {
+            // This code expects that mayHaveDuplicates(row) == false
             Iterator<Value> it = map.keyIterator(unique, true);
             while (it.hasNext()) {
                 ValueArray k = (ValueArray) it.next();
-                SearchRow r2 = convertToSearchRow(k);
-                if (compareRows(row, r2) != 0) {
+                if (compareRows(row, convertToSearchRow(k)) != 0) {
                     break;
-                }
-                if (mayHaveDuplicates(r2)) {
-                    // this is allowed
-                    continue;
                 }
                 if (map.isSameTransaction(k)) {
                     continue;
@@ -224,18 +227,16 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         }
     }
 
-    private void checkUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
+    private void requireUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
         Iterator<Value> it = map.keyIterator(unique, true);
         while (it.hasNext()) {
             ValueArray k = (ValueArray) it.next();
-            SearchRow r2 = convertToSearchRow(k);
-            if (compareRows(row, r2) != 0) {
+            if (compareRows(row, convertToSearchRow(k)) != 0) {
                 break;
             }
             if (map.get(k) != null) {
-                if (!mayHaveDuplicates(r2)) {
-                    throw getDuplicateKeyException(k.toString());
-                }
+                // committed
+                throw getDuplicateKeyException(k.toString());
             }
         }
     }

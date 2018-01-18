@@ -49,8 +49,6 @@ public class TestCluster extends TestBase {
         if (config.memory || config.networked || config.cipher != null) {
             return;
         }
-        int port1 = 9191, port2 = 9192;
-        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();
 
         org.h2.Driver.load();
@@ -58,9 +56,9 @@ public class TestCluster extends TestBase {
         Connection conn;
         Statement stat;
 
+        Server n1 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node1").start();
+        int port1 = n1.getPort();
         String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", false);
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port1, "-baseDir", getBaseDir() + "/node1").start();
 
         conn = getConnection(url1, user, password);
         stat = conn.createStatement();
@@ -68,10 +66,11 @@ public class TestCluster extends TestBase {
         stat.execute("insert into t1 values(1, repeat('Hello', 50))");
         conn.close();
 
+        Server n2 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node2").start();
+        int port2 = n2.getPort();
         String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", false);
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", true);
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
                 "-user", user, "-password", password, "-serverList",
@@ -89,8 +88,6 @@ public class TestCluster extends TestBase {
         if (config.memory || config.networked || config.cipher != null) {
             return;
         }
-        int port1 = 9191, port2 = 9192;
-        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();
 
         org.h2.Driver.load();
@@ -99,14 +96,16 @@ public class TestCluster extends TestBase {
         Statement stat;
         ResultSet rs;
 
+
+        Server server1 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node1").start();
+        int port1 = server1.getPort();
+        Server server2 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node2").start();
+        int port2 = server2.getPort();
+
         String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", true);
         String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", true);
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", true);
-
-        Server server1 = org.h2.tools.Server.createTcpServer(
-                "-tcpPort", "" + port1, "-baseDir", getBaseDir() + "/node1").start();
-        Server server2 = org.h2.tools.Server.createTcpServer(
-                "-tcpPort", "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
                 "-user", user, "-password", password, "-serverList",
@@ -152,8 +151,6 @@ public class TestCluster extends TestBase {
         if (config.memory || config.networked || config.cipher != null) {
             return;
         }
-        int port1 = 9191, port2 = 9192;
-        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();
 
         org.h2.Driver.load();
@@ -162,14 +159,15 @@ public class TestCluster extends TestBase {
         Statement stat;
         ResultSet rs;
 
+        Server n1 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node1").start();
+        int port1 = n1.getPort();
+        Server n2 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node2").start();
+        int port2 = n2.getPort();
+
         String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", true);
         String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", true);
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", true);
-
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port1, "-baseDir", getBaseDir() + "/node1").start();
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
                 "-user", user, "-password", password, "-serverList",
@@ -200,8 +198,6 @@ public class TestCluster extends TestBase {
         if (config.memory || config.networked || config.cipher != null) {
             return;
         }
-        int port1 = 9191, port2 = 9192;
-        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();
 
         org.h2.Driver.load();
@@ -210,14 +206,15 @@ public class TestCluster extends TestBase {
         Statement stat;
         ResultSet rs;
 
+
+        Server n1 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node1").start();
+        int port1 = n1.getPort();
+        Server n2 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node2").start();
+        int port2 = n2.getPort();
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", true);
         String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", true);
         String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", true);
-
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port1, "-baseDir", getBaseDir() + "/node1").start();
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
                 "-user", user, "-password", password, "-serverList",
@@ -257,22 +254,22 @@ public class TestCluster extends TestBase {
         if (config.memory || config.networked || config.cipher != null) {
             return;
         }
-        int port1 = 9191, port2 = 9192;
-        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();
 
         org.h2.Driver.load();
         String user = getUser(), password = getPassword();
         Connection conn;
 
+
+        Server n1 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node1").start();
+        int port1 = n1.getPort();
+        Server n2 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node2").start();
+        int port2 = n2.getPort();
+
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", true);
         String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", true);
         String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", true);
-
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port1, "-baseDir", getBaseDir() + "/node1").start();
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
 
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
                 "-user", user, "-password", password, "-serverList",
@@ -309,22 +306,18 @@ public class TestCluster extends TestBase {
         if (config.memory || config.networked || config.cipher != null) {
             return;
         }
-        int port1 = 9191, port2 = 9192;
-        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         deleteFiles();
 
         org.h2.Driver.load();
         String user = getUser(), password = getPassword();
         Connection conn;
         Statement stat;
-        String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", false);
-        String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", false);
-        String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", false);
         int len = 10;
 
         // initialize the database
-        Server n1 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port1, "-baseDir", getBaseDir() + "/node1").start();
+        Server n1 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node1").start();
+        int port1 = n1.getPort();
+        String url1 = getURL("jdbc:h2:tcp://localhost:" + port1 + "/test", false);
         conn = getConnection(url1, user, password);
         stat = conn.createStatement();
         stat.execute("create table test(id int primary key, name varchar) as " +
@@ -333,10 +326,12 @@ public class TestCluster extends TestBase {
         stat.execute("grant all on test to test");
 
         // start the second server
-        Server n2 = org.h2.tools.Server.createTcpServer("-tcpPort",
-                "" + port2 , "-baseDir", getBaseDir() + "/node2").start();
+        Server n2 = org.h2.tools.Server.createTcpServer("-baseDir", getBaseDir() + "/node2").start();
+        int port2 = n2.getPort();
+        String url2 = getURL("jdbc:h2:tcp://localhost:" + port2 + "/test", false);
 
         // copy the database and initialize the cluster
+        String serverList = "localhost:" + port1 + ",localhost:" + port2;
         CreateCluster.main("-urlSource", url1, "-urlTarget", url2,
                 "-user", user, "-password", password, "-serverList",
                 serverList);
@@ -347,6 +342,7 @@ public class TestCluster extends TestBase {
         JdbcUtils.closeSilently(conn);
 
         // test the cluster connection
+        String urlCluster = getURL("jdbc:h2:tcp://" + serverList + "/test", false);
         Connection connApp = getConnection(urlCluster +
                 ";AUTO_RECONNECT=TRUE", user, password);
         check(connApp, len, "'" + serverList + "'");

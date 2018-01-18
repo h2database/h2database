@@ -22,6 +22,29 @@ public class Mode {
         REGULAR, DB2, Derby, MSSQLServer, HSQLDB, MySQL, Oracle, PostgreSQL, Ignite,
     }
 
+    /**
+     * Determines how rows with {@code NULL} values in indexed columns are handled
+     * in unique indexes.
+     */
+    public enum UniqueIndexNullsHandling {
+        /**
+         * Multiple identical indexed columns with at least one {@code NULL} value are
+         * allowed in unique index.
+         */
+        ALLOW_DUPLICATES_WITH_ANY_NULL,
+
+        /**
+         * Multiple identical indexed columns with all {@code NULL} values are allowed
+         * in unique index.
+         */
+        ALLOW_DUPLICATES_WITH_ALL_NULLS,
+
+        /**
+         * Multiple identical indexed columns are not allowed in unique index.
+         */
+        FORBID_ANY_DUPLICATES;
+    }
+
     private static final HashMap<String, Mode> MODES = New.hashMap();
 
     // Modes are also documented in the features section
@@ -87,16 +110,10 @@ public class Mode {
     public boolean systemColumns;
 
     /**
-     * <ul>
-     * <li>If {@code 0}, multiple identical indexed columns with at least one
-     * {@code NULL} value are allowed in unique index.</li>
-     * <li>If {@code 1}, multiple identical indexed columns with all {@code NULL}
-     * values are allowed in unique index.</li>
-     * <li>If {@code 2}, multiple identical indexed columns are not allowed in
-     * unique index.</li>
-     * </ul>
+     * Determines how rows with {@code NULL} values in indexed columns are handled
+     * in unique indexes.
      */
-    public byte uniquieIndexNullsHandling;
+    public UniqueIndexNullsHandling uniqueIndexNullsHandling = UniqueIndexNullsHandling.ALLOW_DUPLICATES_WITH_ANY_NULL;
 
     /**
      * Empty strings are treated like NULL values. Useful for Oracle emulation.
@@ -207,7 +224,7 @@ public class Mode {
 
         mode = new Mode(ModeEnum.Derby.name());
         mode.aliasColumnName = true;
-        mode.uniquieIndexNullsHandling = 2;
+        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
         mode.supportOffsetFetch = true;
         mode.sysDummy1 = true;
         mode.isolationLevelInSelectOrInsertStatement = true;
@@ -219,7 +236,7 @@ public class Mode {
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
         mode.nullConcatIsNull = true;
-        mode.uniquieIndexNullsHandling = 2;
+        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
         mode.allowPlusForStringConcat = true;
         // HSQLDB does not support client info properties. See
         // http://hsqldb.org/doc/apidocs/
@@ -231,7 +248,7 @@ public class Mode {
         mode = new Mode(ModeEnum.MSSQLServer.name());
         mode.aliasColumnName = true;
         mode.squareBracketQuotedNames = true;
-        mode.uniquieIndexNullsHandling = 2;
+        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.FORBID_ANY_DUPLICATES;
         mode.allowPlusForStringConcat = true;
         mode.swapConvertFunctionParameters = true;
         mode.supportPoundSymbolForColumnNames = true;
@@ -259,7 +276,7 @@ public class Mode {
         mode = new Mode(ModeEnum.Oracle.name());
         mode.aliasColumnName = true;
         mode.convertOnlyToSmallerScale = true;
-        mode.uniquieIndexNullsHandling = 1;
+        mode.uniqueIndexNullsHandling = UniqueIndexNullsHandling.ALLOW_DUPLICATES_WITH_ALL_NULLS;
         mode.treatEmptyStringsAsNull = true;
         mode.regexpReplaceBackslashReferences = true;
         mode.supportPoundSymbolForColumnNames = true;

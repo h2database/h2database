@@ -310,35 +310,24 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
      *         {@code false otherwise}
      */
     protected boolean mayHaveDuplicates(SearchRow searchRow) {
-        int mode = database.getMode().uniquieIndexNullsHandling;
-        /*
-         * Multiple identical indexed columns with at least one NULL value are allowed
-         * in unique index.
-         */
-        if (mode == 0) {
+        switch (database.getMode().uniqueIndexNullsHandling) {
+        case ALLOW_DUPLICATES_WITH_ANY_NULL:
             for (int index : columnIds) {
                 if (searchRow.getValue(index) == ValueNull.INSTANCE) {
                     return true;
                 }
             }
             return false;
-        }
-        /*
-         * Multiple identical indexed columns with all {@code NULL} values are allowed
-         * in unique index.
-         */
-        if (mode == 1) {
+        case ALLOW_DUPLICATES_WITH_ALL_NULLS:
             for (int index : columnIds) {
                 if (searchRow.getValue(index) != ValueNull.INSTANCE) {
                     return false;
                 }
             }
             return true;
+        default:
+            return false;
         }
-        /*
-         * Multiple identical indexed columns are not allowed in unique index.
-         */
-        return false;
     }
 
     /**

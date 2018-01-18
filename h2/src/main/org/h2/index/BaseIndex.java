@@ -9,7 +9,6 @@ import java.util.HashSet;
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.DbObject;
-import org.h2.engine.Mode;
 import org.h2.engine.Session;
 import org.h2.message.DbException;
 import org.h2.message.Trace;
@@ -302,34 +301,34 @@ public abstract class BaseIndex extends SchemaObjectBase implements Index {
     }
 
     /**
-     * Check if one of the columns is NULL and multiple rows with NULL are
-     * allowed using the current compatibility mode for unique indexes. Note:
-     * NULL behavior is complicated in SQL.
+     * Check if this row may have duplicates with the same indexed values in the
+     * current compatibility mode. Duplicates with {@code NULL} values are
+     * allowed in some modes.
      *
-     * @param newRow the row to check
-     * @return true if one of the columns is null and multiple nulls in unique
-     *         indexes are allowed
+     * @param searchRow
+     *            the row to check
+     * @return {@code true} if specified row may have duplicates,
+     *         {@code false otherwise}
      */
-    protected boolean containsNullAndAllowMultipleNull(SearchRow newRow) {
-        Mode mode = database.getMode();
-        if (mode.uniqueIndexSingleNull) {
-            return false;
-        } else if (mode.uniqueIndexSingleNullExceptAllColumnsAreNull) {
+    protected boolean mayHaveNullDuplicates(SearchRow searchRow) {
+        switch (database.getMode().uniqueIndexNullsHandling) {
+        case ALLOW_DUPLICATES_WITH_ANY_NULL:
             for (int index : columnIds) {
-                Value v = newRow.getValue(index);
-                if (v != ValueNull.INSTANCE) {
+                if (searchRow.getValue(index) == ValueNull.INSTANCE) {
+                    return true;
+                }
+            }
+            return false;
+        case ALLOW_DUPLICATES_WITH_ALL_NULLS:
+            for (int index : columnIds) {
+                if (searchRow.getValue(index) != ValueNull.INSTANCE) {
                     return false;
                 }
             }
             return true;
+        default:
+            return false;
         }
-        for (int index : columnIds) {
-            Value v = newRow.getValue(index);
-            if (v == ValueNull.INSTANCE) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

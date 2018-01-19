@@ -37,16 +37,6 @@ import org.h2.value.ValueNull;
  */
 public class MVPrimaryIndex extends BaseIndex {
 
-    /**
-     * The minimum long value.
-     */
-    static final ValueLong MIN = ValueLong.get(Long.MIN_VALUE);
-
-    /**
-     * The maximum long value.
-     */
-    static final ValueLong MAX = ValueLong.get(Long.MAX_VALUE);
-
     private final MVTable mvTable;
     private final String mapName;
     private final TransactionMap<Value, Value> dataMap;
@@ -172,7 +162,7 @@ public class MVPrimaryIndex extends BaseIndex {
     public Cursor find(Session session, SearchRow first, SearchRow last) {
         ValueLong min, max;
         if (first == null) {
-            min = MIN;
+            min = ValueLong.MIN;
         } else if (mainIndexColumn < 0) {
             min = ValueLong.get(first.getKey());
         } else {
@@ -184,7 +174,7 @@ public class MVPrimaryIndex extends BaseIndex {
             }
         }
         if (last == null) {
-            max = MAX;
+            max = ValueLong.MAX;
         } else if (mainIndexColumn < 0) {
             max = ValueLong.get(last.getKey());
         } else {

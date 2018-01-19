@@ -140,7 +140,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
                     Value[] array = rowData.getList();
                     // don't change the original value
                     array = array.clone();
-                    array[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+                    array[keyColumns - 1] = ValueLong.MIN;
                     ValueArray unique = ValueArray.get(array);
                     SearchRow row = convertToSearchRow(rowData);
                     if (!mayHaveNullDuplicates(row)) {
@@ -194,7 +194,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
         if (indexType.isUnique()) {
             // this will detect committed entries only
             unique = convertToKey(row);
-            unique.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+            unique.getList()[keyColumns - 1] = ValueLong.MIN;
             if (mayHaveNullDuplicates(row)) {
                 // No further unique checks required
                 unique = null;
@@ -261,7 +261,7 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     private Cursor find(Session session, SearchRow first, boolean bigger, SearchRow last) {
         ValueArray min = convertToKey(first);
         if (min != null) {
-            min.getList()[keyColumns - 1] = ValueLong.get(Long.MIN_VALUE);
+            min.getList()[keyColumns - 1] = ValueLong.MIN;
         }
         TransactionMap<Value, Value> map = getMap(session);
         if (bigger && min != null) {

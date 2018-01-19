@@ -19,9 +19,19 @@ import org.h2.message.DbException;
 public class ValueLong extends Value {
 
     /**
+     * The smallest {@code ValueLong} value.
+     */
+    public static final ValueLong MIN = get(Long.MIN_VALUE);
+
+    /**
+     * The largest {@code ValueLong} value.
+     */
+    public static final ValueLong MAX = get(Long.MAX_VALUE);
+
+    /**
      * The largest Long value, as a BigInteger.
      */
-    public static final BigInteger MAX = BigInteger.valueOf(Long.MAX_VALUE);
+    public static final BigInteger MAX_BI = BigInteger.valueOf(Long.MAX_VALUE);
 
     /**
      * The smallest Long value, as a BigDecimal.
@@ -39,7 +49,7 @@ public class ValueLong extends Value {
      */
     public static final int DISPLAY_SIZE = 20;
 
-    private static final BigInteger MIN = BigInteger.valueOf(Long.MIN_VALUE);
+    private static final BigInteger MIN_BI = BigInteger.valueOf(Long.MIN_VALUE);
     private static final int STATIC_SIZE = 100;
     private static final ValueLong[] STATIC_CACHE;
 
@@ -128,7 +138,7 @@ public class ValueLong extends Value {
         BigInteger bv = BigInteger.valueOf(value);
         BigInteger bo = BigInteger.valueOf(other.value);
         BigInteger br = bv.multiply(bo);
-        if (br.compareTo(MIN) < 0 || br.compareTo(MAX) > 0) {
+        if (br.compareTo(MIN_BI) < 0 || br.compareTo(MAX_BI) > 0) {
             throw getOverflow();
         }
         return ValueLong.get(br.longValue());

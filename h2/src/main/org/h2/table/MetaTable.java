@@ -584,7 +584,7 @@ public class MetaTable extends Table {
                         Value.STRING_IGNORECASE : Value.STRING;
                 name = nameType;
             } else {
-                dataType = DataType.getTypeByName(nameType.substring(idx + 1)).type;
+                dataType = DataType.getTypeByName(nameType.substring(idx + 1), database.getMode()).type;
                 name = nameType.substring(0, idx);
             }
             cols[i] = new Column(name, dataType);

@@ -55,7 +55,7 @@ public class CreateUserDataType extends DefineCommand {
                     ErrorCode.USER_DATA_TYPE_ALREADY_EXISTS_1,
                     typeName);
         }
-        DataType builtIn = DataType.getTypeByName(typeName);
+        DataType builtIn = DataType.getTypeByName(typeName, session.getDatabase().getMode());
         if (builtIn != null) {
             if (!builtIn.hidden) {
                 throw DbException.get(

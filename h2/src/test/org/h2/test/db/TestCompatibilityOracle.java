@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -41,6 +42,7 @@ public class TestCompatibilityOracle extends TestBase {
         testToDate();
         testForbidEmptyInClause();
         testSpecialTypes();
+        testDate();
     }
 
     private void testNotNullSyntax() throws SQLException {
@@ -247,6 +249,38 @@ public class TestCompatibilityOracle extends TestBase {
         } finally {
             conn.close();
         }
+    }
+
+    private void testDate() throws SQLException {
+        deleteDb("oracle");
+        Connection conn = getConnection("oracle;MODE=Oracle");
+        Statement stat = conn.createStatement();
+
+        Timestamp t1 = Timestamp.valueOf("2011-02-03 12:11:10");
+        Timestamp t2 = Timestamp.valueOf("1999-10-15 13:14:15");
+        Timestamp t3 = Timestamp.valueOf("2030-11-22 11:22:33");
+        Timestamp t4 = Timestamp.valueOf("2018-01-10 22:10:01");
+
+        stat.execute("CREATE TABLE TEST (ID INT PRIMARY KEY, D DATE)");
+        stat.executeUpdate("INSERT INTO TEST VALUES(1, TIMESTAMP '2011-02-03 12:11:10')");
+        stat.executeUpdate("INSERT INTO TEST VALUES(2, CAST ('1999-10-15 13:14:15' AS DATE))");
+        stat.executeUpdate("INSERT INTO TEST VALUES(3, '2030-11-22 11:22:33')");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO TEST VALUES (?, ?)");
+        ps.setInt(1, 4);
+        ps.setTimestamp(2, t4);
+        ps.executeUpdate();
+        ResultSet rs = stat.executeQuery("SELECT D FROM TEST ORDER BY ID");
+        rs.next();
+        assertEquals(t1, rs.getTimestamp(1));
+        rs.next();
+        assertEquals(t2, rs.getTimestamp(1));
+        rs.next();
+        assertEquals(t3, rs.getTimestamp(1));
+        rs.next();
+        assertEquals(t4, rs.getTimestamp(1));
+        assertFalse(rs.next());
+
+        conn.close();
     }
 
     private void assertResultDate(String expected, Statement stat, String sql)

@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.h2.util.StringUtils;
+import org.h2.value.DataType;
+import org.h2.value.Value;
 
 /**
  * The compatibility modes. There is a fixed set of modes (for example
@@ -198,6 +200,11 @@ public class Mode {
      */
     public Set<String> disallowedTypes = Collections.emptySet();
 
+    /**
+     * Custom mappings from type names to data types.
+     */
+    public HashMap<String, DataType> typeByNameMap = new HashMap<>();
+
     private final String name;
 
     private ModeEnum modeEnum;
@@ -285,6 +292,7 @@ public class Mode {
         mode.supportedClientInfoPropertiesRegEx =
                 Pattern.compile(".*\\..*");
         mode.prohibitEmptyInPredicate = true;
+        mode.typeByNameMap.put("DATE", DataType.getDataType(Value.TIMESTAMP));
         add(mode);
 
         mode = new Mode(ModeEnum.PostgreSQL.name());

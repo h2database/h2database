@@ -95,6 +95,7 @@ import org.h2.engine.Constants;
 import org.h2.engine.Database;
 import org.h2.engine.DbObject;
 import org.h2.engine.FunctionAlias;
+import org.h2.engine.Mode;
 import org.h2.engine.Mode.ModeEnum;
 import org.h2.engine.Procedure;
 import org.h2.engine.Right;
@@ -3144,7 +3145,7 @@ public class Parser {
                         String timestamp = currentValue.getString();
                         read();
                         r = ValueExpression
-                                .get(ValueTimestamp.parse(timestamp, session.getDatabase().getMode()));
+                                .get(ValueTimestamp.parse(timestamp, database.getMode()));
                     } else if (equalsToken("X", name)) {
                         read();
                         byte[] buffer = StringUtils
@@ -4272,7 +4273,7 @@ public class Parser {
         boolean isIdentity = readIf("IDENTITY");
         if (isIdentity || readIf("BIGSERIAL")) {
             // Check if any of them are disallowed in the current Mode
-            if (isIdentity && session.getDatabase().getMode().
+            if (isIdentity && database.getMode().
                     disallowedTypes.contains("IDENTITY")) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                         currentToken);
@@ -4448,8 +4449,9 @@ public class Parser {
             scale = templateColumn.getScale();
             enumerators = templateColumn.getEnumerators();
         } else {
-            dataType = DataType.getTypeByName(original);
-            if (dataType == null || session.getDatabase().getMode().disallowedTypes.contains(original)) {
+            Mode mode = database.getMode();
+            dataType = DataType.getTypeByName(original, mode);
+            if (dataType == null || mode.disallowedTypes.contains(original)) {
                 throw DbException.get(ErrorCode.UNKNOWN_DATA_TYPE_1,
                         currentToken);
             }
@@ -4457,7 +4459,7 @@ public class Parser {
         if (database.getIgnoreCase() && dataType.type == Value.STRING &&
                 !equalsToken("VARCHAR_CASESENSITIVE", original)) {
             original = "VARCHAR_IGNORECASE";
-            dataType = DataType.getTypeByName(original);
+            dataType = DataType.getTypeByName(original, database.getMode());
         }
         if (regular) {
             read();
@@ -4536,7 +4538,7 @@ public class Parser {
             read("BIT");
             read("DATA");
             if (dataType.type == Value.STRING) {
-                dataType = DataType.getTypeByName("BINARY");
+                dataType = DataType.getTypeByName("BINARY", database.getMode());
             }
         }
         // MySQL compatibility
@@ -5220,7 +5222,7 @@ public class Parser {
         Table recursiveTable = null;
         ArrayList<Column> columns = New.arrayList();
         String[] cols = null;
-        Database db = session.getDatabase();
+        Database db = database;
 
         // column names are now optional - they can be inferred from the named
         // query, if not supplied by user
@@ -5252,7 +5254,7 @@ public class Parser {
             }
             if (isPersistent) {
                 oldViewFound.lock(session, true, true);
-                session.getDatabase().removeSchemaObject(session, oldViewFound);
+                database.removeSchemaObject(session, oldViewFound);
 
             } else {
                 session.removeLocalTempTable(oldViewFound);
@@ -6417,7 +6419,7 @@ public class Parser {
             // need to read ahead, as it could be a column name
             int start = lastParseIndex;
             read();
-            if (DataType.getTypeByName(currentToken) != null) {
+            if (DataType.getTypeByName(currentToken, database.getMode()) != null) {
                 // known data type
                 parseIndex = start;
                 read();

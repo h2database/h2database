@@ -440,7 +440,7 @@ public class TestCrashAPI extends TestBase implements Runnable {
         } else if (type == boolean.class) {
             return random.nextBoolean();
         } else if (type == double.class) {
-            return new Double(random.getRandomDouble());
+            return random.getRandomDouble();
         } else if (type == String.class) {
             if (random.getInt(10) == 0) {
                 return null;

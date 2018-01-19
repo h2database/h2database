@@ -127,7 +127,7 @@ public class FunctionMultiReturn {
     public static Object[] polar2CartesianArray(Double r, Double alpha) {
         double x = r.doubleValue() * Math.cos(alpha.doubleValue());
         double y = r.doubleValue() * Math.sin(alpha.doubleValue());
-        return new Object[]{new Double(x), new Double(y)};
+        return new Object[]{x, y};
     }
 
     /**

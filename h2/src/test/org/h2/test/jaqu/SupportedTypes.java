@@ -74,13 +74,13 @@ public class SupportedTypes {
     static SupportedTypes randomValue() {
         Random rand = new Random();
         SupportedTypes s = new SupportedTypes();
-        s.myBool = Boolean.valueOf(rand.nextBoolean());
-        s.myByte = new Byte((byte) rand.nextInt(Byte.MAX_VALUE));
-        s.myShort = new Short((short) rand.nextInt(Short.MAX_VALUE));
-        s.myInteger = new Integer(rand.nextInt());
-        s.myLong = new Long(rand.nextLong());
-        s.myFloat = new Float(rand.nextFloat());
-        s.myDouble = new Double(rand.nextDouble());
+        s.myBool = rand.nextBoolean();
+        s.myByte = (byte) rand.nextInt(Byte.MAX_VALUE);
+        s.myShort = (short) rand.nextInt(Short.MAX_VALUE);
+        s.myInteger = rand.nextInt();
+        s.myLong = rand.nextLong();
+        s.myFloat = rand.nextFloat();
+        s.myDouble = rand.nextDouble();
         s.myBigDecimal = new BigDecimal(rand.nextDouble());
         s.myString = Long.toHexString(rand.nextLong());
         s.myUtilDate = new java.util.Date(rand.nextLong());

@@ -27,19 +27,20 @@ public class Mode {
      */
     public enum UniqueIndexNullsHandling {
         /**
-         * Multiple identical indexed columns with at least one {@code NULL} value are
-         * allowed in unique index.
+         * Multiple rows with identical values in indexed columns with at least one
+         * indexed {@code NULL} value are allowed in unique index.
          */
         ALLOW_DUPLICATES_WITH_ANY_NULL,
 
         /**
-         * Multiple identical indexed columns with all {@code NULL} values are allowed
-         * in unique index.
+         * Multiple rows with identical values in indexed columns with all indexed
+         * {@code NULL} values are allowed in unique index.
          */
         ALLOW_DUPLICATES_WITH_ALL_NULLS,
 
         /**
-         * Multiple identical indexed columns are not allowed in unique index.
+         * Multiple rows with identical values in indexed columns are not allowed in
+         * unique index.
          */
         FORBID_ANY_DUPLICATES;
     }

@@ -66,12 +66,10 @@ public class MVDelegateIndex extends BaseIndex implements MVIndex {
 
     @Override
     public Cursor find(Session session, SearchRow first, SearchRow last) {
-        ValueLong min = mainIndex.getKey(first,
-                MVPrimaryIndex.MIN, MVPrimaryIndex.MIN);
-        // ifNull is MIN_VALUE as well, because the column is never NULL
+        ValueLong min = mainIndex.getKey(first, ValueLong.MIN, ValueLong.MIN);
+        // ifNull is MIN as well, because the column is never NULL
         // so avoid returning all rows (returning one row is OK)
-        ValueLong max = mainIndex.getKey(last,
-                MVPrimaryIndex.MAX, MVPrimaryIndex.MIN);
+        ValueLong max = mainIndex.getKey(last, ValueLong.MAX, ValueLong.MIN);
         return mainIndex.find(session, min, max);
     }
 

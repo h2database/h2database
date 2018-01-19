@@ -3186,7 +3186,7 @@ public class Parser {
                                 .compareTo(ValueLong.MIN_BD) == 0) {
                     // convert Long.MIN_VALUE to type 'long'
                     // (Long.MAX_VALUE+1 is of type 'decimal')
-                    r = ValueExpression.get(ValueLong.get(Long.MIN_VALUE));
+                    r = ValueExpression.get(ValueLong.MIN);
                 }
                 read();
             } else {
@@ -3813,7 +3813,7 @@ public class Parser {
         checkLiterals(false);
         if (!containsE && sub.indexOf('.') < 0) {
             BigInteger bi = new BigInteger(sub);
-            if (bi.compareTo(ValueLong.MAX) <= 0) {
+            if (bi.compareTo(ValueLong.MAX_BI) <= 0) {
                 // parse constants like "10000000L"
                 if (chars[i] == 'L') {
                     parseIndex++;

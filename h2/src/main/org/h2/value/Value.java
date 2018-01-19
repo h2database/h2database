@@ -890,26 +890,14 @@ public abstract class Value {
                     });
                 }
                 case INT: {
-                    int x = getInt();
-                    return ValueBytes.getNoCopy(new byte[]{
-                            (byte) (x >> 24),
-                            (byte) (x >> 16),
-                            (byte) (x >> 8),
-                            (byte) x
-                    });
+                    byte[] b = new byte[4];
+                    Bits.writeInt(b, 0, getInt());
+                    return ValueBytes.getNoCopy(b);
                 }
                 case LONG: {
-                    long x = getLong();
-                    return ValueBytes.getNoCopy(new byte[]{
-                            (byte) (x >> 56),
-                            (byte) (x >> 48),
-                            (byte) (x >> 40),
-                            (byte) (x >> 32),
-                            (byte) (x >> 24),
-                            (byte) (x >> 16),
-                            (byte) (x >> 8),
-                            (byte) x
-                    });
+                    byte[] b = new byte[8];
+                    Bits.writeLong(b, 0, getLong());
+                    return ValueBytes.getNoCopy(b);
                 }
                 case ENUM:
                 case TIMESTAMP_TZ:

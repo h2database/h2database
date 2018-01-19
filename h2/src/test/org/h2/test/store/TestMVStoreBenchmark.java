@@ -40,7 +40,7 @@ public class TestMVStoreBenchmark extends TestBase {
         if (!config.big) {
             return;
         }
-        if (config.coverage || config.codeCoverage) {
+        if (config.codeCoverage) {
             // run only when _not_ using a code coverage tool,
             // because the tool might instrument our code but not
             // java.util.*

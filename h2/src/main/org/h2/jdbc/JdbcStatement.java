@@ -1320,9 +1320,10 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public String enquoteIdentifier(String identifier, boolean alwaysQuote) throws SQLException {
-        if (alwaysQuote)
+        if (alwaysQuote || !isSimpleIdentifier(identifier)) {
             return StringUtils.quoteIdentifier(identifier);
-        return Parser.quoteIdentifier(identifier);
+        }
+        return identifier;
     }
 
     /**
@@ -1332,7 +1333,7 @@ public class JdbcStatement extends TraceObject implements Statement, JdbcStateme
      */
     @Override
     public boolean isSimpleIdentifier(String identifier) throws SQLException {
-        return Parser.isSimpleIdentifier(identifier);
+        return Parser.isSimpleIdentifier(identifier, true);
     }
 
     /**

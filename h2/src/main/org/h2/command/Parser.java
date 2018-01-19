@@ -4145,7 +4145,7 @@ public class Parser {
             // if not yet converted to uppercase, do it now
             s = StringUtils.toUpperEnglish(s);
         }
-        return getSaveTokenType(s, database.getMode().supportOffsetFetch);
+        return getSaveTokenType(s, database.getMode().supportOffsetFetch, false);
     }
 
     private boolean isKeyword(String s) {
@@ -4167,20 +4167,27 @@ public class Parser {
         if (s == null || s.length() == 0) {
             return false;
         }
-        return getSaveTokenType(s, supportOffsetFetch) != IDENTIFIER;
+        return getSaveTokenType(s, supportOffsetFetch, false) != IDENTIFIER;
     }
 
-    private static int getSaveTokenType(String s, boolean supportOffsetFetch) {
+    private static int getSaveTokenType(String s, boolean supportOffsetFetch, boolean functionsAsKeywords) {
         switch (s.charAt(0)) {
         case 'A':
             return getKeywordOrIdentifier(s, "ALL", KEYWORD);
         case 'C':
-            if (s.equals("CHECK")) {
+            if ("CHECK".equals(s)) {
                 return KEYWORD;
             } else if ("CONSTRAINT".equals(s)) {
                 return KEYWORD;
+            } else if ("CROSS".equals(s)) {
+                return KEYWORD;
             }
-            return getKeywordOrIdentifier(s, "CROSS", KEYWORD);
+            if (functionsAsKeywords) {
+                if ("CURRENT_DATE".equals(s) || "CURRENT_TIME".equals(s) || "CURRENT_TIMESTAMP".equals(s)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
         case 'D':
             return getKeywordOrIdentifier(s, "DISTINCT", KEYWORD);
         case 'E':
@@ -4240,9 +4247,25 @@ public class Parser {
         case 'R':
             return getKeywordOrIdentifier(s, "ROWNUM", ROWNUM);
         case 'S':
-            return getKeywordOrIdentifier(s, "SELECT", KEYWORD);
+            if ("SELECT".equals(s)) {
+                return KEYWORD;
+            }
+            if (functionsAsKeywords) {
+                if ("SYSDATE".equals(s) || "SYSTIME".equals(s) || "SYSTIMESTAMP".equals(s)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
         case 'T':
-            return getKeywordOrIdentifier(s, "TRUE", TRUE);
+            if ("TRUE".equals(s)) {
+                return TRUE;
+            }
+            if (functionsAsKeywords) {
+                if ("TODAY".equals(s)) {
+                    return KEYWORD;
+                }
+            }
+            return IDENTIFIER;
         case 'U':
             if ("UNIQUE".equals(s)) {
                 return KEYWORD;
@@ -6849,7 +6872,7 @@ public class Parser {
         if (s == null) {
             return "\"\"";
         }
-        if (isSimpleIdentifier(s))
+        if (isSimpleIdentifier(s, false))
             return s;
         return StringUtils.quoteIdentifier(s);
     }
@@ -6857,10 +6880,12 @@ public class Parser {
     /**
      * @param s
      *            identifier to check
+     * @param functionsAsKeywords
+     *            treat system functions as keywords
      * @return is specified identifier may be used without quotes
      * @throws NullPointerException if s is {@code null}
      */
-    public static boolean isSimpleIdentifier(String s) {
+    public static boolean isSimpleIdentifier(String s, boolean functionsAsKeywords) {
         if (s.length() == 0) {
             return false;
         }
@@ -6876,7 +6901,7 @@ public class Parser {
                 return false;
             }
         }
-        return !isKeyword(s, true);
+        return getSaveTokenType(s, true, functionsAsKeywords) == IDENTIFIER;
     }
 
     public void setLiteralsChecked(boolean literalsChecked) {

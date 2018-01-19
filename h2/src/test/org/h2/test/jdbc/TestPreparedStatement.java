@@ -986,7 +986,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setString(2, "-1");
         prep.executeUpdate();
         prep.setInt(1, 7);
-        prep.setObject(2, new Integer(3));
+        prep.setObject(2, 3);
         prep.executeUpdate();
         prep.setObject(1, "8");
         // should throw an exception
@@ -1132,12 +1132,12 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, Boolean.TRUE);
         prep.setObject(2, "Abc");
         prep.setObject(3, new BigDecimal("10.2"));
-        prep.setObject(4, new Byte((byte) 0xff));
-        prep.setObject(5, new Short(Short.MAX_VALUE));
-        prep.setObject(6, new Integer(Integer.MIN_VALUE));
-        prep.setObject(7, new Long(Long.MAX_VALUE));
-        prep.setObject(8, new Float(Float.MAX_VALUE));
-        prep.setObject(9, new Double(Double.MAX_VALUE));
+        prep.setObject(4, (byte) 0xff);
+        prep.setObject(5, Short.MAX_VALUE);
+        prep.setObject(6, Integer.MIN_VALUE);
+        prep.setObject(7, Long.MAX_VALUE);
+        prep.setObject(8, Float.MAX_VALUE);
+        prep.setObject(9, Double.MAX_VALUE);
         prep.setObject(10, java.sql.Date.valueOf("2001-02-03"));
         prep.setObject(11, java.sql.Time.valueOf("04:05:06"));
         prep.setObject(12, java.sql.Timestamp.valueOf(
@@ -1145,7 +1145,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(13, new java.util.Date(java.sql.Date.valueOf(
                 "2001-02-03").getTime()));
         prep.setObject(14, new byte[] { 10, 20, 30 });
-        prep.setObject(15, new Character('a'), Types.OTHER);
+        prep.setObject(15, 'a', Types.OTHER);
         prep.setObject(16, "2001-01-02", Types.DATE);
         // converting to null seems strange...
         prep.setObject(17, "2001-01-02", Types.NULL);
@@ -1163,14 +1163,10 @@ public class TestPreparedStatement extends TestBase {
                 (Object) Byte.valueOf((byte) 0xff) : (Object) Integer.valueOf(-1)));
         assertTrue(rs.getObject(5).equals(SysProperties.OLD_RESULT_SET_GET_OBJECT ?
                 (Object) Short.valueOf(Short.MAX_VALUE) : (Object) Integer.valueOf(Short.MAX_VALUE)));
-        assertTrue(rs.getObject(6).equals(
-                new Integer(Integer.MIN_VALUE)));
-        assertTrue(rs.getObject(7).equals(
-                new Long(Long.MAX_VALUE)));
-        assertTrue(rs.getObject(8).equals(
-                new Float(Float.MAX_VALUE)));
-        assertTrue(rs.getObject(9).equals(
-                new Double(Double.MAX_VALUE)));
+        assertTrue(rs.getObject(6).equals(Integer.MIN_VALUE));
+        assertTrue(rs.getObject(7).equals(Long.MAX_VALUE));
+        assertTrue(rs.getObject(8).equals(Float.MAX_VALUE));
+        assertTrue(rs.getObject(9).equals(Double.MAX_VALUE));
         assertTrue(rs.getObject(10).equals(
                 java.sql.Date.valueOf("2001-02-03")));
         assertEquals("04:05:06", rs.getObject(11).toString());
@@ -1185,8 +1181,7 @@ public class TestPreparedStatement extends TestBase {
         assertTrue(rs.getObject(16).equals(
                 java.sql.Date.valueOf("2001-01-02")));
         assertTrue(rs.getObject(17) == null && rs.wasNull());
-        assertTrue(rs.getObject(18).equals(
-                new Double(3.725)));
+        assertTrue(rs.getObject(18).equals(3.725d));
         assertTrue(rs.getObject(19).equals(
                 java.sql.Time.valueOf("23:22:21")));
         assertTrue(rs.getObject(20).equals(

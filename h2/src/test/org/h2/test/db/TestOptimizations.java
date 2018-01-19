@@ -876,7 +876,7 @@ public class TestOptimizations extends TestBase {
             case 5:
                 if (random.nextInt(1000) == 1) {
                     stat.execute("insert into test values(" + i + ", null)");
-                    map.put(new Integer(i), null);
+                    map.put(i, null);
                 } else {
                     int value = random.nextInt();
                     stat.execute("insert into test values(" + i + ", " + value + ")");

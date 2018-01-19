@@ -334,11 +334,13 @@ public class TestStatement extends TestBase {
         assertEquals("\"SOME_ID\"", statBC.enquoteIdentifier("SOME_ID", true));
         assertEquals("\"FROM\"", statBC.enquoteIdentifier("FROM", false));
         assertEquals("\"Test\"", statBC.enquoteIdentifier("Test", false));
+        assertEquals("\"TODAY\"", statBC.enquoteIdentifier("TODAY", false));
 
         assertTrue(statBC.isSimpleIdentifier("SOME_ID"));
         assertFalse(statBC.isSimpleIdentifier("SOME ID"));
         assertFalse(statBC.isSimpleIdentifier("FROM"));
         assertFalse(statBC.isSimpleIdentifier("Test"));
+        assertFalse(statBC.isSimpleIdentifier("TODAY"));
 
         stat.close();
     }

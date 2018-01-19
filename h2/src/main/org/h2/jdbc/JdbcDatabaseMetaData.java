@@ -1536,18 +1536,18 @@ public class JdbcDatabaseMetaData extends TraceObject implements
 
     /**
      * Gets the comma-separated list of all SQL keywords that are not supported
-     * as table/column/index name, in addition to the SQL-92 keywords. The list
+     * as table/column/index name, in addition to the SQL-2003 keywords. The list
      * returned is:
      * <pre>
-     * LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY
+     * LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY
      * </pre>
-     * The complete list of keywords (including SQL-92 keywords) is:
+     * The complete list of keywords (including SQL-2003 keywords) is:
      * <pre>
-     * CROSS, CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, DISTINCT,
-     * EXCEPT, EXISTS, FALSE, FOR, FROM, FULL, GROUP, HAVING, INNER,
-     * INTERSECT, IS, JOIN, LIKE, LIMIT, MINUS, NATURAL, NOT, NULL, ON,
-     * ORDER, PRIMARY, ROWNUM, SELECT, SYSDATE, SYSTIME, SYSTIMESTAMP,
-     * TODAY, TRUE, UNION, UNIQUE, WHERE
+     * ALL, CHECK, CONSTRAINT, CROSS, CURRENT_DATE, CURRENT_TIME,
+     * CURRENT_TIMESTAMP, DISTINCT, EXCEPT, EXISTS, FALSE, FETCH, FOR, FOREIGN,
+     * FROM, FULL, GROUP, HAVING, INNER, INTERSECT, IS, JOIN, LIKE, LIMIT,
+     * MINUS, NATURAL, NOT, NULL, OFFSET, ON, ORDER, PRIMARY, ROWNUM, SELECT,
+     * SYSDATE, SYSTIME, SYSTIMESTAMP, TODAY, TRUE, UNION, UNIQUE, WHERE, WITH
      * </pre>
      *
      * @return a list of additional the keywords
@@ -1555,7 +1555,7 @@ public class JdbcDatabaseMetaData extends TraceObject implements
     @Override
     public String getSQLKeywords() {
         debugCodeCall("getSQLKeywords");
-        return "LIMIT,MINUS,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY";
+        return "LIMIT,MINUS,OFFSET,ROWNUM,SYSDATE,SYSTIME,SYSTIMESTAMP,TODAY";
     }
 
     /**

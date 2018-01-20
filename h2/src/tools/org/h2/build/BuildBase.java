@@ -845,6 +845,35 @@ public class BuildBase {
                     return comp;
                 }
             });
+        } else if (jar) {
+            Collections.sort(files, new Comparator<File>() {
+                private int priority(String path) {
+                    if (path.startsWith("META-INF/")) {
+                        if (path.equals("META-INF/MANIFEST.MF")) {
+                            return 0;
+                        }
+                        if (path.startsWith("services/", 9)) {
+                            return 1;
+                        }
+                        return 2;
+                    }
+                    if (!path.endsWith(".zip")) {
+                        return 3;
+                    }
+                    return 4;
+                }
+
+                @Override
+                public int compare(File f1, File f2) {
+                    String p1 = f1.getPath();
+                    String p2 = f2.getPath();
+                    int comp = Integer.compare(priority(p1), priority(p2));
+                    if (comp != 0) {
+                        return comp;
+                    }
+                    return p1.compareTo(p2);
+                }
+            });
         }
         mkdirs(new File(destFile).getAbsoluteFile().getParentFile());
         // normalize the path (replace / with \ if required)

@@ -19,7 +19,6 @@ import org.h2.mvstore.DataUtils;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.db.TransactionStore;
-import org.h2.mvstore.db.ValueDataType;
 import org.h2.mvstore.db.TransactionStore.Change;
 import org.h2.mvstore.db.TransactionStore.Transaction;
 import org.h2.mvstore.db.TransactionStore.TransactionMap;

@@ -1415,7 +1415,7 @@ public abstract class TestBase {
      * @return the classpath list
      */
     protected String getClassPath() {
-        return "bin" + File.pathSeparator + "temp" + File.pathSeparator + ".";
+        return System.getProperty("java.class.path");
     }
 
     /**

@@ -195,13 +195,7 @@ public class Select extends Query {
 
     private boolean isHavingNullOrFalse(Value[] row) {
         if (havingIndex >= 0) {
-            Value v = row[havingIndex];
-            if (v == ValueNull.INSTANCE) {
-                return true;
-            }
-            if (!Boolean.TRUE.equals(v.getBoolean())) {
-                return true;
-            }
+            return !row[havingIndex].getBoolean();
         }
         return false;
     }
@@ -281,8 +275,7 @@ public class Select extends Query {
     }
 
     boolean isConditionMet() {
-        return condition == null ||
-                Boolean.TRUE.equals(condition.getBooleanValue(session));
+        return condition == null || condition.getBooleanValue(session);
     }
 
     private void queryGroup(int columnCount, LocalResult result) {

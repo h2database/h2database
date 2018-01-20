@@ -548,8 +548,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public boolean getBoolean(int columnIndex) throws SQLException {
         try {
             debugCodeCall("getBoolean", columnIndex);
-            Boolean v = get(columnIndex).getBoolean();
-            return v == null ? false : v.booleanValue();
+            return get(columnIndex).getBoolean();
         } catch (Exception e) {
             throw logAndConvert(e);
         }
@@ -567,8 +566,7 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
     public boolean getBoolean(String columnLabel) throws SQLException {
         try {
             debugCodeCall("getBoolean", columnLabel);
-            Boolean v = get(columnLabel).getBoolean();
-            return v == null ? false : v.booleanValue();
+            return get(columnLabel).getBoolean();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

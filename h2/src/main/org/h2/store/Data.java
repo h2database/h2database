@@ -418,8 +418,7 @@ public class Data {
         int type = v.getType();
         switch (type) {
         case Value.BOOLEAN:
-            writeByte((byte) (v.getBoolean().booleanValue() ?
-                    BOOLEAN_TRUE : BOOLEAN_FALSE));
+            writeByte((byte) (v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
             break;
         case Value.BYTE:
             writeByte((byte) type);

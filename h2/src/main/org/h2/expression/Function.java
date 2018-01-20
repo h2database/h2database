@@ -989,8 +989,7 @@ public class Function extends Expression implements FunctionCall {
         }
         case CASEWHEN: {
             Value v;
-            if (v0 == ValueNull.INSTANCE ||
-                    !v0.getBoolean().booleanValue()) {
+            if (!v0.getBoolean()) {
                 v = getNullOrValue(session, args, values, 2);
             } else {
                 v = getNullOrValue(session, args, values, 1);
@@ -1067,8 +1066,7 @@ public class Function extends Expression implements FunctionCall {
                 // (null, when, then, when, then, else)
                 for (int i = 1, len = args.length - 1; i < len; i += 2) {
                     Value when = args[i].getValue(session);
-                    if (!(when == ValueNull.INSTANCE) &&
-                            when.getBoolean().booleanValue()) {
+                    if (when.getBoolean()) {
                         then = args[i + 1];
                         break;
                     }

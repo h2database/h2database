@@ -78,8 +78,7 @@ public class Delete extends Prepared {
             int count = 0;
             while (limitRows != 0 && targetTableFilter.next()) {
                 setCurrentRowNumber(rows.size() + 1);
-                if (condition == null || Boolean.TRUE.equals(
-                        condition.getBooleanValue(session))) {
+                if (condition == null || condition.getBooleanValue(session)) {
                     Row row = targetTableFilter.get();
                     boolean done = false;
                     if (table.fireRow()) {

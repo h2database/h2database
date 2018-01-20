@@ -1351,7 +1351,7 @@ public class TransactionStore {
             key = map.ceilingKey(key);
             while (key != null && get(key) == null) {
                 // Use higherKey() for the next attempts, otherwise we'll get an infinite loop
-                key = higherKey(key);
+                key = map.higherKey(key);
             }
             return key;
         }
@@ -1384,7 +1384,7 @@ public class TransactionStore {
             key = map.floorKey(key);
             while (key != null && get(key) == null) {
                 // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
-                key = lowerKey(key);
+                key = map.lowerKey(key);
             }
             return key;
         }

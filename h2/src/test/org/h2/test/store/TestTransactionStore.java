@@ -72,6 +72,10 @@ public class TestTransactionStore extends TestBase {
         Transaction t = ts.begin();
         ObjectDataType keyType = new ObjectDataType();
         TransactionMap<Long, Long> map = t.openMap("test", keyType, keyType);
+        // firstKey()
+        assertNull(map.firstKey());
+        // lastKey()
+        assertNull(map.lastKey());
         map.put(10L, 100L);
         map.put(20L, 200L);
         map.put(30L, 300L);

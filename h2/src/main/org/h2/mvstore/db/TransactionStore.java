@@ -1320,15 +1320,10 @@ public class TransactionStore {
          */
         public K lastKey() {
             K k = map.lastKey();
-            while (true) {
-                if (k == null) {
-                    return null;
-                }
-                if (get(k) != null) {
-                    return k;
-                }
+            while (k != null && get(k) == null) {
                 k = map.lowerKey(k);
             }
+            return k;
         }
 
         /**

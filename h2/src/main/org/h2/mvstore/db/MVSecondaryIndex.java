@@ -228,9 +228,9 @@ public final class MVSecondaryIndex extends BaseIndex implements MVIndex {
     }
 
     private void requireUnique(SearchRow row, TransactionMap<Value, Value> map, ValueArray unique) {
-        Iterator<Value> it = map.keyIterator(unique);
-        if (it.hasNext()) {
-            ValueArray k = (ValueArray) it.next();
+        Value key = map.ceilingKey(unique);
+        if (key != null) {
+            ValueArray k = (ValueArray) key;
             if (compareRows(row, convertToSearchRow(k)) == 0) {
                 // committed
                 throw getDuplicateKeyException(k.toString());

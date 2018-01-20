@@ -1348,12 +1348,8 @@ public class TransactionStore {
          * @return the result
          */
         public K ceilingKey(K key) {
-            key = map.ceilingKey(key);
-            while (key != null && get(key) == null) {
-                // Use higherKey() for the next attempts, otherwise we'll get an infinite loop
-                key = map.higherKey(key);
-            }
-            return key;
+            Iterator<K> it = keyIterator(key);
+            return it.hasNext() ? it.next() : null;
         }
 
         /**

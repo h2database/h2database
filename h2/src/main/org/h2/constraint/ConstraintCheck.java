@@ -97,12 +97,12 @@ public class ConstraintCheck extends Constraint {
         boolean b;
         try {
             Value v = expr.getValue(session);
+            // Both TRUE and NULL are ok
             b = v == ValueNull.INSTANCE || v.getBoolean();
         } catch (DbException ex) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_INVALID, ex,
                     getShortDescription());
         }
-        // Both TRUE and NULL are ok
         if (!b) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
                     getShortDescription());

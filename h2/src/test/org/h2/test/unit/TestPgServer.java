@@ -45,12 +45,19 @@ public class TestPgServer extends TestBase {
         config.memory = true;
         config.mvStore = true;
         config.mvcc = true;
+        // the sleeps are too mitigate "port in use" exceptions on Jenkins
         testLowerCaseIdentifiers();
+        Thread.sleep(100);
         testPgAdapter();
+        Thread.sleep(100);
         testKeyAlias();
+        Thread.sleep(100);
         testKeyAlias();
+        Thread.sleep(100);
         testCancelQuery();
+        Thread.sleep(100);
         testBinaryTypes();
+        Thread.sleep(100);
         testPrepareWithUnspecifiedType();
     }
 

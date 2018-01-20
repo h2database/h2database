@@ -1339,13 +1339,10 @@ public class TransactionStore {
          * @return the result
          */
         public K higherKey(K key) {
-            while (true) {
-                K k = map.higherKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.higherKey(key);
+            } while (key != null && get(key) == null);
+            return key;
         }
 
         /**
@@ -1373,13 +1370,10 @@ public class TransactionStore {
          * @return the result
          */
         public K lowerKey(K key) {
-            while (true) {
-                K k = map.lowerKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.lowerKey(key);
+            } while (key != null && get(key) == null);
+            return key;
         }
 
         /**

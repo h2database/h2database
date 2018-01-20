@@ -1309,8 +1309,11 @@ public class TransactionStore {
          * @return the first key, or null if empty
          */
         public K firstKey() {
-            Iterator<K> it = keyIterator(null);
-            return it.hasNext() ? it.next() : null;
+            K k = map.firstKey();
+            while (k != null && get(k) == null) {
+                k = map.higherKey(k);
+            }
+            return k;
         }
 
         /**
@@ -1320,15 +1323,10 @@ public class TransactionStore {
          */
         public K lastKey() {
             K k = map.lastKey();
-            while (true) {
-                if (k == null) {
-                    return null;
-                }
-                if (get(k) != null) {
-                    return k;
-                }
+            while (k != null && get(k) == null) {
                 k = map.lowerKey(k);
             }
+            return k;
         }
 
         /**
@@ -1339,13 +1337,26 @@ public class TransactionStore {
          * @return the result
          */
         public K higherKey(K key) {
-            while (true) {
-                K k = map.higherKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
+            do {
+                key = map.higherKey(key);
+            } while (key != null && get(key) == null);
+            return key;
+        }
+
+        /**
+         * Get the smallest key that is larger than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K ceilingKey(K key) {
+            key = map.ceilingKey(key);
+            while (key != null && get(key) == null) {
+                // Use higherKey() for the next attempts, otherwise we'll get an infinite loop
+                key = map.higherKey(key);
             }
+            return key;
         }
 
         /**
@@ -1366,6 +1377,22 @@ public class TransactionStore {
         }
 
         /**
+         * Get the largest key that is smaller than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K floorKey(K key) {
+            key = map.floorKey(key);
+            while (key != null && get(key) == null) {
+                // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
+                key = map.lowerKey(key);
+            }
+            return key;
+        }
+
+        /**
          * Get the largest key that is smaller than the given key, or null if no
          * such key exists.
          *
@@ -1373,13 +1400,10 @@ public class TransactionStore {
          * @return the result
          */
         public K lowerKey(K key) {
-            while (true) {
-                K k = map.lowerKey(key);
-                if (k == null || get(k) != null) {
-                    return k;
-                }
-                key = k;
-            }
+            do {
+                key = map.lowerKey(key);
+            } while (key != null && get(key) == null);
+            return key;
         }
 
         /**

@@ -1346,6 +1346,22 @@ public class TransactionStore {
         }
 
         /**
+         * Get the smallest key that is larger than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K ceilingKey(K key) {
+            key = map.ceilingKey(key);
+            while (key != null && get(key) == null) {
+                // Use higherKey() for the next attempts, otherwise we'll get an infinite loop
+                key = higherKey(key);
+            }
+            return key;
+        }
+
+        /**
          * Get one of the previous or next keys. There might be no value
          * available for the returned key.
          *
@@ -1360,6 +1376,22 @@ public class TransactionStore {
             }
             long index = map.getKeyIndex(k);
             return map.getKey(index + offset);
+        }
+
+        /**
+         * Get the largest key that is smaller than or equal to this key,
+         * or null if no such key exists.
+         *
+         * @param key the key (may not be null)
+         * @return the result
+         */
+        public K floorKey(K key) {
+            key = map.floorKey(key);
+            while (key != null && get(key) == null) {
+                // Use lowerKey() for the next attempts, otherwise we'll get an infinite loop
+                key = lowerKey(key);
+            }
+            return key;
         }
 
         /**

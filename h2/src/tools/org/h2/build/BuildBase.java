@@ -857,7 +857,10 @@ public class BuildBase {
                         }
                         return 2;
                     }
-                    return 3;
+                    if (!path.endsWith(".zip")) {
+                        return 3;
+                    }
+                    return 4;
                 }
 
                 @Override

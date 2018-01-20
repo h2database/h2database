@@ -30,10 +30,10 @@ public class ValueBoolean extends Value {
     private static final Object TRUE = new ValueBoolean(true);
     private static final Object FALSE = new ValueBoolean(false);
 
-    private final Boolean value;
+    private final boolean value;
 
     private ValueBoolean(boolean value) {
-        this.value = Boolean.valueOf(value);
+        this.value = value;
     }
 
     @Override
@@ -48,24 +48,23 @@ public class ValueBoolean extends Value {
 
     @Override
     public String getString() {
-        return value.booleanValue() ? "TRUE" : "FALSE";
+        return value ? "TRUE" : "FALSE";
     }
 
     @Override
     public Value negate() {
-        return (ValueBoolean) (value.booleanValue() ? FALSE : TRUE);
+        return (ValueBoolean) (value ? FALSE : TRUE);
     }
 
     @Override
-    public Boolean getBoolean() {
+    public boolean getBoolean() {
         return value;
     }
 
     @Override
     protected int compareSecure(Value o, CompareMode mode) {
-        boolean v2 = ((ValueBoolean) o).value.booleanValue();
-        boolean v = value.booleanValue();
-        return (v == v2) ? 0 : (v ? 1 : -1);
+        ValueBoolean v = (ValueBoolean) o;
+        return Boolean.compare(value, v.value);
     }
 
     @Override
@@ -75,7 +74,7 @@ public class ValueBoolean extends Value {
 
     @Override
     public int hashCode() {
-        return value.booleanValue() ? 1 : 0;
+        return value ? 1 : 0;
     }
 
     @Override
@@ -86,7 +85,7 @@ public class ValueBoolean extends Value {
     @Override
     public void set(PreparedStatement prep, int parameterIndex)
             throws SQLException {
-        prep.setBoolean(parameterIndex, value.booleanValue());
+        prep.setBoolean(parameterIndex, value);
     }
 
     /**

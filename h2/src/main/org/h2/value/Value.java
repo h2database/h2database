@@ -423,7 +423,7 @@ public abstract class Value {
         softCache = null;
     }
 
-    public Boolean getBoolean() {
+    public boolean getBoolean() {
         return ((ValueBoolean) convertTo(Value.BOOLEAN)).getBoolean();
     }
 
@@ -630,7 +630,7 @@ public abstract class Value {
             case BYTE: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueByte.get(getBoolean().booleanValue() ? (byte) 1 : (byte) 0);
+                    return ValueByte.get(getBoolean() ? (byte) 1 : (byte) 0);
                 case SHORT:
                     return ValueByte.get(convertToByte(getShort(), column));
                 case ENUM:
@@ -655,7 +655,7 @@ public abstract class Value {
             case SHORT: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueShort.get(getBoolean().booleanValue() ? (short) 1 : (short) 0);
+                    return ValueShort.get(getBoolean() ? (short) 1 : (short) 0);
                 case BYTE:
                     return ValueShort.get(getByte());
                 case ENUM:
@@ -680,7 +680,7 @@ public abstract class Value {
             case INT: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueInt.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueInt.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueInt.get(getByte());
                 case ENUM:
@@ -706,7 +706,7 @@ public abstract class Value {
             case LONG: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueLong.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueLong.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueLong.get(getByte());
                 case SHORT:
@@ -737,8 +737,7 @@ public abstract class Value {
             case DECIMAL: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueDecimal.get(BigDecimal.valueOf(
-                            getBoolean().booleanValue() ? 1 : 0));
+                    return ValueDecimal.get(BigDecimal.valueOf(getBoolean() ? 1 : 0));
                 case BYTE:
                     return ValueDecimal.get(BigDecimal.valueOf(getByte()));
                 case SHORT:
@@ -774,7 +773,7 @@ public abstract class Value {
             case DOUBLE: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueDouble.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueDouble.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueDouble.get(getByte());
                 case SHORT:
@@ -797,7 +796,7 @@ public abstract class Value {
             case FLOAT: {
                 switch (getType()) {
                 case BOOLEAN:
-                    return ValueFloat.get(getBoolean().booleanValue() ? 1 : 0);
+                    return ValueFloat.get(getBoolean() ? 1 : 0);
                 case BYTE:
                     return ValueFloat.get(getByte());
                 case SHORT:

@@ -168,13 +168,13 @@ public abstract class Expression {
 
     /**
      * Get the value in form of a boolean expression.
-     * Returns true, false, or null.
+     * Returns true or false.
      * In this database, everything can be a condition.
      *
      * @param session the session
      * @return the result
      */
-    public Boolean getBooleanValue(Session session) {
+    public boolean getBooleanValue(Session session) {
         return getValue(session).getBoolean();
     }
 

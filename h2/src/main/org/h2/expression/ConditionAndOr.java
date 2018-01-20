@@ -87,11 +87,11 @@ public class ConditionAndOr extends Condition {
         Value r;
         switch (andOrType) {
         case AND: {
-            if (Boolean.FALSE.equals(l.getBoolean())) {
+            if (l != ValueNull.INSTANCE && !l.getBoolean()) {
                 return l;
             }
             r = right.getValue(session);
-            if (Boolean.FALSE.equals(r.getBoolean())) {
+            if (r != ValueNull.INSTANCE && !r.getBoolean()) {
                 return r;
             }
             if (l == ValueNull.INSTANCE) {
@@ -103,11 +103,11 @@ public class ConditionAndOr extends Condition {
             return ValueBoolean.get(true);
         }
         case OR: {
-            if (Boolean.TRUE.equals(l.getBoolean())) {
+            if (l.getBoolean()) {
                 return l;
             }
             r = right.getValue(session);
-            if (Boolean.TRUE.equals(r.getBoolean())) {
+            if (r.getBoolean()) {
                 return r;
             }
             if (l == ValueNull.INSTANCE) {
@@ -212,30 +212,30 @@ public class ConditionAndOr extends Condition {
         switch (andOrType) {
         case AND:
             if (l != null) {
-                if (Boolean.FALSE.equals(l.getBoolean())) {
+                if (l != ValueNull.INSTANCE && !l.getBoolean()) {
                     return ValueExpression.get(l);
-                } else if (Boolean.TRUE.equals(l.getBoolean())) {
+                } else if (l.getBoolean()) {
                     return right;
                 }
             } else if (r != null) {
-                if (Boolean.FALSE.equals(r.getBoolean())) {
+                if (r != ValueNull.INSTANCE && !r.getBoolean()) {
                     return ValueExpression.get(r);
-                } else if (Boolean.TRUE.equals(r.getBoolean())) {
+                } else if (r.getBoolean()) {
                     return left;
                 }
             }
             break;
         case OR:
             if (l != null) {
-                if (Boolean.TRUE.equals(l.getBoolean())) {
+                if (l.getBoolean()) {
                     return ValueExpression.get(l);
-                } else if (Boolean.FALSE.equals(l.getBoolean())) {
+                } else if (l != ValueNull.INSTANCE) {
                     return right;
                 }
             } else if (r != null) {
-                if (Boolean.TRUE.equals(r.getBoolean())) {
+                if (r.getBoolean()) {
                     return ValueExpression.get(r);
-                } else if (Boolean.FALSE.equals(r.getBoolean())) {
+                } else if (r != ValueNull.INSTANCE) {
                     return left;
                 }
             }

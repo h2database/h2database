@@ -362,7 +362,7 @@ public class Column {
                 v = checkConstraint.getValue(session);
             }
             // Both TRUE and NULL are ok
-            if (Boolean.FALSE.equals(v.getBoolean())) {
+            if (v != ValueNull.INSTANCE && !v.getBoolean()) {
                 throw DbException.get(
                         ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
                         checkConstraint.getSQL());

@@ -192,8 +192,7 @@ public class ValueDataType implements DataType {
         int type = v.getType();
         switch (type) {
         case Value.BOOLEAN:
-            buff.put((byte) (v.getBoolean().booleanValue() ?
-                    BOOLEAN_TRUE : BOOLEAN_FALSE));
+            buff.put((byte) (v.getBoolean() ? BOOLEAN_TRUE : BOOLEAN_FALSE));
             break;
         case Value.BYTE:
             buff.put((byte) type).put(v.getByte());

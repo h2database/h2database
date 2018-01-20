@@ -586,9 +586,7 @@ public class JdbcConnection extends TraceObject
             getReadOnly = prepareCommand("CALL READONLY()", getReadOnly);
             ResultInterface result = getReadOnly.executeQuery(0, false);
             result.next();
-            boolean readOnly = result.currentRow()[0].getBoolean()
-                    .booleanValue();
-            return readOnly;
+            return result.currentRow()[0].getBoolean();
         } catch (Exception e) {
             throw logAndConvert(e);
         }

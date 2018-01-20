@@ -112,8 +112,7 @@ public class Update extends Prepared {
                 if (limitRows >= 0 && count >= limitRows) {
                     break;
                 }
-                if (condition == null ||
-                        Boolean.TRUE.equals(condition.getBooleanValue(session))) {
+                if (condition == null || condition.getBooleanValue(session)) {
                     Row oldRow = targetTableFilter.get();
                     Row newRow = table.getTemplateRow();
                     for (int i = 0; i < columnCount; i++) {

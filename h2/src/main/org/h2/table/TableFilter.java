@@ -577,10 +577,7 @@ public class TableFilter implements ColumnResolver {
      * @return true if yes
      */
     boolean isOk(Expression condition) {
-        if (condition == null) {
-            return true;
-        }
-        return Boolean.TRUE.equals(condition.getBooleanValue(session));
+        return condition == null || condition.getBooleanValue(session);
     }
 
     /**

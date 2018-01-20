@@ -20,6 +20,8 @@ import org.h2.table.Column;
 import org.h2.table.Table;
 import org.h2.table.TableFilter;
 import org.h2.util.StringUtils;
+import org.h2.value.Value;
+import org.h2.value.ValueNull;
 
 /**
  * A check constraint.
@@ -92,15 +94,16 @@ public class ConstraintCheck extends Constraint {
             return;
         }
         filter.set(newRow);
-        Boolean b;
+        boolean b;
         try {
-            b = expr.getValue(session).getBoolean();
+            Value v = expr.getValue(session);
+            // Both TRUE and NULL are ok
+            b = v == ValueNull.INSTANCE || v.getBoolean();
         } catch (DbException ex) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_INVALID, ex,
                     getShortDescription());
         }
-        // Both TRUE and NULL are ok
-        if (Boolean.FALSE.equals(b)) {
+        if (!b) {
             throw DbException.get(ErrorCode.CHECK_CONSTRAINT_VIOLATED_1,
                     getShortDescription());
         }

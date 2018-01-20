@@ -1309,8 +1309,11 @@ public class TransactionStore {
          * @return the first key, or null if empty
          */
         public K firstKey() {
-            Iterator<K> it = keyIterator(null);
-            return it.hasNext() ? it.next() : null;
+            K k = map.firstKey();
+            while (k != null && get(k) == null) {
+                k = map.higherKey(k);
+            }
+            return k;
         }
 
         /**
@@ -1320,15 +1323,10 @@ public class TransactionStore {
          */
         public K lastKey() {
             K k = map.lastKey();
-            while (true) {
-                if (k == null) {
-                    return null;
-                }
-                if (get(k) != null) {
-                    return k;
-                }
+            while (k != null && get(k) == null) {
                 k = map.lowerKey(k);
             }
+            return k;
         }
 
         /**

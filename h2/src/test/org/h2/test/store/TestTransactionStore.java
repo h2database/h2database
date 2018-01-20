@@ -79,12 +79,27 @@ public class TestTransactionStore extends TestBase {
         t.commit();
         t = ts.begin();
         map = t.openMap("test", keyType, keyType);
+        map.put(5L, 50L);
         map.put(15L, 150L);
+        map.put(45L, 450L);
+
         // The same transaction
+
+        // firstKey()
+        assertEquals((Object) 5L, map.firstKey());
+        // lastKey()
+        assertEquals((Object) 45L, map.lastKey());
+        // higherKey()
         assertEquals((Object) 15L, map.higherKey(10L));
         t = ts.begin();
         map = t.openMap("test", keyType, keyType);
+
         // Another transaction
+
+        // firstKey()
+        assertEquals((Object) 10L, map.firstKey());
+        // lastKey()
+        assertEquals((Object) 40L, map.lastKey());
         // higherKey()
         assertEquals((Object) 20L, map.higherKey(10L));
         assertEquals((Object) 20L, map.higherKey(15L));

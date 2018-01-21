@@ -343,8 +343,7 @@ public class AlterTableAlterColumn extends SchemaCommand {
             }
         } else if (type == CommandInterface.ALTER_TABLE_ALTER_COLUMN_CHANGE_TYPE) {
             int position = oldColumn.getColumnId();
-            newColumns.remove(position);
-            newColumns.add(position, newColumn);
+            newColumns.set(position, newColumn);
         }
 
         // create a table object in order to get the SQL statement

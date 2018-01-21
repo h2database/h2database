@@ -532,18 +532,15 @@ public abstract class Table extends SchemaObjectBase {
             database.removeSchemaObject(session, view);
         }
         while (synonyms != null && synonyms.size() > 0) {
-            TableSynonym synonym = synonyms.get(0);
-            synonyms.remove(0);
+            TableSynonym synonym = synonyms.remove(0);
             database.removeSchemaObject(session, synonym);
         }
         while (triggers != null && triggers.size() > 0) {
-            TriggerObject trigger = triggers.get(0);
-            triggers.remove(0);
+            TriggerObject trigger = triggers.remove(0);
             database.removeSchemaObject(session, trigger);
         }
         while (constraints != null && constraints.size() > 0) {
-            Constraint constraint = constraints.get(0);
-            constraints.remove(0);
+            Constraint constraint = constraints.remove(0);
             database.removeSchemaObject(session, constraint);
         }
         for (Right right : database.getAllRights()) {
@@ -555,8 +552,7 @@ public abstract class Table extends SchemaObjectBase {
         // must delete sequences later (in case there is a power failure
         // before removing the table object)
         while (sequences != null && sequences.size() > 0) {
-            Sequence sequence = sequences.get(0);
-            sequences.remove(0);
+            Sequence sequence = sequences.remove(0);
             // only remove if no other table depends on this sequence
             // this is possible when calling ALTER TABLE ALTER COLUMN
             if (database.getDependentTable(sequence, this) == null) {

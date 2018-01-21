@@ -7,6 +7,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
@@ -14,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Properties;
@@ -22,6 +24,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
@@ -45,19 +49,13 @@ public class TestPgServer extends TestBase {
         config.memory = true;
         config.mvStore = true;
         config.mvcc = true;
-        // the sleeps are too mitigate "port in use" exceptions on Jenkins
-        testLowerCaseIdentifiers();
-        Thread.sleep(100);
+        // testPgAdapter() starts server by itself without a wait so run it first
         testPgAdapter();
-        Thread.sleep(100);
+        testLowerCaseIdentifiers();
         testKeyAlias();
-        Thread.sleep(100);
         testKeyAlias();
-        Thread.sleep(100);
         testCancelQuery();
-        Thread.sleep(100);
         testBinaryTypes();
-        Thread.sleep(100);
         testPrepareWithUnspecifiedType();
     }
 
@@ -70,10 +68,9 @@ public class TestPgServer extends TestBase {
                 "mem:pgserver;DATABASE_TO_UPPER=false", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
-        Server server = Server.createPgServer("-baseDir", getBaseDir(),
+        Server server = createPgServer("-baseDir", getBaseDir(),
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver",
                 "mem:pgserver");
-        server.start();
         try {
             Connection conn2;
             conn2 = DriverManager.getConnection(
@@ -95,6 +92,28 @@ public class TestPgServer extends TestBase {
         } catch (ClassNotFoundException e) {
             println("PostgreSQL JDBC driver not found - PgServer not tested");
             return false;
+        }
+    }
+
+    private Server createPgServer(String... args) throws SQLException {
+        Server server = Server.createPgServer(args);
+        int failures = 0;
+        for (;;) {
+            try {
+                server.start();
+                return server;
+            } catch (SQLException e) {
+                // the sleeps are too mitigate "port in use" exceptions on Jenkins
+                if (e.getErrorCode() != ErrorCode.EXCEPTION_OPENING_PORT_2 || ++failures > 10) {
+                    throw e;
+                }
+                println("Sleeping");
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e2) {
+                    throw new RuntimeException(e2);
+                }
+            }
         }
     }
 
@@ -120,9 +139,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
@@ -347,9 +365,8 @@ public class TestPgServer extends TestBase {
         if (!getPgJdbcDriver()) {
             return;
         }
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
         try {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
@@ -375,13 +392,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        // Sometimes the previous pg server has not finished shutting and we get
-        // "port in use", so sleep for a bit.
-        Thread.sleep(100);
-
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
         try {
             Properties props = new Properties();
             props.setProperty("user", "sa");
@@ -396,10 +408,11 @@ public class TestPgServer extends TestBase {
             stat.execute(
                     "create table test(x1 varchar, x2 int, " +
                     "x3 smallint, x4 bigint, x5 double, x6 float, " +
-                    "x7 real, x8 boolean, x9 char, x10 bytea)");
+                    "x7 real, x8 boolean, x9 char, x10 bytea, " +
+                    "x11 date, x12 time, x13 timestamp)");
 
             PreparedStatement ps = conn.prepareStatement(
-                    "insert into test values (?,?,?,?,?,?,?,?,?,?)");
+                    "insert into test values (?,?,?,?,?,?,?,?,?,?,?,?,?)");
             ps.setString(1, "test");
             ps.setInt(2, 12345678);
             ps.setShort(3, (short) 12345);
@@ -410,6 +423,9 @@ public class TestPgServer extends TestBase {
             ps.setBoolean(8, true);
             ps.setByte(9, (byte) 0xfe);
             ps.setBytes(10, new byte[] { 'a', (byte) 0xfe, '\127' });
+            ps.setDate(11, Date.valueOf("2015-01-31"));
+            ps.setTime(12, Time.valueOf("20:11:15"));
+            ps.setTimestamp(13, Timestamp.valueOf("2001-10-30 14:16:10.111"));
             ps.execute();
 
             ResultSet rs = stat.executeQuery("select * from test");
@@ -425,6 +441,9 @@ public class TestPgServer extends TestBase {
             assertEquals((byte) 0xfe, rs.getByte(9));
             assertEquals(new byte[] { 'a', (byte) 0xfe, '\127' },
                     rs.getBytes(10));
+            assertEquals(Date.valueOf("2015-01-31"), rs.getDate(11));
+            assertEquals(Time.valueOf("20:11:15"), rs.getTime(12));
+            assertEquals(Timestamp.valueOf("2001-10-30 14:16:10.111"), rs.getTimestamp(13));
 
             conn.close();
         } finally {
@@ -437,9 +456,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
         try {
             Properties props = new Properties();
 

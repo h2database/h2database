@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import org.h2.api.ErrorCode;
 import org.h2.test.TestBase;
 import org.h2.tools.Server;
 
@@ -45,19 +47,13 @@ public class TestPgServer extends TestBase {
         config.memory = true;
         config.mvStore = true;
         config.mvcc = true;
-        // the sleeps are too mitigate "port in use" exceptions on Jenkins
-        testLowerCaseIdentifiers();
-        Thread.sleep(100);
+        // testPgAdapter() starts server by itself without a wait so run it first
         testPgAdapter();
-        Thread.sleep(100);
+        testLowerCaseIdentifiers();
         testKeyAlias();
-        Thread.sleep(100);
         testKeyAlias();
-        Thread.sleep(100);
         testCancelQuery();
-        Thread.sleep(100);
         testBinaryTypes();
-        Thread.sleep(100);
         testPrepareWithUnspecifiedType();
     }
 
@@ -70,10 +66,9 @@ public class TestPgServer extends TestBase {
                 "mem:pgserver;DATABASE_TO_UPPER=false", "sa", "sa");
         Statement stat = conn.createStatement();
         stat.execute("create table test(id int, name varchar(255))");
-        Server server = Server.createPgServer("-baseDir", getBaseDir(),
+        Server server = createPgServer("-baseDir", getBaseDir(),
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver",
                 "mem:pgserver");
-        server.start();
         try {
             Connection conn2;
             conn2 = DriverManager.getConnection(
@@ -95,6 +90,28 @@ public class TestPgServer extends TestBase {
         } catch (ClassNotFoundException e) {
             println("PostgreSQL JDBC driver not found - PgServer not tested");
             return false;
+        }
+    }
+
+    private Server createPgServer(String... args) throws SQLException {
+        Server server = Server.createPgServer(args);
+        int failures = 0;
+        for (;;) {
+            try {
+                server.start();
+                return server;
+            } catch (SQLException e) {
+                // the sleeps are too mitigate "port in use" exceptions on Jenkins
+                if (e.getErrorCode() != ErrorCode.EXCEPTION_OPENING_PORT_2 || ++failures > 10) {
+                    throw e;
+                }
+                println("Sleeping");
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e2) {
+                    throw new RuntimeException(e2);
+                }
+            }
         }
     }
 
@@ -120,9 +137,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
@@ -347,9 +363,8 @@ public class TestPgServer extends TestBase {
         if (!getPgJdbcDriver()) {
             return;
         }
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
         try {
             Connection conn = DriverManager.getConnection(
                     "jdbc:postgresql://localhost:5535/pgserver", "sa", "sa");
@@ -375,13 +390,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        // Sometimes the previous pg server has not finished shutting and we get
-        // "port in use", so sleep for a bit.
-        Thread.sleep(100);
-
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
         try {
             Properties props = new Properties();
             props.setProperty("user", "sa");
@@ -437,9 +447,8 @@ public class TestPgServer extends TestBase {
             return;
         }
 
-        Server server = Server.createPgServer(
+        Server server = createPgServer(
                 "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
-        server.start();
         try {
             Properties props = new Properties();
 

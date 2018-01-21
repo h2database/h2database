@@ -7,6 +7,7 @@ package org.h2.test.unit;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
@@ -14,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Properties;
@@ -406,10 +408,11 @@ public class TestPgServer extends TestBase {
             stat.execute(
                     "create table test(x1 varchar, x2 int, " +
                     "x3 smallint, x4 bigint, x5 double, x6 float, " +
-                    "x7 real, x8 boolean, x9 char, x10 bytea)");
+                    "x7 real, x8 boolean, x9 char, x10 bytea, " +
+                    "x11 date, x12 time, x13 timestamp)");
 
             PreparedStatement ps = conn.prepareStatement(
-                    "insert into test values (?,?,?,?,?,?,?,?,?,?)");
+                    "insert into test values (?,?,?,?,?,?,?,?,?,?,?,?,?)");
             ps.setString(1, "test");
             ps.setInt(2, 12345678);
             ps.setShort(3, (short) 12345);
@@ -420,6 +423,9 @@ public class TestPgServer extends TestBase {
             ps.setBoolean(8, true);
             ps.setByte(9, (byte) 0xfe);
             ps.setBytes(10, new byte[] { 'a', (byte) 0xfe, '\127' });
+            ps.setDate(11, Date.valueOf("2015-01-31"));
+            ps.setTime(12, Time.valueOf("20:11:15"));
+            ps.setTimestamp(13, Timestamp.valueOf("2001-10-30 14:16:10.111"));
             ps.execute();
 
             ResultSet rs = stat.executeQuery("select * from test");
@@ -435,6 +441,9 @@ public class TestPgServer extends TestBase {
             assertEquals((byte) 0xfe, rs.getByte(9));
             assertEquals(new byte[] { 'a', (byte) 0xfe, '\127' },
                     rs.getBytes(10));
+            assertEquals(Date.valueOf("2015-01-31"), rs.getDate(11));
+            assertEquals(Time.valueOf("20:11:15"), rs.getTime(12));
+            assertEquals(Timestamp.valueOf("2001-10-30 14:16:10.111"), rs.getTimestamp(13));
 
             conn.close();
         } finally {

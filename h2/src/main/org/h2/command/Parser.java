@@ -1554,15 +1554,13 @@ public class Parser {
             } while (readIf("."));
             schemaName = session.getCurrentSchemaName();
             if (list.size() == 4) {
-                if (!equalsToken(database.getShortName(), list.get(0))) {
+                if (!equalsToken(database.getShortName(), list.remove(0))) {
                     throw DbException.getSyntaxError(sqlCommand, parseIndex,
                             "database name");
                 }
-                list.remove(0);
             }
             if (list.size() == 3) {
-                schemaName = list.get(0);
-                list.remove(0);
+                schemaName = list.remove(0);
             }
             if (list.size() != 2) {
                 throw DbException.getSyntaxError(sqlCommand, parseIndex,

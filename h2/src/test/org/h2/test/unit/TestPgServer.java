@@ -428,6 +428,10 @@ public class TestPgServer extends TestBase {
             ps.setTime(12, Time.valueOf("20:11:15"));
             ps.setTimestamp(13, Timestamp.valueOf("2001-10-30 14:16:10.111"));
             ps.execute();
+            for (int i = 1; i <= 13; i++) {
+                ps.setNull(i, Types.NULL);
+            }
+            ps.execute();
 
             ResultSet rs = stat.executeQuery("select * from test");
             assertTrue(rs.next());
@@ -445,6 +449,11 @@ public class TestPgServer extends TestBase {
             assertEquals(Date.valueOf("2015-01-31"), rs.getDate(11));
             assertEquals(Time.valueOf("20:11:15"), rs.getTime(12));
             assertEquals(Timestamp.valueOf("2001-10-30 14:16:10.111"), rs.getTimestamp(13));
+            assertTrue(rs.next());
+            for (int i = 1; i <= 13; i++) {
+                assertNull(rs.getObject(i));
+            }
+            assertFalse(rs.next());
 
             conn.close();
         } finally {

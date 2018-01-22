@@ -368,8 +368,7 @@ public class LobStorageBackend implements LobStorageInterface {
                     // if we had a short read, trim the buffer
                     byte[] b;
                     if (len != buff.length) {
-                        b = new byte[len];
-                        System.arraycopy(buff, 0, b, 0, len);
+                        b = Arrays.copyOf(buff, len);
                     } else {
                         b = buff;
                     }

@@ -13,6 +13,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -913,6 +914,7 @@ public final class DataUtils {
      * This method should be used if the size of the array is user defined, or
      * stored in a file, so wrong size data can be distinguished from regular
      * out-of-memory.
+     * </p>
      *
      * @param len the number of bytes requested
      * @return the byte array
@@ -924,6 +926,35 @@ public final class DataUtils {
         }
         try {
             return new byte[len];
+        } catch (OutOfMemoryError e) {
+            Error e2 = new OutOfMemoryError("Requested memory: " + len);
+            e2.initCause(e);
+            throw e2;
+        }
+    }
+
+    /**
+     * Creates a copy of array of bytes with the new size. If this is not possible
+     * because not enough memory is available, an OutOfMemoryError with the
+     * requested size in the message is thrown.
+     * <p>
+     * This method should be used if the size of the array is user defined, or
+     * stored in a file, so wrong size data can be distinguished from regular
+     * out-of-memory.
+     * </p>
+     *
+     * @param bytes source array
+     * @param len the number of bytes in the new array
+     * @return the byte array
+     * @throws OutOfMemoryError if the allocation was too large
+     * @see Arrays#copyOf(byte[], int)
+     */
+    public static byte[] copyBytes(byte[] bytes, int len) {
+        if (len == 0) {
+            return EMPTY_BYTES;
+        }
+        try {
+            return Arrays.copyOf(bytes, len);
         } catch (OutOfMemoryError e) {
             Error e2 = new OutOfMemoryError("Requested memory: " + len);
             e2.initCause(e);

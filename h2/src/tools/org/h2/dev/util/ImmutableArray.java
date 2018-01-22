@@ -5,6 +5,7 @@
  */
 package org.h2.dev.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import org.h2.mvstore.DataUtils;
 
@@ -97,11 +98,7 @@ public final class ImmutableArray<K> implements Iterable<K> {
      * @return the new immutable array
      */
     public ImmutableArray<K> subArray(int fromIndex, int toIndex) {
-        int len = toIndex - fromIndex;
-        @SuppressWarnings("unchecked")
-        K[] array = (K[]) new Object[len];
-        System.arraycopy(this.array, fromIndex, array, 0, toIndex - fromIndex);
-        return new ImmutableArray<>(array);
+        return new ImmutableArray<>(Arrays.copyOfRange(array, fromIndex, toIndex));
     }
 
     /**

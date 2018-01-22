@@ -426,8 +426,7 @@ public class ArchiveTool {
             for (int pos = 0; pos < len;) {
                 int[] key = getKey(bytes, pos, len);
                 int l = key[3];
-                byte[] buff = new byte[l];
-                System.arraycopy(bytes, pos, buff, 0, l);
+                byte[] buff = Arrays.copyOfRange(bytes, pos, pos + l);
                 pos += l;
                 Chunk c = new Chunk(null, key, buff);
                 Chunk old = map.get(c);

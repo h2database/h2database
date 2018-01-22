@@ -149,8 +149,7 @@ public class ValueBytes extends Value {
             return this;
         }
         int len = MathUtils.convertLongToInt(precision);
-        byte[] buff = new byte[len];
-        System.arraycopy(value, 0, buff, 0, len);
+        byte[] buff = Arrays.copyOf(value, len);
         return get(buff);
     }
 

@@ -17,6 +17,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
+
 import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
@@ -1171,8 +1173,7 @@ public class Data {
      */
     public void truncate(int size) {
         if (pos > size) {
-            byte[] buff = new byte[size];
-            System.arraycopy(data, 0, buff, 0, size);
+            byte[] buff = Arrays.copyOf(data, size);
             this.pos = size;
             data = buff;
         }
@@ -1313,11 +1314,9 @@ public class Data {
     }
 
     private void expand(int plus) {
-        byte[] d = DataUtils.newBytes((data.length + plus) * 2);
         // must copy everything, because pos could be 0 and data may be
         // still required
-        System.arraycopy(data, 0, d, 0, data.length);
-        data = d;
+        data = DataUtils.copyBytes(data, (data.length + plus) * 2);
     }
 
     /**

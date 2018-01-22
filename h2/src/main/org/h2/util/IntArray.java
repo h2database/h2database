@@ -5,6 +5,8 @@
  */
 package org.h2.util;
 
+import java.util.Arrays;
+
 import org.h2.engine.SysProperties;
 
 /**
@@ -93,9 +95,7 @@ public class IntArray {
     public void ensureCapacity(int minCapacity) {
         minCapacity = Math.max(4, minCapacity);
         if (minCapacity >= data.length) {
-            int[] d = new int[minCapacity];
-            System.arraycopy(data, 0, d, 0, data.length);
-            data = d;
+            data = Arrays.copyOf(data, minCapacity);
         }
     }
 

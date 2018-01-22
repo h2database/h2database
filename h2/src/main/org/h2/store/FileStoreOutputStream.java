@@ -6,6 +6,8 @@
 package org.h2.store;
 
 import java.io.OutputStream;
+import java.util.Arrays;
+
 import org.h2.engine.Constants;
 import org.h2.tools.CompressTool;
 
@@ -49,9 +51,7 @@ public class FileStoreOutputStream extends OutputStream {
             page.reset();
             if (compress != null) {
                 if (off != 0 || len != buff.length) {
-                    byte[] b2 = new byte[len];
-                    System.arraycopy(buff, off, b2, 0, len);
-                    buff = b2;
+                    buff = Arrays.copyOfRange(buff, off, off + len);
                     off = 0;
                 }
                 int uncompressed = len;

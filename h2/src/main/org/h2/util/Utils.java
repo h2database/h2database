@@ -225,9 +225,7 @@ public class Utils {
         if (len == 0) {
             return EMPTY_BYTES;
         }
-        byte[] copy = new byte[len];
-        System.arraycopy(b, 0, copy, 0, len);
-        return copy;
+        return Arrays.copyOf(b, len);
     }
 
     /**

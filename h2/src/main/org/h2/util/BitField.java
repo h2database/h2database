@@ -5,6 +5,8 @@
  */
 package org.h2.util;
 
+import java.util.Arrays;
+
 /**
  * A list of bits.
  */
@@ -132,9 +134,7 @@ public final class BitField {
     private void expandCapacity(int size) {
         while (size >= data.length) {
             int newSize = data.length == 0 ? 1 : data.length * 2;
-            long[] d = new long[newSize];
-            System.arraycopy(data, 0, d, 0, data.length);
-            data = d;
+            data = Arrays.copyOf(data, newSize);
         }
     }
 

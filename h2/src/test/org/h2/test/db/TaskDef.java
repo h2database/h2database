@@ -8,6 +8,8 @@ package org.h2.test.db;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+
 import org.h2.test.utils.SelfDestructor;
 
 /**
@@ -34,9 +36,7 @@ public abstract class TaskDef {
             return;
         }
         try {
-            String[] taskArgs = new String[args.length - 1];
-            System.arraycopy(args, 0, taskArgs, 0, args.length - 1);
-            task.run(taskArgs);
+            task.run(Arrays.copyOf(args, args.length - 1));
         } catch (Throwable t) {
             System.out.println("error: " + t);
             t.printStackTrace();

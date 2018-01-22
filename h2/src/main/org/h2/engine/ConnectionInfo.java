@@ -305,10 +305,8 @@ public class ConnectionInfo implements Cloneable {
             if (space < 0) {
                 throw DbException.get(ErrorCode.WRONG_PASSWORD_FORMAT);
             }
-            char[] np = new char[password.length - space - 1];
-            char[] filePassword = new char[space];
-            System.arraycopy(password, space + 1, np, 0, np.length);
-            System.arraycopy(password, 0, filePassword, 0, space);
+            char[] np = Arrays.copyOfRange(password, space + 1, password.length);
+            char[] filePassword = Arrays.copyOf(password, space);
             Arrays.fill(password, (char) 0);
             password = np;
             fileEncryptionKey = FilePathEncrypt.getPasswordBytes(filePassword);

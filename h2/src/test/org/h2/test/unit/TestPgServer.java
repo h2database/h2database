@@ -56,6 +56,7 @@ public class TestPgServer extends TestBase {
         testKeyAlias();
         testCancelQuery();
         testBinaryTypes();
+        testDateTime();
         testPrepareWithUnspecifiedType();
     }
 
@@ -444,6 +445,56 @@ public class TestPgServer extends TestBase {
             assertEquals(Date.valueOf("2015-01-31"), rs.getDate(11));
             assertEquals(Time.valueOf("20:11:15"), rs.getTime(12));
             assertEquals(Timestamp.valueOf("2001-10-30 14:16:10.111"), rs.getTimestamp(13));
+
+            conn.close();
+        } finally {
+            server.stop();
+        }
+    }
+
+    private void testDateTime() throws SQLException, InterruptedException {
+        if (!getPgJdbcDriver()) {
+            return;
+        }
+
+        Server server = createPgServer(
+                "-pgPort", "5535", "-pgDaemon", "-key", "pgserver", "mem:pgserver");
+        try {
+            Properties props = new Properties();
+            props.setProperty("user", "sa");
+            props.setProperty("password", "sa");
+            // force binary
+            props.setProperty("prepareThreshold", "-1");
+
+            Connection conn = DriverManager.getConnection(
+                    "jdbc:postgresql://localhost:5535/pgserver", props);
+            Statement stat = conn.createStatement();
+
+            stat.execute(
+                    "create table test(x1 date, x2 time, x3 timestamp)");
+
+            Date[] dates = { null, Date.valueOf("2017-02-20") };
+            Time[] times = { null, Time.valueOf("14:15:16") };
+            Timestamp[] timestamps = { null, Timestamp.valueOf("2017-02-20 14:15:16.763") };
+            int count = dates.length;
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "insert into test values (?,?,?)");
+                for (int i = 0; i < count; i++) {
+                ps.setDate(1, dates[i]);
+                ps.setTime(2, times[i]);
+                ps.setTimestamp(3, timestamps[i]);
+                ps.execute();
+            }
+
+            ResultSet rs = stat.executeQuery("select * from test");
+            for (int i = 0; i < count; i++) {
+                assertTrue(rs.next());
+                assertEquals(dates[i], rs.getDate(1));
+                assertEquals(times[i], rs.getTime(2));
+                assertEquals(timestamps[i], rs.getTimestamp(3));
+            }
+            assertFalse(rs.next());
 
             conn.close();
         } finally {

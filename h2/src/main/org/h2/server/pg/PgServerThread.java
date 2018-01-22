@@ -54,6 +54,8 @@ import org.h2.value.CaseInsensitiveMap;
  * One server thread is opened for each client.
  */
 public class PgServerThread implements Runnable {
+    private static final boolean INTEGER_DATE_TYPES = false;
+
     private final PgServer server;
     private Socket socket;
     private Connection conn;
@@ -602,11 +604,14 @@ public class PgServerThread implements Runnable {
                     writeInt(8);
                     long m = t.getTime();
                     m += TimeZone.getDefault().getOffset(m);
-                    // double format
-                    m /= 1000;
-                    m = Double.doubleToLongBits(m);
-                    // long format
-                    // m *= 1000;
+                    if (INTEGER_DATE_TYPES) {
+                        // long format
+                        m *= 1000;
+                    } else {
+                        // double format
+                        m /= 1000;
+                        m = Double.doubleToLongBits(m);
+                    }
                     writeInt((int) (m >>> 32));
                     writeInt((int) m);
                 }
@@ -620,9 +625,15 @@ public class PgServerThread implements Runnable {
                     writeInt(8);
                     long m = t.getTime();
                     m += TimeZone.getDefault().getOffset(m);
-                    // double format
-                    m = toPostgreSeconds(m);
-                    m = Double.doubleToLongBits(m + t.getNanos() * 0.000000001);
+                    if (INTEGER_DATE_TYPES) {
+                        // long format
+                        m = toPostgreSeconds(m);
+                        m = m * 1000000 + t.getNanos() / 1000;
+                    } else {
+                        // double format
+                        m = toPostgreSeconds(m);
+                        m = Double.doubleToLongBits(m + t.getNanos() * 0.000000001);
+                    }
                     writeInt((int) (m >>> 32));
                     writeInt((int) m);
                 }
@@ -963,6 +974,7 @@ public class PgServerThread implements Runnable {
         sendParameterStatus("standard_conforming_strings", "off");
         // TODO PostgreSQL TimeZone
         sendParameterStatus("TimeZone", "CET");
+        sendParameterStatus("integer_datetimes", INTEGER_DATE_TYPES ? "on" : "off");
         sendBackendKeyData();
         sendReadyForQuery();
     }

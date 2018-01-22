@@ -648,8 +648,7 @@ public class PgServerThread implements Runnable {
                         m /= 1000;
                         m = Double.doubleToLongBits(m);
                     }
-                    writeInt((int) (m >>> 32));
-                    writeInt((int) m);
+                    dataOut.writeLong(m);
                 }
                 break;
             }
@@ -673,8 +672,7 @@ public class PgServerThread implements Runnable {
                         // double format
                         m = Double.doubleToLongBits(m + nanos * 0.000000001);
                     }
-                    writeInt((int) (m >>> 32));
-                    writeInt((int) m);
+                    dataOut.writeLong(m);
                 }
                 break;
             }

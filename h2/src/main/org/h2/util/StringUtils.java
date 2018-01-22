@@ -9,6 +9,7 @@ import java.lang.ref.SoftReference;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -828,9 +829,7 @@ public class StringUtils {
         if (len == 0) {
             return chars;
         }
-        char[] copy = new char[len];
-        System.arraycopy(chars, 0, copy, 0, len);
-        return copy;
+        return Arrays.copyOf(chars, len);
     }
 
     /**

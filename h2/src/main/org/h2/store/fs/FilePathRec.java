@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Arrays;
 
 /**
  * A file system that records all write operations and can re-play them.
@@ -182,9 +183,8 @@ class FileRec extends FileBase {
         byte[] buff = src.array();
         int len = src.remaining();
         if (src.position() != 0 || len != buff.length) {
-            byte[] b = new byte[len];
-            System.arraycopy(buff, src.arrayOffset() + src.position(), b, 0, len);
-            buff = b;
+            int offset = src.arrayOffset() + src.position();
+            buff = Arrays.copyOfRange(buff, offset, offset + len);
         }
         int result = channel.write(src);
         rec.log(Recorder.WRITE, name, buff, channel.position());
@@ -196,9 +196,8 @@ class FileRec extends FileBase {
         byte[] buff = src.array();
         int len = src.remaining();
         if (src.position() != 0 || len != buff.length) {
-            byte[] b = new byte[len];
-            System.arraycopy(buff, src.arrayOffset() + src.position(), b, 0, len);
-            buff = b;
+            int offset = src.arrayOffset() + src.position();
+            buff = Arrays.copyOfRange(buff, offset, offset + len);
         }
         int result = channel.write(src, position);
         rec.log(Recorder.WRITE, name, buff, position);

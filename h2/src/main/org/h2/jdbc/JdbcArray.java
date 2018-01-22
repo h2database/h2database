@@ -9,6 +9,7 @@ import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.h2.api.ErrorCode;
@@ -283,9 +284,8 @@ public class JdbcArray extends TraceObject implements Array {
             throw DbException.getInvalidValueException("index (1.."
                     + array.length + ")", index);
         }
-        Object[] subset = new Object[count];
-        System.arraycopy(array, (int) (index - 1), subset, 0, count);
-        return subset;
+        int offset = (int) (index - 1);
+        return Arrays.copyOfRange(array, offset, offset + count);
     }
 
     /**

@@ -138,10 +138,7 @@ public final class ImmutableArray2<K> implements Iterable<K> {
         if (fromIndex == 0) {
             return new ImmutableArray2<>(array, len);
         }
-        @SuppressWarnings("unchecked")
-        K[] a2 = (K[]) new Object[len];
-        System.arraycopy(array, fromIndex, a2, 0, toIndex - fromIndex);
-        return new ImmutableArray2<>(a2, len);
+        return new ImmutableArray2<>(Arrays.copyOfRange(array, fromIndex, toIndex), len);
     }
 
     /**

@@ -1786,9 +1786,7 @@ public class Function extends Expression implements FunctionCall {
 
     private static byte[] getPaddedArrayCopy(byte[] data, int blockSize) {
         int size = MathUtils.roundUpInt(data.length, blockSize);
-        byte[] newData = DataUtils.newBytes(size);
-        System.arraycopy(data, 0, newData, 0, data.length);
-        return newData;
+        return DataUtils.copyBytes(data, size);
     }
 
     private static byte[] decrypt(String algorithm, byte[] key, byte[] data) {

@@ -8,6 +8,8 @@ package org.h2.result;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.h2.engine.Database;
 import org.h2.engine.Session;
 import org.h2.expression.Expression;
@@ -281,9 +283,7 @@ public class LocalResult implements ResultInterface, ResultTarget {
 
     private ValueArray getArrayOfVisible(Value[] values) {
         if (values.length > visibleColumnCount) {
-            Value[] v2 = new Value[visibleColumnCount];
-            System.arraycopy(values, 0, v2, 0, visibleColumnCount);
-            values = v2;
+            values = Arrays.copyOf(values, visibleColumnCount);
         }
         return ValueArray.get(values);
     }

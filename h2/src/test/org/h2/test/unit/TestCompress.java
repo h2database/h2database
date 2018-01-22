@@ -187,8 +187,7 @@ public class TestCompress extends TestBase {
                     break;
                 }
                 int b = compress.compress(buff2, pageSize, test, 0);
-                byte[] data = new byte[b];
-                System.arraycopy(test, 0, data, 0, b);
+                byte[] data = Arrays.copyOf(test, b);
                 comp.add(data);
             }
             in.close();

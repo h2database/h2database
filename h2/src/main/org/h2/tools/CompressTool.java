@@ -79,9 +79,7 @@ public class CompressTool {
         Compressor compress = getCompressor(algorithm);
         byte[] buff = getBuffer((len < 100 ? len + 100 : len) * 2);
         int newLen = compress(in, in.length, compress, buff);
-        byte[] out = DataUtils.newBytes(newLen);
-        System.arraycopy(buff, 0, out, 0, newLen);
-        return out;
+        return DataUtils.copyBytes(buff, newLen);
     }
 
     private static int compress(byte[] in, int len, Compressor compress,

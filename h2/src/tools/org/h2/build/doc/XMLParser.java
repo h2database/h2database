@@ -5,6 +5,8 @@
  */
 package org.h2.build.doc;
 
+import java.util.Arrays;
+
 /**
  * This class implements a simple XML pull parser.
  * Only a subset of the XML pull parser API is implemented.
@@ -94,9 +96,7 @@ public class XMLParser {
 
     private void addAttributeName(String pre, String name) {
         if (attributeValues.length <= currentAttribute) {
-            String[] temp = new String[attributeValues.length * 2];
-            System.arraycopy(attributeValues, 0, temp, 0, attributeValues.length);
-            attributeValues = temp;
+            attributeValues = Arrays.copyOf(attributeValues, attributeValues.length * 2);
         }
         attributeValues[currentAttribute++] = pre;
         attributeValues[currentAttribute++] = name;

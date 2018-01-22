@@ -444,8 +444,7 @@ class FileMemData {
     static {
         byte[] n = new byte[BLOCK_SIZE];
         int len = LZF.compress(n, BLOCK_SIZE, BUFFER, 0);
-        COMPRESSED_EMPTY_BLOCK = new byte[len];
-        System.arraycopy(BUFFER, 0, COMPRESSED_EMPTY_BLOCK, 0, len);
+        COMPRESSED_EMPTY_BLOCK = Arrays.copyOf(BUFFER, len);
     }
 
     @SuppressWarnings("unchecked")
@@ -631,8 +630,7 @@ class FileMemData {
         synchronized (LZF) {
             int len = LZF.compress(old, BLOCK_SIZE, BUFFER, 0);
             if (len <= BLOCK_SIZE) {
-                byte[] d = new byte[len];
-                System.arraycopy(BUFFER, 0, d, 0, len);
+                byte[] d = Arrays.copyOf(BUFFER, len);
                 // maybe data was changed in the meantime
                 setPage(page, old, d, false);
             }

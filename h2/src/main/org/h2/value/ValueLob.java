@@ -416,8 +416,7 @@ public class ValueLob extends Value {
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = DataUtils.newBytes(len);
-                System.arraycopy(buff, 0, small, 0, len);
+                byte[] small = DataUtils.copyBytes(buff, len);
                 return ValueLob.createSmallLob(Value.BLOB, small);
             }
             ValueLob lob = new ValueLob(Value.BLOB, null);

@@ -117,11 +117,11 @@ public class ArchiveToolStore {
                     if (buff.remaining() == 0) {
                         break;
                     }
-                    int c = getChunkLength(buff.array(), buff.position(),
-                            buff.limit()) - buff.position();
-                    byte[] bytes = new byte[c];
-                    System.arraycopy(buff.array(), buff.position(), bytes, 0, c);
-                    buff.position(buff.position() + c);
+                    int position = buff.position();
+                    int c = getChunkLength(buff.array(), position,
+                            buff.limit()) - position;
+                    byte[] bytes = Arrays.copyOfRange(buff.array(), position, position + c);
+                    buff.position(position + c);
                     int[] key = getKey(bucket, bytes);
                     key[3] = segmentId;
                     while (true) {

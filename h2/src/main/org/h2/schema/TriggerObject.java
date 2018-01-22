@@ -8,6 +8,7 @@ package org.h2.schema;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 import org.h2.api.ErrorCode;
 import org.h2.api.Trigger;
@@ -243,8 +244,7 @@ public class TriggerObject extends SchemaObjectBase {
         newList = convertToObjectList(newRow);
         Object[] newListBackup;
         if (before && newList != null) {
-            newListBackup = new Object[newList.length];
-            System.arraycopy(newList, 0, newListBackup, 0, newList.length);
+            newListBackup = Arrays.copyOf(newList, newList.length);
         } else {
             newListBackup = null;
         }

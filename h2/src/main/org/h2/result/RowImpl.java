@@ -5,6 +5,8 @@
  */
 package org.h2.result;
 
+import java.util.Arrays;
+
 import org.h2.engine.Constants;
 import org.h2.store.Data;
 import org.h2.util.StatementBuilder;
@@ -35,8 +37,7 @@ public class RowImpl implements Row {
      */
     @Override
     public Row getCopy() {
-        Value[] d2 = new Value[data.length];
-        System.arraycopy(data, 0, d2, 0, data.length);
+        Value[] d2 = Arrays.copyOf(data, data.length);
         RowImpl r2 = new RowImpl(d2, memory);
         r2.key = key;
         r2.version = version + 1;

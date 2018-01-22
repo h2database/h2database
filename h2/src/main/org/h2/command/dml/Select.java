@@ -188,9 +188,7 @@ public class Select extends Query {
             return row;
         }
         // remove columns so that 'distinct' can filter duplicate rows
-        Value[] r2 = new Value[distinctColumnCount];
-        System.arraycopy(row, 0, r2, 0, distinctColumnCount);
-        return r2;
+        return Arrays.copyOf(row, distinctColumnCount);
     }
 
     private boolean isHavingNullOrFalse(Value[] row) {

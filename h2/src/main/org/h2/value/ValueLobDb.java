@@ -600,8 +600,7 @@ public class ValueLobDb extends Value implements Value.ValueClob,
                 len = IOUtils.readFully(in, buff, len);
             }
             if (len <= handler.getMaxLengthInplaceLob()) {
-                byte[] small = DataUtils.newBytes(len);
-                System.arraycopy(buff, 0, small, 0, len);
+                byte[] small = DataUtils.copyBytes(buff, len);
                 return ValueLobDb.createSmallLob(Value.BLOB, small, small.length);
             }
             ValueLobDb lob = new ValueLobDb(handler, buff, len, in, remaining);

@@ -625,14 +625,17 @@ public class PgServerThread implements Runnable {
                     writeInt(8);
                     long m = t.getTime();
                     m += TimeZone.getDefault().getOffset(m);
+                    m = toPostgreSeconds(m);
+                    int nanos = t.getNanos();
+                    if (m < 0 && nanos != 0) {
+                        m--;
+                    }
                     if (INTEGER_DATE_TYPES) {
                         // long format
-                        m = toPostgreSeconds(m);
-                        m = m * 1000000 + t.getNanos() / 1000;
+                        m = m * 1000000 + nanos / 1000;
                     } else {
                         // double format
-                        m = toPostgreSeconds(m);
-                        m = Double.doubleToLongBits(m + t.getNanos() * 0.000000001);
+                        m = Double.doubleToLongBits(m + nanos * 0.000000001);
                     }
                     writeInt((int) (m >>> 32));
                     writeInt((int) m);

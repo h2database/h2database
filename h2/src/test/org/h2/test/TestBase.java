@@ -31,6 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.SimpleTimeZone;
 import java.util.concurrent.TimeUnit;
 import org.h2.jdbc.JdbcConnection;
@@ -641,11 +642,14 @@ public abstract class TestBase {
      * @throws AssertionError if the values are not equal
      */
     public void assertEquals(java.util.Date expected, java.util.Date actual) {
-        if (expected != actual && !expected.equals(actual)) {
+        if (!Objects.equals(expected, actual)) {
             DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             SimpleTimeZone gmt = new SimpleTimeZone(0, "Z");
             df.setTimeZone(gmt);
-            fail("Expected: " + df.format(expected) + " actual: " + df.format(actual));
+            fail("Expected: " +
+                    (expected != null ? df.format(expected) : "null") +
+                    " actual: " +
+                    (actual != null ? df.format(actual) : "null"));
         }
     }
 

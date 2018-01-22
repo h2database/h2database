@@ -20,6 +20,7 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ParameterMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,6 +54,8 @@ import org.h2.value.CaseInsensitiveMap;
  * One server thread is opened for each client.
  */
 public class PgServerThread implements Runnable {
+    private static final boolean INTEGER_DATE_TYPES = false;
+
     private final PgServer server;
     private Socket socket;
     private Connection conn;
@@ -582,36 +585,61 @@ public class PgServerThread implements Runnable {
                 break;
             }
             case PgServer.PG_TYPE_DATE: {
-                writeInt(4);
-                long millis = rs.getDate(column).getTime();
-                millis += TimeZone.getDefault().getOffset(millis);
-                writeInt((int) (toPostgreSeconds(millis) / 86400));
+                Date d = rs.getDate(column);
+                if (d == null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(4);
+                    long millis = d.getTime();
+                    millis += TimeZone.getDefault().getOffset(millis);
+                    writeInt((int) (toPostgreSeconds(millis) / 86400));
+                }
                 break;
             }
             case PgServer.PG_TYPE_TIME: {
-                writeInt(8);
                 Time t = rs.getTime(column);
-                long m = t.getTime();
-                m += TimeZone.getDefault().getOffset(m);
-                // double format
-                m /= 1000;
-                m = Double.doubleToLongBits(m);
-                // long format
-                // m *= 1000;
-                writeInt((int) (m >>> 32));
-                writeInt((int) m);
+                if (t == null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    long m = t.getTime();
+                    m += TimeZone.getDefault().getOffset(m);
+                    if (INTEGER_DATE_TYPES) {
+                        // long format
+                        m *= 1000;
+                    } else {
+                        // double format
+                        m /= 1000;
+                        m = Double.doubleToLongBits(m);
+                    }
+                    writeInt((int) (m >>> 32));
+                    writeInt((int) m);
+                }
                 break;
             }
             case PgServer.PG_TYPE_TIMESTAMP_NO_TMZONE: {
-                writeInt(8);
                 Timestamp t = rs.getTimestamp(column);
-                long m = t.getTime();
-                m += TimeZone.getDefault().getOffset(m);
-                // double format
-                m = toPostgreSeconds(m);
-                m = Double.doubleToLongBits(m + t.getNanos() * 0.000000001);
-                writeInt((int) (m >>> 32));
-                writeInt((int) m);
+                if (t == null) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    long m = t.getTime();
+                    m += TimeZone.getDefault().getOffset(m);
+                    m = toPostgreSeconds(m);
+                    int nanos = t.getNanos();
+                    if (m < 0 && nanos != 0) {
+                        m--;
+                    }
+                    if (INTEGER_DATE_TYPES) {
+                        // long format
+                        m = m * 1000000 + nanos / 1000;
+                    } else {
+                        // double format
+                        m = Double.doubleToLongBits(m + nanos * 0.000000001);
+                    }
+                    writeInt((int) (m >>> 32));
+                    writeInt((int) m);
+                }
                 break;
             }
             default: throw new IllegalStateException("output binary format is undefined");
@@ -949,6 +977,7 @@ public class PgServerThread implements Runnable {
         sendParameterStatus("standard_conforming_strings", "off");
         // TODO PostgreSQL TimeZone
         sendParameterStatus("TimeZone", "CET");
+        sendParameterStatus("integer_datetimes", INTEGER_DATE_TYPES ? "on" : "off");
         sendBackendKeyData();
         sendReadyForQuery();
     }

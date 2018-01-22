@@ -537,10 +537,16 @@ public class PgServerThread implements Runnable {
         if (text) {
             // plain text
             switch (pgType) {
-            case PgServer.PG_TYPE_BOOL:
-                writeInt(1);
-                dataOut.writeByte(rs.getBoolean(column) ? 't' : 'f');
+            case PgServer.PG_TYPE_BOOL: {
+                boolean b = rs.getBoolean(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(1);
+                    dataOut.writeByte(b ? 't' : 'f');
+                }
                 break;
+            }
             default:
                 String s = rs.getString(column);
                 if (s == null) {
@@ -554,26 +560,56 @@ public class PgServerThread implements Runnable {
         } else {
             // binary
             switch (pgType) {
-            case PgServer.PG_TYPE_INT2:
-                writeInt(2);
-                writeShort(rs.getShort(column));
+            case PgServer.PG_TYPE_INT2: {
+                short s = rs.getShort(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(2);
+                    writeShort(s);
+                }
                 break;
-            case PgServer.PG_TYPE_INT4:
-                writeInt(4);
-                writeInt(rs.getInt(column));
+            }
+            case PgServer.PG_TYPE_INT4: {
+                int i = rs.getInt(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(4);
+                    writeInt(i);
+                }
                 break;
-            case PgServer.PG_TYPE_INT8:
-                writeInt(8);
-                dataOut.writeLong(rs.getLong(column));
+            }
+            case PgServer.PG_TYPE_INT8: {
+                long l = rs.getLong(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    dataOut.writeLong(l);
+                }
                 break;
-            case PgServer.PG_TYPE_FLOAT4:
-                writeInt(4);
-                dataOut.writeFloat(rs.getFloat(column));
+            }
+            case PgServer.PG_TYPE_FLOAT4: {
+                float f = rs.getFloat(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(4);
+                    dataOut.writeFloat(f);
+                }
                 break;
-            case PgServer.PG_TYPE_FLOAT8:
-                writeInt(8);
-                dataOut.writeDouble(rs.getDouble(column));
+            }
+            case PgServer.PG_TYPE_FLOAT8: {
+                double d = rs.getDouble(column);
+                if (rs.wasNull()) {
+                    writeInt(-1);
+                } else {
+                    writeInt(8);
+                    dataOut.writeDouble(d);
+                }
                 break;
+            }
             case PgServer.PG_TYPE_BYTEA: {
                 byte[] data = rs.getBytes(column);
                 if (data == null) {
@@ -612,8 +648,7 @@ public class PgServerThread implements Runnable {
                         m /= 1000;
                         m = Double.doubleToLongBits(m);
                     }
-                    writeInt((int) (m >>> 32));
-                    writeInt((int) m);
+                    dataOut.writeLong(m);
                 }
                 break;
             }
@@ -637,8 +672,7 @@ public class PgServerThread implements Runnable {
                         // double format
                         m = Double.doubleToLongBits(m + nanos * 0.000000001);
                     }
-                    writeInt((int) (m >>> 32));
-                    writeInt((int) m);
+                    dataOut.writeLong(m);
                 }
                 break;
             }

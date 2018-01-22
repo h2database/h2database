@@ -5,6 +5,7 @@
  */
 package org.h2.test.unit;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -410,10 +411,10 @@ public class TestPgServer extends TestBase {
                     "create table test(x1 varchar, x2 int, " +
                     "x3 smallint, x4 bigint, x5 double, x6 float, " +
                     "x7 real, x8 boolean, x9 char, x10 bytea, " +
-                    "x11 date, x12 time, x13 timestamp)");
+                    "x11 date, x12 time, x13 timestamp, x14 numeric)");
 
             PreparedStatement ps = conn.prepareStatement(
-                    "insert into test values (?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                    "insert into test values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
             ps.setString(1, "test");
             ps.setInt(2, 12345678);
             ps.setShort(3, (short) 12345);
@@ -427,6 +428,11 @@ public class TestPgServer extends TestBase {
             ps.setDate(11, Date.valueOf("2015-01-31"));
             ps.setTime(12, Time.valueOf("20:11:15"));
             ps.setTimestamp(13, Timestamp.valueOf("2001-10-30 14:16:10.111"));
+            ps.setBigDecimal(14, new BigDecimal("12345678901234567890.12345"));
+            ps.execute();
+            for (int i = 1; i <= 14; i++) {
+                ps.setNull(i, Types.NULL);
+            }
             ps.execute();
 
             ResultSet rs = stat.executeQuery("select * from test");
@@ -445,6 +451,12 @@ public class TestPgServer extends TestBase {
             assertEquals(Date.valueOf("2015-01-31"), rs.getDate(11));
             assertEquals(Time.valueOf("20:11:15"), rs.getTime(12));
             assertEquals(Timestamp.valueOf("2001-10-30 14:16:10.111"), rs.getTimestamp(13));
+            assertEquals(new BigDecimal("12345678901234567890.12345"), rs.getBigDecimal(14));
+            assertTrue(rs.next());
+            for (int i = 1; i <= 14; i++) {
+                assertNull(rs.getObject(i));
+            }
+            assertFalse(rs.next());
 
             conn.close();
         } finally {

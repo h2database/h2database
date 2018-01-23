@@ -43,8 +43,7 @@ public class QueryStatisticsData {
     public synchronized List<QueryEntry> getQueries() {
         // return a copy of the map so we don't have to
         // worry about external synchronization
-        ArrayList<QueryEntry> list = new ArrayList<>();
-        list.addAll(map.values());
+        ArrayList<QueryEntry> list = new ArrayList<>(map.values());
         // only return the newest 100 entries
         Collections.sort(list, QUERY_ENTRY_COMPARATOR);
         return list.subList(0, Math.min(list.size(), maxQueryEntries));
@@ -71,8 +70,7 @@ public class QueryStatisticsData {
         // Test against 1.5 x max-size so we don't do this too often
         if (map.size() > maxQueryEntries * 1.5f) {
             // Sort the entries by age
-            ArrayList<QueryEntry> list = new ArrayList<>();
-            list.addAll(map.values());
+            ArrayList<QueryEntry> list = new ArrayList<>(map.values());
             Collections.sort(list, QUERY_ENTRY_COMPARATOR);
             // Create a set of the oldest 1/3 of the entries
             HashSet<QueryEntry> oldestSet =

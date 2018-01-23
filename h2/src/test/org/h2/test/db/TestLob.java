@@ -192,12 +192,7 @@ public class TestLob extends TestBase {
         Thread.sleep(100);
         // start a new transaction, to be sure
         stat.execute("delete from test");
-        try {
-            c1.getSubString(1, 3);
-            fail();
-        } catch (SQLException e) {
-            // expected
-        }
+        assertThrows(SQLException.class, c1).getSubString(1, 3);
         conn.close();
     }
 
@@ -641,12 +636,7 @@ public class TestLob extends TestBase {
         Statement stat;
         conn = getConnection("lob");
         stat = conn.createStatement();
-        try {
-            stat.execute("create memory table test(x clob unique)");
-            fail();
-        } catch (SQLException e) {
-            assertEquals(ErrorCode.FEATURE_NOT_SUPPORTED_1, e.getErrorCode());
-        }
+        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, stat).execute("create memory table test(x clob unique)");
         conn.close();
     }
 

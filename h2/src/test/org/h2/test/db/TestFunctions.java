@@ -1211,28 +1211,13 @@ public class TestFunctions extends TestBase implements AggregateFunction {
         java.util.Date nowDate = c.getTime();
         assertEquals(nowDate, rs.getTimestamp(2));
 
-        try {
-            rs = stat.executeQuery("SELECT TRUNCATE('bad', 1) FROM dual");
-            fail("expected exception");
-        } catch (SQLException ex) {
-            // expected
-        }
+        assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE('bad', 1) FROM dual");
 
         // check for passing wrong data type
-        try {
-            rs = stat.executeQuery("SELECT TRUNCATE('bad') FROM dual");
-            fail("expected exception");
-        } catch (SQLException ex) {
-            // expected
-        }
+        rs = assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE('bad') FROM dual");
 
         // check for too many parameters
-        try {
-            rs = stat.executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
-            fail("expected exception");
-        } catch (SQLException ex) {
-            // expected
-        }
+        rs = assertThrows(SQLException.class, stat).executeQuery("SELECT TRUNCATE(1,2,3) FROM dual");
 
         conn.close();
     }

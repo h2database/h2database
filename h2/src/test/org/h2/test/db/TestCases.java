@@ -158,12 +158,7 @@ public class TestCases extends TestBase {
     private void testClearSyntaxException() throws SQLException {
         Connection conn = getConnection("cases");
         Statement stat = conn.createStatement();
-        try {
-            stat.execute("select t.x, t.x t.y from dual t");
-            fail();
-        } catch (SQLException e) {
-            assertEquals("42000", e.getSQLState());
-        }
+        assertThrows(42000, stat).execute("select t.x, t.x t.y from dual t");
         conn.close();
     }
 
@@ -240,24 +235,8 @@ public class TestCases extends TestBase {
         Connection conn = getConnection("selfreferential");
         Statement stat = conn.createStatement();
         stat.execute("create table sr(id integer, usecount integer as usecount + 1)");
-        check: {
-            try {
-                stat.execute("insert into sr(id) values (1)");
-            } catch (SQLException ex) {
-                assertEquals(ErrorCode.getState(ErrorCode.NULL_NOT_ALLOWED), ex.getSQLState());
-                break check;
-            }
-            fail("Exception expected");
-        }
-        check: {
-            try {
-                stat.execute("select max(id), usecount from sr");
-            } catch (SQLException ex) {
-                assertEquals(ErrorCode.getState(ErrorCode.MUST_GROUP_BY_COLUMN_1), ex.getSQLState());
-                break check;
-            }
-            fail("Exception expected");
-        }
+        assertThrows(ErrorCode.NULL_NOT_ALLOWED, stat).execute("insert into sr(id) values (1)");
+        assertThrows(ErrorCode.MUST_GROUP_BY_COLUMN_1, stat).execute("select max(id), usecount from sr");
         conn.close();
     }
 

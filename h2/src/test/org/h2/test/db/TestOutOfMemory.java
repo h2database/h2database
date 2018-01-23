@@ -148,12 +148,7 @@ public class TestOutOfMemory extends TestBase {
         stat.execute("checkpoint");
         eatMemory(80);
         try {
-            try {
-                prep.execute();
-                fail();
-            } catch (SQLException e) {
-                assertEquals(ErrorCode.OUT_OF_MEMORY, e.getErrorCode());
-            }
+            assertThrows(ErrorCode.OUT_OF_MEMORY, prep).execute();
             assertThrows(ErrorCode.DATABASE_IS_CLOSED, conn).close();
             freeMemory();
             conn = null;

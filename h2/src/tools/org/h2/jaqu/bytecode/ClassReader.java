@@ -246,8 +246,7 @@ public class ClassReader {
                 Token c = stack.pop();
                 Stack<Token> currentStack = new Stack<>();
                 currentStack.addAll(stack);
-                ArrayList<Token> currentVariables = new ArrayList<>();
-                currentVariables.addAll(variables);
+                ArrayList<Token> currentVariables = new ArrayList<>(variables);
                 int branch = nextPc;
                 Token a = getResult();
                 stack = currentStack;

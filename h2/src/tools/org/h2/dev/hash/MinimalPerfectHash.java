@@ -330,8 +330,7 @@ public class MinimalPerfectHash<K> {
      * @return the hash function description
      */
     public static <K> byte[] generate(Set<K> set, UniversalHash<K> hash) {
-        ArrayList<K> list = new ArrayList<>();
-        list.addAll(set);
+        ArrayList<K> list = new ArrayList<>(set);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         int seed = RANDOM.nextInt();
         out.write(seed >>> 24);

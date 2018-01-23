@@ -84,8 +84,7 @@ public class TestIntPerfectHash extends TestBase {
         while (set.size() < size) {
             set.add(r.nextInt());
         }
-        ArrayList<Integer> list = new ArrayList<>();
-        list.addAll(set);
+        ArrayList<Integer> list = new ArrayList<>(set);
         byte[] desc = IntPerfectHash.generate(list);
         int max = test(desc, set);
         assertEquals(size - 1, max);

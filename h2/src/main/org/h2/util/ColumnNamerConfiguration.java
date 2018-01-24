@@ -161,6 +161,11 @@ public class ColumnNamerConfiguration {
         this.generateUniqueColumnNames = generateUniqueColumnNames;
     }
 
+    /**
+     * Configure the rules.
+     *
+     * @param modeEnum the mode
+     */
     public void configure(ModeEnum modeEnum) {
         switch (modeEnum) {
         case Oracle:

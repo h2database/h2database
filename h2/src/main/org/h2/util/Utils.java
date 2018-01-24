@@ -17,7 +17,6 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -692,20 +691,6 @@ public class Utils {
         if (s != null) {
             try {
                 return Boolean.parseBoolean(s);
-            } catch (NumberFormatException e) {
-                // ignore
-            }
-        }
-        return defaultValue;
-    }
-
-    public static int getConfigParam(Map<String,?> config, String key, int defaultValue) {
-        Object o = config.get(key);
-        if (o instanceof Number) {
-            return ((Number) o).intValue();
-        } else if (o != null) {
-            try {
-                return Integer.decode(o.toString());
             } catch (NumberFormatException e) {
                 // ignore
             }

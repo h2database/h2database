@@ -195,6 +195,11 @@ public class MergeUsing extends Prepared {
                 Right.SELECT);
     }
 
+    /**
+     * Merge the given row.
+     *
+     * @param row the row
+     */
     protected void merge(Row sourceRow) {
         // put the column values into the table filter
         sourceTableFilter.set(sourceRow);

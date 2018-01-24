@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.h2.engine.Constants;
 
 /**
@@ -1085,6 +1086,28 @@ public final class DataUtils {
                     "Updating the value is not supported");
         }
 
+    }
+
+    /**
+     * Get the configuration parameter value, or default.
+     *
+     * @param config the configuration
+     * @param key the key
+     * @param defaultValue the default
+     * @return the configured value or default
+     */
+    public static int getConfigParam(Map<String, ?> config, String key, int defaultValue) {
+        Object o = config.get(key);
+        if (o instanceof Number) {
+            return ((Number) o).intValue();
+        } else if (o != null) {
+            try {
+                return Integer.decode(o.toString());
+            } catch (NumberFormatException e) {
+                // ignore
+            }
+        }
+        return defaultValue;
     }
 
 }

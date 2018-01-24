@@ -137,6 +137,11 @@ public class Merge extends Prepared {
         return count;
     }
 
+    /**
+     * Merge the given row.
+     *
+     * @param row the row
+     */
     protected void merge(Row row) {
         ArrayList<Parameter> k = update.getParameters();
         for (int i = 0; i < columns.length; i++) {

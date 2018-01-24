@@ -184,6 +184,9 @@ public class ValueLobDb extends Value implements Value.ValueClob,
      * except when converting to BLOB or CLOB.
      *
      * @param t the new type
+     * @param precision the precision
+     * @param mode the mode
+     * @param column the column
      * @return the converted value
      */
     @Override

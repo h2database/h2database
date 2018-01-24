@@ -124,7 +124,7 @@ public class ColumnNamer {
         return newColumnName;
     }
 
-    public boolean isAllowableColumnName(String proposedName) {
+    private boolean isAllowableColumnName(String proposedName) {
 
         // check null
         if (proposedName == null) {

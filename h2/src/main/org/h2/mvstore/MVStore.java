@@ -27,7 +27,6 @@ import org.h2.mvstore.cache.CacheLongKeyLIRS;
 import org.h2.mvstore.type.StringDataType;
 import org.h2.util.MathUtils;
 import org.h2.util.New;
-import org.h2.util.Utils;
 
 /*
 
@@ -295,7 +294,7 @@ public final class MVStore {
      * @throws IllegalArgumentException if the directory does not exist
      */
     MVStore(Map<String, Object> config) {
-        this.compressionLevel = Utils.getConfigParam(config, "compress", 0);
+        this.compressionLevel = DataUtils.getConfigParam(config, "compress", 0);
         String fileName = (String) config.get("fileName");
         FileStore fileStore = (FileStore) config.get("fileStore");
         fileStoreIsProvided = fileStore != null;
@@ -307,7 +306,7 @@ public final class MVStore {
         int pgSplitSize = 48; // for "mem:" case it is # of keys
         CacheLongKeyLIRS.Config cc = null;
         if (this.fileStore != null) {
-            int mb = Utils.getConfigParam(config, "cacheSize", 16);
+            int mb = DataUtils.getConfigParam(config, "cacheSize", 16);
             if (mb > 0) {
                 cc = new CacheLongKeyLIRS.Config();
                 cc.maxMemory = mb * 1024L * 1024L;
@@ -327,7 +326,7 @@ public final class MVStore {
             cacheChunkRef = null;
         }
 
-        pgSplitSize = Utils.getConfigParam(config, "pageSplitSize", pgSplitSize);
+        pgSplitSize = DataUtils.getConfigParam(config, "pageSplitSize", pgSplitSize);
         // Make sure pages will fit into cache
         if (cache != null && pgSplitSize > cache.getMaxItemSize()) {
             pgSplitSize = (int)cache.getMaxItemSize();
@@ -343,10 +342,10 @@ public final class MVStore {
         meta.init(this, c);
         if (this.fileStore != null) {
             retentionTime = this.fileStore.getDefaultRetentionTime();
-            int kb = Utils.getConfigParam(config, "autoCommitBufferSize", 1024);
+            int kb = DataUtils.getConfigParam(config, "autoCommitBufferSize", 1024);
             // 19 KB memory is about 1 KB storage
             autoCommitMemory = kb * 1024 * 19;
-            autoCompactFillRate = Utils.getConfigParam(config, "autoCompactFillRate", 50);
+            autoCompactFillRate = DataUtils.getConfigParam(config, "autoCompactFillRate", 50);
             char[] encryptionKey = (char[]) config.get("encryptionKey");
             try {
                 if (!fileStoreIsProvided) {
@@ -375,7 +374,7 @@ public final class MVStore {
 
             // setAutoCommitDelay starts the thread, but only if
             // the parameter is different from the old value
-            int delay = Utils.getConfigParam(config, "autoCommitDelay", 1000);
+            int delay = DataUtils.getConfigParam(config, "autoCommitDelay", 1000);
             setAutoCommitDelay(delay);
         }
     }

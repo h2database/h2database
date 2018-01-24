@@ -494,11 +494,12 @@ public class DateTimeUtils {
      * Get the specified field of a date, however with years normalized to
      * positive or negative, and month starting with 1.
      *
-     * @param d the date
+     * @param date the date value
      * @param field the field type
      * @return the value
      */
-    public static int getDatePart(java.util.Date d, int field) {
+    public static int getDatePart(Value date, int field) {
+        java.util.Date d = date.getTimestamp();
         Calendar c = getCalendar();
         c.setTime(d);
         if (field == Calendar.YEAR) {

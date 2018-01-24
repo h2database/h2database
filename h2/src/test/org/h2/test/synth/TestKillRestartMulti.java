@@ -6,6 +6,7 @@
 package org.h2.test.synth;
 
 import java.io.InputStream;
+import java.lang.ProcessBuilder.Redirect;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -26,6 +27,13 @@ import org.h2.util.New;
  */
 public class TestKillRestartMulti extends TestBase {
 
+    /**
+     * We want self-destruct to occur before the read times out and we kill the
+     * child process.
+     */
+    private static final int CHILD_READ_TIMEOUT_MS = 7 * 60 * 1000; // 7 minutes
+    private static final int CHILD_SELFDESTRUCT_TIMEOUT_MINS = 5;
+
     private String driver = "org.h2.Driver";
     private String url;
     private String user = "sa";
@@ -33,6 +41,25 @@ public class TestKillRestartMulti extends TestBase {
     private final ArrayList<Connection> connections = New.arrayList();
     private final ArrayList<String> tables = New.arrayList();
     private int openCount;
+
+
+    /**
+     * Note that this entry can be used in two different ways, either
+     * (a) running just this test
+     * (b) or when this test invokes itself in a child process
+     */
+    public static void main(String... args) throws Exception {
+        if (args != null && args.length > 0) {
+            // the child process case
+            SelfDestructor.startCountdown(CHILD_SELFDESTRUCT_TIMEOUT_MINS);
+            new TestKillRestartMulti().test(args);
+        }
+        else
+        {
+            // the standalone test case
+            TestBase.createCaller().init().test();
+        }
+    }
 
     @Override
     public void test() throws Exception {
@@ -47,20 +74,22 @@ public class TestKillRestartMulti extends TestBase {
         user = getUser();
         password = getPassword();
         String selfDestruct = SelfDestructor.getPropertyString(60);
-        String[] procDef = { "java", selfDestruct,
-                "-cp", getClassPath(),
-                getClass().getName(), "-url", url, "-user", user,
-                "-password", password };
+        // Inherit error so that the stacktraces reported from SelfDestructor
+        // show up in our log.
+        ProcessBuilder pb = new ProcessBuilder().redirectError(Redirect.INHERIT)
+                .command("java", selfDestruct, "-cp", getClassPath(),
+                        getClass().getName(), "-url", url, "-user", user,
+                        "-password", password);
         deleteDb("killRestartMulti");
         int len = getSize(3, 10);
         Random random = new Random();
         for (int i = 0; i < len; i++) {
-            Process p = Runtime.getRuntime().exec(procDef);
+            Process p = pb.start();
             InputStream in = p.getInputStream();
             OutputCatcher catcher = new OutputCatcher(in);
             catcher.start();
             while (true) {
-                String s = catcher.readLine(5 * 60 * 1000);
+                String s = catcher.readLine(CHILD_READ_TIMEOUT_MS);
                 // System.out.println("> " + s);
                 if (s == null) {
                     fail("No reply from process");
@@ -72,14 +101,16 @@ public class TestKillRestartMulti extends TestBase {
                     Thread.sleep(sleep);
                     printTime("killing: " + i);
                     p.destroy();
+                    printTime("killing, waiting for: " + i);
                     p.waitFor();
+                    printTime("killing, dead: " + i);
                     break;
                 } else if (s.startsWith("#Info")) {
                     // System.out.println("info: " + s);
                 } else if (s.startsWith("#Fail")) {
                     System.err.println(s);
                     while (true) {
-                        String a = catcher.readLine(5 * 60 * 1000);
+                        String a = catcher.readLine(CHILD_READ_TIMEOUT_MS);
                         if (a == null || "#End".endsWith(a)) {
                             break;
                         }
@@ -119,17 +150,6 @@ public class TestKillRestartMulti extends TestBase {
             }
         }
         deleteDb("killRestartMulti");
-    }
-
-    /**
-     * This method is called when executing this application from the command
-     * line.
-     *
-     * @param args the command line parameters
-     */
-    public static void main(String... args) {
-        SelfDestructor.startCountdown(60);
-        new TestKillRestartMulti().test(args);
     }
 
     private void test(String... args) {

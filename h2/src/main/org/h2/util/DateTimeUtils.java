@@ -21,6 +21,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * This utility class contains time conversion functions.
@@ -317,6 +318,30 @@ public class DateTimeUtils {
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
+    private static Calendar valueToCalendar(Value value) {
+        Calendar cal;
+        if (value instanceof ValueTimestamp) {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getTimestamp());
+        } else if (value instanceof ValueDate) {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getDate());
+        } else if (value instanceof ValueTime) {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getTime());
+        } else if (value instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
+            cal = createGregorianCalendar(v.getTimeZone());
+            cal.setTimeInMillis(DateTimeUtils.convertDateValueToMillis(DateTimeUtils.UTC, v.getDateValue())
+                    + v.getTimeNanos() / 1000000L
+                    - v.getTimeZoneOffsetMins() * 60000);
+        } else {
+            cal = createGregorianCalendar();
+            cal.setTime(value.getTimestamp());
+        }
+        return cal;
+    }
+
     /**
      * Parse a date string. The format is: [+|-]year-month-day
      *
@@ -494,13 +519,12 @@ public class DateTimeUtils {
      * Get the specified field of a date, however with years normalized to
      * positive or negative, and month starting with 1.
      *
-     * @param d the date
+     * @param date the date value
      * @param field the field type
      * @return the value
      */
-    public static int getDatePart(java.util.Date d, int field) {
-        Calendar c = getCalendar();
-        c.setTime(d);
+    public static int getDatePart(Value date, int field) {
+        Calendar c = valueToCalendar(date);
         if (field == Calendar.YEAR) {
             return getYear(c);
         }
@@ -552,13 +576,11 @@ public class DateTimeUtils {
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
      *
      * @author Robert Rathsack
-     * @param date the date object which day of week should be calculated
+     * @param value the date object which day of week should be calculated
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
-    public static int getIsoDayOfWeek(java.util.Date date) {
-        Calendar cal = DateTimeUtils.createGregorianCalendar();
-        cal.setTimeInMillis(date.getTime());
-        int val = cal.get(Calendar.DAY_OF_WEEK) - 1;
+    public static int getIsoDayOfWeek(Value value) {
+        int val = valueToCalendar(value).get(Calendar.DAY_OF_WEEK) - 1;
         return val == 0 ? 7 : val;
     }
 
@@ -573,12 +595,11 @@ public class DateTimeUtils {
      * the December 28th always belongs to the last week.
      *
      * @author Robert Rathsack
-     * @param date the date object which week of year should be calculated
+     * @param value the date object which week of year should be calculated
      * @return the week of the year
      */
-    public static int getIsoWeek(java.util.Date date) {
-        Calendar c = DateTimeUtils.createGregorianCalendar();
-        c.setTimeInMillis(date.getTime());
+    public static int getIsoWeek(Value value) {
+        Calendar c = valueToCalendar(value);
         c.setFirstDayOfWeek(Calendar.MONDAY);
         c.setMinimalDaysInFirstWeek(4);
         return c.get(Calendar.WEEK_OF_YEAR);
@@ -588,12 +609,11 @@ public class DateTimeUtils {
      * Returns the year according to the ISO week definition.
      *
      * @author Robert Rathsack
-     * @param date the date object which year should be calculated
+     * @param value the date object which year should be calculated
      * @return the year
      */
-    public static int getIsoYear(java.util.Date date) {
-        Calendar cal = DateTimeUtils.createGregorianCalendar();
-        cal.setTimeInMillis(date.getTime());
+    public static int getIsoYear(Value value) {
+        Calendar cal = valueToCalendar(value);
         cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
         int year = getYear(cal);

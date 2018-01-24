@@ -5,6 +5,7 @@
  */
 package org.h2.engine;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -13,7 +14,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
-import java.util.ArrayDeque;
 import java.util.concurrent.TimeUnit;
 import org.h2.api.ErrorCode;
 import org.h2.command.Command;
@@ -1713,6 +1713,11 @@ public class Session extends SessionWithState {
     public void addTemporaryLob(Value v) {
         if (v.getType() != Value.CLOB && v.getType() != Value.BLOB) {
             return;
+        }
+        // issue #790: why are temporary LOBs showing up on the system session?
+        if (SysProperties.CHECK && id == 1) {
+            throw DbException.throwInternalError(
+                    "the system session is not supposed to be creating temporary LOBs");
         }
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT ||
                 v.getTableId() == LobStorageFrontend.TABLE_TEMP) {

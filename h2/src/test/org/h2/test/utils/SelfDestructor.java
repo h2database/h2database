@@ -6,7 +6,7 @@
 package org.h2.test.utils;
 
 import java.sql.Timestamp;
-import java.util.Map;
+import org.h2.util.ThreadDeadlockDetector;
 
 /**
  * This is a self-destructor class to kill a long running process automatically
@@ -55,17 +55,8 @@ public class SelfDestructor {
                     System.out.println(time + " Killing the process after " +
                             minutes + " minute(s)");
                     try {
-                        Map<Thread, StackTraceElement[]> map =
-                                Thread.getAllStackTraces();
-                        for (Map.Entry<Thread, StackTraceElement[]> en :
-                                map.entrySet()) {
-                            System.out.println(en.getKey());
-                            for (StackTraceElement el : en.getValue()) {
-                                System.out.println("  " + el);
-                            }
-                        }
-                        System.out.println();
-                        System.out.flush();
+                        ThreadDeadlockDetector.dumpAllThreadsAndLocks(
+                                "SelfDestructor timed out", System.err);
                         try {
                             Thread.sleep(1000);
                         } catch (Exception e) {

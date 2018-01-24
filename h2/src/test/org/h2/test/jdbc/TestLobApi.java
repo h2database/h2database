@@ -87,8 +87,6 @@ public class TestLobApi extends TestBase {
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 setAsciiStream(1);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
-                setString(1, "", 0, 1);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 position("", 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, clob).
                 position((Clob) null, 0);
@@ -96,8 +94,6 @@ public class TestLobApi extends TestBase {
         Blob blob = rs.getBlob(3);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
                 truncate(0);
-        assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
-                setBytes(1, new byte[0], 0, 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
                 position(new byte[1], 0);
         assertThrows(ErrorCode.FEATURE_NOT_SUPPORTED_1, blob).
@@ -237,30 +233,43 @@ public class TestLobApi extends TestBase {
 
         prep.setInt(1, 2);
         b = conn.createBlob();
-        b.setBytes(1, data);
+        assertEquals(length, b.setBytes(1, data));
         prep.setBlob(2, b);
         prep.execute();
 
         prep.setInt(1, 3);
-        prep.setBlob(2, new ByteArrayInputStream(data));
+        Blob b2 = conn.createBlob();
+        byte[] xdata = new byte[length + 2];
+        System.arraycopy(data, 0, xdata, 1, length);
+        assertEquals(length, b2.setBytes(1, xdata, 1, length));
+        prep.setBlob(2, b2);
         prep.execute();
 
         prep.setInt(1, 4);
+        prep.setBlob(2, new ByteArrayInputStream(data));
+        prep.execute();
+
+        prep.setInt(1, 5);
         prep.setBlob(2, new ByteArrayInputStream(data), -1);
         prep.execute();
 
         ResultSet rs;
         rs = stat.executeQuery("select * from test");
         rs.next();
-        Blob b2 = rs.getBlob(2);
-        assertEquals(length, b2.length());
+        Blob b3 = rs.getBlob(2);
+        assertEquals(length, b3.length());
         byte[] bytes = b.getBytes(1, length);
-        byte[] bytes2 = b2.getBytes(1, length);
+        byte[] bytes2 = b3.getBytes(1, length);
         assertEquals(bytes, bytes2);
         rs.next();
-        b2 = rs.getBlob(2);
-        assertEquals(length, b2.length());
-        bytes2 = b2.getBytes(1, length);
+        b3 = rs.getBlob(2);
+        assertEquals(length, b3.length());
+        bytes2 = b3.getBytes(1, length);
+        assertEquals(bytes, bytes2);
+        rs.next();
+        b3 = rs.getBlob(2);
+        assertEquals(length, b3.length());
+        bytes2 = b3.getBytes(1, length);
         assertEquals(bytes, bytes2);
         while (rs.next()) {
             bytes2 = rs.getBytes(2);
@@ -311,20 +320,28 @@ public class TestLobApi extends TestBase {
 
         NClob nc;
         nc = conn.createNClob();
-        nc.setString(1, new String(data));
+        assertEquals(length, nc.setString(1, new String(data)));
         prep.setInt(1, 5);
         prep.setNClob(2, nc);
         prep.execute();
 
-        prep.setInt(1, 5);
-        prep.setNClob(2, new StringReader(new String(data)));
-        prep.execute();
-
+        nc = conn.createNClob();
+        char[] xdata = new char[length + 2];
+        System.arraycopy(data, 0, xdata, 1, length);
+        assertEquals(length, nc.setString(1, new String(xdata), 1, length));
         prep.setInt(1, 6);
-        prep.setNClob(2, new StringReader(new String(data)), -1);
+        prep.setNClob(2, nc);
         prep.execute();
 
         prep.setInt(1, 7);
+        prep.setNClob(2, new StringReader(new String(data)));
+        prep.execute();
+
+        prep.setInt(1, 8);
+        prep.setNClob(2, new StringReader(new String(data)), -1);
+        prep.execute();
+
+        prep.setInt(1, 9);
         prep.setNString(2, new String(data));
         prep.execute();
 

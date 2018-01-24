@@ -50,7 +50,7 @@ public class ValueTimestampTimeZone extends Value {
      */
     private final long timeNanos;
     /**
-     * Time zone offset from UTC in minutes, range of -12hours to +12hours
+     * Time zone offset from UTC in minutes, range of -18 hours to +18 hours
      */
     private final short timeZoneOffsetMins;
 
@@ -60,8 +60,8 @@ public class ValueTimestampTimeZone extends Value {
             throw new IllegalArgumentException(
                     "timeNanos out of range " + timeNanos);
         }
-        if (timeZoneOffsetMins < (-12 * 60)
-                || timeZoneOffsetMins >= (12 * 60)) {
+        if (timeZoneOffsetMins < (-18 * 60)
+                || timeZoneOffsetMins > (18 * 60)) {
             throw new IllegalArgumentException(
                     "timeZoneOffsetMins out of range " + timeZoneOffsetMins);
         }

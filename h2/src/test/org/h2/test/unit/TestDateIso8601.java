@@ -21,7 +21,7 @@ import org.h2.value.ValueTimestampTimeZone;
 public class TestDateIso8601 extends TestBase {
 
     private enum Type {
-        DATE, TIMESTAMP, TIMESTAMP_TIMEZONE_0, TIMESTAMP_TIMEZONE_PLUS_11, TIMESTAMP_TIMEZONE_MINUS_11;
+        DATE, TIMESTAMP, TIMESTAMP_TIMEZONE_0, TIMESTAMP_TIMEZONE_PLUS_18, TIMESTAMP_TIMEZONE_MINUS_18;
     }
 
     private static Type type;
@@ -46,10 +46,10 @@ public class TestDateIso8601 extends TestBase {
             return ValueTimestamp.parse(s);
         case TIMESTAMP_TIMEZONE_0:
             return ValueTimestampTimeZone.parse(s + " 00:00:00.0Z");
-        case TIMESTAMP_TIMEZONE_PLUS_11:
-            return ValueTimestampTimeZone.parse(s + " 00:00:00+11:00");
-        case TIMESTAMP_TIMEZONE_MINUS_11:
-            return ValueTimestampTimeZone.parse(s + " 00:00:00-11:00");
+        case TIMESTAMP_TIMEZONE_PLUS_18:
+            return ValueTimestampTimeZone.parse(s + " 00:00:00+18:00");
+        case TIMESTAMP_TIMEZONE_MINUS_18:
+            return ValueTimestampTimeZone.parse(s + " 00:00:00-18:00");
         default:
             throw new IllegalStateException();
         }
@@ -63,9 +63,9 @@ public class TestDateIso8601 extends TestBase {
         doTest();
         type = Type.TIMESTAMP_TIMEZONE_0;
         doTest();
-        type = Type.TIMESTAMP_TIMEZONE_PLUS_11;
+        type = Type.TIMESTAMP_TIMEZONE_PLUS_18;
         doTest();
-        type = Type.TIMESTAMP_TIMEZONE_MINUS_11;
+        type = Type.TIMESTAMP_TIMEZONE_MINUS_18;
         doTest();
     }
 

@@ -125,7 +125,7 @@ public class JdbcBlob extends TraceObject implements Blob {
     }
 
     /**
-     * [Not supported] Sets some bytes of the object.
+     * Sets some bytes of the object.
      *
      * @param pos the write position
      * @param bytes the bytes to set
@@ -136,7 +136,19 @@ public class JdbcBlob extends TraceObject implements Blob {
     @Override
     public int setBytes(long pos, byte[] bytes, int offset, int len)
             throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setBytes(" + pos + ", " + quoteBytes(bytes) + ", " + offset + ", " + len + ");");
+            }
+            checkClosed();
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            }
+            value = conn.createBlob(new ByteArrayInputStream(bytes, offset, len), -1);
+            return (int) value.getPrecision();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

@@ -21,6 +21,7 @@ import org.h2.value.ValueDate;
 import org.h2.value.ValueNull;
 import org.h2.value.ValueTime;
 import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * This utility class contains time conversion functions.
@@ -318,14 +319,24 @@ public class DateTimeUtils {
     }
 
     private static Calendar valueToCalendar(Value value) {
-        Calendar cal = DateTimeUtils.createGregorianCalendar();
+        Calendar cal;
         if (value instanceof ValueTimestamp) {
+            cal = createGregorianCalendar();
             cal.setTime(value.getTimestamp());
         } else if (value instanceof ValueDate) {
+            cal = createGregorianCalendar();
             cal.setTime(value.getDate());
         } else if (value instanceof ValueTime) {
+            cal = createGregorianCalendar();
             cal.setTime(value.getTime());
+        } else if (value instanceof ValueTimestampTimeZone) {
+            ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
+            cal = createGregorianCalendar(TimeZone.getTimeZone(v.getTimeZoneName()));
+            cal.setTimeInMillis(DateTimeUtils.convertDateValueToMillis(DateTimeUtils.UTC, v.getDateValue())
+                    + v.getTimeNanos() / 1000000L
+                    - v.getTimeZoneOffsetMins() * 60000);
         } else {
+            cal = createGregorianCalendar();
             cal.setTime(value.getTimestamp());
         }
         return cal;

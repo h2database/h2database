@@ -201,6 +201,30 @@ public class ValueTimestampTimeZone extends Value {
         return timeZoneOffsetMins;
     }
 
+    /**
+     * Returns name of the timezone such as UTC or GMT+1:00.
+     *
+     * @return name of the timezone
+     */
+    public String getTimeZoneName() {
+        int offset = timeZoneOffsetMins;
+        if (offset == 0)
+            return "UTC";
+        StringBuilder builder = new StringBuilder("GMT");
+        if (offset > 0) {
+            builder.append('+');
+        } else {
+            builder.append('-');
+            offset = -offset;
+        }
+        builder.append(offset / 60).append(':');
+        offset %= 60;
+        if (offset < 10)
+            builder.append('0');
+        builder.append(offset);
+        return builder.toString();
+    }
+
     @Override
     public Timestamp getTimestamp() {
         throw new UnsupportedOperationException("unimplemented");

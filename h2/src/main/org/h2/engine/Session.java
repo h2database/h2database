@@ -1714,11 +1714,6 @@ public class Session extends SessionWithState {
         if (v.getType() != Value.CLOB && v.getType() != Value.BLOB) {
             return;
         }
-        // issue #790: why are temporary LOBs showing up on the system session?
-        if (SysProperties.CHECK && id == 1) {
-            throw DbException.throwInternalError(
-                    "the system session is not supposed to be creating temporary LOBs");
-        }
         if (v.getTableId() == LobStorageFrontend.TABLE_RESULT ||
                 v.getTableId() == LobStorageFrontend.TABLE_TEMP) {
             if (temporaryResultLobs == null) {

@@ -61,6 +61,11 @@ public class ValueTimestampTimeZone extends Value {
             throw new IllegalArgumentException(
                     "timeNanos out of range " + timeNanos);
         }
+        /*
+         * Some current and historic time zones have offsets larger than 12 hours.
+         * JSR-310 determines 18 hours as maximum possible offset in both directions, so
+         * we use this limit too for compatibility.
+         */
         if (timeZoneOffsetMins < (-18 * 60)
                 || timeZoneOffsetMins > (18 * 60)) {
             throw new IllegalArgumentException(

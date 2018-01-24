@@ -317,6 +317,20 @@ public class DateTimeUtils {
         return ValueTimestamp.fromDateValueAndNanos(dateValue, nanos);
     }
 
+    private static Calendar valueToCalendar(Value value) {
+        Calendar cal = DateTimeUtils.createGregorianCalendar();
+        if (value instanceof ValueTimestamp) {
+            cal.setTime(value.getTimestamp());
+        } else if (value instanceof ValueDate) {
+            cal.setTime(value.getDate());
+        } else if (value instanceof ValueTime) {
+            cal.setTime(value.getTime());
+        } else {
+            cal.setTime(value.getTimestamp());
+        }
+        return cal;
+    }
+
     /**
      * Parse a date string. The format is: [+|-]year-month-day
      *
@@ -499,9 +513,7 @@ public class DateTimeUtils {
      * @return the value
      */
     public static int getDatePart(Value date, int field) {
-        java.util.Date d = date.getTimestamp();
-        Calendar c = getCalendar();
-        c.setTime(d);
+        Calendar c = valueToCalendar(date);
         if (field == Calendar.YEAR) {
             return getYear(c);
         }
@@ -557,10 +569,7 @@ public class DateTimeUtils {
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
     public static int getIsoDayOfWeek(Value value) {
-        java.util.Date date = value.getDate();
-        Calendar cal = DateTimeUtils.createGregorianCalendar();
-        cal.setTimeInMillis(date.getTime());
-        int val = cal.get(Calendar.DAY_OF_WEEK) - 1;
+        int val = valueToCalendar(value).get(Calendar.DAY_OF_WEEK) - 1;
         return val == 0 ? 7 : val;
     }
 
@@ -579,9 +588,7 @@ public class DateTimeUtils {
      * @return the week of the year
      */
     public static int getIsoWeek(Value value) {
-        java.util.Date date = value.getDate();
-        Calendar c = DateTimeUtils.createGregorianCalendar();
-        c.setTimeInMillis(date.getTime());
+        Calendar c = valueToCalendar(value);
         c.setFirstDayOfWeek(Calendar.MONDAY);
         c.setMinimalDaysInFirstWeek(4);
         return c.get(Calendar.WEEK_OF_YEAR);
@@ -595,9 +602,7 @@ public class DateTimeUtils {
      * @return the year
      */
     public static int getIsoYear(Value value) {
-        java.util.Date date = value.getDate();
-        Calendar cal = DateTimeUtils.createGregorianCalendar();
-        cal.setTimeInMillis(date.getTime());
+        Calendar cal = valueToCalendar(value);
         cal.setFirstDayOfWeek(Calendar.MONDAY);
         cal.setMinimalDaysInFirstWeek(4);
         int year = getYear(cal);

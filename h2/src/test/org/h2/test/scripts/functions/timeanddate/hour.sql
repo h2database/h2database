@@ -14,3 +14,22 @@ select hour(time '23:10:59') d23 from test;
 > ---
 > 23
 > rows: 1
+
+drop table test;
+> ok
+
+create table test(ts timestamp with time zone);
+> ok
+
+insert into test(ts) values ('2010-05-11 05:15:10+10:00'), ('2010-05-11 05:15:10-10:00');
+> update count: 2
+
+select hour(ts) h from test;
+> H
+> -
+> 5
+> 5
+> rows: 2
+
+drop table test;
+> ok

@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
@@ -50,7 +51,8 @@ public class ValueTimestampTimeZone extends Value {
      */
     private final long timeNanos;
     /**
-     * Time zone offset from UTC in minutes, range of -12hours to +12hours
+     * Time zone offset from UTC in minutes, range of -18 hours to +18 hours. This
+     * range is compatible with OffsetDateTime from JSR-310.
      */
     private final short timeZoneOffsetMins;
 
@@ -60,8 +62,13 @@ public class ValueTimestampTimeZone extends Value {
             throw new IllegalArgumentException(
                     "timeNanos out of range " + timeNanos);
         }
-        if (timeZoneOffsetMins < (-12 * 60)
-                || timeZoneOffsetMins >= (12 * 60)) {
+        /*
+         * Some current and historic time zones have offsets larger than 12 hours.
+         * JSR-310 determines 18 hours as maximum possible offset in both directions, so
+         * we use this limit too for compatibility.
+         */
+        if (timeZoneOffsetMins < (-18 * 60)
+                || timeZoneOffsetMins > (18 * 60)) {
             throw new IllegalArgumentException(
                     "timeZoneOffsetMins out of range " + timeZoneOffsetMins);
         }
@@ -199,6 +206,19 @@ public class ValueTimestampTimeZone extends Value {
      */
     public short getTimeZoneOffsetMins() {
         return timeZoneOffsetMins;
+    }
+
+    /**
+     * Returns compatible offset-based time zone with no DST schedule.
+     *
+     * @return compatible offset-based time zone
+     */
+    public TimeZone getTimeZone() {
+        int offset = timeZoneOffsetMins;
+        if (offset == 0) {
+            return DateTimeUtils.UTC;
+        }
+        return new SimpleTimeZone(offset * 60000, Integer.toString(offset));
     }
 
     @Override

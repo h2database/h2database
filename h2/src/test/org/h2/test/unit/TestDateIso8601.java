@@ -5,21 +5,26 @@
  */
 package org.h2.test.unit;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import static org.h2.util.DateTimeUtils.getIsoDayOfWeek;
+import static org.h2.util.DateTimeUtils.getIsoWeek;
+import static org.h2.util.DateTimeUtils.getIsoYear;
 
 import org.h2.test.TestBase;
-import org.h2.util.DateTimeUtils;
+import org.h2.value.Value;
+import org.h2.value.ValueDate;
+import org.h2.value.ValueTimestamp;
+import org.h2.value.ValueTimestampTimeZone;
 
 /**
  * Test cases for DateTimeIso8601Utils.
  */
 public class TestDateIso8601 extends TestBase {
 
-    private final SimpleDateFormat dateFormatter =
-            new SimpleDateFormat("yyyy-MM-dd");
+    private enum Type {
+        DATE, TIMESTAMP, TIMESTAMP_TIMEZONE_0, TIMESTAMP_TIMEZONE_PLUS_18, TIMESTAMP_TIMEZONE_MINUS_18;
+    }
+
+    private static Type type;
 
     /**
      * Run just this test.
@@ -30,8 +35,41 @@ public class TestDateIso8601 extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    private static Value parse(String s) {
+        if (type == null) {
+            throw new IllegalStateException();
+        }
+        switch (type) {
+        case DATE:
+            return ValueDate.parse(s);
+        case TIMESTAMP:
+            return ValueTimestamp.parse(s);
+        case TIMESTAMP_TIMEZONE_0:
+            return ValueTimestampTimeZone.parse(s + " 00:00:00.0Z");
+        case TIMESTAMP_TIMEZONE_PLUS_18:
+            return ValueTimestampTimeZone.parse(s + " 00:00:00+18:00");
+        case TIMESTAMP_TIMEZONE_MINUS_18:
+            return ValueTimestampTimeZone.parse(s + " 00:00:00-18:00");
+        default:
+            throw new IllegalStateException();
+        }
+    }
+
     @Override
     public void test() throws Exception {
+        type = Type.DATE;
+        doTest();
+        type = Type.TIMESTAMP;
+        doTest();
+        type = Type.TIMESTAMP_TIMEZONE_0;
+        doTest();
+        type = Type.TIMESTAMP_TIMEZONE_PLUS_18;
+        doTest();
+        type = Type.TIMESTAMP_TIMEZONE_MINUS_18;
+        doTest();
+    }
+
+    private void doTest() throws Exception {
         testIsoDayOfWeek();
         testIsoWeekJanuary1thMonday();
         testIsoWeekJanuary1thTuesday();
@@ -49,14 +87,6 @@ public class TestDateIso8601 extends TestBase {
         testIsoYearJanuary1thSunday();
     }
 
-    private Date parse(String s) throws ParseException {
-        return dateFormatter.parse(s);
-    }
-
-    private static int getIsoDayOfWeek(Date date) {
-        return DateTimeUtils.getIsoDayOfWeek(date);
-    }
-
     /**
      * Test if day of week is returned as Monday = 1 to Sunday = 7.
      */
@@ -68,11 +98,6 @@ public class TestDateIso8601 extends TestBase {
         assertEquals(5, getIsoDayOfWeek(parse("2008-10-03")));
         assertEquals(6, getIsoDayOfWeek(parse("2008-10-04")));
         assertEquals(7, getIsoDayOfWeek(parse("2008-10-05")));
-    }
-
-    private static int getIsoWeek(Date date) {
-        Timestamp ts = new Timestamp(date.getTime());
-        return DateTimeUtils.getIsoWeek(ts);
     }
 
     /**
@@ -152,11 +177,6 @@ public class TestDateIso8601 extends TestBase {
         assertEquals(1, getIsoWeek(parse("2012-01-02")));
         assertEquals(1, getIsoWeek(parse("2012-01-08")));
         assertEquals(2, getIsoWeek(parse("2012-01-09")));
-    }
-
-    private static int getIsoYear(Date date) {
-        Timestamp ts = new Timestamp(date.getTime());
-        return DateTimeUtils.getIsoYear(ts);
     }
 
     /**

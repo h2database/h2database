@@ -249,6 +249,8 @@ td.index {
     margin: 0px 0px;
     border: 2px solid;
     -moz-border-radius: 0.4em;
+    -webkit-border-radius: 0.4em;
+    -khtml-border-radius: 0.4em;
     border-radius: 0.4em;
     background-color: #fff;
 }
@@ -259,9 +261,10 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    width: 16px;
     height: 24px;
     background-image: url(images/div-ts.png);
-    width: 16px;
+    background-size: 16px 512px;
 }
 
 .ls {
@@ -270,9 +273,10 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    width: 16px;
     height: 24px;
     background-image: url(images/div-ls.png);
-    width: 16px;
+    background-size: 16px 512px;
 }
 
 .ks {
@@ -281,9 +285,10 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    width: 16px;
     height: 24px;
     background-image: url(images/div-ks.png);
-    width: 16px;
+    background-size: 16px 512px;
 }
 
 .te {
@@ -292,9 +297,10 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    width: 16px;
     height: 24px;
     background-image: url(images/div-te.png);
-    width: 16px;
+    background-size: 16px 512px;
 }
 
 .le {
@@ -303,9 +309,10 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    width: 16px;
     height: 24px;
     background-image: url(images/div-le.png);
-    width: 16px;
+    background-size: 16px 512px;
 }
 
 .ke {
@@ -314,9 +321,10 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    width: 16px;
     height: 24px;
     background-image: url(images/div-ke.png);
-    width: 16px;
+    background-size: 16px 512px;
 }
 
 .d {
@@ -325,8 +333,8 @@ td.index {
     margin: 0px;
     border-collapse: collapse;
     vertical-align: top;
+    min-width: 16px;
     height: 24px;
     background-image: url(images/div-d.png);
-    background-repeat: repeat-x;
-    min-width: 16px;
+    background-size: 1024px 512px;
 }

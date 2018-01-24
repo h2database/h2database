@@ -21,6 +21,7 @@ import org.h2.api.ErrorCode;
 import org.h2.engine.Constants;
 import org.h2.message.DbException;
 import org.h2.message.TraceObject;
+import org.h2.store.RangeReader;
 import org.h2.util.IOUtils;
 import org.h2.util.Task;
 import org.h2.value.Value;
@@ -227,12 +228,34 @@ public class JdbcClob extends TraceObject implements NClob
     }
 
     /**
-     * [Not supported] Sets a substring.
+     * Fills the Clob. This is only supported for new, empty Clob objects that
+     * were created with Connection.createClob() or createNClob(). The position
+     * must be 1, meaning the whole Clob data is set.
+     *
+     * @param pos where to start writing (the first character is at position 1)
+     * @param str the string to add
+     * @param offset the string offset
+     * @param len the number of characters to read
+     * @return the length of the added text
      */
     @Override
     public int setString(long pos, String str, int offset, int len)
             throws SQLException {
-        throw unsupported("LOB update");
+        try {
+            if (isDebugEnabled()) {
+                debugCode("setString(" + pos + ", " + quote(str) + ", " + offset + ", " + len + ");");
+            }
+            checkClosed();
+            if (pos != 1) {
+                throw DbException.getInvalidValueException("pos", pos);
+            } else if (str == null) {
+                throw DbException.getInvalidValueException("str", str);
+            }
+            value = conn.createClob(new RangeReader(new StringReader(str), offset, len), -1);
+            return (int) value.getPrecision();
+        } catch (Exception e) {
+            throw logAndConvert(e);
+        }
     }
 
     /**

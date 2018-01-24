@@ -51,7 +51,8 @@ public class ValueTimestampTimeZone extends Value {
      */
     private final long timeNanos;
     /**
-     * Time zone offset from UTC in minutes, range of -18 hours to +18 hours
+     * Time zone offset from UTC in minutes, range of -18 hours to +18 hours. This
+     * range is compatible with OffsetDateTime from JSR-310.
      */
     private final short timeZoneOffsetMins;
 

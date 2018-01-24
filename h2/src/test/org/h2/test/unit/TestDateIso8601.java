@@ -8,14 +8,22 @@ package org.h2.test.unit;
 import static org.h2.util.DateTimeUtils.getIsoDayOfWeek;
 import static org.h2.util.DateTimeUtils.getIsoWeek;
 import static org.h2.util.DateTimeUtils.getIsoYear;
-import static org.h2.value.ValueDate.parse;
 
 import org.h2.test.TestBase;
+import org.h2.value.Value;
+import org.h2.value.ValueDate;
+import org.h2.value.ValueTimestamp;
 
 /**
  * Test cases for DateTimeIso8601Utils.
  */
 public class TestDateIso8601 extends TestBase {
+
+    private enum Type {
+        DATE, TIMESTAMP;
+    }
+
+    private static Type type;
 
     /**
      * Run just this test.
@@ -26,8 +34,29 @@ public class TestDateIso8601 extends TestBase {
         TestBase.createCaller().init().test();
     }
 
+    private static Value parse(String s) {
+        if (type == null) {
+            throw new IllegalStateException();
+        }
+        switch (type) {
+        case DATE:
+            return ValueDate.parse(s);
+        case TIMESTAMP:
+            return ValueTimestamp.parse(s);
+        default:
+            throw new IllegalStateException();
+        }
+    }
+
     @Override
     public void test() throws Exception {
+        type = Type.DATE;
+        doTest();
+        type = Type.TIMESTAMP;
+        doTest();
+    }
+
+    private void doTest() throws Exception {
         testIsoDayOfWeek();
         testIsoWeekJanuary1thMonday();
         testIsoWeekJanuary1thTuesday();

@@ -552,10 +552,11 @@ public class DateTimeUtils {
      * starts at Monday. See also http://en.wikipedia.org/wiki/ISO_8601
      *
      * @author Robert Rathsack
-     * @param date the date object which day of week should be calculated
+     * @param value the date object which day of week should be calculated
      * @return the day of the week, Monday as 1 to Sunday as 7
      */
-    public static int getIsoDayOfWeek(java.util.Date date) {
+    public static int getIsoDayOfWeek(Value value) {
+        java.util.Date date = value.getDate();
         Calendar cal = DateTimeUtils.createGregorianCalendar();
         cal.setTimeInMillis(date.getTime());
         int val = cal.get(Calendar.DAY_OF_WEEK) - 1;
@@ -573,10 +574,11 @@ public class DateTimeUtils {
      * the December 28th always belongs to the last week.
      *
      * @author Robert Rathsack
-     * @param date the date object which week of year should be calculated
+     * @param value the date object which week of year should be calculated
      * @return the week of the year
      */
-    public static int getIsoWeek(java.util.Date date) {
+    public static int getIsoWeek(Value value) {
+        java.util.Date date = value.getDate();
         Calendar c = DateTimeUtils.createGregorianCalendar();
         c.setTimeInMillis(date.getTime());
         c.setFirstDayOfWeek(Calendar.MONDAY);
@@ -588,10 +590,11 @@ public class DateTimeUtils {
      * Returns the year according to the ISO week definition.
      *
      * @author Robert Rathsack
-     * @param date the date object which year should be calculated
+     * @param value the date object which year should be calculated
      * @return the year
      */
-    public static int getIsoYear(java.util.Date date) {
+    public static int getIsoYear(Value value) {
+        java.util.Date date = value.getDate();
         Calendar cal = DateTimeUtils.createGregorianCalendar();
         cal.setTimeInMillis(date.getTime());
         cal.setFirstDayOfWeek(Calendar.MONDAY);

@@ -5,21 +5,17 @@
  */
 package org.h2.test.unit;
 
-import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import static org.h2.util.DateTimeUtils.getIsoDayOfWeek;
+import static org.h2.util.DateTimeUtils.getIsoWeek;
+import static org.h2.util.DateTimeUtils.getIsoYear;
+import static org.h2.value.ValueDate.parse;
 
 import org.h2.test.TestBase;
-import org.h2.util.DateTimeUtils;
 
 /**
  * Test cases for DateTimeIso8601Utils.
  */
 public class TestDateIso8601 extends TestBase {
-
-    private final SimpleDateFormat dateFormatter =
-            new SimpleDateFormat("yyyy-MM-dd");
 
     /**
      * Run just this test.
@@ -49,14 +45,6 @@ public class TestDateIso8601 extends TestBase {
         testIsoYearJanuary1thSunday();
     }
 
-    private Date parse(String s) throws ParseException {
-        return dateFormatter.parse(s);
-    }
-
-    private static int getIsoDayOfWeek(Date date) {
-        return DateTimeUtils.getIsoDayOfWeek(date);
-    }
-
     /**
      * Test if day of week is returned as Monday = 1 to Sunday = 7.
      */
@@ -68,11 +56,6 @@ public class TestDateIso8601 extends TestBase {
         assertEquals(5, getIsoDayOfWeek(parse("2008-10-03")));
         assertEquals(6, getIsoDayOfWeek(parse("2008-10-04")));
         assertEquals(7, getIsoDayOfWeek(parse("2008-10-05")));
-    }
-
-    private static int getIsoWeek(Date date) {
-        Timestamp ts = new Timestamp(date.getTime());
-        return DateTimeUtils.getIsoWeek(ts);
     }
 
     /**
@@ -152,11 +135,6 @@ public class TestDateIso8601 extends TestBase {
         assertEquals(1, getIsoWeek(parse("2012-01-02")));
         assertEquals(1, getIsoWeek(parse("2012-01-08")));
         assertEquals(2, getIsoWeek(parse("2012-01-09")));
-    }
-
-    private static int getIsoYear(Date date) {
-        Timestamp ts = new Timestamp(date.getTime());
-        return DateTimeUtils.getIsoYear(ts);
     }
 
     /**

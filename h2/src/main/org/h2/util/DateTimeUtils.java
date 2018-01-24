@@ -331,7 +331,7 @@ public class DateTimeUtils {
             cal.setTime(value.getTime());
         } else if (value instanceof ValueTimestampTimeZone) {
             ValueTimestampTimeZone v = (ValueTimestampTimeZone) value;
-            cal = createGregorianCalendar(TimeZone.getTimeZone(v.getTimeZoneName()));
+            cal = createGregorianCalendar(v.getTimeZone());
             cal.setTimeInMillis(DateTimeUtils.convertDateValueToMillis(DateTimeUtils.UTC, v.getDateValue())
                     + v.getTimeNanos() / 1000000L
                     - v.getTimeZoneOffsetMins() * 60000);

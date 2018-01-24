@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.SimpleTimeZone;
 import java.util.TimeZone;
 import org.h2.api.ErrorCode;
 import org.h2.api.TimestampWithTimeZone;
@@ -202,27 +203,16 @@ public class ValueTimestampTimeZone extends Value {
     }
 
     /**
-     * Returns name of the timezone such as UTC or GMT+1:00.
+     * Returns compatible offset-based time zone with no DST schedule.
      *
-     * @return name of the timezone
+     * @return compatible offset-based time zone
      */
-    public String getTimeZoneName() {
+    public TimeZone getTimeZone() {
         int offset = timeZoneOffsetMins;
-        if (offset == 0)
-            return "UTC";
-        StringBuilder builder = new StringBuilder("GMT");
-        if (offset > 0) {
-            builder.append('+');
-        } else {
-            builder.append('-');
-            offset = -offset;
+        if (offset == 0) {
+            return DateTimeUtils.UTC;
         }
-        builder.append(offset / 60).append(':');
-        offset %= 60;
-        if (offset < 10)
-            builder.append('0');
-        builder.append(offset);
-        return builder.toString();
+        return new SimpleTimeZone(offset * 60000, Integer.toString(offset));
     }
 
     @Override

@@ -78,13 +78,7 @@ public class SHA256 {
      * @return the hash
      */
     public static byte[] getHMAC(byte[] key, byte[] message) {
-        Mac mac = initMac(key);
-        return calculateHMAC(mac, message, message.length);
-    }
-
-    private static byte[] calculateHMAC(Mac mac, byte[] message, int len) {
-        mac.update(message, 0, len);
-        return mac.doFinal();
+        return initMac(key).doFinal(message);
     }
 
     private static Mac initMac(byte[] key) {
@@ -127,7 +121,8 @@ public class SHA256 {
                     System.arraycopy(macRes, 0, message, 0, 32);
                     len = 32;
                 }
-                macRes = calculateHMAC(mac, message, len);
+                mac.update(message, 0, len);
+                macRes = mac.doFinal();
                 for (int j = 0; j < 32 && j + offset < resultLen; j++) {
                     result[j + offset] ^= macRes[j];
                 }

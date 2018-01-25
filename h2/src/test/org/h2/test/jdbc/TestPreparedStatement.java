@@ -634,14 +634,14 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, localDate);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localDate2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        Object localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
         rs.close();
         localDate = LocalDateTimeUtils.parseLocalDate("-0509-01-01");
         prep.setObject(1, localDate);
         rs = prep.executeQuery();
         rs.next();
-        localDate2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateClass());
+        localDate2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE);
         assertEquals(localDate, localDate2);
         rs.close();
     }
@@ -655,14 +655,14 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, localTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
+        Object localTime2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_TIME);
         assertEquals(localTime, localTime2);
         rs.close();
         localTime = LocalDateTimeUtils.parseLocalTime("04:05:06.123456789");
         prep.setObject(1, localTime);
         rs = prep.executeQuery();
         rs.next();
-        localTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalTimeClass());
+        localTime2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_TIME);
         assertEquals(localTime, localTime2);
         rs.close();
     }
@@ -676,7 +676,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, localDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.getLocalDateTimeClass());
+        Object localDateTime2 = rs.getObject(1, LocalDateTimeUtils.LOCAL_DATE_TIME);
         assertEquals(localDateTime, localDateTime2);
         rs.close();
     }
@@ -691,7 +691,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, offsetDateTime);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
+        Object offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.OFFSET_DATE_TIME);
         assertEquals(offsetDateTime, offsetDateTime2);
         assertFalse(rs.next());
         rs.close();
@@ -699,7 +699,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setObject(1, offsetDateTime, 2014); // Types.TIMESTAMP_WITH_TIMEZONE
         rs = prep.executeQuery();
         rs.next();
-        offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.getOffsetDateTimeClass());
+        offsetDateTime2 = rs.getObject(1, LocalDateTimeUtils.OFFSET_DATE_TIME);
         assertEquals(offsetDateTime, offsetDateTime2);
         assertFalse(rs.next());
         rs.close();
@@ -710,14 +710,14 @@ public class TestPreparedStatement extends TestBase {
             return;
         }
         Method timestampToInstant = Timestamp.class.getMethod("toInstant"),
-                now = LocalDateTimeUtils.getInstantClass().getMethod("now");
+                now = LocalDateTimeUtils.INSTANT.getMethod("now");
 
         PreparedStatement prep = conn.prepareStatement("SELECT ?");
         Object instant1 = now.invoke(null);
         prep.setObject(1, instant1);
         ResultSet rs = prep.executeQuery();
         rs.next();
-        Object instant2 = rs.getObject(1, LocalDateTimeUtils.getInstantClass());
+        Object instant2 = rs.getObject(1, LocalDateTimeUtils.INSTANT);
         assertEquals(instant1, instant2);
         Timestamp ts = rs.getTimestamp(1);
         assertEquals(instant1, timestampToInstant.invoke(ts));
@@ -727,7 +727,7 @@ public class TestPreparedStatement extends TestBase {
         prep.setTimestamp(1, ts);
         rs = prep.executeQuery();
         rs.next();
-        instant2 = rs.getObject(1, LocalDateTimeUtils.getInstantClass());
+        instant2 = rs.getObject(1, LocalDateTimeUtils.INSTANT);
         assertEquals(instant1, instant2);
         assertFalse(rs.next());
         rs.close();

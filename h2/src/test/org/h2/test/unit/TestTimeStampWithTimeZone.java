@@ -65,7 +65,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(new TimestampWithTimeZone(1008673L, 43200000000000L, (short) 15), ts);
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("1970-01-01T12:00+00:15", rs.getObject(1,
-                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
@@ -76,7 +76,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(1L, ts.getNanosSinceMidnight());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2016-09-24T00:00:00.000000001+00:01", rs.getObject(1,
-                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
@@ -87,7 +87,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(1L, ts.getNanosSinceMidnight());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2016-09-24T00:00:00.000000001-00:01", rs.getObject(1,
-                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
@@ -96,7 +96,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(1, ts.getDay());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2016-01-01T05:00+10:00", rs.getObject(1,
-                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
         rs.next();
         ts = (TimestampWithTimeZone) rs.getObject(1);
@@ -105,7 +105,7 @@ public class TestTimeStampWithTimeZone extends TestBase {
         assertEquals(31, ts.getDay());
         if (LocalDateTimeUtils.isJava8DateApiPresent()) {
             assertEquals("2015-12-31T19:00-10:00", rs.getObject(1,
-                            LocalDateTimeUtils.getOffsetDateTimeClass()).toString());
+                            LocalDateTimeUtils.OFFSET_DATE_TIME).toString());
         }
 
         ResultSetMetaData metaData = rs.getMetaData();

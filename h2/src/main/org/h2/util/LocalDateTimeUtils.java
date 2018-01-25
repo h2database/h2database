@@ -40,16 +40,27 @@ import org.h2.value.ValueTimestampTimeZone;
  */
 public class LocalDateTimeUtils {
 
-    // Class<java.time.LocalDate>
-    private static final Class<?> LOCAL_DATE;
-    // Class<java.time.LocalTime>
-    private static final Class<?> LOCAL_TIME;
-    // Class<java.time.LocalDateTime>
-    private static final Class<?> LOCAL_DATE_TIME;
-    // Class<java.time.Instant>
-    private static final Class<?> INSTANT;
-    // Class<java.time.OffsetDateTime>
-    private static final Class<?> OFFSET_DATE_TIME;
+    /**
+     * {@code Class<java.time.LocalDate>} or {@code null}.
+     */
+    public static final Class<?> LOCAL_DATE;
+    /**
+     * {@code Class<java.time.LocalTime>} or {@code null}.
+     */
+    public static final Class<?> LOCAL_TIME;
+    /**
+     * {@code Class<java.time.LocalDateTime>} or {@code null}.
+     */
+    public static final Class<?> LOCAL_DATE_TIME;
+    /**
+     * {@code Class<java.time.Instant>} or {@code null}.
+     */
+    public static final Class<?> INSTANT;
+    /**
+     * {@code Class<java.time.OffsetDateTime>} or {@code null}.
+     */
+    public static final Class<?> OFFSET_DATE_TIME;
+
     // Class<java.time.ZoneOffset>
     private static final Class<?> ZONE_OFFSET;
 
@@ -192,52 +203,6 @@ public class LocalDateTimeUtils {
     }
 
     /**
-     * Returns the class java.time.LocalDate.
-     *
-     * @return the class java.time.LocalDate, null on Java 7
-     */
-    public static Class<?> getLocalDateClass() {
-        return LOCAL_DATE;
-    }
-
-
-    /**
-     * Returns the class java.time.LocalTime.
-     *
-     * @return the class java.time.LocalTime, null on Java 7
-     */
-    public static Class<?> getLocalTimeClass() {
-        return LOCAL_TIME;
-    }
-
-    /**
-     * Returns the class java.time.LocalDateTime.
-     *
-     * @return the class java.time.LocalDateTime, null on Java 7
-     */
-    public static Class<?> getLocalDateTimeClass() {
-        return LOCAL_DATE_TIME;
-    }
-
-    /**
-     * Returns the class java.time.Instant.
-     *
-     * @return the class java.time.Instant, null on Java 7
-     */
-    public static Class<?> getInstantClass() {
-        return INSTANT;
-    }
-
-    /**
-     * Returns the class java.time.OffsetDateTime.
-     *
-     * @return the class java.time.OffsetDateTime, null on Java 7
-     */
-    public static Class<?> getOffsetDateTimeClass() {
-        return OFFSET_DATE_TIME;
-    }
-
-    /**
      * Parses an ISO date string into a java.time.LocalDate.
      *
      * @param text the ISO date string
@@ -310,66 +275,6 @@ public class LocalDateTimeUtils {
                     clazz.getName() + "#" + methodName + "(" +
                     Arrays.toString(parameterTypes) + ") is missing", e);
         }
-    }
-
-    /**
-     * Checks if the given class is LocalDate.
-     *
-     * <p>This method can be called from Java 7.</p>
-     *
-     * @param clazz the class to check
-     * @return if the class is LocalDate
-     */
-    public static boolean isLocalDate(Class<?> clazz) {
-        return LOCAL_DATE == clazz;
-    }
-
-    /**
-     * Checks if the given class is LocalTime.
-     *
-     * <p>This method can be called from Java 7.</p>
-     *
-     * @param clazz the class to check
-     * @return if the class is LocalTime
-     */
-    public static boolean isLocalTime(Class<?> clazz) {
-        return LOCAL_TIME == clazz;
-    }
-
-    /**
-     * Checks if the given class is LocalDateTime.
-     *
-     * <p>This method can be called from Java 7.</p>
-     *
-     * @param clazz the class to check
-     * @return if the class is LocalDateTime
-     */
-    public static boolean isLocalDateTime(Class<?> clazz) {
-        return LOCAL_DATE_TIME == clazz;
-    }
-
-    /**
-     * Checks if the given class is Instant.
-     *
-     * <p>This method can be called from Java 7.</p>
-     *
-     * @param clazz the class to check
-     * @return if the class is Instant
-     */
-    public static boolean isInstant(Class<?> clazz) {
-        return INSTANT == clazz;
-    }
-
-    /**
-     * Checks if the given class is OffsetDateTime.
-     *
-     * <p>This method can be called from Java 7.</p>
-     *
-     * @param clazz the class to check
-     * @return if the class is OffsetDateTime
-     */
-    public static boolean isOffsetDateTime(Class<?> clazz) {
-        return OFFSET_DATE_TIME == clazz;
     }
 
     /**

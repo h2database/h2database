@@ -1127,7 +1127,9 @@ public class DataType {
             return ValueResultSet.getCopy((ResultSet) x, Integer.MAX_VALUE);
         } else if (x instanceof UUID) {
             return ValueUuid.get((UUID) x);
-        } else if (x instanceof Object[]) {
+        }
+        Class<?> clazz = x.getClass();
+        if (x instanceof Object[]) {
             // (a.getClass().isArray());
             // (a.getClass().getComponentType().isPrimitive());
             Object[] o = (Object[]) x;
@@ -1136,20 +1138,20 @@ public class DataType {
             for (int i = 0; i < len; i++) {
                 v[i] = convertToValue(session, o[i], type);
             }
-            return ValueArray.get(x.getClass().getComponentType(), v);
+            return ValueArray.get(clazz.getComponentType(), v);
         } else if (x instanceof Character) {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
-        } else if (x.getClass() == LocalDateTimeUtils.LOCAL_DATE) {
+        } else if (clazz == LocalDateTimeUtils.LOCAL_DATE) {
             return LocalDateTimeUtils.localDateToDateValue(x);
-        } else if (x.getClass() == LocalDateTimeUtils.LOCAL_TIME) {
+        } else if (clazz == LocalDateTimeUtils.LOCAL_TIME) {
             return LocalDateTimeUtils.localTimeToTimeValue(x);
-        } else if (x.getClass() == LocalDateTimeUtils.LOCAL_DATE_TIME) {
+        } else if (clazz == LocalDateTimeUtils.LOCAL_DATE_TIME) {
             return LocalDateTimeUtils.localDateTimeToValue(x);
-        } else if (x.getClass() == LocalDateTimeUtils.INSTANT) {
+        } else if (clazz == LocalDateTimeUtils.INSTANT) {
             return LocalDateTimeUtils.instantToValue(x);
-        } else if (x.getClass() == LocalDateTimeUtils.OFFSET_DATE_TIME) {
+        } else if (clazz == LocalDateTimeUtils.OFFSET_DATE_TIME) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else if (x instanceof TimestampWithTimeZone) {
             return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);

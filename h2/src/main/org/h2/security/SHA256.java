@@ -169,13 +169,16 @@ public class SHA256 {
      * @return the hash code
      */
     public static byte[] getHash(byte[] data, boolean nullData) {
-        int len = data.length;
-        SHA256 sha = new SHA256();
-        sha.calculateHash(data, len);
+        byte[] result;
+        try {
+            result = MessageDigest.getInstance("SHA-256").digest(data);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         if (nullData) {
             Arrays.fill(data, (byte) 0);
         }
-        return sha.result;
+        return result;
     }
 
     private void calculateHash(byte[] data, int len) {

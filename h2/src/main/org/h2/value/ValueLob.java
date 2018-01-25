@@ -59,6 +59,15 @@ public class ValueLob extends Value {
         }
     }
 
+    /**
+     * Create an input stream that is s subset of the given stream.
+     *
+     * @param inputStream the input stream
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the length of the result, in bytes
+     * @param dataSize the length of the input, in bytes
+     * @return the smaller input stream
+     */
     static InputStream rangeInputStream(InputStream inputStream, long oneBasedOffset, long length, long dataSize) {
         if (dataSize > 0)
             rangeCheck(oneBasedOffset - 1, length, dataSize);

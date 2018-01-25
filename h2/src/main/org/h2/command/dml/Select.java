@@ -43,6 +43,7 @@ import java.util.HashSet;
  * @author Joel Turkel (Group sorted query)
  */
 public class Select extends Query {
+
     TableFilter topTableFilter;
     private final ArrayList<TableFilter> filters = New.arrayList();
     private final ArrayList<TableFilter> topFilters = New.arrayList();

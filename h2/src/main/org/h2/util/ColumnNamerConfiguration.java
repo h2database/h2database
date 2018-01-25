@@ -96,6 +96,11 @@ public class ColumnNamerConfiguration {
         this.compiledRegularExpressionMatchDisallowed = compiledRegularExpressionMatchDisallowed;
     }
 
+    /**
+     * Configure the column namer.
+     *
+     * @param stringValue the configuration
+     */
     public void configure(String stringValue) {
         try {
             if (stringValue.equalsIgnoreCase(DEFAULT_COMMAND)) {

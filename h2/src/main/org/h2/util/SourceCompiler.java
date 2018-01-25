@@ -198,6 +198,12 @@ public class SourceCompiler {
         return isJavascriptSource(source) || isRubySource(source);
     }
 
+    /**
+     * Get the compiled script.
+     *
+     * @param packageAndClassName the package and class name
+     * @return the compiled script
+     */
     public CompiledScript getCompiledScript(String packageAndClassName) throws ScriptException {
         CompiledScript compiledScript = compiledScripts.get(packageAndClassName);
         if (compiledScript == null) {

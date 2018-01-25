@@ -44,9 +44,14 @@ public class TestKillRestartMulti extends TestBase {
 
 
     /**
+     * This method is called when executing this application from the command
+     * line.
+     *
      * Note that this entry can be used in two different ways, either
      * (a) running just this test
      * (b) or when this test invokes itself in a child process
+     *
+     * @param args the command line parameters
      */
     public static void main(String... args) throws Exception {
         if (args != null && args.length > 0) {

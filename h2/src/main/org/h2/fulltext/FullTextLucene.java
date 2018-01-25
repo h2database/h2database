@@ -723,6 +723,9 @@ public class FullTextLucene extends FullText {
             }
         }
 
+        /**
+         * Commit the changes.
+         */
         public synchronized void commit() throws IOException {
             writer.commit();
             if (counter != 0) {

@@ -171,7 +171,8 @@ import org.h2.value.ValueTimestampTimeZone;
  * @author Nicolas Fortin, Atelier SIG, IRSTV FR CNRS 24888
  */
 public class Parser {
-    public static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
+
+    private static final String WITH_STATEMENT_SUPPORTS_LIMITED_SUB_STATEMENTS =
             "WITH statement supports only SELECT, CREATE TABLE, INSERT, UPDATE, MERGE or DELETE statements";
 
     // used during the tokenizer phase
@@ -1050,7 +1051,7 @@ public class Parser {
         }
     }
 
-    public static Prepared prepare(Session s, String sql,
+    private static Prepared prepare(Session s, String sql,
             ArrayList<Value> paramValues) {
         Prepared prep = s.prepare(sql);
         ArrayList<Parameter> params = prep.getParameters();

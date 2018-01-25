@@ -43,6 +43,12 @@ public class CharsetCollator extends Collator {
         return COMPARATOR.compare(toBytes(source), toBytes(target));
     }
 
+    /**
+     * Convert the source to bytes, using the character set.
+     *
+     * @param source the source
+     * @return the bytes
+     */
     byte[] toBytes(String source) {
         return source.getBytes(charset);
     }

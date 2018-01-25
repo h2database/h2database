@@ -389,7 +389,7 @@ public class DataType {
         }
     }
 
-    static void addDecimal() {
+    private static void addDecimal() {
         add(Value.DECIMAL, Types.DECIMAL, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE,
                         ValueDecimal.DEFAULT_PRECISION,
@@ -401,7 +401,7 @@ public class DataType {
         );
     }
 
-    static void addNumeric() {
+    private static void addNumeric() {
         add(Value.DECIMAL, Types.NUMERIC, "BigDecimal",
                 createDecimal(Integer.MAX_VALUE,
                         ValueDecimal.DEFAULT_PRECISION,

@@ -2476,7 +2476,7 @@ public class TestFunctions extends TestBase implements AggregateFunction {
     /**
      * This method is called via reflection from the database.
      *
-     * @returns a fixed number
+     * @return a fixed number
      */
     public static long currentTimestampOverride() {
         return 3141;

@@ -188,6 +188,13 @@ public abstract class Value {
     private static final BigDecimal MIN_LONG_DECIMAL =
             BigDecimal.valueOf(Long.MIN_VALUE);
 
+    /**
+     * Check the range of the parameters.
+     *
+     * @param zeroBasedOffset the offset (0 meaning no offset)
+     * @param length the length of the target
+     * @param dataSize the length of the source
+     */
     static void rangeCheck(long zeroBasedOffset, long length, long dataSize) {
         if ((zeroBasedOffset | length) < 0 || length > dataSize - zeroBasedOffset) {
             if (zeroBasedOffset < 0 || zeroBasedOffset > dataSize) {
@@ -479,10 +486,17 @@ public abstract class Value {
         return new ByteArrayInputStream(getBytesNoCopy());
     }
 
+    /**
+     * Get the input stream
+     * @param oneBasedOffset the offset (1 means no offset)
+     * @param length the requested length
+     * @return the new input stream
+     */
     public InputStream getInputStream(long oneBasedOffset, long length) {
         byte[] bytes = getBytesNoCopy();
-        rangeCheck(--oneBasedOffset, length, bytes.length);
-        return new ByteArrayInputStream(bytes, /* 0-based */ (int) oneBasedOffset, (int) length);
+        long zeroBasedOffset = oneBasedOffset - 1;
+        rangeCheck(zeroBasedOffset, length, bytes.length);
+        return new ByteArrayInputStream(bytes, (int) zeroBasedOffset, (int) length);
     }
 
     public Reader getReader() {
@@ -491,8 +505,9 @@ public abstract class Value {
 
     public Reader getReader(long oneBasedOffset, long length) {
         String string = getString();
-        rangeCheck(--oneBasedOffset, length, string.length());
-        int offset = /* 0-based */ (int) oneBasedOffset;
+        long zeroBasedOffset = oneBasedOffset - 1;
+        rangeCheck(zeroBasedOffset, length, string.length());
+        int offset = (int) zeroBasedOffset;
         return new StringReader(string.substring(offset, offset + (int) length));
     }
 
@@ -578,6 +593,7 @@ public abstract class Value {
      * @param precision the precision of the column to convert this value to.
      *        The special constant <code>-1</code> is used to indicate that
      *        the precision plays no role when converting the value
+     * @param mode the mode
      * @return the converted value
      */
     public final Value convertTo(int targetType, int precision, Mode mode) {

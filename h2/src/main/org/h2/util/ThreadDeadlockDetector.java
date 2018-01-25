@@ -82,6 +82,7 @@ public class ThreadDeadlockDetector {
      * Dump all deadlocks (if any).
      *
      * @param msg the message
+     * @param out the output
      */
     public static void dumpAllThreadsAndLocks(String msg, PrintStream out) {
         final ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();

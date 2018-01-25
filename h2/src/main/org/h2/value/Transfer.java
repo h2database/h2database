@@ -59,6 +59,7 @@ public class Transfer {
      * Create a new transfer object for the specified session.
      *
      * @param session the session
+     * @param s the socket
      */
     public Transfer(SessionInterface session, Socket s) {
         this.session = session;

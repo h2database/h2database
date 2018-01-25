@@ -450,6 +450,8 @@ public abstract class Prepared {
 
     /**
      * Set the temporary views created for CTE's.
+     *
+     * @param cteCleanups the temporary views
      */
     public void setCteCleanups(List<TableView> cteCleanups) {
         this.cteCleanups = cteCleanups;

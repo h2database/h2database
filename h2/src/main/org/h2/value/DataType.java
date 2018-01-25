@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
@@ -1020,7 +1021,7 @@ public class DataType {
             return Value.DATE;
         } else if (LocalDateTimeUtils.LOCAL_TIME == x) {
             return Value.TIME;
-        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x) {
+        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x || LocalDateTimeUtils.INSTANT == x) {
             return Value.TIMESTAMP;
         } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x) {
             return Value.TIMESTAMP_TZ;

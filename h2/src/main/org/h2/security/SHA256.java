@@ -5,10 +5,13 @@
  */
 package org.h2.security;
 
-import java.security.DigestException;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.h2.util.Bits;
 
@@ -17,16 +20,7 @@ import org.h2.util.Bits;
  */
 public class SHA256 {
 
-    private final MessageDigest md;
-
-    private final byte[] result = new byte[32];
-
     private SHA256() {
-        try {
-            md = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -84,40 +78,20 @@ public class SHA256 {
      * @return the hash
      */
     public static byte[] getHMAC(byte[] key, byte[] message) {
-        key = normalizeKeyForHMAC(key);
-        int len = message.length;
-        SHA256 sha = new SHA256();
-        byte[] iKey = new byte[64 + len];
-        byte[] oKey = new byte[64 + 32];
-        sha.calculateHMAC(key, message, len, iKey, oKey);
-        return sha.result;
+        return initMac(key).doFinal(message);
     }
 
-    private void calculateHMAC(byte[] key, byte[] message, int len,
-            byte[] iKey, byte[] oKey) {
-        Arrays.fill(iKey, 0, 64, (byte) 0x36);
-        xor(iKey, key, 64);
-        System.arraycopy(message, 0, iKey, 64, len);
-        calculateHash(iKey, 64 + len);
-        Arrays.fill(oKey, 0, 64, (byte) 0x5c);
-        xor(oKey, key, 64);
-        System.arraycopy(result, 0, oKey, 64, 32);
-        calculateHash(oKey, 64 + 32);
-    }
-
-    private static byte[] normalizeKeyForHMAC(byte[] key) {
-        if (key.length > 64) {
-            key = getHash(key, false);
+    private static Mac initMac(byte[] key) {
+        // Java forbids empty keys
+        if (key.length == 0) {
+            key = new byte[1];
         }
-        if (key.length < 64) {
-            key = Arrays.copyOf(key, 64);
-        }
-        return key;
-    }
-
-    private static void xor(byte[] target, byte[] data, int len) {
-        for (int i = 0; i < len; i++) {
-            target[i] ^= data[i];
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
+            return mac;
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -133,12 +107,10 @@ public class SHA256 {
     public static byte[] getPBKDF2(byte[] password, byte[] salt,
             int iterations, int resultLen) {
         byte[] result = new byte[resultLen];
-        byte[] key = normalizeKeyForHMAC(password);
-        SHA256 sha = new SHA256();
+        Mac mac = initMac(password);
         int len = 64 + Math.max(32, salt.length + 4);
         byte[] message = new byte[len];
-        byte[] iKey = new byte[64 + len];
-        byte[] oKey = new byte[64 + 32];
+        byte[] macRes = null;
         for (int k = 1, offset = 0; offset < resultLen; k++, offset += 32) {
             for (int i = 0; i < iterations; i++) {
                 if (i == 0) {
@@ -146,17 +118,17 @@ public class SHA256 {
                     Bits.writeInt(message, salt.length, k);
                     len = salt.length + 4;
                 } else {
-                    System.arraycopy(sha.result, 0, message, 0, 32);
+                    System.arraycopy(macRes, 0, message, 0, 32);
                     len = 32;
                 }
-                sha.calculateHMAC(key, message, len, iKey, oKey);
+                mac.update(message, 0, len);
+                macRes = mac.doFinal();
                 for (int j = 0; j < 32 && j + offset < resultLen; j++) {
-                    result[j + offset] ^= sha.result[j];
+                    result[j + offset] ^= macRes[j];
                 }
             }
         }
         Arrays.fill(password, (byte) 0);
-        Arrays.fill(key, (byte) 0);
         return result;
     }
 
@@ -169,22 +141,16 @@ public class SHA256 {
      * @return the hash code
      */
     public static byte[] getHash(byte[] data, boolean nullData) {
-        int len = data.length;
-        SHA256 sha = new SHA256();
-        sha.calculateHash(data, len);
+        byte[] result;
+        try {
+            result = MessageDigest.getInstance("SHA-256").digest(data);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         if (nullData) {
             Arrays.fill(data, (byte) 0);
         }
-        return sha.result;
-    }
-
-    private void calculateHash(byte[] data, int len) {
-        try {
-            md.update(data, 0, len);
-            md.digest(result, 0, 32);
-        } catch (DigestException e) {
-            throw new RuntimeException(e);
-        }
+        return result;
     }
 
 }

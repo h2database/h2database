@@ -1016,13 +1016,13 @@ public class DataType {
             return Value.ARRAY;
         } else if (isGeometryClass(x)) {
             return Value.GEOMETRY;
-        } else if (LocalDateTimeUtils.isLocalDate(x)) {
+        } else if (LocalDateTimeUtils.LOCAL_DATE == x) {
             return Value.DATE;
-        } else if (LocalDateTimeUtils.isLocalTime(x)) {
+        } else if (LocalDateTimeUtils.LOCAL_TIME == x) {
             return Value.TIME;
-        } else if (LocalDateTimeUtils.isLocalDateTime(x)) {
+        } else if (LocalDateTimeUtils.LOCAL_DATE_TIME == x) {
             return Value.TIMESTAMP;
-        } else if (LocalDateTimeUtils.isOffsetDateTime(x)) {
+        } else if (LocalDateTimeUtils.OFFSET_DATE_TIME == x) {
             return Value.TIMESTAMP_TZ;
         } else {
             if (JdbcUtils.customDataTypesHandler != null) {
@@ -1141,15 +1141,15 @@ public class DataType {
             return ValueStringFixed.get(((Character) x).toString());
         } else if (isGeometry(x)) {
             return ValueGeometry.getFromGeometry(x);
-        } else if (LocalDateTimeUtils.isLocalDate(x.getClass())) {
+        } else if (x.getClass() == LocalDateTimeUtils.LOCAL_DATE) {
             return LocalDateTimeUtils.localDateToDateValue(x);
-        } else if (LocalDateTimeUtils.isLocalTime(x.getClass())) {
+        } else if (x.getClass() == LocalDateTimeUtils.LOCAL_TIME) {
             return LocalDateTimeUtils.localTimeToTimeValue(x);
-        } else if (LocalDateTimeUtils.isLocalDateTime(x.getClass())) {
+        } else if (x.getClass() == LocalDateTimeUtils.LOCAL_DATE_TIME) {
             return LocalDateTimeUtils.localDateTimeToValue(x);
-        } else if (LocalDateTimeUtils.isInstant(x.getClass())) {
+        } else if (x.getClass() == LocalDateTimeUtils.INSTANT) {
             return LocalDateTimeUtils.instantToValue(x);
-        } else if (LocalDateTimeUtils.isOffsetDateTime(x.getClass())) {
+        } else if (x.getClass() == LocalDateTimeUtils.OFFSET_DATE_TIME) {
             return LocalDateTimeUtils.offsetDateTimeToValue(x);
         } else if (x instanceof TimestampWithTimeZone) {
             return ValueTimestampTimeZone.get((TimestampWithTimeZone) x);

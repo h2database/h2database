@@ -3815,15 +3815,15 @@ public class JdbcResultSet extends TraceObject implements ResultSet, JdbcResultS
             return type.cast(value.getObject());
         } else if (DataType.isGeometryClass(type)) {
             return type.cast(value.getObject());
-        } else if (LocalDateTimeUtils.isLocalDate(type)) {
+        } else if (type == LocalDateTimeUtils.LOCAL_DATE) {
             return type.cast(LocalDateTimeUtils.valueToLocalDate(value));
-        } else if (LocalDateTimeUtils.isLocalTime(type)) {
+        } else if (type == LocalDateTimeUtils.LOCAL_TIME) {
             return type.cast(LocalDateTimeUtils.valueToLocalTime(value));
-        } else if (LocalDateTimeUtils.isLocalDateTime(type)) {
+        } else if (type == LocalDateTimeUtils.LOCAL_DATE_TIME) {
             return type.cast(LocalDateTimeUtils.valueToLocalDateTime(value));
-        } else if (LocalDateTimeUtils.isInstant(type)) {
+        } else if (type == LocalDateTimeUtils.INSTANT) {
             return type.cast(LocalDateTimeUtils.valueToInstant(value));
-        } else if (LocalDateTimeUtils.isOffsetDateTime(type)) {
+        } else if (type == LocalDateTimeUtils.OFFSET_DATE_TIME) {
             return type.cast(LocalDateTimeUtils.valueToOffsetDateTime(value));
         } else {
             throw unsupported(type.getName());

@@ -78,7 +78,6 @@ public class SHA256 {
      * @return the hash
      */
     public static byte[] getHMAC(byte[] key, byte[] message) {
-        key = normalizeKeyForHMAC(key);
         Mac mac = initMac(key);
         return calculateHMAC(mac, message, message.length);
     }
@@ -88,17 +87,11 @@ public class SHA256 {
         return mac.doFinal();
     }
 
-    private static byte[] normalizeKeyForHMAC(byte[] key) {
-        if (key.length > 64) {
-            key = getHash(key, false);
-        }
-        if (key.length < 64) {
-            key = Arrays.copyOf(key, 64);
-        }
-        return key;
-    }
-
     private static Mac initMac(byte[] key) {
+        // Java forbids empty keys
+        if (key.length == 0) {
+            key = new byte[1];
+        }
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
             mac.init(new SecretKeySpec(key, "HmacSHA256"));
@@ -120,8 +113,7 @@ public class SHA256 {
     public static byte[] getPBKDF2(byte[] password, byte[] salt,
             int iterations, int resultLen) {
         byte[] result = new byte[resultLen];
-        byte[] key = normalizeKeyForHMAC(password);
-        Mac mac = initMac(key);
+        Mac mac = initMac(password);
         int len = 64 + Math.max(32, salt.length + 4);
         byte[] message = new byte[len];
         byte[] macRes = null;
@@ -142,7 +134,6 @@ public class SHA256 {
             }
         }
         Arrays.fill(password, (byte) 0);
-        Arrays.fill(key, (byte) 0);
         return result;
     }
 

@@ -216,7 +216,7 @@ public class ValueTimestamp extends Value {
                         tz, year, month, day, hour, minute, (int) second, (int) ms);
                 ms = DateTimeUtils.convertToLocal(
                         new Date(millis),
-                        DateTimeUtils.createGregorianCalendar(TimeZone.getTimeZone("UTC")));
+                        DateTimeUtils.createGregorianCalendar(DateTimeUtils.UTC));
                 long md = DateTimeUtils.MILLIS_PER_DAY;
                 long absoluteDay = (ms >= 0 ? ms : ms - md + 1) / md;
                 dateValue = DateTimeUtils.dateValueFromAbsoluteDay(absoluteDay);
